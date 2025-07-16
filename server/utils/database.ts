@@ -22,8 +22,8 @@ export async function initializeDatabase() {
       return false
     }
 
-    // Read the initial migration file
-    const migrationPath = join(process.cwd(), 'server/database/migrations/0001_initial.sql')
+    // Read the consolidated schema file
+    const migrationPath = join(process.cwd(), 'server/database/migrations/schema.sql')
     const migration = readFileSync(migrationPath, 'utf-8')
 
     // Split the migration into individual statements

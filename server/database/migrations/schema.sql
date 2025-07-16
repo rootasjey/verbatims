@@ -1,13 +1,33 @@
+-- ============================================================================
+-- VERBATIMS QUOTES APPLICATION - CONSOLIDATED DATABASE SCHEMA
+-- ============================================================================
+-- This file contains the complete database schema for the Verbatims quotes
+-- application. It consolidates all previous migration files into a single
+-- source of truth for database structure.
+--
+-- Generated: 2025-07-16
+-- Database: SQLite (Cloudflare D1)
+-- ============================================================================
+
+-- ============================================================================
+-- CORE TABLES
+-- ============================================================================
+
 -- Users table (required for foreign keys)
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  password TEXT, -- Optional for OAuth users
+  password TEXT, -- Optional for OAuth users (added in migration 0002)
   avatar_url TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'moderator', 'admin')),
   is_active BOOLEAN DEFAULT TRUE,
   email_verified BOOLEAN DEFAULT FALSE,
+  biography TEXT,
+  job TEXT,
+  language TEXT,
+  location TEXT,
+  socials TEXT DEFAULT '[]' CHECK (json_valid(socials)),
   last_login_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -33,7 +53,8 @@ CREATE TABLE IF NOT EXISTS authors (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- References table (renamed to avoid reserved keyword)
+-- Quote references table (sources/works that quotes come from)
+-- Updated in migration 0003 to include new primary types: media_stream, writings, video_game
 CREATE TABLE IF NOT EXISTS quote_references (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL CHECK (length(name) >= 2 AND length(name) <= 200),
@@ -54,7 +75,7 @@ CREATE TABLE IF NOT EXISTS quote_references (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Quotes table
+-- Quotes table (main content table)
 CREATE TABLE IF NOT EXISTS quotes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL CHECK (length(name) >= 10 AND length(name) <= 3000),
@@ -78,7 +99,11 @@ CREATE TABLE IF NOT EXISTS quotes (
   FOREIGN KEY (moderator_id) REFERENCES users(id)
 );
 
--- Tags system
+-- ============================================================================
+-- TAGGING SYSTEM
+-- ============================================================================
+
+-- Tags for categorizing quotes
 CREATE TABLE IF NOT EXISTS tags (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
@@ -86,6 +111,7 @@ CREATE TABLE IF NOT EXISTS tags (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Many-to-many relationship between quotes and tags
 CREATE TABLE IF NOT EXISTS quote_tags (
   quote_id INTEGER,
   tag_id INTEGER,
@@ -94,7 +120,11 @@ CREATE TABLE IF NOT EXISTS quote_tags (
   FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
--- User interactions
+-- ============================================================================
+-- USER INTERACTIONS & COLLECTIONS
+-- ============================================================================
+
+-- User likes system (polymorphic - can like quotes, authors, or references)
 CREATE TABLE IF NOT EXISTS user_likes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
@@ -105,6 +135,7 @@ CREATE TABLE IF NOT EXISTS user_likes (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- User collections for organizing favorite quotes
 CREATE TABLE IF NOT EXISTS user_collections (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
@@ -116,6 +147,7 @@ CREATE TABLE IF NOT EXISTS user_collections (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Many-to-many relationship between collections and quotes
 CREATE TABLE IF NOT EXISTS collection_quotes (
   collection_id INTEGER,
   quote_id INTEGER,
@@ -125,9 +157,11 @@ CREATE TABLE IF NOT EXISTS collection_quotes (
   FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
 );
 
--- Additional tables for comprehensive functionality
+-- ============================================================================
+-- AUTHENTICATION & SESSION MANAGEMENT
+-- ============================================================================
 
--- User sessions for auth management
+-- User sessions for authentication management
 CREATE TABLE IF NOT EXISTS user_sessions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
@@ -137,7 +171,11 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Quote reports for moderation
+-- ============================================================================
+-- MODERATION & REPORTING SYSTEM
+-- ============================================================================
+
+-- Quote reports for content moderation
 CREATE TABLE IF NOT EXISTS quote_reports (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   quote_id INTEGER NOT NULL,
@@ -153,7 +191,11 @@ CREATE TABLE IF NOT EXISTS quote_reports (
   FOREIGN KEY (reviewed_by) REFERENCES users(id)
 );
 
--- Quote views tracking for analytics
+-- ============================================================================
+-- ANALYTICS & TRACKING
+-- ============================================================================
+
+-- Quote views tracking for analytics and engagement metrics
 CREATE TABLE IF NOT EXISTS quote_views (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   quote_id INTEGER NOT NULL,
@@ -165,9 +207,15 @@ CREATE TABLE IF NOT EXISTS quote_views (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- Indexes for performance
+-- ============================================================================
+-- INDEXES FOR PERFORMANCE OPTIMIZATION
+-- ============================================================================
+
+-- User table indexes
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+
+-- Quote table indexes
 CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status);
 CREATE INDEX IF NOT EXISTS idx_quotes_author ON quotes(author_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_reference ON quotes(reference_id);
@@ -175,20 +223,36 @@ CREATE INDEX IF NOT EXISTS idx_quotes_user ON quotes(user_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_created ON quotes(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_quotes_featured ON quotes(is_featured);
 CREATE INDEX IF NOT EXISTS idx_quotes_language ON quotes(language);
+
+-- Author table indexes
 CREATE INDEX IF NOT EXISTS idx_authors_name ON authors(name);
+
+-- Reference table indexes
 CREATE INDEX IF NOT EXISTS idx_references_type ON quote_references(primary_type);
 CREATE INDEX IF NOT EXISTS idx_references_imdb ON quote_references(imdb_id);
 CREATE INDEX IF NOT EXISTS idx_references_isbn ON quote_references(isbn);
+
+-- User interaction indexes
 CREATE INDEX IF NOT EXISTS idx_user_likes_user ON user_likes(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_likes_likeable ON user_likes(likeable_type, likeable_id);
+
+-- Session management indexes
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
+
+-- Moderation indexes
 CREATE INDEX IF NOT EXISTS idx_quote_reports_status ON quote_reports(status);
+
+-- Analytics indexes
 CREATE INDEX IF NOT EXISTS idx_quote_views_quote ON quote_views(quote_id);
 CREATE INDEX IF NOT EXISTS idx_quote_views_user ON quote_views(user_id);
 CREATE INDEX IF NOT EXISTS idx_quote_views_date ON quote_views(viewed_at DESC);
 
--- Triggers for updated_at timestamps
+-- ============================================================================
+-- TRIGGERS FOR AUTOMATIC TIMESTAMP UPDATES
+-- ============================================================================
+
+-- Update users.updated_at on any update
 CREATE TRIGGER IF NOT EXISTS update_users_timestamp
 AFTER UPDATE ON users
 FOR EACH ROW
@@ -196,6 +260,7 @@ BEGIN
   UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
+-- Update quotes.updated_at on any update
 CREATE TRIGGER IF NOT EXISTS update_quotes_timestamp
 AFTER UPDATE ON quotes
 FOR EACH ROW
@@ -203,6 +268,7 @@ BEGIN
   UPDATE quotes SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
+-- Update authors.updated_at on any update
 CREATE TRIGGER IF NOT EXISTS update_authors_timestamp
 AFTER UPDATE ON authors
 FOR EACH ROW
@@ -210,6 +276,7 @@ BEGIN
   UPDATE authors SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
+-- Update quote_references.updated_at on any update
 CREATE TRIGGER IF NOT EXISTS update_references_timestamp
 AFTER UPDATE ON quote_references
 FOR EACH ROW
@@ -217,6 +284,7 @@ BEGIN
   UPDATE quote_references SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
+-- Update user_collections.updated_at on any update
 CREATE TRIGGER IF NOT EXISTS update_collections_timestamp
 AFTER UPDATE ON user_collections
 FOR EACH ROW
@@ -224,7 +292,11 @@ BEGIN
   UPDATE user_collections SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
--- Triggers for maintaining counts
+-- ============================================================================
+-- TRIGGERS FOR MAINTAINING COUNTS AND METRICS
+-- ============================================================================
+
+-- Increment view count when a quote is viewed
 CREATE TRIGGER IF NOT EXISTS increment_quote_views
 AFTER INSERT ON quote_views
 FOR EACH ROW
@@ -232,6 +304,7 @@ BEGIN
   UPDATE quotes SET views_count = views_count + 1 WHERE id = NEW.quote_id;
 END;
 
+-- Increment likes count when a user likes something (polymorphic)
 CREATE TRIGGER IF NOT EXISTS increment_likes_count
 AFTER INSERT ON user_likes
 FOR EACH ROW
@@ -246,6 +319,7 @@ BEGIN
   WHERE NEW.likeable_type = 'reference' AND id = NEW.likeable_id;
 END;
 
+-- Decrement likes count when a user unlikes something (polymorphic)
 CREATE TRIGGER IF NOT EXISTS decrement_likes_count
 AFTER DELETE ON user_likes
 FOR EACH ROW
@@ -259,3 +333,7 @@ BEGIN
   UPDATE quote_references SET likes_count = likes_count - 1
   WHERE OLD.likeable_type = 'reference' AND id = OLD.likeable_id;
 END;
+
+-- ============================================================================
+-- END OF SCHEMA
+-- ============================================================================
