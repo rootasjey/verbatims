@@ -59,7 +59,7 @@ async function validateTransformedData() {
     
     // Generate detailed validation report
     const report = validator.generateReport()
-    const reportPath = join(process.cwd(), 'server/database/backups/validation-report.md')
+    const reportPath = join(process.cwd(), 'server/database/backups/references/references-validation-report-' + new Date().toISOString().replace(/[:.]/g, '-') + '.md')
     writeFileSync(reportPath, report)
     console.log(`📋 Detailed validation report saved to: ${reportPath}`)
     

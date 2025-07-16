@@ -43,6 +43,27 @@ GET  /api/admin/data-management/quality-analysis # Quality analysis
 ```
 
 ### Command Line Tools
+
+#### New Modular Migration System (Recommended)
+```bash
+# List available migration types
+node scripts/migrate-data.js --list
+
+# Run references migration (dry run)
+node scripts/migrate-data.js references --dry-run
+
+# Run authors migration (dry run)
+node scripts/migrate-data.js authors --dry-run
+
+# Run actual migrations
+node scripts/migrate-data.js references --verbose
+node scripts/migrate-data.js authors --verbose
+
+# Custom options
+node scripts/migrate-data.js references --batch-size=25 --backup-path=custom/path.json
+```
+
+#### Legacy Tools (Still Supported)
 ```bash
 # Analyze Firebase backup structure
 node scripts/analyze-firebase-backup.js
@@ -56,15 +77,53 @@ node scripts/transform-firebase-data.js
 # Validate transformed data
 node scripts/validate-transformed-data.js
 
-# Run migration (dry run)
+# Run migration (dry run) - redirects to new system
 node scripts/migrate-firebase-data.js --dry-run
-
-# Run actual migration
-node scripts/migrate-firebase-data.js
 
 # Test the entire system
 node scripts/test-import-system.js
 ```
+
+## 🏗️ Modular Migration Architecture
+
+### Migration Types
+The system supports multiple migration types with a unified interface:
+
+- **References** (`references`) - Quote references/sources (books, films, etc.)
+- **Authors** (`authors`) - Author information and biographies
+- **Quotes** (`quotes`) - Individual quotes (future implementation)
+
+### File Organization
+Migration files are organized by type in structured directories:
+
+```
+server/database/backups/
+├── references/
+│   ├── references-validation-report-{timestamp}.md
+│   ├── references-test-results-{timestamp}.json
+│   ├── transformed-references-{timestamp}.json
+│   └── references-migration-report-{timestamp}.md
+├── authors/
+│   ├── authors-validation-report-{timestamp}.md
+│   ├── authors-test-results-{timestamp}.json
+│   └── transformed-authors-{timestamp}.json
+└── quotes/ (future)
+```
+
+### Architecture Components
+
+- **BaseMigrator** - Abstract base class for all migrations
+- **MigrationRegistry** - Discovers and manages migration types
+- **FileManager** - Handles organized file naming and storage
+- **Type-specific Validators** - Custom validation for each data type
+- **Type-specific Transformers** - Custom transformation logic
+
+### Adding New Migration Types
+
+1. Create validator: `server/utils/migration/validators/NewTypeValidator.js`
+2. Create transformer: `server/utils/migration/transformers/NewTypeTransformer.js`
+3. Create migration: `server/utils/migration/types/NewTypeMigration.js`
+4. Register in `MigrationRegistry.js`
 
 ## 📊 Your Firebase Data Analysis
 

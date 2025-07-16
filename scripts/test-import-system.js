@@ -354,7 +354,7 @@ class ImportSystemTester {
       results: this.testResults
     }
     
-    const reportPath = join(process.cwd(), 'test-results.json')
+    const reportPath = join(process.cwd(), 'server/database/backups/references/references-test-results-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json')
     writeFileSync(reportPath, JSON.stringify(report, null, 2))
     console.log(`\n📄 Detailed report saved to: ${reportPath}`)
     
