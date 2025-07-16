@@ -39,6 +39,10 @@ const menuItems = computed(() => [
     label: 'My Submissions',
     icon: 'i-ph-file-text',
     to: '/dashboard/submissions'
+  }, {
+    label: 'Liked Quotes',
+    icon: 'i-ph-heart',
+    to: '/dashboard/liked'
   }],
   [{
     label: 'Settings',

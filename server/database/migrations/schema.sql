@@ -12,26 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Quotes table
-CREATE TABLE IF NOT EXISTS quotes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL CHECK (length(name) >= 10 AND length(name) <= 3000),
-  language TEXT DEFAULT 'en' CHECK (language IN ('en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh')),
-  author_id INTEGER REFERENCES authors(id),
-  reference_id INTEGER REFERENCES references(id),
-  user_id INTEGER NOT NULL REFERENCES users(id),
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'approved', 'rejected')),
-  moderator_id INTEGER REFERENCES users(id),
-  moderated_at DATETIME,
-  rejection_reason TEXT,
-  views_count INTEGER DEFAULT 0,
-  likes_count INTEGER DEFAULT 0,
-  shares_count INTEGER DEFAULT 0,
-  is_featured BOOLEAN DEFAULT FALSE,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Authors table
 CREATE TABLE IF NOT EXISTS authors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,8 +32,8 @@ CREATE TABLE IF NOT EXISTS authors (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- References table
-CREATE TABLE IF NOT EXISTS references (
+-- References table (renamed to avoid reserved keyword)
+CREATE TABLE IF NOT EXISTS quote_references (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL CHECK (length(name) >= 2 AND length(name) <= 200),
   original_language TEXT DEFAULT 'en',
@@ -73,6 +53,30 @@ CREATE TABLE IF NOT EXISTS references (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Quotes table
+CREATE TABLE IF NOT EXISTS quotes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL CHECK (length(name) >= 10 AND length(name) <= 3000),
+  language TEXT DEFAULT 'en' CHECK (language IN ('en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh')),
+  author_id INTEGER,
+  reference_id INTEGER,
+  user_id INTEGER NOT NULL,
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'approved', 'rejected')),
+  moderator_id INTEGER,
+  moderated_at DATETIME,
+  rejection_reason TEXT,
+  views_count INTEGER DEFAULT 0,
+  likes_count INTEGER DEFAULT 0,
+  shares_count INTEGER DEFAULT 0,
+  is_featured BOOLEAN DEFAULT FALSE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (author_id) REFERENCES authors(id),
+  FOREIGN KEY (reference_id) REFERENCES quote_references(id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (moderator_id) REFERENCES users(id)
+);
+
 -- Tags system
 CREATE TABLE IF NOT EXISTS tags (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,36 +86,42 @@ CREATE TABLE IF NOT EXISTS tags (
 );
 
 CREATE TABLE IF NOT EXISTS quote_tags (
-  quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
-  tag_id INTEGER REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (quote_id, tag_id)
+  quote_id INTEGER,
+  tag_id INTEGER,
+  PRIMARY KEY (quote_id, tag_id),
+  FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+  FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
 -- User interactions
 CREATE TABLE IF NOT EXISTS user_likes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL,
   likeable_type TEXT NOT NULL CHECK (likeable_type IN ('quote', 'author', 'reference')),
   likeable_id INTEGER NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(user_id, likeable_type, likeable_id)
+  UNIQUE(user_id, likeable_type, likeable_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS user_collections (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
   is_public BOOLEAN DEFAULT FALSE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS collection_quotes (
-  collection_id INTEGER REFERENCES user_collections(id) ON DELETE CASCADE,
-  quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
+  collection_id INTEGER,
+  quote_id INTEGER,
   added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (collection_id, quote_id)
+  PRIMARY KEY (collection_id, quote_id),
+  FOREIGN KEY (collection_id) REFERENCES user_collections(id) ON DELETE CASCADE,
+  FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
 );
 
 -- Additional tables for comprehensive functionality
@@ -119,33 +129,39 @@ CREATE TABLE IF NOT EXISTS collection_quotes (
 -- User sessions for auth management
 CREATE TABLE IF NOT EXISTS user_sessions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL,
   session_token TEXT NOT NULL UNIQUE,
   expires_at DATETIME NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Quote reports for moderation
 CREATE TABLE IF NOT EXISTS quote_reports (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-  reporter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  quote_id INTEGER NOT NULL,
+  reporter_id INTEGER NOT NULL,
   reason TEXT NOT NULL CHECK (reason IN ('spam', 'inappropriate', 'copyright', 'misinformation', 'other')),
   description TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'resolved')),
-  reviewed_by INTEGER REFERENCES users(id),
+  reviewed_by INTEGER,
   reviewed_at DATETIME,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+  FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewed_by) REFERENCES users(id)
 );
 
 -- Quote views tracking for analytics
 CREATE TABLE IF NOT EXISTS quote_views (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, -- NULL for anonymous views
+  quote_id INTEGER NOT NULL,
+  user_id INTEGER, -- NULL for anonymous views
   ip_address TEXT, -- For anonymous tracking
   user_agent TEXT,
-  viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Indexes for performance
@@ -159,9 +175,9 @@ CREATE INDEX IF NOT EXISTS idx_quotes_created ON quotes(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_quotes_featured ON quotes(is_featured);
 CREATE INDEX IF NOT EXISTS idx_quotes_language ON quotes(language);
 CREATE INDEX IF NOT EXISTS idx_authors_name ON authors(name);
-CREATE INDEX IF NOT EXISTS idx_references_type ON references(primary_type);
-CREATE INDEX IF NOT EXISTS idx_references_imdb ON references(imdb_id);
-CREATE INDEX IF NOT EXISTS idx_references_isbn ON references(isbn);
+CREATE INDEX IF NOT EXISTS idx_references_type ON quote_references(primary_type);
+CREATE INDEX IF NOT EXISTS idx_references_imdb ON quote_references(imdb_id);
+CREATE INDEX IF NOT EXISTS idx_references_isbn ON quote_references(isbn);
 CREATE INDEX IF NOT EXISTS idx_user_likes_user ON user_likes(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_likes_likeable ON user_likes(likeable_type, likeable_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
@@ -194,10 +210,10 @@ BEGIN
 END;
 
 CREATE TRIGGER IF NOT EXISTS update_references_timestamp
-AFTER UPDATE ON references
+AFTER UPDATE ON quote_references
 FOR EACH ROW
 BEGIN
-  UPDATE references SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+  UPDATE quote_references SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS update_collections_timestamp
@@ -225,7 +241,7 @@ BEGIN
   UPDATE authors SET likes_count = likes_count + 1
   WHERE NEW.likeable_type = 'author' AND id = NEW.likeable_id;
 
-  UPDATE references SET likes_count = likes_count + 1
+  UPDATE quote_references SET likes_count = likes_count + 1
   WHERE NEW.likeable_type = 'reference' AND id = NEW.likeable_id;
 END;
 
@@ -239,6 +255,6 @@ BEGIN
   UPDATE authors SET likes_count = likes_count - 1
   WHERE OLD.likeable_type = 'author' AND id = OLD.likeable_id;
 
-  UPDATE references SET likes_count = likes_count - 1
+  UPDATE quote_references SET likes_count = likes_count - 1
   WHERE OLD.likeable_type = 'reference' AND id = OLD.likeable_id;
 END;

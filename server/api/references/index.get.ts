@@ -36,21 +36,21 @@ export default defineEventHandler(async (event) => {
     
     // Main query with quote count
     const referencesQuery = `
-      SELECT 
+      SELECT
         r.*,
         COUNT(q.id) as quotes_count
-      FROM references r
+      FROM quote_references r
       LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'
       ${whereClause}
       GROUP BY r.id
       ORDER BY r.${sortColumn} ${sortDirection}
       LIMIT ? OFFSET ?
     `
-    
+
     // Count query for pagination
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM references r
+      FROM quote_references r
       ${whereClause}
     `
     

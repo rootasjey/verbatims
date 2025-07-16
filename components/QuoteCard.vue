@@ -28,7 +28,8 @@
         <UDropdown :items="dropdownItems" :popper="{ placement: 'bottom-end' }">
           <UButton
             variant="ghost"
-            icon="i-ph-dots-three-vertical"
+            icon
+            label="i-ph-dots-three-vertical"
             size="sm"
             class="opacity-0 group-hover:opacity-100 transition-opacity"
           />
@@ -140,6 +141,13 @@
       </div>
     </template>
   </UCard>
+
+  <!-- Add to Collection Modal -->
+  <AddToCollectionModal
+    v-model="showAddToCollectionModal"
+    :quote="quote"
+    @added="onAddedToCollection"
+  />
 </template>
 
 <script setup>
@@ -222,12 +230,20 @@ const shareQuote = async () => {
 }
 
 // Add to collection
+const showAddToCollectionModal = ref(false)
+
 const addToCollection = () => {
   if (!user.value) {
     navigateTo('/auth/signin')
     return
   }
-  // TODO: Open collection modal
+  showAddToCollectionModal.value = true
+}
+
+// Handle quote added to collection
+const onAddedToCollection = (collection) => {
+  // TODO: Show success toast
+  console.log(`Quote added to collection: ${collection.name}`)
 }
 
 // Report quote

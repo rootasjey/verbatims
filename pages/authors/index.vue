@@ -15,15 +15,15 @@
           <UInput
             v-model="searchQuery"
             placeholder="Search authors..."
-            icon="i-ph-magnifying-glass"
+            leading="i-ph-magnifying-glass"
             size="lg"
             @input="debouncedSearch"
           />
         </div>
         <div class="flex gap-2">
-          <USelectMenu
+          <USelect
             v-model="sortBy"
-            :options="sortOptions"
+            :items="sortOptions"
             placeholder="Sort by"
             @change="loadAuthors"
           />

@@ -30,25 +30,25 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div class="text-center">
             <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.quotes.toLocaleString() }}
+              {{ stats.quotes?.toLocaleString() }}
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400">Quotes</div>
           </div>
           <div class="text-center">
             <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.authors.toLocaleString() }}
+              {{ stats.authors?.toLocaleString() }}
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400">Authors</div>
           </div>
           <div class="text-center">
             <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.references.toLocaleString() }}
+              {{ stats.references?.toLocaleString() }}
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400">References</div>
           </div>
           <div class="text-center">
             <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.users.toLocaleString() }}
+              {{ stats.users?.toLocaleString() }}
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400">Contributors</div>
           </div>
@@ -119,9 +119,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteModal v-model="showSubmitModal" />
   </div>
 </template>
 

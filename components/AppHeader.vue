@@ -50,16 +50,23 @@
           <!-- Search -->
           <UButton
             variant="ghost"
-            icon="i-ph-magnifying-glass"
+            icon
+            label="i-ph-magnifying-glass"
             size="sm"
             @click="openSearch"
-            class="hidden sm:flex"
-          />
+            class="hidden sm:flex items-center space-x-2"
+          >
+            <span class="sr-only">Search</span>
+            <kbd class="hidden lg:inline-block px-1.5 py-0.5 text-xs font-mono bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
+              {{ shortcutKey }}
+            </kbd>
+          </UButton>
 
           <!-- Submit Quote -->
           <UButton
             variant="outline"
-            icon="i-ph-plus"
+            icon
+            label="i-ph-plus"
             size="sm"
             @click="openSubmitModal"
             class="hidden sm:flex"
@@ -70,7 +77,8 @@
           <!-- Theme Toggle -->
           <UButton
             variant="ghost"
-            :icon="colorMode.value === 'dark' ? 'i-ph-sun' : 'i-ph-moon'"
+            icon
+            :label="colorMode?.value === 'dark' ? 'i-ph-sun' : 'i-ph-moon'"
             size="sm"
             @click="toggleTheme"
           />
@@ -84,7 +92,8 @@
           <!-- Mobile Menu Button -->
           <UButton
             variant="ghost"
-            icon="i-ph-list"
+            icon
+            label="i-ph-list"
             size="sm"
             @click="toggleMobileMenu"
             class="md:hidden"
@@ -93,7 +102,7 @@
       </div>
 
       <!-- Mobile Navigation -->
-      <div v-if="showMobileMenu" class="md:hidden border-t border-gray-200 dark:border-gray-700">
+      <div v-if="showMobileMenu" ref="mobileMenuRef" class="md:hidden border-t border-gray-200 dark:border-gray-700">
         <div class="px-2 pt-2 pb-3 space-y-1">
           <NuxtLink
             to="/"
@@ -132,7 +141,8 @@
           <div class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
             <UButton
               variant="outline"
-              icon="i-ph-magnifying-glass"
+              icon
+              label="i-ph-magnifying-glass"
               size="sm"
               @click="openSearch; showMobileMenu = false"
               class="w-full mb-2"
@@ -141,7 +151,8 @@
             </UButton>
             <UButton
               variant="solid"
-              icon="i-ph-plus"
+              icon
+              label="i-ph-plus"
               size="sm"
               @click="openSubmitModal; showMobileMenu = false"
               class="w-full"
@@ -153,11 +164,15 @@
       </div>
     </nav>
 
-    <!-- Search Modal -->
-    <SearchModal v-model="showSearchModal" />
+    <!-- Search Dialog -->
+    <SearchDialog
+      v-model="showSearchModal"
+    />
 
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteModal v-model="showSubmitModal" />
+    <!-- Submit Quote Dialog -->
+    <SubmitQuoteDialog
+      v-model="showSubmitModal"
+    />
   </header>
 </template>
 
@@ -170,8 +185,18 @@ const showMobileMenu = ref(false)
 const showSearchModal = ref(false)
 const showSubmitModal = ref(false)
 
+// Computed properties
+const shortcutKey = computed(() => {
+  if (typeof window !== 'undefined') {
+    return navigator?.userAgent?.includes('Mac') ? '⌘K' : 'Ctrl+K'
+  }
+  return 'Ctrl+K'
+})
+
 const toggleTheme = () => {
-  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+  if (colorMode) {
+    colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+  }
 }
 
 const toggleMobileMenu = () => {
@@ -190,8 +215,36 @@ const signIn = () => {
   navigateTo('/auth/signin')
 }
 
+// Global keyboard shortcuts
+const handleGlobalKeydown = (event) => {
+  // CMD+K on Mac, Ctrl+K on Windows/Linux
+  if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+    event.preventDefault()
+    openSearch()
+    return
+  }
+
+  // Escape to close search modal
+  if (event.key === 'Escape' && showSearchModal.value) {
+    showSearchModal.value = false
+    return
+  }
+}
+
+// Setup global keyboard shortcuts
+onMounted(() => {
+  document.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleGlobalKeydown)
+})
+
+// Template ref for mobile menu
+const mobileMenuRef = ref(null)
+
 // Close mobile menu when clicking outside
-onClickOutside(template, () => {
+onClickOutside(mobileMenuRef, () => {
   showMobileMenu.value = false
 })
 </script>

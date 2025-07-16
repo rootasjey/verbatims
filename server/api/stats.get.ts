@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     const db = hubDatabase()
     
@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     const stats = await Promise.all([
       db.prepare('SELECT COUNT(*) as count FROM quotes WHERE status = ?').bind('approved').first(),
       db.prepare('SELECT COUNT(*) as count FROM authors').first(),
-      db.prepare('SELECT COUNT(*) as count FROM references').first(),
+      db.prepare('SELECT COUNT(*) as count FROM quote_references').first(),
       db.prepare('SELECT COUNT(*) as count FROM users').first(),
       db.prepare('SELECT COUNT(*) as count FROM tags').first(),
       db.prepare('SELECT SUM(views_count) as total FROM quotes WHERE status = ?').bind('approved').first(),

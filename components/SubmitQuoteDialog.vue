@@ -1,5 +1,5 @@
 <template>
-  <UModal v-model="isOpen">
+  <UDialog v-if="isOpen" v-model:open="isOpen">
     <UCard>
       <template #header>
         <h3 class="text-lg font-semibold">Submit a New Quote</h3>
@@ -7,7 +7,8 @@
 
       <form @submit.prevent="submitQuote" class="space-y-4">
         <UFormGroup label="Quote Text" required>
-          <UTextarea 
+          <UInput
+            type="textarea"
             v-model="form.name"
             placeholder="Enter the quote text..."
             :rows="4"
@@ -19,22 +20,20 @@
         </UFormGroup>
 
         <UFormGroup label="Author">
-          <USelectMenu
+          <USelect
             v-model="form.author_id"
-            :options="authors"
-            option-attribute="name"
-            value-attribute="id"
+            :items="authors"
+            item-key="name"
             searchable
             placeholder="Select or search for an author"
           />
         </UFormGroup>
 
         <UFormGroup label="Reference (Book, Movie, etc.)">
-          <USelectMenu
+          <USelect
             v-model="form.reference_id"
-            :options="references"
-            option-attribute="name"
-            value-attribute="id"
+            :items="references"
+            item-key="name"
             searchable
             placeholder="Select or search for a reference"
           />
@@ -43,16 +42,15 @@
         <UFormGroup label="Language">
           <USelect
             v-model="form.language"
-            :options="languages"
+            :items="languages"
           />
         </UFormGroup>
 
         <UFormGroup label="Tags">
-          <USelectMenu
+          <USelect
             v-model="form.tags"
-            :options="tags"
-            option-attribute="name"
-            value-attribute="id"
+            :items="tags"
+            item-key="name"
             multiple
             placeholder="Add tags..."
           />
@@ -72,7 +70,7 @@
         </div>
       </template>
     </UCard>
-  </UModal>
+  </UDialog>
 </template>
 
 <script setup>

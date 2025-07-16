@@ -25,7 +25,8 @@
               <UButton
                 variant="ghost"
                 size="sm"
-                icon="i-simple-icons-github"
+                icon
+                label="i-simple-icons-github"
                 to="https://github.com/verbatims/verbatims"
                 external
               >
@@ -34,7 +35,8 @@
               <UButton
                 variant="ghost"
                 size="sm"
-                icon="i-simple-icons-twitter"
+                icon
+                label="i-simple-icons-twitter"
                 to="https://twitter.com/verbatims"
                 external
               >

@@ -20,7 +20,8 @@
             block
             size="lg"
             variant="outline"
-            icon="i-simple-icons-github"
+            icon
+            label="i-simple-icons-github"
             :loading="loading.github"
             @click="signInWith('github')"
           >
@@ -32,7 +33,8 @@
             block
             size="lg"
             variant="outline"
-            icon="i-simple-icons-google"
+            icon
+            label="i-simple-icons-google"
             :loading="loading.google"
             @click="signInWith('google')"
           >
@@ -56,7 +58,8 @@
             block
             size="lg"
             variant="ghost"
-            icon="i-ph-user"
+            icon
+            label="i-ph-user"
             @click="continueAsGuest"
           >
             Browse as Guest
@@ -112,7 +115,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // SEO
 useHead({
   title: 'Sign In - Verbatims',

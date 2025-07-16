@@ -7,25 +7,34 @@ import { join } from 'path'
 export async function initializeDatabase() {
   try {
     const db = hubDatabase()
-    
+
+    if (!db) {
+      console.log('Database not available, skipping initialization')
+      return false
+    }
+
     // Read the schema file
-    const schemaPath = join(process.cwd(), 'database/migrations/schema.sql')
+    const schemaPath = join(process.cwd(), 'server/database/migrations/schema.sql')
     const schema = readFileSync(schemaPath, 'utf-8')
-    
+
     // Split the schema into individual statements
     const statements = schema
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0)
-    
+
     // Execute each statement
     for (const statement of statements) {
       await db.exec(statement)
     }
-    
+
     console.log('Database initialized successfully')
     return true
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.includes('Missing Cloudflare DB binding')) {
+      console.log('Database not available in development mode')
+      return false
+    }
     console.error('Failed to initialize database:', error)
     return false
   }
@@ -37,10 +46,15 @@ export async function initializeDatabase() {
 export async function seedDatabase() {
   try {
     const db = hubDatabase()
-    
+
+    if (!db) {
+      console.log('Database not available, skipping seeding')
+      return false
+    }
+
     // Check if we already have data
     const existingQuotes = await db.prepare('SELECT COUNT(*) as count FROM quotes').first()
-    if (existingQuotes?.count > 0) {
+    if (Number(existingQuotes?.count) > 0) {
       console.log('Database already seeded')
       return true
     }
@@ -109,7 +123,7 @@ export async function seedDatabase() {
     const referenceIds: number[] = []
     for (const reference of references) {
       const result = await db.prepare(`
-        INSERT INTO references (name, primary_type, secondary_type, release_date, description)
+        INSERT INTO quote_references (name, primary_type, secondary_type, release_date, description)
         VALUES (?, ?, ?, ?, ?)
       `).bind(
         reference.name,
@@ -118,7 +132,7 @@ export async function seedDatabase() {
         reference.release_date,
         reference.description
       ).run()
-      
+
       referenceIds.push(result.meta.last_row_id as number)
     }
     
@@ -213,7 +227,11 @@ export async function seedDatabase() {
     
     console.log('Database seeded successfully')
     return true
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.includes('Missing Cloudflare DB binding')) {
+      console.log('Database not available in development mode')
+      return false
+    }
     console.error('Failed to seed database:', error)
     return false
   }
@@ -229,7 +247,7 @@ export async function getDatabaseStats() {
     const stats = await Promise.all([
       db.prepare('SELECT COUNT(*) as count FROM quotes WHERE status = ?').bind('approved').first(),
       db.prepare('SELECT COUNT(*) as count FROM authors').first(),
-      db.prepare('SELECT COUNT(*) as count FROM references').first(),
+      db.prepare('SELECT COUNT(*) as count FROM quote_references').first(),
       db.prepare('SELECT COUNT(*) as count FROM users').first(),
       db.prepare('SELECT COUNT(*) as count FROM tags').first()
     ])

@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
@@ -80,10 +80,12 @@ export default defineEventHandler(async (event) => {
     `
 
     // Execute queries
-    const [quotes, countResult] = await Promise.all([
+    const [quotesResult, countResult] = await Promise.all([
       db.prepare(quotesQuery).bind(...params, limit, offset).all(),
       db.prepare(countQuery).bind(...params).first()
     ])
+
+    const quotes = quotesResult.results || []
 
     // Transform the results
     const transformedQuotes = quotes.map((quote: any) => ({
@@ -116,7 +118,7 @@ export default defineEventHandler(async (event) => {
       })) : []
     }))
 
-    const total = countResult?.total || 0
+    const total = Number(countResult?.total) || 0
     const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
 

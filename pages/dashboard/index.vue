@@ -59,22 +59,37 @@
           </div>
         </div>
       </UCard>
+
+      <UCard>
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <UIcon name="i-ph-heart" class="h-8 w-8 text-pink-600" />
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Likes Given</p>
+            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ userStats.likes_given }}</p>
+          </div>
+        </div>
+      </UCard>
     </div>
 
     <!-- Quick Actions -->
     <div class="mb-8">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
-        <UButton icon="i-ph-plus" @click="showSubmitModal = true">
+        <UButton icon label="i-ph-plus" @click="showSubmitModal = true">
           Submit New Quote
         </UButton>
-        <UButton variant="outline" icon="i-ph-bookmark" to="/dashboard/collections">
+        <UButton variant="outline" icon label="i-ph-bookmark" to="/dashboard/collections">
           Manage Collections
         </UButton>
-        <UButton variant="outline" icon="i-ph-file-text" to="/dashboard/submissions">
+        <UButton variant="outline" icon label="i-ph-file-text" to="/dashboard/submissions">
           View Submissions
         </UButton>
-        <UButton variant="outline" icon="i-ph-gear" to="/dashboard/settings">
+        <UButton variant="outline" icon label="i-ph-heart" to="/dashboard/liked">
+          Liked Quotes
+        </UButton>
+        <UButton variant="outline" icon label="i-ph-gear" to="/dashboard/settings">
           Account Settings
         </UButton>
       </div>
@@ -166,7 +181,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Require authentication
 definePageMeta({
   middleware: 'auth'

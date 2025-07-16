@@ -8,3 +8,8 @@
     <NuxtRouteAnnouncer />
   </div>
 </template>
+
+<script lang="ts" setup>
+import '@una-ui/preset/una.css'
+import '@/styles/main.css'
+</script>

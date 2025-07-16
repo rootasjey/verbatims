@@ -3,38 +3,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
 
-  modules: [
-    '@nuxt/image',
-    '@nuxt/test-utils',
-    '@pinia/nuxt',
-    '@nuxthub/core',
-    'nuxt-auth-utils',
-    '@una-ui/nuxt'
-  ],
-
-  // NuxtHub configuration
-  hub: {
-    database: true,
-    kv: true,
-    blob: true,
-    analytics: true
-  },
-
-  // Authentication configuration
-  auth: {
-    baseURL: process.env.AUTH_ORIGIN,
-    providers: {
-      github: {
-        clientId: process.env.NUXT_OAUTH_GITHUB_CLIENT_ID,
-        clientSecret: process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET
-      },
-      google: {
-        clientId: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID,
-        clientSecret: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET
-      }
-    }
-  },
-
   // App configuration
   app: {
     head: {
@@ -47,8 +15,26 @@ export default defineNuxtConfig({
     }
   },
 
+  modules: [
+    '@nuxt/image',
+    '@nuxt/test-utils',
+    '@pinia/nuxt',
+    '@nuxthub/core',
+    'nuxt-auth-utils',
+    '@una-ui/nuxt'
+  ],
+
+  // NuxtHub configuration
+  hub: {
+    analytics: true,
+    blob: true,
+    cache: true,
+    database: true,
+    kv: true,
+  },
+
   // CSS configuration
-  css: ['~/assets/css/main.css'],
+  // css: ['~/assets/css/main.css'],
 
   // Runtime config
   runtimeConfig: {
@@ -66,5 +52,37 @@ export default defineNuxtConfig({
     cloudflare: {
       baseURL: 'https://verbatims.pages.dev'
     }
-  }
+  },
+  
+  unocss: {
+    preflight: true,
+    icons: {
+      scale: 1.0,
+      extraProperties: {
+        "display": "inline-block",
+        "vertical-align": "middle",
+      },
+    },
+    theme: {
+      colors: {
+        primary: {
+          DEFAULT: '#687FE5',
+          50: '#F4F5FF',
+          100: '#E9EDFF',
+          200: '#DDE2FF',
+          300: '#CDD4FF',
+          400: '#BCC7FF',
+          500: '#687FE5',
+          600: '#576ED3',
+          700: '#4659B7',
+          800: '#2E3E93',
+          900: '#161F70',
+        },
+      },
+    },
+  },
+  una: {
+    prefix: "U",
+    themeable: true,
+  },
 })

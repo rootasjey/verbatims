@@ -145,9 +145,9 @@
           </h2>
           
           <!-- Sort Options -->
-          <USelectMenu
+          <USelect
             v-model="sortBy"
-            :options="sortOptions"
+            :items="sortOptions"
             @change="loadQuotes"
           />
         </div>

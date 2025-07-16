@@ -153,29 +153,32 @@
           </template>
           
           <div class="space-y-3">
-            <UButton 
+            <UButton
               v-if="user"
               block
               variant="outline"
-              icon="i-ph-bookmark"
+              icon
+              label="i-ph-bookmark"
               @click="addToCollection"
             >
               Add to Collection
             </UButton>
-            
-            <UButton 
+
+            <UButton
               block
               variant="outline"
-              icon="i-ph-download"
+              icon
+              label="i-ph-download"
               @click="downloadQuote"
             >
               Download Image
             </UButton>
-            
-            <UButton 
+
+            <UButton
               block
               variant="outline"
-              icon="i-ph-flag"
+              icon
+              label="i-ph-flag"
               @click="reportQuote"
             >
               Report Quote
@@ -207,6 +210,13 @@
       <UButton to="/">Browse Quotes</UButton>
     </div>
   </div>
+
+  <!-- Add to Collection Modal -->
+  <AddToCollectionModal
+    v-model="showAddToCollectionModal"
+    :quote="quote"
+    @added="onAddedToCollection"
+  />
 </template>
 
 <script setup>
@@ -306,8 +316,16 @@ const shareQuote = async () => {
 }
 
 // Other actions
+const showAddToCollectionModal = ref(false)
+
 const addToCollection = () => {
-  // TODO: Open collection modal
+  showAddToCollectionModal.value = true
+}
+
+// Handle quote added to collection
+const onAddedToCollection = (collection) => {
+  // TODO: Show success toast
+  console.log(`Quote added to collection: ${collection.name}`)
 }
 
 const downloadQuote = () => {
