@@ -1,17 +1,25 @@
 <template>
   <UCard
     :class="[
-      'quote-card group transition-all duration-200',
-      featured ? 'ring-2 ring-primary-500 shadow-lg' : 'hover:shadow-lg'
+      'quote-card group transition-all duration-300 h-full',
+      featured ? 'ring-2 ring-primary-500 shadow-lg bg-gradient-to-br from-primary-50/50 to-primary-100/30 dark:from-primary-900/20 dark:to-primary-800/10' : ''
     ]"
+    :ui="{
+      background: 'bg-white dark:bg-gray-800',
+      shadow: '',
+      ring: '',
+      rounded: 'rounded-xl',
+      divide: '',
+      body: { padding: 'p-6' }
+    }"
   >
     <template #header>
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex items-start justify-between gap-4 mb-4">
         <div class="flex-1 min-w-0">
           <blockquote
             :class="[
-              'font-medium leading-relaxed text-balance',
-              featured ? 'text-xl sm:text-2xl' : 'text-lg'
+              'quote-text quote-content text-balance mb-4',
+              featured ? 'text-xl sm:text-2xl lg:text-3xl font-semibold' : ''
             ]"
           >
             "{{ quote.name }}"
@@ -39,33 +47,33 @@
 
     <div class="space-y-4">
       <!-- Author -->
-      <div v-if="quote.author" class="flex items-center space-x-3">
+      <div v-if="quote.author" class="flex items-center space-x-3 mb-3">
         <UAvatar
           :src="quote.author.image_url"
           :alt="quote.author.name"
-          size="sm"
+          :size="featured ? 'md' : 'sm'"
           :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
         />
         <div>
           <NuxtLink
             :to="`/authors/${quote.author.id}`"
-            class="text-sm font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            class="quote-author hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
           >
             {{ quote.author.name }}
           </NuxtLink>
-          <p v-if="quote.author.is_fictional" class="text-xs text-gray-500 dark:text-gray-400">
+          <p v-if="quote.author.is_fictional" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             Fictional Character
           </p>
         </div>
       </div>
 
       <!-- Reference -->
-      <div v-if="quote.reference" class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-        <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4" />
+      <div v-if="quote.reference" class="flex items-center space-x-2 quote-reference mb-4">
+        <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 flex-shrink-0" />
         <span>From:</span>
         <NuxtLink
           :to="`/references/${quote.reference.id}`"
-          class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+          class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors truncate"
         >
           {{ quote.reference.name }}
         </NuxtLink>

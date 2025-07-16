@@ -157,7 +157,7 @@
       <!-- Quick Actions -->
       <div>
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           <UButton
             block
             icon
@@ -184,6 +184,24 @@
             to="/admin/authors"
           >
             Manage Authors
+          </UButton>
+          <UButton
+            block
+            variant="outline"
+            icon
+            label="i-ph-upload"
+            to="/admin/import"
+          >
+            Import Data
+          </UButton>
+          <UButton
+            block
+            variant="outline"
+            icon
+            label="i-ph-database"
+            to="/admin/data-management"
+          >
+            Data Management
           </UButton>
           <UButton
             block

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS quote_references (
   original_language TEXT DEFAULT 'en',
   release_date DATE,
   description TEXT,
-  primary_type TEXT NOT NULL CHECK (primary_type IN ('film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'other')),
+  primary_type TEXT NOT NULL CHECK (primary_type IN ('film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'media_stream', 'writings', 'video_game', 'other')),
   secondary_type TEXT, -- genre/category like 'horror', 'comedy', 'biography', etc.
   image_url TEXT,
   urls TEXT DEFAULT '[]' CHECK (json_valid(urls)), -- JSON array of related URLs

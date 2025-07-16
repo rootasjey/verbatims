@@ -95,7 +95,78 @@ body {
   }
 }
 
-/* Grid layout for quotes */
+/* Enhanced Grid layout for quotes */
+.quotes-grid-enhanced {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .quotes-grid-enhanced {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quotes-grid-enhanced {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 2.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .quotes-grid-enhanced {
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 3rem;
+  }
+}
+
+/* Quote grid item styling */
+.quote-grid-item {
+  border: 1px dashed rgb(var(--color-gray-300) / 0.6);
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+}
+
+.dark .quote-grid-item {
+  border-color: rgb(var(--color-gray-600) / 0.4);
+}
+
+.quote-grid-item:hover {
+  border-color: rgb(var(--color-primary-400) / 0.8);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgb(var(--color-primary-500) / 0.1);
+  transform: translateY(-2px);
+}
+
+.dark .quote-grid-item:hover {
+  border-color: rgb(var(--color-primary-400) / 0.6);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgb(var(--color-primary-400) / 0.2);
+}
+
+/* Quote skeleton for loading state */
+.quote-skeleton {
+  border: 1px dashed rgb(var(--color-gray-200) / 0.8);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: rgb(var(--color-gray-50) / 0.5);
+}
+
+.dark .quote-skeleton {
+  border-color: rgb(var(--color-gray-700) / 0.6);
+  background: rgb(var(--color-gray-800) / 0.3);
+}
+
+/* Legacy grid support */
 .quotes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -111,17 +182,67 @@ body {
   }
 }
 
-/* Responsive text sizes */
+/* Enhanced typography for quotes */
 .quote-text {
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgb(var(--color-gray-900));
 }
 
-@media (min-width: 768px) {
+.dark .quote-text {
+  color: rgb(var(--color-gray-100));
+}
+
+@media (min-width: 640px) {
   .quote-text {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     line-height: 1.8;
   }
+}
+
+@media (min-width: 1024px) {
+  .quote-text {
+    font-size: 1.375rem;
+    line-height: 1.85;
+  }
+}
+
+/* Quote author typography */
+.quote-author {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: rgb(var(--color-gray-700));
+}
+
+.dark .quote-author {
+  color: rgb(var(--color-gray-300));
+}
+
+@media (min-width: 640px) {
+  .quote-author {
+    font-size: 1rem;
+  }
+}
+
+/* Quote reference typography */
+.quote-reference {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(var(--color-gray-600));
+}
+
+.dark .quote-reference {
+  color: rgb(var(--color-gray-400));
+}
+
+/* Enhanced readability */
+.quote-content {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Tag styles */

@@ -56,19 +56,18 @@
       </div>
     </section>
 
-    <!-- Featured Quote -->
-    <section v-if="featuredQuote" class="mb-12">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-bold text-center mb-8">Featured Quote</h2>
-        <QuoteCard :quote="featuredQuote" featured />
-      </div>
-    </section>
-
-    <!-- Latest Quotes -->
+    <!-- Quotes Collection -->
     <section>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl font-bold">Latest Quotes</h2>
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Discover Quotes
+            </h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300">
+              Curated wisdom from authors, films, books, and more
+            </p>
+          </div>
           <UButton variant="ghost" to="/quotes" class="hidden sm:flex">
             View All
             <UIcon name="i-ph-arrow-right" class="w-4 h-4 ml-2" />
@@ -76,23 +75,28 @@
         </div>
 
         <!-- Loading State -->
-        <div v-if="pending" class="quotes-grid">
-          <div v-for="i in 6" :key="i" class="animate-pulse">
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+        <div v-if="pending" class="quotes-grid-enhanced">
+          <div v-for="i in 6" :key="i" class="quote-skeleton">
+            <div class="animate-pulse">
+              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-4"></div>
+              <div class="flex items-center space-x-4">
+                <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Quotes Grid -->
-        <div v-else class="quotes-grid">
+        <div v-else class="quotes-grid-enhanced">
           <QuoteCard
-            v-for="quote in displayedQuotes"
+            v-for="quote in allQuotes"
             :key="quote.id"
             :quote="quote"
-            class="fade-in"
+            :featured="quote.id === featuredQuote?.id"
+            class="quote-grid-item fade-in"
           />
         </div>
 
@@ -111,7 +115,7 @@
         </div>
 
         <!-- Empty State -->
-        <div v-if="!pending && displayedQuotes.length === 0" class="text-center py-16">
+        <div v-if="!pending && allQuotes.length === 0" class="text-center py-16">
           <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No quotes yet</h3>
           <p class="text-gray-500 dark:text-gray-400 mb-6">Be the first to submit a quote!</p>
@@ -119,6 +123,9 @@
         </div>
       </div>
     </section>
+
+    <!-- Submit Quote Dialog -->
+    <SubmitQuoteDialog v-model="showSubmitModal" />
   </div>
 </template>
 
@@ -149,6 +156,18 @@ const currentPage = ref(1)
 // Computed
 const stats = computed(() => statsData.value || { quotes: 0, authors: 0, references: 0, users: 0 })
 const featuredQuote = computed(() => featuredData.value?.data)
+
+// Merge featured quote with displayed quotes for unified grid
+const allQuotes = computed(() => {
+  const quotes = [...(displayedQuotes.value || [])]
+
+  // Add featured quote at the beginning if it exists and isn't already in the list
+  if (featuredQuote.value && !quotes.find(q => q.id === featuredQuote.value.id)) {
+    quotes.unshift(featuredQuote.value)
+  }
+
+  return quotes
+})
 
 // Methods
 const openSubmitModal = () => {
