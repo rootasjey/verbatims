@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
+  password TEXT, -- Optional for OAuth users
   avatar_url TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'moderator', 'admin')),
   is_active BOOLEAN DEFAULT TRUE,

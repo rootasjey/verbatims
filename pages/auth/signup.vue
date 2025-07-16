@@ -6,7 +6,7 @@
           <UIcon name="i-ph-quotes" class="h-6 w-6 text-primary-600 dark:text-primary-400" />
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-          Sign in to Verbatims
+          Create your account
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
           Join our community of quote enthusiasts
@@ -25,8 +25,20 @@
             @close="error = ''"
           />
 
-          <!-- Email/Password Sign In Form -->
-          <form @submit.prevent="signInWithEmail" class="space-y-4">
+          <!-- Email/Password Sign Up Form -->
+          <form @submit.prevent="signUpWithEmail" class="space-y-4">
+            <div>
+              <UFormGroup label="Name" name="name" required>
+                <UInput
+                  v-model="form.name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  required
+                  :disabled="loading.email"
+                />
+              </UFormGroup>
+            </div>
+
             <div>
               <UFormGroup label="Email" name="email" required>
                 <UInput
@@ -38,13 +50,25 @@
                 />
               </UFormGroup>
             </div>
-
+            
             <div>
               <UFormGroup label="Password" name="password" required>
                 <UInput
                   v-model="form.password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Enter your password (min. 8 characters)"
+                  required
+                  :disabled="loading.email"
+                />
+              </UFormGroup>
+            </div>
+
+            <div>
+              <UFormGroup label="Confirm Password" name="confirmPassword" required>
+                <UInput
+                  v-model="form.confirmPassword"
+                  type="password"
+                  placeholder="Confirm your password"
                   required
                   :disabled="loading.email"
                 />
@@ -57,7 +81,7 @@
               size="lg"
               :loading="loading.email"
             >
-              Sign In
+              Create Account
             </UButton>
           </form>
 
@@ -130,13 +154,13 @@
         <template #footer>
           <div class="text-center space-y-2">
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?
-              <NuxtLink to="/auth/signup" class="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-                Sign up
+              Already have an account?
+              <NuxtLink to="/auth/signin" class="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                Sign in
               </NuxtLink>
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              By signing in, you agree to our
+              By creating an account, you agree to our
               <NuxtLink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">
                 Terms of Service
               </NuxtLink>
@@ -152,7 +176,7 @@
       <!-- Features -->
       <div class="mt-8">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 text-center">
-          Why sign in?
+          What you'll get
         </h3>
         <div class="grid grid-cols-1 gap-4">
           <div class="flex items-start space-x-3">
@@ -185,9 +209,9 @@
 <script setup lang="ts">
 // SEO
 useHead({
-  title: 'Sign In - Verbatims',
+  title: 'Sign Up - Verbatims',
   meta: [
-    { name: 'description', content: 'Sign in to Verbatims to submit quotes, create collections, and join our community.' }
+    { name: 'description', content: 'Create an account on Verbatims to submit quotes, create collections, and join our community.' }
   ]
 })
 
@@ -199,8 +223,10 @@ if (user.value) {
 
 // Form data
 const form = ref({
+  name: '',
   email: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
 // Loading states
@@ -213,10 +239,21 @@ const loading = ref({
 // Error state
 const error = ref('')
 
-// Sign in with email/password
-const signInWithEmail = async () => {
-  if (!form.value.email || !form.value.password) {
+// Sign up with email/password
+const signUpWithEmail = async () => {
+  // Validation
+  if (!form.value.name || !form.value.email || !form.value.password || !form.value.confirmPassword) {
     error.value = 'Please fill in all fields'
+    return
+  }
+
+  if (form.value.password.length < 8) {
+    error.value = 'Password must be at least 8 characters long'
+    return
+  }
+
+  if (form.value.password !== form.value.confirmPassword) {
+    error.value = 'Passwords do not match'
     return
   }
 
@@ -224,9 +261,10 @@ const signInWithEmail = async () => {
   error.value = ''
 
   try {
-    const { user } = await $fetch('/api/auth/login', {
+    const { user } = await $fetch('/api/auth/register', {
       method: 'POST',
       body: {
+        name: form.value.name,
         email: form.value.email,
         password: form.value.password
       }
@@ -234,12 +272,12 @@ const signInWithEmail = async () => {
 
     // Refresh user session
     await refreshCookie('nuxt-session')
-
+    
     // Redirect to dashboard
     await navigateTo('/dashboard')
   } catch (err: any) {
-    console.error('Email sign in error:', err)
-    error.value = err.data?.message || 'Invalid email or password'
+    console.error('Email sign up error:', err)
+    error.value = err.data?.message || 'Failed to create account'
   } finally {
     loading.value.email = false
   }
