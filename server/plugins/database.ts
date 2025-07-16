@@ -1,7 +1,6 @@
 export default defineNitroPlugin(async (nitroApp) => {
   // Initialize database on startup
   console.log('Initializing database...')
-  return
 
   try {
     // Check if database is available
@@ -24,10 +23,7 @@ export default defineNitroPlugin(async (nitroApp) => {
       console.error('Failed to initialize database')
     }
   } catch (error: any) {
-    if (error.message?.includes('Missing Cloudflare DB binding')) {
-      console.log('Database not available in development mode, skipping initialization')
-      return
-    }
     console.error('Database initialization error:', error)
+    console.error('Error details:', error?.message || error)
   }
 })

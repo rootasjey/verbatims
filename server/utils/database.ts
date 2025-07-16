@@ -13,19 +13,35 @@ export async function initializeDatabase() {
       return false
     }
 
-    // Read the schema file
-    const schemaPath = join(process.cwd(), 'server/database/migrations/schema.sql')
-    const schema = readFileSync(schemaPath, 'utf-8')
+    // Test database connection
+    try {
+      await db.prepare('SELECT 1').first()
+      console.log('Database connection successful')
+    } catch (error) {
+      console.log('Database connection failed:', error)
+      return false
+    }
 
-    // Split the schema into individual statements
-    const statements = schema
+    // Read the initial migration file
+    const migrationPath = join(process.cwd(), 'server/database/migrations/0001_initial.sql')
+    const migration = readFileSync(migrationPath, 'utf-8')
+
+    // Split the migration into individual statements
+    const statements = migration
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0)
 
-    // Execute each statement
+    // Execute each statement using prepare/run instead of exec
     for (const statement of statements) {
-      await db.exec(statement)
+      try {
+        await db.prepare(statement).run()
+        console.log('Executed SQL statement successfully')
+      } catch (sqlError) {
+        console.error('Failed to execute SQL statement:', statement.substring(0, 100) + '...')
+        console.error('SQL Error:', sqlError)
+        throw sqlError
+      }
     }
 
     console.log('Database initialized successfully')
@@ -36,6 +52,7 @@ export async function initializeDatabase() {
       return false
     }
     console.error('Failed to initialize database:', error)
+    console.error('Error details:', error?.message || error)
     return false
   }
 }
