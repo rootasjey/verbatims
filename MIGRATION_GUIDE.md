@@ -34,13 +34,19 @@ node scripts/migrate-data.js authors [options]
 - SQL Table: `authors`
 - Fields: name, bio, birth_date, death_date, nationality, etc.
 
-### 3. Quotes Migration (Future)
-Will migrate individual quotes linking authors and references.
+### 3. Quotes Migration
+Migrates individual quotes linking authors and references from Firebase to SQLite.
 
 **Command:**
 ```bash
 node scripts/migrate-data.js quotes [options]
 ```
+
+**Data Structure:**
+- Firebase: `quotes_part_*.json` (10 files with ~1,901 total quotes)
+- SQL Table: `quotes`
+- Fields: name, language, author_id, reference_id, user_id, status, metrics, etc.
+- Topics: Converted to tags system with quote_tags relationships
 
 ## Command Line Options
 

@@ -188,49 +188,56 @@ export class MigrationConfig {
       quotes: {
         tableName: 'quotes',
         primaryKey: 'id',
-        requiredFields: ['content', 'author_id', 'reference_id'],
+        requiredFields: ['name', 'user_id'],
         optionalFields: [
-          'context', 'page_number', 'timestamp', 'language', 'tags',
-          'views_count', 'likes_count', 'shares_count', 'created_at', 'updated_at'
+          'language', 'author_id', 'reference_id', 'status', 'moderator_id',
+          'moderated_at', 'rejection_reason', 'views_count', 'likes_count',
+          'shares_count', 'is_featured', 'created_at', 'updated_at'
         ],
         validationRules: {
-          content: {
+          name: {
             type: 'string',
             minLength: 10,
-            maxLength: 5000,
+            maxLength: 3000,
             required: true
-          },
-          author_id: {
-            type: 'integer',
-            required: true,
-            foreignKey: 'authors.id'
-          },
-          reference_id: {
-            type: 'integer',
-            required: true,
-            foreignKey: 'quote_references.id'
-          },
-          context: {
-            type: 'string',
-            maxLength: 1000
-          },
-          page_number: {
-            type: 'integer',
-            min: 1,
-            nullable: true
-          },
-          timestamp: {
-            type: 'string',
-            nullable: true
           },
           language: {
             type: 'string',
             default: 'en',
-            pattern: /^[a-z]{2}$/
+            enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh']
           },
-          tags: {
-            type: 'json',
-            default: '[]'
+          author_id: {
+            type: 'integer',
+            nullable: true,
+            foreignKey: 'authors.id'
+          },
+          reference_id: {
+            type: 'integer',
+            nullable: true,
+            foreignKey: 'quote_references.id'
+          },
+          user_id: {
+            type: 'integer',
+            required: true,
+            foreignKey: 'users.id'
+          },
+          status: {
+            type: 'string',
+            default: 'approved',
+            enum: ['draft', 'approved', 'rejected']
+          },
+          moderator_id: {
+            type: 'integer',
+            nullable: true,
+            foreignKey: 'users.id'
+          },
+          moderated_at: {
+            type: 'datetime',
+            nullable: true
+          },
+          rejection_reason: {
+            type: 'string',
+            nullable: true
           },
           views_count: {
             type: 'integer',
@@ -246,22 +253,37 @@ export class MigrationConfig {
             type: 'integer',
             min: 0,
             default: 0
+          },
+          is_featured: {
+            type: 'boolean',
+            default: false
+          },
+          created_at: {
+            type: 'datetime',
+            nullable: true
+          },
+          updated_at: {
+            type: 'datetime',
+            nullable: true
           }
         },
         transformationMappings: {
-          'content': 'content',
+          'name': 'name',
+          'language': 'language',
           'author': 'author_id',
           'reference': 'reference_id',
-          'context': 'context',
-          'page': 'page_number',
-          'timestamp': 'timestamp',
-          'language': 'language',
-          'tags': 'tags',
+          'user': 'user_id',
+          'metrics.likes': 'likes_count',
+          'metrics.shares': 'shares_count',
           'created_at': 'created_at',
           'updated_at': 'updated_at'
         },
         batchSize: 25,
-        backupRequired: true
+        backupRequired: true,
+        multipleFiles: true,
+        filePattern: 'quotes_part_*.json',
+        defaultUserId: 1, // Default user for migration
+        defaultStatus: 'approved' // Existing quotes are approved
       }
     }
 

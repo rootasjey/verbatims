@@ -77,8 +77,8 @@ node scripts/transform-firebase-data.js
 # Validate transformed data
 node scripts/validate-transformed-data.js
 
-# Run migration (dry run) - redirects to new system
-node scripts/migrate-firebase-data.js --dry-run
+# Run migration (dry run) - use new modular system
+node scripts/migrate-data.js references --dry-run
 
 # Test the entire system
 node scripts/test-import-system.js
@@ -230,10 +230,10 @@ const importOptions = {
 node scripts/analyze-firebase-backup.js
 
 # 2. Test transformation
-node scripts/migrate-firebase-data.js --dry-run --verbose
+node scripts/migrate-data.js references --dry-run --verbose
 
 # 3. Run actual migration
-node scripts/migrate-firebase-data.js --batch-size=50
+node scripts/migrate-data.js references --batch-size=50
 
 # 4. Verify results
 node scripts/test-import-system.js

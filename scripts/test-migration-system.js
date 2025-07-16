@@ -28,7 +28,7 @@ class MigrationSystemTester {
       await this.testFileOrganization()
       await this.testReferencesMigration()
       await this.testAuthorsMigration()
-      await this.testLegacyCompatibility()
+      await this.testQuotesMigration()
       await this.testErrorHandling()
 
       this.printSummary()
@@ -251,24 +251,46 @@ class MigrationSystemTester {
     }
   }
 
-  async testLegacyCompatibility() {
-    console.log('\n🔄 Testing Legacy Script Compatibility...')
-    
+  async testQuotesMigration() {
+    console.log('\n📝 Testing Quotes Migration...')
+
     try {
-      // Test that legacy script file exists
-      const legacyScriptPath = join(process.cwd(), 'scripts/migrate-firebase-data.js')
+      const migration = migrationRegistry.createMigration('quotes', {
+        dryRun: true,
+        verbose: false,
+        batchSize: 10
+      })
+
+      // Test data loading
+      const sourceData = await migration.loadSourceData()
       this.assert(
-        existsSync(legacyScriptPath),
-        'Legacy script should exist'
+        sourceData && typeof sourceData === 'object',
+        'Should load quotes source data successfully'
       )
-      
-      // Test that it imports without errors
-      const { runLegacyMigration } = await import('../scripts/migrate-firebase-data.js')
-      
-      console.log('   ✅ Legacy compatibility passed')
-      
+
+      // Test transformation
+      const transformedData = await migration.transformData(sourceData)
+      this.assert(
+        Array.isArray(transformedData),
+        'Should return transformed quotes data as array'
+      )
+
+      this.assert(
+        transformedData.length > 0,
+        'Should transform at least some quote records'
+      )
+
+      // Test validation
+      const validationResult = await migration.validateData(transformedData)
+      this.assert(
+        validationResult && typeof validationResult === 'object',
+        'Should return quotes validation result'
+      )
+
+      console.log(`   ✅ Quotes migration passed (${transformedData.length} records)`)
+
     } catch (error) {
-      this.fail('Legacy compatibility test failed', error)
+      this.fail('Quotes migration test failed', error)
     }
   }
 

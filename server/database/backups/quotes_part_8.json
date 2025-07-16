@@ -1,0 +1,5927 @@
+{
+  "meta": {
+    "format": "JSON",
+    "version": "1.1.0",
+    "projectId": "memorare-98eee",
+    "resourcePath": [
+      "quotes"
+    ],
+    "recursive": false,
+    "creationTime": 1752639713,
+    "app": "firefoo"
+  },
+  "data": {
+    "hmiRWZYkS9BbnISl2TX9": {
+      "author": {
+        "id": "u7mqAyOVwpVGWz4sTECr",
+        "name": "Unknown"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T15:34:24.873Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The first thought that goes through your mind is what you have been conditioned to think. What you think next defines who you are.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:56.259Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "hq54LkPkWTOEf1jCy4du": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T11:12:14.338Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "My hate is general. I detest all men.\nSome because they are wicked and do evil. Others because they tolerate the wicked. Refusing them the active vigorous scorn which vice should stimulate in virtuous minds.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "ADj08wLPKvfr3F7UIEA0",
+        "name": "The Misanthrope"
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:56.385Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "hqlp77kXlG4KLR7GRYG2": {
+      "author": {
+        "id": "WN8tqPf5X0xKaxp8BLz7",
+        "name": "Guy de Montargis"
+      },
+      "created_at": {
+        "__time__": "2020-11-02T22:41:27.572Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It is written that you cannot kill that which lives no more.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "EDRwqgBONNg8cAaAhg8q",
+        "name": "La Révolution"
+      },
+      "topics": {
+        "biology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:56.515Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "htcork4diDBZCpSlNc6E": {
+      "author": {
+        "id": "SJmLzfh6oXaXcNL8RHNE",
+        "name": "Jim Rohn"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:44:45.478Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Never wish life were easier, wish that you were better.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:56.645Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "hvZmY3TCtfLvximyX5er": {
+      "author": {
+        "id": "oJzJ8OHoBDuLweHPrY6d",
+        "name": "Janelle Monáe"
+      },
+      "created_at": {
+        "__time__": "2023-12-09T14:06:14.322Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "À quoi sert l'amour s'il brûle vivement et explose en flammes ?",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "TEcENVKCao7AN2wpMZFt",
+        "name": "Sincerely, Jane"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "poetry": true
+      },
+      "update_at": {
+        "__time__": "2023-12-09T23:39:57.573Z"
+      },
+      "updated_at": {
+        "__time__": "2023-12-09T23:39:58.377Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "hx1v3hhdVx6l1RIYvVhF": {
+      "author": {
+        "id": "6t7GKemEtoylmk0gEDDb",
+        "name": "Rosa Parks"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:23.810Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Each person must live their life as a model for others.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:56.773Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "hyNg2Yf5pbgusElGEFzf": {
+      "author": {
+        "id": "3iwFqYOpGSrbr0QhE3X6",
+        "name": "Pablo Picasso"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:45:10.718Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Every child is an artist. The problem is how to remain an artist once he grows up.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "art": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:56.896Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "hzMVJ99RcXHgnZ7ZW6bP": {
+      "author": {
+        "id": "S2P4XX0WBzeEamIM1mRO",
+        "name": "Gus Mancuso"
+      },
+      "created_at": {
+        "__time__": "2021-03-08T22:50:52.195Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "The drowning man will always try and drag somebody down with him.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "Cz4cpI8QwSUUoecQPuqP",
+        "name": "Passengers"
+      },
+      "topics": {
+        "psychology": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.058Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "i0CtfsZoe9pRysbNzZ3r": {
+      "author": {
+        "id": "vJWRO0dbGNP64SHxLToZ",
+        "name": "William Blake"
+      },
+      "created_at": {
+        "__time__": "2020-12-23T11:47:49.223Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Si les portes de la perception étaient nettoyées, chaque chose apparaîtrait à l'homme telle qu'elle est: infinie.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "e6Hg9D0pFJmE0MxQIeHY",
+        "name": "ALT 236"
+      },
+      "topics": {
+        "metaphor": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.171Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "i5221aneh1fg9jw3DUAn": {
+      "author": {
+        "id": "pwIpJbpHirwbjPeIb5Yg",
+        "name": "Saint Augustine"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:37:24.220Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You have made us for yourself, O Lord, and our hearts are restless until they rest in you.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "8u0M0hW5zj4ZXoE9913R",
+        "name": "The 4-Hour Workweek"
+      },
+      "topics": {
+        "poetry": true,
+        "spiritual": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.313Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "i66kN0jzwEDzk8lYiZ8V": {
+      "author": {
+        "id": "SfXAthA6opJ1UdDAG3he",
+        "name": "Sébastien Frit"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:47:52.868Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "C'est pas parce que tu es à moitié moche que tu dois être entièrement con.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "mature": true,
+        "punchline": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.417Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "i7KKXewAWCwHQD12Ru5r": {
+      "author": {
+        "id": "XHpve5uBrwLM85m8l5JR",
+        "name": "Klô Pelgag"
+      },
+      "created_at": {
+        "__time__": "2023-12-09T12:31:08.182Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Je sais que, très souvent, tu me mens sans croiser les doigts.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "MKPuJ3u3iVxfR2sY8OJo",
+        "name": "Rémora"
+      },
+      "topics": {
+        "feelings": true,
+        "fun": true
+      },
+      "update_at": {
+        "__time__": "2023-12-09T23:43:13.421Z"
+      },
+      "updated_at": {
+        "__time__": "2023-12-09T23:43:12.948Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iAP74CfkEAH2Fm2C4UpE": {
+      "author": {
+        "id": "XYEiuNqf3vZrzVGRtla3",
+        "name": "Henry Ford"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:30:02.449Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Don't find fault, find a remedy.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.564Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iBZ1oU1S6kKsWVPS813f": {
+      "author": {
+        "id": "N3ZR5il2hRJcOTqFZaDm",
+        "name": "Charles Swindoll"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T10:26:25.559Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Life is 10% what happens to me and 90% of how I react to it.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.689Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iBdGhTndhKpv9fnj23nf": {
+      "author": {
+        "id": "4FOkT4Du7kNeVrNxUFgi",
+        "name": "Michel de Montaigne"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:46:28.796Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Even on the most exalted throne in the world we are only sitting on our own bottom.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "4FOkT4Du7kNeVrNxUFgi",
+        "name": "Marianne"
+      },
+      "topics": {
+        "fun": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:57.824Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iQ2HzGWOjKi8ud0mfHXo": {
+      "author": {
+        "id": "TjV4NUFZm9iA7uKGnw6F",
+        "name": "Stephen Fry"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:04:23.199Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You don't sit down and write a wish list about the person you are going to fall violently in love with. It just doesn't work like that.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:58.623Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iQ2IOvDR34DlwVLxJB4T": {
+      "author": {
+        "id": "jZoIk3uLOTBYxkUsbydE",
+        "name": "Stephen Covey"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:45:11.121Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Live out of your imagination, not your history.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "art": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:58.788Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iRpsDQmKCDP1wrh3aO44": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T19:32:03.482Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "L'instabilité est nécessaire pour progresser. Si on reste sur place, on recule.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:58.894Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iSJNnIJ9tJYpZ2pLVbtg": {
+      "author": {
+        "id": "5TDyCA75fChGINQtudwF",
+        "name": "Aristotle"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:04.409Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The whole is more than the sum of its parts.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.021Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iTgzOODS4hFsrX1LGhYn": {
+      "author": {
+        "id": "JbOmhErEnrwhpKvYDSRw",
+        "name": "Maghla"
+      },
+      "created_at": {
+        "__time__": "2020-03-27T12:46:10.519Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Mieux vaut être giflé par la vérité qu'embrassé par un mensonge.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "enN66LfLnELNFR1uhjFp",
+        "name": "Maghla"
+      },
+      "topics": {
+        "metaphor": true,
+        "poetry": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.127Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iXqwwnoDpIsGEnq2AruA": {
+      "author": {
+        "id": "gq0ohr1n2DZKq2d8Jhb8",
+        "name": "Michael Jordan"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:46:19.976Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I've always believed that if you put in the work, the results will come.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.276Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ibjeJrYLr2s3z4p5Svdc": {
+      "author": {
+        "id": "aQvus0UrhlB10EFBIW0n",
+        "name": "Georg Wilhelm Friedrich Hegel"
+      },
+      "created_at": {
+        "__time__": "2020-04-08T06:55:40.119Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Whatever is reasonable is true, and whatever is true is reasonable.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.389Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ift7YCsls981czlah1ZZ": {
+      "author": {
+        "id": "F5uujNSDcRvibj9coZyL",
+        "name": "Dale Carnegie"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:30:45.713Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Inaction breeds doubt and fear. Action breeds confidence and courage. If you want to conquer fear, do not sit home and think about it. Go out and get busy.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "uqYepBCESElUXAqAniYB",
+        "name": "Reddit"
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.503Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ihwwouNW0QwyJAnBvlyf": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T13:06:56.433Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Vous êtes un sot en trois lettres, mon fils.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.605Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ilO2dzcnysvujQvEGQNj": {
+      "author": {
+        "id": "nV81YI5rA2A5r4hN2SUx",
+        "name": "mistermv"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T12:41:50.094Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "La taupe n'est pas sortie du guichet.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "BLPMtoGB7NtYP7tEkAnf",
+        "name": "ZLAN"
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.705Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "io8UwQ7la2ILGbPoPDLm": {
+      "author": {
+        "id": "5TDyCA75fChGINQtudwF",
+        "name": "Aristotle"
+      },
+      "created_at": {
+        "__time__": "2020-03-01T13:14:02.568Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The law is reason, free from passion.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "metaphor": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.826Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ioqbScAwDhFoVllMxLld": {
+      "author": {
+        "id": "ZMiofFZna9zOFWjhRcI7",
+        "name": "Richard \"Dick\" Samuels (fictional)"
+      },
+      "created_at": {
+        "__time__": "2020-05-16T20:57:52.312Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I die an honest man.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "qGRy904AyWRW77z34nbo",
+        "name": "Hollywood"
+      },
+      "topics": {
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:41:59.980Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ipUQzLavW8DCNwxejwin": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T18:16:45.221Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "A la télé ils disent tous les jours : \"Y a trois millions de personnes qui veulent du travail.\" C'est pas vrai : de l'argent leur suffirait.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.096Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iqFmWnOddbTj0Wjnty9A": {
+      "author": {
+        "id": "33gvs2QaYAKKV1P2tvSY",
+        "name": "Frank Sinatra"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:44:41.116Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "Alcohol may be man's worst enemy, but the bible says love your enemy.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "introspection": true,
+        "spiritual": true
+      },
+      "updated_at": {
+        "__time__": "2024-07-14T22:02:43.048Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iqYI1XIWdiQrs83BZsfZ": {
+      "author": {
+        "id": "ule2uk9JJBGDB1ddFwJr",
+        "name": "Marguerite Duras"
+      },
+      "created_at": {
+        "__time__": "2020-04-12T23:46:20.275Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It's only women who are not really quite women at all, frivolous women who have no idea, who neglect repairs.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.353Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "irs0CyGreOlLM8GYh05w": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T18:15:33.226Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Le travail c'est bien une maladie, puisqu'il y a une médecine du travail.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.457Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "isAktUIjEUBqAJTuyHYZ": {
+      "author": {
+        "id": "dY9Bl14nHfunlYno53Gs",
+        "name": "Lily Nill"
+      },
+      "created_at": {
+        "__time__": "2023-09-19T14:41:46.431Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Tant que vous courez, vos peurs ne vous rattraperont pas.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "idSLBdXN2zp6Dzv9nvAB",
+        "name": "Panic"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-19T14:41:47.528Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "iv7uL4knChrZMwYtAxR5": {
+      "author": {
+        "id": "oOV9aJh2iTXLUqEYqpmM",
+        "name": "Elon Musk"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T13:23:25.841Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I was too shy to talk to anyone. And it was like okay, well I guess I'll have to start a company cause I can't get a job anywhere.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.602Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ivo4vb03TQ5m8rHInMvE": {
+      "author": {
+        "id": "6t7GKemEtoylmk0gEDDb",
+        "name": "Rosa Parks"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:22.820Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "My only concern was to get home after a hard day's work.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "retrospection": true,
+        "social": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.730Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ixJphW7ichKdfHSscmyl": {
+      "author": {
+        "id": "QxFzySxBMhPFN74pOkHX",
+        "name": "Claude Bolton"
+      },
+      "created_at": {
+        "__time__": "2020-08-08T21:43:32.619Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Well, as the saying goes, if God truly hates your guts, then he grants your deepest wish.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "Opl5OJDTiPiJlRjdk07b",
+        "name": "The Outsider"
+      },
+      "topics": {
+        "spiritual": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.861Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ixXmuCgfXtvFgmXuMYea": {
+      "author": {
+        "id": "7ZmLWTy1rJBqzOtWBplU",
+        "name": "Douglas Adams"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:26:22.541Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Flying is learning how to throw yourself at the ground and miss.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:00.988Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "j1mTDY7KamKERz0wM5uC": {
+      "author": {
+        "id": "FIjI5JAY8rDPIy5XtsRh",
+        "name": "Gandhi"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T12:33:30.631Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The weak can never forgive. Forgiveness is the attribute of the strong.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.111Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "j2YdXthmKOHPE9FETR4u": {
+      "author": {
+        "id": "7ZmLWTy1rJBqzOtWBplU",
+        "name": "Douglas Adams"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:39:27.696Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I may not have gone where I intended to go, but I think I have ended up where I needed to be.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true,
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.220Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "j2f3ArmdMenej3U6KJ9u": {
+      "author": {
+        "id": "PbiLWvGKygkjMYF8ZK4h",
+        "name": "Cédric Ingrand"
+      },
+      "created_at": {
+        "__time__": "2020-11-03T16:18:32.382Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "On a tous le droit à nos opinions mais on n'a pas chacun le droit à sa propre version des faits.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "UZX3ofmqAkMHYdFxyrJP",
+        "name": "Le RDV Tech"
+      },
+      "topics": {
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.336Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "j8zsUnI2iHTXPZu2hk3O": {
+      "author": {
+        "id": "jicOr9kVplfb2ceWloZB",
+        "name": "Le Renard"
+      },
+      "created_at": {
+        "__time__": "2023-12-09T14:00:29.815Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "CxqzswVrf2whaGtZOeTE",
+        "name": "Le petit prince"
+      },
+      "topics": {
+        "feelings": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-12-09T14:00:37.770Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jD0pSkOEb1oWWVSx4Efe": {
+      "author": {
+        "id": "bukT5YHXaq7NaV501mXx",
+        "name": "George Bernard Shaw"
+      },
+      "created_at": {
+        "__time__": "2020-11-02T19:53:11.642Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "A life spent making mistakes is not only more honorable, but more useful than a life spent doing nothing.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "knowledge": true,
+        "motivation": true,
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.474Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jEBrFG4Bh1pjkIrU6Fe7": {
+      "author": {
+        "id": "jN3BJpmDsAXbR3jHRxZD",
+        "name": "Robert Henri"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:37:54.976Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Why do we love the sea? It is because it has some potent power to make us think things we like to think.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.599Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jEgqZMVSopc14m1QTERn": {
+      "author": {
+        "id": "5TDyCA75fChGINQtudwF",
+        "name": "Aristotle"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:03.936Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Quality is not an act, it is a habit.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.729Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jJGEYyUJQYXUASUSiigB": {
+      "author": {
+        "id": "K9tX2cZPah1mQlGhw7VO",
+        "name": "Jim Preston"
+      },
+      "created_at": {
+        "__time__": "2021-03-08T22:12:37.856Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Je ne dis pas que l'univers est cruel, mais il a l'humour noir.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "Cz4cpI8QwSUUoecQPuqP",
+        "name": "Passengers"
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.829Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jKLoCkfY0OhlA5btTCQu": {
+      "author": {
+        "id": "zEUY8TQ0uHdzfKOM8OTW",
+        "name": "Mark Twain"
+      },
+      "created_at": {
+        "__time__": "2020-09-22T10:53:44.020Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "L'Homme est le plus cruel de tous les animaux, il est le seul capable d'infliger une douleur a ses congénères sans autre motif que le plaisir.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "biology": true,
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:01.931Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jNJjox1JRR7P6J7bXzl7": {
+      "author": {
+        "id": "J3j60lzAj3Wy2bppX7yn",
+        "name": "Steve Jobs"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T11:07:01.447Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Things don't have to change the world to be important.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.062Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jNa6Hn7uISB606DqQGbG": {
+      "author": {
+        "id": "KXKpaMDKD7d0gDbrZTiY",
+        "name": "Ben Wood"
+      },
+      "created_at": {
+        "__time__": "2020-07-01T22:28:28.471Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I used to say, wherever Steve goes, chaos follows",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "xL8vtItj4rqUV6gj86p8",
+        "name": "Dead to Me"
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.193Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jOURoCHIpkpQjx7T2zYC": {
+      "author": {
+        "id": "fA8kv6g7h5NXD8m7eqA1",
+        "name": "Jesse Owens"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:49.840Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "For a time, at least, I was the most famous person in the entire world.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.420Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jQNklsb35sVJWPPh8uQW": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T18:16:07.782Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Y a des gens qui ont des enfants parce qu'ils n'ont pas les moyens de s'offrir un chien.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.518Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jTQqAnC01ukyGtwG8XfK": {
+      "author": {
+        "id": "cwc3oxjxW9sIFqH7CL1f",
+        "name": "Ann Landers"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:53.738Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Don't accept your dog's admiration as conclusive evidence that you are wonderful.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.640Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jUuxOgOzeL5VMNpxbp2l": {
+      "author": {
+        "id": "F05LwRyROoZqbGgUX34y",
+        "name": "Lao Tzu"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:06.500Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "When I let go of what I am, I become what I might be.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.765Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jVW0I5Kl9Da0IcLSctJ8": {
+      "author": {
+        "id": "4RsfwP5zJPFUp7xK1B5N",
+        "name": "Robert Frost"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T17:01:11.970Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Two roads diverged in a wood, and I—I took the one less traveled by, And that has made all the difference.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:02.893Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jYGSsOwS0m48dTGGbaXO": {
+      "author": {
+        "id": "u1sz9fLmg8VtGuYPBKAG",
+        "name": "Dave Barry"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:33:43.712Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Americans who travel abroad for the first time are often shocked to discover that, despite all the progress that has been made in the past 30 years, many foreign people still speak foreign languages.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "8u0M0hW5zj4ZXoE9913R",
+        "name": "The 4-Hour Workweek"
+      },
+      "topics": {
+        "fun": true,
+        "language": true,
+        "travel": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.010Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jblRX34f3BXszUdEFKZc": {
+      "author": {
+        "id": "kqdpXXR7Vs5GFNWvwHqA",
+        "name": "Shanti"
+      },
+      "created_at": {
+        "__time__": "2024-01-06T11:52:06.392Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Le future n'arrive jamais, Maëlle, seul le présent est réel.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "IlLfdOqfjQC5MRWXtpXL",
+        "name": "Kilomètre zéro"
+      },
+      "topics": {
+        "philosophy": true,
+        "travel": true
+      },
+      "update_at": {
+        "__time__": "2024-01-07T14:40:40.108Z"
+      },
+      "updated_at": {
+        "__time__": "2024-01-07T14:40:36.421Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jgBBBjmvMj2MRvrnoIPm": {
+      "author": {
+        "id": "cowmJ4yjFEKPrpVz3T3R",
+        "name": "Plato"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:27.309Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Life must be lived as play.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.143Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jhVFhsuqFKFHTaEbGF3V": {
+      "author": {
+        "id": "LqNpan9zGdhSjTO5vztt",
+        "name": "Sigmund Freud"
+      },
+      "created_at": {
+        "__time__": "2020-07-01T22:54:36.189Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Qui a des yeux pour voir et des oreilles pour entendre se rend compte que les mortels ne peuvent rien cacher. Celui dont les lèvres se taisent parle avec le bout des doigts. Il suinte la trahison de tous ses pores.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "drjNrIOe8E071bKrI4dT",
+        "name": "Dark (TV Series)"
+      },
+      "topics": {
+        "introspection": true,
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.278Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jjlx7BquhGUXwB9KrczY": {
+      "author": {
+        "id": "aQvus0UrhlB10EFBIW0n",
+        "name": "Georg Wilhelm Friedrich Hegel"
+      },
+      "created_at": {
+        "__time__": "2020-04-08T06:58:41.879Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "We learn from history that we do not learn from history.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.396Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jkH86JmSKirQQEDmA0A9": {
+      "author": {
+        "id": "Qm6jiyyNlCpBWLDZ3dy9",
+        "name": "Billy Alsbrooks"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T13:23:26.659Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "When people don't support your dream, it's not that they don't believe in you. It's that they don't like where there'll be sitting when your dreams come true",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.522Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "joxPn48ZHZfEbw1MMjBa": {
+      "author": {
+        "id": "TySUhQPqndIkiVHWVYq1",
+        "name": "Anonymous"
+      },
+      "created_at": {
+        "__time__": "2020-03-22T15:49:49.687Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Whatever happens, happens for a reason.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.638Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "joyajV7FAOVBQYXWCqvX": {
+      "author": {
+        "id": "sGJXQBVqWZuMWgxMoyCT",
+        "name": "Aldous Huxley"
+      },
+      "created_at": {
+        "__time__": "2024-01-19T18:10:48.182Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "L'expérience, ce n'est pas ce qui nous arrive, c'est ce que nous faisons avec ce qui nous arrive.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "IlLfdOqfjQC5MRWXtpXL",
+        "name": "Kilomètre zéro"
+      },
+      "topics": {
+        "introspection": true,
+        "philosophy": true,
+        "psychology": true,
+        "travel": true
+      },
+      "update_at": {
+        "__time__": "2024-01-21T00:05:22.693Z"
+      },
+      "updated_at": {
+        "__time__": "2024-01-21T00:05:23.179Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jvDcgNfluvMBHcjihDjY": {
+      "author": {
+        "id": "gq0ohr1n2DZKq2d8Jhb8",
+        "name": "Michael Jordan"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:46:20.669Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I can accept failure, but I can't accept not trying.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.769Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jvOzlhWhUkdOxPkxBFro": {
+      "author": {
+        "id": "u7mqAyOVwpVGWz4sTECr",
+        "name": "Unknown"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T10:56:55.228Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "L'argent ne change pas les gens. Il ne révèle que leur vrai visage.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:03.884Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jva5z5Yk7acpyerU8MVk": {
+      "author": {
+        "id": "Ntea6sB8YSEu65okJIJd",
+        "name": "Adam (old)"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T13:17:08.258Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Il est étonnant que les hommes résistent face à l'absurdité de leur existence. Un cycle infini de naissances et de morts. Quelle est l'origine de toute cette souffrance ?",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "Filpvrosx2WwrKFPHODR",
+        "name": "Dark"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.004Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "jwGUtfTiDC0ALrsG26uv": {
+      "author": {
+        "id": "5TDyCA75fChGINQtudwF",
+        "name": "Aristotle"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:03.815Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.134Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "k0pOzQYo0uPORHGhHP4m": {
+      "author": {
+        "id": "NZFSImPJvQaYD9P9iNPr",
+        "name": "Queen "
+      },
+      "created_at": {
+        "__time__": "2024-07-22T19:47:46.738Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "We will rock you.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "KsX13dBnoynqQykFCaWq",
+        "name": "We Will Rock You"
+      },
+      "topics": {
+        "feelings": true,
+        "fun": true,
+        "punchline": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2024-07-22T19:47:47.937Z"
+      },
+      "user": {
+        "id": "vllQDEeSTgWVf39bCHjEl7malmz1"
+      },
+      "__collections__": {}
+    },
+    "k1o8fTy0H5XHhfBsP4xu": {
+      "author": {
+        "id": "xgAPUM6HgXKjC548xaCS",
+        "name": "Oscar Wild"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:35:45.096Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I can resist everything except temptation.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "8u0M0hW5zj4ZXoE9913R",
+        "name": "The 4-Hour Workweek"
+      },
+      "topics": {
+        "fun": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.331Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "k2QwT90wbJibpxABtmYm": {
+      "author": {
+        "id": "Rzp6wfwy8zN17GztleS4",
+        "name": "Vincent van Gogh"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:54.673Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I would rather die of passion than of boredom.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.470Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "k2yMowSSM1Y5fJbol6LU": {
+      "author": {
+        "id": "9BjtBxQUb27rGGQThDUO",
+        "name": "Pema Chödrön"
+      },
+      "created_at": {
+        "__time__": "2024-01-01T13:24:56.846Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Notre situation peut être perçue comme le paradis ou l'enfer : tout dépend de notre perception.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "IlLfdOqfjQC5MRWXtpXL",
+        "name": "Kilomètre zéro"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "spiritual": true
+      },
+      "update_at": {
+        "__time__": "2024-01-03T10:58:08.442Z"
+      },
+      "updated_at": {
+        "__time__": "2024-01-03T10:58:08.218Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "k64pgvKHB7wvRujWJT5N": {
+      "author": {
+        "id": "hamGQFdB3ymEvATO2XDD",
+        "name": "Booker T. Washington"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:49.853Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "In all things that are purely social we can be as separate as the fingers, yet one as the hand in all things essential to mutual progress.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.596Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "k8NZpMocGjHgKawN9Iog": {
+      "author": {
+        "id": "F05LwRyROoZqbGgUX34y",
+        "name": "Lao Tzu"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:05.596Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Silence is a source of great strength.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "language": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.734Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kOiM0qptfpxlteSdEKs4": {
+      "author": {
+        "id": "0sbrN3A9Lb38DIg8NPji",
+        "name": "Lucie (makesens)"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T16:14:19.812Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Douter c'est avoir la faculté d'être un caméléon; de défendre une chose et son contraire.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:04.841Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kOjQonKEJrnxlBeYd86b": {
+      "author": {
+        "id": "01OP7h4GOcWXxkv2DVpk",
+        "name": "Confucius"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:22.391Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "It does not matter how slowly you go so long as you do not stop.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2024-07-14T19:10:29.103Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kPU0wqVoA7ylgvvDQLOG": {
+      "author": {
+        "id": "hxw0H2NnxEHxvfsgqr2X",
+        "name": "Ayn Rand"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:30:44.885Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The question isn’t who is going to let me; it’s who is going to stop me.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.114Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kQR8c8P6s8wJMFsPUvl3": {
+      "author": {
+        "id": "9qFooKFGaMa6lPfoFNeT",
+        "name": "Issac Asimov"
+      },
+      "created_at": {
+        "__time__": "2024-06-05T12:59:42.579Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "La réalité est sans limite, tandis que notre imagination prend sa source dans ce qui s'est réellement passé.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "sDxcLfU3t7hJHDVic6M1",
+        "name": "Arte"
+      },
+      "topics": {
+        "introspection": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2024-06-05T12:59:43.912Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kTHylz9BasIdQnj2mmLb": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T19:32:24.781Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "C'est pas dur la politique comme métier ! Tu fais cinq ans de droit et tout le reste c'est de travers.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.219Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kVkcfoEusu9MYFpRtQGG": {
+      "author": {
+        "id": "T7TjbaqCGIUDq4Dot0vQ",
+        "name": "Maimonides"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:26.432Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Teach thy tongue to say, “I do not know,” and thous shalt progress.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "knowledge": true,
+        "language": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.360Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kXsDNRhmG4LWneaTUE6L": {
+      "author": {
+        "id": "qkSobZyfFYvYNAJpCY2E",
+        "name": "Maya Angelou"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:44:46.404Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I’ve learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.507Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kZLOqAUwjJ10WnPrQGNQ": {
+      "author": {
+        "id": "hNxWj67hM8WkDFjIbRwO",
+        "name": "Martin Luther King Jr."
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:19.342Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The ultimate measure of a man is not where he stands in moments of comfort and convenience, but where he stands at times of challenge and controversy.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.619Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kj1aJFpvzQdALsoA1NoO": {
+      "author": {
+        "id": "wG653YPG5n96MMPkqtvZ",
+        "name": "Buddha"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:46:14.221Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You only lose what you cling to.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.749Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "koSeTKpyuz6iEhrSR9yS": {
+      "author": {
+        "id": "01OP7h4GOcWXxkv2DVpk",
+        "name": "Confucius"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:22.546Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Wheresoever you go, go with all your heart.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.865Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "krMhv2v6iZXf8hOokfSD": {
+      "author": {
+        "id": "GHxkIJmc2SNxyc3r03Ir",
+        "name": "Jen Harding"
+      },
+      "created_at": {
+        "__time__": "2020-07-01T22:28:00.213Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "No need to Sixth Sense ourselves into a fucking heart attack.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "xL8vtItj4rqUV6gj86p8",
+        "name": "Dead to Me"
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:05.988Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "krSuCvTFlJsPQk7bYYCK": {
+      "author": {
+        "id": "Eyq8hER9sy7q4WqdF7TK",
+        "name": "Beverly Sills"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:37:57.265Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You may be disappointed if you fail, but you are doomed if you don’t try.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:06.104Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ksxakgOiXuc9y6vj9ZJW": {
+      "author": {
+        "id": "TwDAwxgSaMiakR8RsRgN",
+        "name": "Christian Longo"
+      },
+      "created_at": {
+        "__time__": "2020-07-01T22:17:46.710Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Elle était comme l'océan. Elle était profonde. Houleuse. Tempétueuse, parfois.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "Q7n2H3z5hVfMClLXCLzD",
+        "name": "True Story"
+      },
+      "topics": {
+        "feelings": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.086Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kvNr45YYKt1ZMXkbFKWv": {
+      "author": {
+        "id": "JtJwxQYgCfnhMwfOmvWD",
+        "name": "Alfred, Lord Tennyson"
+      },
+      "created_at": {
+        "__time__": "2021-05-02T19:54:03.169Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "To strive, to seek, to find, and not to yield.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.216Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "kwIlN90CTbHiUSTUoKje": {
+      "author": {
+        "id": "HPUPZTrmrvmwbX4OpJx9",
+        "name": "Isaac"
+      },
+      "created_at": {
+        "__time__": "2021-05-24T11:29:58.755Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Toute ma vie, j'ai réagi. Mais rarement agi.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "HppqCzS6w9oLRzfLEozU",
+        "name": "Castlevania"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.330Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "l3sZVwiMmgvbpzgkDNEs": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T13:06:56.183Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The greater the obstacle, the more glory in overcoming it.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.448Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "l4KFoxZrDkxwXTFuQjki": {
+      "author": {
+        "id": "zEUY8TQ0uHdzfKOM8OTW",
+        "name": "Mark Twain"
+      },
+      "created_at": {
+        "__time__": "2020-09-22T10:53:40.035Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Les deux jours les plus importants de votre vie sont le jour où vous êtes né et le jour où vous découvrez pourquoi.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.540Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "l9Rohpa8solhB74JxN2r": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T19:30:03.079Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Je ne suis pas allé partout, mais je suis revenu de tout.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "poetry": true,
+        "travel": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.671Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lC95h5BJh1JoNxcUZ1ZX": {
+      "author": {
+        "id": "bgR15L6aYRDlCGgfQCxp",
+        "name": "Satoshi Nakamoto"
+      },
+      "created_at": {
+        "__time__": "2024-06-05T00:50:39.822Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Le cinisme connait le prix de tout mais la valeur de rien.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "sDxcLfU3t7hJHDVic6M1",
+        "name": "Arte"
+      },
+      "topics": {
+        "introspection": true,
+        "metaphor": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2024-06-05T00:50:40.978Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lDLZ5JHXJKqOEFztScxp": {
+      "author": {
+        "id": "i2qSgNsmTlZ7VZU7GymX",
+        "name": "Benjamin Franklin"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:45.531Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "I didn’t fail the test. I just found 100 ways to do it wrong.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2024-07-22T19:49:21.481Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lElRNhcTrzgnmmtfLfeO": {
+      "author": {
+        "id": "p6Te7O8yNICOd0IIjOFe",
+        "name": "Cyrus North"
+      },
+      "created_at": {
+        "__time__": "2021-01-08T17:08:55.783Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Je ne me considère pas chauve, je me considère juste plus grand que mes cheveux.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "zknEA6J4kljNQB4LhgP0",
+        "name": "Cyrus North"
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:07.922Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lLFMcBr9gqbycDpY0TBK": {
+      "author": {
+        "id": "QmvFpHzl41l0WynozQRd",
+        "name": "Herbert Zucker"
+      },
+      "created_at": {
+        "__time__": "2020-08-08T21:39:34.297Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "If you ask ten therapists for the best way to open with a new patient, you will get ten different answers.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "Opl5OJDTiPiJlRjdk07b",
+        "name": "The Outsider"
+      },
+      "topics": {
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.056Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lLcfHG9WO544iepdGMfl": {
+      "author": {
+        "id": "tDxcyE7a59MXi3fcUDLz",
+        "name": "Henry David Thoreau"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:37.017Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It's not what you look at that matters, it's what you see.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.207Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lMqasPTFzHpCwVvgwhFP": {
+      "author": {
+        "id": "3DW7HKmNR1sJ9hUgSN9y",
+        "name": "Dirty Biology"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T12:49:30.364Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Nous avons tout à gagner à appliquer à l'innovation les principes de l'évolution plutôt que d'appliquer les produits de l'évolution à l'innovation.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "MwYZNv8T5euhLZfyDPq3",
+        "name": "erreur du biomimétisme - DBY #43"
+      },
+      "topics": {
+        "biology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.313Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lMvMiihqXrTtElFkp3nR": {
+      "author": {
+        "id": "kqdpXXR7Vs5GFNWvwHqA",
+        "name": "Shanti"
+      },
+      "created_at": {
+        "__time__": "2024-01-06T11:52:14.792Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Crée ce que tu veux et laisse faire l'univers.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "IlLfdOqfjQC5MRWXtpXL",
+        "name": "Kilomètre zéro"
+      },
+      "topics": {
+        "motivation": true,
+        "work": true
+      },
+      "update_at": {
+        "__time__": "2024-01-07T14:40:29.797Z"
+      },
+      "updated_at": {
+        "__time__": "2024-01-07T14:40:30.656Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lPI1YMb1EIEH4jHy0gKa": {
+      "author": {
+        "id": "hEDhj7FM5XhItBUC28u0",
+        "name": "Marie Curie"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:02.278Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "All my life through, the new sights of Nature made me rejoice like a child.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.438Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lRGIoD3FimACKIIy5z6R": {
+      "author": {
+        "id": "wG653YPG5n96MMPkqtvZ",
+        "name": "Buddha"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:46:14.055Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "All that we are is the result of what we have thought.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.567Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lRuzzJf4C0QytPgv4WmZ": {
+      "author": {
+        "id": "5TDyCA75fChGINQtudwF",
+        "name": "Aristotle"
+      },
+      "created_at": {
+        "__time__": "2023-09-19T15:13:25.684Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Pour l'exécution technique du spectacle, l'art du fabricant d'accessoires est plus décisif que celui des poètes.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "T25eKWmWEu4UgV96QjjS",
+        "name": "Poetics (Aristotle)"
+      },
+      "topics": {
+        "poetry": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-19T15:13:25.684Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lVPKq9uWkgqQwt2aYBSs": {
+      "author": {
+        "id": "JtJwxQYgCfnhMwfOmvWD",
+        "name": "Alfred, Lord Tennyson"
+      },
+      "created_at": {
+        "__time__": "2021-05-02T19:57:03.089Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Tis not too late to seek a newer world.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "travel": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.686Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lWN9g1lg57if3iCC0n4l": {
+      "author": {
+        "id": "qkSobZyfFYvYNAJpCY2E",
+        "name": "Maya Angelou"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:01:40.459Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You may not control all the events that happen to you, but you can decide not to be reduced by them.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.820Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lXN0bVXcjel7qz5rkP9I": {
+      "author": {
+        "id": "BnErNMkFOhTaG1K6CcCv",
+        "name": "Woody Allen"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:45:15.224Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It's not that I'm afraid to die, I just don't want to be there when it happens.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "philosophy": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:08.937Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lawVQEggRWYsy1QOu1jk": {
+      "author": {
+        "id": "jQYnd5SJUjQcSgJTXbHB",
+        "name": "Erma Bombeck"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:35.687Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "There's nothing sadder in this world than to awake Christmas morning and not be a child.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:09.222Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lctezQZScIpb4y2Qxhxa": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T19:32:41.428Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Les psychiatres, c'est très efficace. Moi, avant, je pissais au lit, j'avais honte. Je suis allé voir un psychiatre, je suis guéri. Maintenant, je pisse au lit, mais j'en suis fier.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:09.864Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lfkgOaT7EwiJt6QvvbFr": {
+      "author": {
+        "id": "TySUhQPqndIkiVHWVYq1",
+        "name": "Anonymous"
+      },
+      "created_at": {
+        "__time__": "2023-10-21T14:11:15.992Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Croire en ce qu'on ne comprend pas est source de souffrance.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "oqNIzZXvWF3H4OJLjpHH",
+        "name": "The Changeling"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "spiritual": true
+      },
+      "update_at": {
+        "__time__": "2023-11-14T11:11:01.982Z"
+      },
+      "updated_at": {
+        "__time__": "2023-11-14T11:11:01.593Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "liKQlv0pLSw1LHsvkBsv": {
+      "author": {
+        "id": "TySUhQPqndIkiVHWVYq1",
+        "name": "Anonymous"
+      },
+      "created_at": {
+        "__time__": "2020-03-18T01:06:22.199Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "First, solve the problem. Then, write the code.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "knowledge": true,
+        "sciences": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:09.984Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ljTpchg2iiI1UogEK250": {
+      "author": {
+        "id": "pfoiLXtCdr2x1FGgSGTU",
+        "name": "Lenore"
+      },
+      "created_at": {
+        "__time__": "2020-04-08T06:59:27.850Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Le bonheur est un oiseau. Il s'envole vite. Et le coeur est une cage.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "7fYvbHmYqcbgruGCdJo5",
+        "name": "Freud (TV series)"
+      },
+      "topics": {
+        "feelings": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.091Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lkmar6OP1228Qqp2wzAB": {
+      "author": {
+        "id": "QKTKFWmnS3BTOaKBrInE",
+        "name": "Travis"
+      },
+      "created_at": {
+        "__time__": "2021-05-02T20:48:31.357Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It's okay to fall apart a little bit sometimes.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "GboI8yXhJf5jUsW83tCt",
+        "name": "Firefly Lane"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.216Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lltADCWpTDmocyPeFsLU": {
+      "author": {
+        "id": "Ezh7TOJCD5qK2zpgMlSY",
+        "name": "Simone de Beauvoir"
+      },
+      "created_at": {
+        "__time__": "2024-06-05T13:04:27.844Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "La vieillesse, c'est un décalage entre le sentiment qu'on a de soi, l'image que nous renvoient les autres, et notre propre reflet dans le miroir.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "9xFKzT1DfQRZnd7R12ci",
+        "name": "Paum_é_e_s"
+      },
+      "topics": {
+        "introspection": true,
+        "philosophy": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2024-06-05T13:04:28.915Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lm5sqxN6YepqNYPYgIAD": {
+      "author": {
+        "id": "mPd6tBCZ2KQJphzhpN3H",
+        "name": "Anne Frank"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:06.999Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Parents can only give good advice or put them on the right paths, but the final forming of a person's character lies in their own hands.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.355Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "loMW9qIuEAV08PqNeKv7": {
+      "author": {
+        "id": "hEDhj7FM5XhItBUC28u0",
+        "name": "Marie Curie"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:01.712Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "A scientist in his laboratory is not a mere technician: he is also a child confronting natural phenomena that impress him as though they were fairy tales.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true,
+        "sciences": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.487Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lpQU4h8sf2UezE2cMlVD": {
+      "author": {
+        "id": "1PsxzXSZnphcBWIjZe5I",
+        "name": "Lucy"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T08:33:54.295Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Comment peux-tu admirer quelqu'un pour son âge ? C'est comme admirer un certain point d'un ruisseau.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "bXW3dZegjwiOByrA0v7O",
+        "name": "I'm Thinking of Ending Things"
+      },
+      "topics": {
+        "biology": true,
+        "feelings": true,
+        "metaphor": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.607Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lqJ1l3IRJ9zERabgyX9t": {
+      "author": {
+        "id": "5TDyCA75fChGINQtudwF",
+        "name": "Aristotle"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:41.022Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "There is only one way to avoid criticism: do nothing, say nothing, and be nothing.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.737Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lsR8EloXs91G9jNHUsGX": {
+      "author": {
+        "id": "bukT5YHXaq7NaV501mXx",
+        "name": "George Bernard Shaw"
+      },
+      "created_at": {
+        "__time__": "2020-11-02T19:53:04.261Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "There is no love sincerer than the love of food.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.859Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ltb2e6JDo5S7DKhtitU7": {
+      "author": {
+        "id": "KXsz7QHDf00RtmqUlI0W",
+        "name": "Viktor E. Frankl"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:34:45.521Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "When we are no longer able to change a situation, we are challenged to change ourselves.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:10.999Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lyog2TGLNsCrJjBXzQDk": {
+      "author": {
+        "id": "DiokSd7y6qVkT0eEsaZN",
+        "name": "Samuel Beckett"
+      },
+      "created_at": {
+        "__time__": "2020-04-12T23:46:39.361Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "They give birth astride of a grave, the light gleams an instant, then it's night once more.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.114Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "lzgeaX7FAX1Kw4Ea6Ppg": {
+      "author": {
+        "id": "Fow9786uMJFcbZWYYQ6O",
+        "name": "Det. Ralph Anderson"
+      },
+      "created_at": {
+        "__time__": "2020-08-08T19:50:10.194Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "C'est juste que quand quelqu'un me dit: \"Je suis là pour aider\", les choses s'empirent invariablement.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "Opl5OJDTiPiJlRjdk07b",
+        "name": "The Outsider"
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.229Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "m0gS8Jdyg7jgVSza61kb": {
+      "author": {
+        "id": "pumPuttI6bWOBohDpmy7",
+        "name": "Werner Heisenberg"
+      },
+      "created_at": {
+        "__time__": "2020-11-02T13:59:06.202Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Ce que nous observons, ce n'est pas la Nature en soi, mais la Nature exposée à notre méthode d'investigation.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "qMG13EMdHApbx9zXvrAd",
+        "name": "Dirty Biology"
+      },
+      "topics": {
+        "biology": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.322Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "m2YpK0vnfnP2UxXE3lkk": {
+      "author": {
+        "id": "2QX33kv6o49I1cIf0xaV",
+        "name": "Pauline Marionnet"
+      },
+      "created_at": {
+        "__time__": "2021-01-14T22:40:22.946Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Dans la famille de mon père, l'alcool, c'est une religion. Ça vous fait croire et ça vous accompagne jusqu'au cercueil.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "dUn1p0VKGkVQ9WfCh3Cm",
+        "name": "Le parfum du bonheur est plus fort sous la pluie"
+      },
+      "topics": {
+        "offensive": true,
+        "psychology": true,
+        "spiritual": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.445Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "m3NkJYDbtDsPfxvQDb2M": {
+      "author": {
+        "id": "z5BqWQg1IysN7ejaAt96",
+        "name": "Robin Williams"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T11:12:13.360Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You're only given a little spark of madness. You mustn't loose it.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.576Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "m3wA9PxJAqEWKvHX682r": {
+      "author": {
+        "id": "CI4O46Q4QYtpxEGE0yws",
+        "name": "Albert Einstein"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:44.501Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "Life is like riding a bicycle. To keep your balance you must keep moving.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "metaphor": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2024-06-22T21:43:54.308Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "m83pvoeEu3vP5ht2Fu4L": {
+      "author": {
+        "id": "btgtrUptYgvaS9bOSsrM",
+        "name": "Guillaume Apollinaire"
+      },
+      "created_at": {
+        "__time__": "2020-03-31T23:28:10.384Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Now and then it's good to pause in our pursuit of happiness and just be happy.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.844Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "m9XX0Lqa6xXDHxlZasED": {
+      "author": {
+        "id": "usJBMUTl216rd30OUuMo",
+        "name": "John T. Reed"
+      },
+      "created_at": {
+        "__time__": "2020-05-02T23:15:19.502Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Quand vous commencez à étudier un domaine, vous avez l'impression de devoir mémoriser un milliard de choses. Ce n'est pas le cas. Vous devez, en fait, identifier les principes fondamentaux qui gouvernent ce domaine. En général il y en a entre 3 à 12. Le milliard de choses que vous pensiez devoir mémoriser est simplement des combinaisons de ces principes de base.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "K2CFX3nNrTdSlQQr4uhu",
+        "name": "Succeeding by John T. Reed"
+      },
+      "topics": {
+        "motivation": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:11.939Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mASIcq4XjEUplfi5jGI5": {
+      "author": {
+        "id": "6JE3dz6NdctM04vEb6Vu",
+        "name": "Jake"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T01:33:34.443Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It's why I like road trips. It's good to remind yourself the world's...larger than the inside of your own head.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "bXW3dZegjwiOByrA0v7O",
+        "name": "I'm Thinking of Ending Things"
+      },
+      "topics": {
+        "introspection": true,
+        "travel": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.051Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mBEFBZDCVQuoH6765lyG": {
+      "author": {
+        "id": "CI4O46Q4QYtpxEGE0yws",
+        "name": "Albert Einstein"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:45.158Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "A person who never made a mistake never tried anything new.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "knowledge": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-11-17T21:34:57.481Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mBRt8FMseeok9I6bu4TN": {
+      "author": {
+        "id": "N2zTh2fiCoRyWwRHtvTh",
+        "name": "Gloria Steinem"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:37:59.444Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "If the shoe doesn't fit, must we change the foot?",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.380Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mBhqvi0LlFaezNR84wc9": {
+      "author": {
+        "id": "IoqeTZ67Qij3MRgAlpxD",
+        "name": "Joey Tribbiani "
+      },
+      "created_at": {
+        "__time__": "2024-07-22T18:40:24.458Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "How you doin'?",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "QsfiTZaBWt2oeEFw6p9H",
+        "name": "Friends"
+      },
+      "topics": {
+        "fun": true,
+        "punchline": true
+      },
+      "updated_at": {
+        "__time__": "2024-07-22T18:40:24.643Z"
+      },
+      "user": {
+        "id": "vllQDEeSTgWVf39bCHjEl7malmz1"
+      },
+      "__collections__": {}
+    },
+    "mKPUKgVVGKfK6K4fNB4E": {
+      "author": {
+        "id": "hNxWj67hM8WkDFjIbRwO",
+        "name": "Martin Luther King Jr."
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:19.789Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Free at last, Free at last, Thank God almighty we are free at last.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true,
+        "spiritual": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.495Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mMk9RMZC8Ka9pNL83kze": {
+      "author": {
+        "id": "TySUhQPqndIkiVHWVYq1",
+        "name": "Anonymous"
+      },
+      "created_at": {
+        "__time__": "2021-01-24T13:34:09.863Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Dites-le-moi du bout des lèvres, je l'entendrai du bout du cœur.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "Yj5cEusYhyvzqCyFofGZ",
+        "name": "OkCupid"
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.624Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mOVSOYN7TK33Vzt4xITI": {
+      "author": {
+        "id": "FD5YeKjkacc9F9yWevYr",
+        "name": "Avis Amberg (fictional)"
+      },
+      "created_at": {
+        "__time__": "2020-05-16T20:57:55.911Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "I say if you want something done, let a woman do it.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "qGRy904AyWRW77z34nbo",
+        "name": "Hollywood"
+      },
+      "topics": {
+        "fun": true,
+        "punchline": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.745Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mT7gLr68pZRTgm498twd": {
+      "author": {
+        "id": "1EVpPsEVXjaBDYFuyYzB",
+        "name": "Madelaine de Montargis"
+      },
+      "created_at": {
+        "__time__": "2020-10-25T09:08:54.137Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "It is said that history is written by the winners.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "EDRwqgBONNg8cAaAhg8q",
+        "name": "La Révolution"
+      },
+      "topics": {
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.871Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mavab4g32PZjgXdywqNd": {
+      "author": {
+        "id": "ghWNxCMRPakRfBWiJtC0",
+        "name": "John Lennon"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:23.443Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Time you enjoy wasting, was not wasted.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:12.993Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mbYTSRYxhVRmEQuGwAVx": {
+      "author": {
+        "id": "J8oYaCcmlwntPQjtezjc",
+        "name": "Thomas Hora"
+      },
+      "created_at": {
+        "__time__": "2023-09-19T14:18:46.539Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Pour se comprendre, l'homme a besoin d'être compris par un autre. Et pour être compris par un autre, il a besoin de comprendre l'autre.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "rzhF1S4lWs16W5xhBRgo",
+        "name": "Tao, zen and existential psychotherapy"
+      },
+      "topics": {
+        "introspection": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-19T14:18:46.696Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mfL0ELHDXNsLoK5nzM0K": {
+      "author": {
+        "id": "Rzp6wfwy8zN17GztleS4",
+        "name": "Vincent van Gogh"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:55.116Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "What would life be if we had no courage to attempt anything?",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.131Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mfya23i23b6Aafw8224k": {
+      "author": {
+        "id": "hamGQFdB3ymEvATO2XDD",
+        "name": "Booker T. Washington"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:50.152Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Nothing ever comes to one, that is worth having, except as a result of hard work.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.255Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mhDk3j7LclUoaGnGwCq8": {
+      "author": {
+        "id": "TySUhQPqndIkiVHWVYq1",
+        "name": "Anonymous"
+      },
+      "created_at": {
+        "__time__": "2023-10-22T14:54:11.305Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Qui n’est pas éduqué par sa mère sera éduqué par le monde.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "oqNIzZXvWF3H4OJLjpHH",
+        "name": "The Changeling"
+      },
+      "topics": {
+        "knowledge": true,
+        "social": true
+      },
+      "update_at": {
+        "__time__": "2023-11-14T11:10:51.875Z"
+      },
+      "updated_at": {
+        "__time__": "2023-11-14T11:10:51.096Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mk3IzqxfAzZwMYbcV2Ua": {
+      "author": {
+        "id": "cwc3oxjxW9sIFqH7CL1f",
+        "name": "Ann Landers"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:53.304Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Expect trouble as an inevitable part of life and repeat to yourself, the most comforting words of all; this, too, shall pass.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.362Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mmTf5oh1Jaft5Y0SJejl": {
+      "author": {
+        "id": "hFGQjzIi6318w1vq27WG",
+        "name": "Alice Harmon"
+      },
+      "created_at": {
+        "__time__": "2020-12-03T23:55:14.599Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Les plus forts sont ceux qui n'ont pas peur d'être seuls.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "X6udBLluPpaGOf3b5gZd",
+        "name": "The Queen's Gambit"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.468Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mmcWskRmP8HUffNliMH2": {
+      "author": {
+        "id": "Ad6TkWmk9Cnsp3xPHdDT",
+        "name": "Chinese Proverb"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:43.129Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "The person who says it cannot be done should not interrupt the person who is doing it.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true,
+        "proverb": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2024-08-09T18:19:31.816Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mmyzBeD6o1POtY4mHL1h": {
+      "author": {
+        "id": "LWwhRU6u6ED9vaoHLAcX",
+        "name": "George Addair"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:34.570Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Everything you’ve ever wanted is on the other side of fear.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.745Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mnWmTyvwHXGQS0ppV5C2": {
+      "author": {
+        "id": "DiokSd7y6qVkT0eEsaZN",
+        "name": "Samuel Beckett"
+      },
+      "created_at": {
+        "__time__": "2020-04-12T23:45:37.550Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Nothing is funnier than unhappiness, I grant you that. Yes, yes, it's the most comical thing in the world.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.864Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "moahGcbVtxpcLsjKcrx7": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T13:13:10.351Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "C'est un merveilleux assaisonnement aux plaisirs qu'on goûte que la présence des gens qu'on aime.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "r9HrOSAOEmxuN3kCfMo3",
+        "name": "Le Misanthrope"
+      },
+      "topics": {
+        "feelings": true,
+        "metaphor": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:13.968Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mpzuGsYuF8GBRXkALRrx": {
+      "author": {
+        "id": "u7mqAyOVwpVGWz4sTECr",
+        "name": "Unknown"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T15:34:25.385Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "If you don't try, you can never fail.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.101Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "msAqi21qw6HGu7KjCeTQ": {
+      "author": {
+        "id": "FEQysOgXlQt3k5UIRzIp",
+        "name": "Zig Ziglar"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:44:39.822Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "People often say that motivation doesn’t last. Well, neither does bathing. That’s why we recommend it daily.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.212Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mvz29CnEyXYy5lvfK39k": {
+      "author": {
+        "id": "jR70tM17wY1nNWgDYuET",
+        "name": "Stewart Brand"
+      },
+      "created_at": {
+        "__time__": "2021-01-08T00:19:22.626Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Information wants to be free.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "BXr4qiBpMB3jdcgfOTmL",
+        "name": "Marketing Mania"
+      },
+      "topics": {
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.331Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "mwzwX1VNK49z1wSooWuC": {
+      "author": {
+        "id": "Q3lCFPelRrNKONEcrUDy",
+        "name": "Jesus"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:37.867Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Ask and it will be given to you; search, and you will find; knock and the door will be opened for you.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "gratitude": true,
+        "spiritual": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.447Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "n0tBE2llXcFA2qUi5wQX": {
+      "author": {
+        "id": "TySUhQPqndIkiVHWVYq1",
+        "name": "Anonymous"
+      },
+      "created_at": {
+        "__time__": "2020-08-07T10:19:23.883Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Chacun ses goûts. La merde à le sien.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "I49VoCY5gjuP2sxVSGZu",
+        "name": "Ponce (Twitch)"
+      },
+      "topics": {
+        "feelings": true,
+        "mature": true,
+        "offensive": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.571Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "n2EpioAwx191ONQmJvrb": {
+      "author": {
+        "id": "pBlXzmHt8hyNRDZY6qdC",
+        "name": "Charlie Danger"
+      },
+      "created_at": {
+        "__time__": "2021-01-10T00:23:42.004Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Rien ne fonctionne mieux que d'être un carrelage et d'avoir des fêlures.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "wejSgUOeIDIusRJcL6we",
+        "name": "Insomnie avec..."
+      },
+      "topics": {
+        "introspection": true,
+        "metaphor": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.687Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "n4k9lTluqinpIEZz3qBG": {
+      "author": {
+        "id": "Z4hsV4vWbfADOVA73dp6",
+        "name": "Robert A. Heinlein"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T10:28:56.317Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "Une fois qu'on est en orbite, on est à mi-chemin de partout ailleurs.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "HmSG89I0h6hMcXYLiNLx",
+        "name": "Nous n'irons pas dans l'espace - LetsPlayScience #3 (Part 3)"
+      },
+      "topics": {
+        "poetry": true,
+        "sciences": true,
+        "travel": true
+      },
+      "updated_at": {
+        "__time__": "2024-04-23T19:46:33.440Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "n6fIMdgQ2XjBQMN0fM8e": {
+      "author": {
+        "id": "bDTBCXFZD40UMYT7gG2r",
+        "name": "ALT 236"
+      },
+      "created_at": {
+        "__time__": "2020-12-12T15:17:48.478Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Si une œuvre est faite pour vous, elle finira par croiser votre chemin, jusqu'à ce que vous lui accordiez l'attention quelle réclame.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "e6Hg9D0pFJmE0MxQIeHY",
+        "name": "ALT 236"
+      },
+      "topics": {
+        "art": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:14.889Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nD8gVkeDOY0fs9DRuJRW": {
+      "author": {
+        "id": "pJWbfpCkPaN6TGkE65XE",
+        "name": "Antoine de Saint-Exupéry"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T11:37:09.567Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Love is not just looking at each other, it's looking in the same direction.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.001Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nH6pEZpB3IJTwI7WrKar": {
+      "author": {
+        "id": "6dizm85jWMsreNuC5nKd",
+        "name": "Françoise Bertin"
+      },
+      "created_at": {
+        "__time__": "2020-01-25T12:55:48.002Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "J'ai peut-être plus toute ma tête mais j'ai encore tout mon coeur.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.118Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nJ8J0KXC3D00BEReZtn0": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T19:32:35.807Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Le gouvernement s'occupe de l'emploi. Le Premier ministre s'occupe personnellement de l'emploi. Surtout du sien.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "offensive": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.228Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nJZKkI5vKaTU6uVXiEnV": {
+      "author": {
+        "id": "ziqsLdpahBxDuVXuwafO",
+        "name": "Theodore Roosevelt"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:34.715Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "Believe you can and you’re halfway there.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true,
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2024-02-27T17:26:20.591Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nOlqTsEoG6ZRLZkTz9uS": {
+      "author": {
+        "id": "ffh5ptw9bhilsBllUB83",
+        "name": "Gwynplaine"
+      },
+      "created_at": {
+        "__time__": "2020-09-22T11:52:06.424Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Ni le hasard, ni l'abus ne sont solides. Ils ont l'un et l'autre un mauvais lendemain.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "4cXFO1e9GPUEBkrIb0Kd",
+        "name": "The Man Who Laughs"
+      },
+      "topics": {
+        "metaphor": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.505Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nP9q2r8lKpZlE3YitRdp": {
+      "author": {
+        "id": "HoW2nqVXs2YtwZX3V11S",
+        "name": "Hannah Grose"
+      },
+      "created_at": {
+        "__time__": "2020-11-03T16:50:11.948Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Funerals are for the living. It's up to the living to decide what they can and cannot bear.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "asrAvYNOHqmJUprlFief",
+        "name": "The Haunting of Bly Manor"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.633Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nQjFmm61YfeQPCTvDFKy": {
+      "author": {
+        "id": "2QX33kv6o49I1cIf0xaV",
+        "name": "Pauline Marionnet"
+      },
+      "created_at": {
+        "__time__": "2021-01-14T22:14:44.208Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "L'ivresse, c'est l'endroit où vont ceux qui ne veulent être nulle part. C'est l'endroit où on peut mourir un peu mais pas tout à fait.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "dUn1p0VKGkVQ9WfCh3Cm",
+        "name": "Le parfum du bonheur est plus fort sous la pluie"
+      },
+      "topics": {
+        "metaphor": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.765Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nSS9labko9HrLfjGOW2o": {
+      "author": {
+        "id": "btgtrUptYgvaS9bOSsrM",
+        "name": "Guillaume Apollinaire"
+      },
+      "created_at": {
+        "__time__": "2020-03-31T23:28:14.705Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I hate artists who are not of their time.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "art": true,
+        "offensive": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:15.887Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nTBcOLSbiQf3IKBdRG3k": {
+      "author": {
+        "id": "4RsfwP5zJPFUp7xK1B5N",
+        "name": "Robert Frost"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:42:55.131Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I have been one acquainted with the night. I have walked out in rain - and back in rain. I have outwalked the furthest city light....",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.009Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nUUyjqSUWq3KTAD0zGd6": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T14:46:24.051Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Each day my reason tells me so; But reason doesn’t rule in love, you know.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.133Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nUvw5VM0iXSf5i5Oz45t": {
+      "author": {
+        "id": "jVzKJcTzMRO44bn6VPz9",
+        "name": "ZeratoR"
+      },
+      "created_at": {
+        "__time__": "2021-05-02T21:10:24.444Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Si j'avais pas peur, je pense que je serais fou.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "hxohvTzZAXYtjJbvihGl",
+        "name": "Quoi de neuf docteur ?"
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.238Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nXzNYbj6COXH4VotZtWi": {
+      "author": {
+        "id": "Q5a4lYtWfeVC3eWn5IiG",
+        "name": "Arthur Ashe"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:43:24.790Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "One important key to success is self-confidence. An important key to self-confidence is preparation.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.376Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nZMDI36dRv5o9PimezaD": {
+      "author": {
+        "id": "YcjvfbAuJqGPKAvi3xpW",
+        "name": "Oksana"
+      },
+      "created_at": {
+        "__time__": "2023-09-22T00:35:39.904Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "We never realize how much someone is part of us until we feel the weight of emptiness when they're gone.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "AHXJciwyppF85UV20ZIT",
+        "name": "The Expanse"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-22T00:35:44.730Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nbFZDkPMrhmoeQaUzKS6": {
+      "author": {
+        "id": "xdECIuvGt10rO772e8To",
+        "name": "Tim Ferriss"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T18:33:43.406Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Most questions without answers are just poorly worded.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "8u0M0hW5zj4ZXoE9913R",
+        "name": "The 4-Hour Workweek"
+      },
+      "topics": {
+        "language": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.495Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ncP8NUbm4hVctPaNY3Kl": {
+      "author": {
+        "id": "Kq5D9rIklHj3A3s012Lk",
+        "name": "Ava Silva"
+      },
+      "created_at": {
+        "__time__": "2020-07-07T12:36:33.745Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Life has a really fucked-up way of making your dreams come true.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "98I8yv9EWTHYyMGNOcIB",
+        "name": "Warrior Nun"
+      },
+      "topics": {
+        "mature": true,
+        "retrospection": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.617Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ndGkpRO7U8R6VvfZZFWy": {
+      "author": {
+        "id": "hMhgJ2BboyOwTuP5LFTY",
+        "name": "Coluche"
+      },
+      "created_at": {
+        "__time__": "2020-03-23T19:32:20.696Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Ce serait raciste de penser que les étrangers n'ont pas le droit d'être cons.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true,
+        "offensive": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.717Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ndPXEupkTwrxr1RMbswT": {
+      "author": {
+        "id": "WaeD7acRRcc8WwQsO8Ec",
+        "name": "Arthur C. Clarke"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:04:45.955Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Any sufficiently advanced technology is indistinguishable from magic.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "sciences": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.830Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "neIocyhDGc6uGdHEL6Kq": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T14:46:24.887Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "J'aime mieux un vice commode, qu'une fatigante vertu.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "9X3G0C51DqralCCIHU4d",
+        "name": "Amphitryon"
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:16.930Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ngo3AlH0WEV1c5gTKhP0": {
+      "author": {
+        "id": "Oq5cx5YG03WwNNWYzXLm",
+        "name": "Leonardo da Vinci"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:49.368Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I have been impressed with the urgency of doing. Knowing is not enough; we must apply. Being willing is not enough; we must do.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.065Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "ngpOfYYXWahXQWbQpYAI": {
+      "author": {
+        "id": "CmUNsPzkXvxDIoZIUwKj",
+        "name": "Christophe Castaner"
+      },
+      "created_at": {
+        "__time__": "2020-03-31T15:58:28.083Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Le silence ne doit pas être complice de l'inacceptable.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "ZJIz5dKogADrJTSJLYZV",
+        "name": "National Assembly - Public session (31/03/2020)"
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.183Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nio6AgrZfzri0VuL5zE5": {
+      "author": {
+        "id": "nxARD0RK2lN2awyjeyOZ",
+        "name": "Audrey Hepburn"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:04:44.982Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "As you grow older, you will discover that you have two hands, one for helping yourself, the other for helping others.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "feelings": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.301Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nj0gZrIaFg1uc7xnt02S": {
+      "author": {
+        "id": "xQsiNeldm8IibnS8IZM7",
+        "name": "William Shakespeare"
+      },
+      "created_at": {
+        "__time__": "2020-06-17T08:57:14.991Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 1,
+        "shares": 0
+      },
+      "name": "Journeys end in lovers meeting.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "oHymF5ymhdWvp9sQEdXv",
+        "name": "The Holiday"
+      },
+      "topics": {
+        "feelings": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2024-07-13T04:48:37.954Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nj2Oqrs5AKh5G5CD3kRm": {
+      "author": {
+        "id": "pg6RbIugOvIZsx2Wuwst",
+        "name": "Jack Trakarsky"
+      },
+      "created_at": {
+        "__time__": "2020-12-17T23:30:11.528Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "What if your best, happiest, most honest life looked nothing like you imagined? Would you have the balls to live it?",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "A38G5H1lLkkxGNrzhaeg",
+        "name": "You Me Her"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.557Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nnqgUXLitBSBWvz4o0cn": {
+      "author": {
+        "id": "jZoIk3uLOTBYxkUsbydE",
+        "name": "Stephen Covey"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:45:12.272Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "I am not a product of my circumstances. I am a product of my decisions.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "introspection": true,
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.677Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "npm5RZakk1T03NWOyEvt": {
+      "author": {
+        "id": "sfpQPI5H3Bqh0ha3Zmsg",
+        "name": "Saint Germain"
+      },
+      "created_at": {
+        "__time__": "2021-05-24T11:24:48.104Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You can kill me afterwards.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "HppqCzS6w9oLRzfLEozU",
+        "name": "Castlevania"
+      },
+      "topics": {
+        "offensive": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.797Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nq1pKc1gfoK3q61GPgY2": {
+      "author": {
+        "id": "DnvWxeErAiTeEAhDRtzm",
+        "name": "Tai Lopez"
+      },
+      "created_at": {
+        "__time__": "2020-11-04T22:26:16.867Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "The more you learn, the more you earn.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "BXr4qiBpMB3jdcgfOTmL",
+        "name": "Marketing Mania"
+      },
+      "topics": {
+        "knowledge": true,
+        "work": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:17.909Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "nvjRriv1BSXkuuRavLH5": {
+      "author": {
+        "id": "1PsxzXSZnphcBWIjZe5I",
+        "name": "Lucy"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T08:33:39.665Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Les humains sont les seules créatures à connaître l'inéluctabilité de la mort.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "bXW3dZegjwiOByrA0v7O",
+        "name": "I'm Thinking of Ending Things"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:18.018Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "o1dOLEx6lmyIt5WfH8Fc": {
+      "author": {
+        "id": "JtJwxQYgCfnhMwfOmvWD",
+        "name": "Alfred, Lord Tennyson"
+      },
+      "created_at": {
+        "__time__": "2021-05-02T19:55:50.342Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "And this gray spirit yearning in desire To follow knowledge like a sinking star, Beyond the utmost bound of human thought.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:18.140Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "o4DIqneQisIIWSgsi9MQ": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T13:06:56.684Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Presque tous les hommes meurent de leurs remèdes, et non pas de leurs maladies.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "offensive": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:18.256Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "o4v7umaJXIkb9177dIEd": {
+      "author": {
+        "id": "B2RAWAv0oET5nVEKwwvw",
+        "name": "Ponce"
+      },
+      "created_at": {
+        "__time__": "2020-05-13T16:47:13.667Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Toutes les strat. de speedrun utilisées par les slow runners sont un moyen plus rapide d'aller vers la lenteur.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "I49VoCY5gjuP2sxVSGZu",
+        "name": "Ponce (Twitch)"
+      },
+      "topics": {
+        "fun": true,
+        "poetry": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:18.360Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "o7A5ShNyVNsLb3Ds8gwM": {
+      "author": {
+        "id": "28msDds27WRzo8jiwTmd",
+        "name": "Tony Robbins"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:18.178Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Setting goals is the first step in turning the invisible into the visible.",
+      "random_group_id": "quotes_en_0",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:18.487Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "o86Z0Hg9yQSqGVmVQ8Zj": {
+      "author": {
+        "id": "1PsxzXSZnphcBWIjZe5I",
+        "name": "Lucy"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T07:27:11.881Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Most people are other people. Their thoughts are someone else's opinions. Their lives a mimicry, their passions a quotation. That's an Oscar Wilde quote.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "bXW3dZegjwiOByrA0v7O",
+        "name": "I'm Thinking of Ending Things"
+      },
+      "topics": {
+        "poetry": true,
+        "psychology": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:18.789Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oASOKIxDtGYFU6vsuNzs": {
+      "author": {
+        "id": "pdgXgFGDXQ7VAoJxbHB9",
+        "name": "Milan Kundera"
+      },
+      "created_at": {
+        "__time__": "2023-12-12T23:30:21.491Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Cette compassion-là (au sens de co-sentiment) désigne la plus haute capacité d'imagination affective, l'art de la télépathie des émotions. Dans la hiérarchie des sentiments, c'est le sentiment suprême.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "WSiN3J1h43LJ4A9QzNdd",
+        "name": "L'Insoutenable légèreté de l'être - Nesnesitelná lehkost bytí"
+      },
+      "topics": {
+        "feelings": true,
+        "social": true
+      },
+      "updated_at": {
+        "__time__": "2023-12-12T23:30:22.588Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oBxFUeJ2XELkChZGqzYZ": {
+      "author": {
+        "id": "1RVXfEwYu4x7jSe5oJvK",
+        "name": "Wayne Gretzky"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T10:26:24.909Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "You miss 100% of the shots you don’t take.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:25.382Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oDdJaeHwK976PJ2JM4E7": {
+      "author": {
+        "id": "JZmljYqQFO8paeWn3CTT",
+        "name": "Sébastien Provost"
+      },
+      "created_at": {
+        "__time__": "2024-01-01T13:24:54.362Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Il faut plus de force de caractère pour comprendre un adversaire que pour le rejeter.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "IlLfdOqfjQC5MRWXtpXL",
+        "name": "Kilomètre zéro"
+      },
+      "topics": {
+        "feelings": true,
+        "introspection": true,
+        "motivation": true,
+        "social": true
+      },
+      "update_at": {
+        "__time__": "2024-01-03T10:58:17.142Z"
+      },
+      "updated_at": {
+        "__time__": "2024-01-03T10:58:16.525Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oFD6kyoOAIztWODhT7u8": {
+      "author": {
+        "id": "hFGQjzIi6318w1vq27WG",
+        "name": "Alice Harmon"
+      },
+      "created_at": {
+        "__time__": "2020-12-03T23:51:05.031Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Someday, you're gonna be all alone, so you need to figure out how to take care of yourself.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "X6udBLluPpaGOf3b5gZd",
+        "name": "The Queen's Gambit"
+      },
+      "topics": {
+        "introspection": true,
+        "knowledge": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:25.506Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oI1zx6tLCxwoiOIINY7D": {
+      "author": {
+        "id": "zBGv7hgYuwKQ0cmXZNfe",
+        "name": "Bob Munro"
+      },
+      "created_at": {
+        "__time__": "2020-11-03T22:04:14.031Z"
+      },
+      "language": "fr",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Vous pensez que si vous ne jouez pas, vous ne perdrez pas, Betty. C'est faux.",
+      "random_group_id": "quotes_fr_0",
+      "reference": {
+        "id": "XgPULwSWEKbZi2LeG175",
+        "name": "Dirty John"
+      },
+      "topics": {
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T22:42:20.189Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oL1crihk472nx6aZzaF7": {
+      "author": {
+        "id": "E2szmwjoBRUEFc9VrvuD",
+        "name": "Erica Jong"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:42:47.213Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "And the trouble is, if you don't risk anything, you risk even more.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "motivation": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:25.654Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oLz2itKVNeqI8nZgiHuP": {
+      "author": {
+        "id": "1PsxzXSZnphcBWIjZe5I",
+        "name": "Lucy"
+      },
+      "created_at": {
+        "__time__": "2020-11-05T07:27:02.644Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Other animals live in the present. Humans cannot, so they invented hope.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "bXW3dZegjwiOByrA0v7O",
+        "name": "I'm Thinking of Ending Things"
+      },
+      "topics": {
+        "biology": true,
+        "psychology": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:25.770Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oMuPKOLbPlitrTAyjHQS": {
+      "author": {
+        "id": "yDK0gm8AKXLMhdcpxkx9",
+        "name": "Abigail Van Buren"
+      },
+      "created_at": {
+        "__time__": "2020-01-29T11:39:52.071Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "If you want a place in the sun, you've got to put up with a few blisters.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "",
+        "name": ""
+      },
+      "topics": {
+        "fun": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:25.914Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oQC1DZjN2aDiZwz8bL02": {
+      "author": {
+        "id": "VeiYw9LHEtFk6Fh1qLGz",
+        "name": "Molière"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T13:16:37.685Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "He's a wonderful talker, who has the art of telling you nothing in a great harangue.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "r9HrOSAOEmxuN3kCfMo3",
+        "name": "Le Misanthrope"
+      },
+      "topics": {
+        "punchline": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:26.033Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    },
+    "oQVlczpj76ZbIxDtgEPl": {
+      "author": {
+        "id": "u7mqAyOVwpVGWz4sTECr",
+        "name": "Unknown"
+      },
+      "created_at": {
+        "__time__": "2020-01-26T17:36:10.225Z"
+      },
+      "language": "en",
+      "metrics": {
+        "likes": 0,
+        "shares": 0
+      },
+      "name": "Let go of what's gone. Be grateful for what remains. Look forward to what's coming.",
+      "random_group_id": "quotes_en_1",
+      "reference": {
+        "id": "uqYepBCESElUXAqAniYB",
+        "name": "Reddit"
+      },
+      "topics": {
+        "feelings": true,
+        "philosophy": true
+      },
+      "updated_at": {
+        "__time__": "2023-09-13T23:06:26.143Z"
+      },
+      "user": {
+        "id": "PqFZbBTyPpQHPoeHO9jjnmDAbLE2"
+      },
+      "__collections__": {}
+    }
+  }
+}

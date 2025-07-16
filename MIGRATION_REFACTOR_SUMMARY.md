@@ -127,10 +127,12 @@ node scripts/migrate-data.js authors --verbose
 node scripts/migrate-data.js references --batch-size=25 --backup-path=custom/path.json
 ```
 
-### Legacy Compatibility
+### Migration Commands
 ```bash
-# Still works with deprecation warning
-node scripts/migrate-firebase-data.js --dry-run
+# Use the new modular migration system
+node scripts/migrate-data.js references --dry-run
+node scripts/migrate-data.js authors --dry-run
+node scripts/migrate-data.js quotes --dry-run
 ```
 
 ## 📊 Test Results
