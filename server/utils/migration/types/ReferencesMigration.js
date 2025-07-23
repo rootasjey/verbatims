@@ -137,16 +137,15 @@ export class ReferencesMigration extends BaseMigrator {
    */
   async processBatch(batch) {
     // Get database connection (using NuxtHub/Cloudflare D1)
-    const { hubDatabase } = await import('#hub/database')
     const db = hubDatabase()
     
     // Prepare insert statement
     const insertStmt = db.prepare(`
       INSERT INTO quote_references (
         name, original_language, release_date, description, primary_type, secondary_type,
-        image_url, urls, imdb_id, isbn, spotify_id, views_count, likes_count, shares_count,
+        image_url, urls, views_count, likes_count, shares_count,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
     // Process batch in transaction
@@ -161,9 +160,6 @@ export class ReferencesMigration extends BaseMigrator {
           record.secondary_type,
           record.image_url,
           record.urls,
-          record.imdb_id,
-          record.isbn,
-          record.spotify_id,
           record.views_count || 0,
           record.likes_count || 0,
           record.shares_count || 0,
@@ -230,10 +226,7 @@ export class ReferencesMigration extends BaseMigrator {
     
     report += `## Content Analysis\n\n`
     report += `- **Has Description:** ${metrics.hasDescriptionPercent.toFixed(1)}% (${metrics.hasDescription})\n`
-    report += `- **Has Image:** ${metrics.hasImagePercent.toFixed(1)}% (${metrics.hasImage})\n`
-    report += `- **Has IMDB ID:** ${metrics.hasImdbIdPercent.toFixed(1)}% (${metrics.hasImdbId})\n`
-    report += `- **Has ISBN:** ${metrics.hasIsbnPercent.toFixed(1)}% (${metrics.hasIsbn})\n`
-    report += `- **Has Spotify ID:** ${metrics.hasSpotifyIdPercent.toFixed(1)}% (${metrics.hasSpotifyId})\n\n`
+    report += `- **Has Image:** ${metrics.hasImagePercent.toFixed(1)}% (${metrics.hasImage})\n\n`
     
     report += `## Text Metrics\n\n`
     report += `- **Average Name Length:** ${metrics.averageNameLength} characters\n`

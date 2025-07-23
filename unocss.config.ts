@@ -6,15 +6,15 @@ import presetAnimations from 'unocss-preset-animations'
 import {
   presetAttributify,
   presetIcons,
-  presetUno,
   presetWebFonts,
+  presetWind3,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
 
 export default {
   presets: [
-    presetUno(),
+    presetWind3(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,
@@ -26,9 +26,9 @@ export default {
     presetWebFonts({
       provider: 'fontshare',
       fonts: {
-        title: 'Montserrat',
+        title: 'Khand',
         text: 'Gambetta',
-        body: 'Chillax',
+        body: 'Pilcrow rounded',
         mono: 'Pally',
         sans: 'General Sans',
         serif: 'Boska',

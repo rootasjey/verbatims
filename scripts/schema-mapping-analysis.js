@@ -19,9 +19,6 @@ const SQL_SCHEMA = {
   secondary_type: { type: 'TEXT', constraints: '' },
   image_url: { type: 'TEXT', constraints: '' },
   urls: { type: 'TEXT', constraints: 'DEFAULT \'[]\' CHECK (json_valid(urls))' },
-  imdb_id: { type: 'TEXT', constraints: '' },
-  isbn: { type: 'TEXT', constraints: '' },
-  spotify_id: { type: 'TEXT', constraints: '' },
   views_count: { type: 'INTEGER', constraints: 'DEFAULT 0' },
   likes_count: { type: 'INTEGER', constraints: 'DEFAULT 0' },
   shares_count: { type: 'INTEGER', constraints: 'DEFAULT 0' },
@@ -44,11 +41,6 @@ const FIELD_MAPPINGS = {
   // Complex mappings requiring transformation
   'release.original': 'release_date', // Firebase timestamp to DATE
   'urls': 'urls', // Object to JSON string
-  
-  // Fields that need extraction/derivation
-  'urls.imdb': 'imdb_id', // Extract from URL
-  'urls.spotify': 'spotify_id', // Extract from URL
-  // isbn: needs to be derived or left null
   
   // Default values for missing fields
   'views_count': 0,

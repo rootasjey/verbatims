@@ -1,138 +1,42 @@
 <template>
-  <div class="min-h-screen">
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 py-16 mb-12">
-      <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-          Discover Inspiring
-          <span class="text-primary-600 dark:text-primary-400">Quotes</span>
-        </h1>
-        <p class="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-          A comprehensive, user-generated database of wisdom from authors, films, books, and more.
-          Curated by the community, moderated for quality.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <UButton size="lg" @click="openSubmitModal" class="btn-hover">
-            <UIcon name="i-ph-plus" class="w-5 h-5 mr-2" />
-            Submit a Quote
-          </UButton>
-          <UButton variant="outline" size="lg" to="/authors" class="btn-hover">
-            <UIcon name="i-ph-user" class="w-5 h-5 mr-2" />
-            Browse Authors
-          </UButton>
-        </div>
+  <div class="min-h-screen light:bg-purple-100">
+    <header class="p-8">
+      <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
+    </header>
+
+    <div class="px-8 mb-6 font-text">
+      <h2 class="font-600 line-height-none">There are no quotes in the database yet.</h2>
+      <div class="flex gap-4">
+        <UButton btn="link" class="p-0">Initialize database</UButton>
+        <UButton btn="link" class="p-0">Create admin user</UButton>
       </div>
-    </section>
+    </div>
 
-    <!-- Stats Section -->
-    <section class="mb-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div class="text-center">
-            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.quotes?.toLocaleString() }}
-            </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Quotes</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.authors?.toLocaleString() }}
-            </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Authors</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.references?.toLocaleString() }}
-            </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">References</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-              {{ stats.users?.toLocaleString() }}
-            </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Contributors</div>
-          </div>
-        </div>
+    <div class="px-8 font-text grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div v-for="i in 12" :key="i" class="col-span-1 md:col-span-2 lg:col-span-1">
+        <h4 class="font-body border-b-1 b-dashed border-black">Albert Einstein — Theoretical Physicist</h4>
+        <h3>
+          It's time to care for the planet, and the moment to act is now. 
+          Together, we have the power to create a sustainable future, 
+          driven by clean and renewable energy, ensuring a healthier world for generations to come."
+        </h3>
       </div>
-    </section>
+    </div>
 
-    <!-- Quotes Collection -->
-    <section>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-8">
-          <div>
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Discover Quotes
-            </h2>
-            <p class="text-lg text-gray-600 dark:text-gray-300">
-              Curated wisdom from authors, films, books, and more
-            </p>
-          </div>
-          <UButton variant="ghost" to="/quotes" class="hidden sm:flex">
-            View All
-            <UIcon name="i-ph-arrow-right" class="w-4 h-4 ml-2" />
-          </UButton>
-        </div>
+    <div class="p-8 max-w-lg font-text">
+      <span class="mb-6 block">
+        There are {{ stats.quotes }} quotes in the database.
+      </span>
 
-        <!-- Loading State -->
-        <div v-if="pending" class="quotes-grid-enhanced">
-          <div v-for="i in 6" :key="i" class="quote-skeleton">
-            <div class="animate-pulse">
-              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-4"></div>
-              <div class="flex items-center space-x-4">
-                <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quotes Grid -->
-        <div v-else class="quotes-grid-enhanced">
-          <QuoteCard
-            v-for="quote in allQuotes"
-            :key="quote.id"
-            :quote="quote"
-            :featured="quote.id === featuredQuote?.id"
-            class="quote-grid-item fade-in"
-          />
-        </div>
-
-        <!-- Load More -->
-        <div class="text-center mt-12" v-if="hasMore && !pending">
-          <UButton
-            variant="outline"
-            size="lg"
-            :loading="loadingMore"
-            @click="loadMore"
-            class="btn-hover"
-          >
-            <UIcon name="i-ph-arrow-down" class="w-4 h-4 mr-2" />
-            Load More Quotes
-          </UButton>
-        </div>
-
-        <!-- Empty State -->
-        <div v-if="!pending && allQuotes.length === 0" class="text-center py-16">
-          <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No quotes yet</h3>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">Be the first to submit a quote!</p>
-          <UButton @click="openSubmitModal">Submit Quote</UButton>
-        </div>
-      </div>
-    </section>
-
-    <!-- Submit Quote Dialog -->
-    <SubmitQuoteDialog v-model="showSubmitModal" />
+      <UButton btn="solid-black" label="Load more quotes" rounded="3" class="w-full px-12 py-6" />
+    </div>
   </div>
 </template>
 
 <script setup>
 // SEO
 useHead({
-  title: 'Verbatims - Universal Quotes Database',
+  title: 'Verbatims • Universal Quotes',
   meta: [
     { name: 'description', content: 'Discover inspiring quotes from authors, films, books, and more. A comprehensive, user-generated quotes database with moderation capabilities.' }
   ]

@@ -94,9 +94,6 @@ function analyzeDataQuality(references) {
     withDescription: 0,
     withImageUrl: 0,
     withReleaseDate: 0,
-    withImdbId: 0,
-    withSpotifyId: 0,
-    withIsbn: 0,
     byPrimaryType: {},
     byLanguage: {},
     averageDescriptionLength: 0,
@@ -111,9 +108,6 @@ function analyzeDataQuality(references) {
     if (ref.description && ref.description.trim()) metrics.withDescription++
     if (ref.image_url && ref.image_url.trim()) metrics.withImageUrl++
     if (ref.release_date) metrics.withReleaseDate++
-    if (ref.imdb_id) metrics.withImdbId++
-    if (ref.spotify_id) metrics.withSpotifyId++
-    if (ref.isbn) metrics.withIsbn++
     
     // Track distributions
     if (ref.primary_type) {

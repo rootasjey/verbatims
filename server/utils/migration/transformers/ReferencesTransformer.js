@@ -78,10 +78,6 @@ export class ReferencesTransformer extends BaseTransformer {
     // Transform URLs object
     sqlRecord.urls = this.transformUrls(firebaseRecord.urls || {})
     
-    // Extract specific IDs from URLs
-    sqlRecord.imdb_id = this.extractImdbId(firebaseRecord.urls?.imdb)
-    sqlRecord.spotify_id = this.extractSpotifyId(firebaseRecord.urls?.spotify)
-    
     // Handle image URL (common issue in Firebase data)
     sqlRecord.image_url = this.transformImageUrl(firebaseRecord.urls?.image || firebaseRecord.urls?.imageName)
     
@@ -95,9 +91,6 @@ export class ReferencesTransformer extends BaseTransformer {
     sqlRecord.views_count = 0
     sqlRecord.likes_count = 0
     sqlRecord.shares_count = 0
-    
-    // ISBN is not available in current Firebase data
-    sqlRecord.isbn = null
     
     return sqlRecord
   }
@@ -241,8 +234,8 @@ export class ReferencesTransformer extends BaseTransformer {
   async generateCSV(data, outputPath) {
     const headers = [
       'firebase_id', 'name', 'original_language', 'release_date', 'description',
-      'primary_type', 'secondary_type', 'image_url', 'urls', 'imdb_id', 'isbn',
-      'spotify_id', 'views_count', 'likes_count', 'shares_count', 'created_at', 'updated_at'
+      'primary_type', 'secondary_type', 'image_url', 'urls',
+      'views_count', 'likes_count', 'shares_count', 'created_at', 'updated_at'
     ]
     
     const csvContent = [
@@ -281,9 +274,6 @@ export class ReferencesTransformer extends BaseTransformer {
         `'${this.escapeSql(row.secondary_type)}'`,
         `'${this.escapeSql(row.image_url)}'`,
         `'${this.escapeSql(row.urls)}'`,
-        row.imdb_id ? `'${row.imdb_id}'` : 'NULL',
-        'NULL', // isbn
-        row.spotify_id ? `'${row.spotify_id}'` : 'NULL',
         row.views_count,
         row.likes_count,
         row.shares_count,
@@ -292,7 +282,7 @@ export class ReferencesTransformer extends BaseTransformer {
       ]
       
       sqlStatements.push(
-        `INSERT INTO quote_references (name, original_language, release_date, description, primary_type, secondary_type, image_url, urls, imdb_id, isbn, spotify_id, views_count, likes_count, shares_count, created_at, updated_at) VALUES (${values.join(', ')});`
+        `INSERT INTO quote_references (name, original_language, release_date, description, primary_type, secondary_type, image_url, urls, views_count, likes_count, shares_count, created_at, updated_at) VALUES (${values.join(', ')});`
       )
     })
     

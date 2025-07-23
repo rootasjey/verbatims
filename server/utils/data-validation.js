@@ -98,19 +98,6 @@ export class DataValidator {
       }
     }
 
-    // ID validations
-    if (reference.imdb_id && !this.isValidImdbId(reference.imdb_id)) {
-      warnings.push(`${context}: Invalid IMDb ID format "${reference.imdb_id}"`)
-    }
-
-    if (reference.isbn && !this.isValidIsbn(reference.isbn)) {
-      warnings.push(`${context}: Invalid ISBN format "${reference.isbn}"`)
-    }
-
-    if (reference.spotify_id && !this.isValidSpotifyId(reference.spotify_id)) {
-      warnings.push(`${context}: Invalid Spotify ID format "${reference.spotify_id}"`)
-    }
-
     // Numeric field validations
     const numericFields = ['views_count', 'likes_count', 'shares_count']
     numericFields.forEach(field => {
@@ -128,15 +115,6 @@ export class DataValidator {
 
     if (reference.secondary_type && reference.secondary_type.length > 100) {
       warnings.push(`${context}: Secondary type is very long (${reference.secondary_type.length} characters)`)
-    }
-
-    // Business logic validations
-    if (reference.primary_type === 'book' && !reference.isbn && !reference.description?.toLowerCase().includes('book')) {
-      warnings.push(`${context}: Book reference without ISBN or book-related description`)
-    }
-
-    if (reference.primary_type === 'film' && !reference.imdb_id && !reference.description?.toLowerCase().includes('film')) {
-      warnings.push(`${context}: Film reference without IMDb ID or film-related description`)
     }
 
     return { errors, warnings }
@@ -254,21 +232,6 @@ export class DataValidator {
     } catch {
       return false
     }
-  }
-
-  isValidImdbId(imdbId) {
-    return /^tt\d{7,}$/.test(imdbId)
-  }
-
-  isValidIsbn(isbn) {
-    // Basic ISBN validation (ISBN-10 or ISBN-13)
-    const cleaned = isbn.replace(/[-\s]/g, '')
-    return /^\d{10}$/.test(cleaned) || /^\d{13}$/.test(cleaned)
-  }
-
-  isValidSpotifyId(spotifyId) {
-    // Spotify IDs are typically 22 characters, base62 encoded
-    return /^[a-zA-Z0-9]{22}$/.test(spotifyId)
   }
 
   /**

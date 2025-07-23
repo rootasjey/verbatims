@@ -21,7 +21,7 @@ export class MigrationConfig {
         requiredFields: ['name', 'primary_type'],
         optionalFields: [
           'original_language', 'release_date', 'description', 'secondary_type',
-          'image_url', 'urls', 'imdb_id', 'isbn', 'spotify_id',
+          'image_url', 'urls',
           'views_count', 'likes_count', 'shares_count', 'created_at', 'updated_at'
         ],
         validationRules: {
@@ -65,21 +65,6 @@ export class MigrationConfig {
             type: 'json',
             default: '[]'
           },
-          imdb_id: {
-            type: 'string',
-            pattern: /^tt\d{7,}$/,
-            nullable: true
-          },
-          isbn: {
-            type: 'string',
-            pattern: /^\d{10}$|^\d{13}$/,
-            nullable: true
-          },
-          spotify_id: {
-            type: 'string',
-            pattern: /^[a-zA-Z0-9]{22}$/,
-            nullable: true
-          },
           views_count: {
             type: 'integer',
             min: 0,
@@ -105,8 +90,6 @@ export class MigrationConfig {
           'type.secondary': 'secondary_type',
           'urls.image': 'image_url',
           'urls': 'urls',
-          'urls.imdb': 'imdb_id',
-          'urls.spotify': 'spotify_id',
           'created_at': 'created_at',
           'updated_at': 'updated_at'
         },

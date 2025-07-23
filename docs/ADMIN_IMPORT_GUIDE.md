@@ -130,13 +130,10 @@ The progress view shows:
 - **original_language**: Must be supported language code
 - **release_date**: Valid date format, not in future
 - **urls**: Valid JSON object with proper URL formats
-- **imdb_id**: Format: tt followed by 7+ digits
-- **isbn**: Valid ISBN-10 or ISBN-13 format
 
 #### Data Quality Checks
 - Duplicate detection (by name and image URL)
 - Content consistency validation
-- Business logic validation (e.g., books should have ISBN)
 
 ### Handling Validation Errors
 

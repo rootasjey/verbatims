@@ -153,19 +153,24 @@ export async function seedDatabase() {
       referenceIds.push(result.meta.last_row_id as number)
     }
     
-    // Create admin user
-    const adminResult = await db.prepare(`
-      INSERT INTO users (email, name, role, is_active, email_verified)
-      VALUES (?, ?, ?, ?, ?)
-    `).bind(
-      'admin@verbatims.com',
-      'Admin User',
-      'admin',
-      true,
-      true
-    ).run()
-    
-    const adminId = adminResult.meta.last_row_id as number
+    // Initialize admin user (will check if already exists)
+    const adminInitialized = await initializeAdminUser()
+    if (!adminInitialized) {
+      console.error('Failed to initialize admin user during seeding')
+      return false
+    }
+
+    // Get the admin user ID for seeding sample data
+    const adminUser = await db.prepare(`
+      SELECT id FROM users WHERE role = 'admin' LIMIT 1
+    `).first()
+
+    if (!adminUser) {
+      console.error('No admin user found after initialization')
+      return false
+    }
+
+    const adminId = adminUser.id
     
     // Create sample tags
     const tags = [
@@ -279,5 +284,91 @@ export async function getDatabaseStats() {
   } catch (error) {
     console.error('Failed to get database stats:', error)
     return null
+  }
+}
+
+/**
+ * Initialize default admin user on first startup
+ * Uses environment variables with secure fallbacks
+ */
+export async function initializeAdminUser() {
+  try {
+    const db = hubDatabase()
+
+    if (!db) {
+      console.log('Database not available, skipping admin user initialization')
+      return false
+    }
+
+    // Check if any admin user already exists
+    const existingAdmin = await db.prepare(`
+      SELECT id, name, email FROM users WHERE role = 'admin' LIMIT 1
+    `).first()
+
+    if (existingAdmin) {
+      console.log(`Admin user already exists: ${existingAdmin.name} (${existingAdmin.email})`)
+      return true
+    }
+
+    // Get environment variables with fallbacks
+    const username = process.env.USER_USERNAME || 'root'
+    const email = process.env.USER_EMAIL || 'admin@localhost'
+    const password = process.env.USER_PASSWORD || 'Verbatims@Beautiful2024!'
+
+    // Check if user with this email or username already exists
+    const existingUser = await db.prepare(`
+      SELECT id, name, email, role FROM users WHERE email = ? OR name = ? LIMIT 1
+    `).bind(email, username).first()
+
+    if (existingUser) {
+      // If user exists but is not admin, upgrade them to admin
+      if (existingUser.role !== 'admin') {
+        await db.prepare(`
+          UPDATE users SET role = 'admin', is_active = TRUE, email_verified = TRUE, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).bind(existingUser.id).run()
+
+        console.log(`✅ Upgraded existing user '${existingUser.name}' (${existingUser.email}) to admin role`)
+        return true
+      } else {
+        console.log(`Admin user already exists: ${existingUser.name} (${existingUser.email})`)
+        return true
+      }
+    }
+
+    // Hash the password using nuxt-auth-utils
+    const hashedPassword = await hashPassword(password)
+
+    // Create new admin user
+    const result = await db.prepare(`
+      INSERT INTO users (name, email, password, role, is_active, email_verified, created_at, updated_at)
+      VALUES (?, ?, ?, 'admin', TRUE, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `).bind(username, email, hashedPassword).run()
+
+    if (!result.success) {
+      console.error('❌ Failed to create admin user')
+      return false
+    }
+
+    // Log successful creation with security considerations
+    console.log(`✅ Default admin user created successfully:`)
+    console.log(`   Username: ${username}`)
+    console.log(`   Email: ${email}`)
+
+    // Only show password info if using default (for security)
+    if (!process.env.USER_PASSWORD) {
+      console.log(`   Password: ${password}`)
+      console.log(`   ⚠️  WARNING: Using default password! Please change it after first login.`)
+    } else {
+      console.log(`   Password: [Set from USER_PASSWORD environment variable]`)
+    }
+
+    console.log(`   🔐 Please change the default credentials after first login for security.`)
+
+    return true
+  } catch (error: any) {
+    console.error('❌ Failed to initialize admin user:', error)
+    console.error('Error details:', error?.message || error)
+    return false
   }
 }

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  password TEXT, -- Optional for OAuth users (added in migration 0002)
+  password TEXT,
   avatar_url TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'moderator', 'admin')),
   is_active BOOLEAN DEFAULT TRUE,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS authors (
 );
 
 -- Quote references table (sources/works that quotes come from)
--- Updated in migration 0003 to include new primary types: media_stream, writings, video_game
+-- secondary_type: genre/category like 'horror', 'comedy', 'biography', etc.
 CREATE TABLE IF NOT EXISTS quote_references (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL CHECK (length(name) >= 2 AND length(name) <= 200),
@@ -62,12 +62,9 @@ CREATE TABLE IF NOT EXISTS quote_references (
   release_date DATE,
   description TEXT,
   primary_type TEXT NOT NULL CHECK (primary_type IN ('film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'media_stream', 'writings', 'video_game', 'other')),
-  secondary_type TEXT, -- genre/category like 'horror', 'comedy', 'biography', etc.
+  secondary_type TEXT,
   image_url TEXT,
-  urls TEXT DEFAULT '[]' CHECK (json_valid(urls)), -- JSON array of related URLs
-  imdb_id TEXT, -- For films/TV series
-  isbn TEXT, -- For books
-  spotify_id TEXT, -- For music/podcasts
+  urls TEXT DEFAULT '[]' CHECK (json_valid(urls)),
   views_count INTEGER DEFAULT 0,
   likes_count INTEGER DEFAULT 0,
   shares_count INTEGER DEFAULT 0,
@@ -107,8 +104,11 @@ CREATE TABLE IF NOT EXISTS quotes (
 CREATE TABLE IF NOT EXISTS tags (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
+  description TEXT,
+  category TEXT,
   color TEXT DEFAULT '#3B82F6',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Many-to-many relationship between quotes and tags
@@ -229,8 +229,6 @@ CREATE INDEX IF NOT EXISTS idx_authors_name ON authors(name);
 
 -- Reference table indexes
 CREATE INDEX IF NOT EXISTS idx_references_type ON quote_references(primary_type);
-CREATE INDEX IF NOT EXISTS idx_references_imdb ON quote_references(imdb_id);
-CREATE INDEX IF NOT EXISTS idx_references_isbn ON quote_references(isbn);
 
 -- User interaction indexes
 CREATE INDEX IF NOT EXISTS idx_user_likes_user ON user_likes(user_id);

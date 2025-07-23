@@ -1,10 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen">
     <AppHeader />
-    <main class="container mx-auto px-4 py-8">
+    <main>
       <NuxtPage />
     </main>
-    <AppFooter />
     <NuxtRouteAnnouncer />
   </div>
 </template>

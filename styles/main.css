@@ -299,11 +299,11 @@ body {
 
 /* Custom selection colors */
 ::selection {
-  background-color: rgb(var(--color-primary-200));
-  color: rgb(var(--color-primary-900));
+  background-color: black;
+  color: white;
 }
 
 .dark ::selection {
-  background-color: rgb(var(--color-primary-800));
-  color: rgb(var(--color-primary-100));
+  background-color: white;
+  color: black;
 }

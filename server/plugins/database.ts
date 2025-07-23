@@ -1,6 +1,6 @@
 export default defineNitroPlugin(async (nitroApp) => {
   // Initialize database on startup
-  console.log('Initializing database...')
+  console.log('(database plugin) • Initializing database...')
 
   try {
     // Check if database is available
@@ -13,6 +13,15 @@ export default defineNitroPlugin(async (nitroApp) => {
     const success = await initializeDatabase()
     if (success) {
       console.log('Database initialized successfully')
+
+      // Initialize admin user on first startup
+      console.log('Initializing admin user...')
+      const adminInitialized = await initializeAdminUser()
+      if (adminInitialized) {
+        console.log('Admin user initialization completed')
+      } else {
+        console.error('Failed to initialize admin user')
+      }
 
       // Seed database if needed
       const seedSuccess = await seedDatabase()

@@ -29,7 +29,6 @@ export default defineEventHandler(async (event) => {
         COUNT(CASE WHEN description IS NOT NULL AND description != '' THEN 1 END) as with_description,
         COUNT(CASE WHEN image_url IS NOT NULL AND image_url != '' THEN 1 END) as with_image,
         COUNT(CASE WHEN release_date IS NOT NULL THEN 1 END) as with_release_date,
-        COUNT(CASE WHEN imdb_id IS NOT NULL THEN 1 END) as with_imdb_id,
         AVG(views_count) as avg_views,
         AVG(likes_count) as avg_likes
       FROM quote_references
@@ -110,8 +109,7 @@ export default defineEventHandler(async (event) => {
         completenessStats: {
           withDescription: referenceStats.with_description,
           withImage: referenceStats.with_image,
-          withReleaseDate: referenceStats.with_release_date,
-          withImdbId: referenceStats.with_imdb_id
+          withReleaseDate: referenceStats.with_release_date
         },
         engagementStats: {
           averageViews: Math.round(Number(referenceStats.avg_views) || 0),
@@ -129,12 +127,11 @@ export default defineEventHandler(async (event) => {
 })
 
 function calculateCompleteness(stats: any): number {
-  const totalFields = 4 // description, image, release_date, imdb_id
+  const totalFields = 3 // description, image, release_date
   const completedFields = [
     stats.with_description,
     stats.with_image,
     stats.with_release_date,
-    stats.with_imdb_id
   ].reduce((sum, count) => sum + count, 0)
   
   const maxPossible = stats.total_references * totalFields

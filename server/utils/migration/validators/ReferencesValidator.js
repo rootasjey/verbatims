@@ -24,21 +24,6 @@ export class ReferencesValidator extends BaseValidator {
       warnings.push(`${context}: Invalid image URL format "${record.image_url}"`)
     }
 
-    // Validate IMDB ID format
-    if (record.imdb_id && !this.isValidImdbId(record.imdb_id)) {
-      warnings.push(`${context}: Invalid IMDB ID format "${record.imdb_id}"`)
-    }
-
-    // Validate Spotify ID format
-    if (record.spotify_id && !this.isValidSpotifyId(record.spotify_id)) {
-      warnings.push(`${context}: Invalid Spotify ID format "${record.spotify_id}"`)
-    }
-
-    // Validate ISBN format
-    if (record.isbn && !this.isValidIsbn(record.isbn)) {
-      warnings.push(`${context}: Invalid ISBN format "${record.isbn}"`)
-    }
-
     // Validate URLs JSON structure
     if (record.urls) {
       try {
@@ -76,21 +61,15 @@ export class ReferencesValidator extends BaseValidator {
       case 'film':
       case 'tv_series':
       case 'documentary':
-        if (!record.imdb_id && !record.release_date) {
-          warnings.push(`${context}: ${primaryType} should have IMDB ID or release date`)
-        }
-        break
-
-      case 'book':
-        if (!record.isbn && !record.release_date) {
-          warnings.push(`${context}: Book should have ISBN or release date`)
+        if (!record.release_date) {
+          warnings.push(`${context}: ${primaryType} should have release date`)
         }
         break
 
       case 'music':
       case 'podcast':
-        if (!record.spotify_id && !record.release_date) {
-          warnings.push(`${context}: ${primaryType} should have Spotify ID or release date`)
+        if (!record.release_date) {
+          warnings.push(`${context}: ${primaryType} should have release date`)
         }
         break
 
@@ -109,7 +88,7 @@ export class ReferencesValidator extends BaseValidator {
    * Get fields to check for duplicates
    */
   getDuplicateCheckFields() {
-    return ['name', 'imdb_id', 'isbn', 'spotify_id']
+    return ['name']
   }
 
   /**
@@ -173,30 +152,6 @@ export class ReferencesValidator extends BaseValidator {
   }
 
   /**
-   * Validate IMDB ID format
-   */
-  isValidImdbId(imdbId) {
-    return /^tt\d{7,}$/.test(imdbId)
-  }
-
-  /**
-   * Validate ISBN format
-   */
-  isValidIsbn(isbn) {
-    // Basic ISBN validation (ISBN-10 or ISBN-13)
-    const cleaned = isbn.replace(/[-\s]/g, '')
-    return /^\d{10}$/.test(cleaned) || /^\d{13}$/.test(cleaned)
-  }
-
-  /**
-   * Validate Spotify ID format
-   */
-  isValidSpotifyId(spotifyId) {
-    // Spotify IDs are typically 22 characters, base62 encoded
-    return /^[a-zA-Z0-9]{22}$/.test(spotifyId)
-  }
-
-  /**
    * Generate references-specific quality metrics
    */
   getQualityMetrics(records) {
@@ -206,9 +161,6 @@ export class ReferencesValidator extends BaseValidator {
     const referencesMetrics = {
       ...baseMetrics,
       mediaTypeDistribution: {},
-      hasImdbId: 0,
-      hasIsbn: 0,
-      hasSpotifyId: 0,
       hasImage: 0,
       hasDescription: 0,
       averageDescriptionLength: 0,
@@ -227,9 +179,6 @@ export class ReferencesValidator extends BaseValidator {
       }
 
       // ID presence
-      if (record.imdb_id) referencesMetrics.hasImdbId++
-      if (record.isbn) referencesMetrics.hasIsbn++
-      if (record.spotify_id) referencesMetrics.hasSpotifyId++
       if (record.image_url) referencesMetrics.hasImage++
       
       // Description metrics
@@ -255,9 +204,6 @@ export class ReferencesValidator extends BaseValidator {
 
     // Convert counts to percentages
     const total = records.length
-    referencesMetrics.hasImdbIdPercent = (referencesMetrics.hasImdbId / total) * 100
-    referencesMetrics.hasIsbnPercent = (referencesMetrics.hasIsbn / total) * 100
-    referencesMetrics.hasSpotifyIdPercent = (referencesMetrics.hasSpotifyId / total) * 100
     referencesMetrics.hasImagePercent = (referencesMetrics.hasImage / total) * 100
     referencesMetrics.hasDescriptionPercent = (referencesMetrics.hasDescription / total) * 100
 

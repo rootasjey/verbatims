@@ -188,9 +188,6 @@ class DataTransformer {
       secondary_type: firebaseRef.type?.secondary || '',
       image_url: firebaseRef.urls?.image || '',
       urls: JSON.stringify(urls),
-      imdb_id: imdbId,
-      isbn: null, // Not available in Firebase data
-      spotify_id: spotifyId,
       views_count: 0,
       likes_count: 0,
       shares_count: 0,
@@ -252,8 +249,8 @@ class DataTransformer {
   generateCSV(data, outputPath) {
     const headers = [
       'firebase_id', 'name', 'original_language', 'release_date', 'description',
-      'primary_type', 'secondary_type', 'image_url', 'urls', 'imdb_id', 'isbn',
-      'spotify_id', 'views_count', 'likes_count', 'shares_count', 'created_at', 'updated_at'
+      'primary_type', 'secondary_type', 'image_url', 'urls',
+      'views_count', 'likes_count', 'shares_count', 'created_at', 'updated_at'
     ]
     
     const csvContent = [
@@ -288,9 +285,6 @@ class DataTransformer {
         `'${this.escapeSql(row.secondary_type)}'`,
         `'${this.escapeSql(row.image_url)}'`,
         `'${this.escapeSql(row.urls)}'`,
-        row.imdb_id ? `'${row.imdb_id}'` : 'NULL',
-        'NULL', // isbn
-        row.spotify_id ? `'${row.spotify_id}'` : 'NULL',
         row.views_count,
         row.likes_count,
         row.shares_count,
@@ -299,7 +293,7 @@ class DataTransformer {
       ]
       
       sqlStatements.push(
-        `INSERT INTO quote_references (name, original_language, release_date, description, primary_type, secondary_type, image_url, urls, imdb_id, isbn, spotify_id, views_count, likes_count, shares_count, created_at, updated_at) VALUES (${values.join(', ')});`
+        `INSERT INTO quote_references (name, original_language, release_date, description, primary_type, secondary_type, image_url, urls, views_count, likes_count, shares_count, created_at, updated_at) VALUES (${values.join(', ')});`
       )
     })
     

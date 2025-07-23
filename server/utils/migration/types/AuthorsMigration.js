@@ -131,7 +131,6 @@ export class AuthorsMigration extends BaseMigrator {
    */
   async processBatch(batch) {
     // Get database connection (using NuxtHub/Cloudflare D1)
-    const { hubDatabase } = await import('#hub/database')
     const db = hubDatabase()
     
     // Prepare insert statement

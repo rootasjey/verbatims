@@ -317,8 +317,8 @@ export class BackupManager {
       
       const expectedColumns = [
         'id', 'name', 'original_language', 'release_date', 'description',
-        'primary_type', 'secondary_type', 'image_url', 'urls', 'imdb_id',
-        'isbn', 'spotify_id', 'views_count', 'likes_count', 'shares_count',
+        'primary_type', 'secondary_type', 'image_url', 'urls',
+        'views_count', 'likes_count', 'shares_count',
         'created_at', 'updated_at'
       ]
       

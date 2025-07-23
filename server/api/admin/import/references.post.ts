@@ -190,7 +190,7 @@ async function processBatch(db: any, batch: any[], progress: ImportProgress, use
   const insertStmt = db.prepare(`
     INSERT INTO quote_references (
       name, original_language, release_date, description, primary_type, secondary_type,
-      image_url, urls, imdb_id, isbn, spotify_id, views_count, likes_count, shares_count,
+      image_url, urls, views_count, likes_count, shares_count,
       created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
@@ -215,9 +215,6 @@ async function processBatch(db: any, batch: any[], progress: ImportProgress, use
         reference.secondary_type || '',
         reference.image_url || '',
         reference.urls || '{}',
-        reference.imdb_id,
-        reference.isbn,
-        reference.spotify_id,
         reference.views_count || 0,
         reference.likes_count || 0,
         reference.shares_count || 0,
