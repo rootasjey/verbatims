@@ -1,56 +1,27 @@
 <template>
-  <div class="min-h-screen light:bg-purple-100">
+  <div class="min-h-screen">
     <header class="p-8">
       <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
     </header>
 
-    <!-- Onboarding Section -->
-    <div v-if="needsOnboarding" class="px-8 mb-6 font-text">
-      <h2 class="font-600 line-height-none">Welcome to Verbatims!</h2>
-      <p class="text-gray-600 dark:text-gray-400">
-        Get started by setting up your application:
-      </p>
-      <div class="flex gap-4">
-        <UButton
-          v-if="onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser"
-          btn="link"
-          to="/onboarding/admin"
-          class="p-0"
-        >
-          1. Create Admin User
-        </UButton>
-        <UButton
-          v-else-if="onboardingStatus?.step === 'database_data' || !onboardingStatus?.hasData"
-          btn="link"
-          to="/onboarding/database"
-          class="p-0"
-        >
-          2. Initialize Database
-        </UButton>
-      </div>
-    </div>
-
-    <!-- Empty State (when onboarding is complete but no quotes) -->
-    <div v-else-if="stats.quotes === 0" class="px-8 mb-6 font-text">
-      <h2 class="font-600 line-height-none mb-4">Ready to start collecting quotes!</h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Your database is set up. Start by submitting your first quote.
-      </p>
-      <UButton @click="showSubmitModal = true" class="px-4 py-2">
-        Submit Your First Quote
-      </UButton>
-    </div>
-
-    <HomeEmptyView />
+    <HomeEmptyView
+      :needs-onboarding="needsOnboarding"
+      :onboarding-status="onboardingStatus"
+      :stats="stats"
+      @open-submit-modal="openSubmitModal"
+    />
 
     <!-- Stats and Load More (when quotes exist) -->
-    <div v-if="stats.quotes > 0" class="p-8 max-w-lg font-text">
+    <div v-if="stats.quotes > 0" class="p-8 max-w-lg font-serif">
       <span class="mb-6 block">
         There are {{ stats.quotes }} quotes in the database.
       </span>
 
       <UButton btn="solid-black" label="Load more quotes" rounded="3" class="w-full px-12 py-6" />
     </div>
+
+    <!-- Submit Quote Modal -->
+    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshQuotes" />
   </div>
 </template>
 

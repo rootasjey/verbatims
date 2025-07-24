@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="text-center mt-12 mb-8">
         <h1 class="font-title text-size-6 font-600 line-height-none uppercase">Verbatims</h1>
-        <h2 class="font-text text-size-12 font-600">Create Admin User</h2>
+        <h2 class="font-serif text-size-12 font-600">Create Admin User</h2>
         <p class="text-gray-600 dark:text-gray-400">
           Set up your administrator account to manage the quotes database.
         </p>

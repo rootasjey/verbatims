@@ -26,13 +26,13 @@ export default {
     presetWebFonts({
       provider: 'fontshare',
       fonts: {
-        title: 'Khand',
-        text: 'Gambetta',
-        body: 'Pilcrow rounded',
+        body: 'Nunito',
+        cursive: 'Sharpie',
         mono: 'Pally',
         sans: 'General Sans',
-        serif: 'Boska',
-        cursive: 'Sharpie',
+        serif: 'Gambetta',
+        subtitle: 'Pilcrow rounded',
+        title: 'Khand',
       },
     }),
     presetUna(),

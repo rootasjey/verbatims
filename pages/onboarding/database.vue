@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="text-center mb-8">
         <h1 class="font-title text-size-6 font-600 line-height-none uppercase">Verbatims</h1>
-        <h2 class="font-text text-size-12 font-600">Initialize Database</h2>
+        <h2 class="font-serif text-size-12 font-600">Initialize Database</h2>
         <p class="text-gray-600 dark:text-gray-400">
           Import quotes, authors, and references from backup files to populate your database.
         </p>
