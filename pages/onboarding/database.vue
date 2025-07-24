@@ -140,6 +140,7 @@
               v-if="!isStarted && !isCompleted"
               @click="startImport"
               :disabled="loading"
+              :loading="loading"
               size="sm"
             >
               Start Import
@@ -172,7 +173,10 @@
 useHead({
   title: 'Initialize Database - Verbatims Onboarding',
   meta: [
-    { name: 'description', content: 'Initialize your Verbatims database with quotes, authors, and references.' }
+    { 
+      name: 'description', 
+      content: 'Initialize your Verbatims database with quotes, authors, and references.',
+    }
   ]
 })
 
@@ -232,9 +236,9 @@ const getStepIcon = (step) => {
 const getStepIconClass = (step) => {
   const status = progress.value[step].status
   switch (status) {
-    case 'completed': return 'text-green-600'
-    case 'loading': return 'text-blue-600 animate-spin'
-    case 'error': return 'text-red-600'
+    case 'completed': return 'text-lime-600'
+    case 'loading': return 'text-blue-500 animate-spin'
+    case 'error': return 'text-pink-600'
     default: return 'text-gray-400'
   }
 }

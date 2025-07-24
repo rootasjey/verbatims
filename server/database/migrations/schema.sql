@@ -17,18 +17,18 @@
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
-  name TEXT NOT NULL,
-  password TEXT,
+  name TEXT NOT NULL CHECK (length(name) >= 1 AND length(name) <= 70),
+  password TEXT NOT NULL,
   avatar_url TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'moderator', 'admin')),
   is_active BOOLEAN DEFAULT TRUE,
   email_verified BOOLEAN DEFAULT FALSE,
   biography TEXT,
   job TEXT,
-  language TEXT,
-  location TEXT,
+  language TEXT DEFAULT 'en',
+  location TEXT DEFAULT 'On Earth',
   socials TEXT DEFAULT '[]' CHECK (json_valid(socials)),
-  last_login_at DATETIME,
+  last_login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Authors table
 CREATE TABLE IF NOT EXISTS authors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL UNIQUE CHECK (length(name) >= 2 AND length(name) <= 100),
+  name TEXT NOT NULL,
   is_fictional BOOLEAN DEFAULT FALSE,
   birth_date DATE,
   birth_location TEXT,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS authors (
 -- secondary_type: genre/category like 'horror', 'comedy', 'biography', etc.
 CREATE TABLE IF NOT EXISTS quote_references (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL CHECK (length(name) >= 2 AND length(name) <= 200),
+  name TEXT NOT NULL,
   original_language TEXT DEFAULT 'en',
   release_date DATE,
   description TEXT,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS quote_references (
 -- Quotes table (main content table)
 CREATE TABLE IF NOT EXISTS quotes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL CHECK (length(name) >= 10 AND length(name) <= 3000),
+  name TEXT NOT NULL,
   language TEXT DEFAULT 'en' CHECK (language IN ('en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh')),
   author_id INTEGER,
   reference_id INTEGER,

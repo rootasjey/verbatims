@@ -1,16 +1,16 @@
 // auth.d.ts
 declare module '#auth-utils' {
   interface User {
-    biography: string
-    createdAt: string;
+    biography: string | null
+    createdAt: string
     id: number
-    job: string
-    language: string
-    location: string
+    job: string | null
+    language: 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh'
+    location: string | null
     email: string
     name: string
-    role: string
-    socials: string
+    role: 'admin' | 'moderator' | 'user'
+    socials: string | null
     updatedAt: string
   }
 

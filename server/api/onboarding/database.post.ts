@@ -1,3 +1,5 @@
+import { User } from '#auth-utils'
+
 export default defineEventHandler(async (event) => {
   try {
     const db = hubDatabase()
@@ -23,7 +25,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if admin user exists
-    const adminUser = await db.prepare(`
+    const adminUser: User | null = await db.prepare(`
       SELECT id FROM users WHERE role = 'admin' LIMIT 1
     `).first()
 
