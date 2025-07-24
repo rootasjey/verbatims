@@ -236,12 +236,15 @@ const getStepIcon = (step) => {
 const getStepIconClass = (step) => {
   const status = progress.value[step].status
   switch (status) {
-    case 'completed': return 'text-lime-600'
+    case 'completed': return 'text-lime-400'
     case 'loading': return 'text-blue-500 animate-spin'
     case 'error': return 'text-pink-600'
     default: return 'text-gray-400'
   }
 }
+
+// Real-time progress tracking
+let eventSource = null
 
 // Import functions
 const startImport = async () => {
@@ -250,42 +253,216 @@ const startImport = async () => {
   errors.value = []
 
   try {
+    // Start import with async mode
     const response = await $fetch('/api/onboarding/database', {
-      method: 'POST'
+      method: 'POST',
+      query: { async: 'true' }
     })
 
-    if (response.success) {
-      // Update progress based on response
-      if (response.data) {
-        progress.value.authors.imported = response.data.authors || 0
-        progress.value.references.imported = response.data.references || 0
-        progress.value.quotes.imported = response.data.quotes || 0
-        
-        // Mark all as completed
-        progress.value.authors.status = 'completed'
-        progress.value.authors.message = `Successfully imported ${response.data.authors || 0} authors`
-        
-        progress.value.references.status = 'completed'
-        progress.value.references.message = `Successfully imported ${response.data.references || 0} references`
-        
-        progress.value.quotes.status = 'completed'
-        progress.value.quotes.message = `Successfully imported ${response.data.quotes || 0} quotes`
-      }
-      
-      isCompleted.value = true
+    if (response.success && response.importId) {
+      // Start real-time progress tracking
+      startProgressTracking(response.importId)
     } else {
-      errors.value.push(response.message || 'Import failed')
+      errors.value.push(response.message || 'Failed to start import')
+      loading.value = false
     }
   } catch (error) {
     console.error('Database import error:', error)
-    errors.value.push(error.data?.message || 'Failed to import database')
-    
+    errors.value.push(error.data?.message || 'Failed to start import')
+
     // Mark all as error
     progress.value.authors.status = 'error'
     progress.value.references.status = 'error'
     progress.value.quotes.status = 'error'
-  } finally {
+
     loading.value = false
+  }
+}
+
+// Start real-time progress tracking using Server-Sent Events
+const startProgressTracking = (importId) => {
+  // Close existing connection if any
+  if (eventSource) {
+    eventSource.close()
+  }
+
+  let reconnectAttempts = 0
+  const maxReconnectAttempts = 3
+  let reconnectTimeout = null
+
+  const connect = () => {
+    try {
+      // Create new EventSource connection
+      eventSource = new EventSource(`/api/onboarding/progress/${importId}`)
+
+      eventSource.onopen = () => {
+        console.log('Progress tracking connected')
+        reconnectAttempts = 0 // Reset on successful connection
+      }
+
+      eventSource.addEventListener('progress', (event) => {
+        try {
+          const progressData = JSON.parse(event.data)
+          updateProgressUI(progressData)
+        } catch (error) {
+          console.error('Failed to parse progress data:', error)
+          errors.value.push('Failed to parse progress update')
+        }
+      })
+
+      eventSource.addEventListener('heartbeat', (event) => {
+        // Heartbeat received - connection is alive
+        console.log('Heartbeat received')
+      })
+
+      eventSource.addEventListener('close', (event) => {
+        console.log('Import completed, closing connection')
+        eventSource.close()
+        eventSource = null
+      })
+
+      eventSource.addEventListener('error', (event) => {
+        try {
+          const errorData = JSON.parse(event.data)
+          console.error('Server error:', errorData)
+          errors.value.push(errorData.message || 'Server error occurred')
+        } catch (error) {
+          console.error('Failed to parse error data:', error)
+        }
+      })
+
+      eventSource.onerror = (error) => {
+        console.error('EventSource error:', error)
+
+        if (eventSource.readyState === EventSource.CLOSED) {
+          eventSource = null
+
+          // Try to reconnect
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000) // Exponential backoff
+            console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttempts}/${maxReconnectAttempts})`)
+
+            reconnectTimeout = setTimeout(() => {
+              connect()
+            }, delay)
+          } else {
+            console.log('Max reconnection attempts reached, falling back to polling')
+            startPollingFallback(importId)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to create EventSource:', error)
+      startPollingFallback(importId)
+    }
+  }
+
+  // Start initial connection
+  connect()
+
+  // Cleanup function
+  const cleanup = () => {
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout)
+      reconnectTimeout = null
+    }
+    if (eventSource) {
+      eventSource.close()
+      eventSource = null
+    }
+  }
+
+  // Store cleanup function for later use
+  window.cleanupProgressTracking = cleanup
+
+  return cleanup
+}
+
+// Update UI based on progress data
+const updateProgressUI = (progressData) => {
+  // Update individual steps
+  if (progressData.steps) {
+    Object.keys(progressData.steps).forEach(stepName => {
+      if (progress.value[stepName]) {
+        Object.assign(progress.value[stepName], progressData.steps[stepName])
+      }
+    })
+  }
+
+  // Update overall status
+  if (progressData.status === 'completed') {
+    isCompleted.value = true
+    loading.value = false
+  } else if (progressData.status === 'failed') {
+    loading.value = false
+    if (progressData.errors && progressData.errors.length > 0) {
+      errors.value.push(...progressData.errors)
+    }
+  }
+}
+
+// Fallback polling mechanism if SSE fails
+const startPollingFallback = (importId) => {
+  console.log('Starting polling fallback for import:', importId)
+
+  let pollAttempts = 0
+  const maxPollAttempts = 150 // 5 minutes at 2-second intervals
+  let pollInterval = null
+
+  const poll = async () => {
+    try {
+      pollAttempts++
+
+      const response = await $fetch(`/api/onboarding/progress/${importId}`)
+
+      if (response.success) {
+        updateProgressUI(response.data)
+
+        if (response.data.status === 'completed' || response.data.status === 'failed') {
+          console.log('Import finished, stopping polling')
+          if (pollInterval) clearInterval(pollInterval)
+          return
+        }
+      } else {
+        console.error('Polling response error:', response)
+        errors.value.push('Failed to get import progress')
+      }
+
+      // Check if we've exceeded max attempts
+      if (pollAttempts >= maxPollAttempts) {
+        console.error('Polling timeout - max attempts reached')
+        if (pollInterval) clearInterval(pollInterval)
+        errors.value.push('Import progress tracking timed out')
+        loading.value = false
+      }
+
+    } catch (error) {
+      console.error('Polling error:', error)
+
+      // If it's a network error, continue trying for a bit
+      if (pollAttempts < 10) {
+        console.log('Network error, will retry...')
+        return
+      }
+
+      // Too many failures, give up
+      if (pollInterval) clearInterval(pollInterval)
+      errors.value.push('Lost connection to import progress')
+      loading.value = false
+    }
+  }
+
+  // Start polling immediately, then every 2 seconds
+  poll()
+  pollInterval = setInterval(poll, 2000)
+
+  // Store cleanup function
+  window.cleanupPolling = () => {
+    if (pollInterval) {
+      clearInterval(pollInterval)
+      pollInterval = null
+    }
   }
 }
 
@@ -306,6 +483,26 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Failed to check onboarding status:', error)
+  }
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  // Clean up EventSource
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
+
+  // Clean up any stored cleanup functions
+  if (window.cleanupProgressTracking) {
+    window.cleanupProgressTracking()
+    delete window.cleanupProgressTracking
+  }
+
+  if (window.cleanupPolling) {
+    window.cleanupPolling()
+    delete window.cleanupPolling
   }
 })
 </script>

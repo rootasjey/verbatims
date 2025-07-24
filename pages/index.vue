@@ -71,7 +71,6 @@ const { data: quotesData, pending } = await useFetch('/api/quotes', {
 const { data: statsData } = await useFetch('/api/stats')
 const { data: featuredData } = await useFetch('/api/quotes/featured')
 const { data: onboardingData } = await useFetch('/api/onboarding/status')
-console.log("onboardingData.value?.data: ", onboardingData.value)
 
 // Reactive state
 const showSubmitModal = ref(false)

@@ -40,14 +40,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check for admin users
-    const adminCount = await db.prepare(`
+    const adminCount: { count: number } | null = await db.prepare(`
       SELECT COUNT(*) as count FROM users WHERE role = 'admin'
     `).first()
 
     const hasAdminUser = (adminCount?.count || 0) > 0
 
     // Check if database has data (quotes)
-    const quotesCount = await db.prepare(`
+    const quotesCount: { count: number } | null = await db.prepare(`
       SELECT COUNT(*) as count FROM quotes
     `).first()
 
