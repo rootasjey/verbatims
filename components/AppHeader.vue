@@ -6,9 +6,9 @@
       scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md border-b border-white/20 bg-black/20'
     ]"
   >
-    <div @click="handleLogoClick" class="w-12 ml-3">
+    <UButtun btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Solar by 480 Design - https://creativecommons.org/licenses/by/4.0/ --><path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/></svg>
-    </div>
+    </UButtun>
     
     <div class="flex space-x-6 font-body font-600 color-gray-6 dark:color-gray-4 mr-8">
       <span>Search</span>
@@ -31,14 +31,17 @@ const handleScroll = () => {
 }
 
 const handleLogoClick = (event) => {
-  // If we're on the home page, prevent navigation and scroll to top instead
-  if (route.path === '/') {
-    event.preventDefault()
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
+  if (route.path !== '/') {
+    navigateTo('/')
+    return
   }
+
+  // If we're on the home page, prevent navigation and scroll to top instead
+  event.preventDefault()
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
 }
 
 // Set up scroll listener on mount
