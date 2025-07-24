@@ -7,7 +7,7 @@
           Data Management
         </h1>
         <p class="mt-2 text-gray-600 dark:text-gray-400">
-          Advanced data operations, exports, and maintenance tools
+          Manage database operations and data integrity
         </p>
       </div>
       <UButton
@@ -20,381 +20,242 @@
       </UButton>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <UCard>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-primary-600">{{ stats.totalReferences }}</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">Total References</div>
-        </div>
-      </UCard>
-      <UCard>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-green-600">{{ stats.recentImports }}</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">Recent Imports</div>
-        </div>
-      </UCard>
-      <UCard>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-blue-600">{{ stats.totalBackups }}</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">Available Backups</div>
-        </div>
-      </UCard>
-      <UCard>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-yellow-600">{{ stats.dataQualityScore }}%</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400">Data Quality</div>
-        </div>
-      </UCard>
+    <!-- Success/Error Alerts -->
+    <div class="mb-6 space-y-4">
+      <UAlert
+        v-if="successMessage"
+        color="green"
+        variant="soft"
+        :title="successMessage"
+        :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+        @close="successMessage = ''"
+      />
+
+      <UAlert
+        v-if="errorMessage"
+        color="red"
+        variant="soft"
+        :title="errorMessage"
+        :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+        @close="errorMessage = ''"
+      />
     </div>
 
-    <!-- Action Tabs -->
-    <div class="mb-8">
-      <UTabs v-model="activeTab" :items="tabs" />
-    </div>
+    <!-- Database Reset Section -->
+    <UCard class="mb-8">
+      <template #header>
+        <div class="flex items-center space-x-3">
+          <UIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Database Reset
+          </h2>
+        </div>
+      </template>
 
-    <!-- Export Section -->
-    <div v-if="activeTab === 0" class="space-y-6">
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold">Export Data</h2>
-        </template>
-
-        <div class="space-y-6">
-          <!-- Export Options -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-4">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <UIcon name="i-ph-warning-circle" class="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
             <div>
-              <label class="block text-sm font-medium mb-2">Export Format</label>
-              <USelect
-                v-model="exportOptions.format"
-                :options="exportFormatOptions"
-                placeholder="Select format"
-              />
+              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                Destructive Operation Warning
+              </h3>
+              <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                This operation will permanently delete ALL data in the database including:
+              </p>
+              <ul class="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside space-y-1">
+                <li>All quotes, authors, and references</li>
+                <li>All user accounts and collections</li>
+                <li>All tags, likes, and interaction data</li>
+                <li>All moderation history and reports</li>
+              </ul>
+              <p class="mt-2 text-sm font-medium text-red-800 dark:text-red-200">
+                This action cannot be undone. Make sure you have a backup if needed.
+              </p>
             </div>
-            
-            <div>
-              <label class="block text-sm font-medium mb-2">Data Filter</label>
-              <USelect
-                v-model="exportOptions.filter"
-                :options="exportFilterOptions"
-                placeholder="All data"
-              />
-            </div>
-          </div>
-
-          <!-- Advanced Options -->
-          <div class="space-y-3">
-            <h3 class="text-sm font-medium">Export Options</h3>
-            
-            <UCheckbox
-              v-model="exportOptions.includeMetadata"
-              label="Include metadata (creation dates, counts, etc.)"
-            />
-            
-            <UCheckbox
-              v-model="exportOptions.compressOutput"
-              label="Compress output file"
-            />
-            
-            <UCheckbox
-              v-model="exportOptions.includeUrls"
-              label="Include all URL data"
-            />
-          </div>
-
-          <!-- Export Actions -->
-          <div class="flex gap-3">
-            <UButton
-              :loading="isExporting"
-              @click="startExport"
-              :disabled="!exportOptions.format"
-            >
-              Start Export
-            </UButton>
-            
-            <UButton
-              variant="outline"
-              @click="previewExport"
-              :disabled="!exportOptions.format"
-            >
-              Preview Data
-            </UButton>
           </div>
         </div>
-      </UCard>
 
-      <!-- Export History -->
-      <UCard v-if="exportHistory.length > 0">
-        <template #header>
-          <h3 class="text-lg font-semibold">Recent Exports</h3>
-        </template>
-        
-        <div class="space-y-3">
-          <div
-            v-for="export_ in exportHistory"
-            :key="export_.id"
-            class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+        <div class="flex justify-end">
+          <UButton
+            btn="solid-black"
+            :loading="isResetting"
+            :disabled="isResetting"
+            @click="showResetConfirmation = true"
           >
-            <div>
-              <div class="font-medium">{{ export_.filename }}</div>
-              <div class="text-sm text-gray-500">
-                {{ export_.recordCount }} records • {{ formatDate(export_.createdAt) }}
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <UButton
-                size="sm"
-                variant="outline"
-                @click="downloadExport(export_.id)"
-              >
-                Download
-              </UButton>
-              <UButton
-                size="sm"
-                variant="ghost"
-                color="red"
-                @click="deleteExport(export_.id)"
-              >
-                Delete
-              </UButton>
-            </div>
-          </div>
+            <template #leading>
+              <UIcon name="i-ph-trash" />
+            </template>
+            Reset Entire Database
+          </UButton>
         </div>
-      </UCard>
-    </div>
+      </div>
+    </UCard>
 
-    <!-- Data Quality Section -->
-    <div v-if="activeTab === 1" class="space-y-6">
-      <UCard>
+    <!-- Reset Confirmation Dialog -->
+    <UDialog v-model:open="showResetConfirmation">
+      <UCard class="border-none">
         <template #header>
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold">Data Quality Analysis</h2>
-            <UButton
-              variant="outline"
-              @click="runQualityAnalysis"
-              :loading="isAnalyzing"
-            >
-              Run Analysis
-            </UButton>
+          <div class="flex items-center space-x-3">
+            <UIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Confirm Database Reset
+            </h3>
           </div>
         </template>
 
-        <div v-if="qualityReport" class="space-y-6">
-          <!-- Quality Score -->
-          <div class="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div class="text-4xl font-bold mb-2" :class="getQualityScoreColor(qualityReport.overallScore)">
-              {{ qualityReport.overallScore }}%
-            </div>
-            <div class="text-lg font-medium">Overall Data Quality Score</div>
-          </div>
-
-          <!-- Quality Metrics -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div class="text-2xl font-bold">{{ qualityReport.completeness }}%</div>
-              <div class="text-sm text-gray-600 dark:text-gray-400">Completeness</div>
-            </div>
-            <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div class="text-2xl font-bold">{{ qualityReport.accuracy }}%</div>
-              <div class="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
-            </div>
-            <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div class="text-2xl font-bold">{{ qualityReport.consistency }}%</div>
-              <div class="text-sm text-gray-600 dark:text-gray-400">Consistency</div>
-            </div>
-          </div>
-
-          <!-- Issues Found -->
-          <div v-if="qualityReport.issues.length > 0">
-            <h3 class="text-lg font-semibold mb-3">Issues Found</h3>
-            <div class="space-y-2">
-              <div
-                v-for="(issue, index) in qualityReport.issues.slice(0, 10)"
-                :key="index"
-                class="p-3 rounded-lg"
-                :class="getIssueColor(issue.severity)"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="font-medium">{{ issue.title }}</div>
-                    <div class="text-sm">{{ issue.description }}</div>
-                  </div>
-                  <UBadge :color="issue.severity === 'high' ? 'red' : issue.severity === 'medium' ? 'yellow' : 'blue'">
-                    {{ issue.severity }}
-                  </UBadge>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="text-center py-8 text-gray-500">
-          Click "Run Analysis" to analyze data quality
-        </div>
-      </UCard>
-    </div>
-
-    <!-- Maintenance Section -->
-    <div v-if="activeTab === 2" class="space-y-6">
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold">Database Maintenance</h2>
-        </template>
-
-        <div class="space-y-6">
-          <!-- Maintenance Actions -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <h3 class="font-medium">Cleanup Operations</h3>
-              
-              <UButton
-                block
-                variant="outline"
-                @click="cleanupOldBackups"
-                :loading="isCleaningBackups"
-              >
-                Clean Old Backups
-              </UButton>
-              
-              <UButton
-                block
-                variant="outline"
-                @click="cleanupImportLogs"
-                :loading="isCleaningLogs"
-              >
-                Clean Import Logs
-              </UButton>
-              
-              <UButton
-                block
-                variant="outline"
-                @click="optimizeDatabase"
-                :loading="isOptimizing"
-              >
-                Optimize Database
-              </UButton>
-            </div>
-
-            <div class="space-y-4">
-              <h3 class="font-medium">Data Operations</h3>
-              
-              <UButton
-                block
-                variant="outline"
-                @click="rebuildIndexes"
-                :loading="isRebuildingIndexes"
-              >
-                Rebuild Search Indexes
-              </UButton>
-              
-              <UButton
-                block
-                variant="outline"
-                @click="updateStatistics"
-                :loading="isUpdatingStats"
-              >
-                Update Statistics
-              </UButton>
-              
-              <UButton
-                block
-                variant="outline"
-                color="red"
-                @click="showDangerZone = true"
-              >
-                Danger Zone
-              </UButton>
-            </div>
-          </div>
-
-          <!-- Maintenance Log -->
-          <div v-if="maintenanceLog.length > 0">
-            <h3 class="font-medium mb-3">Recent Maintenance</h3>
-            <div class="space-y-2 max-h-40 overflow-y-auto">
-              <div
-                v-for="(log, index) in maintenanceLog"
-                :key="index"
-                class="text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded"
-              >
-                <span class="font-medium">{{ formatDate(log.timestamp) }}</span>
-                - {{ log.action }}: {{ log.result }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </UCard>
-    </div>
-
-    <!-- Danger Zone Modal -->
-    <UModal v-model="showDangerZone">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold text-red-600">⚠️ Danger Zone</h3>
-        </template>
-        
         <div class="space-y-4">
-          <p class="text-sm text-gray-600">
-            These operations are irreversible and can cause data loss. Use with extreme caution.
+          <p class="text-gray-700 dark:text-gray-300">
+            You are about to permanently delete all data in the database. This action cannot be undone.
           </p>
-          
+
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+              What will happen:
+            </h4>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• All database tables will be dropped</li>
+              <li>• Database schema will be recreated from scratch</li>
+              <li>• A new admin user will be initialized</li>
+              <li>• You will need to log in again after the reset</li>
+            </ul>
+          </div>
+
           <div class="space-y-3">
-            <UButton
-              block
-              color="red"
-              variant="outline"
-              @click="truncateTable('quote_references')"
-            >
-              Clear All References
-            </UButton>
-            
-            <UButton
-              block
-              color="red"
-              variant="outline"
-              @click="resetDatabase"
-            >
-              Reset Entire Database
-            </UButton>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Type "RESET DATABASE" to confirm:
+              </label>
+              <UInput
+                v-model="confirmationText"
+                placeholder="RESET DATABASE"
+                :disabled="isResetting"
+                class="w-full"
+              />
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <UCheckbox
+                v-model="acknowledgeDataLoss"
+                :disabled="isResetting"
+              />
+              <label class="text-sm text-gray-700 dark:text-gray-300">
+                I understand that all data will be permanently deleted
+              </label>
+            </div>
           </div>
         </div>
-        
+
         <template #footer>
-          <div class="flex justify-end">
-            <UButton @click="showDangerZone = false">Cancel</UButton>
+          <div class="flex justify-end space-x-3">
+            <UButton
+              btn="ghost"
+              :disabled="isResetting"
+              @click="cancelReset"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              btn="solid-black"
+              :loading="isResetting"
+              :disabled="!canConfirmReset"
+              @click="confirmReset"
+            >
+              <template #leading>
+                <UIcon name="i-ph-trash" />
+              </template>
+              Reset Database
+            </UButton>
           </div>
         </template>
       </UCard>
-    </UModal>
+    </UDialog>
   </div>
 </template>
 
 <script setup>
-// SEO and permissions
 definePageMeta({
   middleware: 'admin'
 })
 
 useHead({
-  title: 'Data Management - Admin'
+  title: 'Verbatims • Data Management - Admin'
 })
 
-// Data
-const activeTab = ref(0)
+// Reactive state
+const isResetting = ref(false)
+const showResetConfirmation = ref(false)
+const confirmationText = ref('')
+const acknowledgeDataLoss = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
+
+// Computed properties
+const canConfirmReset = computed(() => {
+  return confirmationText.value === 'RESET DATABASE' &&
+         acknowledgeDataLoss.value &&
+         !isResetting.value
+})
+
+// Database reset functionality
+const resetDatabase = async () => {
+  showResetConfirmation.value = true
+}
+
+const cancelReset = () => {
+  showResetConfirmation.value = false
+  confirmationText.value = ''
+  acknowledgeDataLoss.value = false
+}
+
+const confirmReset = async () => {
+  if (!canConfirmReset.value) return
+
+  isResetting.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    console.log('🔥 Initiating database reset...')
+
+    const response = await $fetch('/api/admin/reset-database', {
+      method: 'POST',
+      body: {
+        confirmationToken: 'RESET_DATABASE_CONFIRMED'
+      }
+    })
+
+    console.log('✅ Database reset completed:', response)
+
+    // Show success message
+    successMessage.value = `Database reset completed successfully! ${response.data.droppedTables} tables dropped, ${response.data.createdTables} tables created.`
+
+    // Close dialog
+    showResetConfirmation.value = false
+    cancelReset()
+
+    // Redirect to login after a delay since user session will be invalid
+    setTimeout(() => {
+      console.log('🔄 Redirecting to login page...')
+      navigateTo('/auth/signin')
+    }, 3000)
+
+  } catch (error) {
+    console.error('❌ Database reset failed:', error)
+
+    // Show error message
+    errorMessage.value = error.data?.message || error.message || 'Database reset failed. Please try again.'
+
+    // Close dialog on error
+    showResetConfirmation.value = false
+    cancelReset()
+  } finally {
+    isResetting.value = false
+  }
+}
+
+// Legacy export functionality (keeping for future use)
 const isExporting = ref(false)
-const isAnalyzing = ref(false)
-const isCleaningBackups = ref(false)
-const isCleaningLogs = ref(false)
-const isOptimizing = ref(false)
-const isRebuildingIndexes = ref(false)
-const isUpdatingStats = ref(false)
-const showDangerZone = ref(false)
-
-const stats = ref({
-  totalReferences: 0,
-  recentImports: 0,
-  totalBackups: 0,
-  dataQualityScore: 0
-})
 
 const exportOptions = ref({
   format: '',
@@ -404,100 +265,29 @@ const exportOptions = ref({
   includeUrls: true
 })
 
-const exportHistory = ref([])
-const qualityReport = ref(null)
-const maintenanceLog = ref([])
-
-const tabs = [
-  { label: 'Export', icon: 'i-ph-download' },
-  { label: 'Data Quality', icon: 'i-ph-chart-line' },
-  { label: 'Maintenance', icon: 'i-ph-wrench' }
-]
-
-const exportFormatOptions = [
-  { label: 'JSON', value: 'json' },
-  { label: 'CSV', value: 'csv' },
-  { label: 'Excel (XLSX)', value: 'xlsx' },
-  { label: 'SQL Dump', value: 'sql' }
-]
-
-const exportFilterOptions = [
-  { label: 'All References', value: 'all' },
-  { label: 'Films Only', value: 'film' },
-  { label: 'Books Only', value: 'book' },
-  { label: 'TV Series Only', value: 'tv_series' },
-  { label: 'Recent (Last 30 days)', value: 'recent' },
-  { label: 'Popular (Most viewed)', value: 'popular' }
-]
-
-// Methods
-const loadStats = async () => {
-  try {
-    const response = await $fetch('/api/admin/data-management/stats')
-    stats.value = response.data
-  } catch (error) {
-    console.error('Failed to load stats:', error)
-  }
-}
-
 const startExport = async () => {
   isExporting.value = true
-  
+
   try {
     const response = await $fetch('/api/admin/data-management/export', {
       method: 'POST',
       body: exportOptions.value
     })
-    
+
     // Download the file
     const link = document.createElement('a')
     link.href = response.downloadUrl
     link.download = response.filename
     link.click()
-    
-    // Refresh export history
-    await loadExportHistory()
-    
+
+    // Show success message
+    successMessage.value = 'Data export completed successfully!'
+
   } catch (error) {
     console.error('Export failed:', error)
+    errorMessage.value = 'Data export failed. Please try again.'
   } finally {
     isExporting.value = false
   }
 }
-
-const runQualityAnalysis = async () => {
-  isAnalyzing.value = true
-  
-  try {
-    const response = await $fetch('/api/admin/data-management/quality-analysis')
-    qualityReport.value = response.data
-  } catch (error) {
-    console.error('Quality analysis failed:', error)
-  } finally {
-    isAnalyzing.value = false
-  }
-}
-
-const getQualityScoreColor = (score) => {
-  if (score >= 90) return 'text-green-600'
-  if (score >= 70) return 'text-yellow-600'
-  return 'text-red-600'
-}
-
-const getIssueColor = (severity) => {
-  switch (severity) {
-    case 'high': return 'bg-red-50 dark:bg-red-900/20'
-    case 'medium': return 'bg-yellow-50 dark:bg-yellow-900/20'
-    default: return 'bg-blue-50 dark:bg-blue-900/20'
-  }
-}
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString()
-}
-
-// Lifecycle
-onMounted(() => {
-  loadStats()
-})
 </script>

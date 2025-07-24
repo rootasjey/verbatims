@@ -91,7 +91,7 @@
             :loading="loading"
             :disabled="!isFormValid"
             class="w-full"
-            size="lg"
+            size="sm"
           >
             Create Admin User
           </UButton>

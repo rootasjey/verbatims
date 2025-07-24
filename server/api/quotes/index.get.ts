@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
       SELECT COUNT(DISTINCT q.id) as total
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       WHERE ${whereClause}
     `
 
