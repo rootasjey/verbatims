@@ -1,101 +1,93 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Authors</h1>
-      <p class="text-lg text-gray-600 dark:text-gray-400">
+  <div class="min-h-screen">
+    <header class="p-8">
+      <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Authors</h1>
+      <p class="font-serif text-center text-gray-600 dark:text-gray-400 mt-4 text-lg">
         Discover quotes from your favorite authors, both real and fictional.
       </p>
-    </div>
+    </header>
 
-    <!-- Search and Filters -->
-    <div class="mb-8">
-      <div class="flex flex-col sm:flex-row gap-4">
-        <div class="flex-1">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search authors..."
-            leading="i-ph-magnifying-glass"
-            size="lg"
-            @input="debouncedSearch"
-          />
-        </div>
-        <div class="flex gap-2">
-          <USelect
-            v-model="sortBy"
-            :items="sortOptions"
-            placeholder="Sort by"
-            @change="loadAuthors"
-          />
-          <UButton
-            :icon="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
-            variant="outline"
-            @click="toggleSortOrder"
-          />
+    <!-- Show Empty View if no authors -->
+    <AuthorsEmptyView
+      v-if="authors.length === 0 && !loading"
+      :search-query="searchQuery"
+      @open-submit-modal="openSubmitModal"
+    />
+
+    <!-- Authors Content (when authors exist) -->
+    <div v-else class="px-8 pb-16">
+      <!-- Search and Stats -->
+      <div class="font-serif mb-8">
+        <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400 mb-4">
+          Showing {{ authors.length }} of {{ totalAuthors || 0 }} authors
+        </span>
+
+        <div class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+          <div class="flex-1">
+            <UInput
+              ref="searchInput"
+              v-model="searchQuery"
+              placeholder="Search authors..."
+              leading="i-ph-magnifying-glass"
+              size="lg"
+              @input="debouncedSearch"
+              class="w-full"
+            />
+          </div>
+          <div class="flex gap-2">
+            <USelect
+              v-model="sortBy"
+              :items="sortOptions"
+              placeholder="Sort by"
+              item-key="label"
+              value-key="label"
+              @change="loadAuthors"
+            />
+            <UButton
+              icon
+              :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+              variant="outline"
+              @click="toggleSortOrder"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <div v-for="i in 8" :key="i" class="animate-pulse">
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-          <div class="flex items-center space-x-4 mb-4">
-            <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-            <div class="flex-1">
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
+      <!-- Loading State -->
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
+        <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
+          <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
           </div>
+          <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
           <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
           <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
         </div>
       </div>
-    </div>
 
-    <!-- Authors Grid -->
-    <div v-else-if="authors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <AuthorCard 
-        v-for="author in authors" 
-        :key="author.id" 
-        :author="author"
-        class="fade-in"
-      />
-    </div>
+      <!-- Authors Grid -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
+        <AuthorGridItem
+          v-for="author in authors"
+          :key="author.id"
+          :author="author"
+          class="fade-in"
+        />
+      </div>
 
-    <!-- Empty State -->
-    <div v-else class="text-center py-16">
-      <UIcon name="i-ph-user" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        {{ searchQuery ? 'No authors found' : 'No authors yet' }}
-      </h3>
-      <p class="text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery 
-          ? `No authors match "${searchQuery}". Try a different search term.`
-          : 'Be the first to submit a quote with an author!'
-        }}
-      </p>
-      <UButton v-if="!searchQuery" @click="openSubmitModal">
-        Submit Quote
-      </UButton>
-    </div>
+      <!-- Infinite Scroll Trigger -->
+      <div ref="infiniteScrollTrigger" class="h-10"></div>
 
-    <!-- Load More -->
-    <div v-if="hasMore && !loading" class="text-center mt-12">
-      <UButton 
-        variant="outline" 
-        size="lg"
-        :loading="loadingMore"
-        @click="loadMore"
-        class="btn-hover"
-      >
-        <UIcon name="i-ph-arrow-down" class="w-4 h-4 mr-2" />
-        Load More Authors
-      </UButton>
+      <!-- Loading More Indicator -->
+      <div v-if="loadingMore" class="text-center py-8">
+        <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin text-gray-400 mx-auto" />
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more authors...</p>
+      </div>
     </div>
 
     <!-- Submit Quote Modal -->
-    <SubmitQuoteModal v-model="showSubmitModal" />
+    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshAuthors" />
   </div>
 </template>
 
@@ -104,7 +96,10 @@
 useHead({
   title: 'Authors - Verbatims',
   meta: [
-    { name: 'description', content: 'Browse authors and discover their most inspiring quotes. From historical figures to fictional characters.' }
+    { 
+      name: 'description', 
+      content: 'Browse authors and discover their most inspiring quotes. From historical figures to fictional characters.',
+    }
   ]
 })
 
@@ -113,11 +108,16 @@ const searchQuery = ref('')
 const sortBy = ref('name')
 const sortOrder = ref('ASC')
 const authors = ref([])
-const loading = ref(false)
+const allFetchedAuthors = ref([]) // Store all fetched authors for local search
+const loading = ref(true)
 const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const showSubmitModal = ref(false)
+const totalAuthors = ref(0)
+const searchInput = ref(null)
+const infiniteScrollTrigger = ref(null)
+const isSearching = ref(false)
 
 // Sort options
 const sortOptions = [
@@ -138,7 +138,7 @@ const loadAuthors = async (reset = true) => {
   }
 
   try {
-    const { data } = await $fetch('/api/authors', {
+    const response = await $fetch('/api/authors', {
       query: {
         page: currentPage.value,
         limit: 20,
@@ -148,13 +148,21 @@ const loadAuthors = async (reset = true) => {
       }
     })
 
+    const authorsData = response.data.results || []
+
     if (reset) {
-      authors.value = data.data || []
+      authors.value = authorsData
+      allFetchedAuthors.value = [...authorsData]
     } else {
-      authors.value.push(...(data.data || []))
+      authors.value.push(...authorsData)
+      allFetchedAuthors.value.push(...authorsData)
     }
 
-    hasMore.value = data.pagination?.hasMore || false
+    // Get pagination info from response
+    const paginationInfo = response.pagination || {}
+
+    hasMore.value = paginationInfo.hasMore || false
+    totalAuthors.value = paginationInfo.total || 0
   } catch (error) {
     console.error('Failed to load authors:', error)
   } finally {
@@ -163,10 +171,10 @@ const loadAuthors = async (reset = true) => {
   }
 }
 
-// Load more authors
+// Load more authors (for infinite scroll)
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
-  
+
   currentPage.value++
   await loadAuthors(false)
 }
@@ -177,9 +185,59 @@ const toggleSortOrder = () => {
   loadAuthors()
 }
 
+// Hybrid search function
+const performSearch = async (query) => {
+  if (!query || query.trim().length === 0) {
+    // No search query, load all authors
+    await loadAuthors()
+    return
+  }
+
+  isSearching.value = true
+  const searchTerm = query.trim().toLowerCase()
+
+  // First, search locally in already fetched authors
+  const localResults = allFetchedAuthors.value.filter(author =>
+    author.name.toLowerCase().includes(searchTerm) ||
+    (author.job && author.job.toLowerCase().includes(searchTerm)) ||
+    (author.description && author.description.toLowerCase().includes(searchTerm))
+  )
+
+  // Show local results immediately
+  authors.value = localResults
+
+  // Then search API for additional results
+  try {
+    const response = await $fetch('/api/authors', {
+      query: {
+        page: 1,
+        limit: 50, // Get more results for search
+        search: query,
+        sort_by: sortBy.value,
+        sort_order: sortOrder.value
+      }
+    })
+
+    const apiResults = response.data.results || []
+
+    // Merge results, avoiding duplicates
+    const existingIds = new Set(localResults.map(a => a.id))
+    const newResults = apiResults.filter(author => !existingIds.has(author.id))
+
+    authors.value = [...localResults, ...newResults]
+    totalAuthors.value = response.pagination?.total || authors.value.length
+    hasMore.value = false // Disable infinite scroll during search
+  } catch (error) {
+    console.error('Failed to search authors:', error)
+    // Keep local results on API error
+  } finally {
+    isSearching.value = false
+  }
+}
+
 // Debounced search
 const debouncedSearch = useDebounceFn(() => {
-  loadAuthors()
+  performSearch(searchQuery.value)
 }, 300)
 
 // Open submit modal
@@ -187,13 +245,74 @@ const openSubmitModal = () => {
   showSubmitModal.value = true
 }
 
+// Refresh authors after submission
+const refreshAuthors = async () => {
+  await loadAuthors()
+}
+
+// Infinite scroll setup
+const setupInfiniteScroll = () => {
+  if (!infiniteScrollTrigger.value) return
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const [entry] = entries
+      if (entry.isIntersecting && hasMore.value && !loadingMore.value) {
+        loadMore()
+      }
+    },
+    {
+      rootMargin: '100px'
+    }
+  )
+
+  observer.observe(infiniteScrollTrigger.value)
+
+  // Cleanup function
+  return () => {
+    observer.disconnect()
+  }
+}
+
+// Auto-focus search input
+const focusSearchInput = () => {
+  nextTick(() => {
+    if (searchInput.value?.$el?.querySelector('input')) {
+      searchInput.value.$el.querySelector('input').focus()
+    }
+  })
+}
+
 // Load authors on mount
 onMounted(() => {
   loadAuthors()
+  focusSearchInput()
+
+  // Setup infinite scroll after initial load
+  nextTick(() => {
+    const cleanup = setupInfiniteScroll()
+
+    // Cleanup on unmount
+    onUnmounted(() => {
+      if (cleanup) cleanup()
+    })
+  })
 })
 
 // Watch for sort changes
 watch([sortBy], () => {
-  loadAuthors()
+  if (searchQuery.value) {
+    performSearch(searchQuery.value)
+  } else {
+    loadAuthors()
+  }
+})
+
+// Watch for search query changes
+watch(searchQuery, (newQuery) => {
+  if (!newQuery || newQuery.trim().length === 0) {
+    // Reset to show all authors when search is cleared
+    loadAuthors()
+  }
 })
 </script>

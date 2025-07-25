@@ -12,7 +12,12 @@
     
     <div class="flex space-x-6 font-subtitle font-600 color-gray-6 dark:color-gray-4 mr-8">
       <span>Search</span>
-      <span>Authors</span>
+      <NuxtLink
+        to="/authors"
+        class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
+      >
+        Authors
+      </NuxtLink>
       <span>References</span>
       <span>Contact</span>
       <span>About</span>
