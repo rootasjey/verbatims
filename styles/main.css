@@ -124,35 +124,6 @@ body {
   }
 }
 
-/* Quote grid item styling */
-.quote-grid-item {
-  border: 1px dashed rgb(var(--color-gray-300) / 0.6);
-  border-radius: 0.75rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: transparent;
-}
-
-.dark .quote-grid-item {
-  border-color: rgb(var(--color-gray-600) / 0.4);
-}
-
-.quote-grid-item:hover {
-  border-color: rgb(var(--color-primary-400) / 0.8);
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgb(var(--color-primary-500) / 0.1);
-  transform: translateY(-2px);
-}
-
-.dark .quote-grid-item:hover {
-  border-color: rgb(var(--color-primary-400) / 0.6);
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.3),
-    0 10px 10px -5px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgb(var(--color-primary-400) / 0.2);
-}
-
 /* Quote skeleton for loading state */
 .quote-skeleton {
   border: 1px dashed rgb(var(--color-gray-200) / 0.8);
