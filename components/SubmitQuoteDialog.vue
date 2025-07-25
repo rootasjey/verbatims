@@ -130,12 +130,14 @@ watch(isOpen, (newValue) => {
 
 const submitQuote = async () => {
   submitting.value = true
+  const { toast } = useToast()
+
   try {
     await $fetch('/api/quotes', {
       method: 'POST',
       body: form
     })
-    
+
     // Reset form and close modal
     Object.assign(form, {
       name: '',
@@ -144,13 +146,21 @@ const submitQuote = async () => {
       language: 'en',
       tags: []
     })
-    
+
     isOpen.value = false
-    
-    // Show success message
-    // TODO: Add toast notification
+
+    toast({
+      title: 'Quote submitted successfully!',
+      description: 'Your quote has been submitted for review.',
+      variant: 'success'
+    })
   } catch (error) {
-    // TODO: Handle error
+    console.error('Failed to submit quote:', error)
+    toast({
+      title: 'Failed to submit quote',
+      description: 'Please try again.',
+      variant: 'error'
+    })
   } finally {
     submitting.value = false
   }

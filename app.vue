@@ -5,6 +5,7 @@
       <NuxtPage />
     </main>
     <NuxtRouteAnnouncer />
+    <UToaster />
   </div>
 </template>
 

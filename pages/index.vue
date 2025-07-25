@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen">
-    <header class="p-8">
+    <header class="p-8 overflow-hidden">
       <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
     </header>
 
@@ -15,7 +15,7 @@
     <!-- Quotes Grid (when quotes exist) -->
     <div v-else class="px-8 pb-16">
       <!-- Stats -->
-      <div class="font-serif mb-8">
+      <div class="font-body mb-8">
         <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400">
           Showing {{ allQuotes.length }} of {{ stats.quotes || 0 }} quotes
         </span>

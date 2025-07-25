@@ -183,9 +183,11 @@ const loadCollections = async () => {
 const createAndAddToCollection = async () => {
   if (!newCollectionName.value.trim()) return
 
+  const { toast } = useToast()
+
   try {
     creating.value = true
-    
+
     // Create collection
     const createResponse = await $fetch('/api/collections', {
       method: 'POST',
@@ -195,20 +197,28 @@ const createAndAddToCollection = async () => {
         is_public: newCollectionPublic.value
       }
     })
-    
+
     // Add quote to collection
     await $fetch(`/api/collections/${createResponse.data.id}/quotes`, {
       method: 'POST',
       body: { quote_id: props.quote.id }
     })
-    
+
     emit('added', createResponse.data)
     closeModal()
-    
-    // TODO: Show success toast
+
+    toast({
+      title: 'Collection created!',
+      description: `"${createResponse.data.name}" created and quote added.`,
+      variant: 'success'
+    })
   } catch (error) {
     console.error('Failed to create collection and add quote:', error)
-    // TODO: Show error toast
+    toast({
+      title: 'Failed to create collection',
+      description: 'Please try again.',
+      variant: 'error'
+    })
   } finally {
     creating.value = false
   }
@@ -218,26 +228,40 @@ const createAndAddToCollection = async () => {
 const addToCollection = async (collection) => {
   if (addingToCollections.value.has(collection.id)) return
 
+  const { toast } = useToast()
+
   try {
     addingToCollections.value.add(collection.id)
-    
+
     await $fetch(`/api/collections/${collection.id}/quotes`, {
       method: 'POST',
       body: { quote_id: props.quote.id }
     })
-    
+
     emit('added', collection)
     closeModal()
-    
-    // TODO: Show success toast
+
+    toast({
+      title: 'Quote added to collection!',
+      description: `Added to "${collection.name}" collection.`,
+      variant: 'success'
+    })
   } catch (error) {
     console.error('Failed to add quote to collection:', error)
-    
+
     if (error.statusCode === 409) {
-      // Quote already in collection - show info toast
+      toast({
+        title: 'Quote already in collection',
+        description: `Quote is already in "${collection.name}" collection.`,
+        variant: 'info'
+      })
+    } else {
+      toast({
+        title: 'Failed to add quote',
+        description: 'Please try again.',
+        variant: 'error'
+      })
     }
-    
-    // TODO: Show error toast
   } finally {
     addingToCollections.value.delete(collection.id)
   }

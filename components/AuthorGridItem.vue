@@ -40,11 +40,13 @@
     <div class="flex-1 flex flex-col">
       <!-- Author Name -->
       <h3
-        class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300 mb-2"
+        class="font-serif text-gray-800 dark:text-gray-200 
+          break-words line-height-none
+          leading-relaxed transition-opacity duration-300 mb-2"
         :class="{
-          'text-lg font-600': author.name.length > 30,
-          'text-xl font-600': author.name.length <= 30 && author.name.length > 15,
-          'text-2xl font-600': author.name.length <= 15
+          'text-size-12 font-600': author.name.length > 30,
+          'text-size-15 font-600': author.name.length <= 30 && author.name.length > 15,
+          'text-6xl font-600': author.name.length <= 15
         }"
       >
         {{ author.name }}
@@ -61,7 +63,7 @@
       <!-- Description -->
       <p 
         v-if="author.description" 
-        class="font-sans text-sm text-gray-500 dark:text-gray-500 line-clamp-2 flex-1"
+        class="font-sans text-sm text-gray-500 dark:text-gray-500 line-clamp-6 flex-1"
       >
         {{ author.description }}
       </p>
@@ -125,19 +127,3 @@ const formatNumber = (num) => {
   return num.toString()
 }
 </script>
-
-<style scoped>
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>
