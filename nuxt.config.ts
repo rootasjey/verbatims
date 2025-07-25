@@ -85,4 +85,20 @@ export default defineNuxtConfig({
     prefix: "U",
     themeable: true,
   },
+
+  // Component configuration
+  components: {
+    global: true,
+    dirs: [
+      {
+        path: '~/components',
+        global: true
+      }
+    ]
+  },
+
+  // Component aliases for automatic resolution
+  alias: {
+    'NIcon': '~/components/NIcon.vue'
+  },
 })
