@@ -140,7 +140,7 @@
 
         <!-- Loading State -->
         <div v-if="quotesLoading" class="mb-12">
-          <div class="masonry-grid">
+          <MasonryGrid>
             <div v-for="i in 12" :key="i" class="quote-skeleton animate-pulse">
               <div class="border-b border-dashed border-gray-200 dark:border-gray-400 pb-2 mb-4">
                 <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
@@ -148,13 +148,13 @@
               <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
             </div>
-          </div>
+          </MasonryGrid>
         </div>
 
         <!-- Quotes Display -->
         <div v-else-if="authorQuotes.length > 0" class="mb-12">
           <!-- Masonry Grid Layout -->
-          <div class="masonry-grid">
+          <MasonryGrid>
             <QuoteMasonryItem
               v-for="(quote, index) in authorQuotes"
               :key="quote.id"
@@ -162,7 +162,7 @@
               :index="index"
               class="fade-in"
             />
-          </div>
+          </MasonryGrid>
         </div>
 
         <!-- Empty State -->
@@ -413,39 +413,4 @@ watch(sortBy, () => {
 })
 </script>
 
-<style scoped>
-.masonry-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  grid-auto-rows: 80px;
-  gap: 1rem;
 
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    grid-auto-rows: 90px;
-  }
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    grid-auto-rows: 100px;
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    grid-auto-rows: 110px;
-  }
-
-  @media (min-width: 1280px) {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    grid-auto-rows: 160px;
-    gap: 1.0rem;
-  }
-
-  @media (min-width: 1536px) {
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-    grid-auto-rows: 130px;
-    gap: 1.0rem;
-  }
-}
-
-</style>

@@ -12,42 +12,40 @@
     <!-- Reference Content -->
     <div v-else-if="reference">
       <!-- Reference Header -->
-      <header class="p-8 mt-24">
+      <header class="mt-12 p-8">
+        <!-- Reference Type and Release Date -->
+        <div class="flex items-center justify-center gap-4">
+          <UBadge
+            :color="getTypeColor(reference.primary_type)"
+            variant="subtle"
+            size="sm"
+          >
+            {{ formatType(reference.primary_type) }}
+          </UBadge>
+
+          <span v-if="reference.release_date" class="font-serif text-gray-600 dark:text-gray-400">
+            {{ formatReleaseDate(reference.release_date) }}
+          </span>
+        </div>
+
         <div class="text-center mb-6">
-          <!-- Reference Type and Release Date -->
-          <div class="flex items-center justify-center gap-4 mb-4">
-            <UBadge
-              :color="getTypeColor(reference.primary_type)"
-              variant="subtle"
-              size="sm"
-            >
-              {{ formatType(reference.primary_type) }}
-            </UBadge>
-          </div>
 
           <!-- Reference Name -->
           <h1 class="font-title text-size-54 font-600 line-height-none uppercase mb-4">
             {{ reference.name }}
           </h1>
 
-          <div class="font-title flex items-center justify-center gap-4 mb-4">
-            <!-- Release Date -->
-            <span v-if="reference.release_date" class="text-gray-600 dark:text-gray-400">
-              {{ formatReleaseDate(reference.release_date) }}
-            </span>
-
-            <span>•</span>
-
-            <!-- Secondary Type -->
-            <p v-if="reference.secondary_type" class="text-lg text-gray-600 dark:text-gray-400">
-              {{ reference.secondary_type }}
-            </p>
-          </div>
+          <!-- Secondary Type -->
+          <p v-if="reference.secondary_type" class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4">
+            {{ reference.secondary_type }}
+          </p>
 
           <!-- Description -->
-          <p v-if="reference.description" 
-            class="font-serif text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-6
-            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6">
+          <p v-if="reference.description"
+            class="font-body text-size-5 font-200 text-gray-600
+            dark:text-gray-400 max-w-2xl mx-auto mb-6
+            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6"
+          >
             {{ reference.description }}
           </p>
 
@@ -57,34 +55,10 @@
             <span>Original Language: {{ formatLanguage(reference.original_language) }}</span>
           </div>
 
-          <!-- Like Button -->
-          <div class="flex justify-center mb-6">
-            <button
-              @click="toggleLike"
-              :disabled="!user || likePending"
-              :class="[
-                'flex items-center space-x-2 px-6 py-3 rounded-lg transition-all font-medium',
-                isLiked
-                  ? 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
-                  : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20',
-                !user && 'cursor-not-allowed opacity-50'
-              ]"
-            >
-              <UIcon
-                :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'"
-                :class="['w-5 h-5', likePending && 'animate-pulse']"
-              />
-              <span>{{ formatNumber(reference.likes_count) }} likes</span>
-            </button>
-          </div>
+
         </div>
 
-        <!-- Stats -->
-        <div class="font-serif mb-8">
-          <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400 mb-4">
-            {{ referenceQuotes.length }} quotes • {{ formatNumber(reference.views_count) }} views • {{ formatNumber(totalQuoteLikes) }} quote likes
-          </span>
-        </div>
+
       </header>
 
       <!-- External Links -->
@@ -107,116 +81,89 @@
         </div>
       </div>
 
+      <UBadge :badge="isMetaBadgeOpen ? 'solid-gray' : 'soft'" rounded="full"
+        :class="[
+          'z-2 fixed top-20 right-12 overflow-hidden text-sm font-medium transition-all',
+          isMetaBadgeOpen ? 'w-auto px-4 text-center hover:scale-101 active:scale-99' : 'w-9 hover:scale-105 active:scale-99'
+        ]">
+        <div class="flex gap-4 justify-center items-center">
+          <div :class="['gap-4', isMetaBadgeOpen ? 'flex' : 'hidden']">
+            <div class="flex items-center">{{ referenceQuotes.length }} quotes</div>
+            <div class="flex items-center">{{ formatNumber(reference.views_count) }} views</div>
+            <div class="flex items-center">{{ formatNumber(totalQuoteLikes) }} quote likes</div>
+            <UButton
+              btn="~"
+              @click="toggleLike"
+              :disabled="!user || likePending"
+              :class="[
+                'min-w-0 min-h-0 h-auto w-auto p-0 flex items-center transition-all',
+                isLiked
+                  ? 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
+                  : 'hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20',
+                !user && 'cursor-not-allowed opacity-50'
+              ]"
+            >
+              <UIcon
+                :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'"
+                :class="[likePending && 'animate-pulse']"
+              />
+              <span>{{ formatNumber(reference.likes_count) }}</span>
+            </UButton>
+          </div>
+          <UButton
+            icon btn="text-pink"
+            :label="isMetaBadgeOpen ? 'i-ph-x-bold' : 'i-ph-asterisk-bold'"
+            :class="['min-w-0 min-h-0 h-auto w-auto p-0', isMetaBadgeOpen ? 'hover:animate-pulse' : 'hover:animate-spin']" size="xs"
+            @click="isMetaBadgeOpen = !isMetaBadgeOpen"
+          />
+        </div>
+      </UBadge>
+
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
         <!-- Sort Options -->
-        <div class="font-serif mb-8">
-          <div class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto items-center">
-            <span class="text-center font-sans font-600 text-gray-600 dark:text-gray-400 flex-1">
-              Quotes from {{ reference.name }}
+        <div class="font-body mb-8">
+          <div class="flex gap-4 max-w-2xl mx-auto items-center">
+            <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
+            <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
+              sorted by
             </span>
             <USelect
               v-model="sortBy"
               :items="sortOptions"
               placeholder="Sort by"
               item-key="label"
-              value-key="value"
+              value-key="label"
               @change="loadQuotes"
             />
           </div>
         </div>
 
-        <!-- Layout Toggle -->
-        <div class="flex justify-center mb-8">
-          <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-            <button
-              @click="layoutMode = 'grid'"
-              :class="[
-                'px-3 py-2 rounded-md text-sm font-medium transition-all',
-                layoutMode === 'grid'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              ]"
-            >
-              <UIcon name="i-ph-grid-four" class="w-4 h-4" />
-            </button>
-            <button
-              @click="layoutMode = 'list'"
-              :class="[
-                'px-3 py-2 rounded-md text-sm font-medium transition-all',
-                layoutMode === 'list'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              ]"
-            >
-              <UIcon name="i-ph-list" class="w-4 h-4" />
-            </button>
-            <button
-              @click="layoutMode = 'flex'"
-              :class="[
-                'px-3 py-2 rounded-md text-sm font-medium transition-all',
-                layoutMode === 'flex'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              ]"
-            >
-              <UIcon name="i-ph-squares-four" class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
         <!-- Loading State -->
         <div v-if="quotesLoading" class="mb-12">
-          <div v-if="layoutMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0">
-            <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
-              <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
+          <MasonryGrid>
+            <div v-for="i in 12" :key="i" class="quote-skeleton animate-pulse">
+              <div class="border-b border-dashed border-gray-200 dark:border-gray-400 pb-2 mb-4">
                 <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
               </div>
               <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
             </div>
-          </div>
-          <div v-else class="space-y-4">
-            <div v-for="i in 6" :key="i" class="border p-6 animate-pulse">
-              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
-          </div>
+          </MasonryGrid>
         </div>
 
         <!-- Quotes Display -->
         <div v-else-if="referenceQuotes.length > 0" class="mb-12">
-          <!-- Grid Layout (Traditional) -->
-          <div v-if="layoutMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0">
-            <QuoteGridItem
-              v-for="quote in referenceQuotes"
-              :key="quote.id"
-              :quote="quote"
-              class="fade-in"
-            />
-          </div>
-
-          <!-- List Layout (Vertical Stack) -->
-          <div v-else-if="layoutMode === 'list'" class="space-y-0">
-            <QuoteListItem
+          <!-- Masonry Grid Layout -->
+          <MasonryGrid>
+            <QuoteMasonryItem
               v-for="(quote, index) in referenceQuotes"
               :key="quote.id"
               :quote="quote"
               :index="index"
               class="fade-in"
             />
-          </div>
-
-          <!-- Flexible Box Layout -->
-          <div v-else-if="layoutMode === 'flex'" class="flex flex-wrap gap-0">
-            <QuoteFlexItem
-              v-for="(quote, index) in referenceQuotes"
-              :key="quote.id"
-              :quote="quote"
-              :index="index"
-              class="fade-in"
-            />
-          </div>
+          </MasonryGrid>
         </div>
 
         <!-- Empty State -->
@@ -291,9 +238,10 @@ const quotesLoading = ref(false)
 const loadingMoreQuotes = ref(false)
 const hasMoreQuotes = ref(true)
 const currentQuotePage = ref(1)
-const sortBy = ref('created_at')
+const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
 const showSubmitModal = ref(false)
-const layoutMode = ref('grid') // 'grid', 'list', 'flex'
+
+const isMetaBadgeOpen = ref(false)
 
 // Sort options
 const sortOptions = [
@@ -329,7 +277,7 @@ const loadQuotes = async (reset = true) => {
         reference_id: reference.value.id,
         page: currentQuotePage.value,
         limit: 12,
-        sort_by: sortBy.value,
+        sort_by: sortBy.value.value || sortBy.value,
         sort_order: 'DESC'
       }
     })

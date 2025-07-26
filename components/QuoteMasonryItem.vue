@@ -165,14 +165,14 @@ const getTextSizeClass = () => {
   
   if (length <= 250) {
     // Long quotes - larger cards
-    if (index % 4 === 0) return 'text-sm font-500'
-    if (index % 6 === 0) return 'text-sm font-500'
-    return 'text-sm font-500'
+    if (index % 4 === 0) return 'text-size-8 font-300'
+    if (index % 6 === 0) return 'text-size-6 font-500'
+    return 'text-size-4 font-500'
   }
   
   // Very long quotes - largest cards
-  if (index % 3 === 0) return 'text-xs font-500'
-  return 'text-xs font-500'
+  if (index % 3 === 0) return 'text-size-4 font-500'
+  return 'text-size-4 font-500'
 }
 
 // Get opacity level for visual variety
