@@ -26,6 +26,7 @@
     "@iconify-json/openmoji": "^1.2.9",
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/radix-icons": "^1.2.2",
+    "@iconify-json/solar": "^1.2.2",
     "@iconify-json/tabler": "^1.2.19",
     "jimp": "^1.6.0",
     "wrangler": "^4.24.3"
