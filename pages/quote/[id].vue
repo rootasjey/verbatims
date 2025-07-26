@@ -15,14 +15,14 @@
     </div>
 
     <!-- Quote Content -->
-    <div v-else-if="quote" class="px-8 py-16">
+    <div v-else-if="quote" class="mt-24 px-8 py-16">
       <div class="max-w-4xl mx-auto">
         <!-- Main Quote Section -->
         <div class="text-center mb-16">
           <!-- Quote Text - Typography Focused -->
           <div class="relative mb-12">
             <blockquote class="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-6xl leading-tight text-gray-900 dark:text-white mb-8 px-4">
-              "{{ quote.name }}"
+              {{ quote.name }}
             </blockquote>
 
             <!-- Decorative Elements -->
@@ -31,19 +31,21 @@
           </div>
 
           <!-- Attribution Section -->
-          <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 space-y-6">
+          <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 space-y-2">
             <!-- Author -->
-            <div v-if="quote.author" class="flex items-center justify-center space-x-4">
-              <UAvatar
-                :src="quote.author.image_url"
-                :alt="quote.author.name"
-                size="xl"
-                class="ring-2 ring-gray-200 dark:ring-gray-700"
-              />
+            <div v-if="quote.author" class="flex flex-col items-center justify-center">
+              <NuxtLink :to="`/authors/${quote.author.id}`">
+                <UAvatar
+                  :src="quote.author.image_url"
+                  :alt="quote.author.name"
+                  size="xl"
+                  class="ring-2 ring-gray-200 dark:ring-gray-700 hover:scale-105 active:scale-99 transition-transform"
+                />
+              </NuxtLink>
               <div class="text-left">
                 <NuxtLink
                   :to="`/authors/${quote.author.id}`"
-                  class="text-2xl font-serif font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
+                  class="font-body text-size-4  font-400 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
                 >
                   {{ quote.author.name }}
                 </NuxtLink>
@@ -55,8 +57,7 @@
 
             <!-- Reference -->
             <div v-if="quote.reference" class="flex items-center justify-center space-x-3 text-gray-600 dark:text-gray-400">
-              <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-5 h-5" />
-              <span class="font-sans">From:</span>
+              <UIcon :name="getReferenceIcon(quote.reference.type)" />
               <NuxtLink
                 :to="`/references/${quote.reference.id}`"
                 class="font-serif font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors underline decoration-dashed decoration-offset-4"
@@ -429,9 +430,9 @@ const getReferenceIcon = (type) => {
     podcast: 'i-ph-microphone',
     interview: 'i-ph-chat-circle',
     documentary: 'i-ph-video',
-    other: 'i-ph-file'
+    other: 'i-solar-document-broken'
   }
-  return icons[type] || 'i-ph-file'
+  return icons[type] || 'i-solar-document-broken'
 }
 
 const getLanguageName = (code) => {

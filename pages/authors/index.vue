@@ -29,7 +29,7 @@
               v-model="searchQuery"
               placeholder="Search authors..."
               leading="i-ph-magnifying-glass"
-              size="lg"
+              size="md"
               @input="debouncedSearch"
               class="w-full"
             />

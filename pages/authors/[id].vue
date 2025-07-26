@@ -13,7 +13,7 @@
     <div v-else-if="author">
       <!-- Author Header -->
       <header class="mt-12 p-8">
-        <!-- Author Type and Life Dates -->
+        <!-- Author Type -->
         <div class="flex items-center justify-center gap-4">
           <UBadge
             :color="author.is_fictional ? 'purple' : 'blue'"
@@ -22,16 +22,16 @@
           >
             {{ author.is_fictional ? 'Fictional Character' : 'Real Person' }}
           </UBadge>
-
-          <span v-if="!author.is_fictional && (author.birth_date || author.death_date)" class="font-serif text-gray-600 dark:text-gray-400">
-            {{ formatLifeDates(author.birth_date, author.death_date) }}
-          </span>
         </div>
 
         <div class="text-center mb-6">
           <h1 class="font-title text-size-54 font-600 line-height-none uppercase mb-4">
             {{ author.name }}
           </h1>
+
+          <span v-if="!author.is_fictional && (author.birth_date || author.death_date)" class="font-serif font-600 text-gray-600 dark:text-gray-400">
+            {{ formatLifeDates(author.birth_date, author.death_date) }}
+          </span>
 
           <!-- Job Title -->
           <p v-if="author.job" class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4">
