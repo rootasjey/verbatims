@@ -12,12 +12,8 @@
     <!-- Reference Content -->
     <div v-else-if="reference">
       <!-- Reference Header -->
-      <header class="p-8 mt-12">
+      <header class="p-8 mt-24">
         <div class="text-center mb-6">
-          <h1 class="font-title text-size-82 font-600 line-height-none uppercase mb-4">
-            {{ reference.name }}
-          </h1>
-
           <!-- Reference Type and Release Date -->
           <div class="flex items-center justify-center gap-4 mb-4">
             <UBadge
@@ -27,19 +23,31 @@
             >
               {{ formatType(reference.primary_type) }}
             </UBadge>
-
-            <span v-if="reference.release_date" class="font-serif text-gray-600 dark:text-gray-400">
-              {{ formatReleaseDate(reference.release_date) }}
-            </span>
           </div>
 
-          <!-- Secondary Type -->
-          <p v-if="reference.secondary_type" class="font-serif text-lg text-gray-600 dark:text-gray-400 mb-4">
-            {{ reference.secondary_type }}
-          </p>
+          <!-- Reference Name -->
+          <h1 class="font-title text-size-54 font-600 line-height-none uppercase mb-4">
+            {{ reference.name }}
+          </h1>
+
+          <div class="font-title flex items-center justify-center gap-4 mb-4">
+            <!-- Release Date -->
+            <span v-if="reference.release_date" class="text-gray-600 dark:text-gray-400">
+              {{ formatReleaseDate(reference.release_date) }}
+            </span>
+
+            <span>•</span>
+
+            <!-- Secondary Type -->
+            <p v-if="reference.secondary_type" class="text-lg text-gray-600 dark:text-gray-400">
+              {{ reference.secondary_type }}
+            </p>
+          </div>
 
           <!-- Description -->
-          <p v-if="reference.description" class="font-serif text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-6">
+          <p v-if="reference.description" 
+            class="font-serif text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-6
+            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6">
             {{ reference.description }}
           </p>
 
