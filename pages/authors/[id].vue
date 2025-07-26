@@ -123,8 +123,9 @@
         <!-- Sort Options -->
         <div class="font-body mb-8">
           <div class="flex gap-4 max-w-2xl mx-auto items-center">
-            <span class="min-w-[70px] font-600 text-center text-gray-600 dark:text-gray-400">
-              Sort by 
+            <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
+            <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
+              sorted by 
             </span>
             <USelect
               v-model="sortBy"
@@ -137,92 +138,24 @@
           </div>
         </div>
 
-        <!-- Layout Toggle -->
-        <div class="flex justify-center mb-8">
-          <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-            <button
-              @click="layoutMode = 'grid'"
-              :class="[
-                'px-3 py-2 rounded-md text-sm font-medium transition-all',
-                layoutMode === 'grid'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              ]"
-            >
-              <UIcon name="i-ph-grid-four" class="w-4 h-4" />
-            </button>
-            <button
-              @click="layoutMode = 'list'"
-              :class="[
-                'px-3 py-2 rounded-md text-sm font-medium transition-all',
-                layoutMode === 'list'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              ]"
-            >
-              <UIcon name="i-ph-list" class="w-4 h-4" />
-            </button>
-            <button
-              @click="layoutMode = 'flex'"
-              :class="[
-                'px-3 py-2 rounded-md text-sm font-medium transition-all',
-                layoutMode === 'flex'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              ]"
-            >
-              <UIcon name="i-ph-squares-four" class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
         <!-- Loading State -->
         <div v-if="quotesLoading" class="mb-12">
-          <div v-if="layoutMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0">
-            <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
-              <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
+          <div class="masonry-grid">
+            <div v-for="i in 12" :key="i" class="quote-skeleton animate-pulse">
+              <div class="border-b border-dashed border-gray-200 dark:border-gray-400 pb-2 mb-4">
                 <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
               </div>
               <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
               <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
             </div>
           </div>
-          <div v-else class="space-y-4">
-            <div v-for="i in 6" :key="i" class="border p-6 animate-pulse">
-              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
-          </div>
         </div>
 
         <!-- Quotes Display -->
         <div v-else-if="authorQuotes.length > 0" class="mb-12">
-          <p class="mb-2 color-gray-500">{{ authorQuotes.length }} quotes</p>
-          <!-- Grid Layout (Traditional) -->
-          <div v-if="layoutMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0">
-            <QuoteGridItem
-              v-for="quote in authorQuotes"
-              :key="quote.id"
-              :quote="quote"
-              class="fade-in"
-            />
-          </div>
-
-          <!-- List Layout (Vertical Stack) -->
-          <div v-else-if="layoutMode === 'list'" class="space-y-0">
-            <QuoteListItem
-              v-for="(quote, index) in authorQuotes"
-              :key="quote.id"
-              :quote="quote"
-              :index="index"
-              :show-reference="true"
-              class="fade-in"
-            />
-          </div>
-
-          <!-- Flexible Box Layout -->
-          <div v-else-if="layoutMode === 'flex'" class="flex flex-wrap gap-0">
-            <QuoteFlexItem
+          <!-- Masonry Grid Layout -->
+          <div class="masonry-grid">
+            <QuoteMasonryItem
               v-for="(quote, index) in authorQuotes"
               :key="quote.id"
               :quote="quote"
@@ -306,7 +239,7 @@ const hasMoreQuotes = ref(true)
 const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
 const showSubmitModal = ref(false)
-const layoutMode = ref('grid') // 'grid', 'list', 'flex'
+
 const isMetaBadgeOpen = ref(false)
 
 // Sort options
@@ -479,3 +412,40 @@ watch(sortBy, () => {
   loadQuotes()
 })
 </script>
+
+<style scoped>
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-auto-rows: 80px;
+  gap: 1rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-auto-rows: 90px;
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-auto-rows: 100px;
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-auto-rows: 110px;
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-auto-rows: 160px;
+    gap: 1.0rem;
+  }
+
+  @media (min-width: 1536px) {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    grid-auto-rows: 130px;
+    gap: 1.0rem;
+  }
+}
+
+</style>
