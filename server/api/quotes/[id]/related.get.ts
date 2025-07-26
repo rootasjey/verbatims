@@ -52,7 +52,9 @@ export default defineEventHandler(async (event) => {
         LIMIT 3
       `).bind(currentQuote.author_id, quoteId).all()
 
-      relatedQuotes.push(...authorQuotes)
+      if (Array.isArray(authorQuotes)) {
+        relatedQuotes.push(...authorQuotes)
+      }
     }
 
     // Get quotes from same reference if we need more
@@ -80,9 +82,11 @@ export default defineEventHandler(async (event) => {
       `).bind(currentQuote.reference_id, quoteId, 4 - relatedQuotes.length).all()
 
       // Filter out duplicates
-      const existingIds = new Set(relatedQuotes.map(q => q.id))
-      const newQuotes = referenceQuotes.filter(q => !existingIds.has(q.id))
-      relatedQuotes.push(...newQuotes)
+      if (Array.isArray(referenceQuotes)) {
+        const existingIds = new Set(relatedQuotes.map(q => q.id))
+        const newQuotes = referenceQuotes.filter(q => !existingIds.has(q.id))
+        relatedQuotes.push(...newQuotes)
+      }
     }
 
     // If we still need more, get popular quotes with similar tags
@@ -119,9 +123,11 @@ export default defineEventHandler(async (event) => {
       `).bind(quoteId, quoteId, 4 - relatedQuotes.length).all()
 
       // Filter out duplicates
-      const existingIds = new Set(relatedQuotes.map(q => q.id))
-      const newQuotes = tagQuotes.filter(q => !existingIds.has(q.id))
-      relatedQuotes.push(...newQuotes)
+      if (Array.isArray(tagQuotes)) {
+        const existingIds = new Set(relatedQuotes.map(q => q.id))
+        const newQuotes = tagQuotes.filter(q => !existingIds.has(q.id))
+        relatedQuotes.push(...newQuotes)
+      }
     }
 
     // Transform the results
@@ -149,7 +155,7 @@ export default defineEventHandler(async (event) => {
       user: {
         name: quote.user_name
       },
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
+      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
         name,
         color: quote.tag_colors.split(',')[index]
       })) : []

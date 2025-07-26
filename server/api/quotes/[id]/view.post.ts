@@ -10,9 +10,9 @@ export default defineEventHandler(async (event) => {
 
     const db = hubDatabase()
     const session = await getUserSession(event)
-    
+
     // Get client IP for anonymous tracking
-    const clientIP = getClientIP(event) || 'unknown'
+    const clientIP = getRequestIP(event) || 'unknown'
     const userAgent = getHeader(event, 'user-agent') || 'unknown'
 
     // Check if quote exists and is approved
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: 'View tracked'
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }
