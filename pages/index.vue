@@ -4,8 +4,18 @@
       <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
     </header>
 
+    <!-- Loading state while language store initializes or quotes are loading -->
+    <div v-if="!isLanguageReady || quotesLoading" class="flex items-center justify-center py-16">
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+        <span class="text-gray-600 dark:text-gray-400">
+          {{ !isLanguageReady ? 'Initializing...' : 'Loading quotes...' }}
+        </span>
+      </div>
+    </div>
+
     <HomeEmptyView
-      v-if="stats.quotes === 0 || needsOnboarding"
+      v-else-if="stats.quotes === 0 || needsOnboarding"
       :needs-onboarding="needsOnboarding"
       :onboarding-status="onboardingStatus"
       :stats="stats"
@@ -21,32 +31,7 @@
         </span>
 
         <div class="flex items-center justify-center">
-          <UCombobox
-            v-model="selectedLanguage"
-            :items="languages"
-            by="value"
-            :_combobox-input="{
-              placeholder: 'Select language...',
-            }"
-            @update:model-value="onLanguageChange"
-          >
-            <template #trigger="{ modelValue }">
-              <template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
-                <div class="flex items-center gap-2">
-                  <UIcon :name="(modelValue as any).icon" />
-                  {{ (modelValue as any).display }}
-                </div>
-              </template>
-              <template v-else>
-                Select language...
-              </template>
-            </template>
-
-            <template #label="{ item }">
-              <UIcon :name="(item as any).icon" />
-              {{ (item as any).display }}
-            </template>
-          </UCombobox>
+          <LanguageSelector @language-changed="onLanguageChange" />
         </div>
       </div>
 
@@ -91,16 +76,33 @@ useHead({
   ]
 })
 
-// Language selection state
-const selectedLanguage = ref({ value: 'all', display: 'All Languages', icon: 'i-openmoji-globe-showing-americas' })
+// Language store (initialization handled by plugin)
+const languageStore = useLanguageStore()
+const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 
 // Data fetching with reactive language filtering
-const { data: quotesData, refresh: refreshQuotesData } = await useFetch('/api/quotes', {
+// Use lazy loading and defer initial fetch until language store is ready
+const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading } = await useLazyFetch('/api/quotes', {
   query: computed(() => ({
     limit: 25,
     status: 'approved',
-    ...(selectedLanguage.value.value !== 'all' && { language: selectedLanguage.value.value })
-  }))
+    ...languageStore.getLanguageQuery()
+  })),
+  // Watch for language changes and refetch
+  watch: [() => languageStore.currentLanguageValue],
+  // Defer initial fetch until language store is ready
+  server: false, // Don't fetch on server to avoid hydration mismatches
+  default: () => ({
+    success: true,
+    data: [],
+    pagination: {
+      page: 1,
+      limit: 25,
+      total: 0,
+      totalPages: 0,
+      hasMore: false
+    }
+  })
 })
 
 const { data: statsData } = await useFetch('/api/stats')
@@ -108,10 +110,16 @@ const { data: onboardingData } = await useFetch('/api/onboarding/status')
 
 // Reactive state
 const showSubmitModal = ref(false)
-const displayedQuotes = ref([...(quotesData.value?.data || [])])
-const hasMore = ref(quotesData.value?.pagination?.hasMore || false)
 const loadingMore = ref(false)
 const currentPage = ref(1)
+const additionalQuotes = ref<any[]>([]) // For load more functionality
+
+// Computed reactive state that updates when quotesData changes
+const displayedQuotes = computed(() => {
+  const baseQuotes = quotesData.value?.data || []
+  return [...baseQuotes, ...additionalQuotes.value]
+})
+const hasMore = computed(() => quotesData.value?.pagination?.hasMore || false)
 
 // Computed
 const stats = computed(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
@@ -126,36 +134,21 @@ const openSubmitModal = () => {
   showSubmitModal.value = true
 }
 
-// Language options
-const languages = [
-  { value: 'all', display: 'All Languages', icon: 'i-openmoji-globe-showing-americas' },
-  { value: 'en', display: 'English', icon: 'i-openmoji-hamburger' },
-  { value: 'fr', display: 'French', icon: 'i-openmoji-baguette-bread' },
-  // { value: 'es', display: 'Spanish', icon: 'i-ph-flag' },
-  // { value: 'de', display: 'German', icon: 'i-ph-flag' },
-  // { value: 'it', display: 'Italian', icon: 'i-ph-flag' },
-  // { value: 'pt', display: 'Portuguese', icon: 'i-ph-flag' },
-  // { value: 'ru', display: 'Russian', icon: 'i-ph-flag' },
-  // { value: 'ja', display: 'Japanese', icon: 'i-ph-flag' },
-  // { value: 'zh', display: 'Chinese', icon: 'i-ph-flag' }
-]
-
 // Language change handler
 const onLanguageChange = async () => {
   // Reset pagination when language changes
   currentPage.value = 1
-  hasMore.value = false
+  additionalQuotes.value = [] // Clear additional quotes
 
   // Refresh quotes with new language filter
-  await refreshQuotesData()
-
-  // Update displayed quotes and pagination
-  displayedQuotes.value = [...(quotesData.value?.data || [])]
-  hasMore.value = quotesData.value?.pagination?.hasMore || false
+  await refreshQuotesFromAPI()
 }
 
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
+
+  // Wait for language store to be ready
+  await waitForLanguageStore()
 
   loadingMore.value = true
   try {
@@ -166,16 +159,13 @@ const loadMore = async () => {
       page: nextPage
     }
 
-    // Add language filter if not "all"
-    if (selectedLanguage.value.value !== 'all') {
-      query.language = selectedLanguage.value.value
-    }
+    // Add language filter
+    Object.assign(query, languageStore.getLanguageQuery())
 
     const response = await $fetch('/api/quotes', { query })
 
     if (response?.data) {
-      displayedQuotes.value = [...displayedQuotes.value, ...response.data]
-      hasMore.value = response.pagination?.hasMore || false
+      additionalQuotes.value = [...additionalQuotes.value, ...response.data]
       currentPage.value = nextPage
     }
   } catch (error) {
@@ -187,22 +177,24 @@ const loadMore = async () => {
 
 // Watch for new quotes from modal submission
 const refreshQuotes = async () => {
-  try {
-    const query: any = { limit: 25, status: 'approved' }
+  // Wait for language store to be ready
+  await waitForLanguageStore()
 
-    // Add language filter if not "all"
-    if (selectedLanguage.value.value !== 'all') {
-      query.language = selectedLanguage.value.value
-    }
+  // Clear additional quotes and reset pagination
+  additionalQuotes.value = []
+  currentPage.value = 1
 
-    const response = await $fetch('/api/quotes', { query })
-    displayedQuotes.value = [...(response?.data || [])]
-    hasMore.value = response?.pagination?.hasMore || false
-    currentPage.value = 1
-  } catch (error) {
-    console.error('Failed to refresh quotes:', error)
-  }
+  // Trigger useLazyFetch to refresh with current language
+  await refreshQuotesFromAPI()
 }
+
+// Ensure language store is initialized on mount and trigger initial fetch
+onMounted(async () => {
+  await waitForLanguageStore()
+  // Always refresh quotes once language store is ready to ensure correct filtering
+  // This is crucial for when a specific language is stored in localStorage
+  await refreshQuotes()
+})
 
 // Refresh quotes when modal closes (in case new quote was submitted)
 watch(showSubmitModal, (newValue, oldValue) => {

@@ -1,7 +1,15 @@
 <template>
   <div class="min-h-screen">
-    <!-- Loading State -->
-    <div v-if="pending" class="p-8">
+    <!-- Loading State for Language Store -->
+    <div v-if="!isLanguageReady" class="flex items-center justify-center py-16">
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+        <span class="text-gray-600 dark:text-gray-400">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Loading State for Reference Data -->
+    <div v-else-if="pending" class="p-8">
       <div class="animate-pulse">
         <div class="h-16 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-8"></div>
         <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-2"></div>
@@ -123,7 +131,7 @@
       <div class="px-8 pb-16">
         <!-- Sort Options -->
         <div class="font-body mb-8">
-          <div class="flex gap-4 max-w-2xl mx-auto items-center">
+          <div class="flex gap-4 max-w-2xl mx-auto items-center justify-center">
             <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
             <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
               sorted by
@@ -136,6 +144,11 @@
               value-key="label"
               @change="loadQuotes"
             />
+          </div>
+
+          <!-- Language Selector -->
+          <div class="flex items-center justify-center mt-4">
+            <LanguageSelector @language-changed="onLanguageChange" />
           </div>
         </div>
 
@@ -215,8 +228,12 @@
 const route = useRoute()
 const { user } = useUserSession()
 
+// Language store (initialization handled by plugin)
+const languageStore = useLanguageStore()
+const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
+
 // Fetch reference data
-const { data: referenceData, pending } = await useFetch(`/api/references/${route.params.id}`)
+const { data: referenceData, pending } = await useLazyFetch(`/api/references/${route.params.id}`)
 const reference = computed(() => referenceData.value?.data)
 
 // SEO
@@ -263,6 +280,9 @@ const totalQuoteLikes = computed(() => {
 const loadQuotes = async (reset = true) => {
   if (!reference.value) return
 
+  // Wait for language store to be ready before loading quotes
+  await waitForLanguageStore()
+
   if (reset) {
     quotesLoading.value = true
     currentQuotePage.value = 1
@@ -272,15 +292,16 @@ const loadQuotes = async (reset = true) => {
   }
 
   try {
-    const response = await $fetch('/api/quotes', {
-      query: {
-        reference_id: reference.value.id,
-        page: currentQuotePage.value,
-        limit: 12,
-        sort_by: sortBy.value.value || sortBy.value,
-        sort_order: 'DESC'
-      }
-    })
+    const query = {
+      reference_id: reference.value.id,
+      page: currentQuotePage.value,
+      limit: 12,
+      sort_by: sortBy.value.value || sortBy.value,
+      sort_order: 'DESC',
+      ...languageStore.getLanguageQuery()
+    }
+
+    const response = await $fetch('/api/quotes', { query })
 
     if (reset) {
       referenceQuotes.value = response.data || []
@@ -308,6 +329,16 @@ const loadMoreQuotes = async () => {
 
   currentQuotePage.value++
   await loadQuotes(false)
+}
+
+// Language change handler
+const onLanguageChange = async () => {
+  // Reset pagination when language changes
+  currentQuotePage.value = 1
+  hasMoreQuotes.value = true
+
+  // Reload quotes with new language filter
+  await loadQuotes(true)
 }
 
 // Like functionality (placeholder - would need API endpoint)
@@ -405,7 +436,10 @@ const refreshQuotes = async () => {
 }
 
 // Load data on mount
-onMounted(() => {
+onMounted(async () => {
+  // Wait for language store to be ready
+  await waitForLanguageStore()
+
   if (reference.value) {
     loadQuotes()
     if (user.value) {
