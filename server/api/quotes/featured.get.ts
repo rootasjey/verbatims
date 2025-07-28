@@ -1,9 +1,14 @@
-export default defineEventHandler(async (event) => {
+import type {
+  ApiResponse,
+  FeaturedQuoteResult
+} from '~/types'
+
+export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
   try {
     const db = hubDatabase()
-    
+
     // Get a featured quote (either marked as featured or random popular quote)
-    let featuredQuote = await db.prepare(`
+    let featuredQuoteResult = await db.prepare(`
       SELECT 
         q.*,
         a.name as author_name,
@@ -24,11 +29,13 @@ export default defineEventHandler(async (event) => {
       ORDER BY q.created_at DESC
       LIMIT 1
     `).first()
-    
+
+    let featuredQuote = featuredQuoteResult as unknown as FeaturedQuoteResult | null
+
     // If no featured quote, get a popular one
     if (!featuredQuote) {
-      featuredQuote = await db.prepare(`
-        SELECT 
+      const popularQuoteResult = await db.prepare(`
+        SELECT
           q.*,
           a.name as author_name,
           a.is_fictional as author_is_fictional,
@@ -48,8 +55,10 @@ export default defineEventHandler(async (event) => {
         ORDER BY (q.likes_count + q.views_count) DESC
         LIMIT 1
       `).first()
+
+      featuredQuote = popularQuoteResult as unknown as FeaturedQuoteResult | null
     }
-    
+
     if (!featuredQuote) {
       return {
         success: true,
@@ -84,7 +93,7 @@ export default defineEventHandler(async (event) => {
       },
       tags: featuredQuote.tag_names ? featuredQuote.tag_names.split(',').map((name: string, index: number) => ({
         name,
-        color: featuredQuote.tag_colors.split(',')[index]
+        color: featuredQuote.tag_colors?.split(',')[index] || 'gray'
       })) : []
     }
     

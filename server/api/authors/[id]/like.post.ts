@@ -62,6 +62,13 @@ export default defineEventHandler(async (event) => {
       SELECT likes_count FROM authors WHERE id = ?
     `).bind(authorId).first()
 
+    if (!updatedAuthor) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to fetch updated author'
+      })
+    }
+
     return {
       success: true,
       data: {
@@ -69,7 +76,7 @@ export default defineEventHandler(async (event) => {
         likesCount: updatedAuthor.likes_count
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

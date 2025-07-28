@@ -105,6 +105,26 @@ export type {
   AnalyticsFilters
 } from './analytics';
 
+// Search types
+export type {
+  SearchContentType,
+  QuoteSearchResult,
+  AuthorSearchResult,
+  ReferenceSearchResult,
+  ProcessedQuoteResult,
+  SearchResults,
+  SearchParams,
+  SearchApiResponse
+} from './search';
+
+// API Result types
+export type {
+  CreatedQuoteResult,
+  FeaturedQuoteResult,
+  ProcessedTags,
+  TagProcessor
+} from './api-results';
+
 // Common utility types
 export interface DatabaseEntity {
   id: number;

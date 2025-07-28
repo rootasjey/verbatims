@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
         isLiked: !!like
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

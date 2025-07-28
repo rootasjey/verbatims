@@ -1,12 +1,23 @@
-export default defineEventHandler(async (event) => {
+import type {
+  QuoteLanguage,
+  ApiResponse,
+  SearchContentType,
+  QuoteSearchResult,
+  AuthorSearchResult,
+  ReferenceSearchResult,
+  ProcessedQuoteResult,
+  SearchResults
+} from '~/types'
+
+export default defineEventHandler(async (event): Promise<ApiResponse<SearchResults>> => {
   try {
     const query = getQuery(event)
     const searchTerm = query.q as string
-    const language = query.language as string
+    const language = query.language as QuoteLanguage | undefined
     const authorId = query.author ? parseInt(query.author as string) : null
     const referenceId = query.reference ? parseInt(query.reference as string) : null
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
-    const contentType = query.type as string // 'quotes', 'authors', 'references', or 'all'
+    const contentType = (query.type as SearchContentType) || 'all'
 
     if (!searchTerm || searchTerm.trim().length < 2) {
       return {
@@ -22,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
     const db = hubDatabase()
     const searchPattern = `%${searchTerm.trim()}%`
-    const results = {
+    const results: SearchResults = {
       quotes: [],
       authors: [],
       references: [],
@@ -32,7 +43,7 @@ export default defineEventHandler(async (event) => {
     // Search quotes if requested
     if (!contentType || contentType === 'all' || contentType === 'quotes') {
       let quotesQuery = `
-        SELECT 
+        SELECT
           q.*,
           a.name as author_name,
           a.is_fictional as author_is_fictional,
@@ -51,40 +62,40 @@ export default defineEventHandler(async (event) => {
         LEFT JOIN tags t ON qt.tag_id = t.id
         WHERE q.status = 'approved' AND q.name LIKE ?
       `
-      
+
       const quotesParams = [searchPattern]
-      
+
       // Add language filter
       if (language) {
         quotesQuery += ' AND q.language = ?'
         quotesParams.push(language)
       }
-      
+
       // Add author filter
       if (authorId) {
         quotesQuery += ' AND q.author_id = ?'
         quotesParams.push(authorId.toString())
       }
-      
+
       // Add reference filter
       if (referenceId) {
         quotesQuery += ' AND q.reference_id = ?'
         quotesParams.push(referenceId.toString())
       }
-      
+
       quotesQuery += `
         GROUP BY q.id
         ORDER BY q.likes_count DESC, q.views_count DESC, q.created_at DESC
         LIMIT ?
       `
       quotesParams.push(limit.toString())
-      
-      const quotesResult = await db.prepare(quotesQuery).bind(...quotesParams).all()
-      const quotes = quotesResult?.results || []
 
-      results.quotes = quotes.map(quote => ({
+      const quotesResult = await db.prepare(quotesQuery).bind(...quotesParams).all()
+      const quotes = (quotesResult?.results || []) as unknown as QuoteSearchResult[]
+
+      results.quotes = quotes.map((quote): ProcessedQuoteResult => ({
         ...quote,
-        tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
+        tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
           name,
           color: quote.tag_colors?.split(',')[index] || 'gray'
         })) : []
@@ -94,7 +105,7 @@ export default defineEventHandler(async (event) => {
     // Search authors if requested
     if (!contentType || contentType === 'all' || contentType === 'authors') {
       const authorsQuery = `
-        SELECT 
+        SELECT
           a.*,
           'author' as result_type,
           COUNT(q.id) as quotes_count
@@ -105,12 +116,12 @@ export default defineEventHandler(async (event) => {
         ORDER BY a.likes_count DESC, a.views_count DESC, quotes_count DESC
         LIMIT ?
       `
-      
+
       const authorsResult = await db.prepare(authorsQuery)
         .bind(searchPattern, searchPattern, searchPattern, limit.toString())
         .all()
 
-      results.authors = authorsResult?.results || []
+      results.authors = (authorsResult?.results || []) as unknown as AuthorSearchResult[]
     }
 
     // Search references if requested
@@ -127,12 +138,12 @@ export default defineEventHandler(async (event) => {
         ORDER BY r.likes_count DESC, r.views_count DESC, quotes_count DESC
         LIMIT ?
       `
-      
+
       const referencesResult = await db.prepare(referencesQuery)
         .bind(searchPattern, searchPattern, searchPattern, limit.toString())
         .all()
 
-      results.references = referencesResult?.results || []
+      results.references = (referencesResult?.results || []) as unknown as ReferenceSearchResult[]
     }
 
     // If searching all content types, limit total results and balance them
@@ -172,10 +183,10 @@ export default defineEventHandler(async (event) => {
           LIMIT ?
         `).bind(searchPattern, searchPattern, searchPattern, remaining.toString()).all()
 
-        const additionalQuotes = additionalQuotesResult?.results || []
-        const processedAdditionalQuotes = additionalQuotes.map(quote => ({
+        const additionalQuotes = (additionalQuotesResult?.results || []) as unknown as QuoteSearchResult[]
+        const processedAdditionalQuotes: ProcessedQuoteResult[] = additionalQuotes.map((quote): ProcessedQuoteResult => ({
           ...quote,
-          tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
+          tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
             name,
             color: quote.tag_colors?.split(',')[index] || 'gray'
           })) : []

@@ -1,4 +1,10 @@
-export default defineEventHandler(async (event) => {
+import type {
+  ApiResponse,
+  QuoteWithMetadata,
+  CreatedQuoteResult
+} from '~/types'
+
+export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
     // Check authentication
     const session = await getUserSession(event)
@@ -99,8 +105,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Fetch the created quote with all related data
-    const createdQuote = await db.prepare(`
-      SELECT 
+    const createdQuoteResult = await db.prepare(`
+      SELECT
         q.*,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
@@ -119,12 +125,27 @@ export default defineEventHandler(async (event) => {
       GROUP BY q.id
     `).bind(quoteId).first()
 
+    if (!createdQuoteResult) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to fetch created quote'
+      })
+    }
+
+    const createdQuote = createdQuoteResult as unknown as CreatedQuoteResult
+
     // Transform the result
-    const transformedQuote = {
+    const transformedQuote: QuoteWithMetadata = {
       id: createdQuote.id,
       name: createdQuote.name,
       language: createdQuote.language,
-      status: createdQuote.status,
+      author_id: createdQuote.author_id,
+      reference_id: createdQuote.reference_id,
+      user_id: createdQuote.user_id,
+      status: createdQuote.status as any, // Will be properly typed in the Quote interface
+      moderator_id: null,
+      moderated_at: null,
+      rejection_reason: null,
       views_count: createdQuote.views_count,
       likes_count: createdQuote.likes_count,
       shares_count: createdQuote.shares_count,
@@ -133,20 +154,42 @@ export default defineEventHandler(async (event) => {
       updated_at: createdQuote.updated_at,
       author: createdQuote.author_id ? {
         id: createdQuote.author_id,
-        name: createdQuote.author_name,
-        is_fictional: createdQuote.author_is_fictional
+        name: createdQuote.author_name || '',
+        is_fictional: createdQuote.author_is_fictional || false,
+        birth_date: null,
+        birth_location: null,
+        death_date: null,
+        death_location: null,
+        job: null,
+        description: null,
+        image_url: null,
+        socials: '{}',
+        views_count: 0,
+        likes_count: 0,
+        shares_count: 0,
+        created_at: '',
+        updated_at: ''
       } : null,
       reference: createdQuote.reference_id ? {
         id: createdQuote.reference_id,
-        name: createdQuote.reference_name,
-        type: createdQuote.reference_type
+        name: createdQuote.reference_name || '',
+        original_language: 'en',
+        release_date: null,
+        description: null,
+        primary_type: createdQuote.reference_type as any || 'other',
+        secondary_type: null,
+        image_url: null,
+        urls: '{}',
+        views_count: 0,
+        likes_count: 0,
+        shares_count: 0,
+        created_at: '',
+        updated_at: ''
       } : null,
-      user: {
-        name: createdQuote.user_name
-      },
-      tags: createdQuote.tag_names ? createdQuote.tag_names.split(',').map((name, index) => ({
+      tags: createdQuote.tag_names ? createdQuote.tag_names.split(',').map((name: string, index: number) => ({
+        id: index + 1, // Temporary ID for display
         name,
-        color: createdQuote.tag_colors.split(',')[index]
+        color: createdQuote.tag_colors?.split(',')[index] || 'gray'
       })) : []
     }
 
@@ -155,7 +198,7 @@ export default defineEventHandler(async (event) => {
       data: transformedQuote,
       message: 'Quote submitted successfully and is pending moderation'
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

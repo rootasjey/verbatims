@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
       db.prepare(countQuery).bind(...params).first()
     ])
     
-    const total = countResult?.total || 0
+    const total = Number(countResult?.total) || 0
     const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
     
