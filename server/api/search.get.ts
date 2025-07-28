@@ -79,8 +79,9 @@ export default defineEventHandler(async (event) => {
       `
       quotesParams.push(limit.toString())
       
-      const quotes = await db.prepare(quotesQuery).bind(...quotesParams).all()
-      
+      const quotesResult = await db.prepare(quotesQuery).bind(...quotesParams).all()
+      const quotes = quotesResult?.results || []
+
       results.quotes = quotes.map(quote => ({
         ...quote,
         tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
@@ -105,11 +106,11 @@ export default defineEventHandler(async (event) => {
         LIMIT ?
       `
       
-      const authors = await db.prepare(authorsQuery)
+      const authorsResult = await db.prepare(authorsQuery)
         .bind(searchPattern, searchPattern, searchPattern, limit.toString())
         .all()
-      
-      results.authors = authors
+
+      results.authors = authorsResult?.results || []
     }
 
     // Search references if requested
@@ -127,11 +128,11 @@ export default defineEventHandler(async (event) => {
         LIMIT ?
       `
       
-      const references = await db.prepare(referencesQuery)
+      const referencesResult = await db.prepare(referencesQuery)
         .bind(searchPattern, searchPattern, searchPattern, limit.toString())
         .all()
-      
-      results.references = references
+
+      results.references = referencesResult?.results || []
     }
 
     // If searching all content types, limit total results and balance them
@@ -144,7 +145,7 @@ export default defineEventHandler(async (event) => {
       // Fill remaining slots with quotes (most important content)
       const remaining = limit - (results.quotes.length + results.authors.length + results.references.length)
       if (remaining > 0 && results.quotes.length < limit) {
-        const additionalQuotes = await db.prepare(`
+        const additionalQuotesResult = await db.prepare(`
           SELECT
             q.*,
             a.name as author_name,
@@ -171,6 +172,7 @@ export default defineEventHandler(async (event) => {
           LIMIT ?
         `).bind(searchPattern, searchPattern, searchPattern, remaining.toString()).all()
 
+        const additionalQuotes = additionalQuotesResult?.results || []
         const processedAdditionalQuotes = additionalQuotes.map(quote => ({
           ...quote,
           tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({

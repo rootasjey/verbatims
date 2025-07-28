@@ -15,13 +15,6 @@
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">Search Quotes</h3>
-          <UButton
-            variant="ghost"
-            icon
-            label="i-ph-x"
-            size="sm"
-            @click="isOpen = false"
-          />
         </div>
       </template>
 
@@ -332,15 +325,15 @@ const loadFilterOptions = async () => {
       $fetch('/api/references?limit=100')
     ])
     
-    authorOptions.value = authorsData.data?.map(author => ({
+    authorOptions.value = (authorsData.data || []).map(author => ({
       label: author.name,
       value: author.id
-    })) || []
-    
-    referenceOptions.value = referencesData.data?.map(reference => ({
+    }))
+
+    referenceOptions.value = (referencesData.data || []).map(reference => ({
       label: reference.name,
       value: reference.id
-    })) || []
+    }))
   } catch (error) {
     console.error('Failed to load filter options:', error)
   }

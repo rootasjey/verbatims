@@ -15,6 +15,7 @@
         icon
         btn="ghost"
         label="i-ph-magnifying-glass-bold"
+        @click="showSearch = true"
       />
       
       <NuxtLink
@@ -32,19 +33,24 @@
       <span>About</span>
     </div>
   </nav>
+  <SearchBox 
+    :model-value="showSearch" 
+    @update:model-value="showSearch = $event"
+  />
 </template>
 
-<script setup>
+<script lang="ts" setup>
 const { user } = useUserSession()
 const colorMode = useColorMode()
 const scrollY = ref(0)
 const route = useRoute()
+const showSearch = ref(false)
 
 const handleScroll = () => {
   scrollY.value = window.scrollY
 }
 
-const handleLogoClick = (event) => {
+const handleLogoClick = (event: MouseEvent) => {
   if (route.path !== '/') {
     navigateTo('/')
     return
@@ -63,11 +69,27 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   // Initialize scroll position
   scrollY.value = window.scrollY
+
+  // Clean up scroll listener on unmount
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll)
+  })
 })
 
-// Clean up scroll listener on unmount
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+onMounted(() => {
+  const handler = (e: KeyboardEvent) => {
+    // Cmd+K (Mac) or Ctrl+K (Win/Linux)
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault()
+      showSearch.value = true
+    }
+  }
+
+  window.addEventListener('keydown', handler)
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handler)
+  })
 })
+
 
 </script>
