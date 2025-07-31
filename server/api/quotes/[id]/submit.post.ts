@@ -1,8 +1,8 @@
-import { CreatedQuoteResult } from "~/types"
+import { Quote, CreatedQuoteResult } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication and admin privileges
+    // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
       throw createError({
@@ -10,14 +10,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Authentication required'
       })
     }
-    
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
-    }
-    
+
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
       throw createError({
@@ -25,59 +18,40 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Invalid quote ID'
       })
     }
-    
-    const body = await readBody(event)
-    
-    // Validate action
-    if (!body.action || !['approve', 'reject'].includes(body.action)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid action (approve/reject) is required'
-      })
-    }
-    
-    // Validate rejection reason if rejecting
-    if (body.action === 'reject' && (!body.rejection_reason || body.rejection_reason.trim().length === 0)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Rejection reason is required when rejecting a quote'
-      })
-    }
-    
+
     const db = hubDatabase()
-    
-    // Check if quote exists and is pending
-    const quote = await db.prepare(`
-      SELECT * FROM quotes WHERE id = ? AND status = 'pending'
-    `).bind(quoteId).first()
+
+    // Check if quote exists, is a draft, and belongs to the user
+    const quote: Quote | null = await db.prepare(`
+      SELECT * FROM quotes 
+      WHERE id = ? AND status = 'draft' AND user_id = ?
+    `).bind(quoteId, session.user.id).first()
 
     if (!quote) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Quote not found or not pending moderation'
+        statusMessage: 'Quote not found, not a draft, or you do not have permission to submit it'
       })
     }
-    
-    // Update quote status
-    const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
-    
+
+    // Validate quote has minimum required content
+    if (!quote.name || quote.name.trim().length < 10) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Quote must have at least 10 characters before submission'
+      })
+    }
+
+    // Update quote status to pending
     await db.prepare(`
       UPDATE quotes 
       SET 
-        status = ?,
-        moderator_id = ?,
-        moderated_at = CURRENT_TIMESTAMP,
-        rejection_reason = ?,
+        status = 'pending',
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).bind(
-      newStatus,
-      session.user.id,
-      body.action === 'reject' ? body.rejection_reason.trim() : null,
-      quoteId
-    ).run()
-    
-    // Get updated quote with full details
+    `).bind(quoteId).run()
+
+    // Fetch the updated quote with all related data
     const updatedQuote: CreatedQuoteResult | null = await db.prepare(`
       SELECT 
         q.*,
@@ -87,16 +61,12 @@ export default defineEventHandler(async (event) => {
         r.name as reference_name,
         r.primary_type as reference_type,
         u.name as user_name,
-        u.email as user_email,
-        u.avatar_url as user_avatar,
-        m.name as moderator_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN users m ON q.moderator_id = m.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
       WHERE q.id = ?
@@ -109,7 +79,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Failed to fetch updated quote'
       })
     }
-    
+
     // Process tags
     const processedQuote = {
       ...updatedQuote,
@@ -118,21 +88,21 @@ export default defineEventHandler(async (event) => {
         color: updatedQuote.tag_colors?.split(',')[index] || 'gray'
       })) : []
     }
-    
+
     return {
       success: true,
       data: processedQuote,
-      message: `Quote ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
+      message: 'Quote submitted successfully and is now pending moderation'
     }
   } catch (error: any) {
     if (error.statusCode) {
       throw error
     }
     
-    console.error('Quote moderation error:', error)
+    console.error('Quote submission error:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to moderate quote'
+      statusMessage: 'Failed to submit quote'
     })
   }
 })

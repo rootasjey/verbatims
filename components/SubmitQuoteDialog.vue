@@ -2,7 +2,7 @@
   <UDialog v-if="isOpen" v-model:open="isOpen">
     <UCard>
       <template #header>
-        <h3 class="text-lg font-semibold">Submit a New Quote</h3>
+        <h3 class="text-lg font-semibold">Create a New Quote Draft</h3>
       </template>
 
       <form @submit.prevent="submitQuote" class="space-y-4">
@@ -65,7 +65,7 @@
             :loading="submitting"
             :disabled="!form.name || form.name.length < 10"
           >
-            Submit Quote
+            Save Draft
           </UButton>
         </div>
       </template>
@@ -150,8 +150,8 @@ const submitQuote = async () => {
     isOpen.value = false
 
     toast({
-      title: 'Quote submitted successfully!',
-      description: 'Your quote has been submitted for review.',
+      title: 'Quote saved as draft!',
+      description: 'Your quote has been saved. Submit it for review when ready.',
       variant: 'success'
     })
   } catch (error) {

@@ -1,96 +1,50 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div>
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+      <h1 v-if="user" class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
         Welcome back, {{ user.name }}!
       </h1>
-      <p class="mt-2 text-gray-600 dark:text-gray-400">
+      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
         Manage your quotes, collections, and account settings.
       </p>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <UIcon name="i-ph-file-text" class="h-8 w-8 text-blue-600" />
+      <div v-for="(value, key) in userStats" :key="key" 
+        class="bg-white dark:bg-[#0C0A09] rounded-lg border b-dashed">
+        <div class="px-6 py-4 flex flex-col justify-center">
+          <div class="flex flex-shrink-0 gap-2">
+            <UIcon :name="getStatsIcon(key)" />
+            <p class="text-sm font-600 text-gray-500 dark:text-gray-400">{{ formatStatsLabel(key) }}</p>
           </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted Quotes</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ userStats.submitted }}</p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <UIcon name="i-ph-check-circle" class="h-8 w-8 text-green-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Approved</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ userStats.approved }}</p>
+          <div>
+            <p class="font-sans text-6xl font-600 text-gray-900 dark:text-white">{{ value }}</p>
           </div>
         </div>
-      </UCard>
-
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <UIcon name="i-ph-heart" class="h-8 w-8 text-red-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Likes Received</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ userStats.likes }}</p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <UIcon name="i-ph-bookmark" class="h-8 w-8 text-purple-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Collections</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ userStats.collections }}</p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <UIcon name="i-ph-heart" class="h-8 w-8 text-pink-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Likes Given</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ userStats.likes_given }}</p>
-          </div>
-        </div>
-      </UCard>
+      </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="mb-8">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
-        <UButton icon label="i-ph-plus" @click="showSubmitModal = true">
+        <UButton btn="solid-dark dark:solid-white" @click="showSubmitModal = true">
+          <UIcon name="i-ph-plus" />
           Submit New Quote
         </UButton>
-        <UButton variant="outline" icon label="i-ph-bookmark" to="/dashboard/collections">
-          Manage Collections
+        <UButton btn="outline-dark dark:outline-white" to="/dashboard/lists">
+          <UIcon name="i-ph-bookmark" />
+          Manage Lists
         </UButton>
-        <UButton variant="outline" icon label="i-ph-file-text" to="/dashboard/submissions">
-          View Submissions
+        <UButton btn="outline-dark dark:outline-white" to="/dashboard/favourites">
+          <UIcon name="i-ph-heart" />
+          View Favourites
         </UButton>
-        <UButton variant="outline" icon label="i-ph-heart" to="/dashboard/liked">
-          Liked Quotes
-        </UButton>
-        <UButton variant="outline" icon label="i-ph-gear" to="/dashboard/settings">
-          Account Settings
+        <UButton btn="outline-dark dark:outline-white" to="/dashboard/my-quotes/drafts">
+          <UIcon name="i-ph-file-dashed" />
+          My Drafts
         </UButton>
       </div>
     </div>
@@ -102,17 +56,16 @@
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Recent Submissions</h3>
-            <UButton variant="ghost" size="sm" to="/dashboard/submissions">
+            <UButton btn="link" size="xs" to="/dashboard/my-quotes/published">
               View All
             </UButton>
           </div>
         </template>
 
         <div class="space-y-4">
-          <div v-if="recentSubmissions.length === 0" class="text-center py-8">
-            <UIcon name="i-ph-file-text" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <div v-if="recentSubmissions.length === 0">
             <p class="text-gray-500 dark:text-gray-400">No submissions yet</p>
-            <UButton class="mt-4" @click="showSubmitModal = true">
+            <UButton btn="solid-dark dark:solid-white" class="mt-4" @click="showSubmitModal = true">
               Submit Your First Quote
             </UButton>
           </div>
@@ -143,19 +96,18 @@
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">My Collections</h3>
-            <UButton variant="ghost" size="sm" to="/dashboard/collections">
+            <h3 class="text-lg font-semibold">My Lists</h3>
+            <UButton btn="link" size="xs" to="/dashboard/lists">
               View All
             </UButton>
           </div>
         </template>
 
         <div class="space-y-4">
-          <div v-if="recentCollections.length === 0" class="text-center py-8">
-            <UIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <div v-if="recentCollections.length === 0">
             <p class="text-gray-500 dark:text-gray-400">No collections yet</p>
-            <UButton class="mt-4" to="/dashboard/collections">
-              Create Collection
+            <UButton btn="solid-dark dark:solid-white" class="mt-4" to="/dashboard/lists">
+              Create List
             </UButton>
           </div>
 
@@ -177,13 +129,14 @@
     </div>
 
     <!-- Submit Quote Modal -->
-    <SubmitQuoteModal v-model="showSubmitModal" @submitted="refreshData" />
+    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshData" />
   </div>
 </template>
 
 <script setup lang="ts">
-// Require authentication
+// Use dashboard layout and require authentication
 definePageMeta({
+  layout: 'dashboard',
   middleware: 'auth'
 })
 
@@ -200,10 +153,11 @@ const userStats = ref({
   submitted: 0,
   approved: 0,
   likes: 0,
-  collections: 0
+  collections: 0,
+  likes_given: 0
 })
-const recentSubmissions = ref([])
-const recentCollections = ref([])
+const recentSubmissions = ref<any[]>([])
+const recentCollections = ref<any[]>([])
 
 // Load dashboard data
 const loadDashboardData = async () => {
@@ -214,9 +168,17 @@ const loadDashboardData = async () => {
       $fetch('/api/dashboard/collections?limit=5')
     ])
     
-    userStats.value = statsData.data || userStats.value
-    recentSubmissions.value = submissionsData.data || []
-    recentCollections.value = collectionsData.data || []
+    if (statsData?.data) {
+      userStats.value = {
+        submitted: Number(statsData.data.submitted) || 0,
+        approved: Number(statsData.data.approved) || 0,
+        likes: Number(statsData.data.likes) || 0,
+        collections: Number(statsData.data.collections) || 0,
+        likes_given: Number(statsData.data.likes_given) || 0
+      }
+    }
+    recentSubmissions.value = Array.isArray(submissionsData?.data) ? submissionsData.data : []
+    recentCollections.value = Array.isArray(collectionsData?.data) ? collectionsData.data : []
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
   }
@@ -236,6 +198,28 @@ const getStatusColor = (status: string) => {
   }
 }
 
+const getStatsIcon = (key: string) => {
+  switch (key) {
+    case 'submitted': return 'i-solar-card-send-linear'
+    case 'approved': return 'i-solar-check-square-outline'
+    case 'likes': return 'i-solar-heart-linear'
+    case 'collections': return 'i-solar-bookmark-linear'
+    case 'likes_given': return 'i-solar-hearts-bold-duotone'
+    default: return 'i-solar-card-send-linear'
+  }
+}
+
+const formatStatsLabel = (key: string) => {
+  switch (key) {
+    case 'submitted': return 'Submitted Quotes'
+    case 'approved': return 'Approved'
+    case 'likes': return 'Likes Received'
+    case 'collections': return 'Collections'
+    case 'likes_given': return 'Likes Given'
+    default: return 'Submitted Quotes'
+  }
+}
+
 const refreshData = () => {
   loadDashboardData()
 }
@@ -249,6 +233,7 @@ onMounted(() => {
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

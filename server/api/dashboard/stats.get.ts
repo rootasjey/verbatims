@@ -13,15 +13,16 @@ export default defineEventHandler(async (event) => {
     
     // Get user's quote statistics
     const quoteStats = await db.prepare(`
-      SELECT 
+      SELECT
         COUNT(*) as submitted,
         SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
         SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
         SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
         SUM(likes_count) as total_likes,
         SUM(views_count) as total_views,
         SUM(shares_count) as total_shares
-      FROM quotes 
+      FROM quotes
       WHERE user_id = ?
     `).bind(session.user.id).first()
     
@@ -42,18 +43,19 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: {
-        submitted: quoteStats?.submitted || 0,
-        approved: quoteStats?.approved || 0,
-        rejected: quoteStats?.rejected || 0,
-        draft: quoteStats?.draft || 0,
-        likes: quoteStats?.total_likes || 0,
-        views: quoteStats?.total_views || 0,
-        shares: quoteStats?.total_shares || 0,
-        collections: collectionsResult?.count || 0,
-        likes_given: likesGivenResult?.count || 0
+        submitted: Number(quoteStats?.submitted) || 0,
+        approved: Number(quoteStats?.approved) || 0,
+        rejected: Number(quoteStats?.rejected) || 0,
+        draft: Number(quoteStats?.draft) || 0,
+        pending: Number(quoteStats?.pending) || 0,
+        likes: Number(quoteStats?.total_likes) || 0,
+        views: Number(quoteStats?.total_views) || 0,
+        shares: Number(quoteStats?.total_shares) || 0,
+        collections: Number(collectionsResult?.count) || 0,
+        likes_given: Number(likesGivenResult?.count) || 0
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

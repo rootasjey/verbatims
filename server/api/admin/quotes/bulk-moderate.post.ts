@@ -1,8 +1,8 @@
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
-    const session = await getUserSession(event)
-    if (!session.user) {
+    const session = await requireUserSession(event)
+    if (!session || !session.user) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Authentication required'
@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
     const db = hubDatabase()
     
     // Validate all quote IDs are numbers and quotes exist
-    const quoteIds = body.quote_ids.map(id => {
+    const quoteIds: number[] = body.quote_ids.map((id: string) => {
       const numId = parseInt(id)
       if (isNaN(numId)) {
         throw createError({
@@ -65,11 +65,13 @@ export default defineEventHandler(async (event) => {
     
     // Check if all quotes exist and are pending
     const placeholders = quoteIds.map(() => '?').join(',')
-    const existingQuotes = await db.prepare(`
-      SELECT id FROM quotes 
-      WHERE id IN (${placeholders}) AND status = 'draft'
+    const quotesResult = await db.prepare(`
+      SELECT id FROM quotes
+      WHERE id IN (${placeholders}) AND status = 'pending'
     `).bind(...quoteIds).all()
-    
+
+    const existingQuotes = quotesResult?.results || []
+
     if (existingQuotes.length !== quoteIds.length) {
       throw createError({
         statusCode: 400,
@@ -109,7 +111,7 @@ export default defineEventHandler(async (event) => {
       },
       message: `${quoteIds.length} quotes ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

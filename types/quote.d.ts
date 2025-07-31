@@ -14,7 +14,7 @@ export type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja
 /**
  * Quote moderation status
  */
-export type QuoteStatus = 'draft' | 'approved' | 'rejected';
+export type QuoteStatus = 'draft' | 'pending' | 'approved' | 'rejected';
 
 /**
  * Quote entity from the database

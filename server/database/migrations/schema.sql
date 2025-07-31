@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS quotes (
   author_id INTEGER,
   reference_id INTEGER,
   user_id INTEGER NOT NULL,
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'approved', 'rejected')),
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'pending', 'approved', 'rejected')),
   moderator_id INTEGER,
   moderated_at DATETIME,
   rejection_reason TEXT,

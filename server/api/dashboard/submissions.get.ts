@@ -19,53 +19,72 @@ export default defineEventHandler(async (event) => {
     
     // Build WHERE clause for status filter
     let whereClause = 'WHERE q.user_id = ?'
-    const bindings = [session.user.id]
-    
-    if (status && ['draft', 'approved', 'rejected'].includes(status)) {
+    const bindings: any[] = [session.user.id]
+
+    if (status && ['draft', 'pending', 'approved', 'rejected'].includes(status)) {
       whereClause += ' AND q.status = ?'
       bindings.push(status)
     }
-    
+
     // Get user's submissions with related data
-    const submissions = await db.prepare(`
-      SELECT 
+    const submissionsResult = await db.prepare(`
+      SELECT
         q.*,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
         r.name as reference_name,
         r.primary_type as reference_type,
-        m.name as moderator_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
+        m.name as moderator_name
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users m ON q.moderator_id = m.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
       ${whereClause}
-      GROUP BY q.id
       ORDER BY q.created_at DESC
       LIMIT ? OFFSET ?
     `).bind(...bindings, limit, offset).all()
+
+    // Extract the actual results from the wrapped response
+    const submissions = submissionsResult?.results || []
     
-    // Get total count
-    const totalResult = await db.prepare(`
+    // Get total count (exclude limit and offset from bindings)
+    const countBindings = bindings.slice(0, status ? 2 : 1) // Only user_id and optionally status
+    const totalResultWrapper = await db.prepare(`
       SELECT COUNT(*) as total
       FROM quotes q
       ${whereClause}
-    `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset
-    
-    const total = totalResult?.total || 0
-    const hasMore = offset + submissions.length < total
-    
-    // Process submissions data
-    const processedSubmissions = submissions.map(submission => ({
-      ...submission,
-      tags: submission.tag_names ? submission.tag_names.split(',').map((name, index) => ({
-        name,
-        color: submission.tag_colors?.split(',')[index] || 'gray'
-      })) : []
+    `).bind(...countBindings).first()
+
+    const totalResult = totalResultWrapper?.results?.[0] || totalResultWrapper
+    const total = Number(totalResult?.total) || 0
+    const submissionsArray = Array.isArray(submissions) ? submissions : []
+    const hasMore = offset + submissionsArray.length < total
+
+    // Get tags for each submission
+    const processedSubmissions = await Promise.all(submissionsArray.map(async (submission: any) => {
+      // Get tags for this quote
+      const tagsResult = await db.prepare(`
+        SELECT t.id, t.name, t.color
+        FROM tags t
+        JOIN quote_tags qt ON t.id = qt.tag_id
+        WHERE qt.quote_id = ?
+      `).bind(submission.id).all()
+
+      // Extract the actual tags from the wrapped response
+      const tags = tagsResult?.results || []
+
+      return {
+        ...submission,
+        author: submission.author_name ? {
+          name: submission.author_name,
+          is_fictional: submission.author_is_fictional
+        } : null,
+        reference: submission.reference_name ? {
+          name: submission.reference_name,
+          primary_type: submission.reference_type
+        } : null,
+        tags: tags
+      }
     }))
     
     return {
@@ -79,11 +98,11 @@ export default defineEventHandler(async (event) => {
         totalPages: Math.ceil(total / limit)
       }
     }
-  } catch (error) {
-    if (error.statusCode) {
+  } catch (error: any) {
+    if (error?.statusCode) {
       throw error
     }
-    
+
     console.error('Dashboard submissions error:', error)
     throw createError({
       statusCode: 500,

@@ -1,3 +1,5 @@
+import { CreatedQuoteResult } from "~/types"
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
@@ -21,7 +23,7 @@ export default defineEventHandler(async (event) => {
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
     const search = query.search as string || ''
-    const status = query.status as string || 'draft'
+    const status = query.status as string || 'pending'
     
     const db = hubDatabase()
     
@@ -37,8 +39,8 @@ export default defineEventHandler(async (event) => {
     const whereClause = `WHERE ${conditions.join(' AND ')}`
     
     // Get pending quotes with all related data
-    const quotes = await db.prepare(`
-      SELECT 
+    const quotesResult = await db.prepare(`
+      SELECT
         q.*,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
@@ -63,7 +65,9 @@ export default defineEventHandler(async (event) => {
       ORDER BY q.created_at ASC
       LIMIT ? OFFSET ?
     `).bind(...bindings, limit, offset).all()
-    
+
+    const quotes = (quotesResult?.results || []) as unknown as CreatedQuoteResult[]
+
     // Get total count
     const totalResult = await db.prepare(`
       SELECT COUNT(*) as total
@@ -73,14 +77,14 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN users u ON q.user_id = u.id
       ${whereClause}
     `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset
-    
-    const total = totalResult?.total || 0
+
+    const total = Number(totalResult?.total) || 0
     const hasMore = offset + quotes.length < total
-    
+
     // Process quotes data
-    const processedQuotes = quotes.map(quote => ({
+    const processedQuotes = quotes.map((quote: CreatedQuoteResult) => ({
       ...quote,
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
+      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
         name,
         color: quote.tag_colors?.split(',')[index] || 'gray'
       })) : []
@@ -97,7 +101,7 @@ export default defineEventHandler(async (event) => {
         totalPages: Math.ceil(total / limit)
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

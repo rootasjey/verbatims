@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
       FROM user_likes ul
       JOIN quotes q ON ul.likeable_id = q.id
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
@@ -54,13 +54,14 @@ export default defineEventHandler(async (event) => {
         AND q.status = 'approved'
     `).bind(session.user.id).first()
     
-    const total = totalResult?.total || 0
-    const hasMore = offset + likedQuotes.length < total
-    
+    const total = Number(totalResult?.total) || 0
+    const quotesArray = Array.isArray(likedQuotes) ? likedQuotes : []
+    const hasMore = offset + quotesArray.length < total
+
     // Process quotes data
-    const processedQuotes = likedQuotes.map(quote => ({
+    const processedQuotes = quotesArray.map((quote: any) => ({
       ...quote,
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
+      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
         name,
         color: quote.tag_colors?.split(',')[index] || 'gray'
       })) : []
@@ -77,11 +78,11 @@ export default defineEventHandler(async (event) => {
         totalPages: Math.ceil(total / limit)
       }
     }
-  } catch (error) {
-    if (error.statusCode) {
+  } catch (error: any) {
+    if (error?.statusCode) {
       throw error
     }
-    
+
     console.error('Dashboard liked quotes error:', error)
     throw createError({
       statusCode: 500,

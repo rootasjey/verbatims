@@ -1,13 +1,15 @@
 <template>
   <nav 
     :class="[
-      'top-0 w-full z-50 transition-all duration-300',
+      'top-0 w-full z-4 transition-all duration-300',
       'flex justify-between p-4',
-      scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md border-b border-white/20 bg-black/20'
+      'border-b b-dashed',
+      scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md bg-white dark:bg-gray-800'
     ]"
   >
     <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Solar by 480 Design - https://creativecommons.org/licenses/by/4.0/ --><path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/></svg>
     </UButton>
     
     <div class="flex items-center space-x-6 font-title font-600 color-gray-6 dark:color-gray-4 mr-8">

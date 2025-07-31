@@ -1,9 +1,8 @@
 <template>
   <div class="min-h-screen">
-    <AppHeader />
-    <main>
+    <NuxtLayout>
       <NuxtPage />
-    </main>
+    </NuxtLayout>
     <NuxtRouteAnnouncer />
     <UToaster />
   </div>
