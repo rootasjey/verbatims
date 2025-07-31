@@ -177,10 +177,10 @@
       <!-- Pagination -->
       <div v-if="pagination && pagination.total > pageSize" class="flex justify-center mt-6">
         <UPagination
-          v-model="currentPage"
-          :page-count="pageSize"
+          v-model:page="currentPage"
+          :items-per-page="pageSize"
           :total="pagination.total"
-          @update:model-value="loadImports"
+          @update:page="loadImports"
         />
       </div>
     </UCard>

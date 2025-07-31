@@ -12,22 +12,20 @@
           <UButton
             v-if="onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser"
             size="lg"
-            icon
-            label="i-ph-user-plus"
             to="/onboarding/admin"
             class="px-8 py-4"
           >
-            1. Create Admin User
+            <UIcon name="i-ph-user-plus" />
+            <span>1. Create Admin User</span>
           </UButton>
           <UButton
             v-else-if="onboardingStatus?.step === 'database_data' || !onboardingStatus?.hasData"
             size="lg"
-            icon
-            label="i-ph-database"
             to="/onboarding/database"
             class="px-8 py-4"
           >
-            2. Initialize Database
+            <UIcon name="i-ph-database" />
+            <span>2. Initialize Database</span>
           </UButton>
         </div>
       </div>
@@ -44,11 +42,10 @@
         <UButton
           @click="$emit('openSubmitModal')"
           size="lg"
-          icon
-          label="i-ph-plus"
           class="px-8 py-4"
         >
-          Submit Your First Quote
+          <UIcon name="i-ph-plus" />
+          <span>Submit Your First Quote</span>
         </UButton>
       </div>
     </div>

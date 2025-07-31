@@ -251,7 +251,7 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <UButton variant="outline" @click="showDeleteModal = false">
+            <UButton btn="outline" @click="showDeleteModal = false">
               Cancel
             </UButton>
             <UButton

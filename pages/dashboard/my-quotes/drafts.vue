@@ -57,8 +57,9 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
       </p>
-      <UButton v-if="!searchQuery" icon label="i-ph-plus" @click="showSubmitModal = true">
-        Create Your First Draft
+      <UButton v-if="!searchQuery" @click="showSubmitModal = true">
+        <UIcon name="i-ph-plus" />
+        <span>Create Your First Draft</span>
       </UButton>
     </div>
 
@@ -150,7 +151,7 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <UButton variant="outline" @click="showDeleteModal = false">
+            <UButton btn="outline" @click="showDeleteModal = false">
               Cancel
             </UButton>
             <UButton

@@ -79,11 +79,11 @@
               :key="social.url"
               :to="social.url"
               external
-              variant="outline"
+              btn="outline"
               size="sm"
-              :icon="getSocialIcon(social.platform)"
             >
-              {{ social.platform }}
+              <UIcon :name="getSocialIcon(social.platform)" />
+              <span>{{ social.platform }}</span>
             </UButton>
           </div>
         </div>

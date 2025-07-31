@@ -57,8 +57,9 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Create your first list to organize your favorite quotes.' }}
       </p>
-      <UButton v-if="!searchQuery" icon label="i-ph-plus" @click="showCreateModal = true">
-        Create Your First List
+      <UButton v-if="!searchQuery" @click="showCreateModal = true">
+        <UIcon name="i-ph-plus" />
+        <span>Create Your First List</span>
       </UButton>
     </div>
 
@@ -174,7 +175,7 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <UButton variant="outline" @click="showDeleteModal = false">
+            <UButton btn="outline" @click="showDeleteModal = false">
               Cancel
             </UButton>
             <UButton

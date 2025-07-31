@@ -59,7 +59,7 @@
 
       <template #footer>
         <div class="flex justify-end space-x-2">
-          <UButton variant="ghost" @click="isOpen = false">Cancel</UButton>
+          <UButton btn="ghost" @click="isOpen = false">Cancel</UButton>
           <UButton 
             @click="submitQuote" 
             :loading="submitting"

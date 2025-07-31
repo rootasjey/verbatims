@@ -6,11 +6,11 @@
     <!-- Dashboard Layout -->
     <div class="pt-16 flex min-h-screen">
       <!-- Sidebar Navigation -->
-      <aside 
+      <aside
         :class="[
-          'fixed inset-y-0 left-0 w-64 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-transform duration-300 ease-in-out',
-          'lg:translate-x-0 lg:static lg:inset-0',
-          sidebarOpen ? 'translate-x-0 mt-0 z-8' : '-translate-x-full mt-1.5',
+          'fixed inset-y-0 left-0 w-64 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-transform duration-300 ease-in-out z-40',
+          'lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
         ]"
       >
         <div class="flex flex-col">
@@ -156,7 +156,7 @@
       />
 
       <!-- Main Content -->
-      <main class="flex-1 lg:ml-0">
+      <main class="flex-1 lg:ml-64">
         <!-- Mobile Header -->
         <div class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div class="flex items-center justify-between">

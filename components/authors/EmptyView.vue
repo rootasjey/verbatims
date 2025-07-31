@@ -16,11 +16,10 @@
         <UButton
           @click="$emit('openSubmitModal')"
           size="lg"
-          icon
-          label="i-ph-plus"
           class="px-8 py-4"
         >
-          Submit Your First Quote
+          <UIcon name="i-ph-plus" />
+          <span>Submit Your First Quote</span>
         </UButton>
       </div>
     </div>

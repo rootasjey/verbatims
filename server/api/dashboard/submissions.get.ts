@@ -1,16 +1,9 @@
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
-    
+    const session = await requireUserSession(event)
     const query = getQuery(event)
-    const limit = Math.min(parseInt(query.limit as string) || 10, 50)
+    const limit = Math.min(parseInt(query.limit as string) || 10, 100)
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     const status = query.status as string
@@ -55,8 +48,7 @@ export default defineEventHandler(async (event) => {
       ${whereClause}
     `).bind(...countBindings).first()
 
-    const totalResult = totalResultWrapper?.results?.[0] || totalResultWrapper
-    const total = Number(totalResult?.total) || 0
+    const total = Number(totalResultWrapper?.total) || 0
     const submissionsArray = Array.isArray(submissions) ? submissions : []
     const hasMore = offset + submissionsArray.length < total
 

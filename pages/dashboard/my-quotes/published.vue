@@ -1,83 +1,92 @@
 <template>
-  <div>
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-        Published Quotes
-      </h1>
-      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-        Your approved and published quotes.
-      </p>
-    </div>
-
-    <!-- Search and Filters -->
-    <div class="mb-6 flex flex-col sm:flex-row gap-4">
-      <div class="flex-1">
-        <UInput
-          v-model="searchQuery"
-          placeholder="Search your published quotes..."
-          icon="i-ph-magnifying-glass"
-          size="md"
-        />
+  <div class="frame flex flex-col h-full">
+    <!-- Fixed Header Section -->
+    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
+      <!-- Header -->
+      <div class="mb-6">
+        <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
+          Published Quotes
+        </h1>
+        <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
+          Your approved and published quotes.
+        </p>
       </div>
-      <div class="w-full sm:w-48">
-        <USelect
-          v-model="sortBy"
-          :items="sortOptions"
-          placeholder="Sort by"
-          size="sm"
-          item-key="label"
-          value-key="value"
-        />
-      </div>
-    </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center py-12">
-      <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
-    </div>
-
-    <!-- Empty State -->
-    <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
-      <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
-      </h3>
-      <p class="text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? 'Try adjusting your search terms.' : 'Submit some quotes and get them approved to see them here.' }}
-      </p>
-      <UButton v-if="!searchQuery" to="/dashboard/my-quotes/drafts" icon label="i-ph-plus">
-        Create New Quote
-      </UButton>
-    </div>
-
-    <!-- Quotes Table -->
-    <div v-else class="space-y-6">
-      <!-- Results Count -->
-      <div class="flex items-center justify-between">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'quote' : 'quotes' }} published
+      <!-- Search and Filters -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <UInput
+            v-model="searchQuery"
+            placeholder="Search your published quotes..."
+            icon="i-ph-magnifying-glass"
+            size="md"
+          />
         </div>
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Total views: {{ totalViews.toLocaleString() }} • Total likes: {{ totalLikes.toLocaleString() }}
+        <div class="w-full sm:w-48">
+          <USelect
+            v-model="sortBy"
+            :items="sortOptions"
+            placeholder="Sort by"
+            size="sm"
+            item-key="label"
+            value-key="value"
+          />
         </div>
       </div>
+    </div>
 
-      <!-- Table -->
-      <UTable
-        :columns="tableColumns"
-        :data="filteredQuotes"
-        :loading="loading"
-        empty-text="No published quotes found"
-        empty-icon="i-ph-check-circle"
-        class="border border-dashed border-gray-200 dark:border-gray-700"
-      >
+    <!-- Scrollable Content Area -->
+    <div class="flex-1 overflow-hidden">
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center py-12">
+        <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="paginatedQuotes.length === 0 && !loading" class="text-center py-16">
+        <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
+        </h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">
+          {{ searchQuery ? 'Try adjusting your search terms.' : 'Submit some quotes and get them approved to see them here.' }}
+        </p>
+        <UButton v-if="!searchQuery" to="/dashboard/my-quotes/drafts">
+          <UIcon name="i-ph-plus" />
+          <span>Create New Quote</span>
+        </UButton>
+      </div>
+
+      <!-- Quotes Table Container -->
+      <div v-else class="flex flex-col h-full">
+        <!-- Results Count -->
+        <div class="flex-shrink-0 flex items-center justify-between mb-4">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredQuotesCount }} {{ filteredQuotesCount === 1 ? 'quote' : 'quotes' }}
+            <span v-if="filteredQuotesCount !== totalQuotes" class="text-gray-400">
+              (filtered from {{ totalQuotes }} total)
+            </span>
+          </div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Total views: {{ totalViews.toLocaleString() }} • Total likes: {{ totalLikes.toLocaleString() }}
+          </div>
+        </div>
+
+        <!-- Scrollable Table Container -->
+        <div class="quotes-table-container flex-1 overflow-auto">
+          <UTable
+            :columns="tableColumns"
+            :data="paginatedQuotes"
+            :loading="loading"
+            empty-text="No published quotes found"
+            empty-icon="i-ph-check-circle"
+          >
         <!-- Actions Column -->
         <template #actions-cell="{ cell }">
           <UDropdownMenu :items="getQuoteActions(cell.row.original)">
             <UButton
               icon
-              variant="ghost"
+              btn="ghost"
               size="sm"
               label="i-ph-dots-three-vertical"
             />
@@ -91,7 +100,7 @@
               class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words"
               :title="cell.row.original.name"
             >
-              "{{ cell.row.original.name }}"
+              {{ cell.row.original.name }}
             </blockquote>
           </div>
         </template>
@@ -169,18 +178,23 @@
             {{ formatDate(cell.row.original.approved_at || cell.row.original.created_at) }}
           </span>
         </template>
-      </UTable>
+          </UTable>
+        </div>
 
-      <!-- Load More -->
-      <div v-if="hasMore" class="text-center pt-8">
-        <UButton
-          :loading="loadingMore"
-          variant="outline"
-          size="lg"
-          @click="loadMore"
-        >
-          Load More
-        </UButton>
+        <!-- Pagination -->
+        <div class="flex-shrink-0 flex items-center justify-between pt-4">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Page {{ currentPage }} of {{ totalPages }}
+          </div>
+          <UPagination
+            v-model:page="currentPage"
+            :total="filteredQuotesCount"
+            :items-per-page="pageSize"
+            :sibling-count="2"
+            show-edges
+            size="sm"
+          />
+        </div>
       </div>
     </div>
 
@@ -216,12 +230,13 @@ useHead({
 
 // Data
 const loading = ref(true)
-const loadingMore = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
 const sortBy = ref('recent')
-const hasMore = ref(false)
 const currentPage = ref(1)
+const pageSize = ref(50)
+const totalQuotes = ref(0) // Total number of quotes from API
+const filteredQuotesCount = ref(0) // Number of quotes after filtering
 
 // Modals
 const showAddToCollectionModal = ref(false)
@@ -372,32 +387,51 @@ const totalLikes = computed(() => {
   return quotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
 })
 
+// Pagination computed properties
+const totalPages = computed(() => Math.ceil(filteredQuotes.value.length / pageSize.value))
+
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value)
+
+const endIndex = computed(() => Math.min(startIndex.value + pageSize.value, filteredQuotes.value.length))
+
+const paginatedQuotes = computed(() => {
+  const start = startIndex.value
+  const end = endIndex.value
+  return filteredQuotes.value.slice(start, end)
+})
+
+// Update filteredQuotesCount when filteredQuotes changes
+watch(filteredQuotes, (newQuotes) => {
+  if (searchQuery.value) {
+    filteredQuotesCount.value = newQuotes.length
+  }
+
+  if (!searchQuery.value) {
+    filteredQuotesCount.value = totalQuotes.value
+  }
+
+  // Reset to first page when search/filter changes
+  if (currentPage.value > totalPages.value && totalPages.value > 0) {
+    currentPage.value = 1
+  }
+}, { immediate: true })
+
 // Methods
-const loadPublishedQuotes = async (page = 1) => {
+const loadPublishedQuotes = async () => {
   try {
+    loading.value = true
     const response = await $fetch('/api/dashboard/submissions', {
-      query: { page, limit: 20, status: 'approved' }
+      query: { page: 1, limit: 50, status: 'approved' } // Load all quotes for client-side pagination
     })
 
-    if (page === 1) {
-      quotes.value = response.data || []
-    } else {
-      quotes.value.push(...(response.data || []))
-    }
-
-    hasMore.value = response.pagination?.hasMore || false
-    currentPage.value = page
+    quotes.value = response.data || []
+    totalQuotes.value = response.pagination.total
+    pageSize.value = response.pagination.limit
   } catch (error) {
     console.error('Failed to load published quotes:', error)
   } finally {
     loading.value = false
-    loadingMore.value = false
   }
-}
-
-const loadMore = async () => {
-  loadingMore.value = true
-  await loadPublishedQuotes(currentPage.value + 1)
 }
 
 const getQuoteActions = (quote: DashboardQuote) => [
@@ -449,3 +483,10 @@ onMounted(() => {
   loadPublishedQuotes()
 })
 </script>
+
+<style scoped>
+.quotes-table-container {
+  max-height: calc(100vh - 20rem);
+  max-width: calc(100vw - 20rem);
+}
+</style>

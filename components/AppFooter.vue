@@ -13,24 +13,22 @@
           </p>
           <div class="flex space-x-4">
             <UButton
-              variant="ghost"
+              btn="ghost"
               size="sm"
-              icon
-              label="i-simple-icons-github"
               to="https://github.com/verbatims/verbatims"
               external
             >
-              GitHub
+              <UIcon name="i-simple-icons-github" />
+              <span>GitHub</span>
             </UButton>
             <UButton
-              variant="ghost"
+              btn="ghost"
               size="sm"
-              icon
-              label="i-simple-icons-twitter"
               to="https://twitter.com/verbatims"
               external
             >
-              Twitter
+              <UIcon name="i-simple-icons-twitter" />
+              <span>Twitter</span>
             </UButton>
           </div>
         </div>

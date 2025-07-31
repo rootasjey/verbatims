@@ -4,7 +4,7 @@
       'top-0 w-full z-4 transition-all duration-300',
       'flex justify-between p-4',
       'border-b b-dashed',
-      scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md bg-white dark:bg-gray-800'
+      scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md'
     ]"
   >
     <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">

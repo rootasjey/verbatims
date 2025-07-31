@@ -194,7 +194,7 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton variant="ghost" @click="showRemoveModal = false">
+            <UButton btn="ghost" @click="showRemoveModal = false">
               Cancel
             </UButton>
             <UButton

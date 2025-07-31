@@ -46,8 +46,9 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Submit some quotes to see them here while they await review.' }}
       </p>
-      <UButton v-if="!searchQuery" to="/dashboard/my-quotes/drafts" icon label="i-ph-file-dashed">
-        View Drafts
+      <UButton v-if="!searchQuery" to="/dashboard/my-quotes/drafts">
+        <UIcon name="i-ph-file-dashed" />
+        <span>View Drafts</span>
       </UButton>
     </div>
 
@@ -150,7 +151,7 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <UButton variant="outline" @click="showWithdrawModal = false">
+            <UButton btn="outline" @click="showWithdrawModal = false">
               Cancel
             </UButton>
             <UButton

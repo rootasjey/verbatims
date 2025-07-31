@@ -79,11 +79,11 @@
               :key="index"
               :to="url"
               external
-              variant="outline"
+              btn="outline"
               size="sm"
-              icon="i-ph-link"
             >
-              View Source
+              <UIcon name="i-ph-link" />
+              <span>View Source</span>
             </UButton>
           </div>
         </div>

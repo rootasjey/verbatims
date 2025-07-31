@@ -10,8 +10,9 @@
           Organize your favorite quotes into collections
         </p>
       </div>
-      <UButton icon label="i-ph-plus" @click="showCreateModal = true">
-        Create Collection
+      <UButton @click="showCreateModal = true">
+        <UIcon name="i-ph-plus" />
+        <span>Create Collection</span>
       </UButton>
     </div>
 
@@ -107,8 +108,9 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         Create your first collection to organize your favorite quotes
       </p>
-      <UButton icon label="i-ph-plus" @click="showCreateModal = true">
-        Create Your First Collection
+      <UButton @click="showCreateModal = true">
+        <UIcon name="i-ph-plus" />
+        <span>Create Your First Collection</span>
       </UButton>
     </div>
 
@@ -150,7 +152,7 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton variant="ghost" @click="showDeleteModal = false">
+            <UButton btn="ghost" @click="showDeleteModal = false">
               Cancel
             </UButton>
             <UButton
