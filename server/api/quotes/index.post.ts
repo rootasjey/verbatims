@@ -49,7 +49,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
 
     // Validate reference_id if provided
     if (body.reference_id) {
-      const reference = await db.prepare('SELECT id FROM references WHERE id = ?')
+      const reference = await db.prepare('SELECT id FROM quote_references WHERE id = ?')
         .bind(body.reference_id).first()
       if (!reference) {
         throw createError({
@@ -117,7 +117,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id

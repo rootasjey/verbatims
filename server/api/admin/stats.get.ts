@@ -30,10 +30,11 @@ export default defineEventHandler(async (event) => {
     ] = await Promise.all([
       // Quotes statistics
       db.prepare(`
-        SELECT 
+        SELECT
           COUNT(*) as total,
           SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
-          SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as pending,
+          SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
+          SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
           SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
           SUM(CASE WHEN is_featured = 1 THEN 1 ELSE 0 END) as featured,
           SUM(likes_count) as total_likes,
@@ -65,12 +66,12 @@ export default defineEventHandler(async (event) => {
       
       // References statistics
       db.prepare(`
-        SELECT 
+        SELECT
           COUNT(*) as total,
           COUNT(DISTINCT primary_type) as types,
           SUM(likes_count) as total_likes,
           SUM(views_count) as total_views
-        FROM references
+        FROM quote_references
       `).first(),
       
       // Collections statistics
@@ -140,56 +141,57 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: {
         quotes: {
-          total: quotesStats?.total || 0,
-          approved: quotesStats?.approved || 0,
-          pending: quotesStats?.pending || 0,
-          rejected: quotesStats?.rejected || 0,
-          featured: quotesStats?.featured || 0,
-          total_likes: quotesStats?.total_likes || 0,
-          total_views: quotesStats?.total_views || 0,
-          total_shares: quotesStats?.total_shares || 0
+          total: Number(quotesStats?.total) || 0,
+          approved: Number(quotesStats?.approved) || 0,
+          draft: Number(quotesStats?.draft) || 0,
+          pending: Number(quotesStats?.pending) || 0,
+          rejected: Number(quotesStats?.rejected) || 0,
+          featured: Number(quotesStats?.featured) || 0,
+          total_likes: Number(quotesStats?.total_likes) || 0,
+          total_views: Number(quotesStats?.total_views) || 0,
+          total_shares: Number(quotesStats?.total_shares) || 0
         },
         users: {
-          total: usersStats?.total || 0,
-          active: usersStats?.active || 0,
-          admins: usersStats?.admins || 0,
-          moderators: usersStats?.moderators || 0,
-          verified: usersStats?.verified || 0
+          total: Number(usersStats?.total) || 0,
+          active: Number(usersStats?.active) || 0,
+          admins: Number(usersStats?.admins) || 0,
+          moderators: Number(usersStats?.moderators) || 0,
+          verified: Number(usersStats?.verified) || 0
         },
         authors: {
-          total: authorsStats?.total || 0,
-          fictional: authorsStats?.fictional || 0,
-          total_likes: authorsStats?.total_likes || 0,
-          total_views: authorsStats?.total_views || 0
+          total: Number(authorsStats?.total) || 0,
+          fictional: Number(authorsStats?.fictional) || 0,
+          total_likes: Number(authorsStats?.total_likes) || 0,
+          total_views: Number(authorsStats?.total_views) || 0
         },
         references: {
-          total: referencesStats?.total || 0,
-          types: referencesStats?.types || 0,
-          total_likes: referencesStats?.total_likes || 0,
-          total_views: referencesStats?.total_views || 0
+          total: Number(referencesStats?.total) || 0,
+          types: Number(referencesStats?.types) || 0,
+          total_likes: Number(referencesStats?.total_likes) || 0,
+          total_views: Number(referencesStats?.total_views) || 0
         },
         collections: {
-          total: collectionsStats?.total || 0,
-          public: collectionsStats?.public_collections || 0,
-          avg_quotes: Math.round(collectionsStats?.avg_quotes_per_collection || 0)
+          total: Number(collectionsStats?.total) || 0,
+          public: Number(collectionsStats?.public_collections) || 0,
+          avg_quotes: Math.round(Number(collectionsStats?.avg_quotes_per_collection) || 0)
         },
         likes: {
-          total: likesStats?.total || 0,
-          unique_users: likesStats?.unique_users || 0,
-          quote_likes: likesStats?.quote_likes || 0,
-          author_likes: likesStats?.author_likes || 0,
-          reference_likes: likesStats?.reference_likes || 0
+          total: Number(likesStats?.total) || 0,
+          unique_users: Number(likesStats?.unique_users) || 0,
+          quote_likes: Number(likesStats?.quote_likes) || 0,
+          author_likes: Number(likesStats?.author_likes) || 0,
+          reference_likes: Number(likesStats?.reference_likes) || 0
         },
         views: {
-          total: viewsStats?.total || 0,
-          unique_users: viewsStats?.unique_users || 0,
-          unique_ips: viewsStats?.unique_ips || 0
+          total: Number(viewsStats?.total) || 0,
+          unique_users: Number(viewsStats?.unique_users) || 0,
+          unique_ips: Number(viewsStats?.unique_ips) || 0
         },
         recent_activity: recentActivity,
         top_contributors: topContributors
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

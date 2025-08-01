@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       FROM user_likes ul
       LEFT JOIN quotes q ON ul.likeable_type = 'quote' AND ul.likeable_id = q.id
       LEFT JOIN authors a ON ul.likeable_type = 'author' AND ul.likeable_id = a.id
-      LEFT JOIN references r ON ul.likeable_type = 'reference' AND ul.likeable_id = r.id
+      LEFT JOIN quote_references r ON ul.likeable_type = 'reference' AND ul.likeable_id = r.id
       LEFT JOIN authors qa ON q.author_id = qa.id
       WHERE ul.user_id = ?
       ORDER BY ul.created_at DESC

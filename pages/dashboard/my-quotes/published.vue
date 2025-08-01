@@ -84,104 +84,104 @@
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >
-        <!-- Actions Column -->
-        <template #actions-cell="{ cell }">
-          <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-            <UButton
-              icon
-              btn="ghost"
-              size="sm"
-              label="i-ph-dots-three-vertical"
-            />
-          </UDropdownMenu>
-        </template>
+          <!-- Actions Column -->
+          <template #actions-cell="{ cell }">
+            <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+              <UButton
+                icon
+                btn="ghost"
+                size="sm"
+                label="i-ph-dots-three-vertical"
+              />
+            </UDropdownMenu>
+          </template>
 
-        <!-- Quote Column with text wrapping -->
-        <template #quote-cell="{ cell }">
-          <div class="max-w-md">
-            <blockquote
-              class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words"
-              :title="cell.row.original.name"
-            >
-              {{ cell.row.original.name }}
-            </blockquote>
-          </div>
-        </template>
+          <!-- Quote Column with text wrapping -->
+          <template #quote-cell="{ cell }">
+            <div class="max-w-md">
+              <blockquote
+                class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words"
+                :title="cell.row.original.name"
+              >
+                {{ cell.row.original.name }}
+              </blockquote>
+            </div>
+          </template>
 
-        <!-- Author Column -->
-        <template #author-cell="{ cell }">
-          <div v-if="cell.row.original.author" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <UIcon name="i-ph-user" class="w-4 h-4 mr-1 flex-shrink-0" />
-            <span class="truncate">{{ cell.row.original.author.name }}</span>
-          </div>
-          <span v-else class="text-sm text-gray-400">—</span>
-        </template>
+          <!-- Author Column -->
+          <template #author-cell="{ cell }">
+            <div v-if="cell.row.original.author" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <UIcon name="i-ph-user" class="w-4 h-4 mr-1 flex-shrink-0" />
+              <span class="truncate">{{ cell.row.original.author.name }}</span>
+            </div>
+            <span v-else class="text-sm text-gray-400">—</span>
+          </template>
 
-        <!-- Reference Column -->
-        <template #reference-cell="{ cell }">
-          <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            <UIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
-            <span class="truncate">{{ cell.row.original.reference.name }}</span>
-          </div>
-          <span v-else class="text-sm text-gray-400">—</span>
-        </template>
+          <!-- Reference Column -->
+          <template #reference-cell="{ cell }">
+            <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <UIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
+              <span class="truncate">{{ cell.row.original.reference.name }}</span>
+            </div>
+            <span v-else class="text-sm text-gray-400">—</span>
+          </template>
 
-        <!-- Tags Column -->
-        <template #tags-cell="{ cell }">
-          <div v-if="cell.row.original.tags?.length" class="flex flex-wrap gap-1">
-            <UBadge
-              v-for="tag in cell.row.original.tags.slice(0, 2)"
-              :key="tag.id"
-              variant="subtle"
-              size="xs"
-            >
-              {{ tag.name }}
+          <!-- Tags Column -->
+          <template #tags-cell="{ cell }">
+            <div v-if="cell.row.original.tags?.length" class="flex flex-wrap gap-1">
+              <UBadge
+                v-for="tag in cell.row.original.tags.slice(0, 2)"
+                :key="tag.id"
+                variant="subtle"
+                size="xs"
+              >
+                {{ tag.name }}
+              </UBadge>
+              <UBadge
+                v-if="cell.row.original.tags.length > 2"
+                variant="subtle"
+                size="xs"
+                color="gray"
+                :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
+              >
+                +{{ cell.row.original.tags.length - 2 }}
+              </UBadge>
+            </div>
+            <span v-else class="text-sm text-gray-400">—</span>
+          </template>
+
+          <!-- Stats Column -->
+          <template #stats-cell="{ cell }">
+            <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+              <span class="flex items-center" :title="`${cell.row.original.likes_count || 0} likes`">
+                <UIcon name="i-ph-heart" class="w-3 h-3 mr-1" />
+                {{ cell.row.original.likes_count || 0 }}
+              </span>
+              <span class="flex items-center" :title="`${cell.row.original.views_count || 0} views`">
+                <UIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
+                {{ cell.row.original.views_count || 0 }}
+              </span>
+              <span class="flex items-center" :title="`${cell.row.original.shares_count || 0} shares`">
+                <UIcon name="i-ph-share" class="w-3 h-3 mr-1" />
+                {{ cell.row.original.shares_count || 0 }}
+              </span>
+            </div>
+          </template>
+
+          <!-- Status Column -->
+          <template #status-cell>
+            <UBadge color="green" variant="subtle" size="xs">
+              Published
             </UBadge>
-            <UBadge
-              v-if="cell.row.original.tags.length > 2"
-              variant="subtle"
-              size="xs"
-              color="gray"
-              :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
-            >
-              +{{ cell.row.original.tags.length - 2 }}
-            </UBadge>
-          </div>
-          <span v-else class="text-sm text-gray-400">—</span>
-        </template>
+          </template>
 
-        <!-- Stats Column -->
-        <template #stats-cell="{ cell }">
-          <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
-            <span class="flex items-center" :title="`${cell.row.original.likes_count || 0} likes`">
-              <UIcon name="i-ph-heart" class="w-3 h-3 mr-1" />
-              {{ cell.row.original.likes_count || 0 }}
+          <!-- Published Date Column -->
+          <template #published-cell="{ cell }">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatDate(cell.row.original.approved_at || cell.row.original.created_at) }}
             </span>
-            <span class="flex items-center" :title="`${cell.row.original.views_count || 0} views`">
-              <UIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
-              {{ cell.row.original.views_count || 0 }}
-            </span>
-            <span class="flex items-center" :title="`${cell.row.original.shares_count || 0} shares`">
-              <UIcon name="i-ph-share" class="w-3 h-3 mr-1" />
-              {{ cell.row.original.shares_count || 0 }}
-            </span>
-          </div>
-        </template>
-
-        <!-- Status Column -->
-        <template #status-cell>
-          <UBadge color="green" variant="subtle" size="xs">
-            Published
-          </UBadge>
-        </template>
-
-        <!-- Published Date Column -->
-        <template #published-cell="{ cell }">
-          <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ formatDate(cell.row.original.approved_at || cell.row.original.created_at) }}
-          </span>
-        </template>
-          </UTable>
+          </template>
+        </UTable>
         </div>
 
         <!-- Pagination -->

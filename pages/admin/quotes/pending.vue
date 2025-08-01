@@ -1,48 +1,84 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          Quote Moderation
+  <div class="frame flex flex-col h-full">
+    <!-- Fixed Header Section -->
+    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
+      <!-- Header -->
+      <div class="mb-6">
+        <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
+          Pending Quotes
         </h1>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
-          Review and moderate submitted quotes
+        <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
+          Review and moderate submitted quotes awaiting approval.
         </p>
       </div>
-      <UButton
-        variant="ghost"
-        icon
-        label="i-ph-arrow-left"
-        to="/admin"
-      >
-        Back to Admin
-      </UButton>
-    </div>
 
-    <!-- Filters and Search -->
-    <div class="mb-6">
-      <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Search and Filters -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
           <UInput
             v-model="searchQuery"
             placeholder="Search quotes, authors, or users..."
-            icon
-            label="i-ph-magnifying-glass"
+            icon="i-ph-magnifying-glass"
+            size="md"
+            :loading="loading"
             @input="debouncedSearch"
           />
         </div>
-        <USelect
-          v-model="statusFilter"
-          :items="statusOptions"
-          @change="loadQuotes"
-        />
+        <div class="flex gap-2">
+          <USelect
+            v-model="statusFilter"
+            :items="statusOptions"
+            placeholder="Filter by status"
+            size="md"
+            class="w-40"
+            @change="loadQuotes"
+          />
+          <UButton
+            btn="outline"
+            size="md"
+            @click="resetFilters"
+          >
+            <UIcon name="i-ph-x" />
+            Reset
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Stats Summary -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <div class="flex items-center">
+            <UIcon name="i-ph-clock" class="w-5 h-5 text-yellow-600 mr-2" />
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Review</p>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ pendingCount }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <div class="flex items-center">
+            <UIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Selected</p>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ selectedQuotes.length }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <div class="flex items-center">
+            <UIcon name="i-ph-users" class="w-5 h-5 text-blue-600 mr-2" />
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Contributors</p>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ uniqueContributors }}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Bulk Actions -->
-    <div v-if="selectedQuotes.length > 0" class="mb-6">
-      <UCard>
+    <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-6">
+      <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
         <div class="flex items-center justify-between">
           <span class="text-sm font-medium text-gray-900 dark:text-white">
             {{ selectedQuotes.length }} quotes selected
@@ -50,189 +86,193 @@
           <div class="flex items-center gap-3">
             <UButton
               size="sm"
-              icon
-              label="i-ph-check"
+              btn="solid"
               :loading="bulkProcessing"
               @click="bulkApprove"
             >
+              <UIcon name="i-ph-check" />
               Approve Selected
             </UButton>
             <UButton
               size="sm"
+              btn="solid"
               color="red"
-              icon
-              label="i-ph-x"
               :loading="bulkProcessing"
               @click="showBulkRejectModal = true"
             >
+              <UIcon name="i-ph-x" />
               Reject Selected
             </UButton>
             <UButton
               size="sm"
-              variant="ghost"
+              btn="ghost"
               @click="clearSelection"
             >
               Clear Selection
             </UButton>
           </div>
         </div>
-      </UCard>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="space-y-6">
-      <div v-for="i in 5" :key="i" class="animate-pulse">
-        <UCard>
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-        </UCard>
       </div>
     </div>
 
-    <!-- Quotes List -->
-    <div v-else-if="quotes.length > 0" class="space-y-6">
-      <UCard
-        v-for="quote in quotes"
-        :key="quote.id"
-        :class="{ 'ring-2 ring-primary-500': selectedQuotes.includes(quote.id) }"
-      >
-        <template #header>
-          <div class="flex items-start justify-between">
-            <div class="flex items-start space-x-3">
+    <!-- Content Area -->
+    <div class="flex-1 flex flex-col min-h-0">
+
+      <!-- Loading State -->
+      <div v-if="loading" class="flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <UIcon name="i-ph-spinner" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
+          <p class="text-gray-500 dark:text-gray-400">Loading pending quotes...</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="quotes.length === 0 && !loading" class="text-center py-16">
+        <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          {{ searchQuery ? 'No matching quotes found' : 'All caught up!' }}
+        </h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">
+          {{ searchQuery ? 'Try adjusting your search terms.' : 'No pending quotes to review at the moment.' }}
+        </p>
+      </div>
+
+      <!-- Quotes Table -->
+      <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <!-- Scrollable Table Container -->
+        <div class="quotes-table-container flex-1 overflow-auto">
+          <UTable
+            :columns="tableColumns"
+            :data="quotes"
+            :loading="loading"
+            empty-text="No pending quotes found"
+            empty-icon="i-ph-clock"
+          >
+            <!-- Selection Column -->
+            <template #selection-cell="{ cell }">
               <UCheckbox
-                :model-value="selectedQuotes.includes(quote.id)"
-                @update:model-value="toggleQuoteSelection(quote.id)"
+                :model-value="selectedQuotes.includes(cell.row.original.id)"
+                @update:model-value="toggleQuoteSelection(cell.row.original.id)"
               />
-              <div class="flex-1">
-                <blockquote class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  "{{ quote.name }}"
+            </template>
+
+            <!-- Quote Column with text wrapping -->
+            <template #quote-cell="{ cell }">
+              <div class="max-w-md">
+                <blockquote
+                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
+                  :title="cell.row.original.name"
+                >
+                  "{{ cell.row.original.name }}"
                 </blockquote>
-                <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <span v-if="quote.author_name">{{ quote.author_name }}</span>
-                  <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
-                  <span>{{ formatDate(quote.created_at) }}</span>
+                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span v-if="cell.row.original.author_name">{{ cell.row.original.author_name }}</span>
+                  <span v-if="cell.row.original.author_name && cell.row.original.reference_name">•</span>
+                  <span v-if="cell.row.original.reference_name">{{ cell.row.original.reference_name }}</span>
                 </div>
               </div>
-            </div>
-            <UBadge :color="getStatusColor(quote.status)" variant="subtle">
-              {{ quote.status }}
-            </UBadge>
-          </div>
-        </template>
+            </template>
 
-        <div class="space-y-4">
-          <!-- Submitter Info -->
-          <div class="flex items-center space-x-3">
-            <UAvatar
-              :src="quote.user_avatar"
-              :alt="quote.user_name"
+            <!-- User Column -->
+            <template #user-cell="{ cell }">
+              <div class="flex items-center space-x-2">
+                <UAvatar
+                  :src="cell.row.original.user_avatar"
+                  :alt="cell.row.original.user_name"
+                  size="xs"
+                  :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
+                />
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ cell.row.original.user_name }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ cell.row.original.user_email }}
+                  </p>
+                </div>
+              </div>
+            </template>
+
+            <!-- Tags Column -->
+            <template #tags-cell="{ cell }">
+              <div v-if="cell.row.original.tags && cell.row.original.tags.length > 0" class="flex flex-wrap gap-1">
+                <UBadge
+                  v-for="tag in cell.row.original.tags.slice(0, 2)"
+                  :key="tag.name"
+                  :style="{ backgroundColor: tag.color }"
+                  variant="soft"
+                  size="xs"
+                >
+                  {{ tag.name }}
+                </UBadge>
+                <UBadge
+                  v-if="cell.row.original.tags.length > 2"
+                  variant="soft"
+                  size="xs"
+                  color="gray"
+                >
+                  +{{ cell.row.original.tags.length - 2 }}
+                </UBadge>
+              </div>
+              <span v-else class="text-xs text-gray-400 dark:text-gray-600 italic">
+                No tags
+              </span>
+            </template>
+
+            <!-- Status Column -->
+            <template #status-cell="{ cell }">
+              <div class="space-y-1">
+                <UBadge :color="getStatusColor(cell.row.original.status)" variant="subtle" size="xs">
+                  {{ cell.row.original.status }}
+                </UBadge>
+                <div v-if="cell.row.original.status === 'rejected' && cell.row.original.rejection_reason" class="text-xs text-red-600 dark:text-red-400">
+                  {{ cell.row.original.rejection_reason.substring(0, 30) }}{{ cell.row.original.rejection_reason.length > 30 ? '...' : '' }}
+                </div>
+              </div>
+            </template>
+
+            <!-- Date Column -->
+            <template #date-cell="{ cell }">
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ formatDate(cell.row.original.created_at) }}
+              </span>
+            </template>
+
+            <!-- Actions Column -->
+            <template #actions-cell="{ cell }">
+              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                <UButton
+                  icon
+                  btn="ghost"
+                  size="sm"
+                  label="i-ph-dots-three-vertical"
+                />
+              </UDropdownMenu>
+            </template>
+          </UTable>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Page {{ currentPage }} of {{ Math.ceil(totalQuotes / pageSize) }} • {{ totalQuotes }} total quotes
+          </div>
+          <div class="flex items-center gap-2">
+            <UButton
+              v-if="hasMore && !loading"
+              btn="outline"
               size="sm"
-              :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
-            />
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ quote.user_name }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                {{ quote.user_email }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Tags -->
-          <div v-if="quote.tags && quote.tags.length > 0" class="flex flex-wrap gap-2">
-            <UBadge
-              v-for="tag in quote.tags"
-              :key="tag.name"
-              :style="{ backgroundColor: tag.color }"
-              variant="soft"
-              size="xs"
+              :loading="loadingMore"
+              @click="loadMore"
             >
-              {{ tag.name }}
-            </UBadge>
-          </div>
-
-          <!-- Rejection Reason -->
-          <div v-if="quote.status === 'rejected' && quote.rejection_reason" class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <p class="text-sm text-red-800 dark:text-red-200">
-              <strong>Rejection Reason:</strong> {{ quote.rejection_reason }}
-            </p>
-            <p v-if="quote.moderator_name" class="text-xs text-red-600 dark:text-red-400 mt-1">
-              Rejected by {{ quote.moderator_name }} on {{ formatDate(quote.moderated_at) }}
-            </p>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-3">
-              <UButton
-                size="sm"
-                icon
-                label="i-ph-eye"
-                variant="ghost"
-                @click="viewQuote(quote)"
-              >
-                View Details
-              </UButton>
-              <UButton
-                size="sm"
-                icon
-                label="i-ph-pencil"
-                variant="ghost"
-                @click="editQuote(quote)"
-              >
-                Edit
-              </UButton>
-            </div>
-            
-            <div v-if="quote.status === 'draft'" class="flex items-center gap-3">
-              <UButton
-                size="sm"
-                icon
-                label="i-ph-check"
-                :loading="processing.has(quote.id)"
-                @click="approveQuote(quote)"
-              >
-                Approve
-              </UButton>
-              <UButton
-                size="sm"
-                color="red"
-                icon
-                label="i-ph-x"
-                :loading="processing.has(quote.id)"
-                @click="rejectQuote(quote)"
-              >
-                Reject
-              </UButton>
-            </div>
+              Load More
+            </UButton>
           </div>
         </div>
-      </UCard>
+      </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-else class="text-center py-12">
-      <UIcon name="i-ph-check-circle" class="h-16 w-16 text-green-400 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        All caught up!
-      </h3>
-      <p class="text-gray-500 dark:text-gray-400">
-        {{ searchQuery ? 'No quotes match your search' : 'No pending quotes to review' }}
-      </p>
-    </div>
-
-    <!-- Load More -->
-    <div v-if="hasMore && !loading" class="text-center mt-8">
-      <UButton
-        variant="outline"
-        :loading="loadingMore"
-        @click="loadMore"
-      >
-        Load More Quotes
-      </UButton>
-    </div>
+  </div>
 
     <!-- Reject Quote Modal -->
     <UDialog v-model:open="showRejectModal">
@@ -265,7 +305,7 @@
         <template #footer>
           <div class="flex justify-end gap-3">
             <UButton
-              variant="ghost"
+              btn="ghost"
               @click="showRejectModal = false"
               :disabled="processing.has(selectedQuote?.id)"
             >
@@ -309,7 +349,7 @@
         <template #footer>
           <div class="flex justify-end gap-3">
             <UButton
-              variant="ghost"
+              btn="ghost"
               @click="showBulkRejectModal = false"
               :disabled="bulkProcessing"
             >
@@ -326,18 +366,18 @@
         </template>
       </UCard>
     </UDialog>
-  </div>
 </template>
 
 <script setup>
-// Require admin authentication
+// Use admin layout
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin'
 })
 
 // SEO
 useHead({
-  title: 'Quote Moderation - Admin - Verbatims'
+  title: 'Pending Quotes - Admin - Verbatims'
 })
 
 // Data
@@ -347,6 +387,8 @@ const loadingMore = ref(false)
 const bulkProcessing = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
+const pageSize = ref(50) // Admin default: 50 items per page
+const totalQuotes = ref(0)
 const searchQuery = ref('')
 const statusFilter = ref('draft')
 const selectedQuotes = ref([])
@@ -366,7 +408,98 @@ const statusOptions = [
   { label: 'Rejected', value: 'rejected' }
 ]
 
-// Load quotes
+// Computed properties
+const pendingCount = computed(() => {
+  return quotes.value.filter(q => q.status === 'draft').length
+})
+
+const uniqueContributors = computed(() => {
+  const contributors = new Set(quotes.value.map(q => q.user_id).filter(Boolean))
+  return contributors.size
+})
+
+// Table columns configuration
+const tableColumns = [
+  {
+    header: '',
+    accessorKey: 'selection',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-12',
+        tableCell: 'w-12'
+      }
+    }
+  },
+  {
+    header: 'Quote',
+    accessorKey: 'quote',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'min-w-80',
+        tableCell: 'min-w-80'
+      }
+    }
+  },
+  {
+    header: 'User',
+    accessorKey: 'user',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-48',
+        tableCell: 'w-48'
+      }
+    }
+  },
+  {
+    header: 'Tags',
+    accessorKey: 'tags',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-32',
+        tableCell: 'w-32'
+      }
+    }
+  },
+  {
+    header: 'Status',
+    accessorKey: 'status',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-32',
+        tableCell: 'w-32'
+      }
+    }
+  },
+  {
+    header: 'Submitted',
+    accessorKey: 'date',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-28',
+        tableCell: 'w-28'
+      }
+    }
+  },
+  {
+    header: '',
+    accessorKey: 'actions',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-16',
+        tableCell: 'w-16'
+      }
+    }
+  }
+]
+
+// Methods
 const loadQuotes = async (reset = true) => {
   try {
     if (reset) {
@@ -379,7 +512,7 @@ const loadQuotes = async (reset = true) => {
 
     const params = {
       page: currentPage.value,
-      limit: 20,
+      limit: pageSize.value,
       status: statusFilter.value
     }
 
@@ -388,14 +521,15 @@ const loadQuotes = async (reset = true) => {
     }
 
     const response = await $fetch('/api/admin/quotes/pending', { query: params })
-    
+
     if (reset) {
-      quotes.value = response.data
+      quotes.value = response.data || []
     } else {
-      quotes.value.push(...response.data)
+      quotes.value.push(...(response.data || []))
     }
-    
-    hasMore.value = response.pagination.hasMore
+
+    totalQuotes.value = response.total || 0
+    hasMore.value = response.pagination?.hasMore || false
   } catch (error) {
     console.error('Failed to load quotes:', error)
     // TODO: Show error toast
@@ -403,6 +537,12 @@ const loadQuotes = async (reset = true) => {
     loading.value = false
     loadingMore.value = false
   }
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  statusFilter.value = 'draft'
+  currentPage.value = 1
 }
 
 // Debounced search
@@ -575,16 +715,52 @@ const getStatusColor = (status) => {
   }
 }
 
+const getQuoteActions = (quote) => {
+  const actions = [
+    {
+      label: 'View Details',
+      leading: 'i-ph-eye',
+      click: () => viewQuote(quote)
+    },
+    {
+      label: 'Edit Quote',
+      leading: 'i-ph-pencil',
+      click: () => editQuote(quote)
+    }
+  ]
+
+  if (quote.status === 'draft') {
+    actions.push(
+      {},
+      {
+        label: 'Approve',
+        leading: 'i-ph-check',
+        click: () => approveQuote(quote)
+      },
+      {
+        label: 'Reject',
+        leading: 'i-ph-x',
+        click: () => rejectQuote(quote)
+      }
+    )
+  }
+
+  return actions
+}
+
 const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString()
 }
 
 const viewQuote = (quote) => {
   // TODO: Open quote detail modal
+  console.log('View quote:', quote.id)
 }
 
 const editQuote = (quote) => {
   // TODO: Open quote edit modal
+  console.log('Edit quote:', quote.id)
 }
 
 // Load initial data
@@ -597,3 +773,13 @@ watch(statusFilter, () => {
   loadQuotes()
 })
 </script>
+
+<style scoped>
+.quotes-table-container {
+  min-height: 400px;
+}
+
+.frame {
+  height: calc(100vh - 8rem);
+}
+</style>

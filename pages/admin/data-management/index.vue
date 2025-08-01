@@ -1,23 +1,13 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div>
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          Data Management
-        </h1>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
-          Manage database operations and data integrity
-        </p>
-      </div>
-      <UButton
-        variant="ghost"
-        icon
-        label="i-ph-arrow-left"
-        to="/admin"
-      >
-        Back to Admin
-      </UButton>
+    <div class="mb-8">
+      <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
+        Data Management
+      </h1>
+      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
+        Manage database operations and data integrity
+      </p>
     </div>
 
     <!-- Success/Error Alerts -->
@@ -175,6 +165,7 @@
 
 <script setup>
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin'
 })
 

@@ -23,7 +23,8 @@ export default defineEventHandler(async (event) => {
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
     const search = query.search as string || ''
-    const status = query.status as string || 'pending'
+    const status = query.status as string || 'approved'
+    const language = query.language as string
     
     const db = hubDatabase()
     
@@ -36,9 +37,14 @@ export default defineEventHandler(async (event) => {
       bindings.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
     }
     
+    if (language) {
+      conditions.push('q.language = ?')
+      bindings.push(language)
+    }
+    
     const whereClause = `WHERE ${conditions.join(' AND ')}`
     
-    // Get pending quotes with all related data
+    // Get quotes with all related data
     const quotesResult = await db.prepare(`
       SELECT
         q.*,
@@ -62,13 +68,14 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN tags t ON qt.tag_id = t.id
       ${whereClause}
       GROUP BY q.id
-      ORDER BY q.created_at ASC
+      ORDER BY q.moderated_at DESC, q.created_at DESC
       LIMIT ? OFFSET ?
     `).bind(...bindings, limit, offset).all()
 
     const quotes = (quotesResult?.results || []) as unknown as CreatedQuoteResult[]
 
-    // Get total count
+    // Get total count (use same bindings as main query but without limit/offset)
+    const countBindings = [...bindings] // Copy the bindings array
     const totalResult = await db.prepare(`
       SELECT COUNT(*) as total
       FROM quotes q
@@ -76,7 +83,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       ${whereClause}
-    `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset
+    `).bind(...countBindings).first()
 
     const total = Number(totalResult?.total) || 0
     const hasMore = offset + quotes.length < total
@@ -106,10 +113,10 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     
-    console.error('Admin pending quotes error:', error)
+    console.error('Admin quotes error:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to fetch pending quotes'
+      statusMessage: 'Failed to fetch quotes'
     })
   }
 })

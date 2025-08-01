@@ -135,36 +135,36 @@
               <UButton
                 v-if="importItem.status === 'processing'"
                 size="sm"
-                variant="outline"
+                btn="outline"
                 @click="viewProgress(importItem.id)"
               >
                 View Progress
               </UButton>
-              
+
               <UButton
                 v-if="importItem.status === 'completed' && importItem.failedRecords > 0"
                 size="sm"
-                variant="outline"
+                btn="outline"
                 color="yellow"
                 @click="viewDetails(importItem)"
               >
                 View Issues
               </UButton>
-              
+
               <UButton
                 v-if="importItem.status === 'failed'"
                 size="sm"
-                variant="outline"
+                btn="outline"
                 color="red"
                 @click="viewDetails(importItem)"
               >
                 View Errors
               </UButton>
-              
+
               <UDropdown :items="getActionItems(importItem)">
                 <UButton
                   size="sm"
-                  variant="ghost"
+                  btn="ghost"
                   icon
                   label="i-ph-dots-three-vertical"
                 />
@@ -223,7 +223,7 @@
           <div class="flex justify-end gap-2">
             <UButton
               v-if="selectedImport.status === 'completed'"
-              variant="outline"
+              btn="outline"
               color="red"
               @click="rollbackImport"
             >

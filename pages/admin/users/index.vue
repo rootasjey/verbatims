@@ -233,7 +233,7 @@
         <template #footer>
           <div class="flex justify-end gap-3">
             <UButton
-              variant="ghost"
+              btn="ghost"
               @click="showEditModal = false"
               :disabled="updating"
             >
@@ -253,8 +253,9 @@
 </template>
 
 <script setup>
-// Require admin authentication
+// Use admin layout
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin'
 })
 

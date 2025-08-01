@@ -71,25 +71,25 @@
         <div class="flex gap-3">
           <UButton
             v-if="progress.status === 'processing'"
-            variant="outline"
+            btn="outline"
             color="red"
             @click="cancelImport"
           >
             Cancel Import
           </UButton>
-          
+
           <UButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
-            variant="outline"
+            btn="outline"
             color="yellow"
             @click="showFailedRecords = true"
           >
             View Failed Records
           </UButton>
-          
+
           <UButton
             v-if="progress.status === 'failed'"
-            variant="outline"
+            btn="outline"
             color="blue"
             @click="retryImport"
           >

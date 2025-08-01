@@ -30,7 +30,16 @@ export interface CreatedQuoteResult {
   
   /** Quote moderation status */
   status: string;
-  
+
+  /** Moderator ID (nullable) */
+  moderator_id: number | null;
+
+  /** Moderation timestamp (nullable) */
+  moderated_at: string | null;
+
+  /** Rejection reason (nullable) */
+  rejection_reason: string | null;
+
   /** Number of views */
   views_count: number;
   
@@ -63,7 +72,10 @@ export interface CreatedQuoteResult {
   
   /** User name from JOIN with users table */
   user_name?: string | null;
-  
+
+  /** Moderator name from JOIN with users table */
+  moderator_name?: string | null;
+
   /** Comma-separated tag names from GROUP_CONCAT */
   tag_names?: string | null;
   

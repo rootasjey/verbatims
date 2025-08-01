@@ -29,68 +29,78 @@
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">System Statistics</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Quotes Stats -->
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-quotes" class="h-8 w-8 text-blue-600" />
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ stats.quotes?.approved || 0 }} approved, {{ stats.quotes?.pending || 0 }} pending
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-quotes" size="xl" class="text-blue-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total || 0 }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ stats.quotes?.approved || 0 }} approved, {{ stats.quotes?.pending || 0 }} pending
-                </p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total || 0 }}</p>
             </div>
-          </UCard>
+          </div>
 
           <!-- Users Stats -->
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-users" class="h-8 w-8 text-green-600" />
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ stats.users?.active || 0 }} active
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-users" size="xl" class="text-green-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.users?.total || 0 }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ stats.users?.active || 0 }} active
-                </p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.users?.total || 0 }}</p>
             </div>
-          </UCard>
+          </div>
 
           <!-- Authors Stats -->
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-user" class="h-8 w-8 text-purple-600" />
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Authors</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ stats.authors?.fictional || 0 }} fictional
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-user" size="xl" class="text-purple-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Authors</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.authors?.total || 0 }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ stats.authors?.fictional || 0 }} fictional
-                </p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.authors?.total || 0 }}</p>
             </div>
-          </UCard>
+          </div>
 
           <!-- Collections Stats -->
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-bookmark" class="h-8 w-8 text-orange-600" />
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Collections</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ stats.collections?.public || 0 }} public
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-bookmark" size="xl" class="text-orange-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Collections</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.collections?.total || 0 }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ stats.collections?.public || 0 }} public
-                </p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.collections?.total || 0 }}</p>
             </div>
-          </UCard>
+          </div>
+
+
         </div>
       </div>
 
@@ -98,119 +108,120 @@
       <div>
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Engagement</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-heart" class="h-8 w-8 text-red-600" />
+          <!-- Total Likes -->
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Likes</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ stats.likes?.unique_users || 0 }} users
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-heart" size="xl" class="text-red-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Likes</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.likes?.total || 0 }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ stats.likes?.unique_users || 0 }} users
-                </p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.likes?.total || 0 }}</p>
             </div>
-          </UCard>
+          </div>
 
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-eye" class="h-8 w-8 text-indigo-600" />
+          <!-- Total Views -->
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ stats.views?.unique_users || 0 }} users
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-eye" size="xl" class="text-indigo-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.views?.total || 0 }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ stats.views?.unique_users || 0 }} users
-                </p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.views?.total || 0 }}</p>
             </div>
-          </UCard>
+          </div>
 
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-share" class="h-8 w-8 text-teal-600" />
+          <!-- Total Shares -->
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Shares</p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-share" size="xl" class="text-teal-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Shares</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total_shares || 0 }}</p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total_shares || 0 }}</p>
             </div>
-          </UCard>
+          </div>
 
-          <UCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UIcon name="i-ph-star" class="h-8 w-8 text-yellow-600" />
+          <!-- Featured -->
+          <div class="border rounded-2 p-4">
+            <div class="flex-1">
+              <div class="w-full flex justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Featured</p>
+                </div>
+                <div class="flex-shrink-0">
+                  <UIcon name="i-ph-star" size="xl" class="text-yellow-600" />
+                </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Featured</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.featured || 0 }}</p>
-              </div>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.featured || 0 }}</p>
             </div>
-          </UCard>
+          </div>
         </div>
       </div>
 
       <!-- Quick Actions -->
       <div>
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div class="flex gap-4 flex-wrap">
           <UButton
-            block
-            icon
-            label="i-ph-clock"
+            btn="soft-yellow"
             to="/admin/quotes/pending"
             :badge="stats.quotes?.pending || 0"
           >
+            <UIcon name="i-ph-clock" />
             Review Pending Quotes
           </UButton>
           <UButton
-            block
-            variant="outline"
-            icon
-            label="i-ph-users"
-            to="/admin/users"
+            btn="outline"
+            to="/admin/quotes/published"
           >
-            Manage Users
+            <UIcon name="i-ph-check-circle" />
+            Published Quotes
           </UButton>
           <UButton
-            block
-            variant="outline"
-            icon
-            label="i-ph-user"
-            to="/admin/authors"
+            btn="outline"
+            to="/admin/quotes/drafts"
           >
-            Manage Authors
+            <UIcon name="i-ph-file-dashed" />
+            Draft Quotes
           </UButton>
           <UButton
-            block
-            variant="outline"
-            icon
-            label="i-ph-upload"
+            btn="outline"
             to="/admin/import"
           >
+            <UIcon name="i-ph-upload" />
             Import Data
           </UButton>
           <UButton
-            block
-            variant="outline"
-            icon
-            label="i-ph-database"
+            btn="outline"
             to="/admin/data-management"
           >
+            <UIcon name="i-ph-database" />
             Data Management
           </UButton>
           <UButton
-            block
-            variant="outline"
-            icon
-            label="i-ph-chart-bar"
-            to="/admin/analytics"
+            btn="outline"
+            disabled
           >
-            View Analytics
+            <UIcon name="i-ph-chart-bar" />
+            Analytics (Soon)
           </UButton>
         </div>
       </div>
@@ -283,8 +294,9 @@
 </template>
 
 <script setup>
-// Require admin authentication
+// Use admin layout
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin'
 })
 

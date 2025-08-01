@@ -94,7 +94,7 @@ export default defineEventHandler(async (event) => {
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN references r ON q.reference_id = r.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN users m ON q.moderator_id = m.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id

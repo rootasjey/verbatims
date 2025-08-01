@@ -134,14 +134,30 @@
                 to="/dashboard/settings"
                 :class="[
                   'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                  $route.path === '/dashboard/settings' 
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-dashed border-primary-200 dark:border-primary-700' 
+                  $route.path === '/dashboard/settings'
+                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-dashed border-primary-200 dark:border-primary-700'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 ]"
                 @click="sidebarOpen = false"
               >
                 <UIcon name="i-ph-gear" class="w-5 h-5 mr-3" />
                 Settings
+              </NuxtLink>
+
+              <!-- Admin Panel (only for admin users) -->
+              <NuxtLink
+                v-if="user?.role === 'admin'"
+                to="/admin"
+                :class="[
+                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors mt-2',
+                  $route.path.startsWith('/admin')
+                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                ]"
+                @click="sidebarOpen = false"
+              >
+                <UIcon name="i-ph-shield-check" class="w-5 h-5 mr-3" />
+                Go to Admin
               </NuxtLink>
             </div>
           </nav>
@@ -191,6 +207,7 @@ definePageMeta({
 
 const route = useRoute()
 const sidebarOpen = ref(false)
+const { user } = useUserSession()
 
 // Quote counts for badges
 const draftCount = ref(0)
