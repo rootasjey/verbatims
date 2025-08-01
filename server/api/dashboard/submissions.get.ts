@@ -7,10 +7,11 @@ export default defineEventHandler(async (event) => {
     const offset = (page - 1) * limit
     const status = query.status as string
     const language = query.language as string
+    const search = query.search as string || ''
 
     const db = hubDatabase()
 
-    // Build WHERE clause for status and language filters
+    // Build WHERE clause for status, language, and search filters
     let whereClause = 'WHERE q.user_id = ?'
     const bindings: any[] = [session.user.id]
 
@@ -22,6 +23,11 @@ export default defineEventHandler(async (event) => {
     if (language) {
       whereClause += ' AND q.language = ?'
       bindings.push(language)
+    }
+
+    if (search) {
+      whereClause += ' AND (q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ?)'
+      bindings.push(`%${search}%`, `%${search}%`, `%${search}%`)
     }
 
     // Get user's submissions with related data
@@ -49,11 +55,14 @@ export default defineEventHandler(async (event) => {
     let countBindingsLength = 1 // Always include user_id
     if (status) countBindingsLength++
     if (language) countBindingsLength++
+    if (search) countBindingsLength += 3 // search adds 3 bindings
     const countBindings = bindings.slice(0, countBindingsLength)
 
     const totalResultWrapper = await db.prepare(`
       SELECT COUNT(*) as total
       FROM quotes q
+      LEFT JOIN authors a ON q.author_id = a.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
       ${whereClause}
     `).bind(...countBindings).first()
 

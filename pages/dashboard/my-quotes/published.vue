@@ -20,6 +20,12 @@
             placeholder="Search your published quotes..."
             icon="i-ph-magnifying-glass"
             size="md"
+            :loading="loading"
+            :trailing="searchQuery ? 'i-ph-x' : undefined"
+            :una="{
+              inputTrailing: 'pointer-events-auto cursor-pointer',
+            }"
+            @trailing="resetFilters"
           />
         </div>
         <div class="w-full sm:w-48">
@@ -213,7 +219,6 @@
 
 <script setup lang="ts">
 import type { QuoteWithRelations } from '~/types/quote'
-import type { LanguageOption } from '~/stores/language'
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -353,60 +358,27 @@ const totalLikes = computed(() => {
   return quotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
 })
 
-// Client-side filtering and sorting of server-side paginated data
-const filteredQuotes = computed(() => {
-  let filtered = [...quotes.value]
+// Backend search - no client-side filtering needed
+const filteredQuotes = computed(() => quotes.value)
 
-  // Search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(quote =>
-      quote.name.toLowerCase().includes(query) ||
-      quote.author?.name?.toLowerCase().includes(query) ||
-      quote.reference?.name?.toLowerCase().includes(query) ||
-      quote.tags?.some(tag => tag.name.toLowerCase().includes(query))
-    )
-  }
-
-  // Sort
-  switch (sortBy.value.value) {
-    case 'oldest':
-      filtered.sort((a, b) => new Date(a.approved_at || a.created_at).getTime() - new Date(b.approved_at || b.created_at).getTime())
-      break
-    case 'popular':
-      filtered.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
-      break
-    case 'views':
-      filtered.sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
-      break
-    case 'author':
-      filtered.sort((a, b) => (a.author?.name || '').localeCompare(b.author?.name || ''))
-      break
-    default: // recent
-      filtered.sort((a, b) => new Date(b.approved_at || b.created_at).getTime() - new Date(a.approved_at || a.created_at).getTime())
-  }
-
-  return filtered
-})
-
-const displayedCount = computed(() => filteredQuotes.value.length)
+const displayedCount = computed(() => quotes.value.length)
 
 // Watch for page changes to load new data
 watch(currentPage, () => {
   loadPublishedQuotes()
 })
 
-// For now, search and sort are handled client-side
-// Reset to first page when search/filter changes
-watch([searchQuery, sortBy], () => {
+// Watch for search and sort changes with debounced API calls
+watchDebounced([searchQuery, sortBy], () => {
   currentPage.value = 1
-})
+  loadPublishedQuotes()
+}, { debounce: 300 })
 
 const loadPublishedQuotes = async () => {
   try {
     loading.value = true
 
-    // Build query parameters with language filtering
+    // Build query parameters with language filtering and search
     const queryParams: any = {
       page: currentPage.value,
       limit: pageSize.value,
@@ -416,6 +388,11 @@ const loadPublishedQuotes = async () => {
     // Add language filter if not "all"
     if (languageStore.currentLanguageValue !== 'all') {
       queryParams.language = languageStore.currentLanguageValue
+    }
+
+    // Add search parameter if provided
+    if (searchQuery.value) {
+      queryParams.search = searchQuery.value
     }
 
     const response = await $fetch('/api/dashboard/submissions', {
@@ -433,8 +410,14 @@ const loadPublishedQuotes = async () => {
   }
 }
 
+const resetFilters = () => {
+  searchQuery.value = ''
+  sortBy.value = { label: 'Most Recent', value: 'recent' }
+  currentPage.value = 1
+}
+
 // Handle language change from LanguageSelector
-const onLanguageChanged = async (language: LanguageOption) => {
+const onLanguageChanged = async () => {
   // Reset to first page when language changes
   currentPage.value = 1
   // Reload quotes with new language filter
