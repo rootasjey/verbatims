@@ -12,10 +12,9 @@
           </p>
         </div>
         <UButton
-          icon
-          label="i-ph-plus"
           @click="showSubmitModal = true"
         >
+          <UIcon name="i-ph-plus" />
           New Draft
         </UButton>
       </div>

@@ -1,22 +1,27 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
     const session = await requireUserSession(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 10, 100)
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     const status = query.status as string
-    
+    const language = query.language as string
+
     const db = hubDatabase()
-    
-    // Build WHERE clause for status filter
+
+    // Build WHERE clause for status and language filters
     let whereClause = 'WHERE q.user_id = ?'
     const bindings: any[] = [session.user.id]
 
     if (status && ['draft', 'pending', 'approved', 'rejected'].includes(status)) {
       whereClause += ' AND q.status = ?'
       bindings.push(status)
+    }
+
+    if (language) {
+      whereClause += ' AND q.language = ?'
+      bindings.push(language)
     }
 
     // Get user's submissions with related data
@@ -41,7 +46,11 @@ export default defineEventHandler(async (event) => {
     const submissions = submissionsResult?.results || []
     
     // Get total count (exclude limit and offset from bindings)
-    const countBindings = bindings.slice(0, status ? 2 : 1) // Only user_id and optionally status
+    let countBindingsLength = 1 // Always include user_id
+    if (status) countBindingsLength++
+    if (language) countBindingsLength++
+    const countBindings = bindings.slice(0, countBindingsLength)
+
     const totalResultWrapper = await db.prepare(`
       SELECT COUNT(*) as total
       FROM quotes q

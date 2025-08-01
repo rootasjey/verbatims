@@ -23,13 +23,16 @@
           />
         </div>
         <div class="w-full sm:w-48">
+          <LanguageSelector :on-language-changed="onLanguageChanged" />
+        </div>
+        <div class="w-full sm:w-48">
           <USelect
             v-model="sortBy"
             :items="sortOptions"
             placeholder="Sort by"
             size="sm"
             item-key="label"
-            value-key="value"
+            value-key="label"
           />
         </div>
       </div>
@@ -63,7 +66,7 @@
         <div class="flex-shrink-0 flex items-center justify-between mb-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Showing {{ displayedCount }} of {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
-            <span v-if="searchQuery || sortBy !== 'recent'" class="text-gray-400">
+            <span v-if="searchQuery || sortBy.value !== 'recent'" class="text-gray-400">
               (page {{ currentPage }} of {{ totalPages }})
             </span>
           </div>
@@ -210,6 +213,7 @@
 
 <script setup lang="ts">
 import type { QuoteWithRelations } from '~/types/quote'
+import type { LanguageOption } from '~/stores/language'
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -223,16 +227,16 @@ definePageMeta({
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'Published Quotes - Dashboard - Verbatims'
 })
 
-// Data
+const languageStore = useLanguageStore()
+
 const loading = ref(true)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
-const sortBy = ref('recent')
+const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0) // Total number of quotes from API
@@ -242,7 +246,6 @@ const totalPages = ref(0) // Total pages from API
 const showAddToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 
-// Sort options
 const sortOptions = [
   { label: 'Most Recent', value: 'recent' },
   { label: 'Oldest First', value: 'oldest' },
@@ -251,7 +254,6 @@ const sortOptions = [
   { label: 'Author A-Z', value: 'author' }
 ]
 
-// Table columns
 const tableColumns = [
   {
     header: '',
@@ -343,7 +345,6 @@ const tableColumns = [
   }
 ]
 
-// Computed
 const totalViews = computed(() => {
   return quotes.value.reduce((sum, quote) => sum + (quote.views_count || 0), 0)
 })
@@ -368,7 +369,7 @@ const filteredQuotes = computed(() => {
   }
 
   // Sort
-  switch (sortBy.value) {
+  switch (sortBy.value.value) {
     case 'oldest':
       filtered.sort((a, b) => new Date(a.approved_at || a.created_at).getTime() - new Date(b.approved_at || b.created_at).getTime())
       break
@@ -388,7 +389,6 @@ const filteredQuotes = computed(() => {
   return filtered
 })
 
-// Display computed properties
 const displayedCount = computed(() => filteredQuotes.value.length)
 
 // Watch for page changes to load new data
@@ -402,17 +402,24 @@ watch([searchQuery, sortBy], () => {
   currentPage.value = 1
 })
 
-// Methods
 const loadPublishedQuotes = async () => {
   try {
     loading.value = true
 
+    // Build query parameters with language filtering
+    const queryParams: any = {
+      page: currentPage.value,
+      limit: pageSize.value,
+      status: 'approved'
+    }
+
+    // Add language filter if not "all"
+    if (languageStore.currentLanguageValue !== 'all') {
+      queryParams.language = languageStore.currentLanguageValue
+    }
+
     const response = await $fetch('/api/dashboard/submissions', {
-      query: {
-        page: currentPage.value,
-        limit: pageSize.value,
-        status: 'approved'
-      }
+      query: queryParams
     })
 
     quotes.value = response.data || []
@@ -424,6 +431,14 @@ const loadPublishedQuotes = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// Handle language change from LanguageSelector
+const onLanguageChanged = async (language: LanguageOption) => {
+  // Reset to first page when language changes
+  currentPage.value = 1
+  // Reload quotes with new language filter
+  await loadPublishedQuotes()
 }
 
 const getQuoteActions = (quote: DashboardQuote) => [
@@ -445,7 +460,6 @@ const getQuoteActions = (quote: DashboardQuote) => [
 ]
 
 const viewQuote = (quote: DashboardQuote) => {
-  // Navigate to public quote page
   navigateTo(`/quotes/${quote.id}`)
 }
 
@@ -470,7 +484,6 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load data on mount
 onMounted(() => {
   loadPublishedQuotes()
 })
