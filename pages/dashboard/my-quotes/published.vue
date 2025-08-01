@@ -43,7 +43,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="paginatedQuotes.length === 0 && !loading" class="text-center py-16">
+      <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
         <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
@@ -62,9 +62,9 @@
         <!-- Results Count -->
         <div class="flex-shrink-0 flex items-center justify-between mb-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredQuotesCount }} {{ filteredQuotesCount === 1 ? 'quote' : 'quotes' }}
-            <span v-if="filteredQuotesCount !== totalQuotes" class="text-gray-400">
-              (filtered from {{ totalQuotes }} total)
+            Showing {{ displayedCount }} of {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+            <span v-if="searchQuery || sortBy !== 'recent'" class="text-gray-400">
+              (page {{ currentPage }} of {{ totalPages }})
             </span>
           </div>
           <div class="text-sm text-gray-500 dark:text-gray-400">
@@ -76,7 +76,7 @@
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
             :columns="tableColumns"
-            :data="paginatedQuotes"
+            :data="filteredQuotes"
             :loading="loading"
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
@@ -188,7 +188,7 @@
           </div>
           <UPagination
             v-model:page="currentPage"
-            :total="filteredQuotesCount"
+            :total="totalQuotes"
             :items-per-page="pageSize"
             :sibling-count="2"
             show-edges
@@ -236,7 +236,7 @@ const sortBy = ref('recent')
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0) // Total number of quotes from API
-const filteredQuotesCount = ref(0) // Number of quotes after filtering
+const totalPages = ref(0) // Total pages from API
 
 // Modals
 const showAddToCollectionModal = ref(false)
@@ -344,20 +344,29 @@ const tableColumns = [
 ]
 
 // Computed
+const totalViews = computed(() => {
+  return quotes.value.reduce((sum, quote) => sum + (quote.views_count || 0), 0)
+})
+
+const totalLikes = computed(() => {
+  return quotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
+})
+
+// Client-side filtering and sorting of server-side paginated data
 const filteredQuotes = computed(() => {
   let filtered = [...quotes.value]
-  
+
   // Search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(quote => 
+    filtered = filtered.filter(quote =>
       quote.name.toLowerCase().includes(query) ||
       quote.author?.name?.toLowerCase().includes(query) ||
       quote.reference?.name?.toLowerCase().includes(query) ||
       quote.tags?.some(tag => tag.name.toLowerCase().includes(query))
     )
   }
-  
+
   // Sort
   switch (sortBy.value) {
     case 'oldest':
@@ -375,57 +384,40 @@ const filteredQuotes = computed(() => {
     default: // recent
       filtered.sort((a, b) => new Date(b.approved_at || b.created_at).getTime() - new Date(a.approved_at || a.created_at).getTime())
   }
-  
+
   return filtered
 })
 
-const totalViews = computed(() => {
-  return quotes.value.reduce((sum, quote) => sum + (quote.views_count || 0), 0)
+// Display computed properties
+const displayedCount = computed(() => filteredQuotes.value.length)
+
+// Watch for page changes to load new data
+watch(currentPage, () => {
+  loadPublishedQuotes()
 })
 
-const totalLikes = computed(() => {
-  return quotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
+// For now, search and sort are handled client-side
+// Reset to first page when search/filter changes
+watch([searchQuery, sortBy], () => {
+  currentPage.value = 1
 })
-
-// Pagination computed properties
-const totalPages = computed(() => Math.ceil(filteredQuotes.value.length / pageSize.value))
-
-const startIndex = computed(() => (currentPage.value - 1) * pageSize.value)
-
-const endIndex = computed(() => Math.min(startIndex.value + pageSize.value, filteredQuotes.value.length))
-
-const paginatedQuotes = computed(() => {
-  const start = startIndex.value
-  const end = endIndex.value
-  return filteredQuotes.value.slice(start, end)
-})
-
-// Update filteredQuotesCount when filteredQuotes changes
-watch(filteredQuotes, (newQuotes) => {
-  if (searchQuery.value) {
-    filteredQuotesCount.value = newQuotes.length
-  }
-
-  if (!searchQuery.value) {
-    filteredQuotesCount.value = totalQuotes.value
-  }
-
-  // Reset to first page when search/filter changes
-  if (currentPage.value > totalPages.value && totalPages.value > 0) {
-    currentPage.value = 1
-  }
-}, { immediate: true })
 
 // Methods
 const loadPublishedQuotes = async () => {
   try {
     loading.value = true
+
     const response = await $fetch('/api/dashboard/submissions', {
-      query: { page: 1, limit: 50, status: 'approved' } // Load all quotes for client-side pagination
+      query: {
+        page: currentPage.value,
+        limit: pageSize.value,
+        status: 'approved'
+      }
     })
 
     quotes.value = response.data || []
     totalQuotes.value = response.pagination.total
+    totalPages.value = response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.limit)
     pageSize.value = response.pagination.limit
   } catch (error) {
     console.error('Failed to load published quotes:', error)
