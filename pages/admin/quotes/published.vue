@@ -111,6 +111,7 @@
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
+            manual-pagination
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >
@@ -498,7 +499,8 @@ onMounted(() => {
 
 <style scoped>
 .quotes-table-container {
-  min-height: 400px;
+  max-height: calc(100vh - 20rem);
+  max-width: calc(100vw - 20rem);
 }
 
 .frame {

@@ -211,6 +211,13 @@
           </UButton>
           <UButton
             btn="outline"
+            to="/admin/export"
+          >
+            <UIcon name="i-ph-download" />
+            Export Data
+          </UButton>
+          <UButton
+            btn="outline"
             to="/admin/data-management"
           >
             <UIcon name="i-ph-database" />

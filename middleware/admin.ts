@@ -2,7 +2,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const { user } = useUserSession()
   
   if (!user.value) {
-    return navigateTo('/auth/signin')
+    return navigateTo('/login')
   }
   
   // Check if user has admin or moderator role

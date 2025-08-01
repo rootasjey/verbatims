@@ -108,7 +108,7 @@
       <UButton v-if="user" to="/dashboard/collections">
         Create Collection
       </UButton>
-      <UButton v-else to="/auth/signin">
+      <UButton v-else to="/login">
         Sign In to Create Collections
       </UButton>
     </div>

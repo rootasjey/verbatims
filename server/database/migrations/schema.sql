@@ -207,6 +207,22 @@ CREATE TABLE IF NOT EXISTS quote_views (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Export logs for tracking admin data exports
+CREATE TABLE IF NOT EXISTS quotes_export_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  export_id TEXT NOT NULL UNIQUE,
+  filename TEXT NOT NULL,
+  format TEXT NOT NULL,
+  filters_applied TEXT,
+  record_count INTEGER,
+  file_size INTEGER,
+  user_id INTEGER,
+  download_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME DEFAULT (datetime('now', '+24 hours')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
 -- ============================================================================
@@ -245,6 +261,12 @@ CREATE INDEX IF NOT EXISTS idx_quote_reports_status ON quote_reports(status);
 CREATE INDEX IF NOT EXISTS idx_quote_views_quote ON quote_views(quote_id);
 CREATE INDEX IF NOT EXISTS idx_quote_views_user ON quote_views(user_id);
 CREATE INDEX IF NOT EXISTS idx_quote_views_date ON quote_views(viewed_at DESC);
+
+-- Export logs indexes
+CREATE INDEX IF NOT EXISTS idx_export_logs_export_id ON quotes_export_logs(export_id);
+CREATE INDEX IF NOT EXISTS idx_export_logs_user ON quotes_export_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_export_logs_created ON quotes_export_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_export_logs_expires ON quotes_export_logs(expires_at);
 
 -- ============================================================================
 -- TRIGGERS FOR AUTOMATIC TIMESTAMP UPDATES

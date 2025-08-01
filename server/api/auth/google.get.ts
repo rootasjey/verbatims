@@ -61,11 +61,11 @@ export default defineOAuthGoogleEventHandler({
       return sendRedirect(event, '/dashboard')
     } catch (error) {
       console.error('Google OAuth error:', error)
-      return sendRedirect(event, '/auth/signin?error=oauth_error')
+      return sendRedirect(event, '/login?error=oauth_error')
     }
   },
   onError(event, error) {
     console.error('Google OAuth error:', error)
-    return sendRedirect(event, '/auth/signin?error=oauth_error')
+    return sendRedirect(event, '/login?error=oauth_error')
   }
 })

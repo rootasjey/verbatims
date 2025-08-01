@@ -87,6 +87,7 @@
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
+            manual-pagination
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >

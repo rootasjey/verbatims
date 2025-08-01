@@ -132,7 +132,7 @@ If you need to start over:
 
 After successful onboarding:
 
-1. Log in with your admin credentials at `/auth/signin`
+1. Log in with your admin credentials at `/login`
 2. Access the admin panel to manage quotes, authors, and references
 3. Configure additional settings as needed
 4. Set up user registration if you want to allow public submissions

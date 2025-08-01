@@ -242,7 +242,7 @@ const showAddToCollectionModal = ref(false)
 
 const addToCollection = () => {
   if (!user.value) {
-    navigateTo('/auth/signin')
+    navigateTo('/login')
     return
   }
   showAddToCollectionModal.value = true
@@ -257,7 +257,7 @@ const onAddedToCollection = (collection) => {
 // Report quote
 const reportQuote = () => {
   if (!user.value) {
-    navigateTo('/auth/signin')
+    navigateTo('/login')
     return
   }
   // TODO: Open report modal

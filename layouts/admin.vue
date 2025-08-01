@@ -144,14 +144,29 @@
                 to="/admin/import"
                 :class="[
                   'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                  $route.path === '/admin/import' 
-                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700' 
+                  $route.path === '/admin/import'
+                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
                 ]"
                 @click="sidebarOpen = false"
               >
                 <UIcon name="i-ph-upload" class="w-5 h-5 mr-3" />
                 Import Data
+              </NuxtLink>
+
+              <!-- Export -->
+              <NuxtLink
+                to="/admin/export"
+                :class="[
+                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                  $route.path === '/admin/export'
+                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                ]"
+                @click="sidebarOpen = false"
+              >
+                <UIcon name="i-ph-download" class="w-5 h-5 mr-3" />
+                Export Data
               </NuxtLink>
             </div>
 
@@ -231,6 +246,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/quotes/drafts') return 'Draft Quotes'
   if (path === '/admin/data-management') return 'Data Management'
   if (path === '/admin/import') return 'Import Data'
+  if (path === '/admin/export') return 'Export Data'
   return 'Admin Panel'
 })
 

@@ -43,8 +43,10 @@
             <label class="block text-sm font-medium mb-2">Data Format</label>
             <USelect
               v-model="selectedFormat"
-              :options="formatOptions"
+              :items="formatOptions"
               placeholder="Select data format"
+              item-key="label"
+              value-key="label"
             />
           </div>
 

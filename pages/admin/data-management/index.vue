@@ -228,7 +228,7 @@ const confirmReset = async () => {
     // Redirect to login after a delay since user session will be invalid
     setTimeout(() => {
       console.log('🔄 Redirecting to login page...')
-      navigateTo('/auth/signin')
+      navigateTo('/login')
     }, 3000)
 
   } catch (error) {
