@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-        Data Management
+        Database Maintenance
       </h1>
       <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-        Manage database operations and data integrity
+        Perform database maintenance operations and manage data integrity
       </p>
     </div>
 
@@ -81,6 +81,8 @@
         </div>
       </div>
     </UCard>
+
+
 
     <!-- Reset Confirmation Dialog -->
     <UDialog v-model:open="showResetConfirmation">
@@ -170,7 +172,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Verbatims • Data Management - Admin'
+  title: 'Verbatims • Database Maintenance - Admin'
 })
 
 // Reactive state
@@ -189,10 +191,6 @@ const canConfirmReset = computed(() => {
 })
 
 // Database reset functionality
-const resetDatabase = async () => {
-  showResetConfirmation.value = true
-}
-
 const cancelReset = () => {
   showResetConfirmation.value = false
   confirmationText.value = ''
@@ -245,40 +243,5 @@ const confirmReset = async () => {
   }
 }
 
-// Legacy export functionality (keeping for future use)
-const isExporting = ref(false)
 
-const exportOptions = ref({
-  format: '',
-  filter: '',
-  includeMetadata: true,
-  compressOutput: false,
-  includeUrls: true
-})
-
-const startExport = async () => {
-  isExporting.value = true
-
-  try {
-    const response = await $fetch('/api/admin/data-management/export', {
-      method: 'POST',
-      body: exportOptions.value
-    })
-
-    // Download the file
-    const link = document.createElement('a')
-    link.href = response.downloadUrl
-    link.download = response.filename
-    link.click()
-
-    // Show success message
-    successMessage.value = 'Data export completed successfully!'
-
-  } catch (error) {
-    console.error('Export failed:', error)
-    errorMessage.value = 'Data export failed. Please try again.'
-  } finally {
-    isExporting.value = false
-  }
-}
 </script>

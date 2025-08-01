@@ -20,9 +20,9 @@ export type ExportDataType = 'quotes' | 'authors' | 'references' | 'users' | 'al
  */
 export interface ExportDateRange {
   /** Start date in YYYY-MM-DD format */
-  start?: string
+  start: string
   /** End date in YYYY-MM-DD format */
-  end?: string
+  end: string
 }
 
 /**
@@ -38,7 +38,7 @@ export interface QuoteExportFilters {
   /** Filter by quote language */
   language?: QuoteLanguage | QuoteLanguage[]
   /** Filter by date range */
-  date_range?: ExportDateRange
+  date_range: ExportDateRange
   /** Filter by specific user ID who created the quote */
   user_id?: number
   /** Filter by moderator ID */
@@ -127,7 +127,7 @@ export interface FilterValidationResult {
 }
 
 /**
- * Export options and settings
+ * Export options and settings (API format)
  */
 export interface ExportOptions {
   /** Export format */
@@ -135,7 +135,7 @@ export interface ExportOptions {
   /** Data type to export */
   data_type: ExportDataType
   /** Filters to apply */
-  filters?: QuoteExportFilters
+  filters?: QuoteExportFilters | ReferenceExportFilters
   /** Include metadata in export */
   include_metadata?: boolean
   /** Include related data (author, reference, tags) */
@@ -152,6 +152,40 @@ export interface ExportOptions {
   limit?: number
   /** Batch size for chunked exports */
   batch_size?: number
+}
+
+/**
+ * Export options for UI (with label/value structure for selects)
+ */
+export interface UIExportOptions {
+  format: { label: string; value: ExportFormat }
+  data_type: { label: string; value: ExportDataType }
+  include_relations: boolean
+  include_user_data: boolean
+  include_moderation_data: boolean
+  include_analytics: boolean
+  include_metadata: boolean
+  limit: number
+}
+
+/**
+ * Export state for UI management
+ */
+export interface ExportState {
+  isExporting: boolean
+  showProgressDialog: boolean
+  successMessage: string
+  errorMessage: string
+  previewData: ExportValidation | null
+  exportHistory: ExportHistoryEntry[]
+  isLoadingHistory: boolean
+  historyPagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+    hasMore: boolean
+  }
 }
 
 /**
@@ -266,7 +300,7 @@ export interface ExportedQuote {
   updated_at: string
   moderated_at?: string
   rejection_reason?: string
-  
+
   /** Author information (if included) */
   author?: {
     id: number
@@ -277,7 +311,7 @@ export interface ExportedQuote {
     death_date?: string
     image_url?: string
   }
-  
+
   /** Reference information (if included) */
   reference?: {
     id: number
@@ -288,33 +322,83 @@ export interface ExportedQuote {
     description?: string
     image_url?: string
   }
-  
+
   /** User information (if included) */
   user?: {
     id: number
     name: string
     email?: string
   }
-  
+
   /** Moderator information (if included) */
   moderator?: {
     id: number
     name: string
   }
-  
+
   /** Tags (if included) */
   tags?: Array<{
     id: number
     name: string
     color: string
   }>
-  
+
   /** Export metadata (if included) */
   _metadata?: {
     exported_at: string
     exported_by: number
     export_id: string
     export_filters?: QuoteExportFilters
+  }
+}
+
+/**
+ * Reference export filters
+ */
+export interface ReferenceExportFilters {
+  /** Filter by primary type */
+  primary_type?: string | string[]
+  /** Filter by secondary type */
+  secondary_type?: string | string[]
+  /** Search in reference name */
+  search?: string
+  /** Date range filter */
+  date_range?: ExportDateRange
+  /** Minimum views count */
+  min_views?: number
+  /** Minimum quotes count */
+  min_quotes?: number
+  /** Filter by release date range */
+  release_date_range?: ExportDateRange
+}
+
+/**
+ * Exported reference data structure
+ */
+export interface ExportedReference {
+  /** Reference data */
+  id: number
+  name: string
+  primary_type: string
+  secondary_type?: string
+  description?: string
+  release_date?: string
+  image_url?: string
+  urls?: string[]
+  views_count: number
+  likes_count: number
+  created_at: string
+  updated_at: string
+
+  /** Quote count (if included) */
+  quotes_count?: number
+
+  /** Export metadata (if included) */
+  _metadata?: {
+    exported_at: string
+    exported_by: number
+    export_id: string
+    export_filters?: ReferenceExportFilters
   }
 }
 

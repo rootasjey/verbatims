@@ -218,10 +218,10 @@
           </UButton>
           <UButton
             btn="outline"
-            to="/admin/data-management"
+            to="/admin/maintenance"
           >
-            <UIcon name="i-ph-database" />
-            Data Management
+            <UIcon name="i-ph-wrench" />
+            Database Maintenance
           </UButton>
           <UButton
             btn="outline"
