@@ -152,6 +152,7 @@ export default defineEventHandler(async (event) => {
         record_count: processedReferences.length,
         file_size: Buffer.byteLength(contentData, 'utf8'),
         download_url: `/api/admin/export/download/${exportId}`,
+        options: body,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
         // Include content directly for small exports
         content: processedReferences.length < 1000 ? contentData : undefined,
@@ -237,32 +238,32 @@ function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations:
     bindings.push(...types)
   }
 
-  if (filters.search) {
+  if (filters.search && filters.search.trim()) {
     conditions.push('r.name LIKE ?')
-    bindings.push(`%${filters.search}%`)
+    bindings.push(`%${filters.search.trim()}%`)
   }
 
-  if (filters.date_range?.start) {
+  if (filters.date_range?.start && filters.date_range.start.trim()) {
     conditions.push('r.created_at >= ?')
     bindings.push(filters.date_range.start)
   }
 
-  if (filters.date_range?.end) {
+  if (filters.date_range?.end && filters.date_range.end.trim()) {
     conditions.push('r.created_at <= ?')
     bindings.push(filters.date_range.end)
   }
 
-  if (filters.release_date_range?.start) {
+  if (filters.release_date_range?.start && filters.release_date_range.start.trim()) {
     conditions.push('r.release_date >= ?')
     bindings.push(filters.release_date_range.start)
   }
 
-  if (filters.release_date_range?.end) {
+  if (filters.release_date_range?.end && filters.release_date_range.end.trim()) {
     conditions.push('r.release_date <= ?')
     bindings.push(filters.release_date_range.end)
   }
 
-  if (filters.min_views !== undefined) {
+  if (filters.min_views !== undefined && filters.min_views > 0) {
     conditions.push('r.views_count >= ?')
     bindings.push(filters.min_views)
   }
@@ -277,7 +278,7 @@ function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations:
     query += ' GROUP BY r.id'
     
     // Add HAVING clause for min_quotes filter
-    if (filters.min_quotes !== undefined) {
+    if (filters.min_quotes !== undefined && filters.min_quotes > 0) {
       query += ' HAVING quotes_count >= ?'
       bindings.push(filters.min_quotes)
     }
@@ -397,35 +398,40 @@ function serializeReferencesFilters(filters: ReferenceExportFilters): string {
  */
 async function logReferencesExport(db: any, exportInfo: any) {
   try {
-    // Create export log table if it doesn't exist
+    // Create unified export logs table if it doesn't exist
     await db.prepare(`
-      CREATE TABLE IF NOT EXISTS references_export_logs (
+      CREATE TABLE IF NOT EXISTS export_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        export_id TEXT NOT NULL,
+        export_id TEXT NOT NULL UNIQUE,
         filename TEXT NOT NULL,
         format TEXT NOT NULL,
-        filters TEXT,
+        data_type TEXT NOT NULL CHECK (data_type IN ('quotes', 'references', 'authors', 'users')),
+        filters_applied TEXT,
         record_count INTEGER,
+        file_size INTEGER,
         user_id INTEGER,
         include_relations BOOLEAN DEFAULT FALSE,
         include_metadata BOOLEAN DEFAULT FALSE,
+        download_count INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         expires_at DATETIME DEFAULT (datetime('now', '+24 hours')),
-        download_count INTEGER DEFAULT 0
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       )
     `).run()
 
     // Log the export
     await db.prepare(`
-      INSERT INTO references_export_logs
-      (export_id, filename, format, filters, record_count, user_id, include_relations, include_metadata)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO export_logs
+      (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       exportInfo.exportId,
       exportInfo.filename,
       exportInfo.format,
+      'references',
       exportInfo.filters,
       exportInfo.recordCount,
+      exportInfo.fileSize || null,
       exportInfo.userId,
       exportInfo.includeRelations,
       exportInfo.includeMetadata

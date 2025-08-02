@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event) as ExportOptions
     const { format, filters = {}, include_relations = true, include_metadata = false, limit = 0 } = body
 
-    const filterValidation = validateFiltersForExport(filters)
+    const quotesFilters = filters as QuoteExportFilters
+    const filterValidation = validateFiltersForExport(quotesFilters)
     if (!filterValidation.valid) {
       throw createError({
         statusCode: 400,
@@ -53,7 +54,7 @@ export default defineEventHandler(async (event) => {
     const exportId = `quotes_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     
     // Build query with filters
-    const { query, bindings } = buildQuotesQuery(filters, include_relations, limit)
+    const { query, bindings } = buildQuotesQuery(quotesFilters, include_relations, limit)
 
     // Execute query to get quotes data
     const quotesResult = await db.prepare(query).bind(...bindings).all()
@@ -137,7 +138,7 @@ export default defineEventHandler(async (event) => {
           exported_at: new Date().toISOString(),
           exported_by: user.id,
           export_id: exportId,
-          export_filters: filters
+          export_filters: quotesFilters
         }
       }
 
@@ -179,7 +180,7 @@ export default defineEventHandler(async (event) => {
       exportId,
       filename,
       format,
-      filters,
+      filters: quotesFilters,
       recordCount: processedQuotes.length,
       userId: user.id,
       fileSize: fileSize
@@ -454,37 +455,46 @@ async function logQuotesExport(db: any, exportInfo: {
   recordCount: number
   userId: number
   fileSize: number
+  includeRelations?: boolean
+  includeMetadata?: boolean
 }) {
   try {
-    // Create export logs table if it doesn't exist
+    // Create unified export logs table if it doesn't exist
     await db.prepare(`
-      CREATE TABLE IF NOT EXISTS quotes_export_logs (
+      CREATE TABLE IF NOT EXISTS export_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         export_id TEXT NOT NULL UNIQUE,
         filename TEXT NOT NULL,
         format TEXT NOT NULL,
+        data_type TEXT NOT NULL CHECK (data_type IN ('quotes', 'references', 'authors', 'users')),
         filters_applied TEXT,
         record_count INTEGER,
         file_size INTEGER,
         user_id INTEGER,
+        include_relations BOOLEAN DEFAULT FALSE,
+        include_metadata BOOLEAN DEFAULT FALSE,
         download_count INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expires_at DATETIME DEFAULT (datetime('now', '+24 hours'))
+        expires_at DATETIME DEFAULT (datetime('now', '+24 hours')),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       )
     `).run()
 
     // Log the export with type-safe filter serialization
     await db.prepare(`
-      INSERT INTO quotes_export_logs (export_id, filename, format, filters_applied, record_count, file_size, user_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO export_logs (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       exportInfo.exportId,
       exportInfo.filename,
       exportInfo.format,
+      'quotes',
       serializeFiltersForStorage(exportInfo.filters),
       exportInfo.recordCount,
       exportInfo.fileSize,
-      exportInfo.userId
+      exportInfo.userId,
+      exportInfo.includeRelations || false,
+      exportInfo.includeMetadata || false
     ).run()
 
   } catch (error) {

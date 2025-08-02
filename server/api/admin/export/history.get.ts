@@ -31,20 +31,24 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Ensure export logs table exists
+    // Ensure unified export logs table exists
     await db.prepare(`
-      CREATE TABLE IF NOT EXISTS quotes_export_logs (
+      CREATE TABLE IF NOT EXISTS export_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         export_id TEXT NOT NULL UNIQUE,
         filename TEXT NOT NULL,
         format TEXT NOT NULL,
+        data_type TEXT NOT NULL CHECK (data_type IN ('quotes', 'references', 'authors', 'users')),
         filters_applied TEXT,
         record_count INTEGER,
         file_size INTEGER,
         user_id INTEGER,
+        include_relations BOOLEAN DEFAULT FALSE,
+        include_metadata BOOLEAN DEFAULT FALSE,
         download_count INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expires_at DATETIME DEFAULT (datetime('now', '+24 hours'))
+        expires_at DATETIME DEFAULT (datetime('now', '+24 hours')),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       )
     `).run()
 
@@ -66,10 +70,10 @@ export default defineEventHandler(async (event) => {
 
     // Get export history with user information
     const historyResult = await db.prepare(`
-      SELECT 
+      SELECT
         el.*,
         u.name as user_name
-      FROM quotes_export_logs el
+      FROM export_logs el
       LEFT JOIN users u ON el.user_id = u.id
       ${whereClause}
       ORDER BY el.created_at DESC
@@ -81,7 +85,7 @@ export default defineEventHandler(async (event) => {
     // Get total count
     const countResult = await db.prepare(`
       SELECT COUNT(*) as total
-      FROM quotes_export_logs el
+      FROM export_logs el
       ${whereClause}
     `).bind(...bindings).first()
 

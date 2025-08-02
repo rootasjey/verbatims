@@ -456,7 +456,7 @@ export interface FilterTransformOptions {
 }
 
 /**
- * Database export log entry structure
+ * Database export log entry structure (unified for all data types)
  */
 export interface ExportLogEntry {
   /** Unique export ID */
@@ -467,6 +467,8 @@ export interface ExportLogEntry {
   filename: string
   /** Export format */
   format: ExportFormat
+  /** Data type exported */
+  data_type: ExportDataType
   /** Filters applied as JSON string */
   filters_applied: string | null
   /** Number of records exported */
@@ -475,6 +477,10 @@ export interface ExportLogEntry {
   file_size: number | null
   /** User who initiated export */
   user_id: number
+  /** Include related data flag */
+  include_relations: boolean
+  /** Include metadata flag */
+  include_metadata: boolean
   /** Download count */
   download_count: number
   /** Created timestamp */

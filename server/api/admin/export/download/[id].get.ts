@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 
     // Get export information from database
     const exportLog = await db.prepare(`
-      SELECT * FROM quotes_export_logs 
+      SELECT * FROM export_logs
       WHERE export_id = ? AND expires_at > datetime('now')
     `).bind(exportId).first()
 
@@ -120,8 +120,8 @@ export default defineEventHandler(async (event) => {
 
     // Update download count
     await db.prepare(`
-      UPDATE quotes_export_logs 
-      SET download_count = download_count + 1 
+      UPDATE export_logs
+      SET download_count = download_count + 1
       WHERE export_id = ?
     `).bind(exportId).run()
 

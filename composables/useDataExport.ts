@@ -190,16 +190,26 @@ export const useDataExport = () => {
       state.errorMessage = ''
 
       const dataType = exportOptions.value.data_type.value
-      if (dataType !== 'quotes') {
-        state.errorMessage = `Validation for ${dataType} export is not yet implemented. You can still proceed with the export.`
-        return
+      const apiOptions = convertToApiOptions()
+
+      let apiEndpoint = ''
+
+      switch (dataType) {
+        case 'quotes':
+          apiEndpoint = '/api/admin/export/validate'
+          break
+        case 'references':
+          apiEndpoint = '/api/admin/export/references/validate'
+          break
+        default:
+          state.errorMessage = `Validation for ${dataType} export is not yet implemented. You can still proceed with the export.`
+          return
       }
 
-      const apiOptions = convertToApiOptions()
-      const response = await $fetch('/api/admin/export/validate', {
+      const response = await $fetch(apiEndpoint, {
         method: 'POST',
         body: apiOptions
-      })
+      }) as { success: boolean; data: any }
 
       state.previewData = response.data
 
@@ -381,6 +391,82 @@ export const useDataExport = () => {
     }
   }
 
+  // Delete individual export history entry
+  const deleteExportHistoryEntry = async (exportId: string) => {
+    try {
+      const response = await $fetch('/api/admin/export/history', {
+        method: 'DELETE' as any,
+        body: { exportId }
+      }) as { success: boolean; message: string }
+
+      if (response.success) {
+        // Remove from local state
+        state.exportHistory = state.exportHistory.filter(entry => entry.id !== exportId)
+
+        // Update pagination if needed
+        if (state.exportHistory.length === 0 && state.historyPagination.page > 1) {
+          await loadExportHistory(state.historyPagination.page - 1)
+        } else {
+          // Recalculate pagination
+          state.historyPagination.total = Math.max(0, state.historyPagination.total - 1)
+          state.historyPagination.totalPages = Math.ceil(state.historyPagination.total / state.historyPagination.limit)
+        }
+
+        const { toast } = useToast()
+        toast({
+          title: 'Export Deleted',
+          description: 'Export history entry has been deleted'
+        })
+      }
+    } catch (error: any) {
+      console.error('Failed to delete export history entry:', error)
+      state.errorMessage = error.data?.message || 'Failed to delete export history entry'
+
+      const { toast } = useToast()
+      toast({
+        title: 'Delete Failed',
+        description: 'Failed to delete export history entry'
+      })
+    }
+  }
+
+  // Clear all export history
+  const clearAllExportHistory = async () => {
+    try {
+      const response = await $fetch('/api/admin/export/history/clear', {
+        method: 'DELETE' as any,
+        body: { confirm: true }
+      }) as { success: boolean; message: string; deletedCount: number }
+
+      if (response.success) {
+        // Clear local state
+        state.exportHistory = []
+        state.historyPagination = {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
+          hasMore: false
+        }
+
+        const { toast } = useToast()
+        toast({
+          title: 'History Cleared',
+          description: `Successfully cleared ${response.deletedCount} export history entries`
+        })
+      }
+    } catch (error: any) {
+      console.error('Failed to clear export history:', error)
+      state.errorMessage = error.data?.message || 'Failed to clear export history'
+
+      const { toast } = useToast()
+      toast({
+        title: 'Clear Failed',
+        description: 'Failed to clear export history'
+      })
+    }
+  }
+
   // Utility functions
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
@@ -434,6 +520,8 @@ export const useDataExport = () => {
     resetFilters,
     loadExportHistory,
     downloadExport,
+    deleteExportHistoryEntry,
+    clearAllExportHistory,
 
     // Utilities
     formatFileSize,

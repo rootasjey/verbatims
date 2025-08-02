@@ -3,9 +3,10 @@
  * Provides server-specific filter handling for export endpoints
  */
 
-import type { 
-  QuoteExportFilters, 
-  RawExportFilters, 
+import type {
+  QuoteExportFilters,
+  ReferenceExportFilters,
+  RawExportFilters,
   FilterValidationResult,
   ExportLogEntry,
   ParsedExportLog
@@ -16,7 +17,7 @@ import type {
  */
 export function parseFiltersFromExportLog(
   exportLog: ExportLogEntry | any
-): QuoteExportFilters {
+): Partial<QuoteExportFilters> {
   try {
     if (!exportLog?.filters_applied) {
       return {}
@@ -34,7 +35,7 @@ export function parseFiltersFromExportLog(
  * Sanitize and validate filters for database queries
  */
 export function sanitizeFiltersForQuery(rawFilters: RawExportFilters): QuoteExportFilters {
-  const sanitized: QuoteExportFilters = {}
+  const sanitized: Partial<QuoteExportFilters> = {}
 
   // Status filter - ensure valid values
   if (rawFilters.status !== undefined) {
@@ -136,7 +137,7 @@ export function sanitizeFiltersForQuery(rawFilters: RawExportFilters): QuoteExpo
     }
   }
 
-  return sanitized
+  return sanitized as QuoteExportFilters
 }
 
 /**
@@ -335,4 +336,74 @@ export function serializeFiltersForStorage(filters: QuoteExportFilters): string 
   )
 
   return JSON.stringify(cleanFilters)
+}
+
+/**
+ * Validate filters for references export
+ */
+export function validateFiltersForReferencesExport(filters: ReferenceExportFilters): FilterValidationResult {
+  const result: FilterValidationResult = {
+    valid: true,
+    errors: [],
+    warnings: []
+  }
+
+  // Validate date range
+  if (filters.date_range?.start && filters.date_range?.end) {
+    const startDate = new Date(filters.date_range.start)
+    const endDate = new Date(filters.date_range.end)
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      result.errors.push('Invalid date format. Use YYYY-MM-DD format.')
+      result.valid = false
+    } else if (startDate > endDate) {
+      result.errors.push('Start date must be before end date')
+      result.valid = false
+    }
+  }
+
+  // Validate release date range
+  if (filters.release_date_range?.start && filters.release_date_range?.end) {
+    const startDate = new Date(filters.release_date_range.start)
+    const endDate = new Date(filters.release_date_range.end)
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      result.errors.push('Invalid release date format. Use YYYY-MM-DD format.')
+      result.valid = false
+    } else if (startDate > endDate) {
+      result.errors.push('Release start date must be before end date')
+      result.valid = false
+    }
+  }
+
+  // Validate numeric filters
+  if (filters.min_views !== undefined && (filters.min_views < 0 || !Number.isInteger(filters.min_views))) {
+    result.errors.push('Minimum views must be a non-negative integer')
+    result.valid = false
+  }
+
+  if (filters.min_quotes !== undefined && (filters.min_quotes < 0 || !Number.isInteger(filters.min_quotes))) {
+    result.errors.push('Minimum quotes must be a non-negative integer')
+    result.valid = false
+  }
+
+  // Validate primary type filter
+  if (filters.primary_type) {
+    const validTypes = ['book', 'film', 'tv_series', 'music', 'other']
+    const types = Array.isArray(filters.primary_type) ? filters.primary_type : [filters.primary_type]
+
+    for (const type of types) {
+      if (!validTypes.includes(type)) {
+        result.errors.push(`Invalid primary type: ${type}. Valid types: ${validTypes.join(', ')}`)
+        result.valid = false
+      }
+    }
+  }
+
+  // Performance warnings
+  if (filters.search && filters.search.length < 3) {
+    result.warnings.push('Short search terms may result in slower queries')
+  }
+
+  return result
 }

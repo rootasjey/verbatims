@@ -466,7 +466,7 @@
     </div>
 
     <!-- Export Progress Dialog -->
-    <UDialog v-model="state.showProgressDialog">
+    <UDialog v-model:open="state.showProgressDialog">
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Export in Progress</h3>
@@ -499,14 +499,26 @@
     <div class="mt-12">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Export History</h2>
-        <UButton
-          btn="outline"
-          size="sm"
-          @click="loadExportHistory"
-        >
-          <UIcon name="i-ph-arrow-clockwise" />
-          Refresh
-        </UButton>
+        <div class="flex items-center gap-3">
+          <UButton
+            btn="outline"
+            size="sm"
+            @click="loadExportHistory"
+          >
+            <UIcon name="i-ph-arrow-clockwise" />
+            Refresh
+          </UButton>
+          <UButton
+            btn="outline"
+            size="sm"
+            color="red"
+            :disabled="state.exportHistory.length === 0"
+            @click="showClearHistoryDialog = true"
+          >
+            <UIcon name="i-ph-trash" />
+            Clear All History
+          </UButton>
+        </div>
       </div>
 
       <UCard>
@@ -581,6 +593,14 @@
                       Download
                     </UButton>
                     <span v-else class="text-xs text-gray-400">Expired</span>
+                    <UButton
+                      btn="outline"
+                      size="xs"
+                      color="red"
+                      @click="confirmDeleteEntry(entry.id, entry.filename)"
+                    >
+                      <UIcon name="i-ph-trash" />
+                    </UButton>
                   </div>
                 </td>
               </tr>
@@ -614,6 +634,78 @@
         </div>
       </UCard>
     </div>
+
+    <!-- Clear All History Confirmation Dialog -->
+    <UDialog v-model:open="showClearHistoryDialog">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold text-red-600">Clear All Export History</h3>
+        </template>
+
+        <div class="space-y-4">
+          <p class="text-gray-600 dark:text-gray-400">
+            Are you sure you want to clear all export history? This action cannot be undone.
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-500">
+            This will permanently delete {{ state.exportHistory.length }} export history entries.
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton
+              btn="ghost"
+              @click="showClearHistoryDialog = false"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              btn="solid"
+              color="red"
+              @click="handleClearAllHistory"
+            >
+              Clear All History
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UDialog>
+
+    <!-- Delete Entry Confirmation Dialog -->
+    <UDialog v-model:open="showDeleteEntryDialog">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold text-red-600">Delete Export Entry</h3>
+        </template>
+
+        <div class="space-y-4">
+          <p class="text-gray-600 dark:text-gray-400">
+            Are you sure you want to delete this export history entry?
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-500 font-mono">
+            {{ deleteEntryData.filename }}
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton
+              btn="ghost"
+              @click="showDeleteEntryDialog = false"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              btn="solid"
+              color="red"
+              @click="handleDeleteEntry"
+            >
+              Delete Entry
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UDialog>
   </div>
 </template>
 
@@ -643,6 +735,8 @@ const {
   resetFilters,
   loadExportHistory,
   downloadExport,
+  deleteExportHistoryEntry,
+  clearAllExportHistory,
   formatFileSize,
   getFormatColor,
   formatDate,
@@ -659,7 +753,12 @@ const exportTabs = [
   { name: 'Users', value: 'users', icon: 'i-ph-users' }
 ]
 
-// Watch for tab changes to update export data type
+// Dialog management
+const showClearHistoryDialog = ref(false)
+const showDeleteEntryDialog = ref(false)
+const deleteEntryData = ref({ id: '', filename: '' })
+
+// Watch for tab changes to update export data type and clear state
 watch(activeTab, (newTabValue) => {
   const selectedTab = exportTabs.find(tab => tab.value === newTabValue)
   if (selectedTab) {
@@ -668,6 +767,10 @@ watch(activeTab, (newTabValue) => {
       value: selectedTab.value as any
     }
   }
+
+  // Clear alerts and preview when switching tabs
+  clearMessages()
+  state.previewData = null
 })
 
 // State management helpers
@@ -678,6 +781,23 @@ const clearMessages = () => {
 
 const closeProgressDialog = () => {
   state.showProgressDialog = false
+}
+
+// Export history management
+const confirmDeleteEntry = (exportId: string, filename: string) => {
+  deleteEntryData.value = { id: exportId, filename }
+  showDeleteEntryDialog.value = true
+}
+
+const handleDeleteEntry = async () => {
+  await deleteExportHistoryEntry(deleteEntryData.value.id)
+  showDeleteEntryDialog.value = false
+  deleteEntryData.value = { id: '', filename: '' }
+}
+
+const handleClearAllHistory = async () => {
+  await clearAllExportHistory()
+  showClearHistoryDialog.value = false
 }
 
 // Load export history on mount
