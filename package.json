@@ -7,8 +7,7 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "migrate:export-logs": "node scripts/migrate-export-logs.js"
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@nuxt/image": "1.10.0",
