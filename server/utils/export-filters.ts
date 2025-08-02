@@ -6,10 +6,10 @@
 import type {
   QuoteExportFilters,
   ReferenceExportFilters,
+  AuthorExportFilters,
   RawExportFilters,
   FilterValidationResult,
-  ExportLogEntry,
-  ParsedExportLog
+  ExportLogEntry
 } from '~/types/export'
 
 /**
@@ -132,8 +132,11 @@ export function sanitizeFiltersForQuery(rawFilters: RawExportFilters): QuoteExpo
       }
     }
     
-    if (dateRange.start || dateRange.end) {
-      sanitized.date_range = dateRange
+    if (dateRange.start && dateRange.end) {
+      sanitized.date_range = {
+        start: dateRange.start,
+        end: dateRange.end
+      }
     }
   }
 
@@ -403,6 +406,90 @@ export function validateFiltersForReferencesExport(filters: ReferenceExportFilte
   // Performance warnings
   if (filters.search && filters.search.length < 3) {
     result.warnings.push('Short search terms may result in slower queries')
+  }
+
+  return result
+}
+
+/**
+ * Validate filters for authors export
+ */
+export function validateFiltersForAuthorsExport(filters: AuthorExportFilters): FilterValidationResult {
+  const result: FilterValidationResult = {
+    valid: true,
+    errors: [],
+    warnings: []
+  }
+
+  // Validate date ranges
+  if (filters.date_range?.start && filters.date_range?.end) {
+    const startDate = new Date(filters.date_range.start)
+    const endDate = new Date(filters.date_range.end)
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      result.errors.push('Invalid date format. Use YYYY-MM-DD format.')
+      result.valid = false
+    } else if (startDate > endDate) {
+      result.errors.push('Creation date range start must be before end date')
+      result.valid = false
+    }
+  }
+
+  if (filters.birth_date_range?.start && filters.birth_date_range?.end) {
+    const startDate = new Date(filters.birth_date_range.start)
+    const endDate = new Date(filters.birth_date_range.end)
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      result.errors.push('Invalid birth date format. Use YYYY-MM-DD format.')
+      result.valid = false
+    } else if (startDate > endDate) {
+      result.errors.push('Birth date range start must be before end date')
+      result.valid = false
+    }
+  }
+
+  if (filters.death_date_range?.start && filters.death_date_range?.end) {
+    const startDate = new Date(filters.death_date_range.start)
+    const endDate = new Date(filters.death_date_range.end)
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      result.errors.push('Invalid death date format. Use YYYY-MM-DD format.')
+      result.valid = false
+    } else if (startDate > endDate) {
+      result.errors.push('Death date range start must be before end date')
+      result.valid = false
+    }
+  }
+
+  // Validate numeric filters
+  if (filters.min_views !== undefined && (filters.min_views < 0 || !Number.isInteger(filters.min_views))) {
+    result.errors.push('Minimum views must be a non-negative integer')
+    result.valid = false
+  }
+
+  if (filters.min_likes !== undefined && (filters.min_likes < 0 || !Number.isInteger(filters.min_likes))) {
+    result.errors.push('Minimum likes must be a non-negative integer')
+    result.valid = false
+  }
+
+  if (filters.min_quotes !== undefined && (filters.min_quotes < 0 || !Number.isInteger(filters.min_quotes))) {
+    result.errors.push('Minimum quotes must be a non-negative integer')
+    result.valid = false
+  }
+
+  // Performance warnings
+  if (filters.search && filters.search.length < 3) {
+    result.warnings.push('Short search terms may result in slower queries')
+  }
+
+  // Authors-specific warnings
+  if (filters.birth_date_range?.start || filters.death_date_range?.start) {
+    result.warnings.push('Date range filters on birth/death dates may exclude authors with missing date information')
+  }
+
+  if (filters.is_fictional !== undefined) {
+    const typeLabel = filters.is_fictional ? 'fictional characters' : 'real people'
+    result.warnings.push(`Export filtered to include only ${typeLabel}`)
   }
 
   return result

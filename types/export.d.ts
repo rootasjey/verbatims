@@ -135,7 +135,7 @@ export interface ExportOptions {
   /** Data type to export */
   data_type: ExportDataType
   /** Filters to apply */
-  filters?: QuoteExportFilters | ReferenceExportFilters
+  filters?: QuoteExportFilters | ReferenceExportFilters | AuthorExportFilters
   /** Include metadata in export */
   include_metadata?: boolean
   /** Include related data (author, reference, tags) */
@@ -373,6 +373,34 @@ export interface ReferenceExportFilters {
 }
 
 /**
+ * Author export filters
+ */
+export interface AuthorExportFilters {
+  /** Search in author name */
+  search?: string
+  /** Filter by fictional status */
+  is_fictional?: boolean
+  /** Filter by job/profession */
+  job?: string
+  /** Date range filter for creation date */
+  date_range?: ExportDateRange
+  /** Filter by birth date range */
+  birth_date_range?: ExportDateRange
+  /** Filter by death date range */
+  death_date_range?: ExportDateRange
+  /** Minimum views count */
+  min_views?: number
+  /** Minimum likes count */
+  min_likes?: number
+  /** Minimum quotes count */
+  min_quotes?: number
+  /** Filter by birth location */
+  birth_location?: string
+  /** Filter by death location */
+  death_location?: string
+}
+
+/**
  * Exported reference data structure
  */
 export interface ExportedReference {
@@ -399,6 +427,44 @@ export interface ExportedReference {
     exported_by: number
     export_id: string
     export_filters?: ReferenceExportFilters
+  }
+}
+
+/**
+ * Exported author data structure
+ */
+export interface ExportedAuthor {
+  /** Author data */
+  id: number
+  name: string
+  is_fictional: boolean
+  birth_date?: string
+  birth_location?: string
+  death_date?: string
+  death_location?: string
+  job?: string
+  description?: string
+  image_url?: string
+  socials?: Array<{
+    platform: string
+    url: string
+    username?: string
+  }>
+  views_count: number
+  likes_count: number
+  shares_count: number
+  created_at: string
+  updated_at: string
+
+  /** Quote count (if included) */
+  quotes_count?: number
+
+  /** Export metadata (if included) */
+  _metadata?: {
+    exported_at: string
+    exported_by: number
+    export_id: string
+    export_filters?: AuthorExportFilters
   }
 }
 

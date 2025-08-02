@@ -7,7 +7,6 @@ import { getImportStats } from '~/server/utils/onboarding-progress'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin permissions
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
       throw createError({
@@ -16,7 +15,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get current statistics
     const stats = getImportStats()
 
     // Calculate system health

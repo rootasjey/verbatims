@@ -179,7 +179,13 @@
                         />
                       </div>
 
-                      <div v-else-if="['authors', 'users'].includes(exportOptions.data_type.value)">
+                      <div v-else-if="exportOptions.data_type.value === 'authors'">
+                        <AuthorsFilters
+                          v-model="authorsFilters"
+                        />
+                      </div>
+
+                      <div v-else-if="exportOptions.data_type.value === 'users'">
                         <div class="text-center py-8 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
                           <UIcon name="i-ph-funnel" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
                           <p class="text-gray-600 dark:text-gray-400">
@@ -577,6 +583,7 @@
 <script setup lang="ts">
 import QuotesFilters from '~/components/admin/export/QuotesFilters.vue'
 import ReferencesFilters from '~/components/admin/export/ReferencesFilters.vue'
+import AuthorsFilters from '~/components/admin/export/AuthorsFilters.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -592,6 +599,7 @@ const {
   exportOptions,
   quotesFilters,
   referencesFilters,
+  authorsFilters,
   formatOptions,
   statusOptions,
   languageOptions,
@@ -625,8 +633,6 @@ const mainTabs = [
   }
 ]
 
-// Step-by-step interface state (using cards instead of accordion for better UX)
-
 // Data type options with availability status
 const dataTypeOptions = [
   {
@@ -648,7 +654,7 @@ const dataTypeOptions = [
     value: 'authors',
     icon: 'i-ph-user-circle',
     description: 'Export author data',
-    available: false
+    available: true
   },
   {
     label: 'Users',

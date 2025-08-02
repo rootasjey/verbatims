@@ -6,6 +6,7 @@
 import type {
   QuoteExportFilters,
   ReferenceExportFilters,
+  AuthorExportFilters,
   ExportResult,
   ExportOptions,
   UIExportOptions,
@@ -69,6 +70,29 @@ export const useDataExport = () => {
     min_quotes: 0
   })
 
+  const authorsFilters = ref<AuthorExportFilters>({
+    search: '',
+    is_fictional: undefined,
+    job: '',
+    date_range: {
+      start: '',
+      end: ''
+    },
+    birth_date_range: {
+      start: '',
+      end: ''
+    },
+    death_date_range: {
+      start: '',
+      end: ''
+    },
+    birth_location: '',
+    death_location: '',
+    min_views: 0,
+    min_likes: 0,
+    min_quotes: 0
+  })
+
   // Options for selects
   const formatOptions = [
     { label: 'JSON', value: 'json' },
@@ -111,6 +135,8 @@ export const useDataExport = () => {
         return quotesFilters.value
       case 'references':
         return referencesFilters.value
+      case 'authors':
+        return authorsFilters.value
       default:
         return {}
     }
@@ -138,6 +164,15 @@ export const useDataExport = () => {
     if (filters.search && filters.search.trim()) {
       cleaned.search = filters.search.trim()
     }
+    if (filters.job && filters.job.trim()) {
+      cleaned.job = filters.job.trim()
+    }
+    if (filters.birth_location && filters.birth_location.trim()) {
+      cleaned.birth_location = filters.birth_location.trim()
+    }
+    if (filters.death_location && filters.death_location.trim()) {
+      cleaned.death_location = filters.death_location.trim()
+    }
 
     // Only include date range if both start and end are provided
     if (filters.date_range && filters.date_range.start && filters.date_range.end) {
@@ -146,10 +181,25 @@ export const useDataExport = () => {
         end: filters.date_range.end
       }
     }
+    if (filters.birth_date_range && filters.birth_date_range.start && filters.birth_date_range.end) {
+      cleaned.birth_date_range = {
+        start: filters.birth_date_range.start,
+        end: filters.birth_date_range.end
+      }
+    }
+    if (filters.death_date_range && filters.death_date_range.start && filters.death_date_range.end) {
+      cleaned.death_date_range = {
+        start: filters.death_date_range.start,
+        end: filters.death_date_range.end
+      }
+    }
 
-    // Only include boolean filters if they are true
+    // Only include boolean filters if they are true or explicitly false
     if (filters.featured_only === true) {
       cleaned.featured_only = true
+    }
+    if (filters.is_fictional !== undefined) {
+      cleaned.is_fictional = filters.is_fictional
     }
 
     // Only include numeric filters if they are greater than 0
@@ -196,10 +246,13 @@ export const useDataExport = () => {
 
       switch (dataType) {
         case 'quotes':
-          apiEndpoint = '/api/admin/export/validate'
+          apiEndpoint = '/api/admin/export/quotes/validate'
           break
         case 'references':
           apiEndpoint = '/api/admin/export/references/validate'
+          break
+        case 'authors':
+          apiEndpoint = '/api/admin/export/authors/validate'
           break
         default:
           state.errorMessage = `Validation for ${dataType} export is not yet implemented. You can still proceed with the export.`
@@ -245,7 +298,8 @@ export const useDataExport = () => {
           apiEndpoint = '/api/admin/export/references'
           break
         case 'authors':
-          throw new Error('Authors export is not yet implemented')
+          apiEndpoint = '/api/admin/export/authors'
+          break
         case 'users':
           throw new Error('Users export is not yet implemented')
         default:
@@ -301,7 +355,7 @@ export const useDataExport = () => {
   // Reset filters for current data type
   const resetFilters = () => {
     const dataType = exportOptions.value.data_type.value
-    
+
     if (dataType === 'quotes') {
       quotesFilters.value = {
         status: [],
@@ -319,6 +373,20 @@ export const useDataExport = () => {
         search: '',
         date_range: { start: '', end: '' },
         min_views: 0,
+        min_quotes: 0
+      }
+    } else if (dataType === 'authors') {
+      authorsFilters.value = {
+        search: '',
+        is_fictional: undefined,
+        job: '',
+        date_range: { start: '', end: '' },
+        birth_date_range: { start: '', end: '' },
+        death_date_range: { start: '', end: '' },
+        birth_location: '',
+        death_location: '',
+        min_views: 0,
+        min_likes: 0,
         min_quotes: 0
       }
     }
@@ -506,6 +574,7 @@ export const useDataExport = () => {
     exportOptions,
     quotesFilters,
     referencesFilters,
+    authorsFilters,
 
     // Options
     formatOptions,

@@ -1,6 +1,6 @@
 /**
- * Admin API: Validate Export Options
- * Validates export configuration and provides estimates
+ * Admin API: Validate Quotes Export
+ * Provides preview and validation for quotes export with filtering
  */
 
 import type { ExportOptions, ExportValidation } from '~/types/export'
@@ -120,10 +120,10 @@ export default defineEventHandler(async (event) => {
     }
 
   } catch (error: any) {
-    console.error('Export validation error:', error)
+    console.error('Quotes export validation error:', error)
     throw createError({
       statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Validation failed'
+      statusMessage: error.statusMessage || 'Failed to validate quotes export'
     })
   }
 })
