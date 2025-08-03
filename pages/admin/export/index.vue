@@ -186,12 +186,9 @@
                       </div>
 
                       <div v-else-if="exportOptions.data_type.value === 'users'">
-                        <div class="text-center py-8 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                          <UIcon name="i-ph-funnel" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                          <p class="text-gray-600 dark:text-gray-400">
-                            Filters for {{ exportOptions.data_type.label }} will be available soon
-                          </p>
-                        </div>
+                        <UsersFilters
+                          v-model="usersFilters"
+                        />
                       </div>
                     </div>
                   </UCollapsibleContent>
@@ -584,6 +581,7 @@
 import QuotesFilters from '~/components/admin/export/QuotesFilters.vue'
 import ReferencesFilters from '~/components/admin/export/ReferencesFilters.vue'
 import AuthorsFilters from '~/components/admin/export/AuthorsFilters.vue'
+import UsersFilters from '~/components/admin/export/UsersFilters.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -600,6 +598,7 @@ const {
   quotesFilters,
   referencesFilters,
   authorsFilters,
+  usersFilters,
   formatOptions,
   statusOptions,
   languageOptions,
@@ -661,7 +660,7 @@ const dataTypeOptions = [
     value: 'users',
     icon: 'i-ph-users',
     description: 'Export user data',
-    available: false
+    available: true
   }
 ]
 

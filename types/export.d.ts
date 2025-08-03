@@ -135,7 +135,7 @@ export interface ExportOptions {
   /** Data type to export */
   data_type: ExportDataType
   /** Filters to apply */
-  filters?: QuoteExportFilters | ReferenceExportFilters | AuthorExportFilters
+  filters?: QuoteExportFilters | ReferenceExportFilters | AuthorExportFilters | UserExportFilters
   /** Include metadata in export */
   include_metadata?: boolean
   /** Include related data (author, reference, tags) */
@@ -401,6 +401,34 @@ export interface AuthorExportFilters {
 }
 
 /**
+ * User export filters
+ */
+export interface UserExportFilters {
+  /** Search in user name or email */
+  search?: string
+  /** Filter by user role */
+  role?: string | string[]
+  /** Filter by email verification status */
+  email_verified?: boolean
+  /** Filter by active status */
+  is_active?: boolean
+  /** Date range filter for creation date */
+  date_range?: ExportDateRange
+  /** Date range filter for last login */
+  last_login_range?: ExportDateRange
+  /** Filter by language preference */
+  language?: string | string[]
+  /** Filter by location */
+  location?: string
+  /** Filter by job/profession */
+  job?: string
+  /** Minimum quotes created */
+  min_quotes?: number
+  /** Minimum collections created */
+  min_collections?: number
+}
+
+/**
  * Exported reference data structure
  */
 export interface ExportedReference {
@@ -465,6 +493,46 @@ export interface ExportedAuthor {
     exported_by: number
     export_id: string
     export_filters?: AuthorExportFilters
+  }
+}
+
+/**
+ * Exported user data structure
+ */
+export interface ExportedUser {
+  /** User data */
+  id: number
+  email: string
+  name: string
+  avatar_url?: string
+  role: string
+  is_active: boolean
+  email_verified: boolean
+  biography?: string
+  job?: string
+  language: string
+  location?: string
+  socials?: Array<{
+    platform: string
+    url: string
+    username?: string
+  }>
+  last_login_at?: string
+  created_at: string
+  updated_at: string
+
+  /** Quote count (if included) */
+  quotes_count?: number
+
+  /** Collection count (if included) */
+  collections_count?: number
+
+  /** Export metadata (if included) */
+  _metadata?: {
+    exported_at: string
+    exported_by: number
+    export_id: string
+    export_filters?: UserExportFilters
   }
 }
 
