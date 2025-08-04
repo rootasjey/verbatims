@@ -248,6 +248,127 @@ export class DataValidator {
   }
 
   /**
+   * Validate a single quote object
+   */
+  validateQuote(quote, index = 0) {
+    const errors = []
+    const warnings = []
+    const context = `Quote ${index + 1}${quote.firebase_id ? ` (${quote.firebase_id})` : ''}`
+
+    // Required field validations
+    if (!quote.name || typeof quote.name !== 'string') {
+      errors.push(`${context}: Missing or invalid quote text`)
+    } else {
+      // Quote text length validation
+      if (quote.name.length < 3) {
+        errors.push(`${context}: Quote text too short (minimum 10 characters)`)
+      }
+      if (quote.name.length > 6000) {
+        errors.push(`${context}: Quote text too long (maximum 3000 characters)`)
+      }
+      // Quote content validation
+      if (quote.name.trim() !== quote.name) {
+        warnings.push(`${context}: Quote text has leading/trailing whitespace`)
+      }
+    }
+
+    // Language validation
+    const validLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh']
+    if (quote.language && !validLanguages.includes(quote.language)) {
+      warnings.push(`${context}: Unsupported language "${quote.language}", defaulting to "en"`)
+    }
+
+    // Status validation
+    const validStatuses = ['draft', 'pending', 'approved', 'rejected']
+    if (quote.status && !validStatuses.includes(quote.status)) {
+      errors.push(`${context}: Invalid status "${quote.status}"`)
+    }
+
+    // User ID validation
+    if (!quote.user_id || typeof quote.user_id !== 'number') {
+      errors.push(`${context}: Missing or invalid user_id`)
+    }
+
+    // Author validation (if present)
+    if (quote.author && typeof quote.author === 'object') {
+      if (!quote.author.name || typeof quote.author.name !== 'string') {
+        warnings.push(`${context}: Author object present but missing name`)
+      }
+    }
+
+    // Reference validation (if present)
+    if (quote.reference && typeof quote.reference === 'object') {
+      if (!quote.reference.name || typeof quote.reference.name !== 'string') {
+        warnings.push(`${context}: Reference object present but missing name`)
+      }
+    }
+
+    // Date validations
+    if (quote.created_at && !this.isValidDate(quote.created_at)) {
+      warnings.push(`${context}: Invalid created_at date format`)
+    }
+
+    if (quote.updated_at && !this.isValidDate(quote.updated_at)) {
+      warnings.push(`${context}: Invalid updated_at date format`)
+    }
+
+    return { errors, warnings }
+  }
+
+  /**
+   * Validate an array of quotes
+   */
+  validateQuotes(quotes) {
+    this.validationErrors = []
+    this.validationWarnings = []
+
+    if (!Array.isArray(quotes)) {
+      this.validationErrors.push('Quotes must be an array')
+      return this.getValidationSummary()
+    }
+
+    if (quotes.length === 0) {
+      this.validationWarnings.push('No quotes to validate')
+      return this.getValidationSummary()
+    }
+
+    // Validate each quote
+    quotes.forEach((quote, index) => {
+      const { errors, warnings } = this.validateQuote(quote, index)
+      this.validationErrors.push(...errors)
+      this.validationWarnings.push(...warnings)
+    })
+
+    // Cross-quote validations
+    this.validateQuoteDuplicates(quotes)
+
+    return this.getValidationSummary()
+  }
+
+  /**
+   * Check for duplicate quotes
+   */
+  validateQuoteDuplicates(quotes) {
+    const seenQuotes = new Set()
+    const duplicates = []
+
+    quotes.forEach((quote, index) => {
+      if (quote.name) {
+        const normalizedText = quote.name.toLowerCase().trim()
+        if (seenQuotes.has(normalizedText)) {
+          duplicates.push(`Quote ${index + 1}: Duplicate quote text`)
+        } else {
+          seenQuotes.add(normalizedText)
+        }
+      }
+    })
+
+    if (duplicates.length > 0) {
+      this.validationWarnings.push(...duplicates)
+    }
+  }
+
+  /**
    * Generate validation report
    */
   generateReport() {
@@ -286,4 +407,12 @@ export class DataValidator {
 export function validateReferenceData(data) {
   const validator = new DataValidator()
   return validator.validateReferences(data)
+}
+
+/**
+ * Validate quote data for import
+ */
+export function validateQuoteData(data) {
+  const validator = new DataValidator()
+  return validator.validateQuotes(data)
 }

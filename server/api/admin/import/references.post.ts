@@ -5,19 +5,7 @@
 
 import { validateReferenceData } from '~/server/utils/data-validation'
 import { DataTransformer } from '~/scripts/transform-firebase-data'
-
-interface ImportProgress {
-  id: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  totalRecords: number
-  processedRecords: number
-  successfulRecords: number
-  failedRecords: number
-  errors: string[]
-  warnings: string[]
-  startedAt: Date
-  completedAt?: Date
-}
+import type { ImportOptions, ImportProgress } from '~/types'
 
 // In-memory store for import progress (in production, use Redis or database)
 const importProgressStore = new Map<string, ImportProgress>()
@@ -53,6 +41,8 @@ export default defineEventHandler(async (event) => {
       totalRecords: 0,
       processedRecords: 0,
       successfulRecords: 0,
+      createdAuthors: 0,
+      createdReferences: 0,
       failedRecords: 0,
       errors: [],
       warnings: [],
@@ -91,7 +81,7 @@ async function processImport(
   importId: string, 
   rawData: any, 
   format: 'json' | 'csv' | 'firebase', 
-  options: any,
+  options: ImportOptions,
   userId: number
 ) {
   const progress = importProgressStore.get(importId)!

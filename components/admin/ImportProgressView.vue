@@ -47,6 +47,21 @@
           </div>
         </div>
 
+        <!-- Quote Import Specific Stats -->
+        <div v-if="progress.createdAuthors !== undefined || progress.createdReferences !== undefined" class="mt-4">
+          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created During Import</h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div v-if="progress.createdAuthors !== undefined" class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div class="text-xl font-bold text-blue-600">{{ progress.createdAuthors }}</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">New Authors</div>
+            </div>
+            <div v-if="progress.createdReferences !== undefined" class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div class="text-xl font-bold text-purple-600">{{ progress.createdReferences }}</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">New References</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Time Information -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>

@@ -28,12 +28,14 @@
             v-model="selectedLanguage"
             :items="languageOptions"
             placeholder="All Languages"
-            size="md"
+            size="sm"
             class="w-40"
+            item-key="label"
+            item-value="label"
           />
           <UButton
             btn="outline"
-            size="md"
+            size="sm"
             @click="resetFilters"
           >
             <UIcon name="i-ph-x" />
@@ -96,7 +98,7 @@
       </div>
 
       <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
@@ -113,7 +115,7 @@
                   class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
                   :title="cell.row.original.name"
                 >
-                  "{{ cell.row.original.name }}"
+                  {{ cell.row.original.name }}
                 </blockquote>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="cell.row.original.author_name">{{ cell.row.original.author_name }}</span>
@@ -198,17 +200,9 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteWithRelations } from '~/types/quote'
 import type { LanguageOption } from '~/stores/language'
+import type { AdminQuote } from '~/types'
 
-// Extended interface for admin quotes with additional fields
-interface AdminQuote extends QuoteWithRelations {
-  user_name?: string
-  user_email?: string
-  user_avatar?: string
-}
-
-// Use admin layout
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -218,26 +212,23 @@ useHead({
   title: 'Draft Quotes - Admin - Verbatims'
 })
 
-// Data
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
 const searchQuery = ref('')
 const selectedLanguage = ref('')
 const currentPage = ref(1)
-const pageSize = ref(50) // Admin default: 50 items per page
+const pageSize = ref(50)
 const totalQuotes = ref(0)
 
-// Language options
-const { languages } = useLanguageStore()
+const { availableLanguages } = useLanguageStore()
+
 const languageOptions = computed(() => [
-  { label: 'All Languages', value: '' },
-  ...languages.value.map((lang: LanguageOption) => ({
-    label: lang.name,
-    value: lang.code
-  }))
+  ...((availableLanguages ?? []).map((lang: LanguageOption) => ({
+    label: lang.display,
+    value: lang.value
+  })))
 ])
 
-// Computed
 const totalPages = computed(() => Math.ceil(totalQuotes.value / pageSize.value))
 
 const filteredQuotes = computed(() => {
@@ -247,8 +238,8 @@ const filteredQuotes = computed(() => {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(quote =>
       quote.name.toLowerCase().includes(query) ||
-      quote.author_name?.toLowerCase().includes(query) ||
-      quote.reference_name?.toLowerCase().includes(query) ||
+      quote.author?.name?.toLowerCase().includes(query) ||
+      quote.reference?.name?.toLowerCase().includes(query) ||
       quote.user_name?.toLowerCase().includes(query)
     )
   }
@@ -271,7 +262,6 @@ const thisWeekCount = computed(() => {
   return quotes.value.filter(q => new Date(q.created_at) >= oneWeekAgo).length
 })
 
-// Table columns configuration
 const tableColumns = [
   {
     header: 'Quote',
@@ -341,7 +331,6 @@ const tableColumns = [
   }
 ]
 
-// Methods
 const loadQuotes = async () => {
   try {
     loading.value = true
@@ -355,8 +344,14 @@ const loadQuotes = async () => {
       }
     })
     
-    quotes.value = response.data || []
-    totalQuotes.value = response.total || 0
+    quotes.value = (response.data || []).map((q: any) => ({
+      ...q,
+      user_name: q.user_name ?? '',
+      user_email: q.user_email ?? '',
+      user_avatar: q.user_avatar ?? ''
+    }))
+    
+    totalQuotes.value = response.pagination?.total || 0
   } catch (error) {
     console.error('Failed to load draft quotes:', error)
     // TODO: Show error toast
@@ -410,12 +405,10 @@ const formatDate = (dateString: string | null) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Watchers
-watch([currentPage, searchQuery, selectedLanguage], () => {
+watchDebounced([currentPage, searchQuery, selectedLanguage], () => {
   loadQuotes()
 }, { debounce: 300 })
 
-// Load data on mount
 onMounted(() => {
   loadQuotes()
 })

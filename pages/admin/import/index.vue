@@ -86,6 +86,7 @@
             <UButton
               :disabled="!selectedFile || !selectedFormat"
               :loading="isValidating"
+              btn="soft-blue"
               @click="validateData"
             >
               Validate Data
@@ -95,7 +96,7 @@
               v-if="validationResult"
               :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors"
               :loading="isImporting"
-              color="green"
+              btn="soft-green"
               @click="startImport"
             >
               Start Import
@@ -184,7 +185,8 @@
         </template>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <!-- References Preview Table -->
+          <table v-if="selectedFormat !== 'firestore-drafts'" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
@@ -201,6 +203,28 @@
                 <td class="px-3 py-2 text-sm">{{ item.original_language }}</td>
                 <td class="px-3 py-2 text-sm">{{ item.release_date || '-' }}</td>
                 <td class="px-3 py-2 text-sm max-w-xs truncate">{{ item.description || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Quotes Preview Table -->
+          <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quote Text</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="(item, index) in previewData.slice(0, 5)" :key="index">
+                <td class="px-3 py-2 text-sm max-w-xs truncate">{{ item.name }}</td>
+                <td class="px-3 py-2 text-sm">{{ item.language }}</td>
+                <td class="px-3 py-2 text-sm">{{ item.author || '-' }}</td>
+                <td class="px-3 py-2 text-sm">{{ item.reference || '-' }}</td>
+                <td class="px-3 py-2 text-sm">{{ item.created_at || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -246,6 +270,7 @@ const isValidating = ref(false)
 const isImporting = ref(false)
 const validationResult = ref(null)
 const previewData = ref([])
+const originalParsedData = ref(null)
 const currentImportId = ref(null)
 
 const importOptions = ref({
@@ -255,13 +280,14 @@ const importOptions = ref({
 })
 
 const tabs = [
-  { label: 'Upload', icon: 'i-ph-upload' },
-  { label: 'Progress', icon: 'i-ph-clock' },
-  { label: 'History', icon: 'i-ph-list' }
+  { name: 'Upload', value: 'upload', icon: 'i-ph-upload' },
+  { name: 'Progress', value: 'progress', icon: 'i-ph-clock' },
+  { name: 'History', value: 'history', icon: 'i-ph-list' }
 ]
 
 const formatOptions = [
   { label: 'Firebase JSON Backup', value: 'firebase' },
+  { label: 'Firestore Draft Quotes', value: 'firestore-drafts' },
   { label: 'Transformed JSON', value: 'json' },
   { label: 'CSV File', value: 'csv' }
 ]
@@ -273,10 +299,15 @@ const handleFileSelect = (event) => {
     selectedFile.value = file
     validationResult.value = null
     previewData.value = []
+    originalParsedData.value = null
     
-    // Auto-detect format based on file extension
+    // Auto-detect format based on file extension and name
     if (file.name.endsWith('.json')) {
-      selectedFormat.value = 'firebase' // Default to Firebase format
+      if (file.name.includes('drafts')) {
+        selectedFormat.value = 'firestore-drafts'
+      } else {
+        selectedFormat.value = 'firebase' // Default to Firebase format
+      }
     } else if (file.name.endsWith('.csv')) {
       selectedFormat.value = 'csv'
     }
@@ -301,6 +332,9 @@ const validateData = async () => {
       if (selectedFormat.value === 'firebase' && parsedData.data) {
         // Firebase backup format
         parsedData = Object.values(parsedData.data)
+      } else if (selectedFormat.value === 'firestore-drafts' && parsedData.data) {
+        // Firestore drafts format - keep as is for server-side processing
+        parsedData = parsedData
       } else if (selectedFormat.value === 'json' && parsedData.data) {
         // Transformed format
         parsedData = parsedData.data
@@ -310,10 +344,33 @@ const validateData = async () => {
     // Transform data if needed (simplified client-side transformation)
     if (selectedFormat.value === 'firebase') {
       parsedData = transformFirebaseData(parsedData)
+    } else if (selectedFormat.value === 'firestore-drafts') {
+      // For quotes, show a preview of the first few quotes
+      const quotesData = parsedData.data ? Object.values(parsedData.data) : []
+      previewData.value = quotesData.slice(0, 10).map((quote) => ({
+        name: quote.name || 'No quote text',
+        language: quote.language || 'en',
+        author: quote.author?.name || 'No author',
+        reference: quote.reference?.name || 'No reference',
+        created_at: quote.created_at?.__time__ || 'Unknown date'
+      }))
+
+      // Store the original parsed data for the API call
+      originalParsedData.value = parsedData
+
+      // Skip validation for now - will be handled server-side
+      validationResult.value = {
+        isValid: true,
+        errors: [],
+        warnings: [`Found ${quotesData.length} draft quotes to import`],
+        errorCount: 0,
+        warningCount: 1
+      }
+      return
     }
-    
+
     previewData.value = parsedData
-    
+
     // Validate data
     const response = await $fetch('/api/admin/validate-references', {
       method: 'POST',
@@ -336,10 +393,18 @@ const startImport = async () => {
   isImporting.value = true
   
   try {
-    const response = await $fetch('/api/admin/import/references', {
+    const apiEndpoint = selectedFormat.value === 'firestore-drafts'
+      ? '/api/admin/import/quotes'
+      : '/api/admin/import/references'
+
+    const dataToSend = selectedFormat.value === 'firestore-drafts'
+      ? originalParsedData.value
+      : previewData.value
+
+    const response = await $fetch(apiEndpoint, {
       method: 'POST',
       body: {
-        data: previewData.value,
+        data: dataToSend,
         format: selectedFormat.value,
         options: importOptions.value
       }

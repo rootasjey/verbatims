@@ -77,6 +77,13 @@ export interface QuoteWithRelations extends Quote {
   reference?: QuoteReference | null;
 }
 
+// Extended interface for admin quotes with additional fields
+interface AdminQuote extends QuoteWithRelations {
+  user_name?: string
+  user_email?: string
+  user_avatar?: string
+}
+
 /**
  * Data required to create a new quote
  */

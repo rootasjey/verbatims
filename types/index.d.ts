@@ -37,7 +37,8 @@ export type {
   QuoteStats,
   QuoteWithMetadata,
   QuoteFilters,
-  QuotePagination
+  QuotePagination,
+  AdminQuote,
 } from './quote';
 
 // Tag types
@@ -124,6 +125,12 @@ export type {
   ProcessedTags,
   TagProcessor
 } from './api-results';
+
+// Import Progress types
+export type {
+  ImportProgress,
+  ImportOptions,
+} from './import-data';
 
 // Common utility types
 export interface DatabaseEntity {

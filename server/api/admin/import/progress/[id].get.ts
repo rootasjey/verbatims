@@ -4,6 +4,7 @@
  */
 
 import { importProgressStore } from '../references.post'
+import { importProgressStore as quotesImportProgressStore } from '../quotes.post'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -24,7 +25,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const progress = importProgressStore.get(importId)
+    // Try to find progress in either references or quotes import store
+    let progress = importProgressStore.get(importId)
+    if (!progress) {
+      progress = quotesImportProgressStore.get(importId)
+    }
+
     if (!progress) {
       throw createError({
         statusCode: 404,
@@ -61,7 +67,10 @@ export default defineEventHandler(async (event) => {
         errorCount: progress.errors.length,
         warningCount: progress.warnings.length,
         recentErrors: progress.errors.slice(-5),
-        recentWarnings: progress.warnings.slice(-5)
+        recentWarnings: progress.warnings.slice(-5),
+        // Include quote-specific fields if they exist
+        createdAuthors: progress.createdAuthors || 0,
+        createdReferences: progress.createdReferences || 0
       }
     }
 
