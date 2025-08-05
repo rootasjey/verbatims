@@ -26,6 +26,40 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       })
     }
 
+    let authorId = body.author_id
+    let referenceId = body.reference_id
+
+    // Create new author if provided
+    if (body.new_author && body.new_author.name) {
+      const authorResult = await db.prepare(`
+        INSERT INTO authors (name, is_fictional, job, description)
+        VALUES (?, ?, ?, ?)
+      `).bind(
+        body.new_author.name,
+        body.new_author.is_fictional || false,
+        body.new_author.job || null,
+        body.new_author.description || null
+      ).run()
+      
+      authorId = authorResult.meta.last_row_id
+    }
+
+    // Create new reference if provided
+    if (body.new_reference && body.new_reference.name) {
+      const referenceResult = await db.prepare(`
+        INSERT INTO quote_references (name, original_language, primary_type, description, release_date)
+        VALUES (?, ?, ?, ?, ?)
+      `).bind(
+        body.new_reference.name,
+        body.new_reference.original_language || 'en',
+        body.new_reference.primary_type || 'other',
+        body.new_reference.description || null,
+        body.new_reference.release_date || null
+      ).run()
+      
+      referenceId = referenceResult.meta.last_row_id
+    }
+
     // Validate language
     const allowedLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh']
     if (body.language && !allowedLanguages.includes(body.language)) {
@@ -36,9 +70,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     }
 
     // Validate author_id if provided
-    if (body.author_id) {
+    if (authorId) {
       const author = await db.prepare('SELECT id FROM authors WHERE id = ?')
-        .bind(body.author_id).first()
+        .bind(authorId).first()
       if (!author) {
         throw createError({
           statusCode: 400,
@@ -48,9 +82,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     }
 
     // Validate reference_id if provided
-    if (body.reference_id) {
+    if (referenceId) {
       const reference = await db.prepare('SELECT id FROM quote_references WHERE id = ?')
-        .bind(body.reference_id).first()
+        .bind(referenceId).first()
       if (!reference) {
         throw createError({
           statusCode: 400,
@@ -82,8 +116,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     `).bind(
       body.name.trim(),
       body.language || 'en',
-      body.author_id || null,
-      body.reference_id || null,
+      authorId || null,
+      referenceId || null,
       session.user.id
     ).run()
 

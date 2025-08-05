@@ -185,7 +185,6 @@
           <p class="text-gray-500 dark:text-gray-400 mb-6">
             Be the first to submit a quote by {{ author.name }}!
           </p>
-          <UButton @click="openSubmitModal">Submit Quote</UButton>
         </div>
 
         <!-- Load More -->
@@ -217,9 +216,6 @@
         </UButton>
       </div>
     </div>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" :prefill-author="author" @submitted="refreshQuotes" />
   </div>
 </template>
 
@@ -227,15 +223,12 @@
 const route = useRoute()
 const { user } = useUserSession()
 
-// Language store (initialization handled by plugin)
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 
-// Fetch author data
 const { data: authorData, pending } = await useLazyFetch(`/api/authors/${route.params.id}`)
 const author = computed(() => authorData.value?.data)
 
-// SEO
 useHead(() => ({
   title: author.value ? `${author.value.name} - Authors - Verbatims` : 'Author - Verbatims',
   meta: [
@@ -248,18 +241,15 @@ useHead(() => ({
   ]
 }))
 
-// Quotes state
 const authorQuotes = ref([])
 const quotesLoading = ref(false)
 const loadingMoreQuotes = ref(false)
 const hasMoreQuotes = ref(true)
 const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
-const showSubmitModal = ref(false)
 
 const isMetaBadgeOpen = ref(false)
 
-// Sort options
 const sortOptions = [
   { label: 'Most Recent', value: 'created_at' },
   { label: 'Most Popular', value: 'likes_count' },
@@ -270,12 +260,10 @@ const sortOptions = [
 const isLiked = ref(false)
 const likePending = ref(false)
 
-// Computed
 const totalQuoteLikes = computed(() => {
   return authorQuotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
 })
 
-// Load quotes
 const loadQuotes = async (reset = true) => {
   if (!author.value) return
 
@@ -322,7 +310,6 @@ const loadQuotes = async (reset = true) => {
   }
 }
 
-// Load more quotes
 const loadMoreQuotes = async () => {
   if (loadingMoreQuotes.value || !hasMoreQuotes.value) return
 
@@ -330,7 +317,6 @@ const loadMoreQuotes = async () => {
   await loadQuotes(false)
 }
 
-// Language change handler
 const onLanguageChange = async () => {
   // Reset pagination when language changes
   currentQuotePage.value = 1
@@ -402,18 +388,7 @@ const getSocialIcon = (platform) => {
   return icons[platform.toLowerCase()] || 'i-ph-link'
 }
 
-const openSubmitModal = () => {
-  showSubmitModal.value = true
-}
-
-// Refresh quotes after submission
-const refreshQuotes = async () => {
-  await loadQuotes()
-}
-
-// Load data on mount
 onMounted(async () => {
-  // Wait for language store to be ready
   await waitForLanguageStore()
 
   if (author.value) {
@@ -424,7 +399,6 @@ onMounted(async () => {
   }
 })
 
-// Watch for changes
 watch(author, (newAuthor) => {
   if (newAuthor) {
     loadQuotes()

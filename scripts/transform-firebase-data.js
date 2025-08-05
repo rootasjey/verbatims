@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Firebase to SQL Data Transformation Script
  * Transforms Firebase JSON backup to SQL-compatible format for quote_references table

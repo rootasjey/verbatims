@@ -20,6 +20,14 @@
         @click="showSearch = true"
       />
       
+      <UButton 
+        icon
+        btn="ghost"
+        label="i-ph-plus-bold"
+        @click="showAddQuote = true"
+        title="Add Quote (Ctrl/Cmd+N)"
+      />
+      
       <NuxtLink
         to="/authors"
         class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
@@ -39,6 +47,10 @@
     :model-value="showSearch" 
     @update:model-value="showSearch = $event"
   />
+  <AddQuoteDialog 
+    v-model="showAddQuote"
+    @quote-added="handleQuoteAdded"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -47,6 +59,7 @@ const colorMode = useColorMode()
 const scrollY = ref(0)
 const route = useRoute()
 const showSearch = ref(false)
+const showAddQuote = ref(false)
 
 const handleScroll = () => {
   scrollY.value = window.scrollY
@@ -78,12 +91,22 @@ onMounted(() => {
   })
 })
 
+const handleQuoteAdded = () => {
+  // Optionally refresh page data or show success message
+  // The dialog already shows a toast, so we don't need to do anything here
+}
+
 onMounted(() => {
   const handler = (e: KeyboardEvent) => {
     // Cmd+K (Mac) or Ctrl+K (Win/Linux)
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault()
       showSearch.value = true
+    }
+    // Cmd+N (Mac) or Ctrl+N (Win/Linux)
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+      e.preventDefault()
+      showAddQuote.value = true
     }
   }
 

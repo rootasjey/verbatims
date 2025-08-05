@@ -33,6 +33,14 @@ export default defineNuxtConfig({
     kv: true,
   },
 
+  // Nitro configuration
+  nitro: {
+    experimental: {
+      wasm: true
+    },
+    ignore: ['scripts/**']
+  },
+
   // CSS configuration
   // css: ['~/assets/css/main.css'],
 

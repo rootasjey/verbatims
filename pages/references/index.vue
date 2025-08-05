@@ -93,9 +93,6 @@
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more references...</p>
       </div>
     </div>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshReferences" />
   </div>
 </template>
 
@@ -280,17 +277,14 @@ const performSearch = async (query) => {
   }
 }
 
-// Debounced search
 const debouncedSearch = useDebounceFn(() => {
   performSearch(searchQuery.value)
 }, 300)
 
-// Open submit modal
 const openSubmitModal = () => {
   showSubmitModal.value = true
 }
 
-// Refresh references after submission
 const refreshReferences = async () => {
   await loadReferences()
 }

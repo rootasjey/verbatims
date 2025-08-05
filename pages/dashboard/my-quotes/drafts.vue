@@ -11,12 +11,6 @@
             Your unpublished quote drafts.
           </p>
         </div>
-        <UButton
-          @click="showSubmitModal = true"
-        >
-          <UIcon name="i-ph-plus" />
-          New Draft
-        </UButton>
       </div>
     </div>
 
@@ -56,10 +50,6 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
       </p>
-      <UButton v-if="!searchQuery" @click="showSubmitModal = true">
-        <UIcon name="i-ph-plus" />
-        <span>Create Your First Draft</span>
-      </UButton>
     </div>
 
     <!-- Quotes List -->
@@ -134,9 +124,6 @@
       </div>
     </div>
 
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="handleQuoteSubmitted" />
-
     <!-- Delete Confirmation -->
     <UDialog v-model="showDeleteModal">
       <UCard>
@@ -197,8 +184,6 @@ const sortBy = ref('recent')
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-// Modals
-const showSubmitModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 
@@ -340,18 +325,10 @@ const deleteDraft = async () => {
   }
 }
 
-const handleQuoteSubmitted = (newQuote: DashboardQuote) => {
-  if (newQuote.status === 'draft') {
-    quotes.value.unshift(newQuote)
-  }
-  showSubmitModal.value = false
-}
-
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load data on mount
 onMounted(() => {
   loadDrafts()
 })

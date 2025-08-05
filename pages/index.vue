@@ -19,7 +19,6 @@
       :needs-onboarding="needsOnboarding"
       :onboarding-status="onboardingStatus"
       :stats="stats"
-      @open-submit-modal="openSubmitModal"
     />
 
     <!-- Quotes Grid (when quotes exist) -->
@@ -58,14 +57,10 @@
         </UButton>
       </div>
     </div>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshQuotes" />
   </div>
 </template>
 
 <script lang="ts" setup>
-// SEO
 useHead({
   title: 'Verbatims • Universal Quotes',
   meta: [
@@ -76,7 +71,6 @@ useHead({
   ]
 })
 
-// Language store (initialization handled by plugin)
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 
@@ -108,33 +102,22 @@ const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading 
 const { data: statsData } = await useFetch('/api/stats')
 const { data: onboardingData } = await useFetch('/api/onboarding/status')
 
-// Reactive state
-const showSubmitModal = ref(false)
 const loadingMore = ref(false)
 const currentPage = ref(1)
 const additionalQuotes = ref<any[]>([]) // For load more functionality
 
-// Computed reactive state that updates when quotesData changes
 const displayedQuotes = computed(() => {
   const baseQuotes = quotesData.value?.data || []
   return [...baseQuotes, ...additionalQuotes.value]
 })
 const hasMore = computed(() => quotesData.value?.pagination?.hasMore || false)
 
-// Computed
 const stats = computed(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
 const onboardingStatus = computed(() => onboardingData.value?.data)
 const needsOnboarding = computed(() => onboardingStatus.value?.needsOnboarding || false)
 
-// Use displayed quotes directly for now (simplified)
 const allQuotes = computed(() => displayedQuotes.value || [])
 
-// Methods
-const openSubmitModal = () => {
-  showSubmitModal.value = true
-}
-
-// Language change handler
 const onLanguageChange = async () => {
   // Reset pagination when language changes
   currentPage.value = 1
@@ -147,7 +130,6 @@ const onLanguageChange = async () => {
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
 
-  // Wait for language store to be ready
   await waitForLanguageStore()
 
   loadingMore.value = true
@@ -175,9 +157,7 @@ const loadMore = async () => {
   }
 }
 
-// Watch for new quotes from modal submission
 const refreshQuotes = async () => {
-  // Wait for language store to be ready
   await waitForLanguageStore()
 
   // Clear additional quotes and reset pagination
@@ -188,7 +168,8 @@ const refreshQuotes = async () => {
   await refreshQuotesFromAPI()
 }
 
-// Ensure language store is initialized on mount and trigger initial fetch
+// Ensure language store is initialized on mount 
+// and trigger initial fetch
 onMounted(async () => {
   await waitForLanguageStore()
   // Always refresh quotes once language store is ready to ensure correct filtering
@@ -196,11 +177,4 @@ onMounted(async () => {
   await refreshQuotes()
 })
 
-// Refresh quotes when modal closes (in case new quote was submitted)
-watch(showSubmitModal, (newValue, oldValue) => {
-  if (oldValue && !newValue) {
-    // Modal was closed, refresh quotes
-    refreshQuotes()
-  }
-})
 </script>

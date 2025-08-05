@@ -11,7 +11,6 @@
     <AuthorsEmptyView
       v-if="authors.length === 0 && !loading"
       :search-query="searchQuery"
-      @open-submit-modal="openSubmitModal"
     />
 
     <!-- Authors Content (when authors exist) -->
@@ -85,9 +84,6 @@
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more authors...</p>
       </div>
     </div>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshAuthors" />
   </div>
 </template>
 
@@ -113,7 +109,6 @@ const loading = ref(true)
 const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
-const showSubmitModal = ref(false)
 const totalAuthors = ref(0)
 const searchInput = ref(null)
 const infiniteScrollTrigger = ref(null)
@@ -235,22 +230,10 @@ const performSearch = async (query) => {
   }
 }
 
-// Debounced search
 const debouncedSearch = useDebounceFn(() => {
   performSearch(searchQuery.value)
 }, 300)
 
-// Open submit modal
-const openSubmitModal = () => {
-  showSubmitModal.value = true
-}
-
-// Refresh authors after submission
-const refreshAuthors = async () => {
-  await loadAuthors()
-}
-
-// Infinite scroll setup
 const setupInfiniteScroll = () => {
   if (!infiniteScrollTrigger.value) return
 
@@ -268,7 +251,6 @@ const setupInfiniteScroll = () => {
 
   observer.observe(infiniteScrollTrigger.value)
 
-  // Cleanup function
   return () => {
     observer.disconnect()
   }
@@ -283,16 +265,13 @@ const focusSearchInput = () => {
   })
 }
 
-// Load authors on mount
 onMounted(() => {
   loadAuthors()
   focusSearchInput()
 
-  // Setup infinite scroll after initial load
   nextTick(() => {
     const cleanup = setupInfiniteScroll()
 
-    // Cleanup on unmount
     onUnmounted(() => {
       if (cleanup) cleanup()
     })

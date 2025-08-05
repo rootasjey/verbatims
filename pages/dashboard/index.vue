@@ -30,10 +30,6 @@
     <div class="mb-8">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
-        <UButton btn="solid-dark dark:solid-white" @click="showSubmitModal = true">
-          <UIcon name="i-ph-plus" />
-          Submit New Quote
-        </UButton>
         <UButton btn="outline-dark dark:outline-white" to="/dashboard/lists">
           <UIcon name="i-ph-bookmark" />
           Manage Lists
@@ -65,9 +61,6 @@
         <div class="space-y-4">
           <div v-if="recentSubmissions.length === 0">
             <p class="text-gray-500 dark:text-gray-400">No submissions yet</p>
-            <UButton btn="solid-dark dark:solid-white" class="mt-4" @click="showSubmitModal = true">
-              Submit Your First Quote
-            </UButton>
           </div>
 
           <div v-for="quote in recentSubmissions" :key="quote.id" class="border-l-4 border-gray-200 dark:border-gray-700 pl-4">
@@ -127,9 +120,6 @@
         </div>
       </UCard>
     </div>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" @submitted="refreshData" />
   </div>
 </template>
 
@@ -140,15 +130,12 @@ definePageMeta({
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'Dashboard - Verbatims'
 })
 
 const { user } = useUserSession()
 
-// Data
-const showSubmitModal = ref(false)
 const userStats = ref({
   submitted: 0,
   approved: 0,
@@ -159,7 +146,6 @@ const userStats = ref({
 const recentSubmissions = ref<any[]>([])
 const recentCollections = ref<any[]>([])
 
-// Load dashboard data
 const loadDashboardData = async () => {
   try {
     const [statsData, submissionsData, collectionsData] = await Promise.all([

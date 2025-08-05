@@ -186,7 +186,6 @@
           <p class="text-gray-500 dark:text-gray-400 mb-6">
             Be the first to submit a quote from {{ reference.name }}!
           </p>
-          <UButton @click="openSubmitModal">Submit Quote</UButton>
         </div>
 
         <!-- Load More -->
@@ -218,9 +217,6 @@
         </UButton>
       </div>
     </div>
-
-    <!-- Submit Quote Modal -->
-    <SubmitQuoteDialog v-model="showSubmitModal" :prefill-reference="reference" @submitted="refreshQuotes" />
   </div>
 </template>
 
@@ -256,7 +252,6 @@ const loadingMoreQuotes = ref(false)
 const hasMoreQuotes = ref(true)
 const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
-const showSubmitModal = ref(false)
 
 const isMetaBadgeOpen = ref(false)
 
@@ -424,10 +419,6 @@ const getTypeColor = (type) => {
 
 const formatType = (type) => {
   return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
-
-const openSubmitModal = () => {
-  showSubmitModal.value = true
 }
 
 // Refresh quotes after submission
