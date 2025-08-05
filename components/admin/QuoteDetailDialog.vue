@@ -1,0 +1,123 @@
+<template>
+  <UDialog v-model:open="isOpen" :ui="{ width: 'max-w-2xl' }">
+    <div v-if="quote" class="p-6">
+      <!-- Quote Content -->
+      <blockquote class="text-size-6 font-500 text-gray-900 dark:text-white leading-relaxed">
+        {{ quote.name }}
+      </blockquote>
+
+      <!-- Author & Reference -->
+      <div class="mt-12 flex flex-col gap-3 mb-6">
+        <div v-if="quote.author" class="flex items-center gap-2">
+          <UIcon name="i-ph-user" class="w-4 h-4 text-gray-500" />
+          <span class="text-sm text-gray-900 dark:text-white">{{ quote.author.name }}</span>
+          <UBadge v-if="quote.author.is_fictional" color="purple" variant="subtle" size="xs">
+            Fictional
+          </UBadge>
+        </div>
+
+        <div v-if="quote.reference" class="flex items-center gap-2">
+          <UIcon name="i-ph-book" class="w-4 h-4 text-gray-500" />
+          <span class="text-sm text-gray-900 dark:text-white">{{ quote.reference.name }}</span>
+        </div>
+
+        <div v-if="quote.language" class="flex items-center gap-2">
+          <UIcon name="i-ph-globe" class="w-4 h-4 text-gray-500" />
+          <span class="text-sm text-gray-900 dark:text-white">{{ quote.language }}</span>
+        </div>
+      </div>
+
+      <!-- Metadata Accordion -->
+      <UAccordion :items="accordionItems" class="mb-6">
+        <template #content="{ item }">
+          <div class="space-y-3 text-sm p-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Created by</span>
+                <div class="mt-1">
+                  <div class="text-xs text-gray-500 dark:text-blue" title="Email">{{ quote.user?.email }}</div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-900 dark:text-white" title="Username">{{ quote.user?.name }}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Status</span>
+                <div class="mt-1">
+                  <UBadge color="gray" variant="subtle" size="xs">
+                    {{ quote.status || 'Draft' }}
+                  </UBadge>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Created at:</span>
+                <div class="text-gray-900 dark:text-white mt-1">{{ formatDateTime(quote.created_at) }}</div>
+              </div>
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Updated at:</span>
+                <div class="text-gray-900 dark:text-white mt-1">{{ formatDateTime(quote.updated_at) }}</div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </UAccordion>
+
+      <!-- Actions -->
+      <div class="mt-6 flex justify-end gap-2">
+        <UButton btn="soft-blue" @click="$emit('edit', quote)">Edit</UButton>
+        <UButton btn="ghost" @click="closeDialog">Close</UButton>
+      </div>
+    </div>
+  </UDialog>
+</template>
+
+<script setup lang="ts">
+import type { AdminQuote } from '~/types'
+
+interface Props {
+  quote: AdminQuote | null
+  open: boolean
+}
+
+interface Emits {
+  (e: 'update:open', value: boolean): void
+  (e: 'edit', quote: AdminQuote): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+const isOpen = computed({
+  get: () => props.open,
+  set: (value: boolean) => emit('update:open', value)
+})
+
+const closeDialog = () => {
+  emit('update:open', false)
+}
+
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString()
+}
+
+const formatDateTime = (dateString: string | null) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleString()
+}
+
+const accordionItems = computed(() => {
+  if (!props.quote) return []
+  
+  return [
+    {
+      label: 'Metadata',
+      defaultOpen: false,
+      slot: 'metadata',
+      content: props.quote.status || 'Draft',
+    }
+  ]
+})
+</script>

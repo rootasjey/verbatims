@@ -1,9 +1,9 @@
 import { CreatedQuoteResult } from "~/types"
+import { transformQuotes } from '~/server/utils/transformQuotes'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication and admin privileges
-    const session = await getUserSession(event)
+    const session = await requireUserSession(event)
     if (!session.user) {
       throw createError({
         statusCode: 401,
@@ -87,15 +87,7 @@ export default defineEventHandler(async (event) => {
 
     const total = Number(totalResult?.total) || 0
     const hasMore = offset + quotes.length < total
-
-    // Process quotes data
-    const processedQuotes = quotes.map((quote: CreatedQuoteResult) => ({
-      ...quote,
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-        name,
-        color: quote.tag_colors?.split(',')[index] || 'gray'
-      })) : []
-    }))
+    const processedQuotes = transformQuotes(quotes)
     
     return {
       success: true,

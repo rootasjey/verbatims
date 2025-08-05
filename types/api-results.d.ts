@@ -3,7 +3,7 @@
  * Represents database query results with JOIN operations and computed fields
  */
 
-import type { Quote, QuoteLanguage } from './index';
+import type { Quote, QuoteLanguage, QuoteStatus } from './index';
 
 /**
  * Database result type for quote creation queries
@@ -29,7 +29,7 @@ export interface CreatedQuoteResult {
   user_id: number;
   
   /** Quote moderation status */
-  status: string;
+  status: QuoteStatus;
 
   /** Moderator ID (nullable) */
   moderator_id: number | null;
@@ -71,7 +71,7 @@ export interface CreatedQuoteResult {
   reference_type?: string | null;
   
   /** User name from JOIN with users table */
-  user_name?: string | null;
+  user_name?: string;
 
   /** Moderator name from JOIN with users table */
   moderator_name?: string | null;

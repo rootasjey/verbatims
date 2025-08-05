@@ -79,9 +79,11 @@ export interface QuoteWithRelations extends Quote {
 
 // Extended interface for admin quotes with additional fields
 interface AdminQuote extends QuoteWithRelations {
-  user_name?: string
-  user_email?: string
-  user_avatar?: string
+  user?: {
+    name: string;
+    email: string;
+    avatar?: string;
+  };
 }
 
 /**

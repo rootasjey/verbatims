@@ -1,3 +1,5 @@
+import { transformQuotes } from '~/server/utils/transformQuotes'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
@@ -86,37 +88,7 @@ export default defineEventHandler(async (event) => {
     ])
 
     const quotes = quotesResult.results || []
-
-    // Transform the results
-    const transformedQuotes = quotes.map((quote: any) => ({
-      id: quote.id,
-      name: quote.name,
-      language: quote.language,
-      status: quote.status,
-      views_count: quote.views_count,
-      likes_count: quote.likes_count,
-      shares_count: quote.shares_count,
-      is_featured: quote.is_featured,
-      created_at: quote.created_at,
-      updated_at: quote.updated_at,
-      author: quote.author_id ? {
-        id: quote.author_id,
-        name: quote.author_name,
-        is_fictional: quote.author_is_fictional
-      } : null,
-      reference: quote.reference_id ? {
-        id: quote.reference_id,
-        name: quote.reference_name,
-        type: quote.reference_type
-      } : null,
-      user: {
-        name: quote.user_name
-      },
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-        name,
-        color: quote.tag_colors.split(',')[index]
-      })) : []
-    }))
+    const transformedQuotes = transformQuotes(quotes)
 
     const total = Number(countResult?.total) || 0
     const totalPages = Math.ceil(total / limit)

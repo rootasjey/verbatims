@@ -118,9 +118,9 @@
                   {{ cell.row.original.name }}
                 </blockquote>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span v-if="cell.row.original.author_name">{{ cell.row.original.author_name }}</span>
-                  <span v-if="cell.row.original.author_name && cell.row.original.reference_name">•</span>
-                  <span v-if="cell.row.original.reference_name">{{ cell.row.original.reference_name }}</span>
+                  <span v-if="cell.row.original.author?.name">{{ cell.row.original.author.name }}</span>
+                  <span v-if="cell.row.original.author?.name && cell.row.original.reference?.name">•</span>
+                  <span v-if="cell.row.original.reference?.name">{{ cell.row.original.reference.name }}</span>
                 </div>
               </div>
             </template>
@@ -129,17 +129,17 @@
             <template #user-cell="{ cell }">
               <div class="flex items-center space-x-2">
                 <UAvatar
-                  :src="cell.row.original.user_avatar"
-                  :alt="cell.row.original.user_name"
+                  :src="cell.row.original.user?.avatar"
+                  :alt="cell.row.original.user?.name"
                   size="xs"
                   :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
                 />
                 <div>
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ cell.row.original.user_name }}
+                    {{ cell.row.original.user?.name }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ cell.row.original.user_email }}
+                    {{ cell.row.original.user?.email }}
                   </p>
                 </div>
               </div>
@@ -196,6 +196,12 @@
         </div>
       </div>
     </div>
+
+    <AdminQuoteDetailDialog 
+      v-model:open="showQuoteDialog" 
+      :quote="selectedQuote"
+      @edit="editQuote"
+    />
   </div>
 </template>
 
@@ -211,6 +217,9 @@ definePageMeta({
 useHead({
   title: 'Draft Quotes - Admin - Verbatims'
 })
+
+const selectedQuote = ref<AdminQuote | null>(null)
+const showQuoteDialog = ref(false)
 
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
@@ -240,7 +249,7 @@ const filteredQuotes = computed(() => {
       quote.name.toLowerCase().includes(query) ||
       quote.author?.name?.toLowerCase().includes(query) ||
       quote.reference?.name?.toLowerCase().includes(query) ||
-      quote.user_name?.toLowerCase().includes(query)
+      quote.user?.name?.toLowerCase().includes(query)
     )
   }
 
@@ -344,17 +353,15 @@ const loadQuotes = async () => {
       }
     })
     
-    quotes.value = (response.data || []).map((q: any) => ({
-      ...q,
-      user_name: q.user_name ?? '',
-      user_email: q.user_email ?? '',
-      user_avatar: q.user_avatar ?? ''
-    }))
-    
+    quotes.value = response.data || []    
     totalQuotes.value = response.pagination?.total || 0
   } catch (error) {
     console.error('Failed to load draft quotes:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      toast: 'error',
+      title: 'Error Loading Draft Quotes',
+      description: 'Failed to load draft quotes. Please try again later.'
+    })
   } finally {
     loading.value = false
   }
@@ -370,28 +377,28 @@ const getQuoteActions = (quote: AdminQuote) => [
   {
     label: 'View Details',
     leading: 'i-ph-eye',
-    click: () => viewQuote(quote)
+    onclick: () => viewQuote(quote)
   },
   {
     label: 'Edit Quote',
     leading: 'i-ph-pencil',
-    click: () => editQuote(quote)
+    onclick: () => editQuote(quote)
   },
   {},
   {
     label: 'Delete Draft',
     leading: 'i-ph-trash',
-    click: () => deleteDraft(quote)
+    onclick: () => deleteDraft(quote)
   }
 ]
 
 const viewQuote = (quote: AdminQuote) => {
-  // TODO: Open quote detail modal
-  console.log('View quote:', quote.id)
+  selectedQuote.value = quote
+  showQuoteDialog.value = true
 }
 
 const editQuote = (quote: AdminQuote) => {
-  // TODO: Open quote edit modal
+  // TODO: Open quote edit dialog
   console.log('Edit quote:', quote.id)
 }
 
