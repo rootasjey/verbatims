@@ -1,11 +1,11 @@
-import { transformQuotes } from '~/server/utils/transformQuotes'
+import { transformQuotes } from '~/server/utils/transform-quotes'
+import { DatabaseQuoteWithRelations } from '~/types'
 
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
     const db = hubDatabase()
 
-    // Parse query parameters
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100) // Max 100 per page
     const status = query.status as string || 'approved'
@@ -18,7 +18,6 @@ export default defineEventHandler(async (event) => {
 
     const offset = (page - 1) * limit
 
-    // Build the WHERE clause
     const whereConditions = ['q.status = ?']
     const params = [status]
 
@@ -49,7 +48,6 @@ export default defineEventHandler(async (event) => {
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at'
     const sortDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
 
-    // Main query with joins
     const quotesQuery = `
       SELECT
         q.*,
@@ -72,7 +70,6 @@ export default defineEventHandler(async (event) => {
       LIMIT ? OFFSET ?
     `
 
-    // Count query for pagination
     const countQuery = `
       SELECT COUNT(DISTINCT q.id) as total
       FROM quotes q
@@ -81,13 +78,12 @@ export default defineEventHandler(async (event) => {
       WHERE ${whereClause}
     `
 
-    // Execute queries
     const [quotesResult, countResult] = await Promise.all([
       db.prepare(quotesQuery).bind(...params, limit, offset).all(),
       db.prepare(countQuery).bind(...params).first()
     ])
 
-    const quotes = quotesResult.results || []
+    const quotes = (quotesResult.results || []) as unknown as DatabaseQuoteWithRelations[]
     const transformedQuotes = transformQuotes(quotes)
 
     const total = Number(countResult?.total) || 0

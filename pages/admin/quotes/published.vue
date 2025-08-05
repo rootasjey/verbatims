@@ -1,8 +1,6 @@
 <template>
   <div class="frame flex flex-col h-full">
-    <!-- Fixed Header Section -->
     <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
-      <!-- Header -->
       <div class="mb-6">
         <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
           Published Quotes
@@ -50,7 +48,6 @@
         </div>
       </div>
 
-      <!-- Stats Summary -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
@@ -84,7 +81,6 @@
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
-      <!-- Loading State -->
       <div v-if="loading" class="flex-1 flex items-center justify-center">
         <div class="text-center">
           <UIcon name="i-ph-spinner" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
@@ -199,13 +195,12 @@
             <!-- Published Date Column -->
             <template #published-cell="{ cell }">
               <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ formatDate(cell.row.original.moderated_at || cell.row.original.created_at) }}
+                {{ formatRelativeTime(cell.row.original.moderated_at || cell.row.original.created_at) }}
               </span>
             </template>
           </UTable>
         </div>
 
-        <!-- Pagination -->
         <div class="flex-shrink-0 flex items-center justify-between p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
@@ -225,13 +220,10 @@
 </template>
 
 <script setup lang="ts">
-import type { CreatedQuoteResult } from '~/types/api-results'
 import type { LanguageOption } from '~/stores/language'
+import type { AdminQuote } from '~/types'
+import { formatRelativeTime } from '~/utils/time-formatter'
 
-// Use the CreatedQuoteResult type which includes all the flattened fields from JOINs
-type AdminQuote = CreatedQuoteResult
-
-// Use admin layout
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -241,29 +233,24 @@ useHead({
   title: 'Published Quotes - Admin - Verbatims'
 })
 
-// Data
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
 const searchQuery = ref('')
-const selectedLanguage = ref({ label: 'All Languages', value: '' })
 const selectedSort = ref({ label: 'Most Recent', value: 'newest' })
 const currentPage = ref(1)
-const pageSize = ref(50) // Admin default: 50 items per page
+const pageSize = ref(50)
 const totalQuotes = ref(0)
 
-// Language options
 const languageStore = useLanguageStore()
-const languageOptions = computed(() => [
-  { label: 'All Languages', value: '' },
-  ...languageStore.availableLanguages
-    .filter(lang => lang.value !== 'all') // Exclude 'all' since we have our own "All Languages" option
-    .map((lang: LanguageOption) => ({
-      label: lang.display,
-      value: lang.value
-    }))
-])
+const languageOptions = computed(() => 
+  languageStore.availableLanguages.map((lang: LanguageOption) => ({
+    label: lang.display,
+    value: lang.value === 'all' ? '' : lang.value // Map 'all' to empty string for filter logic
+  }))
+)
 
-// Sort options
+const selectedLanguage = ref({ label: 'All Languages', value: '' })
+
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
   { label: 'Oldest First', value: 'oldest' },
@@ -271,7 +258,6 @@ const sortOptions = [
   { label: 'Most Viewed', value: 'views' }
 ]
 
-// Computed
 const totalPages = computed(() => Math.ceil(totalQuotes.value / pageSize.value))
 
 const filteredQuotes = computed(() => {
@@ -281,9 +267,9 @@ const filteredQuotes = computed(() => {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(quote =>
       quote.name.toLowerCase().includes(query) ||
-      quote.author_name?.toLowerCase().includes(query) ||
-      quote.reference_name?.toLowerCase().includes(query) ||
-      quote.user_name?.toLowerCase().includes(query)
+      quote.author?.name?.toLowerCase().includes(query) ||
+      quote.reference?.name?.toLowerCase().includes(query) ||
+      quote.user?.name?.toLowerCase().includes(query)
     )
   }
 
@@ -320,7 +306,6 @@ const totalLikes = computed(() => {
   return quotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
 })
 
-// Table columns configuration
 const tableColumns = [
   {
     header: '',
@@ -412,7 +397,6 @@ const tableColumns = [
   }
 ]
 
-// Methods
 const loadQuotes = async () => {
   try {
     loading.value = true
@@ -430,7 +414,6 @@ const loadQuotes = async () => {
     totalQuotes.value = response.pagination?.total || 0
   } catch (error) {
     console.error('Failed to load published quotes:', error)
-    // TODO: Show error toast
     useToast().toast({
       title: 'Error',
       description: 'Failed to load published quotes',
@@ -443,7 +426,7 @@ const loadQuotes = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedLanguage.value = { label: 'All Languages', value: '' }
+  selectedLanguage.value = languageOptions.value[0] // Use the first option from the store (All Languages)
   selectedSort.value = { label: 'Most Recent', value: 'newest' }
   currentPage.value = 1
 }
@@ -481,18 +464,15 @@ const unpublishQuote = async (quote: AdminQuote) => {
   console.log('Unpublish quote:', quote.id)
 }
 
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString()
-}
-
-// Watchers
 watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
   loadQuotes()
 }, { debounce: 300 })
 
-// Load data on mount
 onMounted(() => {
+  // Initialize selectedLanguage with the first option from the store
+  if (languageOptions.value.length > 0) {
+    selectedLanguage.value = languageOptions.value[0]
+  }
   loadQuotes()
 })
 </script>

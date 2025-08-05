@@ -162,7 +162,7 @@
             <!-- Date Column -->
             <template #date-cell="{ cell }">
               <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ formatDate(cell.row.original.created_at) }}
+                {{ formatRelativeTime(cell.row.original.created_at) }}
               </span>
             </template>
 
@@ -208,6 +208,7 @@
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
 import type { AdminQuote } from '~/types'
+import { formatRelativeTime } from '~/utils/time-formatter'
 
 definePageMeta({
   layout: 'admin',
@@ -405,11 +406,6 @@ const editQuote = (quote: AdminQuote) => {
 const deleteDraft = async (quote: AdminQuote) => {
   // TODO: Implement delete draft functionality
   console.log('Delete draft:', quote.id)
-}
-
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString()
 }
 
 watchDebounced([currentPage, searchQuery, selectedLanguage], () => {

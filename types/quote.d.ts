@@ -42,7 +42,7 @@ export interface Quote {
   status: QuoteStatus;
   
   /** ID of the moderator who reviewed this quote */
-  moderator_id: number | null;
+  moderator_id?: number;
   
   /** Timestamp when quote was moderated */
   moderated_at: string | null;
@@ -73,17 +73,26 @@ export interface Quote {
  * Quote with populated author and reference data
  */
 export interface QuoteWithRelations extends Quote {
-  author?: Author | null;
-  reference?: QuoteReference | null;
+  author?: Author;
+  reference?: QuoteReference;
 }
 
-// Extended interface for admin quotes with additional fields
-interface AdminQuote extends QuoteWithRelations {
-  user?: {
+/**
+ * Extended interface for admin quotes with additional fields
+ */
+export interface AdminQuote extends QuoteWithRelations {
+  author?: Partial<Author>;
+  reference?: Partial<QuoteReference>;
+  user: {
     name: string;
-    email: string;
-    avatar?: string;
+    email?: string;
+    avatar_url?: string;
   };
+  moderator: {
+    id?: number;
+    name: string;
+  } | undefined;
+  tags?: Array<{ id: number; name: string; color: string }>;
 }
 
 /**
@@ -92,8 +101,8 @@ interface AdminQuote extends QuoteWithRelations {
 export interface CreateQuoteData {
   name: string;
   language?: QuoteLanguage;
-  author_id?: number | null;
-  reference_id?: number | null;
+  author_id?: number;
+  reference_id?: number;
   user_id: number;
   status?: QuoteStatus;
 }
@@ -133,9 +142,42 @@ export interface QuoteStats {
  * Quote with additional computed fields
  */
 export interface QuoteWithMetadata extends QuoteWithRelations {
+  author?: Partial<Author>;
+  reference?: Partial<QuoteReference>;
   is_liked?: boolean;
   is_in_collection?: boolean;
   tags?: Array<{ id: number; name: string; color: string }>;
+}
+
+/**
+ * Database quote result with joined data from related tables
+ */
+export interface DatabaseQuoteWithRelations extends Quote {
+  // Joined author fields
+  author_name?: string;
+  author_is_fictional?: boolean;
+  author_image_url?: string;
+  
+  // Joined reference fields
+  reference_name?: string;
+  reference_type?: string;
+
+  // Joined user fields
+  user_name?: string;
+  user_email?: string;
+  user_avatar?: string;
+  user_avatar_url?: string;
+  
+  // Joined tag fields (comma-separated)
+  tag_names?: string;
+  tag_colors?: string;
+}
+
+/**
+ * Admin database quote result with additional moderation fields
+ */
+export interface DatabaseAdminQuote extends DatabaseQuoteWithRelations {
+  moderator_name?: string | null;
 }
 
 /**

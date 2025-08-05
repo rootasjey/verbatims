@@ -1,5 +1,5 @@
-import { CreatedQuoteResult } from "~/types"
-import { transformQuotes } from '~/server/utils/transformQuotes'
+import { DatabaseAdminQuote } from "~/types"
+import { transformAdminQuotes } from '~/server/utils/transform-quotes'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -28,7 +28,6 @@ export default defineEventHandler(async (event) => {
     
     const db = hubDatabase()
     
-    // Build WHERE conditions
     const conditions = ['q.status = ?']
     const bindings = [status]
     
@@ -44,7 +43,6 @@ export default defineEventHandler(async (event) => {
     
     const whereClause = `WHERE ${conditions.join(' AND ')}`
     
-    // Get quotes with all related data
     const quotesResult = await db.prepare(`
       SELECT
         q.*,
@@ -72,7 +70,7 @@ export default defineEventHandler(async (event) => {
       LIMIT ? OFFSET ?
     `).bind(...bindings, limit, offset).all()
 
-    const quotes = (quotesResult?.results || []) as unknown as CreatedQuoteResult[]
+    const quotes = (quotesResult?.results || []) as unknown as DatabaseAdminQuote[]
 
     // Get total count (use same bindings as main query but without limit/offset)
     const countBindings = [...bindings] // Copy the bindings array
@@ -87,7 +85,7 @@ export default defineEventHandler(async (event) => {
 
     const total = Number(totalResult?.total) || 0
     const hasMore = offset + quotes.length < total
-    const processedQuotes = transformQuotes(quotes)
+    const processedQuotes = transformAdminQuotes(quotes)
     
     return {
       success: true,

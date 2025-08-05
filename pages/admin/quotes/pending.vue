@@ -234,7 +234,7 @@
             <!-- Date Column -->
             <template #date-cell="{ cell }">
               <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ formatDate(cell.row.original.created_at) }}
+                {{ formatRelativeTime(cell.row.original.created_at) }}
               </span>
             </template>
 
@@ -369,6 +369,8 @@
 </template>
 
 <script setup>
+import { formatRelativeTime } from '~/utils/time-formatter'
+
 // Use admin layout
 definePageMeta({
   layout: 'admin',
@@ -746,11 +748,6 @@ const getQuoteActions = (quote) => {
   }
 
   return actions
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString()
 }
 
 const viewQuote = (quote) => {

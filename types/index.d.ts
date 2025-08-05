@@ -39,6 +39,8 @@ export type {
   QuoteFilters,
   QuotePagination,
   AdminQuote,
+  DatabaseQuoteWithRelations,
+  DatabaseAdminQuote,
 } from './quote';
 
 // Tag types
