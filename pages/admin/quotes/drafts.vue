@@ -203,6 +203,34 @@
       @edit="editQuote"
     />
   </div>
+
+  <!-- Delete Confirmation Modal -->
+  <UDialog v-model:open="showDeleteModal">
+    <UCard>
+      <template #header>
+        <h3 class="text-lg font-semibold">Delete Draft</h3>
+      </template>
+      
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        Are you sure you want to delete this draft? This action cannot be undone.
+      </p>
+      
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <UButton btn="outline" @click="showDeleteModal = false">
+            Cancel
+          </UButton>
+          <UButton
+            color="red"
+            :loading="deleting"
+            @click="deleteDraft"
+          >
+            Delete
+          </UButton>
+        </div>
+      </template>
+    </UCard>
+  </UDialog>
 </template>
 
 <script setup lang="ts">
@@ -229,6 +257,8 @@ const selectedLanguage = ref('')
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
+const showDeleteModal = ref(false)
+const deleting = ref(false)
 
 const { availableLanguages } = useLanguageStore()
 
@@ -389,7 +419,7 @@ const getQuoteActions = (quote: AdminQuote) => [
   {
     label: 'Delete Draft',
     leading: 'i-ph-trash',
-    onclick: () => deleteDraft(quote)
+    onclick: () => confirmDelete(quote)
   }
 ]
 
@@ -403,9 +433,40 @@ const editQuote = (quote: AdminQuote) => {
   console.log('Edit quote:', quote.id)
 }
 
-const deleteDraft = async (quote: AdminQuote) => {
-  // TODO: Implement delete draft functionality
-  console.log('Delete draft:', quote.id)
+const confirmDelete = (quote: AdminQuote) => {
+  selectedQuote.value = quote
+  showDeleteModal.value = true
+}
+
+const deleteDraft = async () => {
+  if (!selectedQuote.value) return
+
+  deleting.value = true
+  try {
+    await $fetch(`/api/quotes/${selectedQuote.value.id}`, {
+      method: 'DELETE'
+    } as any)
+
+    // Remove from list
+    quotes.value = quotes.value.filter(q => q.id !== selectedQuote.value?.id)
+    showDeleteModal.value = false
+    selectedQuote.value = null
+    
+    useToast().toast({
+      toast: 'success',
+      title: 'Draft Deleted',
+      description: 'The draft has been successfully deleted.'
+    })
+  } catch (error) {
+    console.error('Failed to delete draft:', error)
+    useToast().toast({
+      toast: 'error',
+      title: 'Error Deleting Draft',
+      description: 'Failed to delete the draft. Please try again.'
+    })
+  } finally {
+    deleting.value = false
+  }
 }
 
 watchDebounced([currentPage, searchQuery, selectedLanguage], () => {
