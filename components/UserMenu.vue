@@ -1,19 +1,16 @@
 <template>
-  <UDropdown :items="menuItems" :popper="{ placement: 'bottom-end' }">
+  <UDropdownMenu :items="menuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
     <UButton
-      variant="ghost"
-      size="sm"
-      class="flex items-center space-x-2"
+      btn="text"
+      size="xs"
     >
       <UAvatar
         :src="user.avatar_url"
         :alt="user.name"
-        size="sm"
+        size="xs"
       />
-      <span class="hidden sm:block text-sm font-medium">{{ user.name }}</span>
-      <UIcon name="i-ph-caret-down" class="w-4 h-4" />
     </UButton>
-  </UDropdown>
+  </UDropdownMenu>
 </template>
 
 <script setup>
@@ -27,41 +24,50 @@ const props = defineProps({
 const { clear } = useUserSession()
 
 const menuItems = computed(() => [
-  [{
+  {
+    label: 'Home',
+    leading: 'i-ph-house',
+    onclick: () => navigateTo('/')
+  },
+  {
     label: 'Dashboard',
-    icon: 'i-ph-house',
-    to: '/dashboard'
-  }, {
+    leading: 'i-ph-square-split-vertical-duotone',
+    onclick: () => navigateTo('/dashboard')
+  },
+  {
     label: 'My Collections',
-    icon: 'i-ph-bookmark',
-    to: '/dashboard/collections'
-  }, {
+    leading: 'i-ph-bookmark',
+    onclick: () => navigateTo('/dashboard/collections')
+  },
+  {
     label: 'My Submissions',
-    icon: 'i-ph-file-text',
-    to: '/dashboard/submissions'
-  }, {
+    leading: 'i-ph-file-text',
+    onclick: () => navigateTo('/dashboard/my-quotes/pending')
+  },
+  {
     label: 'Liked Quotes',
-    icon: 'i-ph-heart',
-    to: '/dashboard/liked'
-  }],
-  [{
+    leading: 'i-ph-heart',
+    onclick: () => navigateTo('/dashboard/favourites')
+  },
+  {
     label: 'Settings',
-    icon: 'i-ph-gear',
-    to: '/dashboard/settings'
-  }],
+    leading: 'i-ph-gear',
+    onclick: () => navigateTo('/dashboard/settings')
+  },
   // Show admin menu for admins and moderators
-  ...(props.user.role === 'admin' || props.user.role === 'moderator' ? [[{
+  {},
+  ...(props.user.role === 'admin' || props.user.role === 'moderator' ? [{
     label: 'Admin Panel',
-    icon: 'i-ph-shield-check',
-    to: '/admin'
-  }]] : []),
-  [{
+    leading: 'i-ph-shield-check',
+    onclick: () => navigateTo('/admin'),
+  }] : []),
+  {
     label: 'Sign Out',
-    icon: 'i-ph-sign-out',
-    click: async () => {
+    leading: 'i-ph-sign-out',
+    onclick: async () => {
       await clear()
       await navigateTo('/')
     }
-  }]
+  }
 ])
 </script>

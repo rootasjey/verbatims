@@ -18,7 +18,7 @@
           <UInput
             v-model="searchQuery"
             placeholder="Search quotes, authors, or users..."
-            icon="i-ph-magnifying-glass"
+            leading="i-ph-magnifying-glass"
             size="md"
             :loading="loading"
           />
@@ -34,7 +34,7 @@
             item-value="label"
           />
           <UButton
-            btn="outline"
+            btn="outline-gray"
             size="sm"
             @click="resetFilters"
           >

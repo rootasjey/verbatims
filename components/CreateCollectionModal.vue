@@ -1,9 +1,9 @@
 <template>
   <UDialog v-model:open="isOpen">
-    <UCard>
-      <template #header>
+    <div>
+      <div class="mb-6">
         <h3 class="text-lg font-semibold">Create New Collection</h3>
-      </template>
+      </div>
 
       <UForm
         :schema="schema"
@@ -13,6 +13,7 @@
       >
         <UFormGroup label="Collection Name" name="name" required>
           <UInput
+            class="mt-2"
             v-model="state.name"
             placeholder="Enter collection name"
             :disabled="loading"
@@ -21,6 +22,7 @@
 
         <UFormGroup label="Description" name="description">
           <UInput
+            class="mt-2"
             type="textarea"
             v-model="state.description"
             placeholder="Optional description for your collection"
@@ -38,25 +40,26 @@
           />
         </UFormGroup>
 
-        <template #footer>
+        <div>
           <div class="flex justify-end gap-3">
             <UButton
-              variant="ghost"
+              btn="ghost"
               @click="closeModal"
               :disabled="loading"
             >
               Cancel
             </UButton>
             <UButton
+              btn="soft-blue"
               type="submit"
               :loading="loading"
             >
               Create Collection
             </UButton>
           </div>
-        </template>
+        </div>
       </UForm>
-    </UCard>
+    </div>
   </UDialog>
 </template>
 

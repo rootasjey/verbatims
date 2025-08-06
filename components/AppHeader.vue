@@ -41,6 +41,8 @@
         References
       </NuxtLink>
       <span>About</span>
+
+      <UserMenu v-if="user" :user="user" />
     </div>
   </nav>
   <SearchBox 

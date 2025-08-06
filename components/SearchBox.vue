@@ -2,7 +2,7 @@
   <UDialog 
     v-if="isOpen" 
     v-model:open="isOpen" 
-    :una="{ dialogContent: 'sm:max-w-2xl' }"
+    :una="{ dialogContent: 'sm:max-w-md md:max-w-lg lg:max-w-xl' }"
     :ui="{ 
       width: 'sm:max-w-2xl',
       height: 'max-h-[80vh]'
@@ -11,7 +11,7 @@
       btn: 'ghost-gray',
     }"
   >
-    <UCard>
+    <UCard class="border-none m-0 p-0">
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">Search Quotes</h3>
@@ -19,22 +19,22 @@
       </template>
 
       <div class="space-y-4">
-        <!-- Search Input -->
         <UInput
           v-model="searchQuery"
           placeholder="Search quotes, authors, or references..."
-          icon
-          label="i-ph-magnifying-glass"
-          size="lg"
+          leading="i-ph-magnifying-glass"
+          size="md"
+          autofocus
           @input="debouncedSearch"
         />
 
-        <!-- Filters -->
-        <div class="flex flex-wrap gap-2">
+        <div class="flex gap-2">
           <USelect
             v-model="selectedLanguage"
             :items="languageOptions"
             placeholder="Language"
+            item-key="label"
+            value-key="label"
             size="sm"
           />
           <USelect
@@ -195,7 +195,6 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-// Search state
 const searchQuery = ref('')
 const searchResults = ref({ quotes: [], authors: [], references: [], total: 0 })
 const loading = ref(false)
@@ -203,24 +202,18 @@ const selectedIndex = ref(-1)
 const resultRefs = ref({})
 const resultsContainer = ref(null)
 
-// Filter state
 const selectedLanguage = ref(null)
 const selectedAuthor = ref(null)
 const selectedReference = ref(null)
 
-// Options for filters
 const languageOptions = [
   { label: 'English', value: 'en' },
   { label: 'French', value: 'fr' },
-  { label: 'Spanish', value: 'es' },
-  { label: 'German', value: 'de' },
-  { label: 'Italian', value: 'it' }
 ]
 
 const authorOptions = ref([])
 const referenceOptions = ref([])
 
-// Computed properties
 const totalResults = computed(() => searchResults.value.total || 0)
 const allResults = computed(() => {
   const results = []
@@ -242,7 +235,6 @@ const allResults = computed(() => {
   return results
 })
 
-// Helper methods
 const setResultRef = (el, section, index) => {
   if (el) {
     if (!resultRefs.value[section]) {
@@ -287,7 +279,6 @@ const highlightText = (text) => {
   return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">$1</mark>')
 }
 
-// Debounced search function
 const debouncedSearch = useDebounceFn(async () => {
   if (!searchQuery.value.trim()) {
     searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
@@ -317,7 +308,6 @@ const debouncedSearch = useDebounceFn(async () => {
   }
 }, 300)
 
-// Load filter options
 const loadFilterOptions = async () => {
   try {
     const [authorsData, referencesData] = await Promise.all([
@@ -339,7 +329,6 @@ const loadFilterOptions = async () => {
   }
 }
 
-// Select result and navigate
 const selectResult = (result, type) => {
   isOpen.value = false
 
@@ -380,7 +369,6 @@ const scrollToSelected = () => {
   }
 }
 
-// Keyboard shortcuts
 const handleKeydown = (event) => {
   if (event.key === 'Escape') {
     isOpen.value = false
@@ -412,7 +400,6 @@ const handleKeydown = (event) => {
   }
 }
 
-// Watch for modal open/close
 watch(isOpen, (newValue) => {
   if (newValue) {
     loadFilterOptions()
@@ -426,7 +413,6 @@ watch(isOpen, (newValue) => {
     })
   } else {
     document.removeEventListener('keydown', handleKeydown)
-    // Reset search state
     searchQuery.value = ''
     searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
     selectedIndex.value = -1
@@ -437,7 +423,6 @@ watch(isOpen, (newValue) => {
   }
 })
 
-// Cleanup on unmount
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })

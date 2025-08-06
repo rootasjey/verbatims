@@ -16,7 +16,7 @@
           <UInput
             v-model="searchQuery"
             placeholder="Search quotes, authors, or references..."
-            icon="i-ph-magnifying-glass"
+            leading="i-ph-magnifying-glass"
             size="md"
             :loading="loading"
             :trailing="searchQuery ? 'i-ph-x' : undefined"
@@ -43,7 +43,7 @@
             size="sm"
             class="w-40"
             item-key="label"
-            value-key="value"
+            value-key="label"
           />
         </div>
       </div>

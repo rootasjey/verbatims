@@ -20,7 +20,7 @@
         <UInput
           v-model="searchQuery"
           placeholder="Search your drafts..."
-          icon="i-ph-magnifying-glass"
+          leading="i-ph-magnifying-glass"
           size="md"
         />
       </div>

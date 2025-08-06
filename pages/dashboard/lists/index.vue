@@ -12,10 +12,10 @@
           </p>
         </div>
         <UButton
-          icon
-          label="i-ph-plus"
+          btn="solid-dark dark:solid-white"
           @click="showCreateModal = true"
         >
+          <UIcon name="i-ph-plus" />
           Create List
         </UButton>
       </div>
@@ -27,7 +27,7 @@
         <UInput
           v-model="searchQuery"
           placeholder="Search your lists..."
-          icon="i-ph-magnifying-glass"
+          leading="i-ph-magnifying-glass"
           size="md"
         />
       </div>
@@ -38,7 +38,7 @@
           placeholder="Filter by visibility"
           size="sm"
           item-key="label"
-          value-key="value"
+          value-key="label"
         />
       </div>
     </div>
@@ -57,7 +57,7 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Create your first list to organize your favorite quotes.' }}
       </p>
-      <UButton v-if="!searchQuery" @click="showCreateModal = true">
+      <UButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
         <UIcon name="i-ph-plus" />
         <span>Create Your First List</span>
       </UButton>
@@ -99,8 +99,8 @@
                 <UDropdownMenu :items="getCollectionActions(collection)">
                   <UButton
                     icon
-                    variant="ghost"
-                    size="sm"
+                    btn="ghost"
+                    size="xs"
                     label="i-ph-dots-three-vertical"
                     @click.stop
                   />
@@ -139,8 +139,9 @@
       <div v-if="hasMore" class="text-center pt-8">
         <UButton
           :loading="loadingMore"
-          variant="outline"
-          size="lg"
+          btn="dark:solid-black"
+          size="md"
+          class="w-full hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
           @click="loadMore"
         >
           Load More
@@ -201,7 +202,6 @@ interface DashboardCollection extends CollectionWithStats {
   views_count?: number
 }
 
-// Use dashboard layout
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
@@ -218,7 +218,7 @@ const loadingMore = ref(false)
 const deleting = ref(false)
 const collections = ref<DashboardCollection[]>([])
 const searchQuery = ref('')
-const visibilityFilter = ref('all')
+const visibilityFilter = ref({ label: 'All Lists', value: 'all' })
 const hasMore = ref(false)
 const currentPage = ref(1)
 
@@ -249,9 +249,9 @@ const filteredCollections = computed(() => {
   }
   
   // Visibility filter
-  if (visibilityFilter.value !== 'all') {
+  if (visibilityFilter.value.value !== 'all') {
     filtered = filtered.filter(collection => 
-      visibilityFilter.value === 'public' ? collection.is_public : !collection.is_public
+      visibilityFilter.value.value === 'public' ? collection.is_public : !collection.is_public
     )
   }
   

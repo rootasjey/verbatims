@@ -14,7 +14,7 @@
     <div class="mb-6 space-y-4">
       <UAlert
         v-if="successMessage"
-        color="green"
+        alert="green"
         variant="soft"
         :title="successMessage"
         :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
@@ -23,7 +23,7 @@
 
       <UAlert
         v-if="errorMessage"
-        color="red"
+        alert="red"
         variant="soft"
         :title="errorMessage"
         :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
@@ -43,14 +43,13 @@
       </template>
 
       <div class="space-y-4">
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="rounded-lg p-2">
           <div class="flex items-start space-x-3">
-            <UIcon name="i-ph-warning-circle" class="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
             <div>
               <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
                 Destructive Operation Warning
               </h3>
-              <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+              <p class="mt-1 mb-6 text-sm text-red-700 dark:text-red-300">
                 This operation will permanently delete ALL data in the database including:
               </p>
               <ul class="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside space-y-1">
@@ -59,7 +58,7 @@
                 <li>All tags, likes, and interaction data</li>
                 <li>All moderation history and reports</li>
               </ul>
-              <p class="mt-2 text-sm font-medium text-red-800 dark:text-red-200">
+              <p class="mt-4 text-sm font-medium text-red-800 dark:text-red-200">
                 This action cannot be undone. Make sure you have a backup if needed.
               </p>
             </div>
@@ -81,8 +80,6 @@
         </div>
       </div>
     </UCard>
-
-
 
     <!-- Reset Confirmation Dialog -->
     <UDialog v-model:open="showResetConfirmation">

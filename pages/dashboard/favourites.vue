@@ -16,7 +16,7 @@
         <UInput
           v-model="searchQuery"
           placeholder="Search your favourites..."
-          icon="i-ph-magnifying-glass"
+          leading="i-ph-magnifying-glass"
           size="md"
         />
       </div>
@@ -27,7 +27,7 @@
           placeholder="Sort by"
           size="sm"
           item-key="label"
-          value-key="value"
+          value-key="label"
         />
       </div>
     </div>
@@ -46,7 +46,7 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Start exploring quotes and like the ones you love.' }}
       </p>
-      <UButton v-if="!searchQuery" to="/">
+      <UButton v-if="!searchQuery" btn="solid-black" to="/">
         <UIcon name="i-ph-magnifying-glass" />
         Discover Quotes
       </UButton>
@@ -75,8 +75,9 @@
       <div v-if="hasMore" class="text-center pt-8">
         <UButton
           :loading="loadingMore"
-          variant="outline"
-          size="lg"
+          btn="dark:solid-black"
+          size="md"
+          class="w-full hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
           @click="loadMore"
         >
           Load More
@@ -120,7 +121,7 @@ const loading = ref(true)
 const loadingMore = ref(false)
 const quotes = ref<LikedQuote[]>([])
 const searchQuery = ref('')
-const sortBy = ref('recent')
+const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const hasMore = ref(false)
 const currentPage = ref(1)
 
@@ -151,7 +152,7 @@ const filteredQuotes = computed(() => {
   }
 
   // Sort
-  switch (sortBy.value) {
+  switch (sortBy.value.value) {
     case 'oldest':
       filtered.sort((a, b) => new Date(a.liked_at).getTime() - new Date(b.liked_at).getTime())
       break

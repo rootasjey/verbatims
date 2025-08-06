@@ -16,7 +16,7 @@
         <UInput
           v-model="searchQuery"
           placeholder="Search pending quotes..."
-          icon="i-ph-magnifying-glass"
+          leading="i-ph-magnifying-glass"
           size="md"
         />
       </div>
@@ -46,7 +46,7 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         {{ searchQuery ? 'Try adjusting your search terms.' : 'Submit some quotes to see them here while they await review.' }}
       </p>
-      <UButton v-if="!searchQuery" to="/dashboard/my-quotes/drafts">
+      <UButton v-if="!searchQuery" btn="solid-black" to="/dashboard/my-quotes/drafts">
         <UIcon name="i-ph-file-dashed" />
         <span>View Drafts</span>
       </UButton>

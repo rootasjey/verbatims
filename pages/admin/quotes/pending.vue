@@ -18,7 +18,7 @@
           <UInput
             v-model="searchQuery"
             placeholder="Search quotes, authors, or users..."
-            icon="i-ph-magnifying-glass"
+            leading="i-ph-magnifying-glass"
             size="md"
             :loading="loading"
             @input="debouncedSearch"
@@ -29,13 +29,15 @@
             v-model="statusFilter"
             :items="statusOptions"
             placeholder="Filter by status"
-            size="md"
+            size="sm"
             class="w-40"
+            item-key="label"
+            value-key="label"
             @change="loadQuotes"
           />
           <UButton
-            btn="outline"
-            size="md"
+            btn="outline-gray"
+            size="sm"
             @click="resetFilters"
           >
             <UIcon name="i-ph-x" />
@@ -244,7 +246,7 @@
                 <UButton
                   icon
                   btn="ghost"
-                  size="sm"
+                  size="xs"
                   label="i-ph-dots-three-vertical"
                 />
               </UDropdownMenu>
@@ -260,8 +262,8 @@
           <div class="flex items-center gap-2">
             <UButton
               v-if="hasMore && !loading"
-              btn="outline"
-              size="sm"
+              btn="dark:solid-black"
+              size="md"
               :loading="loadingMore"
               @click="loadMore"
             >
@@ -272,6 +274,11 @@
       </div>
     </div>
 
+    <AdminQuoteDetailDialog 
+      v-model:open="showQuoteDialog" 
+      :quote="selectedQuote"
+      @edit="editQuote"
+    />
   </div>
 
     <!-- Reject Quote Modal -->
@@ -377,47 +384,42 @@
 <script setup>
 import { formatRelativeTime } from '~/utils/time-formatter'
 
-// Use admin layout
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
 })
 
-// SEO
 useHead({
   title: 'Pending Quotes - Admin - Verbatims'
 })
 
-// Data
 const quotes = ref([])
 const loading = ref(true)
 const loadingMore = ref(false)
 const bulkProcessing = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
-const pageSize = ref(50) // Admin default: 50 items per page
+const pageSize = ref(50)
 const totalQuotes = ref(0)
 const searchQuery = ref('')
-const statusFilter = ref('draft')
+const statusFilter = ref({ label: 'Pending Review', value: 'draft' })
 const selectedQuotes = ref([])
 const processing = ref(new Set())
 
-// Modals
 const showRejectModal = ref(false)
 const showBulkRejectModal = ref(false)
 const showEditQuoteDialog = ref(false)
+const showQuoteDialog = ref(false)
 const selectedQuote = ref(null)
 const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
 
-// Options
 const statusOptions = [
   { label: 'Pending Review', value: 'draft' },
   { label: 'Approved', value: 'approved' },
   { label: 'Rejected', value: 'rejected' }
 ]
 
-// Computed properties
 const pendingCount = computed(() => {
   return quotes.value.filter(q => q.status === 'draft').length
 })
@@ -427,7 +429,6 @@ const uniqueContributors = computed(() => {
   return contributors.size
 })
 
-// Table columns configuration
 const tableColumns = [
   {
     header: '',
@@ -508,7 +509,6 @@ const tableColumns = [
   }
 ]
 
-// Methods
 const loadQuotes = async (reset = true) => {
   try {
     if (reset) {
@@ -522,7 +522,7 @@ const loadQuotes = async (reset = true) => {
     const params = {
       page: currentPage.value,
       limit: pageSize.value,
-      status: statusFilter.value
+      status: statusFilter.value.value
     }
 
     if (searchQuery.value) {
@@ -550,22 +550,19 @@ const loadQuotes = async (reset = true) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  statusFilter.value = 'draft'
+  statusFilter.value = { label: 'Pending Review', value: 'draft' }
   currentPage.value = 1
 }
 
-// Debounced search
 const debouncedSearch = useDebounceFn(() => {
   loadQuotes()
 }, 300)
 
-// Load more quotes
 const loadMore = () => {
   currentPage.value++
   loadQuotes(false)
 }
 
-// Quote selection
 const toggleQuoteSelection = (quoteId) => {
   const index = selectedQuotes.value.indexOf(quoteId)
   if (index > -1) {
@@ -579,7 +576,6 @@ const clearSelection = () => {
   selectedQuotes.value = []
 }
 
-// Individual quote actions
 const approveQuote = async (quote) => {
   try {
     processing.value.add(quote.id)
@@ -598,11 +594,13 @@ const approveQuote = async (quote) => {
         quotes.value[index].status = 'approved'
       }
     }
-    
-    // TODO: Show success toast
   } catch (error) {
     console.error('Failed to approve quote:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      toast: 'error',
+      title: 'Error',
+      description: 'Failed to approve quote'
+    })
   } finally {
     processing.value.delete(quote.id)
   }
@@ -630,17 +628,18 @@ const confirmRejectQuote = async () => {
     onQuoteRejected(response.data)
     showRejectModal.value = false
     rejectionReason.value = ''
-
-    // TODO: Show success toast
   } catch (error) {
     console.error('Failed to reject quote:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      toast: 'error',
+      title: 'Error',
+      description: 'Failed to reject quote'
+    })
   } finally {
     processing.value.delete(selectedQuote.value.id)
   }
 }
 
-// Bulk actions
 const bulkApprove = async () => {
   if (selectedQuotes.value.length === 0) return
   
@@ -660,10 +659,13 @@ const bulkApprove = async () => {
     }
     
     selectedQuotes.value = []
-    // TODO: Show success toast
   } catch (error) {
     console.error('Failed to bulk approve quotes:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      toast: 'error',
+      title: 'Error',
+      description: 'Failed to bulk approve quotes'
+    })
   } finally {
     bulkProcessing.value = false
   }
@@ -686,11 +688,13 @@ const confirmBulkReject = async () => {
     onBulkRejected()
     showBulkRejectModal.value = false
     bulkRejectionReason.value = ''
-
-    // TODO: Show success toast
   } catch (error) {
     console.error('Failed to bulk reject quotes:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      toast: 'error',
+      title: 'Error',
+      description: 'Failed to bulk reject quotes'
+    })
   } finally {
     bulkProcessing.value = false
   }
@@ -758,8 +762,8 @@ const getQuoteActions = (quote) => {
 }
 
 const viewQuote = (quote) => {
-  // TODO: Open quote detail modal
-  console.log('View quote:', quote.id)
+  selectedQuote.value = quote
+  showQuoteDialog.value = true
 }
 
 const editQuote = (quote) => {
@@ -774,12 +778,10 @@ const onQuoteUpdated = () => {
   loadQuotes()
 }
 
-// Load initial data
 onMounted(() => {
   loadQuotes()
 })
 
-// Watch for status filter changes
 watch(statusFilter, () => {
   loadQuotes()
 })

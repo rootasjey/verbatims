@@ -18,7 +18,7 @@
           <UInput
             v-model="searchQuery"
             placeholder="Search your published quotes..."
-            icon="i-ph-magnifying-glass"
+            leading="i-ph-magnifying-glass"
             size="md"
             :loading="loading"
             :trailing="searchQuery ? 'i-ph-x' : undefined"
