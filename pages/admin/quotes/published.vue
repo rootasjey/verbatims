@@ -217,6 +217,12 @@
       </div>
     </div>
   </div>
+
+  <AddQuoteDialog
+    v-model="showEditQuoteDialog"
+    :edit-quote="selectedQuote"
+    @quote-updated="onQuoteUpdated"
+  />
 </template>
 
 <script setup lang="ts">
@@ -250,6 +256,9 @@ const languageOptions = computed(() =>
 )
 
 const selectedLanguage = ref({ label: 'All Languages', value: '' })
+
+const selectedQuote = ref<AdminQuote | undefined>(undefined)
+const showEditQuoteDialog = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -435,28 +444,35 @@ const getQuoteActions = (quote: AdminQuote) => [
   {
     label: 'View Public Page',
     leading: 'i-ph-eye',
-    click: () => viewQuote(quote)
+    onclick: () => viewQuote(quote)
   },
   {
     label: 'Edit Quote',
     leading: 'i-ph-pencil',
-    click: () => editQuote(quote)
+    onclick: () => editQuote(quote)
   },
   {},
   {
     label: 'Unpublish',
     leading: 'i-ph-eye-slash',
-    click: () => unpublishQuote(quote)
+    onclick: () => unpublishQuote(quote)
   }
 ]
 
 const viewQuote = (quote: AdminQuote) => {
-  navigateTo(`/quotes/${quote.id}`)
+  navigateTo(`/quote/${quote.id}`)
 }
 
 const editQuote = (quote: AdminQuote) => {
-  // TODO: Implement quote editing
-  console.log('Edit quote:', quote.id)
+  selectedQuote.value = quote
+  showEditQuoteDialog.value = true
+}
+
+const onQuoteUpdated = () => {
+  showEditQuoteDialog.value = false
+  selectedQuote.value = undefined
+  // Refresh the quotes list to show updated data
+  loadQuotes()
 }
 
 const unpublishQuote = async (quote: AdminQuote) => {

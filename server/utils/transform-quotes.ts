@@ -56,6 +56,7 @@ export function transformAdminQuotes(quotes: DatabaseAdminQuote[]): AdminQuote[]
     return {
       ...baseQuote,
       user: {
+        id: quote.user_id,
         name: quote.user_name || '',
         email: quote.user_email,
         avatar_url: (quote.user_avatar || quote.user_avatar_url)

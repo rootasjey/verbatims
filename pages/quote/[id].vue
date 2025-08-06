@@ -187,38 +187,29 @@
           <div class="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
             <h3 class="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Actions</h3>
 
-            <div class="space-y-3">
+            <div class="flex flex-wrap gap-2">
               <UButton
                 v-if="user"
-                block
-                variant="outline"
-                icon
-                label="i-ph-bookmark"
+                btn="soft-blue"
                 @click="addToCollection"
-                class="font-sans justify-start"
               >
+                <UIcon name="i-ph-bookmark" class="w-4 h-4 mr-2" />
                 Add to Collection
               </UButton>
 
               <UButton
-                block
-                variant="outline"
-                icon
-                label="i-ph-download"
+                btn="soft-green"
                 @click="downloadQuote"
-                class="font-sans justify-start"
               >
+                <UIcon name="i-ph-download" class="w-4 h-4 mr-2" />
                 Download Image
               </UButton>
 
               <UButton
-                block
-                variant="outline"
-                icon
-                label="i-ph-flag"
+                btn="soft-yellow"
                 @click="reportQuote"
-                class="font-sans justify-start"
               >
+                <UIcon name="i-ph-flag" class="w-4 h-4 mr-2" />
                 Report Quote
               </UButton>
             </div>

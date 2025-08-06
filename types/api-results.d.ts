@@ -3,7 +3,7 @@
  * Represents database query results with JOIN operations and computed fields
  */
 
-import type { Quote, QuoteLanguage, QuoteStatus } from './index';
+import type { Quote, QuoteLanguage, QuoteStatus, QuoteReferencePrimaryType } from './index';
 
 /**
  * Database result type for quote creation queries
@@ -19,11 +19,11 @@ export interface CreatedQuoteResult {
   /** Quote language */
   language: QuoteLanguage;
   
-  /** Author ID (nullable) */
-  author_id: number | null;
+  /** Author ID (optional) */
+  author_id?: number;
   
-  /** Reference ID (nullable) */
-  reference_id: number | null;
+  /** Reference ID (optional) */
+  reference_id?: number;
   
   /** User ID who created the quote */
   user_id: number;
@@ -31,14 +31,14 @@ export interface CreatedQuoteResult {
   /** Quote moderation status */
   status: QuoteStatus;
 
-  /** Moderator ID (nullable) */
-  moderator_id: number | null;
+  /** Moderator ID (optional) */
+  moderator_id?: number;
 
-  /** Moderation timestamp (nullable) */
-  moderated_at: string | null;
+  /** Moderation timestamp (optional) */
+  moderated_at?: string;
 
-  /** Rejection reason (nullable) */
-  rejection_reason: string | null;
+  /** Rejection reason (optional) */
+  rejection_reason?: string;
 
   /** Number of views */
   views_count: number;
@@ -59,28 +59,28 @@ export interface CreatedQuoteResult {
   updated_at: string;
   
   /** Author name from JOIN with authors table */
-  author_name?: string | null;
+  author_name?: string;
   
   /** Author fictional status from JOIN with authors table */
-  author_is_fictional?: boolean | null;
+  author_is_fictional?: boolean;
   
   /** Reference name from JOIN with quote_references table */
-  reference_name?: string | null;
+  reference_name?: string;
   
   /** Reference type from JOIN with quote_references table */
-  reference_type?: string | null;
+  reference_type?: QuoteReferencePrimaryType;
   
   /** User name from JOIN with users table */
   user_name?: string;
 
   /** Moderator name from JOIN with users table */
-  moderator_name?: string | null;
+  moderator_name?: string;
 
   /** Comma-separated tag names from GROUP_CONCAT */
-  tag_names?: string | null;
+  tag_names?: string;
   
   /** Comma-separated tag colors from GROUP_CONCAT */
-  tag_colors?: string | null;
+  tag_colors?: string;
 }
 
 /**

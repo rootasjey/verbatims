@@ -61,10 +61,10 @@
 
       <!-- List -->
       <div class="space-y-4">
-        <UCard
+        <div
           v-for="quote in filteredQuotes"
           :key="quote.id"
-          class="hover:shadow-md transition-shadow border-dashed"
+          class="p-4 border border-dashed rounded-lg hover:shadow-md transition-shadow"
         >
           <div class="flex items-start justify-between">
             <div class="flex-1 min-w-0">
@@ -75,10 +75,21 @@
                 <span class="text-xs text-gray-500 dark:text-gray-400">
                   Created {{ formatDate(quote.created_at) }}
                 </span>
+
+                <div class="flex items-center space-x-2 ml-4">
+                  <UDropdownMenu :items="getQuoteActions(quote)">
+                    <UButton
+                      icon
+                      btn="ghost"
+                      size="xs"
+                      label="i-ph-dots-three-vertical"
+                    />
+                  </UDropdownMenu>
+                </div>
               </div>
-              
+
               <blockquote class="text-lg text-gray-900 dark:text-white mb-3 line-clamp-3">
-                "{{ quote.name }}"
+                {{ quote.name }}
               </blockquote>
               
               <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-4">
@@ -96,27 +107,16 @@
                 </span>
               </div>
             </div>
-            
-            <div class="flex items-center space-x-2 ml-4">
-              <UDropdownMenu :items="getQuoteActions(quote)">
-                <UButton
-                  icon
-                  variant="ghost"
-                  size="sm"
-                  label="i-ph-dots-three-vertical"
-                />
-              </UDropdownMenu>
-            </div>
           </div>
-        </UCard>
+        </div>
       </div>
 
-      <!-- Load More -->
-      <div v-if="hasMore" class="text-center pt-8">
+      <div v-if="hasMore" class="w-full pt-8">
         <UButton
           :loading="loadingMore"
-          variant="outline"
-          size="lg"
+          btn="dark:solid-black"
+          size="md"
+          class="w-full hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
           @click="loadMore"
         >
           Load More
@@ -151,6 +151,12 @@
         </template>
       </UCard>
     </UDialog>
+
+    <AddQuoteDialog
+      v-model="showEditQuoteDialog"
+      :edit-quote="selectedQuote"
+      @quote-updated="onQuoteUpdated"
+    />
   </div>
 </template>
 
@@ -185,6 +191,7 @@ const hasMore = ref(false)
 const currentPage = ref(1)
 
 const showDeleteModal = ref(false)
+const showEditQuoteDialog = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 
 // Sort options
@@ -255,25 +262,32 @@ const getQuoteActions = (quote: DashboardQuote) => [
   {
     label: 'Edit',
     leading: 'i-ph-pencil',
-    click: () => editQuote(quote)
+    onclick: () => editQuote(quote)
   },
   {}, // Divider
   {
     label: 'Submit for Review',
     leading: 'i-ph-paper-plane-tilt',
-    click: () => submitQuote(quote)
+    onclick: () => submitQuote(quote)
   },
   {}, // Divider
   {
     label: 'Delete',
     leading: 'i-ph-trash',
-    click: () => confirmDelete(quote)
+    onclick: () => confirmDelete(quote)
   }
 ]
 
 const editQuote = (quote: DashboardQuote) => {
-  // Navigate to edit page or open edit modal
-  navigateTo(`/dashboard/quotes/${quote.id}/edit`)
+  selectedQuote.value = quote
+  showEditQuoteDialog.value = true
+}
+
+const onQuoteUpdated = () => {
+  showEditQuoteDialog.value = false
+  selectedQuote.value = null
+  // Refresh the quotes list to show updated data
+  loadDrafts()
 }
 
 const submitQuote = async (quote: DashboardQuote) => {

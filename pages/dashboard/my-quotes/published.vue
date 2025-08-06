@@ -429,22 +429,22 @@ const getQuoteActions = (quote: DashboardQuote) => [
   {
     label: 'View Public Page',
     leading: 'i-ph-eye',
-    click: () => viewQuote(quote)
+    onclick: () => viewQuote(quote)
   }, {
     label: 'Add to Collection',
     leading: 'i-ph-bookmark',
-    click: () => addToCollection(quote)
+    onclick: () => addToCollection(quote)
   },
   {}, // Divider
   {
     label: 'Share',
     leading: 'i-ph-share',
-    click: () => shareQuote(quote)
+    onclick: () => shareQuote(quote)
   }
 ]
 
 const viewQuote = (quote: DashboardQuote) => {
-  navigateTo(`/quotes/${quote.id}`)
+  navigateTo(`/quote/${quote.id}`)
 }
 
 const addToCollection = (quote: DashboardQuote) => {
@@ -454,7 +454,7 @@ const addToCollection = (quote: DashboardQuote) => {
 
 const shareQuote = (quote: DashboardQuote) => {
   // Copy quote URL to clipboard
-  const url = `${window.location.origin}/quotes/${quote.id}`
+  const url = `${window.location.origin}/quote/${quote.id}`
   navigator.clipboard.writeText(url)
   // Could show a toast notification here
 }

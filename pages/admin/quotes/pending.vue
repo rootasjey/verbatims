@@ -366,6 +366,12 @@
         </template>
       </UCard>
     </UDialog>
+
+    <AddQuoteDialog
+      v-model="showEditQuoteDialog"
+      :edit-quote="selectedQuote"
+      @quote-updated="onQuoteUpdated"
+    />
 </template>
 
 <script setup>
@@ -399,6 +405,7 @@ const processing = ref(new Set())
 // Modals
 const showRejectModal = ref(false)
 const showBulkRejectModal = ref(false)
+const showEditQuoteDialog = ref(false)
 const selectedQuote = ref(null)
 const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
@@ -756,8 +763,15 @@ const viewQuote = (quote) => {
 }
 
 const editQuote = (quote) => {
-  // TODO: Open quote edit modal
-  console.log('Edit quote:', quote.id)
+  selectedQuote.value = quote
+  showEditQuoteDialog.value = true
+}
+
+const onQuoteUpdated = () => {
+  showEditQuoteDialog.value = false
+  selectedQuote.value = null
+  // Refresh the quotes list to show updated data
+  loadQuotes()
 }
 
 // Load initial data

@@ -4,7 +4,7 @@
  */
 
 import type { Author } from './author';
-import type { QuoteReference } from './quote-reference';
+import type { QuoteReference, QuoteReferencePrimaryType } from './quote-reference';
 
 /**
  * Supported languages for quotes
@@ -30,10 +30,10 @@ export interface Quote {
   language: QuoteLanguage;
   
   /** ID of the author who said/wrote this quote */
-  author_id: number | null;
+  author_id?: number;
   
   /** ID of the reference/source where this quote comes from */
-  reference_id: number | null;
+  reference_id?: number;
   
   /** ID of the user who submitted this quote */
   user_id: number;
@@ -45,10 +45,10 @@ export interface Quote {
   moderator_id?: number;
   
   /** Timestamp when quote was moderated */
-  moderated_at: string | null;
+  moderated_at?: string;
   
   /** Reason for rejection if status is 'rejected' */
-  rejection_reason: string | null;
+  rejection_reason?: string;
   
   /** Number of times quote has been viewed */
   views_count: number;
@@ -75,6 +75,12 @@ export interface Quote {
 export interface QuoteWithRelations extends Quote {
   author?: Author;
   reference?: QuoteReference;
+  user?: {
+    id: number;
+    name: string;
+    email?: string;
+    avatar_url?: string;
+  };
 }
 
 /**
@@ -83,11 +89,6 @@ export interface QuoteWithRelations extends Quote {
 export interface AdminQuote extends QuoteWithRelations {
   author?: Partial<Author>;
   reference?: Partial<QuoteReference>;
-  user: {
-    name: string;
-    email?: string;
-    avatar_url?: string;
-  };
   moderator: {
     id?: number;
     name: string;
@@ -160,7 +161,7 @@ export interface DatabaseQuoteWithRelations extends Quote {
   
   // Joined reference fields
   reference_name?: string;
-  reference_type?: string;
+  reference_type?: QuoteReferencePrimaryType;
 
   // Joined user fields
   user_name?: string;

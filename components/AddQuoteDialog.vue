@@ -1,11 +1,11 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md' }">
+  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">Add New Quote</h3>
+        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
       </div>
 
-      <form @submit.prevent="submitQuote" class="space-y-6">
+      <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="space-y-6">
         <div>
           <UInput
             type="textarea"
@@ -200,7 +200,7 @@
           @click="submitQuote"
           :disabled="!form.content.trim()"
         >
-          Submit Quote
+          {{ submitButtonText }}
         </UButton>
       </div>
     </div>
@@ -210,14 +210,17 @@
 <script setup lang="ts">
 import type { Author } from '~/types/author'
 import type { QuoteReference } from '~/types/quote-reference'
+import type { QuoteWithRelations, AdminQuote } from '~/types/quote'
 
 interface Props {
   modelValue: boolean
+  editQuote?: QuoteWithRelations | AdminQuote | null
 }
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
   (e: 'quote-added'): void
+  (e: 'quote-updated'): void
 }
 
 const props = defineProps<Props>()
@@ -229,6 +232,10 @@ const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
+
+const isEditMode = computed(() => !!props.editQuote)
+const dialogTitle = computed(() => isEditMode.value ? 'Edit Quote' : 'Add New Quote')
+const submitButtonText = computed(() => isEditMode.value ? 'Update Quote' : 'Submit Quote')
 
 // Form state
 const form = ref({
@@ -344,10 +351,12 @@ const handleAuthorKeydown = (event: KeyboardEvent) => {
     case 'ArrowDown':
       event.preventDefault()
       selectedAuthorIndex.value = selectedAuthorIndex.value < totalItems - 1 ? selectedAuthorIndex.value + 1 : 0
+      scrollToSelectedAuthorItem()
       break
     case 'ArrowUp':
       event.preventDefault()
       selectedAuthorIndex.value = selectedAuthorIndex.value > 0 ? selectedAuthorIndex.value - 1 : totalItems - 1
+      scrollToSelectedAuthorItem()
       break
     case 'Enter':
       event.preventDefault()
@@ -366,6 +375,49 @@ const handleAuthorKeydown = (event: KeyboardEvent) => {
       authorInputRef.value?.$el?.focus()
       break
   }
+}
+
+const handleFormKeydown = (event: KeyboardEvent) => {
+  // Handle Ctrl+Enter (Windows/Linux) or Cmd+Enter (Mac) to submit form
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault()
+    if (form.value.content.trim() && !submitting.value) {
+      submitQuote()
+    }
+  }
+}
+
+// Auto-scroll functions for keyboard navigation
+const scrollToSelectedAuthorItem = () => {
+  nextTick(() => {
+    if (selectedAuthorIndex.value >= 0 && authorSuggestionsRef.value) {
+      const items = authorSuggestionsRef.value.children
+      const selectedItem = items[selectedAuthorIndex.value]
+      if (selectedItem) {
+        selectedItem.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        })
+      }
+    }
+  })
+}
+
+const scrollToSelectedReferenceItem = () => {
+  nextTick(() => {
+    if (selectedReferenceIndex.value >= 0 && referenceSuggestionsRef.value) {
+      const items = referenceSuggestionsRef.value.children
+      const selectedItem = items[selectedReferenceIndex.value]
+      if (selectedItem) {
+        selectedItem.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        })
+      }
+    }
+  })
 }
 
 // Selection functions
@@ -415,10 +467,12 @@ const handleReferenceKeydown = (event: KeyboardEvent) => {
     case 'ArrowDown':
       event.preventDefault()
       selectedReferenceIndex.value = selectedReferenceIndex.value < totalItems - 1 ? selectedReferenceIndex.value + 1 : 0
+      scrollToSelectedReferenceItem()
       break
     case 'ArrowUp':
       event.preventDefault()
       selectedReferenceIndex.value = selectedReferenceIndex.value > 0 ? selectedReferenceIndex.value - 1 : totalItems - 1
+      scrollToSelectedReferenceItem()
       break
     case 'Enter':
       event.preventDefault()
@@ -517,10 +571,44 @@ const resetForm = () => {
   selectedReferenceIndex.value = -1
 }
 
+const initializeFormForEdit = () => {
+  if (!props.editQuote) return
+
+  const quote = props.editQuote
+
+  // Set form content
+  form.value.content = quote.name || ''
+
+  // Set language
+  const languageOption = languageOptions.find(opt => opt.value === quote.language)
+  form.value.language = languageOption || { label: 'English', value: 'en' }
+
+  // Set author if exists
+  if (quote.author) {
+    form.value.selectedAuthor = quote.author as Author
+    authorQuery.value = quote.author.name || ''
+  }
+
+  // Set reference if exists
+  if (quote.reference) {
+    form.value.selectedReference = quote.reference as QuoteReference
+    referenceQuery.value = quote.reference.name || ''
+  }
+}
+
 const closeDialog = () => {
   isOpen.value = false
   resetForm()
 }
+
+// Watch for editQuote changes to initialize form
+watch(() => props.editQuote, (newQuote) => {
+  if (newQuote) {
+    initializeFormForEdit()
+  } else {
+    resetForm()
+  }
+}, { immediate: true })
 
 const submitQuote = async () => {
   if (!form.value.content.trim() || !user.value) return
@@ -532,8 +620,6 @@ const submitQuote = async () => {
       language: form.value.language.value,
       author_id: form.value.selectedAuthor?.id || null,
       reference_id: form.value.selectedReference?.id || null,
-      user_id: user.value.id,
-      status: 'draft' as const,
       // Include new author/reference data if needed
       new_author: form.value.selectedAuthor?.id === 0 ? {
         name: form.value.selectedAuthor.name,
@@ -546,25 +632,47 @@ const submitQuote = async () => {
       } : null
     }
 
-    await $fetch('/api/quotes', {
-      method: 'POST',
-      body: payload
-    })
+    if (isEditMode.value && props.editQuote) {
+      // Update existing quote
+      await $fetch(`/api/quotes/${props.editQuote.id}`, {
+        method: 'PUT',
+        body: payload
+      })
 
-    useToast().toast({
-      toast: 'success',
-      title: 'Quote Added',
-      description: 'Your quote has been saved as a draft.'
-    })
+      useToast().toast({
+        toast: 'success',
+        title: 'Quote Updated',
+        description: 'Your quote has been updated successfully.'
+      })
 
-    emit('quote-added')
+      emit('quote-updated')
+    } else {
+      // Create new quote
+      await $fetch('/api/quotes', {
+        method: 'POST',
+        body: {
+          ...payload,
+          user_id: user.value.id,
+          status: 'draft' as const
+        }
+      })
+
+      useToast().toast({
+        toast: 'success',
+        title: 'Quote Added',
+        description: 'Your quote has been saved as a draft.'
+      })
+
+      emit('quote-added')
+    }
+
     closeDialog()
   } catch (error) {
-    console.error('Error creating quote:', error)
+    console.error('Error submitting quote:', error)
     useToast().toast({
       toast: 'error',
       title: 'Error',
-      description: 'Failed to add quote. Please try again.'
+      description: isEditMode.value ? 'Failed to update quote. Please try again.' : 'Failed to add quote. Please try again.'
     })
   } finally {
     submitting.value = false

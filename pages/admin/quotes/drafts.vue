@@ -108,6 +108,18 @@
             empty-text="No draft quotes found"
             empty-icon="i-ph-file-dashed"
           >
+            <!-- Actions Column -->
+            <template #actions-cell="{ cell }">
+              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                <UButton
+                  icon
+                  btn="ghost"
+                  size="sm"
+                  label="i-ph-dots-three-vertical"
+                />
+              </UDropdownMenu>
+            </template>
+
             <!-- Quote Column with text wrapping -->
             <template #quote-cell="{ cell }">
               <div class="max-w-md">
@@ -165,18 +177,6 @@
                 {{ formatRelativeTime(cell.row.original.created_at) }}
               </span>
             </template>
-
-            <!-- Actions Column -->
-            <template #actions-cell="{ cell }">
-              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                <UButton
-                  icon
-                  btn="ghost"
-                  size="sm"
-                  label="i-ph-dots-three-vertical"
-                />
-              </UDropdownMenu>
-            </template>
           </UTable>
         </div>
 
@@ -231,6 +231,12 @@
       </template>
     </UCard>
   </UDialog>
+
+  <AddQuoteDialog
+    v-model="showEditQuoteDialog"
+    :edit-quote="selectedQuote"
+    @quote-updated="onQuoteUpdated"
+  />
 </template>
 
 <script setup lang="ts">
@@ -249,6 +255,7 @@ useHead({
 
 const selectedQuote = ref<AdminQuote | null>(null)
 const showQuoteDialog = ref(false)
+const showEditQuoteDialog = ref(false)
 
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
@@ -304,6 +311,17 @@ const thisWeekCount = computed(() => {
 
 const tableColumns = [
   {
+    header: '',
+    accessorKey: 'actions',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-16',
+        tableCell: 'w-16'
+      }
+    }
+  },
+  {
     header: 'Quote',
     accessorKey: 'quote',
     enableSorting: false,
@@ -355,17 +373,6 @@ const tableColumns = [
       una: {
         tableHead: 'w-28',
         tableCell: 'w-28'
-      }
-    }
-  },
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
       }
     }
   }
@@ -429,8 +436,15 @@ const viewQuote = (quote: AdminQuote) => {
 }
 
 const editQuote = (quote: AdminQuote) => {
-  // TODO: Open quote edit dialog
-  console.log('Edit quote:', quote.id)
+  selectedQuote.value = quote
+  showEditQuoteDialog.value = true
+}
+
+const onQuoteUpdated = () => {
+  showEditQuoteDialog.value = false
+  selectedQuote.value = null
+  // Refresh the quotes list to show updated data
+  loadQuotes()
 }
 
 const confirmDelete = (quote: AdminQuote) => {
