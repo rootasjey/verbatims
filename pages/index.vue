@@ -1,7 +1,11 @@
 <template>
   <div class="min-h-screen">
-    <header class="p-8 overflow-hidden">
+    <header class="p-8">
       <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
+      <span class="-mt-12 text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
+        Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, books, music and more. <br />
+        It's an open source community platform. You can post your own funny quotes.
+      </span>
     </header>
 
     <!-- Loading state while language store initializes or quotes are loading -->
@@ -22,15 +26,39 @@
     />
 
     <!-- Quotes Grid (when quotes exist) -->
-    <div v-else class="px-8 pb-16">
-      <!-- Stats -->
-      <div class="font-body mb-8">
-        <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400">
-          Showing {{ allQuotes.length }} of {{ stats.quotes || 0 }} quotes
-        </span>
-
-        <div class="flex items-center justify-center">
+    <div v-else class="mt-6 px-8 pb-16">
+      <div class="flex gap-4 font-body mb-8">
+        <div class="flex-grow-2 font-600">
+          <UInput
+            v-model="searchQuery"
+            placeholder="Search quotes..."
+            leading="i-ph-magnifying-glass"
+            size="md"
+            :loading="loading"
+          />
+        </div>
+        <div class="flex-1">
           <LanguageSelector @language-changed="onLanguageChange" />
+        </div>
+
+        <div class="flex gap-4 items-center">
+          <USelect
+            v-model="selectedSortBy"
+            :items="sortByOptions"
+            placeholder="Sort by"
+            size="sm"
+            item-key="label"
+            value-key="label"
+          />
+          <!-- Order Toggle: OFF = Desc (↓), ON = Asc (↑) -->
+          <div class="flex items-center gap-2">
+            <UToggle
+              v-model="isAsc"
+              size="sm"
+              :label="isAsc ? 'i-ph-sort-descending-duotone' : 'i-ph-sort-ascending-duotone'"
+              :aria-label="isAsc ? 'Ascending' : 'Descending'"
+            />
+          </div>
         </div>
       </div>
 
@@ -74,16 +102,44 @@ useHead({
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 
+// Sorting controls must be defined before useLazyFetch uses them
+const selectedSortBy = ref({ label: 'Most Recent', value: 'created_at' })
+const selectedSortOrder = ref({ label: 'Desc', value: 'desc' })
+
+const sortByOptions = [
+  { label: 'Most Recent', value: 'created_at' },
+  { label: 'Recently Updated', value: 'updated_at' },
+  { label: 'Most Liked', value: 'likes_count' },
+  { label: 'Most Viewed', value: 'views_count' },
+  { label: 'Most Shared', value: 'shares_count' }
+]
+
+/** Order toggle computed binding (OFF -> desc, ON -> asc) */
+const isAsc = computed({
+  get: () => (selectedSortOrder.value?.value || 'desc') === 'asc',
+  set: (val: boolean) => {
+    selectedSortOrder.value = val
+      ? { label: 'Asc', value: 'asc' }
+      : { label: 'Desc', value: 'desc' }
+  }
+})
+
 // Data fetching with reactive language filtering
 // Use lazy loading and defer initial fetch until language store is ready
 const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading } = await useLazyFetch('/api/quotes', {
   query: computed(() => ({
     limit: 25,
     status: 'approved',
+    sort_by: selectedSortBy.value?.value || 'created_at',
+    sort_order: selectedSortOrder.value?.value || 'desc',
     ...languageStore.getLanguageQuery()
   })),
-  // Watch for language changes and refetch
-  watch: [() => languageStore.currentLanguageValue],
+  // Watch for language and sort changes and refetch
+  watch: [
+    () => languageStore.currentLanguageValue,
+    () => selectedSortBy.value?.value,
+    () => selectedSortOrder.value?.value
+  ],
   // Defer initial fetch until language store is ready
   server: false, // Don't fetch on server to avoid hydration mismatches
   default: () => ({
@@ -105,11 +161,14 @@ const { data: onboardingData } = await useFetch('/api/onboarding/status')
 const loadingMore = ref(false)
 const currentPage = ref(1)
 const additionalQuotes = ref<any[]>([]) // For load more functionality
+const searchQuery = ref('')
+const loading = ref(false)
 
 const displayedQuotes = computed(() => {
   const baseQuotes = quotesData.value?.data || []
   return [...baseQuotes, ...additionalQuotes.value]
 })
+
 const hasMore = computed(() => quotesData.value?.pagination?.hasMore || false)
 
 const stats = computed(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
@@ -138,7 +197,9 @@ const loadMore = async () => {
     const query: any = {
       limit: 25,
       status: 'approved',
-      page: nextPage
+      page: nextPage,
+      sort_by: selectedSortBy.value?.value || 'created_at',
+      sort_order: selectedSortOrder.value?.value || 'desc'
     }
 
     // Add language filter
@@ -164,7 +225,7 @@ const refreshQuotes = async () => {
   additionalQuotes.value = []
   currentPage.value = 1
 
-  // Trigger useLazyFetch to refresh with current language
+  // Trigger useLazyFetch to refresh with current filters (language + sort)
   await refreshQuotesFromAPI()
 }
 

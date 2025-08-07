@@ -1,5 +1,6 @@
 import { transformQuotes } from '~/server/utils/transform-quotes'
 import { DatabaseQuoteWithRelations } from '~/types'
+import { getSortParams } from '~/server/utils/sort'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -8,13 +9,28 @@ export default defineEventHandler(async (event) => {
 
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100) // Max 100 per page
-    const status = query.status as string || 'approved'
+    const status = (query.status as string) || 'approved'
     const language = query.language as string
     const authorId = query.author_id ? parseInt(query.author_id as string) : null
     const referenceId = query.reference_id ? parseInt(query.reference_id as string) : null
     const search = query.search as string
-    const sortBy = query.sort_by as string || 'created_at'
-    const sortOrder = query.sort_order as string || 'DESC'
+
+    // Normalize sort parameters (sort_by and sort_order only)
+    const rawSortBy = (query.sort_by as string | undefined)?.toLowerCase()
+    const rawSortOrder = (query.sort_order as string | undefined)?.toLowerCase()
+
+    // Cast to unions for the validator; it will clamp invalid values to defaults
+    const { sort_by, sort_order } = getSortParams(
+      {
+        sort_by: rawSortBy as typeof rawSortBy & (SortBy | undefined),
+        sort_order: rawSortOrder as typeof rawSortOrder & (SortOrder | undefined)
+      },
+      ['created_at', 'updated_at', 'views_count', 'likes_count', 'shares_count']
+    )
+
+    // Use normalized and validated values for SQL
+    const sortBy = sort_by
+    const sortOrder = sort_order === 'asc' ? 'ASC' : 'DESC'
 
     const offset = (page - 1) * limit
 
@@ -43,10 +59,6 @@ export default defineEventHandler(async (event) => {
 
     const whereClause = whereConditions.join(' AND ')
 
-    // Validate sort column
-    const allowedSortColumns = ['created_at', 'updated_at', 'views_count', 'likes_count', 'shares_count']
-    const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'created_at'
-    const sortDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
 
     const quotesQuery = `
       SELECT
@@ -66,7 +78,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN tags t ON qt.tag_id = t.id
       WHERE ${whereClause}
       GROUP BY q.id
-      ORDER BY q.${sortColumn} ${sortDirection}
+      ORDER BY q.${sortBy} ${sortOrder}
       LIMIT ? OFFSET ?
     `
 

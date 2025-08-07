@@ -5,7 +5,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return navigateTo('/login')
   }
   
-  // Check if user has admin or moderator role
   if (user.value.role !== 'admin' && user.value.role !== 'moderator') {
     throw createError({
       statusCode: 403,
