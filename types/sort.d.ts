@@ -5,6 +5,8 @@
 * client options to avoid invalid sort parameters across the app.
 */
 
+type SortMode = 'relevance' | 'recent' | 'popular'
+
 /**
 * Which database column or computed field to sort by.
 *

@@ -81,6 +81,19 @@ export interface ProcessedQuoteResult extends Omit<QuoteSearchResult, 'tag_names
   }>;
 }
 
+export type QuotesSearchPayload = {
+  sort: SortMode
+  page: number
+  limit: number
+  q?: string
+  quotes: ProcessedQuoteResult[]
+  total: number
+  offset: number
+  pageCount: number
+  filters: Record<string, unknown>
+  hasMore: boolean
+}
+
 /**
  * Complete search results structure
  * Contains all search result types and metadata
