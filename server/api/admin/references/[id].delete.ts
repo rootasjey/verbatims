@@ -35,35 +35,56 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check if reference has associated quotes
+    // Count associated quotes
     const quoteCountResult = await db.prepare(`
       SELECT COUNT(*) as count FROM quotes WHERE reference_id = ?
     `).bind(referenceId).first()
-    
     const quoteCount = Number(quoteCountResult?.count) || 0
+
+    // Determine strategy
+    const body = await readBody(event).catch(() => ({})) as { strategy?: 'delete' | 'anonymize' }
+
     if (quoteCount > 0) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: `Cannot delete reference. This reference has ${quoteCount} associated quote(s). Please remove or reassign the quotes first.`
-      })
+      const strategy = body?.strategy
+      if (strategy !== 'delete' && strategy !== 'anonymize') {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Related quotes exist. Provide strategy: "delete" or "anonymize".'
+        })
+      }
+
+      await db.prepare('BEGIN TRANSACTION').run()
+      try {
+        if (strategy === 'delete') {
+          await db.prepare(`DELETE FROM quotes WHERE reference_id = ?`).bind(referenceId).run()
+        } else {
+          await db.prepare(`UPDATE quotes SET reference_id = NULL WHERE reference_id = ?`).bind(referenceId).run()
+        }
+
+        const del = await db.prepare(`DELETE FROM quote_references WHERE id = ?`).bind(referenceId).run()
+        if (!del.success) throw new Error('Failed to delete reference')
+
+        await db.prepare('COMMIT').run()
+      } catch (txErr) {
+        await db.prepare('ROLLBACK').run()
+        throw createError({ statusCode: 500, statusMessage: 'Failed to process deletion transaction' })
+      }
+
+      return {
+        success: true,
+        message: 'Reference deleted successfully',
+        quotesAffected: quoteCount,
+        strategy: body.strategy
+      }
     }
 
-    // Delete the reference
-    const result = await db.prepare(`
-      DELETE FROM quote_references WHERE id = ?
-    `).bind(referenceId).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to delete reference'
-      })
+    // No related quotes: simple delete
+    const del = await db.prepare(`DELETE FROM quote_references WHERE id = ?`).bind(referenceId).run()
+    if (!del.success) {
+      throw createError({ statusCode: 500, statusMessage: 'Failed to delete reference' })
     }
 
-    return {
-      success: true,
-      message: 'Reference deleted successfully'
-    }
+    return { success: true, message: 'Reference deleted successfully', quotesAffected: 0 }
 
   } catch (error: any) {
     console.error('Error deleting reference:', error)

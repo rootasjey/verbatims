@@ -282,6 +282,12 @@
     @reference-added="onReferenceAdded"
     @reference-updated="onReferenceUpdated"
   />
+  
+  <DeleteReferenceDialog
+    v-model="showDeleteReferenceDialog"
+    :reference="referenceToDelete"
+    @reference-deleted="onReferenceDeleted"
+  />
 </template>
 
 <script setup lang="ts">
@@ -307,6 +313,8 @@ const selectedSort = ref({ label: 'Name A-Z', value: 'name_asc' })
 const isCardView = ref(false)
 const showAddReferenceDialog = ref(false)
 const selectedReference = ref<QuoteReferenceWithMetadata | undefined>()
+const showDeleteReferenceDialog = ref(false)
+const referenceToDelete = ref<QuoteReferenceWithMetadata | null>(null)
 
 const typeFilterOptions = [
   { label: 'All Types', value: '' },
@@ -506,8 +514,8 @@ const editReference = (reference: QuoteReferenceWithMetadata) => {
 }
 
 const deleteReference = async (reference: QuoteReferenceWithMetadata) => {
-  // TODO: Implement delete functionality with confirmation dialog
-  console.log('Delete reference:', reference.id)
+  referenceToDelete.value = reference
+  showDeleteReferenceDialog.value = true
 }
 
 const onReferenceAdded = () => {
@@ -519,6 +527,15 @@ const onReferenceAdded = () => {
 const onReferenceUpdated = () => {
   showAddReferenceDialog.value = false
   selectedReference.value = undefined
+  loadReferences()
+}
+
+const onReferenceDeleted = () => {
+  showDeleteReferenceDialog.value = false
+  referenceToDelete.value = null
+  if (references.value.length <= 1 && currentPage.value > 1) {
+    currentPage.value = currentPage.value - 1
+  }
   loadReferences()
 }
 

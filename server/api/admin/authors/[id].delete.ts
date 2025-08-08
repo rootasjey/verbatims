@@ -35,35 +35,63 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check if author has associated quotes
+    // Determine strategy for related quotes
+    const body = await readBody(event).catch(() => ({})) as { strategy?: 'delete' | 'anonymize' }
+
+    // Count associated quotes
     const quoteCountResult = await db.prepare(`
       SELECT COUNT(*) as count FROM quotes WHERE author_id = ?
     `).bind(authorId).first()
-    
     const quoteCount = Number(quoteCountResult?.count) || 0
+
+    // If there are related quotes, require a valid strategy
     if (quoteCount > 0) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: `Cannot delete author. This author has ${quoteCount} associated quote(s). Please remove or reassign the quotes first.`
-      })
+      const strategy = body?.strategy
+      if (strategy !== 'delete' && strategy !== 'anonymize') {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Related quotes exist. Provide strategy: "delete" or "anonymize".'
+        })
+      }
+
+      // Run within a transaction for consistency
+      await db.prepare('BEGIN TRANSACTION').run()
+      try {
+        if (strategy === 'delete') {
+          // Delete quote-related rows (quote_tags etc. are ON DELETE CASCADE)
+          await db.prepare(`DELETE FROM quotes WHERE author_id = ?`).bind(authorId).run()
+        } else {
+          // Anonymize: set author_id to NULL
+          await db.prepare(`UPDATE quotes SET author_id = NULL WHERE author_id = ?`).bind(authorId).run()
+        }
+
+        // Delete the author
+        const del = await db.prepare(`DELETE FROM authors WHERE id = ?`).bind(authorId).run()
+        if (!del.success) {
+          throw new Error('Failed to delete author')
+        }
+
+        await db.prepare('COMMIT').run()
+      } catch (txErr) {
+        await db.prepare('ROLLBACK').run()
+        throw createError({ statusCode: 500, statusMessage: 'Failed to process deletion transaction' })
+      }
+
+      return {
+        success: true,
+        message: 'Author deleted successfully',
+        quotesAffected: quoteCount,
+        strategy: body.strategy
+      }
     }
 
-    // Delete the author
-    const result = await db.prepare(`
-      DELETE FROM authors WHERE id = ?
-    `).bind(authorId).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to delete author'
-      })
+    // No related quotes: simple delete
+    const del = await db.prepare(`DELETE FROM authors WHERE id = ?`).bind(authorId).run()
+    if (!del.success) {
+      throw createError({ statusCode: 500, statusMessage: 'Failed to delete author' })
     }
 
-    return {
-      success: true,
-      message: 'Author deleted successfully'
-    }
+    return { success: true, message: 'Author deleted successfully', quotesAffected: 0 }
 
   } catch (error: any) {
     console.error('Error deleting author:', error)

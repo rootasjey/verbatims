@@ -265,6 +265,12 @@
     @author-added="onAuthorAdded"
     @author-updated="onAuthorUpdated"
   />
+  
+  <DeleteAuthorDialog
+    v-model="showDeleteAuthorDialog"
+    :author="authorToDelete"
+    @author-deleted="onAuthorDeleted"
+  />
 </template>
 
 <script setup lang="ts">
@@ -290,6 +296,8 @@ const selectedSort = ref({ label: 'Name A-Z', value: 'name_asc' })
 const isCardView = ref(false)
 const showAddAuthorDialog = ref(false)
 const selectedAuthor = ref<Author | undefined>()
+const showDeleteAuthorDialog = ref(false)
+const authorToDelete = ref<Author | null>(null)
 
 const fictionalFilterOptions = [
   { label: 'All Types', value: '' },
@@ -442,8 +450,8 @@ const editAuthor = (author: Author) => {
 }
 
 const deleteAuthor = async (author: Author) => {
-  // TODO: Implement delete functionality with confirmation dialog
-  console.log('Delete author:', author.id)
+  authorToDelete.value = author
+  showDeleteAuthorDialog.value = true
 }
 
 const onAuthorAdded = () => {
@@ -455,6 +463,16 @@ const onAuthorAdded = () => {
 const onAuthorUpdated = () => {
   showAddAuthorDialog.value = false
   selectedAuthor.value = undefined
+  loadAuthors()
+}
+
+const onAuthorDeleted = () => {
+  showDeleteAuthorDialog.value = false
+  authorToDelete.value = null
+  // Reset to first page if current page becomes empty
+  if (authors.value.length <= 1 && currentPage.value > 1) {
+    currentPage.value = currentPage.value - 1
+  }
   loadAuthors()
 }
 
