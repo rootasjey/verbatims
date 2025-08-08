@@ -1,7 +1,6 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> => {
   try {
-    // Check authentication and admin privileges
-    const session = await getUserSession(event)
+    const session = await requireUserSession(event)
     if (!session.user) {
       throw createError({
         statusCode: 401,
@@ -49,7 +48,7 @@ export default defineEventHandler(async (event) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
     
     // Get users with their statistics
-    const users = await db.prepare(`
+    const usersResult = await db.prepare(`
       SELECT 
         u.*,
         COUNT(DISTINCT q.id) as quote_count,
@@ -72,14 +71,15 @@ export default defineEventHandler(async (event) => {
       SELECT COUNT(*) as total
       FROM users u
       ${whereClause}
-    `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset
-    
-    const total = totalResult?.total || 0
-    const hasMore = offset + users.length < total
+    `).bind(...bindings).first()
+
+    const userCount = Number(usersResult.results.length) || 0
+    const total = Number(totalResult?.total) || 0
+    const hasMore = offset + userCount < total
     
     // Remove sensitive information for non-admin users
-    const processedUsers = users.map(user => {
-      const userData = { ...user }
+    const processedUsers: AdminUser[] = usersResult.results.map((user: any) => {
+      const userData: any = { ...user }
       
       // Only admins can see email addresses
       if (session.user.role !== 'admin') {
@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
         totalPages: Math.ceil(total / limit)
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

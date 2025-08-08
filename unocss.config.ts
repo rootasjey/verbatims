@@ -46,6 +46,9 @@ export default {
       "dp-menu-trigger-text": "p-0 px-2 h-auto b-none underline underline-dashed decoration-offset-4 text-gray-500 dark:text-gray-400 hover:bg-transparent hover:decoration-blue-500",
       "image-resizer-container": "absolute h-32px w-32px bottom-1 right-1 rounded-lg backdrop-blur-md bg-white/20 dark:bg-black/60 hover:bg-white/40 dark:hover:bg-black/80 invisible group-hover:visible flex justify-center items-center",
       "image-resizer": "i-ph-arrow-down-right-duotone invisible group-hover:visible z-2 hover:scale-110 active:scale-99 transition",
+  // Override UnaUI's generated white variant which uses invalid white-* shade utilities
+  // This maps the "soft" button style to sensible white/gray colors for both themes
+  "btn-soft-white": "bg-white text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-200 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800 dark:focus-visible:ring-gray-700",
     },
   ],
   extractors: [
