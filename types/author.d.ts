@@ -67,6 +67,9 @@ export interface Author {
   
   /** Timestamp when record was last updated */
   updated_at: string;
+  
+  /** (Calculated) Number of quotes attributed to this author */
+  quotes_count?: number;
 }
 
 /**
