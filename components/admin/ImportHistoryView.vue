@@ -339,14 +339,14 @@ const getActionItems = (importItem) => {
     items.push({
       label: 'Retry Import',
       icon: 'i-ph-arrow-clockwise',
-      click: () => retryImport(importItem.id)
+      onclick: () => retryImport(importItem.id)
     })
   }
   
   items.push({
     label: 'Delete Record',
     icon: 'i-ph-trash',
-    click: () => deleteImport(importItem.id)
+    onclick: () => deleteImport(importItem.id)
   })
   
   return [items]

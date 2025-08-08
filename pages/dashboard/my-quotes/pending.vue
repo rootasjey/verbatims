@@ -177,18 +177,15 @@ interface DashboardQuote extends QuoteWithRelations {
   tags?: Array<{ id: number; name: string; color: string }>
 }
 
-// Use dashboard layout
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'Pending Review - Dashboard - Verbatims'
 })
 
-// Data
 const loading = ref(true)
 const loadingMore = ref(false)
 const withdrawing = ref(false)
@@ -198,18 +195,15 @@ const sortBy = ref('recent')
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-// Modals
 const showWithdrawModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 
-// Sort options
 const sortOptions = [
   { label: 'Most Recent', value: 'recent' },
   { label: 'Oldest First', value: 'oldest' },
   { label: 'Author A-Z', value: 'author' }
 ]
 
-// Computed
 const filteredQuotes = computed(() => {
   let filtered = [...quotes.value]
   
@@ -238,7 +232,6 @@ const filteredQuotes = computed(() => {
   return filtered
 })
 
-// Methods
 const loadPendingQuotes = async (page = 1) => {
   try {
     const response = await $fetch('/api/dashboard/submissions', {
@@ -270,18 +263,17 @@ const getQuoteActions = (quote: DashboardQuote) => [
   {
     label: 'View Details',
     leading: 'i-ph-eye',
-    click: () => viewQuote(quote)
+    onclick: () => viewQuote(quote)
   },
   {}, // Divider
   {
     label: 'Withdraw',
     leading: 'i-ph-arrow-counter-clockwise',
-    click: () => confirmWithdraw(quote)
+    onclick: () => confirmWithdraw(quote)
   }
 ]
 
 const viewQuote = (quote: DashboardQuote) => {
-  // Navigate to quote detail page
   navigateTo(`/quotes/${quote.id}`)
 }
 
@@ -314,7 +306,6 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load data on mount
 onMounted(() => {
   loadPendingQuotes()
 })

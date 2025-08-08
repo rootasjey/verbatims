@@ -137,10 +137,12 @@ const props = withDefaults(defineProps<Props>(), {
 ```
 
 ### Styling Conventions
-- Use UnaUI components over custom CSS
+- Use UnaUI components and UnoCSS over custom CSS
 - Dark mode support with `dark:` prefixes
 - Consistent spacing with dashed borders: `border-dashed border-gray-200 dark:border-gray-700`
 - Color palette: Primary blue (`#687FE5`), semantic colors for status
+- In USelect component: Use `value-key="label"` so that the selected value is nicely displayed with its label (e.g. `Pending Review` instead of `pending`)
+- In UDropdownMenu component: Use `onclick` event for item actions
 
 ## Key Files to Reference
 - `/nuxt.config.ts` - Core configuration and modules

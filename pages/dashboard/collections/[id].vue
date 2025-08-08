@@ -273,28 +273,24 @@ const loadCollection = async (reset = true) => {
   }
 }
 
-// Load more quotes
 const loadMoreQuotes = () => {
   currentPage.value++
   loadCollection(false)
 }
 
-// Collection actions
 const collectionActions = computed(() => [
   [{
     label: 'Delete Collection',
     icon: 'i-ph-trash',
-    click: () => navigateTo('/dashboard/collections') // TODO: Implement delete
+    onclick: () => navigateTo('/dashboard/collections') // TODO: Implement delete
   }]
 ])
 
-// Confirm remove quote
 const confirmRemoveQuote = (quote) => {
   selectedQuote.value = quote
   showRemoveModal.value = true
 }
 
-// Remove quote from collection
 const removeQuote = async () => {
   if (!selectedQuote.value) return
 
@@ -312,16 +308,18 @@ const removeQuote = async () => {
     
     showRemoveModal.value = false
     selectedQuote.value = null
-    // TODO: Show success toast
   } catch (error) {
     console.error('Failed to remove quote:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to remove quote',
+      status: 'error'
+    })
   } finally {
     removing.value = false
   }
 }
 
-// Event handlers
 const onCollectionUpdated = (updatedCollection) => {
   collection.value = { ...collection.value, ...updatedCollection }
 }
@@ -334,12 +332,10 @@ const onQuoteAdded = (newQuote) => {
   collection.value.quotes_count++
 }
 
-// Utility functions
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load initial data
 onMounted(() => {
   loadCollection()
 })

@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
     const search = query.search as string || ''
-    const status = query.status as string || 'pending'
+    const status = (query.status as string) || 'pending'
     
     const db = hubDatabase()
     
@@ -69,14 +69,14 @@ export default defineEventHandler(async (event) => {
     const quotes = (quotesResult?.results || []) as unknown as CreatedQuoteResult[]
 
     // Get total count
-    const totalResult = await db.prepare(`
+  const totalResult = await db.prepare(`
       SELECT COUNT(*) as total
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       ${whereClause}
-    `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset
+  `).bind(...bindings).first()
 
     const total = Number(totalResult?.total) || 0
     const hasMore = offset + quotes.length < total

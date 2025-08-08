@@ -402,7 +402,7 @@ const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 const searchQuery = ref('')
-const statusFilter = ref({ label: 'Pending Review', value: 'draft' })
+const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
 const selectedQuotes = ref([])
 const processing = ref(new Set())
 
@@ -415,13 +415,13 @@ const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
 
 const statusOptions = [
-  { label: 'Pending Review', value: 'draft' },
+  { label: 'Pending Review', value: 'pending' },
   { label: 'Approved', value: 'approved' },
   { label: 'Rejected', value: 'rejected' }
 ]
 
 const pendingCount = computed(() => {
-  return quotes.value.filter(q => q.status === 'draft').length
+  return quotes.value.filter(q => q.status === 'pending').length
 })
 
 const uniqueContributors = computed(() => {
@@ -537,7 +537,7 @@ const loadQuotes = async (reset = true) => {
       quotes.value.push(...(response.data || []))
     }
 
-    totalQuotes.value = response.total || 0
+    totalQuotes.value = response.pagination?.total || 0
     hasMore.value = response.pagination?.hasMore || false
   } catch (error) {
     console.error('Failed to load quotes:', error)
@@ -550,7 +550,7 @@ const loadQuotes = async (reset = true) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  statusFilter.value = { label: 'Pending Review', value: 'draft' }
+  statusFilter.value = { label: 'Pending Review', value: 'pending' }
   currentPage.value = 1
 }
 
@@ -584,8 +584,8 @@ const approveQuote = async (quote) => {
       body: { action: 'approve' }
     })
     
-    // Remove from list if filtering by draft
-    if (statusFilter.value === 'draft') {
+  // Remove from list if filtering by pending
+  if (statusFilter.value?.value === 'pending') {
       quotes.value = quotes.value.filter(q => q.id !== quote.id)
     } else {
       // Update status in place
@@ -653,8 +653,8 @@ const bulkApprove = async () => {
       }
     })
     
-    // Remove approved quotes from list if filtering by draft
-    if (statusFilter.value === 'draft') {
+  // Remove approved quotes from list if filtering by pending
+  if (statusFilter.value?.value === 'pending') {
       quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
     }
     
@@ -702,7 +702,7 @@ const confirmBulkReject = async () => {
 
 // Event handlers
 const onQuoteRejected = (rejectedQuote) => {
-  if (statusFilter.value === 'draft') {
+  if (statusFilter.value?.value === 'pending') {
     quotes.value = quotes.value.filter(q => q.id !== rejectedQuote.id)
   } else {
     const index = quotes.value.findIndex(q => q.id === rejectedQuote.id)
@@ -713,7 +713,7 @@ const onQuoteRejected = (rejectedQuote) => {
 }
 
 const onBulkRejected = () => {
-  if (statusFilter.value === 'draft') {
+  if (statusFilter.value?.value === 'pending') {
     quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
   }
   selectedQuotes.value = []
@@ -733,27 +733,27 @@ const getQuoteActions = (quote) => {
     {
       label: 'View Details',
       leading: 'i-ph-eye',
-      click: () => viewQuote(quote)
+      onclick: () => viewQuote(quote)
     },
     {
       label: 'Edit Quote',
       leading: 'i-ph-pencil',
-      click: () => editQuote(quote)
+      onclick: () => editQuote(quote)
     }
   ]
 
-  if (quote.status === 'draft') {
+  if (quote.status === 'pending') {
     actions.push(
       {},
       {
         label: 'Approve',
         leading: 'i-ph-check',
-        click: () => approveQuote(quote)
+        onclick: () => approveQuote(quote)
       },
       {
         label: 'Reject',
         leading: 'i-ph-x',
-        click: () => rejectQuote(quote)
+        onclick: () => rejectQuote(quote)
       }
     )
   }

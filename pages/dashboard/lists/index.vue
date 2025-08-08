@@ -294,12 +294,12 @@ const getCollectionActions = (collection: DashboardCollection) => [
   {
     label: 'Edit',
     leading: 'i-ph-pencil',
-    click: () => editCollection(collection)
+    onclick: () => editCollection(collection)
   },
   {
     label: 'Delete',
     leading: 'i-ph-trash',
-    click: () => confirmDelete(collection)
+    onclick: () => confirmDelete(collection)
   },
 ]
 
@@ -351,7 +351,6 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load data on mount
 onMounted(() => {
   loadCollections()
 })

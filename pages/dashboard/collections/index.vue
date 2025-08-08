@@ -170,17 +170,14 @@
 </template>
 
 <script setup>
-// Require authentication
 definePageMeta({
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'My Collections - Verbatims'
 })
 
-// Data
 const collections = ref([])
 const loading = ref(true)
 const loadingMore = ref(false)
@@ -190,20 +187,17 @@ const currentPage = ref(1)
 const searchQuery = ref('')
 const visibilityFilter = ref('all')
 
-// Modals
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedCollection = ref(null)
 
-// Options
 const visibilityOptions = [
   { label: 'All Collections', value: 'all' },
   { label: 'Public Only', value: 'public' },
   { label: 'Private Only', value: 'private' }
 ]
 
-// Load collections
 const loadCollections = async (reset = true) => {
   try {
     if (reset) {
@@ -239,56 +233,54 @@ const loadCollections = async (reset = true) => {
     hasMore.value = response.pagination.hasMore
   } catch (error) {
     console.error('Failed to load collections:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to load collections',
+      status: 'error'
+    })
   } finally {
     loading.value = false
     loadingMore.value = false
   }
 }
 
-// Debounced search
 const debouncedSearch = useDebounceFn(() => {
   loadCollections()
 }, 300)
 
-// Load more collections
 const loadMore = () => {
   currentPage.value++
   loadCollections(false)
 }
 
-// Collection actions
 const getCollectionActions = (collection) => [
   [{
     label: 'Edit',
     icon: 'i-ph-pencil',
-    click: () => editCollection(collection)
+    onclick: () => editCollection(collection)
   }, {
     label: 'View Public',
     icon: 'i-ph-eye',
-    click: () => navigateTo(`/collections/${collection.id}`),
+    onclick: () => navigateTo(`/collections/${collection.id}`),
     disabled: !collection.is_public
   }],
   [{
     label: 'Delete',
     icon: 'i-ph-trash',
-    click: () => confirmDelete(collection)
+    onclick: () => confirmDelete(collection)
   }]
 ]
 
-// Edit collection
 const editCollection = (collection) => {
   selectedCollection.value = collection
   showEditModal.value = true
 }
 
-// Confirm delete
 const confirmDelete = (collection) => {
   selectedCollection.value = collection
   showDeleteModal.value = true
 }
 
-// Delete collection
 const deleteCollection = async () => {
   if (!selectedCollection.value) return
 
@@ -304,16 +296,18 @@ const deleteCollection = async () => {
     
     showDeleteModal.value = false
     selectedCollection.value = null
-    // TODO: Show success toast
   } catch (error) {
     console.error('Failed to delete collection:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to delete collection',
+      status: 'error'
+    })
   } finally {
     deleting.value = false
   }
 }
 
-// Event handlers
 const onCollectionCreated = (newCollection) => {
   collections.value.unshift(newCollection)
 }
@@ -325,17 +319,14 @@ const onCollectionUpdated = (updatedCollection) => {
   }
 }
 
-// Utility functions
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load initial data
 onMounted(() => {
   loadCollections()
 })
 
-// Watch for filter changes
 watch(visibilityFilter, () => {
   loadCollections()
 })

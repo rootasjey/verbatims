@@ -2,8 +2,7 @@ import { CreatedQuoteResult } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication and admin privileges
-    const session = await getUserSession(event)
+    const session = await requireUserSession(event)
     if (!session.user) {
       throw createError({
         statusCode: 401,
