@@ -482,15 +482,7 @@ const unpublishQuote = async (quote: AdminQuote) => {
 
 watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
   loadQuotes()
-}, { debounce: 300 })
-
-onMounted(() => {
-  // Initialize selectedLanguage with the first option from the store
-  if (languageOptions.value.length > 0) {
-    selectedLanguage.value = languageOptions.value[0]
-  }
-  loadQuotes()
-})
+}, { debounce: 300, immediate: true })
 </script>
 
 <style scoped>
