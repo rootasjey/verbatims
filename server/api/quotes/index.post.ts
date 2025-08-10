@@ -6,7 +6,6 @@ import type {
 
 export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
-    // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
       throw createError({
@@ -18,7 +17,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     const body = await readBody(event)
     const db = hubDatabase()
 
-    // Validate required fields
     if (!body.name || body.name.length < 10 || body.name.length > 3000) {
       throw createError({
         statusCode: 400,
@@ -126,7 +124,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     // Add tags if provided
     if (body.tags && Array.isArray(body.tags) && body.tags.length > 0) {
       for (const tagId of body.tags) {
-        // Verify tag exists
         const tag = await db.prepare('SELECT id FROM tags WHERE id = ?')
           .bind(tagId).first()
         
@@ -177,9 +174,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       reference_id: createdQuote.reference_id,
       user_id: createdQuote.user_id,
       status: createdQuote.status as any, // Will be properly typed in the Quote interface
-      moderator_id: null,
-      moderated_at: null,
-      rejection_reason: null,
+      moderator_id: undefined,
+      moderated_at: undefined,
+      rejection_reason: undefined,
       views_count: createdQuote.views_count,
       likes_count: createdQuote.likes_count,
       shares_count: createdQuote.shares_count,
@@ -190,36 +187,36 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
         id: createdQuote.author_id,
         name: createdQuote.author_name || '',
         is_fictional: createdQuote.author_is_fictional || false,
-        birth_date: null,
-        birth_location: null,
-        death_date: null,
-        death_location: null,
-        job: null,
-        description: null,
-        image_url: null,
+        birth_date: undefined,
+        birth_location: undefined,
+        death_date: undefined,
+        death_location: undefined,
+        job: undefined,
+        description: undefined,
+        image_url: undefined,
         socials: '{}',
         views_count: 0,
         likes_count: 0,
         shares_count: 0,
         created_at: '',
         updated_at: ''
-      } : null,
+      } : undefined,
       reference: createdQuote.reference_id ? {
         id: createdQuote.reference_id,
         name: createdQuote.reference_name || '',
         original_language: 'en',
-        release_date: null,
-        description: null,
+        release_date: undefined,
+        description: undefined,
         primary_type: createdQuote.reference_type as any || 'other',
-        secondary_type: null,
-        image_url: null,
+        secondary_type: undefined,
+        image_url: undefined,
         urls: '{}',
         views_count: 0,
         likes_count: 0,
         shares_count: 0,
         created_at: '',
         updated_at: ''
-      } : null,
+      } : undefined,
       tags: createdQuote.tag_names ? createdQuote.tag_names.split(',').map((name: string, index: number) => ({
         id: index + 1, // Temporary ID for display
         name,

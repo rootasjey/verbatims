@@ -13,7 +13,7 @@
       </div>
 
       <!-- Search and Filters -->
-      <div class="flex flex-col sm:flex-row gap-4 mb-6">
+  <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
           <UInput
             v-model="searchQuery"
@@ -30,8 +30,8 @@
             placeholder="All Languages"
             size="sm"
             class="w-40"
-            item-key="label"
-            item-value="label"
+    item-key="label"
+    value-key="label"
           />
           <UButton
             btn="outline-gray"
@@ -78,16 +78,25 @@
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
-      <!-- Loading State -->
-      <div v-if="loading" class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <UIcon name="i-ph-spinner" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
-          <p class="text-gray-500 dark:text-gray-400">Loading draft quotes...</p>
-        </div>
-      </div>
+      <!-- First-load Skeleton State -->
+      <TableFirstLoadSkeleton
+        v-if="!hasLoadedOnce && loading"
+        :rows="pageSize"
+        :col-classes="[
+          'w-12',
+          'min-w-80 flex-1',
+          'w-48',
+          'w-24',
+          'w-24',
+          'w-28',
+          'w-16'
+        ]"
+        :layout="['checkbox','multi','text','text','pill','date','dot']"
+        :show-footer="true"
+      />
 
       <!-- Empty State -->
-      <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
+      <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
         <UIcon name="i-ph-file-dashed" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching draft quotes' : 'No draft quotes found' }}
@@ -99,25 +108,81 @@
 
       <!-- Quotes Table -->
       <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+        <!-- Bulk Actions -->
+        <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-4">
+          <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} selected
+              </span>
+              <div class="flex items-center gap-3">
+                <UButton size="sm" btn="soft-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
+                  <UIcon name="i-ph-trash" />
+                  Delete Selected
+                </UButton>
+                <UButton size="sm" btn="ghost" @click="clearSelection">
+                  Clear Selection
+                </UButton>
+              </div>
+            </div>
+          </div>
+        </div>
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
+            manual-pagination
             empty-text="No draft quotes found"
             empty-icon="i-ph-file-dashed"
           >
+            <!-- Actions Header: toggle selection mode -->
+            <template #actions-header>
+              <div class="flex items-center justify-center gap-1">
+                <template v-if="selectionMode">
+                  <UTooltip text="Select all on page">
+                    <UButton
+                      icon
+                      btn="ghost"
+                      size="2xs"
+                      label="i-ph-checks"
+                      :disabled="allSelectedOnPage"
+                      @click="selectAllOnPage"
+                    />
+                  </UTooltip>
+                </template>
+                <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="2xs"
+                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    @click="toggleSelectionMode"
+                  />
+                </UTooltip>
+              </div>
+            </template>
             <!-- Actions Column -->
             <template #actions-cell="{ cell }">
-              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                <UButton
-                  icon
-                  btn="ghost"
-                  size="sm"
-                  label="i-ph-dots-three-vertical"
-                />
-              </UDropdownMenu>
+              <template v-if="!selectionMode">
+                <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="sm"
+                    label="i-ph-dots-three-vertical"
+                  />
+                </UDropdownMenu>
+              </template>
+              <template v-else>
+                <div class="flex items-center justify-center">
+                  <UCheckbox
+                    :model-value="!!rowSelection[cell.row.original.id]"
+                    @update:model-value="val => setRowSelected(cell.row.original.id, val)"
+                  />
+                </div>
+              </template>
             </template>
 
             <!-- Quote Column with text wrapping -->
@@ -181,7 +246,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+  <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
@@ -232,6 +297,26 @@
     </UCard>
   </UDialog>
 
+  <!-- Bulk Delete Confirmation -->
+  <UDialog v-model="showBulkDeleteModal">
+    <UCard>
+      <template #header>
+        <h3 class="text-lg font-semibold">Delete {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'Draft' : 'Drafts' }}</h3>
+      </template>
+
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        You are about to delete {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }}. This action cannot be undone.
+      </p>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <UButton btn="ghost" @click="showBulkDeleteModal = false">Cancel</UButton>
+          <UButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</UButton>
+        </div>
+      </template>
+    </UCard>
+  </UDialog>
+
   <AddQuoteDialog
     v-model="showEditQuoteDialog"
     :edit-quote="selectedQuote"
@@ -259,13 +344,24 @@ const showEditQuoteDialog = ref(false)
 
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
+const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
 const selectedLanguage = ref('')
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 const showDeleteModal = ref(false)
+const showBulkDeleteModal = ref(false)
 const deleting = ref(false)
+const bulkProcessing = ref(false)
+
+// Selection state
+const selectionMode = ref(false)
+const rowSelection = ref<Record<string, boolean>>({})
+const selectedQuotes = computed<number[]>(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => Number(k)))
 
 const { availableLanguages } = useLanguageStore()
 
@@ -316,8 +412,8 @@ const tableColumns = [
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
+  tableHead: 'w-6',
+  tableCell: 'w-6'
       }
     }
   },
@@ -338,8 +434,8 @@ const tableColumns = [
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-48',
-        tableCell: 'w-48'
+  tableHead: 'w-48',
+  tableCell: 'w-48'
       }
     }
   },
@@ -349,8 +445,8 @@ const tableColumns = [
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-24',
-        tableCell: 'w-24'
+  tableHead: 'w-24',
+  tableCell: 'w-24'
       }
     }
   },
@@ -360,8 +456,8 @@ const tableColumns = [
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-24',
-        tableCell: 'w-24'
+  tableHead: 'w-24',
+  tableCell: 'w-24'
       }
     }
   },
@@ -371,28 +467,30 @@ const tableColumns = [
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-28',
-        tableCell: 'w-28'
+  tableHead: 'w-28',
+  tableCell: 'w-28'
       }
     }
   }
 ]
 
-const loadQuotes = async () => {
+const loadQuotes = async (page = currentPage.value) => {
   try {
     loading.value = true
     const response = await $fetch('/api/admin/quotes', {
       query: {
         status: 'draft',
-        page: currentPage.value,
+  page,
         limit: pageSize.value,
         search: searchQuery.value || undefined,
         language: selectedLanguage.value || undefined
       }
     })
     
-    quotes.value = response.data || []    
+    quotes.value = response.data || []
     totalQuotes.value = response.pagination?.total || 0
+    // Update current page and total pages
+    currentPage.value = page
   } catch (error) {
     console.error('Failed to load draft quotes:', error)
     useToast().toast({
@@ -402,6 +500,7 @@ const loadQuotes = async () => {
     })
   } finally {
     loading.value = false
+    hasLoadedOnce.value = true
   }
 }
 
@@ -409,6 +508,7 @@ const resetFilters = () => {
   searchQuery.value = ''
   selectedLanguage.value = ''
   currentPage.value = 1
+  loadQuotes(1)
 }
 
 const getQuoteActions = (quote: AdminQuote) => [
@@ -483,12 +583,87 @@ const deleteDraft = async () => {
   }
 }
 
-watchDebounced([currentPage, searchQuery, selectedLanguage], () => {
-  loadQuotes()
+const clearSelection = () => {
+  rowSelection.value = {}
+}
+
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) {
+    clearSelection()
+  }
+}
+
+const setRowSelected = (id: number, value: boolean | 'indeterminate') => {
+  rowSelection.value[id] = value === true
+}
+
+const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
+const allSelectedOnPage = computed<boolean>(() =>
+  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
+)
+
+const selectAllOnPage = () => {
+  visibleIds.value.forEach(id => {
+    rowSelection.value[id] = true
+  })
+}
+
+// Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
+const onKeydown = (e: KeyboardEvent) => {
+  if (!selectionMode.value) return
+  const isMac = navigator.platform.toLowerCase().includes('mac')
+  const metaPressed = isMac ? e.metaKey : e.ctrlKey
+  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+    e.preventDefault()
+    selectAllOnPage()
+  }
+}
+
+const bulkDelete = async () => {
+  if (selectedQuotes.value.length === 0) return
+  const { toast } = useToast()
+  try {
+    bulkProcessing.value = true
+    const ids = [...selectedQuotes.value]
+    const batchSize = 5
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize)
+      await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}`, { method: 'DELETE' } as any)))
+    }
+    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    rowSelection.value = {}
+    showBulkDeleteModal.value = false
+    toast({ title: 'Deleted', description: 'Selected drafts deleted.' })
+  } catch (error) {
+    console.error('Failed to bulk delete:', error)
+    useToast().toast({
+      toast: 'error',
+      title: 'Bulk Delete Failed',
+      description: 'Please try again.'
+    })
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+// Watchers
+watch(currentPage, () => {
+  loadQuotes(currentPage.value)
+})
+
+watchDebounced([searchQuery, selectedLanguage], () => {
+  currentPage.value = 1
+  loadQuotes(1)
 }, { debounce: 300 })
 
 onMounted(() => {
   loadQuotes()
+  window.addEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 

@@ -21,7 +21,6 @@
             leading="i-ph-magnifying-glass"
             size="md"
             :loading="loading"
-            @input="debouncedSearch"
           />
         </div>
         <div class="flex gap-2">
@@ -33,7 +32,6 @@
             class="w-40"
             item-key="label"
             value-key="label"
-            @change="loadQuotes"
           />
           <UButton
             btn="outline-gray"
@@ -83,12 +81,12 @@
       <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
         <div class="flex items-center justify-between">
           <span class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ selectedQuotes.length }} quotes selected
+            {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
           </span>
           <div class="flex items-center gap-3">
             <UButton
               size="sm"
-              btn="solid"
+              btn="soft-blue"
               :loading="bulkProcessing"
               @click="bulkApprove"
             >
@@ -97,8 +95,7 @@
             </UButton>
             <UButton
               size="sm"
-              btn="solid"
-              color="red"
+              btn="soft-pink"
               :loading="bulkProcessing"
               @click="showBulkRejectModal = true"
             >
@@ -107,7 +104,7 @@
             </UButton>
             <UButton
               size="sm"
-              btn="ghost"
+              btn="ghost-gray"
               @click="clearSelection"
             >
               Clear Selection
@@ -119,17 +116,24 @@
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
-
-      <!-- Loading State -->
-      <div v-if="loading" class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <UIcon name="i-ph-spinner" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
-          <p class="text-gray-500 dark:text-gray-400">Loading pending quotes...</p>
-        </div>
-      </div>
+      <!-- First-load Skeleton State -->
+      <TableFirstLoadSkeleton
+        v-if="!hasLoadedOnce && loading"
+        :rows="pageSize"
+        :col-classes="[
+          'min-w-80 flex-1',
+          'w-48',
+          'w-32',
+          'w-32',
+          'w-28',
+          'w-6'
+        ]"
+        :layout="['multi','multi','pill','pill','date','dot']"
+        :show-footer="true"
+      />
 
       <!-- Empty State -->
-      <div v-else-if="quotes.length === 0 && !loading" class="text-center py-16">
+      <div v-else-if="hasLoadedOnce && quotes.length === 0" class="text-center py-16">
         <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching quotes found' : 'All caught up!' }}
@@ -147,15 +151,35 @@
             :columns="tableColumns"
             :data="quotes"
             :loading="loading"
+            manual-pagination
             empty-text="No pending quotes found"
             empty-icon="i-ph-clock"
           >
-            <!-- Selection Column -->
-            <template #selection-cell="{ cell }">
-              <UCheckbox
-                :model-value="selectedQuotes.includes(cell.row.original.id)"
-                @update:model-value="toggleQuoteSelection(cell.row.original.id)"
-              />
+            <!-- Actions Header: Selection mode & select-all on page -->
+            <template #actions-header>
+              <div class="flex items-center justify-center gap-1">
+                <template v-if="selectionMode">
+                  <UTooltip text="Select all on page">
+                    <UButton
+                      icon
+                      btn="ghost"
+                      size="2xs"
+                      label="i-ph-checks"
+                      :disabled="allSelectedOnPage"
+                      @click="selectAllOnPage"
+                    />
+                  </UTooltip>
+                </template>
+                <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="2xs"
+                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    @click="toggleSelectionMode"
+                  />
+                </UTooltip>
+              </div>
             </template>
 
             <!-- Quote Column with text wrapping -->
@@ -242,14 +266,24 @@
 
             <!-- Actions Column -->
             <template #actions-cell="{ cell }">
-              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                <UButton
-                  icon
-                  btn="ghost"
-                  size="xs"
-                  label="i-ph-dots-three-vertical"
-                />
-              </UDropdownMenu>
+              <template v-if="!selectionMode">
+                <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="xs"
+                    label="i-ph-dots-three-vertical"
+                  />
+                </UDropdownMenu>
+              </template>
+              <template v-else>
+                <div class="flex items-center justify-center">
+                  <UCheckbox
+                    :model-value="!!rowSelection[cell.row.original.id]"
+                    @update:model-value="val => setRowSelected(cell.row.original.id, val)"
+                  />
+                </div>
+              </template>
             </template>
           </UTable>
         </div>
@@ -257,19 +291,16 @@
         <!-- Pagination -->
         <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ Math.ceil(totalQuotes / pageSize) }} • {{ totalQuotes }} total quotes
+            Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
-          <div class="flex items-center gap-2">
-            <UButton
-              v-if="hasMore && !loading"
-              btn="dark:solid-black"
-              size="md"
-              :loading="loadingMore"
-              @click="loadMore"
-            >
-              Load More
-            </UButton>
-          </div>
+          <UPagination
+            v-model:page="currentPage"
+            :total="totalQuotes"
+            :items-per-page="pageSize"
+            :sibling-count="2"
+            show-edges
+            size="sm"
+          />
         </div>
       </div>
     </div>
@@ -395,15 +426,17 @@ useHead({
 
 const quotes = ref([])
 const loading = ref(true)
-const loadingMore = ref(false)
 const bulkProcessing = ref(false)
-const hasMore = ref(false)
+const hasLoadedOnce = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
+const totalPages = ref(0)
 const searchQuery = ref('')
 const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
-const selectedQuotes = ref([])
+// Selection mode + row selection map
+const selectionMode = ref(false)
+const rowSelection = ref({})
 const processing = ref(new Set())
 
 const showRejectModal = ref(false)
@@ -432,12 +465,12 @@ const uniqueContributors = computed(() => {
 const tableColumns = [
   {
     header: '',
-    accessorKey: 'selection',
+    accessorKey: 'actions',
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-12',
-        tableCell: 'w-12'
+        tableHead: 'w-6',
+        tableCell: 'w-6'
       }
     }
   },
@@ -495,32 +528,15 @@ const tableColumns = [
         tableCell: 'w-28'
       }
     }
-  },
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
-      }
-    }
   }
 ]
 
-const loadQuotes = async (reset = true) => {
+const loadQuotes = async (page = 1) => {
   try {
-    if (reset) {
-      loading.value = true
-      currentPage.value = 1
-      selectedQuotes.value = []
-    } else {
-      loadingMore.value = true
-    }
+    loading.value = true
 
     const params = {
-      page: currentPage.value,
+      page,
       limit: pageSize.value,
       status: statusFilter.value.value
     }
@@ -531,20 +547,19 @@ const loadQuotes = async (reset = true) => {
 
     const response = await $fetch('/api/admin/quotes/pending', { query: params })
 
-    if (reset) {
-      quotes.value = response.data || []
-    } else {
-      quotes.value.push(...(response.data || []))
-    }
-
+    quotes.value = response.data || []
+    // Reset selection on data change
+    rowSelection.value = {}
     totalQuotes.value = response.pagination?.total || 0
-    hasMore.value = response.pagination?.hasMore || false
+    pageSize.value = response.pagination?.limit || pageSize.value
+    totalPages.value = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
+    currentPage.value = page
   } catch (error) {
     console.error('Failed to load quotes:', error)
     // TODO: Show error toast
   } finally {
     loading.value = false
-    loadingMore.value = false
+    hasLoadedOnce.value = true
   }
 }
 
@@ -554,27 +569,42 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-const debouncedSearch = useDebounceFn(() => {
-  loadQuotes()
-}, 300)
+// Debounced search + filter reload
+watchDebounced([searchQuery, statusFilter], () => {
+  currentPage.value = 1
+  loadQuotes(1)
+}, { debounce: 300 })
 
-const loadMore = () => {
-  currentPage.value++
-  loadQuotes(false)
-}
+// Seamless page navigation
+watch(currentPage, () => {
+  loadQuotes(currentPage.value)
+})
 
-const toggleQuoteSelection = (quoteId) => {
-  const index = selectedQuotes.value.indexOf(quoteId)
-  if (index > -1) {
-    selectedQuotes.value.splice(index, 1)
-  } else {
-    selectedQuotes.value.push(quoteId)
-  }
-}
-
+// Selection helpers (borrowed from dashboard pending page)
 const clearSelection = () => {
-  selectedQuotes.value = []
+  rowSelection.value = {}
 }
+
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) clearSelection()
+}
+
+const setRowSelected = (id, value) => {
+  rowSelection.value[id] = value === true
+}
+
+const visibleIds = computed(() => quotes.value.map(q => q.id))
+const allSelectedOnPage = computed(() => visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id]))
+const selectAllOnPage = () => {
+  visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+}
+
+// Derive selected quote ids
+const selectedQuotes = computed(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => Number(k)))
 
 const approveQuote = async (quote) => {
   try {
@@ -658,7 +688,7 @@ const bulkApprove = async () => {
       quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
     }
     
-    selectedQuotes.value = []
+    rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk approve quotes:', error)
     useToast().toast({
@@ -716,7 +746,7 @@ const onBulkRejected = () => {
   if (statusFilter.value?.value === 'pending') {
     quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
   }
-  selectedQuotes.value = []
+  rowSelection.value = {}
 }
 
 // Utility functions
@@ -780,11 +810,22 @@ const onQuoteUpdated = () => {
 
 onMounted(() => {
   loadQuotes()
+  // Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
+  const onKeydown = (e) => {
+    if (!selectionMode.value) return
+    const isMac = navigator.platform.toLowerCase().includes('mac')
+    const metaPressed = isMac ? e.metaKey : e.ctrlKey
+    if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+      e.preventDefault()
+      selectAllOnPage()
+    }
+  }
+  window.addEventListener('keydown', onKeydown)
+  onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onKeydown)
+  })
 })
 
-watch(statusFilter, () => {
-  loadQuotes()
-})
 </script>
 
 <style scoped>

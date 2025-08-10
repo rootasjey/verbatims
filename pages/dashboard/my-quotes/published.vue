@@ -44,15 +44,48 @@
       </div>
     </div>
 
+    <!-- Bulk Actions -->
+    <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-6">
+      <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
+          </span>
+          <div class="flex items-center gap-3">
+            <UButton size="sm" btn="soft-blue" @click="showBulkAddToCollection = true">
+              <UIcon name="i-ph-bookmark" />
+              Add to Collection
+            </UButton>
+            <UButton size="sm" btn="ghost" @click="clearSelection">
+              Clear Selection
+            </UButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scrollable Content Area -->
     <div class="flex-1 overflow-hidden">
-      <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
-      </div>
+      <!-- First-load Skeleton State -->
+      <TableFirstLoadSkeleton
+        v-if="!hasLoadedOnce && loading"
+        :rows="pageSize"
+        :col-classes="[
+          'w-12',
+          'min-w-80 flex-1',
+          'w-40',
+          'w-40',
+          'w-32',
+          'w-32',
+          'w-24',
+          'w-28'
+        ]"
+        :layout="['checkbox','multi','text','text','pill','pill','date','dot']"
+        :show-footer="true"
+      />
 
       <!-- Empty State -->
-      <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
+      <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
         <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
@@ -91,16 +124,52 @@
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >
+          <!-- Actions Header: toggle selection mode -->
+          <template #actions-header>
+            <div class="flex items-center justify-center gap-1">
+              <template v-if="selectionMode">
+                <UTooltip text="Select all on page">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="2xs"
+                    label="i-ph-checks"
+                    :disabled="allSelectedOnPage"
+                    @click="selectAllOnPage"
+                  />
+                </UTooltip>
+              </template>
+              <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <UButton
+                  icon
+                  btn="ghost"
+                  size="2xs"
+                  :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                  @click="toggleSelectionMode"
+                />
+              </UTooltip>
+            </div>
+          </template>
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
-            <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-              <UButton
-                icon
-                btn="ghost"
-                size="sm"
-                label="i-ph-dots-three-vertical"
-              />
-            </UDropdownMenu>
+            <template v-if="!selectionMode">
+              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                <UButton
+                  icon
+                  btn="ghost"
+                  size="sm"
+                  label="i-ph-dots-three-vertical"
+                />
+              </UDropdownMenu>
+            </template>
+            <template v-else>
+              <div class="flex items-center justify-center">
+                <UCheckbox
+                  :model-value="!!rowSelection[cell.row.original.id]"
+                  @update:model-value="val => setRowSelected(cell.row.original.id, val)"
+                />
+              </div>
+            </template>
           </template>
 
           <!-- Quote Column with text wrapping -->
@@ -215,6 +284,14 @@
       :quote="selectedQuote"
       @added="handleAddedToCollection"
     />
+
+    <!-- Bulk Add to Collection Modal -->
+    <AddToCollectionBulkModal
+      v-if="selectedQuotes.length > 0"
+      v-model="showBulkAddToCollection"
+      :quote-ids="selectedQuotes"
+      @added="handleBulkAddedToCollection"
+    />
   </div>
 </template>
 
@@ -240,6 +317,7 @@ useHead({
 const languageStore = useLanguageStore()
 
 const loading = ref(true)
+const hasLoadedOnce = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
 const sortBy = ref({ label: 'Most Recent', value: 'recent' })
@@ -247,10 +325,18 @@ const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0) // Total number of quotes from API
 const totalPages = ref(0) // Total pages from API
+// Selection state
+const selectionMode = ref(false)
+const rowSelection = ref<Record<string, boolean>>({})
+const selectedQuotes = computed<number[]>(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => Number(k)))
 
 // Modals
 const showAddToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
+const showBulkAddToCollection = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'recent' },
@@ -361,6 +447,10 @@ const totalLikes = computed(() => {
 
 // Backend search - no client-side filtering needed
 const filteredQuotes = computed(() => quotes.value)
+const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
+const allSelectedOnPage = computed<boolean>(() =>
+  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
+)
 
 const displayedCount = computed(() => quotes.value.length)
 
@@ -404,10 +494,12 @@ const loadPublishedQuotes = async () => {
     totalQuotes.value = response.pagination.total
     totalPages.value = response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.limit)
     pageSize.value = response.pagination.limit
+    rowSelection.value = {}
   } catch (error) {
     console.error('Failed to load published quotes:', error)
   } finally {
     loading.value = false
+    hasLoadedOnce.value = true
   }
 }
 
@@ -415,6 +507,7 @@ const resetFilters = () => {
   searchQuery.value = ''
   sortBy.value = { label: 'Most Recent', value: 'recent' }
   currentPage.value = 1
+  loadPublishedQuotes()
 }
 
 // Handle language change from LanguageSelector
@@ -459,6 +552,29 @@ const shareQuote = (quote: DashboardQuote) => {
   // Could show a toast notification here
 }
 
+// Bulk helpers
+const clearSelection = () => {
+  rowSelection.value = {}
+}
+
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) clearSelection()
+}
+
+const setRowSelected = (id: number, value: boolean | 'indeterminate') => {
+  rowSelection.value[id] = value === true
+}
+
+const selectAllOnPage = () => {
+  visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+}
+
+const handleBulkAddedToCollection = () => {
+  showBulkAddToCollection.value = false
+  clearSelection()
+}
+
 const handleAddedToCollection = () => {
   showAddToCollectionModal.value = false
   selectedQuote.value = null
@@ -470,12 +586,28 @@ const formatDate = (dateString: string) => {
 
 onMounted(() => {
   loadPublishedQuotes()
+  window.addEventListener('keydown', onKeydown)
+})
+
+// Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
+const onKeydown = (e: KeyboardEvent) => {
+  if (!selectionMode.value) return
+  const isMac = navigator.platform.toLowerCase().includes('mac')
+  const metaPressed = isMac ? e.metaKey : e.ctrlKey
+  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+    e.preventDefault()
+    selectAllOnPage()
+  }
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 20rem);
+  max-height: calc(100vh - 22rem);
   max-width: calc(100vw - 20rem);
 }
 </style>

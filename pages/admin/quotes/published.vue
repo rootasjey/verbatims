@@ -81,15 +81,26 @@
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
-      <div v-if="loading" class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <UIcon name="i-ph-spinner" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
-          <p class="text-gray-500 dark:text-gray-400">Loading published quotes...</p>
-        </div>
-      </div>
+      <!-- First-load Skeleton State -->
+      <TableFirstLoadSkeleton
+        v-if="!hasLoadedOnce && loading"
+        :rows="pageSize"
+        :col-classes="[
+          'w-12',
+          'min-w-80 flex-1',
+          'w-40',
+          'w-40',
+          'w-32',
+          'w-24',
+          'w-24',
+          'w-28'
+        ]"
+        :layout="['checkbox','multi','text','text','text','pill','date','dot']"
+        :show-footer="true"
+      />
 
       <!-- Empty State -->
-      <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
+      <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
         <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
@@ -101,6 +112,29 @@
 
       <!-- Quotes Table -->
       <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+        <!-- Bulk Actions -->
+        <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-4">
+          <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
+              </span>
+              <div class="flex items-center gap-3">
+                <UButton size="sm" btn="soft-blue" @click="showBulkAddToCollection = true">
+                  <UIcon name="i-ph-bookmark" />
+                  Add to Collection
+                </UButton>
+                <UButton size="sm" btn="soft-pink" @click="bulkUnpublish">
+                  <UIcon name="i-ph-eye-slash" />
+                  Unpublish
+                </UButton>
+                <UButton size="sm" btn="ghost-gray" @click="clearSelection">
+                  Clear Selection
+                </UButton>
+              </div>
+            </div>
+          </div>
+        </div>
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
@@ -111,16 +145,52 @@
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >
+            <!-- Actions Header: toggle selection mode -->
+            <template #actions-header>
+              <div class="flex items-center justify-center gap-1">
+                <template v-if="selectionMode">
+                  <UTooltip text="Select all on page">
+                    <UButton
+                      icon
+                      btn="ghost"
+                      size="2xs"
+                      label="i-ph-checks"
+                      :disabled="allSelectedOnPage"
+                      @click="selectAllOnPage"
+                    />
+                  </UTooltip>
+                </template>
+                <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="2xs"
+                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    @click="toggleSelectionMode"
+                  />
+                </UTooltip>
+              </div>
+            </template>
             <!-- Actions Column -->
             <template #actions-cell="{ cell }">
-              <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                <UButton
-                  icon
-                  btn="ghost"
-                  size="sm"
-                  label="i-ph-dots-three-vertical"
-                />
-              </UDropdownMenu>
+              <template v-if="!selectionMode">
+                <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="sm"
+                    label="i-ph-dots-three-vertical"
+                  />
+                </UDropdownMenu>
+              </template>
+              <template v-else>
+                <div class="flex items-center justify-center">
+                  <UCheckbox
+                    :model-value="!!rowSelection[cell.row.original.id]"
+                    @update:model-value="val => setRowSelected(cell.row.original.id, val)"
+                  />
+                </div>
+              </template>
             </template>
 
             <!-- Quote Column with text wrapping -->
@@ -223,6 +293,14 @@
     :edit-quote="selectedQuote"
     @quote-updated="onQuoteUpdated"
   />
+
+  <!-- Bulk Add to Collection Modal -->
+  <AddToCollectionBulkModal
+    v-if="selectedQuotes.length > 0"
+    v-model="showBulkAddToCollection"
+    :quote-ids="selectedQuotes"
+    @added="handleBulkAddedToCollection"
+  />
 </template>
 
 <script setup lang="ts">
@@ -241,6 +319,7 @@ useHead({
 
 const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
+const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
 const selectedSort = ref({ label: 'Most Recent', value: 'newest' })
 const currentPage = ref(1)
@@ -259,6 +338,15 @@ const selectedLanguage = ref({ label: 'All Languages', value: '' })
 
 const selectedQuote = ref<AdminQuote | undefined>(undefined)
 const showEditQuoteDialog = ref(false)
+// Selection state
+const selectionMode = ref(false)
+const rowSelection = ref<Record<string, boolean>>({})
+const selectedQuotes = computed<number[]>(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => Number(k)))
+// Bulk modal
+const showBulkAddToCollection = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -406,6 +494,12 @@ const tableColumns = [
   }
 ]
 
+// Helpers derived from dashboard page
+const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
+const allSelectedOnPage = computed<boolean>(() =>
+  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
+)
+
 const loadQuotes = async () => {
   try {
     loading.value = true
@@ -421,6 +515,8 @@ const loadQuotes = async () => {
 
     quotes.value = response.data || []
     totalQuotes.value = response.pagination?.total || 0
+    // Reset selection on new data
+    rowSelection.value = {}
   } catch (error) {
     console.error('Failed to load published quotes:', error)
     useToast().toast({
@@ -430,6 +526,7 @@ const loadQuotes = async () => {
     })
   } finally {
     loading.value = false
+    hasLoadedOnce.value = true
   }
 }
 
@@ -476,13 +573,96 @@ const onQuoteUpdated = () => {
 }
 
 const unpublishQuote = async (quote: AdminQuote) => {
-  // TODO: Implement unpublish functionality
-  console.log('Unpublish quote:', quote.id)
+  try {
+    const res = await $fetch('/api/admin/quotes/unpublish', {
+      method: 'POST',
+      body: { id: quote.id }
+    })
+    useToast().toast({
+      title: 'Quote unpublished',
+      description: `Quote #${quote.id} moved back to draft`,
+      toast: 'success'
+    })
+    await loadQuotes()
+  } catch (e) {
+    console.error('Unpublish failed:', e)
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to unpublish quote',
+      toast: 'error'
+    })
+  }
+}
+
+// Selection & Bulk helpers
+const clearSelection = () => {
+  rowSelection.value = {}
+}
+
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) clearSelection()
+}
+
+const setRowSelected = (id: number, value: boolean | 'indeterminate') => {
+  rowSelection.value[id] = value === true
+}
+
+const selectAllOnPage = () => {
+  visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+}
+
+const handleBulkAddedToCollection = () => {
+  showBulkAddToCollection.value = false
+  clearSelection()
+}
+
+const bulkUnpublish = async () => {
+  try {
+    if (selectedQuotes.value.length === 0) return
+    await $fetch('/api/admin/quotes/unpublish', {
+      method: 'POST',
+      body: { ids: selectedQuotes.value }
+    })
+    useToast().toast({
+      title: 'Unpublished',
+      description: `Unpublished ${selectedQuotes.value.length} quote(s)`,
+      toast: 'success'
+    })
+    clearSelection()
+    await loadQuotes()
+  } catch (e) {
+    console.error('Bulk unpublish failed:', e)
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to unpublish selected quotes',
+      toast: 'error'
+    })
+  }
 }
 
 watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
   loadQuotes()
 }, { debounce: 300, immediate: true })
+
+// Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (!selectionMode.value) return
+  const isMac = navigator.platform.toLowerCase().includes('mac')
+  const metaPressed = isMac ? e.metaKey : e.ctrlKey
+  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+    e.preventDefault()
+    selectAllOnPage()
+  }
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <style scoped>
