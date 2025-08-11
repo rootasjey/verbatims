@@ -1,15 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          My Collections
-        </h1>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
-          Organize your favorite quotes into collections
-        </p>
-      </div>
+    <div class="flex items-center justify-end mb-8">
       <UButton @click="showCreateModal = true">
         <UIcon name="i-ph-plus" />
         <span>Create Collection</span>

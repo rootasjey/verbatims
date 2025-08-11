@@ -1,14 +1,5 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-        Export Data
-      </h1>
-      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-        Export data with filtering options in multiple formats using our step-by-step process
-      </p>
-    </div>
 
     <!-- Success/Error Alerts -->
     <div class="mb-6 space-y-4">

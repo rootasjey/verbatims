@@ -288,9 +288,6 @@
               label="i-ph-list-bold"
               @click="sidebarOpen = true"
             />
-            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ pageTitle }}
-            </h1>
             <div class="w-8" /> <!-- Spacer for centering -->
           </div>
         </div>
@@ -319,18 +316,17 @@ const publishedCount = ref(0)
 const pendingCount = ref(0)
 const draftCount = ref(0)
 
-// Computed page title for mobile header
-const pageTitle = computed(() => {
-  const path = route.path
-  if (path === '/admin') return 'Admin Panel'
-  if (path === '/admin/quotes/published') return 'Published Quotes'
-  if (path === '/admin/quotes/pending') return 'Pending Quotes'
-  if (path === '/admin/quotes/drafts') return 'Draft Quotes'
-  if (path === '/admin/users') return 'Users'
-  if (path === '/admin/maintenance') return 'Database Maintenance'
-  if (path === '/admin/import') return 'Import Data'
-  if (path === '/admin/export') return 'Export Data'
-  return 'Admin Panel'
+// Page header integration
+const pageHeader = usePageHeader()
+
+// Set page header based on current route
+onMounted(() => {
+  pageHeader.setHeaderFromRoute(route.path)
+})
+
+// Update header when route changes
+watch(() => route.path, (newPath) => {
+  pageHeader.setHeaderFromRoute(newPath)
 })
 
 // Load quote counts for badges

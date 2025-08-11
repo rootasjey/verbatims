@@ -1,49 +1,71 @@
 <template>
-  <nav 
+  <nav
     :class="[
       'top-0 w-full z-4 transition-all duration-300',
-      'flex justify-between p-4',
       'border-b b-dashed',
       scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md'
     ]"
   >
-    <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-        <path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/>
-      </svg>
-    </UButton>
-    
-    <div class="flex items-center space-x-6 font-title font-600 color-gray-6 dark:color-gray-4 mr-8">
-      <UButton 
-        icon
-        btn="ghost"
-        label="i-ph-magnifying-glass-bold"
-        @click="showSearch = true"
-      />
-      
-      <UButton 
-        icon
-        btn="ghost"
-        label="i-ph-plus-bold"
-        @click="showAddQuote = true"
-        title="Add Quote (Ctrl/Cmd+N)"
-      />
-      
-      <NuxtLink
-        to="/authors"
-        class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-      >
-        Authors
-      </NuxtLink>
-      <NuxtLink
-        to="/references"
-        class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-      >
-        References
-      </NuxtLink>
-      <span>About</span>
+    <!-- Main Navigation Bar -->
+    <div class="flex justify-between items-center p-4">
+      <div class="flex items-center space-x-4">
+        <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/>
+          </svg>
+        </UButton>
 
-      <UserMenu v-if="user" :user="user" />
+        <!-- Page Title for Admin/Dashboard -->
+        <div v-if="shouldShowPageTitle" class="flex items-center space-x-3">
+          <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-title text-lg font-600 text-gray-900 dark:text-white">
+              {{ pageHeader.title }}
+            </h1>
+            <UBadge
+              :color="pageHeader.section.value === 'admin' ? 'red' : 'blue'"
+              variant="subtle"
+              size="xs"
+              class="uppercase"
+            >
+              {{ pageHeader.section.value }}
+            </UBadge>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-6 font-title font-600 color-gray-6 dark:color-gray-4 mr-8">
+        <UButton
+          icon
+          btn="ghost"
+          label="i-ph-magnifying-glass-bold"
+          @click="showSearch = true"
+        />
+
+        <UButton
+          icon
+          btn="ghost"
+          label="i-ph-plus-bold"
+          @click="showAddQuote = true"
+          title="Add Quote (Ctrl/Cmd+N)"
+        />
+
+        <NuxtLink
+          to="/authors"
+          class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
+        >
+          Authors
+        </NuxtLink>
+        <NuxtLink
+          to="/references"
+          class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
+        >
+          References
+        </NuxtLink>
+        <span>About</span>
+
+        <UserMenu v-if="user" :user="user" />
+      </div>
     </div>
   </nav>
   <SearchBox 
@@ -58,11 +80,19 @@
 
 <script lang="ts" setup>
 const { user } = useUserSession()
-const colorMode = useColorMode()
 const scrollY = ref(0)
 const route = useRoute()
 const showSearch = ref(false)
 const showAddQuote = ref(false)
+
+// Page header functionality
+const pageHeader = usePageHeader()
+
+// Only show page title for admin and dashboard pages
+const shouldShowPageTitle = computed(() => {
+  return pageHeader.shouldShow &&
+         (pageHeader.section.value === 'admin' || pageHeader.section.value === 'dashboard')
+})
 
 const handleScroll = () => {
   scrollY.value = window.scrollY

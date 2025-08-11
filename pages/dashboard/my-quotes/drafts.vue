@@ -2,15 +2,6 @@
   <div class="flex flex-col h-full">
     <!-- Fixed Header Section -->
     <div class="-mt-6 pb-6 mb-6 flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700">
-      <!-- Header -->
-      <div class="mb-6">
-        <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-          Drafts
-        </h1>
-        <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-          Your unpublished quote drafts.
-        </p>
-      </div>
 
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">

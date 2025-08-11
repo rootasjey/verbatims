@@ -1,14 +1,5 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 v-if="user" class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-        Welcome back, {{ user.name }}!
-      </h1>
-      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-        Manage your quotes, collections, and account settings.
-      </p>
-    </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -135,6 +126,12 @@ useHead({
 })
 
 const { user } = useUserSession()
+const pageHeader = usePageHeader()
+
+// Set page header from route
+onMounted(() => {
+  pageHeader.setHeaderFromRoute('/dashboard')
+})
 
 const userStats = ref({
   submitted: 0,

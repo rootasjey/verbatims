@@ -1,14 +1,5 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-        Favourites
-      </h1>
-      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-        Your liked quotes and saved favourites.
-      </p>
-    </div>
 
     <!-- Search and Filters -->
     <div class="mb-6 flex flex-col sm:flex-row gap-4">

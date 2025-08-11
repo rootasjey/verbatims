@@ -2,15 +2,7 @@
   <div>
     <!-- Header -->
     <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
-            Lists
-          </h1>
-          <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
-            Organize your quotes into custom collections.
-          </p>
-        </div>
+      <div class="flex items-center justify-end">
         <UButton
           btn="solid-dark dark:solid-white"
           @click="showCreateModal = true"
