@@ -11,7 +11,7 @@
       btn: 'ghost-gray',
     }"
   >
-    <UCard class="border-none m-0 p-0">
+    <UCard class="border-none m-0 p-0 shadow-none">
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">Search Quotes</h3>

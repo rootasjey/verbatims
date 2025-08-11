@@ -1,18 +1,16 @@
 <template>
   <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
-      <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
-      </div>
+      <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
 
-      <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="space-y-6">
+      <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="mt-6 space-y-6">
         <div>
           <UInput
             type="textarea"
             autofocus
             v-model="form.content"
             class="text-size-6 font-600 font-subtitle border-dashed
-              focus-visible:border-gray-700 ring-transparent dark:focus-visible:ring-transparent dark:focus-visible:border-gray-300"
+              focus-visible:border-gray-700 ring-transparent light:focus-visible:ring-transparent dark:focus-visible:ring-transparent dark:focus-visible:border-gray-300"
             placeholder="Enter the quote content..."
             :rows="4"
             :disabled="submitting"
