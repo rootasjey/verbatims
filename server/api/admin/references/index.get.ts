@@ -43,9 +43,22 @@ export default defineEventHandler(async (event) => {
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
     
-    // Validate sort column
+    // Map frontend sort values to database columns
+    const sortColumnMap: Record<string, string> = {
+      'name': 'name',
+      'created': 'created_at',
+      'updated': 'updated_at',
+      'release_date': 'release_date',
+      'type': 'primary_type',
+      'views': 'views_count',
+      'likes': 'likes_count',
+      'quotes': 'quotes_count'
+    }
+
+    // Validate and map sort column
+    const mappedSortBy = sortColumnMap[sortBy] || sortBy
     const allowedSortColumns = ['name', 'created_at', 'updated_at', 'release_date', 'primary_type', 'views_count', 'likes_count', 'quotes_count']
-    const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
+    const sortColumn = allowedSortColumns.includes(mappedSortBy) ? mappedSortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
     // Main query with quote count

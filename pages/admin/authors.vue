@@ -387,7 +387,12 @@ const tableColumns = [
 const loadAuthors = async () => {
   try {
     loading.value = true
-    const [sortBy, sortOrder] = selectedSort.value.value.split('_')
+
+    // Parse sort option - handle compound sort keys like 'release_date_desc'
+    const sortValue = selectedSort.value.value
+    const lastUnderscoreIndex = sortValue.lastIndexOf('_')
+    const sortBy = sortValue.substring(0, lastUnderscoreIndex)
+    const sortOrder = sortValue.substring(lastUnderscoreIndex + 1)
 
     const response = await $fetch('/api/admin/authors', {
       query: {

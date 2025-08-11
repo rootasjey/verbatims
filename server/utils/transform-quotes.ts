@@ -52,9 +52,20 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
 export function transformAdminQuotes(quotes: DatabaseAdminQuote[]): AdminQuote[] {
   return quotes.map((quote): AdminQuote => {
     const baseQuote = transformQuotes([quote])[0]
-    
+
     return {
       ...baseQuote,
+      // Preserve flat structure for template compatibility
+      author_name: quote.author_name,
+      author_is_fictional: quote.author_is_fictional,
+      author_image_url: quote.author_image_url,
+      reference_name: quote.reference_name,
+      reference_type: quote.reference_type,
+      user_name: quote.user_name,
+      user_email: quote.user_email,
+      user_avatar_url: quote.user_avatar || quote.user_avatar_url,
+      moderator_name: quote.moderator_name,
+      // Keep nested structure for proper typing
       user: {
         id: quote.user_id,
         name: quote.user_name || '',
