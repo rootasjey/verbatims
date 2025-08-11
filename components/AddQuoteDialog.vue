@@ -631,18 +631,10 @@ const submitQuote = async () => {
     }
 
     if (isEditMode.value && props.editQuote) {
-      // Update existing quote
       await $fetch(`/api/quotes/${props.editQuote.id}`, {
         method: 'PUT',
         body: payload
       })
-
-      useToast().toast({
-        toast: 'success',
-        title: 'Quote Updated',
-        description: 'Your quote has been updated successfully.'
-      })
-
       emit('quote-updated')
     } else {
       // Create new quote
@@ -654,13 +646,6 @@ const submitQuote = async () => {
           status: 'draft' as const
         }
       })
-
-      useToast().toast({
-        toast: 'success',
-        title: 'Quote Added',
-        description: 'Your quote has been saved as a draft.'
-      })
-
       emit('quote-added')
     }
 

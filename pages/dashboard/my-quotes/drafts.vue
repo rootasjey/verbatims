@@ -125,9 +125,9 @@
                 <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <UButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="2xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
                 </UTooltip>
@@ -179,7 +179,7 @@
 
             <!-- Reference Column -->
             <template #reference-cell="{ cell }">
-              <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400 max-w-32">
                 <UIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
                 <span class="truncate">{{ cell.row.original.reference.name }}</span>
               </div>
@@ -416,26 +416,23 @@ const tableColumns = [
 
 const loadDrafts = async (page = 1) => {
   try {
-  loading.value = true
-  const queryParams: any = { page, limit: pageSize.value, status: 'draft' }
+    loading.value = true
+    const queryParams: any = { page, limit: pageSize.value, status: 'draft' }
 
-    // Language filter
     if (languageStore.currentLanguageValue !== 'all') {
       queryParams.language = languageStore.currentLanguageValue
     }
 
-    // Add search parameter if provided
     if (searchQuery.value) {
       queryParams.search = searchQuery.value
     }
 
     const response = await $fetch('/api/dashboard/submissions', { query: queryParams })
 
-  // Replace list with the current page results
+    // Replace list with the current page results
     quotes.value = response.data || []
-  // Clear any existing selections on reload
-  rowSelection.value = {}
-    // Update pagination info from API
+    rowSelection.value = {}
+
     totalDrafts.value = response.pagination?.total || 0
     pageSize.value = response.pagination?.limit || pageSize.value
     totalPages.value = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
@@ -448,12 +445,10 @@ const loadDrafts = async (page = 1) => {
   }
 }
 
-// Watch for page changes to load new data
 watch(currentPage, () => {
   loadDrafts(currentPage.value)
 })
 
-// Debounced server-side search and sort-triggered reload
 watchDebounced([searchQuery, sortBy], () => {
   currentPage.value = 1
   loadDrafts(1)
@@ -497,18 +492,13 @@ const submitQuote = async (quote: DashboardQuote) => {
   try {
     await $fetch(`/api/quotes/${quote.id}/submit`, {
       method: 'POST'
-    } as any)
-
-    // Remove from drafts list
-    quotes.value = quotes.value.filter(q => q.id !== quote.id)
-
-    toast({
-      title: 'Quote submitted successfully!',
-      description: 'Your quote is now pending moderation review.'
     })
+
+    quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error: any) {
     console.error('Failed to submit quote:', error)
     toast({
+    toast: 'error',
       title: 'Failed to submit quote',
       description: error?.data?.message || 'Please try again.'
     })
@@ -651,7 +641,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .quotes-table-container {
   max-height: calc(100vh - 22rem);
-  max-width: calc(100vw - 20rem);
 }
 
 </style>

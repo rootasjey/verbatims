@@ -163,9 +163,9 @@
                 <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <UButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="2xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
                 </UTooltip>
@@ -668,7 +668,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .quotes-table-container {
   max-height: calc(100vh - 20rem);
-  max-width: calc(100vw - 20rem);
 }
 
 .frame {

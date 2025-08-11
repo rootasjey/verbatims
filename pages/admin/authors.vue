@@ -34,7 +34,7 @@
             size="sm"
             class="w-40"
             item-key="label"
-            value-key="value"
+            value-key="label"
           />
           <USelect
             v-model="selectedSort"
@@ -43,7 +43,7 @@
             size="sm"
             class="w-40"
             item-key="label"
-            value-key="value"
+            value-key="label"
           />
           <UButton
             btn="soft-blue"
@@ -501,6 +501,5 @@ onMounted(() => {
 <style scoped>
 .authors-table-container {
   max-height: calc(100vh - 20rem);
-  max-width: calc(100vw - 20rem);
 }
 </style>

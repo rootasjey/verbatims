@@ -2,8 +2,7 @@ import { Quote, CreatedQuoteResult } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
-    const session = await getUserSession(event)
+    const session = await requireUserSession(event)
     if (!session.user) {
       throw createError({
         statusCode: 401,

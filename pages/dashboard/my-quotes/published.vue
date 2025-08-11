@@ -115,12 +115,12 @@
         </div>
 
         <!-- Scrollable Table Container -->
-        <div class="quotes-table-container flex-1 overflow-auto">
+        <div class="quotes-table-container flex-1 overflow-auto max-w-screen">
           <UTable
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
-            manual-pagination
+            manual-paginationxz
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >
@@ -142,9 +142,9 @@
               <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                 <UButton
                   icon
-                  btn="ghost"
+                  btn="ghost-gray"
                   size="2xs"
-                  :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                  :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                   @click="toggleSelectionMode"
                 />
               </UTooltip>
@@ -195,9 +195,9 @@
 
           <!-- Reference Column -->
           <template #reference-cell="{ cell }">
-            <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <UIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
-              <span class="truncate">{{ cell.row.original.reference.name }}</span>
+            <div v-if="cell.row.original.reference" class="flex gap-2 text-sm text-gray-600 dark:text-gray-400 max-w-32">
+              <UIcon name="i-ph-book" class="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span class="">{{ cell.row.original.reference.name }}</span>
             </div>
             <span v-else class="text-sm text-gray-400">—</span>
           </template>
@@ -242,13 +242,6 @@
                 {{ cell.row.original.shares_count || 0 }}
               </span>
             </div>
-          </template>
-
-          <!-- Status Column -->
-          <template #status-cell>
-            <UBadge color="green" variant="subtle" size="xs">
-              Published
-            </UBadge>
           </template>
 
           <!-- Published Date Column -->
@@ -410,17 +403,6 @@ const tableColumns = [
       una: {
         tableHead: 'w-32',
         tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-24',
-        tableCell: 'w-24'
       }
     }
   },
@@ -608,6 +590,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .quotes-table-container {
   max-height: calc(100vh - 22rem);
-  max-width: calc(100vw - 20rem);
 }
 </style>

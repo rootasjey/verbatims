@@ -578,6 +578,5 @@ onMounted(() => {
 <style scoped>
 .references-table-container {
   max-height: calc(100vh - 20rem);
-  max-width: calc(100vw - 20rem);
 }
 </style>

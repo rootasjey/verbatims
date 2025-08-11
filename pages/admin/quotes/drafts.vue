@@ -4,7 +4,7 @@
     <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
       <!-- Header -->
       <div class="mb-6">
-        <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
+        <h1 class="font-title text-size-6 font-bold text-gray-900 dark:text-white">
           Draft Quotes
         </h1>
         <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
@@ -13,7 +13,7 @@
       </div>
 
       <!-- Search and Filters -->
-  <div class="flex flex-col sm:flex-row gap-4 mb-6">
+      <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
           <UInput
             v-model="searchQuery"
@@ -30,8 +30,8 @@
             placeholder="All Languages"
             size="sm"
             class="w-40"
-    item-key="label"
-    value-key="label"
+            item-key="label"
+            value-key="label"
           />
           <UButton
             btn="outline-gray"
@@ -116,6 +116,10 @@
                 {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} selected
               </span>
               <div class="flex items-center gap-3">
+                <UButton size="sm" btn="soft-blue" :loading="bulkProcessing" @click="bulkSubmit">
+                  <UIcon name="i-ph-paper-plane-tilt" />
+                  Submit Selected
+                </UButton>
                 <UButton size="sm" btn="soft-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
                   <UIcon name="i-ph-trash" />
                   Delete Selected
@@ -155,9 +159,9 @@
                 <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <UButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="2xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
                 </UTooltip>
@@ -522,6 +526,11 @@ const getQuoteActions = (quote: AdminQuote) => [
     leading: 'i-ph-pencil',
     onclick: () => editQuote(quote)
   },
+  {
+    label: 'Submit for Review',
+    leading: 'i-ph-paper-plane-tilt',
+    onclick: () => submitForReview(quote)
+  },
   {},
   {
     label: 'Delete Draft',
@@ -538,6 +547,23 @@ const viewQuote = (quote: AdminQuote) => {
 const editQuote = (quote: AdminQuote) => {
   selectedQuote.value = quote
   showEditQuoteDialog.value = true
+}
+
+const submitForReview = async (quote: AdminQuote) => {
+  try {
+    await $fetch(`/api/admin/quotes/${quote.id}/submit`, {
+      method: 'POST'
+    } as any)
+
+    quotes.value = quotes.value.filter(q => q.id !== quote.id)
+  } catch (error) {
+    console.error('Failed to submit draft for review:', error)
+    useToast().toast({
+      toast: 'error',
+      title: 'Submission Failed',
+      description: 'Could not submit the draft. Please try again.'
+    })
+  }
 }
 
 const onQuoteUpdated = () => {
@@ -647,7 +673,34 @@ const bulkDelete = async () => {
   }
 }
 
-// Watchers
+const bulkSubmit = async () => {
+  if (selectedQuotes.value.length === 0) return
+  const { toast } = useToast()
+  try {
+    bulkProcessing.value = true
+    const ids = [...selectedQuotes.value]
+    await $fetch('/api/admin/quotes/bulk-submit', {
+      method: 'POST',
+      body: { quote_ids: ids }
+    } as any)
+
+    // Remove submitted IDs from current list and clear selection
+    quotes.value = quotes.value.filter(q => !ids.includes(q.id))
+    rowSelection.value = {}
+
+    toast({ title: 'Submitted', description: 'Selected drafts submitted for review.' })
+  } catch (error) {
+    console.error('Failed to bulk submit drafts:', error)
+    useToast().toast({
+      toast: 'error',
+      title: 'Bulk Submit Failed',
+      description: 'Please try again.'
+    })
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
 watch(currentPage, () => {
   loadQuotes(currentPage.value)
 })
@@ -670,6 +723,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .quotes-table-container {
   min-height: 400px;
+  max-height: calc(100vh - 22rem);
 }
 
 .frame {

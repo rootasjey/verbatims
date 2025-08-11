@@ -144,7 +144,7 @@
       </div>
 
       <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div v-else class="flex-1 flex flex-col rounded-2 border border-gray-200 dark:border-gray-700">
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
@@ -173,9 +173,9 @@
                 <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <UButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="2xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
                 </UTooltip>
@@ -831,6 +831,7 @@ onMounted(() => {
 <style scoped>
 .quotes-table-container {
   min-height: 400px;
+  max-height: calc(100vh - 22rem);
 }
 
 .frame {

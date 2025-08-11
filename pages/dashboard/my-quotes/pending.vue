@@ -121,9 +121,9 @@
                 <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <UButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="2xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-ph-check-square'"
+                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
                 </UTooltip>
@@ -182,7 +182,7 @@
 
             <!-- Reference Column -->
             <template #reference-cell="{ cell }">
-              <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400 max-w-32">
                 <UIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
                 <span class="truncate">{{ cell.row.original.reference.name }}</span>
               </div>
@@ -455,12 +455,10 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Watch for page changes to load new data
 watch(currentPage, () => {
   loadPendingQuotes(currentPage.value)
 })
 
-// Debounced server-side search and sort-triggered reload
 watchDebounced([searchQuery, sortBy], () => {
   currentPage.value = 1
   loadPendingQuotes(1)
@@ -479,6 +477,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .quotes-table-container {
   max-height: calc(100vh - 22rem);
-  max-width: calc(100vw - 20rem);
 }
 </style>
