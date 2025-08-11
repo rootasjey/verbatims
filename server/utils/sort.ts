@@ -28,3 +28,13 @@ export function getSortParams(
 
   return { sort_by, sort_order };
 }
+
+export function parseSort(v: any): 'relevance' | 'recent' | 'popular' {
+  const s = String(v || '').toLowerCase()
+  return s === 'relevance' || s === 'recent' || s === 'popular' ? s : 'relevance'
+}
+
+export function parseSortOrder(v: any): 'asc' | 'desc' {
+  const s = String(v || '').toLowerCase()
+  return s === 'asc' ? 'asc' : 'desc'
+}

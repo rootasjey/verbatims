@@ -1,19 +1,6 @@
+import { extractAuthor, extractReference, extractTags, parseIntSafe } from '~/server/utils/extraction'
+import { parseSort, parseSortOrder } from '~/server/utils/sort'
 import type { QuoteLanguage, ApiResponse, ProcessedQuoteResult, QuoteSearchResult } from '~/types'
-
-function parseIntSafe(v: any, def: number) {
-  const n = parseInt(String(v || ''))
-  return Number.isFinite(n) ? n : def
-}
-
-function parseSort(v: any): 'relevance' | 'recent' | 'popular' {
-  const s = String(v || '').toLowerCase()
-  return s === 'relevance' || s === 'recent' || s === 'popular' ? s : 'relevance'
-}
-
-function parseSortOrder(v: any): 'asc' | 'desc' {
-  const s = String(v || '').toLowerCase()
-  return s === 'asc' ? 'asc' : 'desc'
-}
 
 export default defineEventHandler(async (event): Promise<ApiResponse<{
   quotes: ProcessedQuoteResult[]
@@ -209,15 +196,18 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     const result = await db.prepare(selectSql).bind(...params).all()
     const rows = (result?.results || []) as unknown as QuoteSearchResult[]
 
-    const quotes: ProcessedQuoteResult[] = rows.map((row): ProcessedQuoteResult => ({
-      ...row,
-      tags: row.tag_names
-        ? row.tag_names.split(',').map((name: string, index: number) => ({
-            name,
-            color: row.tag_colors?.split(',')[index] || 'gray'
-          }))
-        : []
-    }))
+    const quotes: ProcessedQuoteResult[] = rows.map((row): ProcessedQuoteResult => {
+      const author = extractAuthor(row)
+      const reference = extractReference(row)
+      const tags = extractTags(row)
+
+      return ({
+        ...row,
+        author,
+        reference,
+        tags,
+      })
+    })
 
     const response = {
       quotes,

@@ -79,6 +79,13 @@ export interface ProcessedQuoteResult extends Omit<QuoteSearchResult, 'tag_names
     /** Tag color (hex code or color name) */
     color: string;
   }>;
+
+  /**
+   * Normalized relations for UI convenience.
+   * These are added in addition to the flattened *_name fields for backward compatibility.
+   */
+  author?: Pick<Author, 'id' | 'name'> & Partial<Pick<Author, 'is_fictional' | 'image_url'>> | null;
+  reference?: Pick<QuoteReference, 'id' | 'name'> & { type?: string } | null;
 }
 
 export type QuotesSearchPayload = {
