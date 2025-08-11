@@ -134,7 +134,14 @@
             <template #actions-cell="{ cell }">
               <template v-if="!selectionMode">
                 <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                  <UButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="xs"
+                    label="i-ph-dots-three-vertical"
+                    :loading="withdrawingId === cell.row.original.id"
+                    :disabled="withdrawingId === cell.row.original.id"
+                  />
                 </UDropdownMenu>
               </template>
               <template v-else>
@@ -240,38 +247,16 @@
       </div>
     </div>
 
-    <!-- Withdraw Confirmation (single) -->
-    <UDialog v-model="showWithdrawModal">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">Withdraw Submission</h3>
-        </template>
-        
-        <p class="text-gray-600 dark:text-gray-400 mb-4">
-          Are you sure you want to withdraw this quote from review? It will be moved back to drafts.
-        </p>
-        
-        <template #footer>
-          <div class="flex justify-end space-x-3">
-            <UButton btn="outline" @click="showWithdrawModal = false">
-              Cancel
-            </UButton>
-            <UButton
-              color="orange"
-              :loading="withdrawing"
-              @click="withdrawQuote"
-            >
-              Withdraw
-            </UButton>
-          </div>
-        </template>
-      </UCard>
-    </UDialog>
+    <!-- Quote details dialog -->
+    <AdminQuoteDetailDialog
+      :quote="selectedDialogQuote"
+      v-model:open="showQuoteDialog"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { QuoteWithRelations } from '~/types/quote'
+import type { QuoteWithRelations, AdminQuote } from '~/types/quote'
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -292,7 +277,6 @@ const languageStore = useLanguageStore()
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const bulkProcessing = ref(false)
-const withdrawing = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
 const sortBy = ref({ label: 'Most Recent', value: 'recent' })
@@ -303,8 +287,10 @@ const totalPages = ref(0)
 // Custom selection mode
 const selectionMode = ref(false)
 
-const showWithdrawModal = ref(false)
-const selectedQuote = ref<DashboardQuote | null>(null)
+const showQuoteDialog = ref(false)
+const selectedDialogQuote = ref<AdminQuote | null>(null)
+// Track a single in-progress withdraw (optional)
+const withdrawingId = ref<number | null>(null)
 // Local row selection state
 const rowSelection = ref<Record<string, boolean>>({})
 // Derive selected quote ids
@@ -384,36 +370,27 @@ const getQuoteActions = (quote: DashboardQuote) => [
   {
     label: 'Withdraw',
     leading: 'i-ph-arrow-counter-clockwise',
-    onclick: () => confirmWithdraw(quote)
+    disabled: withdrawingId.value === quote.id,
+    onclick: () => withdrawQuote(quote)
   }
 ]
 
 const viewQuote = (quote: DashboardQuote) => {
-  navigateTo(`/quotes/${quote.id}`)
+  selectedDialogQuote.value = quote as unknown as AdminQuote
+  showQuoteDialog.value = true
 }
 
-const confirmWithdraw = (quote: DashboardQuote) => {
-  selectedQuote.value = quote
-  showWithdrawModal.value = true
-}
-
-const withdrawQuote = async () => {
-  if (!selectedQuote.value) return
-
-  withdrawing.value = true
+const withdrawQuote = async (quote: DashboardQuote) => {
+  const { toast } = useToast()
   try {
-    await $fetch(`/api/quotes/${selectedQuote.value.id}/withdraw`, {
-      method: 'POST'
-    } as any)
-
-    // Remove from pending list
-    quotes.value = quotes.value.filter(q => q.id !== selectedQuote.value?.id)
-    showWithdrawModal.value = false
-    selectedQuote.value = null
+    withdrawingId.value = quote.id
+    await $fetch(`/api/quotes/${quote.id}/withdraw`, { method: 'POST' } as any)
+    quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error) {
     console.error('Failed to withdraw quote:', error)
+    toast({ title: 'Withdraw failed', description: 'Please try again.' })
   } finally {
-    withdrawing.value = false
+    withdrawingId.value = null
   }
 }
 
@@ -451,14 +428,13 @@ const bulkWithdraw = async () => {
   try {
     bulkProcessing.value = true
     const ids = [...selectedQuotes.value]
-    const batchSize = 5
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize)
-      await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}/withdraw`, { method: 'POST' } as any)))
-    }
-    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    await $fetch('/api/quotes/withdraw', {
+      method: 'POST',
+      body: { ids }
+    })
+
+    quotes.value = quotes.value.filter(q => !ids.includes(q.id))
     rowSelection.value = {}
-    toast({ title: 'Withdrawn', description: 'Selected quotes moved back to drafts.' })
   } catch (error) {
     console.error('Failed to bulk withdraw:', error)
     const { toast } = useToast()
