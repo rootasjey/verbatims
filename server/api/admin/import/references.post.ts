@@ -4,7 +4,6 @@
  */
 
 import { validateReferenceData } from '~/server/utils/data-validation'
-import { DataTransformer } from '~/scripts/transform-firebase-data'
 import type { ImportOptions, ImportProgress } from '~/types'
 
 // In-memory store for import progress (in production, use Redis or database)
@@ -91,20 +90,7 @@ async function processImport(
     // Parse and transform data based on format
     let references: any[] = []
     
-    if (format === 'firebase') {
-      // Transform Firebase JSON data
-      const transformer = new DataTransformer()
-      const firebaseData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData
-      
-      if (firebaseData.data) {
-        // Already transformed data
-        references = firebaseData.data
-      } else {
-        // Raw Firebase backup - transform it
-        const transformedData = await transformFirebaseData(firebaseData)
-        references = transformedData.data
-      }
-    } else if (format === 'json') {
+    if (format === 'json') {
       references = Array.isArray(rawData) ? rawData : [rawData]
     } else if (format === 'csv') {
       references = await parseCsvData(rawData)
@@ -196,18 +182,33 @@ async function processBatch(db: any, batch: any[], progress: ImportProgress, use
   for (const subBatch of subBatches) {
     // Use batch() for better D1 performance
     const statements = subBatch.map(reference => {
+      // Handle URLs field - convert export format (array) to database format (JSON string)
+      let urlsField = '{}'
+      if (reference.urls) {
+        if (Array.isArray(reference.urls)) {
+          // Export format: convert array to JSON string
+          urlsField = JSON.stringify(reference.urls)
+        } else if (typeof reference.urls === 'string') {
+          // Already a JSON string
+          urlsField = reference.urls
+        } else if (typeof reference.urls === 'object') {
+          // Object format: convert to JSON string
+          urlsField = JSON.stringify(reference.urls)
+        }
+      }
+
       return insertStmt.bind(
         reference.name,
-        reference.original_language || 'en',
+        reference.original_language || 'en', // Default for exports that don't include this
         reference.release_date,
         reference.description || '',
         reference.primary_type,
         reference.secondary_type || '',
         reference.image_url || '',
-        reference.urls || '{}',
+        urlsField,
         reference.views_count || 0,
         reference.likes_count || 0,
-        reference.shares_count || 0,
+        reference.shares_count || 0, // Default for exports that don't include this
         reference.created_at || new Date().toISOString(),
         reference.updated_at || new Date().toISOString()
       )
@@ -237,27 +238,77 @@ async function processBatch(db: any, batch: any[], progress: ImportProgress, use
   }
 }
 
-async function transformFirebaseData(firebaseData: any) {
-  // Use the transformation logic from our script
-  const transformer = new DataTransformer()
-  // This would need to be adapted to work with the raw Firebase data
-  // For now, assume the data is already in the correct format
-  return { data: Object.values(firebaseData) }
-}
+
 
 async function parseCsvData(csvData: string): Promise<any[]> {
-  // Simple CSV parser - in production, use a proper CSV library
+  // Enhanced CSV parser to handle export format properly
   const lines = csvData.trim().split('\n')
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
-  
+  if (lines.length < 2) return []
+
+  const headers = parseCSVLine(lines[0])
+
   return lines.slice(1).map(line => {
-    const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
+    const values = parseCSVLine(line)
     const obj: any = {}
+
     headers.forEach((header, index) => {
-      obj[header] = values[index] || null
+      const value = values[index] || null
+
+      // Handle special fields from export format
+      if (header === 'urls' && value && value !== '{}' && value !== '') {
+        try {
+          // Try to parse as JSON (could be array or object)
+          obj[header] = JSON.parse(value)
+        } catch {
+          // If parsing fails, keep as string
+          obj[header] = value
+        }
+      } else if (['views_count', 'likes_count', 'shares_count', 'quotes_count'].includes(header)) {
+        // Convert numeric fields
+        obj[header] = value && value !== '' ? parseInt(value, 10) : 0
+      } else if (header === 'is_featured' && value) {
+        // Convert boolean fields
+        obj[header] = value.toLowerCase() === 'true'
+      } else {
+        obj[header] = value
+      }
     })
+
     return obj
   })
+}
+
+// Helper function to properly parse CSV lines with quoted values
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"'
+        i++ // Skip next quote
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes
+      }
+    } else if (char === ',' && !inQuotes) {
+      // End of field
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+
+  // Add the last field
+  result.push(current.trim())
+
+  return result
 }
 
 async function createDatabaseBackup(db: any): Promise<string> {

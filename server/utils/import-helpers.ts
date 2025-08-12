@@ -3,22 +3,18 @@
  * Utilities for handling author/reference lookup and creation during imports
  */
 
-interface FirestoreAuthor {
+interface ImportAuthor {
   id?: string
   name: string
   job?: string
   summary?: string
+  description?: string
   is_fictional?: boolean
-  birth?: {
-    city?: string
-    country?: string
-    date?: { __time__: string }
-  }
-  death?: {
-    city?: string
-    country?: string
-    date?: { __time__: string }
-  }
+  birth_date?: string
+  death_date?: string
+  birth_location?: string
+  death_location?: string
+  image_url?: string
   urls?: {
     image?: string
     wikipedia?: string
@@ -26,14 +22,17 @@ interface FirestoreAuthor {
   }
 }
 
-interface FirestoreReference {
+interface ImportReference {
   id?: string
   name: string
+  original_language?: string
   language?: string
   summary?: string
-  release?: {
-    original?: { __time__: string }
-  }
+  description?: string
+  primary_type?: string
+  secondary_type?: string
+  release_date?: string
+  image_url?: string
   urls?: {
     image?: string
     [key: string]: string | undefined
@@ -55,13 +54,13 @@ interface ReferenceLookupResult {
  */
 export async function findOrCreateAuthor(
   db: any,
-  firestoreAuthor: FirestoreAuthor
+  authorData: ImportAuthor
 ): Promise<AuthorLookupResult> {
-  if (!firestoreAuthor.name?.trim()) {
+  if (!authorData.name?.trim()) {
     throw new Error('Author name is required')
   }
 
-  const authorName = firestoreAuthor.name.trim()
+  const authorName = authorData.name.trim()
 
   // First, try to find existing author by name
   const existingAuthor = await db.prepare(`
@@ -76,23 +75,6 @@ export async function findOrCreateAuthor(
   }
 
   // Create new author
-  const birthDate = firestoreAuthor.birth?.date?.__time__ 
-    ? new Date(firestoreAuthor.birth.date.__time__).toISOString().split('T')[0]
-    : null
-
-  const deathDate = firestoreAuthor.death?.date?.__time__
-    ? new Date(firestoreAuthor.death.date.__time__).toISOString().split('T')[0]
-    : null
-
-  const birthLocation = [
-    firestoreAuthor.birth?.city,
-    firestoreAuthor.birth?.country
-  ].filter(Boolean).join(', ') || null
-
-  const deathLocation = [
-    firestoreAuthor.death?.city,
-    firestoreAuthor.death?.country
-  ].filter(Boolean).join(', ') || null
 
   const result = await db.prepare(`
     INSERT INTO authors (
@@ -102,14 +84,14 @@ export async function findOrCreateAuthor(
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `).bind(
     authorName,
-    firestoreAuthor.summary || null,
-    firestoreAuthor.job || null,
-    firestoreAuthor.is_fictional || false,
-    birthDate,
-    deathDate,
-    birthLocation,
-    deathLocation,
-    firestoreAuthor.urls?.image || null,
+    authorData.summary || authorData.description || null,
+    authorData.job || null,
+    authorData.is_fictional || false,
+    authorData.birth_date || null,
+    authorData.death_date || null,
+    authorData.birth_location || null,
+    authorData.death_location || null,
+    authorData.image_url || authorData.urls?.image || null,
     0, // views_count
     0, // likes_count
     0  // shares_count
@@ -126,13 +108,13 @@ export async function findOrCreateAuthor(
  */
 export async function findOrCreateReference(
   db: any,
-  firestoreReference: FirestoreReference
+  referenceData: ImportReference
 ): Promise<ReferenceLookupResult> {
-  if (!firestoreReference.name?.trim()) {
+  if (!referenceData.name?.trim()) {
     throw new Error('Reference name is required')
   }
 
-  const referenceName = firestoreReference.name.trim()
+  const referenceName = referenceData.name.trim()
 
   // First, try to find existing reference by name
   const existingReference = await db.prepare(`
@@ -147,9 +129,6 @@ export async function findOrCreateReference(
   }
 
   // Create new reference
-  const releaseDate = firestoreReference.release?.original?.__time__
-    ? new Date(firestoreReference.release.original.__time__).toISOString().split('T')[0]
-    : null
 
   const result = await db.prepare(`
     INSERT INTO quote_references (
@@ -159,13 +138,13 @@ export async function findOrCreateReference(
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `).bind(
     referenceName,
-    firestoreReference.language || 'en',
-    releaseDate,
-    firestoreReference.summary || null,
-    'other', // Default primary_type since Firestore doesn't have this
-    null,    // secondary_type
-    firestoreReference.urls?.image || null,
-    JSON.stringify(firestoreReference.urls || {}),
+    referenceData.original_language || referenceData.language || 'en',
+    referenceData.release_date || null,
+    referenceData.summary || referenceData.description || null,
+    referenceData.primary_type || 'other',
+    referenceData.secondary_type || null,
+    referenceData.image_url || referenceData.urls?.image || null,
+    JSON.stringify(referenceData.urls || {}),
     0, // views_count
     0, // likes_count
     0  // shares_count

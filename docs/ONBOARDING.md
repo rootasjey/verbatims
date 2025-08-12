@@ -75,22 +75,43 @@ USER_PASSWORD=your-admin-user-password
 
 ## Backup Data Structure
 
-The onboarding system imports data from Firebase backup files located in `/server/database/backups/`:
+The onboarding system imports data from D1 export files located in `/server/database/backups/`:
 
 ### Authors
-- **File**: `authors-1752638847.json`
-- **Format**: Firebase export with nested author objects
-- **Fields**: name, bio, birth/death dates, nationality, job, URLs, etc.
+- **File**: `authors-export-[timestamp].json`
+- **Format**: Native D1 export with clean JSON array structure
+- **Fields**: id, name, description, birth_date, death_date, birth_location, job, image_url, is_fictional, views_count, likes_count, shares_count, created_at, updated_at, socials
 
 ### References
-- **File**: `references-1752639132.json`
-- **Format**: Firebase export with nested reference objects
-- **Fields**: name, type, release date, description, URLs, etc.
+- **File**: `references-export-[timestamp].json`
+- **Format**: Native D1 export with clean JSON array structure
+- **Fields**: id, name, original_language, release_date, description, primary_type, secondary_type, image_url, urls, views_count, likes_count, shares_count, created_at, updated_at
 
 ### Quotes
-- **Files**: `quotes_part_1.json` through `quotes_part_10.json`
-- **Format**: Firebase export with nested quote objects
-- **Fields**: text, language, author reference, metrics, topics, etc.
+- **File**: `quotes-export-[timestamp].json`
+- **Format**: Native D1 export with clean JSON array structure
+- **Fields**: id, name, language, author_id, reference_id, user_id, status, views_count, likes_count, shares_count, is_featured, created_at, updated_at, moderator_id, moderated_at
+
+## Data Import Process
+
+The onboarding system directly imports D1 export data without transformation:
+
+### Direct Import
+- Uses the latest export files automatically detected by timestamp
+- No data transformation needed - D1 exports are already in correct format
+- Handles optional fields with sensible defaults
+- Maintains referential integrity through existing IDs
+
+### Import Order
+1. **Authors** - Imported first to establish author records
+2. **References** - Imported second to establish reference records
+3. **Quotes** - Imported last, linking to existing authors and references
+
+### Progress Tracking
+- Real-time progress updates via Server-Sent Events
+- Batch processing for optimal performance
+- Error handling with detailed logging
+- Rollback capability if import fails
 
 ## Troubleshooting
 
@@ -105,8 +126,9 @@ The onboarding system imports data from Firebase backup files located in `/serve
 - Check your NuxtHub setup and database bindings
 
 **"Import failed" errors**
-- Ensure backup files exist in `/server/database/backups/`
-- Check file permissions and JSON format validity
+- Ensure D1 export files exist in `/server/database/backups/`
+- Check that export files follow the naming pattern: `[type]-export-[timestamp].json`
+- Verify JSON format validity and array structure
 - Review server logs for detailed error messages
 
 **"Admin user already exists"**

@@ -186,14 +186,26 @@ async function importAuthorsFromBackup(db: any, importId?: string): Promise<numb
   const { join } = await import('path')
   const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
 
-  // Load authors backup file
-  const backupPath = join(process.cwd(), 'server/database/backups/authors-1752638847.json')
-  const rawData = readFileSync(backupPath, 'utf-8')
-  const firebaseData = JSON.parse(rawData)
+  // Find the latest authors export file
+  const { readdirSync } = await import('fs')
+  const backupDir = join(process.cwd(), 'server/database/backups')
+  const files = readdirSync(backupDir)
+  const authorsFile = files.find(file => file.startsWith('authors-export-') && file.endsWith('.json'))
 
-  const authors = firebaseData.data || firebaseData
-  const authorEntries = Object.entries(authors)
-  const totalAuthors = authorEntries.length
+  if (!authorsFile) {
+    throw new Error('No authors export file found in backups directory')
+  }
+
+  // Load authors backup file
+  const backupPath = join(backupDir, authorsFile)
+  const rawData = readFileSync(backupPath, 'utf-8')
+  const authors = JSON.parse(rawData)
+
+  if (!Array.isArray(authors)) {
+    throw new Error('Invalid authors export format: expected array')
+  }
+
+  const totalAuthors = authors.length
 
   let importedCount = 0
 
@@ -210,13 +222,12 @@ async function importAuthorsFromBackup(db: any, importId?: string): Promise<numb
 
   // Process in batches
   const batchSize = 50
-  for (let i = 0; i < authorEntries.length; i += batchSize) {
-    const batch = authorEntries.slice(i, i + batchSize)
+  for (let i = 0; i < authors.length; i += batchSize) {
+    const batch = authors.slice(i, i + batchSize)
 
-    for (const [firebaseId, authorData] of batch) {
+    for (const [index, authorData] of batch.entries()) {
       try {
-        const transformedAuthor = transformAuthorData(authorData as any)
-
+        // D1 export data is already in the correct format, just need to handle optional fields
         await db.prepare(`
           INSERT INTO authors (
             name, description, birth_date, death_date, birth_location, job,
@@ -224,19 +235,19 @@ async function importAuthorsFromBackup(db: any, importId?: string): Promise<numb
             created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
-          transformedAuthor.name,
-          transformedAuthor.description,
-          transformedAuthor.birth_date,
-          transformedAuthor.death_date,
-          transformedAuthor.birth_location,
-          transformedAuthor.job,
-          transformedAuthor.image_url,
-          transformedAuthor.is_fictional,
-          transformedAuthor.views_count,
-          transformedAuthor.likes_count,
-          transformedAuthor.shares_count,
-          transformedAuthor.created_at,
-          transformedAuthor.updated_at
+          authorData.name || '',
+          authorData.description || '',
+          authorData.birth_date || null,
+          authorData.death_date || null,
+          authorData.birth_location || '',
+          authorData.job || '',
+          authorData.image_url || '',
+          authorData.is_fictional || false,
+          authorData.views_count || 0,
+          authorData.likes_count || 0,
+          authorData.shares_count || 0,
+          authorData.created_at || new Date().toISOString(),
+          authorData.updated_at || new Date().toISOString()
         ).run()
 
         importedCount++
@@ -244,13 +255,13 @@ async function importAuthorsFromBackup(db: any, importId?: string): Promise<numb
         // Update progress periodically
         if (importId && importedCount % 10 === 0) {
           updateStepProgress(importId, 'authors', {
-            current: i + batch.indexOf([firebaseId, authorData]) + 1,
+            current: i + index + 1,
             imported: importedCount,
             message: `Imported ${importedCount} of ${totalAuthors} authors...`
           })
         }
       } catch (error) {
-        console.error(`Failed to import author ${firebaseId}:`, error)
+        console.error(`Failed to import author ${authorData.name || 'unknown'}:`, error)
         // Continue with other authors
       }
     }
@@ -277,14 +288,26 @@ async function importReferencesFromBackup(db: any, importId?: string): Promise<n
   const { join } = await import('path')
   const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
 
-  // Load references backup file
-  const backupPath = join(process.cwd(), 'server/database/backups/references-1752639132.json')
-  const rawData = readFileSync(backupPath, 'utf-8')
-  const firebaseData = JSON.parse(rawData)
+  // Find the latest references export file
+  const { readdirSync } = await import('fs')
+  const backupDir = join(process.cwd(), 'server/database/backups')
+  const files = readdirSync(backupDir)
+  const referencesFile = files.find(file => file.startsWith('references-export-') && file.endsWith('.json'))
 
-  const references = firebaseData.data || firebaseData
-  const referenceEntries = Object.entries(references)
-  const totalReferences = referenceEntries.length
+  if (!referencesFile) {
+    throw new Error('No references export file found in backups directory')
+  }
+
+  // Load references backup file
+  const backupPath = join(backupDir, referencesFile)
+  const rawData = readFileSync(backupPath, 'utf-8')
+  const references = JSON.parse(rawData)
+
+  if (!Array.isArray(references)) {
+    throw new Error('Invalid references export format: expected array')
+  }
+
+  const totalReferences = references.length
 
   let importedCount = 0
 
@@ -301,13 +324,12 @@ async function importReferencesFromBackup(db: any, importId?: string): Promise<n
 
   // Process in batches
   const batchSize = 50
-  for (let i = 0; i < referenceEntries.length; i += batchSize) {
-    const batch = referenceEntries.slice(i, i + batchSize)
+  for (let i = 0; i < references.length; i += batchSize) {
+    const batch = references.slice(i, i + batchSize)
 
-    for (const [firebaseId, referenceData] of batch) {
+    for (const [index, referenceData] of batch.entries()) {
       try {
-        const transformedReference = transformReferenceData(referenceData as any)
-
+        // D1 export data is already in the correct format, just need to handle optional fields
         await db.prepare(`
           INSERT INTO quote_references (
             name, original_language, release_date, description, primary_type, secondary_type,
@@ -315,19 +337,19 @@ async function importReferencesFromBackup(db: any, importId?: string): Promise<n
             created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
-          transformedReference.name,
-          transformedReference.original_language,
-          transformedReference.release_date,
-          transformedReference.description,
-          transformedReference.primary_type,
-          transformedReference.secondary_type,
-          transformedReference.image_url,
-          transformedReference.urls,
-          transformedReference.views_count,
-          transformedReference.likes_count,
-          transformedReference.shares_count,
-          transformedReference.created_at,
-          transformedReference.updated_at
+          referenceData.name || '',
+          referenceData.original_language || 'en',
+          referenceData.release_date || null,
+          referenceData.description || '',
+          referenceData.primary_type || 'other',
+          referenceData.secondary_type || '',
+          referenceData.image_url || '',
+          JSON.stringify(referenceData.urls || []),
+          referenceData.views_count || 0,
+          referenceData.likes_count || 0,
+          referenceData.shares_count || 0,
+          referenceData.created_at || new Date().toISOString(),
+          referenceData.updated_at || new Date().toISOString()
         ).run()
 
         importedCount++
@@ -335,13 +357,13 @@ async function importReferencesFromBackup(db: any, importId?: string): Promise<n
         // Update progress periodically
         if (importId && importedCount % 10 === 0) {
           updateStepProgress(importId, 'references', {
-            current: i + batch.indexOf([firebaseId, referenceData]) + 1,
+            current: i + index + 1,
             imported: importedCount,
             message: `Imported ${importedCount} of ${totalReferences} references...`
           })
         }
       } catch (error) {
-        console.error(`Failed to import reference ${firebaseId}:`, error)
+        console.error(`Failed to import reference ${referenceData.name || 'unknown'}:`, error)
         // Continue with other references
       }
     }
@@ -368,94 +390,83 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
   const { join } = await import('path')
   const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
 
-  // Load all quotes backup files
+  // Find the latest quotes export file
   const backupDir = join(process.cwd(), 'server/database/backups')
-  const quoteFiles = readdirSync(backupDir).filter(file => file.startsWith('quotes_part_') && file.endsWith('.json'))
+  const files = readdirSync(backupDir)
+  const quotesFile = files.find(file => file.startsWith('quotes-export-') && file.endsWith('.json'))
 
-  // Calculate total quotes across all files
-  let totalQuotes = 0
-  const fileQuoteCounts: { [filename: string]: number } = {}
-
-  for (const filename of quoteFiles) {
-    const backupPath = join(backupDir, filename)
-    const rawData = readFileSync(backupPath, 'utf-8')
-    const firebaseData = JSON.parse(rawData)
-    const quotes = firebaseData.data || firebaseData
-    const count = Object.keys(quotes).length
-    fileQuoteCounts[filename] = count
-    totalQuotes += count
+  if (!quotesFile) {
+    throw new Error('No quotes export file found in backups directory')
   }
 
+  // Load quotes backup file
+  const backupPath = join(backupDir, quotesFile)
+  const rawData = readFileSync(backupPath, 'utf-8')
+  const quotes = JSON.parse(rawData)
+
+  if (!Array.isArray(quotes)) {
+    throw new Error('Invalid quotes export format: expected array')
+  }
+
+  const totalQuotes = quotes.length
+
   let importedCount = 0
-  let processedCount = 0
 
   // Update progress: starting quotes import
   if (importId) {
     updateStepProgress(importId, 'quotes', {
       status: 'processing',
-      message: `Starting import of ${totalQuotes} quotes from ${quoteFiles.length} files...`,
+      message: `Starting import of ${totalQuotes} quotes...`,
       total: totalQuotes,
       current: 0,
       imported: 0
     })
   }
 
-  for (const filename of quoteFiles) {
-    const backupPath = join(backupDir, filename)
-    const rawData = readFileSync(backupPath, 'utf-8')
-    const firebaseData = JSON.parse(rawData)
+  // Process in batches
+  const batchSize = 50
+  for (let i = 0; i < quotes.length; i += batchSize) {
+    const batch = quotes.slice(i, i + batchSize)
 
-    const quotes = firebaseData.data || firebaseData
-    const quoteEntries = Object.entries(quotes)
+    for (const [index, quoteData] of batch.entries()) {
+      try {
+        // D1 export data is already in the correct format, just need to handle optional fields
+        await db.prepare(`
+          INSERT INTO quotes (
+            name, language, author_id, reference_id, user_id, status,
+            likes_count, shares_count, views_count, is_featured,
+            created_at, updated_at, moderator_id, moderated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          quoteData.name || '',
+          quoteData.language || 'en',
+          quoteData.author_id || null,
+          quoteData.reference_id || null,
+          quoteData.user_id || adminUserId,
+          quoteData.status || 'approved',
+          quoteData.likes_count || 0,
+          quoteData.shares_count || 0,
+          quoteData.views_count || 0,
+          quoteData.is_featured || false,
+          quoteData.created_at || new Date().toISOString(),
+          quoteData.updated_at || new Date().toISOString(),
+          quoteData.moderator_id || adminUserId,
+          quoteData.moderated_at || new Date().toISOString()
+        ).run()
 
-    // Process in batches
-    const batchSize = 50
-    for (let i = 0; i < quoteEntries.length; i += batchSize) {
-      const batch = quoteEntries.slice(i, i + batchSize)
+        importedCount++
 
-      for (const [firebaseId, quoteData] of batch) {
-        try {
-          const transformedQuote = await transformQuoteData(quoteData as any, db, adminUserId)
-
-          await db.prepare(`
-            INSERT INTO quotes (
-              name, language, author_id, reference_id, user_id, status,
-              likes_count, shares_count, views_count, is_featured,
-              created_at, updated_at, moderator_id, moderated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `).bind(
-            transformedQuote.name,
-            transformedQuote.language,
-            transformedQuote.author_id,
-            transformedQuote.reference_id,
-            transformedQuote.user_id,
-            transformedQuote.status,
-            transformedQuote.likes_count,
-            transformedQuote.shares_count,
-            transformedQuote.views_count,
-            transformedQuote.is_featured,
-            transformedQuote.created_at,
-            transformedQuote.updated_at,
-            transformedQuote.moderator_id,
-            transformedQuote.moderated_at
-          ).run()
-
-          importedCount++
-          processedCount++
-
-          // Update progress periodically
-          if (importId && processedCount % 25 === 0) {
-            updateStepProgress(importId, 'quotes', {
-              current: processedCount,
-              imported: importedCount,
-              message: `Imported ${importedCount} of ${totalQuotes} quotes (processing ${filename})...`
-            })
-          }
-        } catch (error) {
-          console.error(`Failed to import quote ${firebaseId}:`, error)
-          processedCount++
-          // Continue with other quotes
+        // Update progress periodically
+        if (importId && importedCount % 25 === 0) {
+          updateStepProgress(importId, 'quotes', {
+            current: i + index + 1,
+            imported: importedCount,
+            message: `Imported ${importedCount} of ${totalQuotes} quotes...`
+          })
         }
+      } catch (error) {
+        console.error(`Failed to import quote ${quoteData.name || 'unknown'}:`, error)
+        // Continue with other quotes
       }
     }
   }
@@ -473,172 +484,8 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
   return importedCount
 }
 
-/**
- * Transform Firebase author data to SQL format
- */
-function transformAuthorData(firebaseRecord: any) {
-  return {
-    name: (firebaseRecord.name || '').trim().substring(0, 100), // Schema limit is 100
-    description: firebaseRecord.summary || '', // Changed from 'bio' to 'description'
-    birth_date: transformDate(firebaseRecord.birth?.date),
-    death_date: transformDate(firebaseRecord.death?.date),
-    birth_location: transformNationality(firebaseRecord.birth), // Changed from 'nationality' to 'birth_location'
-    job: firebaseRecord.job || '',
-    image_url: firebaseRecord.urls?.image || '',
-    is_fictional: firebaseRecord.is_fictional || false,
-    views_count: 0,
-    likes_count: 0, // Added likes_count
-    shares_count: 0, // Added shares_count
-    created_at: transformDate(firebaseRecord.created_at) || new Date().toISOString(),
-    updated_at: transformDate(firebaseRecord.updated_at) || new Date().toISOString()
-  }
-}
 
-/**
- * Transform Firebase reference data to SQL format
- */
-function transformReferenceData(firebaseRecord: any) {
-  return {
-    name: (firebaseRecord.name || '').trim().substring(0, 200),
-    original_language: firebaseRecord.language || 'en',
-    release_date: transformDate(firebaseRecord.release?.original),
-    description: firebaseRecord.summary || '',
-    primary_type: normalizePrimaryType(firebaseRecord.type?.primary || 'other'),
-    secondary_type: firebaseRecord.type?.secondary || '',
-    image_url: firebaseRecord.urls?.image || '',
-    urls: JSON.stringify(firebaseRecord.urls || {}),
-    views_count: 0,
-    likes_count: 0,
-    shares_count: 0,
-    created_at: transformDate(firebaseRecord.created_at) || new Date().toISOString(),
-    updated_at: transformDate(firebaseRecord.updated_at) || new Date().toISOString()
-  }
-}
 
-/**
- * Transform Firebase quote data to SQL format
- */
-async function transformQuoteData(firebaseRecord: any, db: any, adminUserId: number) {
-  // Find author by name
-  let authorId = null
-  if (firebaseRecord.author?.name) {
-    const author = await db.prepare(`
-      SELECT id FROM authors WHERE name = ? LIMIT 1
-    `).bind(firebaseRecord.author.name).first()
-    authorId = author?.id || null
-  }
 
-  // Find reference by name
-  let referenceId = null
-  if (firebaseRecord.reference?.name) {
-    const reference = await db.prepare(`
-      SELECT id FROM quote_references WHERE name = ? LIMIT 1
-    `).bind(firebaseRecord.reference.name).first()
-    referenceId = reference?.id || null
-  }
 
-  return {
-    name: (firebaseRecord.name || '').trim(),
-    language: firebaseRecord.language || 'en',
-    author_id: authorId,
-    reference_id: referenceId,
-    user_id: adminUserId,
-    status: 'approved',
-    likes_count: firebaseRecord.metrics?.likes || 0,
-    shares_count: firebaseRecord.metrics?.shares || 0,
-    views_count: 0,
-    is_featured: false,
-    created_at: transformDate(firebaseRecord.created_at) || new Date().toISOString(),
-    updated_at: transformDate(firebaseRecord.updated_at) || new Date().toISOString(),
-    moderator_id: adminUserId,
-    moderated_at: new Date().toISOString()
-  }
-}
 
-/**
- * Transform Firebase date to ISO string
- */
-function transformDate(dateField: any): string | null {
-  if (!dateField) return null
-  
-  if (dateField.__time__) {
-    return new Date(dateField.__time__).toISOString()
-  }
-  
-  if (typeof dateField === 'string') {
-    return new Date(dateField).toISOString()
-  }
-  
-  if (typeof dateField === 'number') {
-    return new Date(dateField).toISOString()
-  }
-  
-  return null
-}
-
-/**
- * Transform nationality from birth data
- */
-function transformNationality(birthData: any): string {
-  if (!birthData) return ''
-  
-  const parts = []
-  if (birthData.city) parts.push(birthData.city)
-  if (birthData.country) parts.push(birthData.country)
-  
-  return parts.join(', ')
-}
-
-/**
- * Normalize primary type for references
- * Must match schema CHECK constraint: ('film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'media_stream', 'writings', 'video_game', 'other')
- */
-function normalizePrimaryType(type: string): string {
-  if (!type) return 'other'
-
-  const normalizedType = type.toLowerCase().trim()
-
-  // Direct mappings to valid schema values
-  const typeMap: Record<string, string> = {
-    // TV/Film
-    'tv series': 'tv_series',
-    'tv_series': 'tv_series',
-    'television': 'tv_series',
-    'film': 'film',
-    'movie': 'film',
-    'cinema': 'film',
-
-    // Literature
-    'book': 'book',
-    'novel': 'book',
-    'play': 'writings',
-    'poem': 'writings',
-    'poetry': 'writings',
-    'writings': 'writings',
-    'literature': 'writings',
-
-    // Audio/Music
-    'music': 'music',
-    'song': 'music',
-    'album': 'music',
-    'podcast': 'podcast',
-    'speech': 'speech',
-    'interview': 'interview',
-
-    // Digital/Media
-    'youtube': 'media_stream',
-    'video': 'media_stream',
-    'media_stream': 'media_stream',
-    'documentary': 'documentary',
-    'video_game': 'video_game',
-    'game': 'video_game',
-
-    // Other
-    'conference': 'speech',
-    'post': 'writings',
-    'other': 'other'
-  }
-
-  // Return mapped value or default to 'other'
-  return typeMap[normalizedType] || 'other'
-}

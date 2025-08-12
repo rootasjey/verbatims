@@ -176,8 +176,8 @@
         </template>
 
         <div class="overflow-x-auto">
-          <!-- References Preview Table -->
-          <table v-if="selectedFormat !== 'firestore-drafts'" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <!-- Data Preview Table -->
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
@@ -198,27 +198,7 @@
             </tbody>
           </table>
 
-          <!-- Quotes Preview Table -->
-          <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quote Text</th>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-              <tr v-for="(item, index) in previewData.slice(0, 5)" :key="index">
-                <td class="px-3 py-2 text-sm max-w-xs truncate">{{ item.name }}</td>
-                <td class="px-3 py-2 text-sm">{{ item.language }}</td>
-                <td class="px-3 py-2 text-sm">{{ item.author || '-' }}</td>
-                <td class="px-3 py-2 text-sm">{{ item.reference || '-' }}</td>
-                <td class="px-3 py-2 text-sm">{{ item.created_at || '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
+
         </div>
       </UCard>
     </div>
@@ -277,9 +257,7 @@ const tabs = [
 ]
 
 const formatOptions = [
-  { label: 'Firebase JSON Backup', value: 'firebase' },
-  { label: 'Firestore Draft Quotes', value: 'firestore-drafts' },
-  { label: 'Transformed JSON', value: 'json' },
+  { label: 'JSON File', value: 'json' },
   { label: 'CSV File', value: 'csv' }
 ]
 
@@ -292,13 +270,9 @@ const handleFileSelect = (event) => {
     previewData.value = []
     originalParsedData.value = null
     
-    // Auto-detect format based on file extension and name
+    // Auto-detect format based on file extension
     if (file.name.endsWith('.json')) {
-      if (file.name.includes('drafts')) {
-        selectedFormat.value = 'firestore-drafts'
-      } else {
-        selectedFormat.value = 'firebase' // Default to Firebase format
-      }
+      selectedFormat.value = 'json'
     } else if (file.name.endsWith('.csv')) {
       selectedFormat.value = 'csv'
     }
@@ -318,46 +292,13 @@ const validateData = async () => {
       parsedData = parseCSV(fileContent)
     } else {
       parsedData = JSON.parse(fileContent)
-      
-      // Handle different JSON formats
-      if (selectedFormat.value === 'firebase' && parsedData.data) {
-        // Firebase backup format
-        parsedData = Object.values(parsedData.data)
-      } else if (selectedFormat.value === 'firestore-drafts' && parsedData.data) {
-        // Firestore drafts format - keep as is for server-side processing
-        parsedData = parsedData
-      } else if (selectedFormat.value === 'json' && parsedData.data) {
-        // Transformed format
+
+      // Handle JSON format - support both array and object with data property
+      if (parsedData.data && Array.isArray(parsedData.data)) {
         parsedData = parsedData.data
+      } else if (!Array.isArray(parsedData)) {
+        parsedData = [parsedData]
       }
-    }
-    
-    // Transform data if needed (simplified client-side transformation)
-    if (selectedFormat.value === 'firebase') {
-      parsedData = transformFirebaseData(parsedData)
-    } else if (selectedFormat.value === 'firestore-drafts') {
-      // For quotes, show a preview of the first few quotes
-      const quotesData = parsedData.data ? Object.values(parsedData.data) : []
-      previewData.value = quotesData.slice(0, 10).map((quote) => ({
-        name: quote.name || 'No quote text',
-        language: quote.language || 'en',
-        author: quote.author?.name || 'No author',
-        reference: quote.reference?.name || 'No reference',
-        created_at: quote.created_at?.__time__ || 'Unknown date'
-      }))
-
-      // Store the original parsed data for the API call
-      originalParsedData.value = parsedData
-
-      // Skip validation for now - will be handled server-side
-      validationResult.value = {
-        isValid: true,
-        errors: [],
-        warnings: [`Found ${quotesData.length} draft quotes to import`],
-        errorCount: 0,
-        warningCount: 1
-      }
-      return
     }
 
     previewData.value = parsedData
@@ -384,18 +325,13 @@ const startImport = async () => {
   isImporting.value = true
   
   try {
-    const apiEndpoint = selectedFormat.value === 'firestore-drafts'
-      ? '/api/admin/import/quotes'
-      : '/api/admin/import/references'
-
-    const dataToSend = selectedFormat.value === 'firestore-drafts'
-      ? originalParsedData.value
-      : previewData.value
+    // For now, only support references import
+    const apiEndpoint = '/api/admin/import/references'
 
     const response = await $fetch(apiEndpoint, {
       method: 'POST',
       body: {
-        data: dataToSend,
+        data: previewData.value,
         format: selectedFormat.value,
         options: importOptions.value
       }
@@ -439,21 +375,5 @@ const parseCSV = (csvContent) => {
   })
 }
 
-const transformFirebaseData = (firebaseData) => {
-  // Simplified client-side transformation
-  // In production, this should be done server-side
-  return firebaseData.map(item => ({
-    name: item.name || '',
-    original_language: item.language || 'en',
-    primary_type: item.type?.primary || 'other',
-    secondary_type: item.type?.secondary || '',
-    description: item.summary || '',
-    image_url: item.urls?.image || '',
-    release_date: item.release?.original?.__time__ ? 
-      new Date(item.release.original.__time__).toISOString().split('T')[0] : null,
-    urls: JSON.stringify(item.urls || {}),
-    created_at: item.created_at?.__time__ || new Date().toISOString(),
-    updated_at: item.updated_at?.__time__ || new Date().toISOString()
-  }))
-}
+
 </script>

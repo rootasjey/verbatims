@@ -4,7 +4,6 @@
  */
 
 import { importProgressStore } from '../references.post'
-import { importProgressStore as quotesImportProgressStore } from '../quotes.post'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -25,11 +24,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Try to find progress in either references or quotes import store
+    // Try to find progress in references import store
     let progress = importProgressStore.get(importId)
-    if (!progress) {
-      progress = quotesImportProgressStore.get(importId)
-    }
 
     if (!progress) {
       throw createError({

@@ -45,7 +45,7 @@ export class DataValidator {
       errors.push(`${context}: Invalid primary_type "${reference.primary_type}". Must be one of: ${VALID_PRIMARY_TYPES.join(', ')}`)
     }
 
-    // Language validation
+    // Language validation (optional field, handle both export and legacy formats)
     if (reference.original_language && !VALID_LANGUAGES.includes(reference.original_language)) {
       warnings.push(`${context}: Unknown language "${reference.original_language}". Valid languages: ${VALID_LANGUAGES.join(', ')}`)
     }
@@ -79,22 +79,38 @@ export class DataValidator {
       warnings.push(`${context}: Invalid image_url format`)
     }
 
-    // URLs JSON validation
+    // URLs validation - support export format (array), legacy format (JSON string), and object format
     if (reference.urls) {
-      try {
-        const urlsObj = typeof reference.urls === 'string' ? JSON.parse(reference.urls) : reference.urls
-        if (typeof urlsObj !== 'object' || Array.isArray(urlsObj)) {
-          errors.push(`${context}: URLs must be a JSON object`)
-        } else {
-          // Validate individual URLs
-          Object.entries(urlsObj).forEach(([key, url]) => {
-            if (url && typeof url === 'string' && url.trim() !== '' && !this.isValidUrl(url)) {
-              warnings.push(`${context}: Invalid URL for ${key}: "${url}"`)
-            }
-          })
+      if (Array.isArray(reference.urls)) {
+        // Export format: array of URLs
+        reference.urls.forEach((url, urlIndex) => {
+          if (typeof url !== 'string' || !this.isValidUrl(url)) {
+            warnings.push(`${context}: Invalid URL at index ${urlIndex}: "${url}"`)
+          }
+        })
+      } else {
+        try {
+          const urlsObj = typeof reference.urls === 'string' ? JSON.parse(reference.urls) : reference.urls
+          if (Array.isArray(urlsObj)) {
+            // Parsed array format
+            urlsObj.forEach((url, urlIndex) => {
+              if (typeof url !== 'string' || !this.isValidUrl(url)) {
+                warnings.push(`${context}: Invalid URL at index ${urlIndex}: "${url}"`)
+              }
+            })
+          } else if (typeof urlsObj === 'object' && urlsObj !== null) {
+            // Object format (legacy)
+            Object.entries(urlsObj).forEach(([key, url]) => {
+              if (url && typeof url === 'string' && url.trim() !== '' && !this.isValidUrl(url)) {
+                warnings.push(`${context}: Invalid URL for ${key}: "${url}"`)
+              }
+            })
+          } else {
+            warnings.push(`${context}: URLs should be an array, object, or JSON string`)
+          }
+        } catch (error) {
+          errors.push(`${context}: Invalid JSON in urls field`)
         }
-      } catch (error) {
-        errors.push(`${context}: Invalid JSON in urls field`)
       }
     }
 

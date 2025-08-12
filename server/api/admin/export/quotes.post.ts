@@ -225,9 +225,8 @@ export default defineEventHandler(async (event) => {
 function buildQuotesQuery(filters: QuoteExportFilters, includeRelations: boolean, limit: number) {
   // Base query with relations
   let query = `
-    SELECT 
-      q.*,
-      ${includeRelations ? `
+    SELECT
+      q.*${includeRelations ? `,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
         a.job as author_job,
