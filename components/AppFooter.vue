@@ -11,10 +11,7 @@
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
           <div class="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-              <path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/>
-            </svg>
-            <span class="font-title text-xl sm:text-2xl font-600 uppercase tracking-wide text-gray-900 dark:text-gray-100">Verbatims</span>
+            <AppIcon />
           </div>
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Discover and share memorable quotes from films, books, music, and more.

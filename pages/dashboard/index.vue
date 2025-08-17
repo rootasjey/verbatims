@@ -115,7 +115,6 @@
 </template>
 
 <script setup lang="ts">
-// Use dashboard layout and require authentication
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
@@ -128,9 +127,8 @@ useHead({
 const { user } = useUserSession()
 const pageHeader = usePageHeader()
 
-// Set page header from route
 onMounted(() => {
-  pageHeader.setHeaderFromRoute('/dashboard')
+  pageHeader.setHeaderFromRoute()
 })
 
 const userStats = ref({
@@ -167,7 +165,6 @@ const loadDashboardData = async () => {
   }
 }
 
-// Utility functions
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
@@ -203,11 +200,6 @@ const formatStatsLabel = (key: string) => {
   }
 }
 
-const refreshData = () => {
-  loadDashboardData()
-}
-
-// Load data on mount
 onMounted(() => {
   loadDashboardData()
 })

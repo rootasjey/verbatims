@@ -117,6 +117,7 @@ export type {
   ProcessedQuoteResult,
   SearchResults,
   SearchParams,
+  SearchQuery,
   SearchApiResponse
 } from './search';
 
@@ -134,6 +135,13 @@ export type {
   ImportOptions,
 } from './import-data';
 
+export {
+  SortMode,
+  SortBy,
+  SortOrder,
+  SortQuery
+} from './sort';
+
 // Common utility types
 export interface DatabaseEntity {
   id: number;
@@ -145,16 +153,6 @@ export interface PaginationParams {
   page?: number;
   limit?: number;
   offset?: number;
-}
-
-export interface SortParams {
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
-}
-
-export interface SearchParams {
-  search?: string;
-  filters?: Record<string, any>;
 }
 
 export interface ApiResponse<T> {

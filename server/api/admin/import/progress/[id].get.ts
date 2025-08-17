@@ -7,7 +7,6 @@ import { importProgressStore } from '../references.post'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin permissions
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
       throw createError({

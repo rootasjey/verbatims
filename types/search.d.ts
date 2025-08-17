@@ -3,7 +3,7 @@
  * Represents search queries, results, and related data structures
  */
 
-import type { Quote, Author, QuoteReference } from './index';
+import type { Quote, Author, SortMode, QuoteReference } from './index';
 
 /**
  * Supported content types for search
@@ -122,7 +122,7 @@ export interface SearchResults {
 /**
  * Search query parameters
  */
-export interface SearchParams {
+export interface SearchQuery {
   /** Search term/query string */
   q?: string;
   
@@ -140,6 +140,11 @@ export interface SearchParams {
   
   /** Content type to search */
   type?: SearchContentType;
+}
+
+export interface SearchParams {
+  search?: string;
+  filters?: Record<string, any>;
 }
 
 /**

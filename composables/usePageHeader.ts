@@ -13,7 +13,6 @@ export const usePageHeader = () => {
     store.setPageHeaderFromRoute(route.path)
   }
 
-  // Set custom header info
   const setHeader = (info: PageHeaderInfo) => {
     store.setPageHeader(info)
   }
@@ -28,22 +27,18 @@ export const usePageHeader = () => {
     store.setSubtitle(subtitle)
   }
 
-  // Clear the header
   const clearHeader = () => {
     store.clearHeader()
   }
 
-  // Hide header temporarily
   const hideHeader = () => {
     store.hideHeader()
   }
 
-  // Show header again
   const showHeader = () => {
     store.showHeader()
   }
 
-  // Reactive getters
   const title = computed(() => store.pageTitle)
   const subtitle = computed(() => store.pageSubtitle)
   const section = computed(() => store.pageSection)

@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
-    <!-- Header -->
     <AppHeader />
     
     <!-- Admin Layout -->
@@ -302,7 +301,6 @@
 </template>
 
 <script setup lang="ts">
-// Require admin authentication for all admin pages
 definePageMeta({
   middleware: 'admin'
 })
@@ -316,20 +314,16 @@ const publishedCount = ref(0)
 const pendingCount = ref(0)
 const draftCount = ref(0)
 
-// Page header integration
 const pageHeader = usePageHeader()
 
-// Set page header based on current route
 onMounted(() => {
-  pageHeader.setHeaderFromRoute(route.path)
+  pageHeader.setHeaderFromRoute()
 })
 
-// Update header when route changes
 watch(() => route.path, (newPath) => {
-  pageHeader.setHeaderFromRoute(newPath)
+  pageHeader.setHeaderFromRoute()
 })
 
-// Load quote counts for badges
 const loadQuoteCounts = async () => {
   try {
     const stats = await $fetch('/api/admin/stats')
@@ -348,7 +342,6 @@ watch(() => route.path, () => {
   sidebarOpen.value = false
 })
 
-// Load data on mount
 onMounted(() => {
   loadQuoteCounts()
   try {

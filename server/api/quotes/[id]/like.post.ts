@@ -1,7 +1,6 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
-    const session = await getUserSession(event)
+    const session = await requireUserSession(event)
     if (!session.user) {
       throw createError({
         statusCode: 401,
@@ -37,7 +36,7 @@ export default defineEventHandler(async (event) => {
       WHERE user_id = ? AND likeable_type = 'quote' AND likeable_id = ?
     `).bind(session.user.id, quoteId).first()
 
-    let isLiked = false
+    let is_liked = false
 
     if (existingLike) {
       // Unlike - remove the like
@@ -46,7 +45,7 @@ export default defineEventHandler(async (event) => {
         WHERE user_id = ? AND likeable_type = 'quote' AND likeable_id = ?
       `).bind(session.user.id, quoteId).run()
       
-      isLiked = false
+      is_liked = false
     } else {
       // Like - add the like
       await db.prepare(`
@@ -54,22 +53,29 @@ export default defineEventHandler(async (event) => {
         VALUES (?, 'quote', ?)
       `).bind(session.user.id, quoteId).run()
       
-      isLiked = true
+      is_liked = true
     }
 
     // Get updated like count
     const updatedQuote = await db.prepare(`
       SELECT likes_count FROM quotes WHERE id = ?
     `).bind(quoteId).first()
+    
+    if (!updatedQuote) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to fetch updated quote'
+      })
+    }
 
     return {
       success: true,
       data: {
-        isLiked,
-        likesCount: updatedQuote.likes_count
+        is_liked,
+        likes_count: updatedQuote.likes_count
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

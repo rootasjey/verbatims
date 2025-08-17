@@ -1,5 +1,5 @@
 import { transformQuotes } from '~/server/utils/transform-quotes'
-import { DatabaseQuoteWithRelations } from '~/types'
+import { DatabaseQuoteWithRelations, SortBy, SortOrder } from '~/types'
 import { getSortParams } from '~/server/utils/sort'
 
 export default defineEventHandler(async (event) => {

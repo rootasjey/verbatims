@@ -51,7 +51,14 @@ export default defineEventHandler(async (event) => {
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      createdAt: userData.created_at,
+      created_at: userData.created_at,
+      avatar_url: userData.avatar_url,
+      biography: userData.biography,
+      job: userData.job,
+      language: userData.language,
+      location: userData.location,
+      socials: userData.socials,
+      updated_at: userData.updated_at
     }
 
     // Set user session

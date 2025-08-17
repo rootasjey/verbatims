@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
-    <!-- Header -->
     <AppHeader />
     
     <!-- Dashboard Layout -->
@@ -9,7 +8,7 @@
       <aside
         id="dashboard-sidebar"
         :class="[
-          'fixed inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-all duration-300 ease-in-out z-40',
+          'fixed z-40 inset-y-0 left-0 bg-[#FAFAF9] dark:bg-[#0C0A09] border-r b-dashed border-gray-200 dark:border-gray-700 pt-16 transition-all duration-300 ease-in-out',
           sidebarCollapsed ? 'w-16' : 'w-64',
           'lg:translate-x-0',
           sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
@@ -229,7 +228,7 @@
       />
 
       <!-- Main Content -->
-  <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
+      <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
         <div class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div class="flex items-center justify-between">
@@ -254,7 +253,6 @@
 </template>
 
 <script setup lang="ts">
-// Require authentication for all dashboard pages
 definePageMeta({
   middleware: 'auth'
 })
@@ -269,20 +267,16 @@ const draftCount = ref(0)
 const pendingCount = ref(0)
 const publishedCount = ref(0)
 
-// Page header integration
 const pageHeader = usePageHeader()
 
-// Set page header based on current route
 onMounted(() => {
-  pageHeader.setHeaderFromRoute(route.path)
+  pageHeader.setHeaderFromRoute()
 })
 
-// Update header when route changes
 watch(() => route.path, (newPath) => {
-  pageHeader.setHeaderFromRoute(newPath)
+  pageHeader.setHeaderFromRoute()
 })
 
-// Load quote counts for badges
 const loadQuoteCounts = async () => {
   try {
     const stats = await $fetch('/api/dashboard/stats')
@@ -301,7 +295,6 @@ watch(() => route.path, () => {
   sidebarOpen.value = false
 })
 
-// Load data on mount
 onMounted(() => {
   loadQuoteCounts()
   try {

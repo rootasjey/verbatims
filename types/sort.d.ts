@@ -5,7 +5,7 @@
 * client options to avoid invalid sort parameters across the app.
 */
 
-type SortMode = 'relevance' | 'recent' | 'popular'
+export type SortMode = 'relevance' | 'recent' | 'popular'
 
 /**
 * Which database column or computed field to sort by.
@@ -15,7 +15,7 @@ type SortMode = 'relevance' | 'recent' | 'popular'
 * - server-side API validation for sort fields
 * - client-side select options
 */
-type SortBy =
+export type SortBy =
  | 'created_at'
  | 'updated_at'
  | 'likes_count'
@@ -28,7 +28,7 @@ type SortBy =
 * - "asc": ascending order (smallest to largest, oldest to newest)
 * - "desc": descending order (largest to smallest, newest to oldest)
 */
-type SortOrder = 'asc' | 'desc';
+export type SortOrder = 'asc' | 'desc';
 
 /**
 * Generic sort query shape used across server endpoints.
@@ -39,7 +39,7 @@ type SortOrder = 'asc' | 'desc';
 *   sort_order: 'desc'
 * }
 */
-interface SortQuery {
+export interface SortQuery {
  /**
   * The field to sort by. If omitted, the endpoint's default is used.
   */

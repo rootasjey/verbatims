@@ -17,17 +17,17 @@ import type {
  */
 export function parseFiltersFromExportLog(
   exportLog: ExportLogEntry | any
-): Partial<QuoteExportFilters> {
+): QuoteExportFilters {
   try {
     if (!exportLog?.filters_applied) {
-      return {}
+      return { date_range: { start: '', end: '' } }
     }
 
     const rawFilters = JSON.parse(exportLog.filters_applied) as RawExportFilters
     return sanitizeFiltersForQuery(rawFilters)
   } catch (error) {
     console.warn('Failed to parse filters from export log:', error)
-    return {}
+    return { date_range: { start: '', end: '' } }
   }
 }
 

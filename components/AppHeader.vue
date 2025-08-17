@@ -10,9 +10,7 @@
     <div class="flex justify-between items-center p-4">
       <div class="flex items-center space-x-4">
         <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M5 3a1 1 0 0 0-2 0v6a9 9 0 1 0 18 0V3a1 1 0 1 0-2 0v6A7 7 0 1 1 5 9zM4 20a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2z"/>
-          </svg>
+          <AppIcon />
         </UButton>
 
         <!-- Page Title for Admin/Dashboard -->
@@ -34,35 +32,40 @@
         </div>
       </div>
 
-      <div class="flex items-center space-x-6 font-title font-600 color-gray-6 dark:color-gray-4 mr-8">
-        <UButton
-          icon
-          btn="ghost"
-          label="i-ph-magnifying-glass-bold"
-          @click="showSearch = true"
-        />
+      <div class="flex items-center space-x-3 
+        font-subtitle font-700 color-gray-6 dark:color-gray-4 mr-8">
+        <div class="flex space-x-3 mr-3">
+          <UButton
+            icon
+            btn="ghost-gray"
+            label="i-ph-magnifying-glass-bold"
+            @click="showSearch = true"
+          />
 
-        <UButton
-          icon
-          btn="ghost"
-          label="i-ph-plus-bold"
-          @click="showAddQuote = true"
-          title="Add Quote (Ctrl/Cmd+N)"
-        />
+          <UButton
+            icon
+            btn="ghost-gray"
+            label="i-ph-plus-bold"
+            @click="showAddQuote = true"
+            title="Add Quote (Ctrl/Cmd+N)"
+          />
+        </div>
 
-        <NuxtLink
-          to="/authors"
-          class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-        >
-          Authors
-        </NuxtLink>
-        <NuxtLink
-          to="/references"
-          class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-        >
-          References
-        </NuxtLink>
-        <span>About</span>
+        <div class="flex space-x-8">
+          <NuxtLink
+            to="/authors"
+            class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
+          >
+            Authors
+          </NuxtLink>
+          <NuxtLink
+            to="/references"
+            class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
+          >
+            References
+          </NuxtLink>
+          <span>About</span>
+        </div>
 
         <UserMenu v-if="user" :user="user" />
       </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09] mb-12">
+  <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
     <!-- Header -->
     <AppHeader />
     

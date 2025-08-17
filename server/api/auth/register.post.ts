@@ -56,26 +56,26 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Set user session
-    await setUserSession(event, {
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        createdAt: newUser.created_at,
-      }
-    })
+    const user = {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      created_at: newUser.created_at,
+      avatar_url: newUser.avatar_url,
+      biography: newUser.biography,
+      job: newUser.job,
+      language: newUser.language,
+      location: newUser.location,
+      socials: newUser.socials,
+      updated_at: newUser.updated_at
+    }
+
+    await setUserSession(event, { user })
 
     return {
       message: 'Account created successfully',
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        createdAt: newUser.created_at
-      }
+      user,
     }
   } catch (error: any) {
     if (error.statusCode) {
