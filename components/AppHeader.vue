@@ -1,7 +1,7 @@
 <template>
   <nav
     :class="[
-      'top-0 w-full z-4 transition-all duration-300',
+      'top-0 w-full z-4 transition-all duration-300 bg-[#FAFAF9] dark:bg-[#0C0A09]/70',
       'border-b b-dashed',
       scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md',
       // Optional left padding to account for layout sidebars (e.g., dashboard/admin)
@@ -66,7 +66,13 @@
           >
             References
           </NuxtLink>
-          <span>About</span>
+
+          <NuxtLink
+            to="/about"
+            class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
+          >
+            About
+          </NuxtLink>
         </div>
 
         <UserMenu v-if="user" :user="user" />

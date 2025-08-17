@@ -378,12 +378,12 @@ const formatNumber = (num) => {
 
 const getSocialIcon = (platform) => {
   const icons = {
-    twitter: 'i-simple-icons-twitter',
-    facebook: 'i-simple-icons-facebook',
-    instagram: 'i-simple-icons-instagram',
-    linkedin: 'i-simple-icons-linkedin',
-    youtube: 'i-simple-icons-youtube',
-    website: 'i-ph-globe'
+    twitter: 'i-ph-twitter-logo-duotone',
+    facebook: 'i-ph-facebook-logo-duotone',
+    instagram: 'i-ph-instagram-logo-duotone',
+    linkedin: 'i-ph-linkedin-logo-duotone',
+    youtube: 'i-ph-youtube-logo-duotone',
+    website: 'i-ph-globe-duotone'
   }
   return icons[platform.toLowerCase()] || 'i-ph-link'
 }

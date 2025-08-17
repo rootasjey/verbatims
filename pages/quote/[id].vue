@@ -1,5 +1,112 @@
 <template>
   <div class="min-h-screen">
+    <!-- Sticky Top Header: compact title + stats/actions -->
+    <div v-if="quote" class="sticky top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div class="flex items-center justify-between gap-3">
+          <!-- Left: compact quote title and context -->
+          <div class="min-w-0 flex items-center gap-3">
+            <UIcon name="i-ph-quotes" class="w-5 h-5 text-gray-400" />
+            <div class="truncate">
+              <div class="text-sm font-serif text-gray-900 dark:text-white truncate">"{{ headerTitle }}"</div>
+              <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
+                <template v-if="quote.author || quote.reference">
+                  <NuxtLink
+                    v-if="quote.author"
+                    :to="`/authors/${quote.author.id}`"
+                    class="truncate hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  >
+                    {{ quote.author.name }}
+                  </NuxtLink>
+                  <span v-if="quote.author && quote.reference" aria-hidden="true" class="mx-1">•</span>
+                  <NuxtLink
+                    v-if="quote.reference"
+                    :to="`/references/${quote.reference.id}`"
+                    class="inline-flex items-center truncate hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  >
+                    <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-3 h-3 mr-1 text-gray-400" />
+                    <span class="truncate">{{ quote.reference.name }}</span>
+                  </NuxtLink>
+                </template>
+                <span v-else>{{ getLanguageName(quote.language) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: stats chips -->
+          <div class="hidden md:flex items-center gap-2">
+            <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
+              <UIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
+              <span class="font-medium">{{ formatNumber(quote.views_count || 0) }}</span>
+            </div>
+
+            <UButton
+              btn="~"
+              size="xs"
+              :disabled="sharePending"
+              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
+              @click="shareQuote"
+            >
+              <UIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
+              <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(quote.shares_count || 0) }}</span>
+            </UButton>
+
+            <UButton
+              btn="~"
+              size="xs"
+              :disabled="!user || likePending"
+              :class="[
+                'min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full',
+                isLiked
+                  ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
+                  : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
+                !user && 'cursor-not-allowed opacity-50'
+              ]"
+              @click="toggleLike"
+            >
+              <UIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
+              <span>{{ formatNumber(quote.likes_count || 0) }}</span>
+            </UButton>
+          </div>
+
+          <!-- Right: quick actions -->
+          <div class="flex items-center gap-2">
+            <UButton
+              :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
+              size="xs"
+              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+              @click="copyLink"
+            >
+              <UIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
+              <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
+            </UButton>
+
+            <UButton
+              btn="soft-blue"
+              size="xs"
+              :disabled="!user"
+              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+              @click="addToCollection"
+            >
+              <UIcon name="i-ph-bookmark-simple" class="w-3.5 h-3.5 mr-1" />
+              <span class="hidden sm:inline">Save</span>
+            </UButton>
+
+            <UDropdownMenu :items="headerMenuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
+              <UButton
+                icon
+                btn="ghost-gray"
+                label="i-ph-dots-three-vertical-bold"
+                size="xs"
+                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+                title="More actions"
+              />
+            </UDropdownMenu>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div v-if="pending" class="px-8 py-16">
       <div class="max-w-4xl mx-auto">
@@ -15,13 +122,13 @@
     </div>
 
     <!-- Quote Content -->
-    <div v-else-if="quote" class="mt-24 px-8 py-16">
+    <div v-else-if="quote" class="mt-16 px-8 py-16">
       <div class="max-w-4xl mx-auto">
         <!-- Main Quote Section -->
         <div class="text-center mb-16">
           <!-- Quote Text - Typography Focused -->
           <div class="relative mb-12">
-            <blockquote class="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-6xl leading-tight text-gray-900 dark:text-white mb-8 px-4">
+            <blockquote class="font-serif font-600 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl leading-tight text-gray-900 dark:text-white mb-8 px-4">
               {{ quote.name }}
             </blockquote>
 
@@ -31,7 +138,7 @@
           </div>
 
           <!-- Attribution Section -->
-          <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 space-y-2">
+          <div v-if="quote.author || quote.reference" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 space-y-2">
             <!-- Author -->
             <div v-if="quote.author" class="flex flex-col items-center justify-center">
               <NuxtLink :to="`/authors/${quote.author.id}`">
@@ -42,16 +149,18 @@
                   class="ring-2 ring-gray-200 dark:ring-gray-700 hover:scale-105 active:scale-99 transition-transform"
                 />
               </NuxtLink>
-              <div class="text-left">
+              <div>
                 <NuxtLink
                   :to="`/authors/${quote.author.id}`"
                   class="font-body text-size-4  font-400 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
                 >
                   {{ quote.author.name }}
                 </NuxtLink>
-                <p v-if="quote.author.is_fictional" class="text-sm text-gray-500 dark:text-gray-400 font-sans">
-                  Fictional Character
-                </p>
+                <UBadge
+                  v-if="quote.author.is_fictional"
+                  class="mt-1"
+                  label="Fictional Character"
+                />
               </div>
             </div>
 
@@ -67,6 +176,7 @@
             </div>
           </div>
         </div>
+
 
         <!-- Tags -->
         <div v-if="quote.tags?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8">
@@ -86,206 +196,117 @@
             </NuxtLink>
           </div>
         </div>
-
-        <!-- Actions Bar -->
-        <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8">
-          <div class="flex items-center justify-center space-x-12">
-            <!-- Like -->
-            <button
-              @click="toggleLike"
-              :disabled="!user || likePending"
-              :class="[
-                'flex flex-col items-center space-y-2 px-6 py-4 rounded-lg transition-all group',
-                isLiked
-                  ? 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
-                  : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20',
-                !user && 'cursor-not-allowed opacity-50'
-              ]"
-            >
-              <UIcon
-                :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'"
-                :class="['w-6 h-6 transition-transform group-hover:scale-110', likePending && 'animate-pulse']"
-              />
-              <div class="text-center">
-                <div class="font-semibold">{{ quote.likes_count }}</div>
-                <div class="text-xs font-sans">{{ quote.likes_count === 1 ? 'Like' : 'Likes' }}</div>
-              </div>
-            </button>
-
-            <!-- Share -->
-            <button
-              @click="shareQuote"
-              :disabled="sharePending"
-              class="flex flex-col items-center space-y-2 px-6 py-4 rounded-lg text-gray-500 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all group"
-            >
-              <UIcon
-                name="i-ph-share"
-                :class="['w-6 h-6 transition-transform group-hover:scale-110', sharePending && 'animate-pulse']"
-              />
-              <div class="text-center">
-                <div class="font-semibold">{{ quote.shares_count }}</div>
-                <div class="text-xs font-sans">Share</div>
-              </div>
-            </button>
-
-            <!-- Views -->
-            <div class="flex flex-col items-center space-y-2 px-6 py-4 text-gray-500">
-              <UIcon name="i-ph-eye" class="w-6 h-6" />
-              <div class="text-center">
-                <div class="font-semibold">{{ formatNumber(quote.views_count) }}</div>
-                <div class="text-xs font-sans">{{ quote.views_count === 1 ? 'View' : 'Views' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- Quote Details & Actions -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start border-t border-dashed border-gray-300 dark:border-gray-600 pt-16">
-        <!-- Metadata -->
-        <div class="lg:col-span-2">
-          <div class="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 sm:p-8 bg-white/50 dark:bg-[#0C0A09]/40">
-            <h3 class="text-xl sm:text-2xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Quote details</h3>
-
-            <dl class="divide-y divide-dashed divide-gray-200 dark:divide-gray-800">
-              <!-- Language -->
-              <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 items-center">
-                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-ph-translate" class="w-4 h-4 mr-2 text-gray-400" />
-                  Language
-                </dt>
-                <dd class="sm:col-span-2 text-base font-serif text-gray-900 dark:text-white">{{ getLanguageName(quote.language) }}</dd>
+      <!-- Quote Details & Actions (unified width) -->
+      <div class="max-w-3xl mx-auto">
+        <div class="grid grid-cols-1 gap-8 items-start pt-16">
+          <!-- Metadata -->
+          <div>
+            <div class="rounded-xl border-0.5px border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-[#0C0A09]/50">
+              <div class="border-b border-gray-200 dark:border-gray-800 mb-6 p-6">
+                <h3 class="text-xl line-height-4 sm:text-size-4 font-title font-semibold text-gray-900 dark:text-white">
+                  Metadata
+                </h3>
+                <span class="text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                  All secondary information about the quote.
+                </span>
               </div>
 
-              <!-- Submitted by -->
-              <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 items-center">
-                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-ph-user" class="w-4 h-4 mr-2 text-gray-400" />
-                  Submitted by
-                </dt>
-                <dd class="sm:col-span-2 text-base font-serif text-gray-900 dark:text-white">{{ quote.user.name }}</dd>
-              </div>
-
-              <!-- Added on -->
-              <div class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 items-center">
-                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-ph-calendar" class="w-4 h-4 mr-2 text-gray-400" />
-                  Added on
-                </dt>
-                <dd class="sm:col-span-2 text-base font-serif text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
-              </div>
-
-              <!-- Reference type -->
-              <div v-if="quote.reference" class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 items-center">
-                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 mr-2 text-gray-400" />
-                  Reference type
-                </dt>
-                <dd class="sm:col-span-2 text-base font-serif text-gray-900 dark:text-white capitalize">{{ quote.reference.type.replace('_',' ') }}</dd>
-              </div>
-
-              <!-- Status -->
-              <div v-if="quote.is_featured" class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 items-center">
-                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
-                  Status
-                </dt>
-                <dd class="sm:col-span-2">
-                  <UBadge color="yellow" variant="subtle" class="font-sans">
-                    <UIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
-                    Featured quote
-                  </UBadge>
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <aside class="lg:col-span-1 lg:sticky lg:top-24">
-          <div class="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 bg-white/50 dark:bg-[#0C0A09]/40">
-            <h3 class="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-4">Actions</h3>
-
-            <div class="space-y-3">
-              <UButton
-                v-if="user"
-                btn="soft-blue"
-                class="w-full justify-center"
-                @click="addToCollection"
-              >
-                <UIcon name="i-ph-bookmark-simple" class="w-4 h-4 mr-2" />
-                Add to collection
-              </UButton>
-
-              <UButton
-                btn="soft-primary"
-                class="w-full justify-center"
-                :loading="sharePending"
-                @click="shareQuote"
-              >
-                <UIcon name="i-ph-share-network" class="w-4 h-4 mr-2" />
-                Share
-              </UButton>
-
-              <UButton
-                btn="soft-gray"
-                class="w-full justify-center"
-                @click="copyQuoteText"
-              >
-                <UIcon name="i-ph-quotes" class="w-4 h-4 mr-2" />
-                Copy text
-              </UButton>
-
-              <UButton
-                btn="soft-green"
-                class="w-full justify-center"
-                @click="downloadQuote"
-              >
-                <UIcon name="i-ph-download-simple" class="w-4 h-4 mr-2" />
-                Download image
-              </UButton>
-
-              <div class="pt-2 border-t border-dashed border-gray-200 dark:border-gray-800">
-                <div class="flex gap-2">
-                  <UButton btn="soft-gray" class="flex-1 justify-center" @click="copyLink">
-                    <UIcon name="i-ph-link" class="w-4 h-4 mr-2" />
-                    Copy link
-                  </UButton>
-                  <UButton btn="soft-yellow" class="flex-1 justify-center" @click="reportQuote">
-                    <UIcon name="i-ph-flag" class="w-4 h-4 mr-2" />
-                    Report
-                  </UButton>
+              <dl class="space-y-4">
+                <!-- Language -->
+                <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                  <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                    <UIcon name="i-ph-translate" class="w-4 h-4 mr-2 text-gray-400" />
+                    Language
+                  </dt>
+                  <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">
+                    {{ getLanguageName(quote.language) }}
+                  </dd>
                 </div>
-              </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                <!-- Submitted by -->
+                <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                  <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                    <UIcon name="i-ph-user" class="w-4 h-4 mr-2 text-gray-400" />
+                    Submitted by
+                  </dt>
+                  <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user.name }}</dd>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                <!-- Added on -->
+                <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                  <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                    <UIcon name="i-ph-calendar" class="w-4 h-4 mr-2 text-gray-400" />
+                    Added on
+                  </dt>
+                  <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
+                </div>
+
+                <div v-if="quote.reference">
+                  <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
+                  <!-- Reference type -->
+                  <div class="px-4 py-1 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                    <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                      <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 mr-2 text-gray-400" />
+                      Reference type
+                    </dt>
+                    <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white capitalize">{{ quote.reference.type.replace('_',' ') }}</dd>
+                  </div>
+                </div>
+
+                <div v-if="quote.is_featured">
+                  <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
+                  <!-- Status -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                    <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                      <UIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
+                      Status
+                    </dt>
+                    <dd class="sm:col-span-2">
+                      <UBadge color="yellow" variant="subtle" class="font-sans">
+                        <UIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
+                        Featured quote
+                      </UBadge>
+                    </dd>
+                  </div>
+                </div>
+              </dl>
             </div>
           </div>
-        </aside>
-      </div>
 
-      <!-- Related Quotes -->
-      <div v-if="relatedQuotes?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-16">
-        <h3 class="text-3xl font-serif font-semibold text-gray-900 dark:text-white text-center mb-12">Related Quotes</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-          <div
-            v-for="relatedQuote in relatedQuotes"
-            :key="relatedQuote.id"
-            class="border border-dashed border-gray-300 dark:border-gray-600 p-6 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors cursor-pointer group"
-            @click="navigateTo(`/quote/${relatedQuote.id}`)"
-          >
-            <blockquote class="font-serif text-lg text-gray-800 dark:text-gray-200 mb-4 line-clamp-3 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-              "{{ relatedQuote.name }}"
-            </blockquote>
-            <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-              <span v-if="relatedQuote.author" class="font-sans">{{ relatedQuote.author.name }}</span>
-              <div class="flex items-center space-x-4">
-                <span class="flex items-center space-x-1">
-                  <UIcon name="i-ph-heart" class="w-4 h-4" />
-                  <span>{{ relatedQuote.likes_count }}</span>
-                </span>
-                <span class="flex items-center space-x-1">
-                  <UIcon name="i-ph-eye" class="w-4 h-4" />
-                  <span>{{ formatNumber(relatedQuote.views_count) }}</span>
-                </span>
+          <!-- Sidebar removed per request -->
+        </div>
+
+        <!-- Related Quotes -->
+        <div v-if="relatedQuotes?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-16 mt-16">
+          <h3 class="text-3xl font-serif font-semibold text-gray-900 dark:text-white text-center mb-12">Related Quotes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div
+              v-for="relatedQuote in relatedQuotes"
+              :key="relatedQuote.id"
+              class="border border-dashed border-gray-300 dark:border-gray-600 p-6 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors cursor-pointer group"
+              @click="navigateTo(`/quote/${relatedQuote.id}`)"
+            >
+              <blockquote class="font-serif text-lg text-gray-800 dark:text-gray-200 mb-4 line-clamp-3 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                "{{ relatedQuote.name }}"
+              </blockquote>
+              <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                <span v-if="relatedQuote.author" class="font-sans">{{ relatedQuote.author.name }}</span>
+                <div class="flex items-center space-x-4">
+                  <span class="flex items-center space-x-1">
+                    <UIcon name="i-ph-heart" class="w-4 h-4" />
+                    <span>{{ relatedQuote.likes_count }}</span>
+                  </span>
+                  <span class="flex items-center space-x-1">
+                    <UIcon name="i-ph-eye" class="w-4 h-4" />
+                    <span>{{ formatNumber(relatedQuote.views_count) }}</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -311,6 +332,13 @@
     v-model="showAddToCollectionModal"
     :quote="quote"
     @added="onAddedToCollection"
+  />
+
+  <!-- Edit Quote Dialog (re-uses AddQuoteDialog in edit mode) -->
+  <AddQuoteDialog
+    v-model="showEditQuoteDialog"
+    :editQuote="quote"
+    @quote-updated="onQuoteUpdated"
   />
 
   <!-- Mobile Action Dock -->
@@ -364,6 +392,8 @@
 const route = useRoute()
 const { user } = useUserSession()
 
+const copyState = ref('idle')
+
 // Fetch quote data
 const { data: quoteData, pending } = await useFetch(`/api/quotes/${route.params.id}`)
 const quote = computed(() => quoteData.value?.data)
@@ -372,7 +402,6 @@ const quote = computed(() => quoteData.value?.data)
 const { data: relatedData } = await useFetch(`/api/quotes/${route.params.id}/related`)
 const relatedQuotes = computed(() => relatedData.value?.data || [])
 
-// SEO
 useHead(() => ({
   title: quote.value ? `"${quote.value.name.substring(0, 60)}..." - Verbatims` : 'Quote - Verbatims',
   meta: [
@@ -397,12 +426,77 @@ onMounted(async () => {
   }
 })
 
-// Like functionality
 const isLiked = ref(false)
 const likePending = ref(false)
-
-// Share functionality
 const sharePending = ref(false)
+
+// Header title (truncated for compact sticky header)
+const headerTitle = computed(() => {
+  const text = quote.value?.name || ''
+  return text.length > 80 ? text.slice(0, 80) + '…' : text
+})
+
+// Edit dialog state
+const showEditQuoteDialog = ref(false)
+
+const onQuoteUpdated = async () => {
+  const { toast } = useToast()
+  try {
+    // Refresh main quote and related quotes after edit
+    const fresh = await $fetch(`/api/quotes/${route.params.id}`)
+    quoteData.value = fresh
+    const freshRelated = await $fetch(`/api/quotes/${route.params.id}/related`)
+    relatedData.value = freshRelated
+
+    toast({ title: 'Quote updated', variant: 'success' })
+  } catch (error) {
+    console.error('Failed to refresh quote after update:', error)
+  } finally {
+    showEditQuoteDialog.value = false
+  }
+}
+
+const headerMenuItems = computed(() => {
+  const items = []
+
+  if (user.value && (user.value.role === 'admin' || user.value.role === 'moderator')) {
+    items.push({
+      label: 'Edit',
+      leading: 'i-ph-pencil-simple',
+      onclick: () => { showEditQuoteDialog.value = true }
+    })
+  }
+
+  items.push(
+    {
+      label: 'Copy link',
+      leading: 'i-ph-link',
+      onclick: () => copyLink()
+    },
+    {
+      label: 'Copy text',
+      leading: 'i-ph-quotes',
+      onclick: () => copyQuoteText()
+    },
+    {
+      label: 'Share',
+      leading: 'i-ph-share-network',
+      onclick: () => shareQuote()
+    },
+    {
+      label: 'Download image',
+      leading: 'i-ph-download-simple',
+      onclick: () => downloadQuote()
+    },
+    {
+      label: 'Report',
+      leading: 'i-ph-flag',
+      onclick: () => reportQuote()
+    }
+  )
+
+  return items
+})
 
 const checkLikeStatus = async () => {
   if (!user.value || !quote.value) return
@@ -433,7 +527,6 @@ const toggleLike = async () => {
   }
 }
 
-// Share functionality
 const shareQuote = async () => {
   if (!quote.value || sharePending.value) return
 
@@ -476,14 +569,12 @@ const shareQuote = async () => {
   }
 }
 
-// Other actions
 const showAddToCollectionModal = ref(false)
 
 const addToCollection = () => {
   showAddToCollectionModal.value = true
 }
 
-// Handle quote added to collection
 const onAddedToCollection = (collection) => {
   const { toast } = useToast()
   toast({
@@ -501,13 +592,11 @@ const reportQuote = () => {
   // TODO: Open report modal
 }
 
-// Copy helpers
 const copyQuoteText = async () => {
   if (!quote.value) return
   const { toast } = useToast()
   try {
-    await navigator.clipboard.writeText(`"${quote.value.name}"${quote.value.author ? ` — ${quote.value.author.name}` : ''}`)
-    toast({ title: 'Quote copied', description: 'Text copied to clipboard.', variant: 'success' })
+    await navigator.clipboard.writeText(`"${quote.value.name}"${quote.value.author ? ` — ${quote.value.author.name}` : ''}${quote.value.reference ? ` (${quote.value.reference.name})` : ''}`)
   } catch (error) {
     toast({ title: 'Copy failed', description: 'Clipboard is not available.', variant: 'error' })
   }
@@ -519,13 +608,14 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    toast({ title: 'Link copied', description: 'Permalink copied to clipboard.', variant: 'success' })
+    
+    copyState.value = 'copied'
+    setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
     toast({ title: 'Copy failed', description: 'Could not copy the link.', variant: 'error' })
   }
 }
 
-// Utility functions
 const getReferenceIcon = (type) => {
   const icons = {
     film: 'i-ph-film-strip',
@@ -580,7 +670,6 @@ onMounted(() => {
   }
 })
 
-// Watch for user changes
 watch(user, (newUser) => {
   if (newUser && quote.value) {
     checkLikeStatus()

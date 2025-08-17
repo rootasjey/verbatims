@@ -3,8 +3,8 @@
     <header class="p-8">
       <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
       <span class="-mt-12 text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
-        Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, books, music and more. <br />
-        It's an open source community platform. You can post your own funny quotes.
+        Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, video games, books, music, podcasts, documentaries.
+        It's an open source community platform. You can post your own interesting quotes.
       </span>
     </header>
 
