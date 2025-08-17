@@ -1,4 +1,5 @@
 import type { PageHeaderInfo } from '~/stores/pageHeader'
+import { storeToRefs } from 'pinia'
 
 /**
  * Composable for managing page headers in admin and dashboard sections
@@ -39,19 +40,16 @@ export const usePageHeader = () => {
     store.showHeader()
   }
 
-  const title = computed(() => store.pageTitle)
-  const subtitle = computed(() => store.pageSubtitle)
-  const section = computed(() => store.pageSection)
-  const hasSubtitle = computed(() => store.hasSubtitle)
-  const shouldShow = computed(() => store.shouldShowHeader)
+  // Use storeToRefs to expose reactive refs directly
+  const { pageTitle, pageSubtitle, pageSection, hasSubtitle, shouldShowHeader } = storeToRefs(store)
 
   return {
     // Getters
-    title,
-    subtitle,
-    section,
+    title: pageTitle,
+    subtitle: pageSubtitle,
+    section: pageSection,
     hasSubtitle,
-    shouldShow,
+    shouldShow: shouldShowHeader,
 
     // Actions
     setHeader,

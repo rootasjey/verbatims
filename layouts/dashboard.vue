@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
-    <AppHeader />
+  <AppHeader :left-pad-class="[(sidebarOpen ? 'pl-64' : ''), (sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')].join(' ')" />
     
     <!-- Dashboard Layout -->
     <div class="pt-16 flex min-h-screen">

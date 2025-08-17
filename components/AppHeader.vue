@@ -3,7 +3,9 @@
     :class="[
       'top-0 w-full z-4 transition-all duration-300',
       'border-b b-dashed',
-      scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md'
+      scrollY === 0 ? 'absolute' : 'fixed backdrop-blur-md',
+      // Optional left padding to account for layout sidebars (e.g., dashboard/admin)
+      props.leftPadClass
     ]"
   >
     <!-- Main Navigation Bar -->
@@ -82,6 +84,15 @@
 </template>
 
 <script lang="ts" setup>
+interface Props {
+  // Responsive utility classes to pad the header from the left (e.g., 'lg:pl-64' | 'lg:pl-16')
+  leftPadClass?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  leftPadClass: ''
+})
+
 const { user } = useUserSession()
 const scrollY = ref(0)
 const route = useRoute()
@@ -93,7 +104,7 @@ const pageHeader = usePageHeader()
 
 // Only show page title for admin and dashboard pages
 const shouldShowPageTitle = computed(() => {
-  return pageHeader.shouldShow &&
+  return pageHeader.shouldShow.value &&
          (pageHeader.section.value === 'admin' || pageHeader.section.value === 'dashboard')
 })
 
