@@ -305,6 +305,13 @@
       :editAuthor="author"
       @author-updated="onAuthorUpdated"
     />
+    <!-- Delete Author Dialog -->
+    <DeleteAuthorDialog
+      v-if="author"
+      v-model="showDeleteAuthorDialog"
+      :author="author"
+      @author-deleted="onAuthorDeleted"
+    />
   </div>
 </template>
 
@@ -345,12 +352,12 @@ const sortOptions = [
   { label: 'Most Viewed', value: 'views_count' }
 ]
 
-// Like functionality
 const isLiked = ref(false)
 const likePending = ref(false)
 const sharePending = ref(false)
 const copyState = ref('idle')
 const showEditAuthorDialog = ref(false)
+const showDeleteAuthorDialog = ref(false)
 
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -365,7 +372,12 @@ const headerMenuItems = computed(() => {
     items.push({
       label: 'Edit',
       leading: 'i-ph-pencil-simple',
-  onclick: () => { showEditAuthorDialog.value = true }
+      onclick: () => { showEditAuthorDialog.value = true }
+    })
+    items.push({
+      label: 'Delete',
+      leading: 'i-ph-trash',
+      onclick: () => { showDeleteAuthorDialog.value = true }
     })
   }
 
@@ -451,6 +463,10 @@ const onAuthorUpdated = async () => {
   } finally {
     showEditAuthorDialog.value = false
   }
+}
+
+const onAuthorDeleted = async () => {
+  await navigateTo('/authors')
 }
 
 const loadMoreQuotes = async () => {

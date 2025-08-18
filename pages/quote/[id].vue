@@ -334,6 +334,14 @@
     @quote-updated="onQuoteUpdated"
   />
 
+  <!-- Delete Quote Dialog -->
+  <DeleteQuoteDialog
+    v-if="quote"
+    v-model="showDeleteQuoteDialog"
+    :quote="quote"
+    @quote-deleted="onQuoteDeleted"
+  />
+
   <!-- Mobile Action Dock -->
   <div
     v-if="quote"
@@ -431,6 +439,7 @@ const headerTitle = computed(() => {
 
 // Edit dialog state
 const showEditQuoteDialog = ref(false)
+const showDeleteQuoteDialog = ref(false)
 
 const onQuoteUpdated = async () => {
   const { toast } = useToast()
@@ -449,6 +458,10 @@ const onQuoteUpdated = async () => {
   }
 }
 
+const onQuoteDeleted = async () => {
+  await navigateTo('/')
+}
+
 const headerMenuItems = computed(() => {
   const items = []
 
@@ -457,6 +470,11 @@ const headerMenuItems = computed(() => {
       label: 'Edit',
       leading: 'i-ph-pencil-simple',
       onclick: () => { showEditQuoteDialog.value = true }
+    })
+    items.push({
+      label: 'Delete',
+      leading: 'i-ph-trash',
+      onclick: () => { showDeleteQuoteDialog.value = true }
     })
   }
 

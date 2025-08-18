@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <!-- Search and Filters -->
     <div class="mb-6 flex flex-col sm:flex-row gap-4">
       <div class="flex-1">
@@ -89,25 +88,21 @@
 <script setup lang="ts">
 import type { QuoteWithRelations } from '~/types/quote'
 
-// Extended interface for liked quotes with additional fields
 interface LikedQuote extends Omit<QuoteWithRelations, 'likes_count'> {
   liked_at: string
   likes_count?: number
   is_liked: boolean
 }
 
-// Use dashboard layout
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'Favourites - Dashboard - Verbatims'
 })
 
-// Data
 const loading = ref(true)
 const loadingMore = ref(false)
 const quotes = ref<LikedQuote[]>([])
@@ -116,11 +111,9 @@ const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-// Modals
 const showAddToCollectionModal = ref(false)
 const selectedQuote = ref<LikedQuote | null>(null)
 
-// Sort options
 const sortOptions = [
   { label: 'Most Recent', value: 'recent' },
   { label: 'Oldest First', value: 'oldest' },
@@ -128,11 +121,9 @@ const sortOptions = [
   { label: 'Author A-Z', value: 'author' }
 ]
 
-// Computed
 const filteredQuotes = computed(() => {
   let filtered = [...quotes.value]
 
-  // Search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(quote =>
@@ -142,7 +133,6 @@ const filteredQuotes = computed(() => {
     )
   }
 
-  // Sort
   switch (sortBy.value.value) {
     case 'oldest':
       filtered.sort((a, b) => new Date(a.liked_at).getTime() - new Date(b.liked_at).getTime())
@@ -160,7 +150,6 @@ const filteredQuotes = computed(() => {
   return filtered
 })
 
-// Methods
 const loadFavourites = async (page = 1) => {
   try {
     const response = await $fetch('/api/dashboard/liked-quotes', {
@@ -189,7 +178,6 @@ const loadMore = async () => {
 }
 
 const handleLikeToggled = (quote: LikedQuote) => {
-  // Remove from favourites list when unliked
   if (!quote.is_liked) {
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   }
@@ -201,19 +189,15 @@ const handleAddToCollection = (quote: LikedQuote) => {
 }
 
 const handleAddedToCollection = () => {
-  // Could show a toast notification here
   showAddToCollectionModal.value = false
   selectedQuote.value = null
 }
 
-// Load data on mount
 onMounted(() => {
   loadFavourites()
 })
 
-// Watch for search/sort changes
 watch([searchQuery, sortBy], () => {
-  // Debounce search
   if (searchQuery.value) {
     // For now, just filter client-side
     // In a real app, you might want to debounce and search server-side

@@ -1,22 +1,12 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
-    
+    const db = hubDatabase()
+    const session = await requireUserSession(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     
-    const db = hubDatabase()
-    
-    // Get user's liked quotes with full quote details
     const likedQuotes = await db.prepare(`
       SELECT 
         q.*,
@@ -43,8 +33,7 @@ export default defineEventHandler(async (event) => {
       ORDER BY ul.created_at DESC
       LIMIT ? OFFSET ?
     `).bind(session.user.id, limit, offset).all()
-    
-    // Get total count
+
     const totalResult = await db.prepare(`
       SELECT COUNT(*) as total
       FROM user_likes ul
@@ -53,12 +42,11 @@ export default defineEventHandler(async (event) => {
         AND ul.likeable_type = 'quote' 
         AND q.status = 'approved'
     `).bind(session.user.id).first()
-    
+
     const total = Number(totalResult?.total) || 0
-    const quotesArray = Array.isArray(likedQuotes) ? likedQuotes : []
+    const quotesArray = Array.isArray(likedQuotes.results) ? likedQuotes.results : []
     const hasMore = offset + quotesArray.length < total
 
-    // Process quotes data
     const processedQuotes = quotesArray.map((quote: any) => ({
       ...quote,
       tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({

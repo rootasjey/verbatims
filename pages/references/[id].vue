@@ -309,6 +309,13 @@
       :edit-reference="reference"
       @reference-updated="onReferenceUpdated"
     />
+    <!-- Delete Reference Dialog -->
+    <DeleteReferenceDialog
+      v-if="isDeleteDialogOpen && reference"
+      v-model="isDeleteDialogOpen"
+      :reference="reference"
+      @reference-deleted="onReferenceDeleted"
+    />
   </div>
 </template>
 
@@ -366,9 +373,14 @@ const headerMenuItems = computed(() => {
   // Admin/mod actions
   if (canEditReference.value) {
     items.push({
-      label: 'Edit reference',
+      label: 'Edit',
       leading: 'i-ph-pencil-simple-line',
       onclick: () => openEditReference()
+    })
+    items.push({
+      label: 'Delete',
+      leading: 'i-ph-trash',
+      onclick: () => openDeleteReference()
     })
   }
 
@@ -404,6 +416,18 @@ const isEditDialogOpen = ref(false)
 const openEditReference = () => {
   if (!reference.value) return
   isEditDialogOpen.value = true
+}
+
+// Delete dialog state and handlers
+const isDeleteDialogOpen = ref(false)
+const openDeleteReference = () => {
+  if (!reference.value) return
+  isDeleteDialogOpen.value = true
+}
+
+const onReferenceDeleted = async () => {
+  // After deletion, navigate away from the deleted reference page
+  await navigateTo('/references')
 }
 
 const onReferenceUpdated = async () => {
