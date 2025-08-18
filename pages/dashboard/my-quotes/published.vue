@@ -1,8 +1,7 @@
 <template>
-  <div class="frame flex flex-col h-full">
+  <div class="flex flex-col h-full">
     <!-- Fixed Header Section -->
     <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
-
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
@@ -288,7 +287,6 @@ interface DashboardQuote extends QuoteWithRelations {
   tags?: Array<{ id: number; name: string; color: string }>
 }
 
-// Use dashboard layout
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
@@ -309,7 +307,7 @@ const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0) // Total number of quotes from API
 const totalPages = ref(0) // Total pages from API
-// Selection state
+
 const selectionMode = ref(false)
 const rowSelection = ref<Record<string, boolean>>({})
 const selectedQuotes = computed<number[]>(() => Object
@@ -317,7 +315,6 @@ const selectedQuotes = computed<number[]>(() => Object
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
 
-// Modals
 const showAddToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 const showBulkAddToCollection = ref(false)
@@ -427,12 +424,10 @@ const allSelectedOnPage = computed<boolean>(() =>
 
 const displayedCount = computed(() => quotes.value.length)
 
-// Watch for page changes to load new data
 watch(currentPage, () => {
   loadPublishedQuotes()
 })
 
-// Watch for search and sort changes with debounced API calls
 watchDebounced([searchQuery, sortBy], () => {
   currentPage.value = 1
   loadPublishedQuotes()
@@ -483,11 +478,8 @@ const resetFilters = () => {
   loadPublishedQuotes()
 }
 
-// Handle language change from LanguageSelector
 const onLanguageChanged = async () => {
-  // Reset to first page when language changes
   currentPage.value = 1
-  // Reload quotes with new language filter
   await loadPublishedQuotes()
 }
 
@@ -519,13 +511,10 @@ const addToCollection = (quote: DashboardQuote) => {
 }
 
 const shareQuote = (quote: DashboardQuote) => {
-  // Copy quote URL to clipboard
   const url = `${window.location.origin}/quote/${quote.id}`
   navigator.clipboard.writeText(url)
-  // Could show a toast notification here
 }
 
-// Bulk helpers
 const clearSelection = () => {
   rowSelection.value = {}
 }

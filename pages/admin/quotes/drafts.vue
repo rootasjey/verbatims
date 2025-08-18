@@ -2,7 +2,6 @@
   <div class="frame flex flex-col h-full">
     <!-- Fixed Header Section -->
     <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
-
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">

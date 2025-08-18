@@ -1,18 +1,5 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-8">
-      <div class="flex items-center justify-end">
-        <UButton
-          btn="solid-dark dark:solid-white"
-          @click="showCreateModal = true"
-        >
-          <UIcon name="i-ph-plus" />
-          Create List
-        </UButton>
-      </div>
-    </div>
-
     <!-- Search and Filters -->
     <div class="mb-6 flex flex-col sm:flex-row gap-4">
       <div class="flex-1">
@@ -32,6 +19,17 @@
           item-key="label"
           value-key="label"
         />
+      </div>
+
+      <div class="flex items-center justify-end">
+        <UButton
+          size="sm"
+          btn="solid-dark dark:solid-white"
+          @click="showCreateModal = true"
+        >
+          <UIcon name="i-ph-plus" />
+          Create List
+        </UButton>
       </div>
     </div>
 

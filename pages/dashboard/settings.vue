@@ -1,221 +1,229 @@
 <template>
   <div>
+    <!-- Tabs wrapper -->
+    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+      <template #content="{ item }">
+        <!-- Profile Tab: Profile Info + Language + Privacy -->
+        <div v-if="item.value === 'profile'" class="space-y-8">
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Profile Information
+              </h2>
+            </template>
 
-    <!-- Settings Sections -->
-    <div class="space-y-8">
-      <!-- Profile Settings -->
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Profile Information
-          </h2>
-        </template>
+            <div class="space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Display Name
+                  </label>
+                  <UInput
+                    v-model="profileForm.name"
+                    placeholder="Your display name"
+                    size="lg"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Address
+                  </label>
+                  <UInput
+                    v-model="profileForm.email"
+                    type="email"
+                    placeholder="your@email.com"
+                    size="lg"
+                    disabled
+                  />
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Email cannot be changed. Contact support if needed.
+                  </p>
+                </div>
+              </div>
 
-        <div class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Display Name
-              </label>
-              <UInput
-                v-model="profileForm.name"
-                placeholder="Your display name"
-                size="lg"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
-              </label>
-              <UInput
-                v-model="profileForm.email"
-                type="email"
-                placeholder="your@email.com"
-                size="lg"
-                disabled
-              />
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Email cannot be changed. Contact support if needed.
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Bio
-            </label>
-            <UInput
-              v-model="profileForm.bio"
-              type="textarea"
-              placeholder="Tell us about yourself..."
-              :rows="3"
-              size="lg"
-            />
-          </div>
-
-          <div class="flex justify-end">
-            <UButton
-              :loading="savingProfile"
-              @click="saveProfile"
-            >
-              Save Profile
-            </UButton>
-          </div>
-        </div>
-      </UCard>
-
-      <!-- Language Preferences -->
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Language Preferences
-          </h2>
-        </template>
-
-        <div class="space-y-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Preferred Language
-            </label>
-            <LanguageSelector />
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              This affects the quotes you see by default and your submissions.
-            </p>
-          </div>
-        </div>
-      </UCard>
-
-      <!-- Notification Settings -->
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Notifications
-          </h2>
-        </template>
-
-        <div class="space-y-6">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
               <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Quote Approval Notifications
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Get notified when your submitted quotes are approved or rejected.
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Bio
+                </label>
+                <UInput
+                  v-model="profileForm.bio"
+                  type="textarea"
+                  placeholder="Tell us about yourself..."
+                  :rows="3"
+                  size="lg"
+                />
+              </div>
+
+              <div class="flex justify-end">
+                <UButton
+                  btn="solid-black"
+                  :loading="savingProfile"
+                  @click="saveProfile"
+                >
+                  Save Profile
+                </UButton>
+              </div>
+            </div>
+          </UCard>
+
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Language Preferences
+              </h2>
+            </template>
+
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Preferred Language
+                </label>
+                <LanguageSelector />
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  This affects the quotes you see by default and your submissions.
                 </p>
               </div>
-              <USwitch v-model="notificationSettings.quote_approval" />
             </div>
+          </UCard>
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Collection Updates
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Get notified when someone adds quotes to your public collections.
-                </p>
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Privacy & Visibility
+              </h2>
+            </template>
+
+            <div class="space-y-6">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Public Profile
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Allow others to see your profile and public collections.
+                    </p>
+                  </div>
+                  <USwitch v-model="privacySettings.public_profile" />
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Show Quote Attribution
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Display your name as the submitter on approved quotes.
+                    </p>
+                  </div>
+                  <USwitch v-model="privacySettings.show_attribution" />
+                </div>
               </div>
-              <USwitch v-model="notificationSettings.collection_updates" />
-            </div>
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Weekly Digest
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Receive a weekly summary of new quotes and activity.
-                </p>
+              <div class="flex justify-end">
+                <UButton
+                  btn="solid-black"
+                  :loading="savingPrivacy"
+                  @click="savePrivacy"
+                >
+                  Save Settings
+                </UButton>
               </div>
-              <USwitch v-model="notificationSettings.weekly_digest" />
             </div>
-          </div>
-
-          <div class="flex justify-end">
-            <UButton
-              :loading="savingNotifications"
-              @click="saveNotifications"
-            >
-              Save Preferences
-            </UButton>
-          </div>
+          </UCard>
         </div>
-      </UCard>
 
-      <!-- Privacy Settings -->
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Privacy & Visibility
-          </h2>
-        </template>
+        <!-- Notifications Tab -->
+        <div v-else-if="item.value === 'notifications'" class="space-y-8">
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Notifications
+              </h2>
+            </template>
 
-        <div class="space-y-6">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Public Profile
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Allow others to see your profile and public collections.
-                </p>
+            <div class="space-y-6">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Quote Approval Notifications
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Get notified when your submitted quotes are approved or rejected.
+                    </p>
+                  </div>
+                  <USwitch v-model="notificationSettings.quote_approval" />
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Collection Updates
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Get notified when someone adds quotes to your public collections.
+                    </p>
+                  </div>
+                  <USwitch v-model="notificationSettings.collection_updates" />
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                      Weekly Digest
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Receive a weekly summary of new quotes and activity.
+                    </p>
+                  </div>
+                  <USwitch v-model="notificationSettings.weekly_digest" />
+                </div>
               </div>
-              <USwitch v-model="privacySettings.public_profile" />
-            </div>
 
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                  Show Quote Attribution
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Display your name as the submitter on approved quotes.
-                </p>
+              <div class="flex justify-end">
+                <UButton
+                  btn="solid-black"
+                  :loading="savingNotifications"
+                  @click="saveNotifications"
+                >
+                  Save Preferences
+                </UButton>
               </div>
-              <USwitch v-model="privacySettings.show_attribution" />
             </div>
-          </div>
-
-          <div class="flex justify-end">
-            <UButton
-              :loading="savingPrivacy"
-              @click="savePrivacy"
-            >
-              Save Settings
-            </UButton>
-          </div>
+          </UCard>
         </div>
-      </UCard>
 
-      <!-- Danger Zone -->
-      <UCard>
-        <template #header>
-          <h2 class="text-xl font-semibold text-red-600 dark:text-red-400">
-            Danger Zone
-          </h2>
-        </template>
+        <!-- Data Tab: Danger Zone -->
+        <div v-else-if="item.value === 'data'" class="space-y-8">
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold">
+                Danger Zone
+              </h2>
+            </template>
 
-        <div class="space-y-6">
-          <div class="border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
-              Delete Account
-            </h3>
-            <p class="text-sm text-red-600 dark:text-red-400 mb-4">
-              Permanently delete your account and all associated data. This action cannot be undone.
-            </p>
-            <UButton
-              color="red"
-              variant="outline"
-              @click="showDeleteModal = true"
-            >
-              Delete Account
-            </UButton>
-          </div>
+            <div class="space-y-6">
+              <div class="border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <h3 class="text-sm font-medium mb-2">
+                  Delete Account
+                </h3>
+                <p class="text-sm mb-4">
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+                <UButton
+                  btn="solid-red"
+                  variant="outline"
+                  @click="showDeleteModal = true"
+                >
+                  Delete Account
+                </UButton>
+              </div>
+            </div>
+          </UCard>
         </div>
-      </UCard>
-    </div>
+      </template>
+    </UTabs>
 
     <!-- Delete Account Confirmation -->
     <UDialog v-model="showDeleteModal">
@@ -260,7 +268,6 @@
 </template>
 
 <script setup lang="ts">
-// Types for settings forms
 interface ProfileForm {
   name: string
   email: string
@@ -278,20 +285,24 @@ interface PrivacySettings {
   show_attribution: boolean
 }
 
-// Use dashboard layout
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'Settings - Dashboard - Verbatims'
 })
 
 const { user } = useUserSession()
 
-// Form data
+const activeTab = ref('profile')
+const tabs = [
+  { name: 'Profile', value: 'profile' },
+  { name: 'Notifications', value: 'notifications' },
+  { name: 'Data', value: 'data' }
+]
+
 const profileForm = ref<ProfileForm>({
   name: user.value?.name || '',
   email: user.value?.email || '',
@@ -309,16 +320,13 @@ const privacySettings = ref<PrivacySettings>({
   show_attribution: true
 })
 
-// Loading states
 const savingProfile = ref(false)
 const savingNotifications = ref(false)
 const savingPrivacy = ref(false)
 const deleting = ref(false)
 
-// Modals
 const showDeleteModal = ref(false)
 
-// Methods
 const saveProfile = async () => {
   savingProfile.value = true
   try {
@@ -326,10 +334,13 @@ const saveProfile = async () => {
       method: 'PUT',
       body: profileForm.value
     })
-    // Could show success toast here
   } catch (error) {
     console.error('Failed to save profile:', error)
-    // Could show error toast here
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to save profile information.',
+      toast: 'error'
+    })
   } finally {
     savingProfile.value = false
   }
@@ -342,10 +353,13 @@ const saveNotifications = async () => {
       method: 'PUT',
       body: notificationSettings.value
     })
-    // Could show success toast here
   } catch (error) {
     console.error('Failed to save notification settings:', error)
-    // Could show error toast here
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to save notification settings.',
+      toast: 'error'
+    })
   } finally {
     savingNotifications.value = false
   }
@@ -358,10 +372,13 @@ const savePrivacy = async () => {
       method: 'PUT',
       body: privacySettings.value
     })
-    // Could show success toast here
   } catch (error) {
     console.error('Failed to save privacy settings:', error)
-    // Could show error toast here
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to save privacy settings.',
+      toast: 'error'
+    })
   } finally {
     savingPrivacy.value = false
   }
@@ -373,17 +390,19 @@ const deleteAccount = async () => {
     await $fetch('/api/user/account', {
       method: 'DELETE'
     })
-    // Redirect to home page after deletion
     await navigateTo('/')
   } catch (error) {
     console.error('Failed to delete account:', error)
-    // Could show error toast here
+    useToast().toast({
+      title: 'Error',
+      description: 'Failed to delete account.',
+      toast: 'error'
+    })
   } finally {
     deleting.value = false
   }
 }
 
-// Load user settings on mount
 onMounted(async () => {
   try {
     const [notificationData, privacyData] = await Promise.all([

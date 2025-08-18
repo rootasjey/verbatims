@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- Fixed Header Section -->
-    <div class="-mt-6 pb-6 mb-6 flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700">
+    <div class="pb-6 mb-6 flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700">
 
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">

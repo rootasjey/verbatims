@@ -41,6 +41,8 @@
             v-model="selectedAuthor"
             :items="authorOptions"
             placeholder="Author"
+            item-key="label"
+            value-key="label"
             size="sm"
             searchable
           />
@@ -48,6 +50,8 @@
             v-model="selectedReference"
             :items="referenceOptions"
             placeholder="Reference"
+            item-key="label"
+            value-key="label"
             size="sm"
             searchable
           />
@@ -314,13 +318,13 @@ const loadFilterOptions = async () => {
       $fetch('/api/authors?limit=100'),
       $fetch('/api/references?limit=100')
     ])
-    
-    authorOptions.value = (authorsData.data || []).map(author => ({
+
+    authorOptions.value = (authorsData.data.results || []).map(author => ({
       label: author.name,
       value: author.id
     }))
 
-    referenceOptions.value = (referencesData.data || []).map(reference => ({
+    referenceOptions.value = (referencesData.data.results || []).map(reference => ({
       label: reference.name,
       value: reference.id
     }))
