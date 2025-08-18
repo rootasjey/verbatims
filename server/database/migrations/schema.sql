@@ -207,6 +207,18 @@ CREATE TABLE IF NOT EXISTS quote_views (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Author views tracking for analytics and engagement metrics
+CREATE TABLE IF NOT EXISTS author_views (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  user_id INTEGER, -- NULL for anonymous views
+  ip_address TEXT, -- For anonymous tracking
+  user_agent TEXT,
+  viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- Export logs for tracking admin data exports (unified for all data types)
 CREATE TABLE IF NOT EXISTS export_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -264,6 +276,10 @@ CREATE INDEX IF NOT EXISTS idx_quote_reports_status ON quote_reports(status);
 CREATE INDEX IF NOT EXISTS idx_quote_views_quote ON quote_views(quote_id);
 CREATE INDEX IF NOT EXISTS idx_quote_views_user ON quote_views(user_id);
 CREATE INDEX IF NOT EXISTS idx_quote_views_date ON quote_views(viewed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_author_views_author ON author_views(author_id);
+CREATE INDEX IF NOT EXISTS idx_author_views_user ON author_views(user_id);
+CREATE INDEX IF NOT EXISTS idx_author_views_date ON author_views(viewed_at DESC);
 
 -- Export logs indexes
 CREATE INDEX IF NOT EXISTS idx_export_logs_export_id ON export_logs(export_id);
@@ -326,6 +342,14 @@ AFTER INSERT ON quote_views
 FOR EACH ROW
 BEGIN
   UPDATE quotes SET views_count = views_count + 1 WHERE id = NEW.quote_id;
+END;
+
+-- Increment view count when an author is viewed
+CREATE TRIGGER IF NOT EXISTS increment_author_views
+AFTER INSERT ON author_views
+FOR EACH ROW
+BEGIN
+  UPDATE authors SET views_count = views_count + 1 WHERE id = NEW.author_id;
 END;
 
 -- Increment likes count when a user likes something (polymorphic)

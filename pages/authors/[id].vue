@@ -585,7 +585,11 @@ onMounted(async () => {
   if (author.value) {
     // Track view
     try {
-      await $fetch(`/api/authors/${route.params.id}/view`, { method: 'POST' })
+      const res = await $fetch(`/api/authors/${route.params.id}/view`, { method: 'POST' })
+      if (res?.recorded) {
+        // Optimistically reflect the incremented count immediately
+        author.value.views_count = (author.value.views_count || 0) + 1
+      }
     } catch (error) {
       console.error('Failed to track author view:', error)
     }
