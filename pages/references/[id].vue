@@ -19,6 +19,91 @@
 
     <!-- Reference Content -->
     <div v-else-if="reference">
+      <!-- Sticky Top Header: compact title + stats/actions -->
+      <div class="sticky top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div class="flex items-center justify-between gap-3">
+            <!-- Left: compact reference title and context -->
+            <div class="min-w-0 flex items-center gap-3">
+              <UIcon name="i-ph-book" class="w-5 h-5 text-gray-400" />
+              <div class="truncate">
+                <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
+                <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
+                  <template v-if="reference.secondary_type">
+                    <span class="truncate">{{ reference.secondary_type }}</span>
+                  </template>
+                  <template v-else-if="reference.primary_type || reference.release_date">
+                    <span class="truncate">
+                      {{ formatType(reference.primary_type) }}
+                      <template v-if="reference.release_date"> • {{ formatReleaseDate(reference.release_date) }}</template>
+                    </span>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- Middle: stats chips -->
+            <div class="hidden md:flex items-center gap-2">
+              <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
+                <UIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
+                <span class="font-medium">{{ formatNumber(reference.views_count || 0) }}</span>
+              </div>
+
+              <UButton
+                btn="~"
+                size="xs"
+                :disabled="sharePending"
+                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
+                @click="shareReference"
+              >
+                <UIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
+                <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(reference.shares_count || 0) }}</span>
+              </UButton>
+
+              <UButton
+                btn="~"
+                size="xs"
+                :disabled="!user || likePending"
+                :class="[
+                  'min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full',
+                  isLiked
+                    ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
+                    : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
+                  !user && 'cursor-not-allowed opacity-50'
+                ]"
+                @click="toggleLike"
+              >
+                <UIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
+                <span>{{ formatNumber(reference.likes_count || 0) }}</span>
+              </UButton>
+            </div>
+
+            <!-- Right: quick actions -->
+            <div class="flex items-center gap-2">
+              <UButton
+                :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
+                size="xs"
+                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+                @click="copyLink"
+              >
+                <UIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
+                <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
+              </UButton>
+
+              <UDropdownMenu :items="headerMenuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
+                <UButton
+                  icon
+                  btn="ghost-gray"
+                  label="i-ph-dots-three-vertical-bold"
+                  size="xs"
+                  class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+                  title="More actions"
+                />
+              </UDropdownMenu>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Reference Header -->
       <header class="mt-12 p-8">
         <!-- Reference Type and Release Date -->
@@ -217,6 +302,13 @@
         </UButton>
       </div>
     </div>
+    <!-- Edit Reference Dialog -->
+    <AddReferenceDialog
+      v-if="isEditDialogOpen && reference"
+      v-model="isEditDialogOpen"
+      :edit-reference="reference"
+      @reference-updated="onReferenceUpdated"
+    />
   </div>
 </template>
 
@@ -224,15 +316,12 @@
 const route = useRoute()
 const { user } = useUserSession()
 
-// Language store (initialization handled by plugin)
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 
-// Fetch reference data
 const { data: referenceData, pending } = await useLazyFetch(`/api/references/${route.params.id}`)
 const reference = computed(() => referenceData.value?.data)
 
-// SEO
 useHead(() => ({
   title: reference.value ? `${reference.value.name} - References - Verbatims` : 'Reference - Verbatims',
   meta: [
@@ -245,7 +334,6 @@ useHead(() => ({
   ]
 }))
 
-// Quotes state
 const referenceQuotes = ref([])
 const quotesLoading = ref(false)
 const loadingMoreQuotes = ref(false)
@@ -255,27 +343,86 @@ const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
 
 const isMetaBadgeOpen = ref(false)
 
-// Sort options
 const sortOptions = [
   { label: 'Most Recent', value: 'created_at' },
   { label: 'Most Popular', value: 'likes_count' },
   { label: 'Most Viewed', value: 'views_count' }
 ]
 
-// Like functionality
 const isLiked = ref(false)
 const likePending = ref(false)
+const sharePending = ref(false)
+const copyState = ref('idle')
 
-// Computed
+// Header title (truncated for compact sticky header)
+const headerTitle = computed(() => {
+  const text = reference.value?.name || ''
+  return text.length > 80 ? text.slice(0, 80) + '…' : text
+})
+
+const headerMenuItems = computed(() => {
+  const items = []
+
+  // Admin/mod actions
+  if (canEditReference.value) {
+    items.push({
+      label: 'Edit reference',
+      leading: 'i-ph-pencil-simple-line',
+      onclick: () => openEditReference()
+    })
+  }
+
+  items.push(
+    {
+      label: 'Copy link',
+      leading: 'i-ph-link',
+      onclick: () => copyLink()
+    },
+    {
+      label: 'Share',
+      leading: 'i-ph-share-network',
+      onclick: () => shareReference()
+    },
+    {
+      label: 'Report',
+      leading: 'i-ph-flag',
+      onclick: () => reportReference()
+    }
+  )
+
+  return items
+})
+
+// Permissions
+const canEditReference = computed(() => {
+  const role = user.value?.role
+  return role === 'admin' || role === 'moderator'
+})
+
+// Edit dialog state and handlers
+const isEditDialogOpen = ref(false)
+const openEditReference = () => {
+  if (!reference.value) return
+  isEditDialogOpen.value = true
+}
+
+const onReferenceUpdated = async () => {
+  try {
+    // Refetch updated reference details
+    const refreshed = await $fetch(`/api/references/${route.params.id}`)
+    // Overwrite local cached data to update UI
+    referenceData.value = refreshed
+  } catch (error) {
+    console.error('Failed to refresh reference after update:', error)
+  }
+}
+
 const totalQuoteLikes = computed(() => {
   return referenceQuotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
 })
 
-// Load quotes
 const loadQuotes = async (reset = true) => {
   if (!reference.value) return
-
-  // Wait for language store to be ready before loading quotes
   await waitForLanguageStore()
 
   if (reset) {
@@ -318,7 +465,6 @@ const loadQuotes = async (reset = true) => {
   }
 }
 
-// Load more quotes
 const loadMoreQuotes = async () => {
   if (loadingMoreQuotes.value || !hasMoreQuotes.value) return
 
@@ -326,24 +472,19 @@ const loadMoreQuotes = async () => {
   await loadQuotes(false)
 }
 
-// Language change handler
 const onLanguageChange = async () => {
-  // Reset pagination when language changes
   currentQuotePage.value = 1
   hasMoreQuotes.value = true
 
-  // Reload quotes with new language filter
   await loadQuotes(true)
 }
 
-// Like functionality (placeholder - would need API endpoint)
 const checkLikeStatus = async () => {
   if (!user.value || !reference.value) return
 
   try {
-    // TODO: Implement reference like status check
-    // const { data } = await $fetch(`/api/references/${reference.value.id}/like-status`)
-    // isLiked.value = data?.isLiked || false
+    const { data } = await $fetch(`/api/references/${reference.value.id}/like-status`)
+    isLiked.value = data?.isLiked || false
   } catch (error) {
     console.error('Failed to check like status:', error)
   }
@@ -354,12 +495,11 @@ const toggleLike = async () => {
 
   likePending.value = true
   try {
-    // TODO: Implement reference like toggle
-    // const { data } = await $fetch(`/api/references/${reference.value.id}/like`, {
-    //   method: 'POST'
-    // })
-    // isLiked.value = data.isLiked
-    // reference.value.likes_count = data.likesCount
+    const { data } = await $fetch(`/api/references/${reference.value.id}/like`, {
+      method: 'POST'
+    })
+    isLiked.value = data.isLiked
+    reference.value.likes_count = data.likesCount
   } catch (error) {
     console.error('Failed to toggle like:', error)
   } finally {
@@ -367,7 +507,55 @@ const toggleLike = async () => {
   }
 }
 
-// Utility functions
+const shareReference = async () => {
+  if (!reference.value || sharePending.value) return
+
+  sharePending.value = true
+  const { toast } = useToast()
+
+  try {
+    const shareData = {
+      title: `${reference.value.name} on Verbatims`,
+      text: reference.value.description || reference.value.secondary_type || reference.value.name,
+      url: typeof window !== 'undefined' ? window.location.href : ''
+    }
+
+    if (navigator.share) {
+      await navigator.share(shareData)
+      toast({ title: 'Reference shared successfully!', variant: 'success' })
+    } else {
+      await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
+      toast({ title: 'Reference link copied to clipboard!', variant: 'success' })
+    }
+
+    // Optimistically increment local share count (no server endpoint yet)
+    reference.value.shares_count = (reference.value.shares_count || 0) + 1
+  } catch (error) {
+    console.error('Failed to share reference:', error)
+    toast({ title: 'Failed to share', description: 'Please try again.', variant: 'error' })
+  } finally {
+    sharePending.value = false
+  }
+}
+
+const copyLink = async () => {
+  const { toast } = useToast()
+  try {
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    if (!url) throw new Error('no-url')
+    await navigator.clipboard.writeText(url)
+
+    copyState.value = 'copied'
+    setTimeout(() => { copyState.value = 'idle' }, 2000)
+  } catch (error) {
+    toast({ title: 'Copy failed', description: 'Could not copy the link.', variant: 'error' })
+  }
+}
+
+const reportReference = () => {
+  // TODO: Open report modal for reference
+}
+
 const formatReleaseDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
@@ -426,12 +614,20 @@ const refreshQuotes = async () => {
   await loadQuotes()
 }
 
-// Load data on mount
 onMounted(async () => {
-  // Wait for language store to be ready
   await waitForLanguageStore()
 
   if (reference.value) {
+    // Track view (dedup handled server-side)
+    try {
+      const res = await $fetch(`/api/references/${route.params.id}/view`, { method: 'POST' })
+      if (res?.recorded) {
+        reference.value.views_count = (reference.value.views_count || 0) + 1
+      }
+    } catch (error) {
+      console.error('Failed to track reference view:', error)
+    }
+
     loadQuotes()
     if (user.value) {
       checkLikeStatus()

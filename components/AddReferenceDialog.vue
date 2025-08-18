@@ -81,7 +81,7 @@
               placeholder="Select type"
               :disabled="submitting"
               item-key="label"
-              value-key="value"
+              value-key="label"
               required
             />
           </div>
@@ -122,7 +122,7 @@
             placeholder="Select language"
             :disabled="submitting"
             item-key="label"
-            value-key="value"
+            value-key="label"
           />
         </div>
 

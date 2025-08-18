@@ -298,6 +298,7 @@
         </UButton>
       </div>
     </div>
+    
     <!-- Edit Author Dialog (re-uses AddAuthorDialog in edit mode) -->
     <AddAuthorDialog
       v-model="showEditAuthorDialog"
@@ -622,5 +623,3 @@ watch(sortBy, () => {
   loadQuotes()
 })
 </script>
-
-

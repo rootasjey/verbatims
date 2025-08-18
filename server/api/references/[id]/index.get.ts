@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     // Parse JSON fields
     const transformedReference = {
       ...reference,
-      urls: reference.urls ? JSON.parse(reference.urls) : []
+      urls: reference.urls ? JSON.parse(reference.urls as string) : []
     }
 
     return {
