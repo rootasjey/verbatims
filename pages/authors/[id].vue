@@ -19,6 +19,88 @@
 
     <!-- Author Content -->
     <div v-else-if="author">
+      <!-- Sticky Top Header: compact title + stats/actions -->
+      <div class="sticky top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div class="flex items-center justify-between gap-3">
+            <!-- Left: compact author title and context -->
+            <div class="min-w-0 flex items-center gap-3">
+              <UIcon name="i-ph-user" class="w-5 h-5 text-gray-400" />
+              <div class="truncate">
+                <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
+                <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
+                  <template v-if="author.job">
+                    <span class="truncate">{{ author.job }}</span>
+                  </template>
+                  <template v-else-if="author.birth_date || author.death_date">
+                    <span class="truncate">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- Middle: stats chips -->
+            <div class="hidden md:flex items-center gap-2">
+              <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
+                <UIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
+                <span class="font-medium">{{ formatNumber(author.views_count || 0) }}</span>
+              </div>
+
+              <UButton
+                btn="~"
+                size="xs"
+                :disabled="sharePending"
+                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
+                @click="shareAuthor"
+              >
+                <UIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
+                <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(author.shares_count || 0) }}</span>
+              </UButton>
+
+              <UButton
+                btn="~"
+                size="xs"
+                :disabled="!user || likePending"
+                :class="[
+                  'min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full',
+                  isLiked
+                    ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
+                    : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
+                  !user && 'cursor-not-allowed opacity-50'
+                ]"
+                @click="toggleLike"
+              >
+                <UIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
+                <span>{{ formatNumber(author.likes_count || 0) }}</span>
+              </UButton>
+            </div>
+
+            <!-- Right: quick actions -->
+            <div class="flex items-center gap-2">
+              <UButton
+                :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
+                size="xs"
+                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+                @click="copyLink"
+              >
+                <UIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
+                <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
+              </UButton>
+
+              <UDropdownMenu :items="headerMenuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
+                <UButton
+                  icon
+                  btn="ghost-gray"
+                  label="i-ph-dots-three-vertical-bold"
+                  size="xs"
+                  class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+                  title="More actions"
+                />
+              </UDropdownMenu>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Author Header -->
       <header class="mt-12 p-8">
         <!-- Author Type -->
@@ -216,6 +298,12 @@
         </UButton>
       </div>
     </div>
+    <!-- Edit Author Dialog (re-uses AddAuthorDialog in edit mode) -->
+    <AddAuthorDialog
+      v-model="showEditAuthorDialog"
+      :editAuthor="author"
+      @author-updated="onAuthorUpdated"
+    />
   </div>
 </template>
 
@@ -259,6 +347,47 @@ const sortOptions = [
 // Like functionality
 const isLiked = ref(false)
 const likePending = ref(false)
+const sharePending = ref(false)
+const copyState = ref('idle')
+const showEditAuthorDialog = ref(false)
+
+// Header title (truncated for compact sticky header)
+const headerTitle = computed(() => {
+  const text = author.value?.name || ''
+  return text.length > 80 ? text.slice(0, 80) + '…' : text
+})
+
+const headerMenuItems = computed(() => {
+  const items = []
+
+  if (user.value && (user.value.role === 'admin' || user.value.role === 'moderator')) {
+    items.push({
+      label: 'Edit',
+      leading: 'i-ph-pencil-simple',
+  onclick: () => { showEditAuthorDialog.value = true }
+    })
+  }
+
+  items.push(
+    {
+      label: 'Copy link',
+      leading: 'i-ph-link',
+      onclick: () => copyLink()
+    },
+    {
+      label: 'Share',
+      leading: 'i-ph-share-network',
+      onclick: () => shareAuthor()
+    },
+    {
+      label: 'Report',
+      leading: 'i-ph-flag',
+      onclick: () => reportAuthor()
+    }
+  )
+
+  return items
+})
 
 const totalQuoteLikes = computed(() => {
   return authorQuotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
@@ -310,6 +439,19 @@ const loadQuotes = async (reset = true) => {
   }
 }
 
+const onAuthorUpdated = async () => {
+  const { toast } = useToast()
+  try {
+    const fresh = await $fetch(`/api/authors/${route.params.id}`)
+    authorData.value = fresh
+    toast({ title: 'Author updated', variant: 'success' })
+  } catch (error) {
+    console.error('Failed to refresh author after update:', error)
+  } finally {
+    showEditAuthorDialog.value = false
+  }
+}
+
 const loadMoreQuotes = async () => {
   if (loadingMoreQuotes.value || !hasMoreQuotes.value) return
 
@@ -356,6 +498,55 @@ const toggleLike = async () => {
   }
 }
 
+const shareAuthor = async () => {
+  if (!author.value || sharePending.value) return
+
+  sharePending.value = true
+  const { toast } = useToast()
+
+  try {
+    const shareData = {
+      title: `${author.value.name} on Verbatims`,
+      text: author.value.description || author.value.job || author.value.name,
+      url: typeof window !== 'undefined' ? window.location.href : ''
+    }
+
+    if (navigator.share) {
+      await navigator.share(shareData)
+      toast({ title: 'Author shared successfully!', variant: 'success' })
+    } else {
+      await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
+      toast({ title: 'Author link copied to clipboard!', variant: 'success' })
+    }
+
+    // Optimistically increment local share count (no server endpoint yet)
+    author.value.shares_count = (author.value.shares_count || 0) + 1
+  } catch (error) {
+    console.error('Failed to share author:', error)
+    toast({ title: 'Failed to share', description: 'Please try again.', variant: 'error' })
+  } finally {
+    sharePending.value = false
+  }
+}
+
+const copyLink = async () => {
+  const { toast } = useToast()
+  try {
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    if (!url) throw new Error('no-url')
+    await navigator.clipboard.writeText(url)
+
+    copyState.value = 'copied'
+    setTimeout(() => { copyState.value = 'idle' }, 2000)
+  } catch (error) {
+    toast({ title: 'Copy failed', description: 'Could not copy the link.', variant: 'error' })
+  }
+}
+
+const reportAuthor = () => {
+  // TODO: Open report modal for author
+}
+
 // Utility functions
 const formatLifeDates = (birthDate, deathDate) => {
   if (!birthDate && !deathDate) return ''
@@ -392,6 +583,13 @@ onMounted(async () => {
   await waitForLanguageStore()
 
   if (author.value) {
+    // Track view
+    try {
+      await $fetch(`/api/authors/${route.params.id}/view`, { method: 'POST' })
+    } catch (error) {
+      console.error('Failed to track author view:', error)
+    }
+
     loadQuotes()
     if (user.value) {
       checkLikeStatus()

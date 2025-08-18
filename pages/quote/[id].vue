@@ -200,86 +200,79 @@
 
       <!-- Quote Details & Actions (unified width) -->
       <div class="max-w-3xl mx-auto">
-        <div class="grid grid-cols-1 gap-8 items-start pt-16">
-          <!-- Metadata -->
-          <div>
-            <div class="rounded-xl border-0.5px border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-[#0C0A09]/50">
-              <div class="border-b border-gray-200 dark:border-gray-800 mb-6 p-6">
-                <h3 class="text-xl line-height-4 sm:text-size-4 font-title font-semibold text-gray-900 dark:text-white">
-                  Metadata
-                </h3>
-                <span class="text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  All secondary information about the quote.
-                </span>
-              </div>
-
-              <dl class="space-y-4">
-                <!-- Language -->
-                <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                  <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                    <UIcon name="i-ph-translate" class="w-4 h-4 mr-2 text-gray-400" />
-                    Language
-                  </dt>
-                  <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">
-                    {{ getLanguageName(quote.language) }}
-                  </dd>
-                </div>
-
-                <div class="border-t border-gray-200 dark:border-gray-800"></div>
-
-                <!-- Submitted by -->
-                <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                  <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                    <UIcon name="i-ph-user" class="w-4 h-4 mr-2 text-gray-400" />
-                    Submitted by
-                  </dt>
-                  <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user.name }}</dd>
-                </div>
-
-                <div class="border-t border-gray-200 dark:border-gray-800"></div>
-
-                <!-- Added on -->
-                <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                  <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                    <UIcon name="i-ph-calendar" class="w-4 h-4 mr-2 text-gray-400" />
-                    Added on
-                  </dt>
-                  <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
-                </div>
-
-                <div v-if="quote.reference">
-                  <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
-                  <!-- Reference type -->
-                  <div class="px-4 py-1 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                    <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                      <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 mr-2 text-gray-400" />
-                      Reference type
-                    </dt>
-                    <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white capitalize">{{ quote.reference.type.replace('_',' ') }}</dd>
-                  </div>
-                </div>
-
-                <div v-if="quote.is_featured">
-                  <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
-                  <!-- Status -->
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                    <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                      <UIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
-                      Status
-                    </dt>
-                    <dd class="sm:col-span-2">
-                      <UBadge color="yellow" variant="subtle" class="font-sans">
-                        <UIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
-                        Featured quote
-                      </UBadge>
-                    </dd>
-                  </div>
-                </div>
-              </dl>
-            </div>
+        <div class="rounded-xl border-0.5px border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-[#0C0A09]/50">
+          <div class="border-b border-gray-200 dark:border-gray-800 mb-6 p-6">
+            <h3 class="text-xl line-height-4 sm:text-size-4 font-title font-semibold text-gray-900 dark:text-white">
+              Metadata
+            </h3>
+            <span class="text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+              All secondary information about the quote.
+            </span>
           </div>
 
-          <!-- Sidebar removed per request -->
+          <dl class="space-y-4 pb-4">
+            <!-- Language -->
+            <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                <UIcon name="i-ph-translate" class="w-4 h-4 mr-2 text-gray-400" />
+                Language
+              </dt>
+              <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">
+                {{ getLanguageName(quote.language) }}
+              </dd>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+            <!-- Submitted by -->
+            <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                <UIcon name="i-ph-user" class="w-4 h-4 mr-2 text-gray-400" />
+                Submitted by
+              </dt>
+              <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user.name }}</dd>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+            <!-- Added on -->
+            <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                <UIcon name="i-ph-calendar" class="w-4 h-4 mr-2 text-gray-400" />
+                Added on
+              </dt>
+              <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
+            </div>
+
+            <div v-if="quote.reference">
+              <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
+              <!-- Reference type -->
+              <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                  <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 mr-2 text-gray-400" />
+                  Reference type
+                </dt>
+                <dd class="sm:col-span-2 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white capitalize">{{ quote.reference.type.replace('_',' ') }}</dd>
+              </div>
+            </div>
+
+            <div v-if="quote.is_featured">
+              <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
+              <!-- Status -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                  <UIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
+                  Status
+                </dt>
+                <dd class="sm:col-span-2">
+                  <UBadge color="yellow" variant="subtle" class="font-sans">
+                    <UIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
+                    Featured quote
+                  </UBadge>
+                </dd>
+              </div>
+            </div>
+          </dl>
         </div>
 
         <!-- Related Quotes -->
