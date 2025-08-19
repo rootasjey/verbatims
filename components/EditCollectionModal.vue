@@ -1,6 +1,6 @@
 <template>
   <UDialog v-model:open="isOpen">
-    <UCard>
+    <UCard class="border-none">
       <template #header>
         <h3 class="text-lg font-semibold">Edit Collection</h3>
       </template>
@@ -37,26 +37,27 @@
             :disabled="loading"
           />
         </UFormGroup>
-
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton
-              variant="ghost"
-              @click="closeModal"
-              :disabled="loading"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              type="submit"
-              :loading="loading"
-            >
-              Update Collection
-            </UButton>
-          </div>
-        </template>
       </UForm>
     </UCard>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <UButton
+          btn="text-pink"
+          @click="closeModal"
+          :disabled="loading"
+        >
+          Cancel
+        </UButton>
+        <UButton
+          btn="solid-black"
+          type="submit"
+          :loading="loading"
+        >
+          Update Collection
+        </UButton>
+      </div>
+    </template>
   </UDialog>
 </template>
 

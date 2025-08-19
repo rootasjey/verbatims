@@ -4,82 +4,54 @@
     <div v-if="loading" class="animate-pulse">
       <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
       <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="i in 6" :key="i" class="h-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
-      </div>
     </div>
 
     <!-- Collection Content -->
     <div v-else-if="collection">
       <!-- Header -->
       <div class="mb-8">
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex-1">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1 min-w-0">
             <div class="flex items-center gap-3 mb-2">
-              <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
                 {{ collection.name }}
               </h1>
-              <UBadge color="green" variant="subtle">
-                Public
-              </UBadge>
+              <UBadge v-if="collection.is_public" color="green" variant="subtle">Public</UBadge>
             </div>
-            <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-4">
+            <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
               {{ collection.description }}
             </p>
-            
-            <!-- Creator Info -->
-            <div class="flex items-center space-x-3 mb-4">
-              <UAvatar
-                :src="collection.user_avatar"
-                :alt="collection.user_name"
-                size="sm"
-                :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
-              />
-              <div>
-                <p class="font-medium text-gray-900 dark:text-white">
-                  {{ collection.user_name }}
-                </p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Collection creator
-                </p>
-              </div>
-            </div>
-            
-            <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span>{{ collection.quotes_count }} quotes</span>
-              <span>Created {{ formatDate(collection.created_at) }}</span>
-              <span>Updated {{ formatDate(collection.updated_at) }}</span>
+            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                <UIcon name="i-ph-quotes" class="w-4 h-4" />
+                {{ collection.quotes_count }} quotes
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                <UIcon name="i-ph-calendar-plus" class="w-4 h-4" />
+                Created {{ formatDate(collection.created_at) }}
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                <UIcon name="i-ph-clock" class="w-4 h-4" />
+                Updated {{ formatDate(collection.updated_at) }}
+              </span>
             </div>
           </div>
-          
-          <div class="flex items-center gap-3">
-            <UButton
-              variant="outline"
-              icon
-              label="i-ph-share"
-              @click="shareCollection"
-            >
+
+          <div class="flex items-center gap-2">
+            <UButton btn="outline" @click="shareCollection">
+              <UIcon name="i-ph-share" />
               Share
             </UButton>
-            <UDropdown :items="collectionActions">
-              <UButton
-                variant="ghost"
-                icon
-                label="i-ph-dots-three-vertical"
-              />
-            </UDropdown>
+            <UDropdownMenu :items="collectionActions">
+              <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+            </UDropdownMenu>
           </div>
         </div>
 
         <!-- Back Button -->
-        <UButton
-          variant="ghost"
-          icon
-          label="i-ph-arrow-left"
-          to="/collections"
-          size="sm"
-        >
-          Back to Collections
+        <UButton btn="ghost" size="sm" to="/dashboard/lists">
+          <UIcon name="i-ph-arrow-left" />
+          Back to Lists
         </UButton>
       </div>
 
@@ -95,11 +67,7 @@
 
         <!-- Load More -->
         <div v-if="hasMore" class="text-center mt-8">
-          <UButton
-            variant="outline"
-            :loading="loadingMore"
-            @click="loadMoreQuotes"
-          >
+          <UButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
             Load More Quotes
           </UButton>
         </div>
@@ -126,18 +94,24 @@
       <p class="text-gray-500 dark:text-gray-400 mb-6">
         The collection you're looking for doesn't exist or is not public.
       </p>
-      <UButton to="/collections">
-        Browse Collections
-      </UButton>
+      <UButton to="/dashboard/lists">Back to Lists</UButton>
     </div>
   </div>
 </template>
 
-<script setup>
-const route = useRoute()
-const collectionId = route.params.id
+<script lang="ts" setup>
+import type { CollectionWithQuotes } from '~/types/user-interactions'
 
-// SEO
+definePageMeta({
+  layout: 'dashboard',
+  middleware: 'auth'
+})
+
+const route = useRoute()
+const collectionId = computed(() => String(route.params.id))
+
+const collection = ref<CollectionWithQuotes | null>(null)
+
 useHead({
   title: computed(() => collection.value ? `${collection.value.name} - Collections` : 'Collection - Verbatims'),
   meta: [
@@ -147,15 +121,11 @@ useHead({
     }
   ]
 })
-
-// Data
-const collection = ref(null)
 const loading = ref(true)
 const loadingMore = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-// Load collection
 const loadCollection = async (reset = true) => {
   try {
     if (reset) {
@@ -165,7 +135,7 @@ const loadCollection = async (reset = true) => {
       loadingMore.value = true
     }
 
-    const response = await $fetch(`/api/collections/${collectionId}`, {
+    const response = await $fetch<any>(`/api/collections/${collectionId.value}` as const, {
       query: {
         page: currentPage.value,
         limit: 12
@@ -173,10 +143,13 @@ const loadCollection = async (reset = true) => {
     })
     
     if (reset) {
-      collection.value = response.data
+      collection.value = response.data as unknown as CollectionWithQuotes
     } else {
-      collection.value.quotes.push(...response.data.quotes)
-      collection.value.pagination = response.data.pagination
+      if (collection.value) {
+        collection.value.quotes = [...(collection.value.quotes || []), ...(response.data?.quotes || [])]
+        // @ts-expect-error pagination may not be part of the type shape but exists in API response
+        collection.value.pagination = response.data.pagination
+      }
     }
     
     hasMore.value = response.data.pagination.hasMore
@@ -189,20 +162,18 @@ const loadCollection = async (reset = true) => {
   }
 }
 
-// Load more quotes
 const loadMoreQuotes = () => {
   currentPage.value++
   loadCollection(false)
 }
 
-// Share collection
 const shareCollection = async () => {
   if (!collection.value) return
   
   try {
     const shareData = {
       title: `${collection.value.name} - Verbatims Collection`,
-      text: `Check out this collection of quotes: "${collection.value.name}" by ${collection.value.user_name}`,
+      text: `Check out this collection of quotes: "${collection.value.name}"`,
       url: window.location.href
     }
     
@@ -210,35 +181,36 @@ const shareCollection = async () => {
       await navigator.share(shareData)
     } else {
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
-      // TODO: Show toast notification
+      useToast().toast({
+        title: 'Collection Shared',
+        description: 'The collection link has been copied to your clipboard.',
+        toast: 'success',
+      })
     }
   } catch (error) {
     console.error('Failed to share collection:', error)
   }
 }
 
-// Collection actions
-const collectionActions = computed(() => [
-  [{
+const collectionActions = computed(() => ([
+  {
     label: 'Copy Link',
-    icon: 'i-ph-link',
-    click: async () => {
+    leading: 'i-ph-link',
+    onclick: async () => {
       try {
         await navigator.clipboard.writeText(window.location.href)
-        // TODO: Show success toast
+        useToast().toast({ title: 'Link copied', description: 'URL copied to clipboard', toast: 'success' })
       } catch (error) {
         console.error('Failed to copy link:', error)
       }
     }
-  }]
-])
+  }
+]))
 
-// Utility functions
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load initial data
 onMounted(() => {
   loadCollection()
 })

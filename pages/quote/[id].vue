@@ -82,14 +82,14 @@
             </UButton>
 
             <UButton
-              btn="soft-blue"
+              :btn="savedState === 'saved' ? 'soft-green' : 'soft-blue'"
               size="xs"
               :disabled="!user"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
               @click="addToCollection"
             >
-              <UIcon name="i-ph-bookmark-simple" class="w-3.5 h-3.5 mr-1" />
-              <span class="hidden sm:inline">Save</span>
+              <UIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-bookmark-simple'" class="w-3.5 h-3.5 mr-1" />
+              <span class="hidden sm:inline">{{ savedState === 'saved' ? 'Saved' : 'Save' }}</span>
             </UButton>
 
             <UDropdownMenu :items="headerMenuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
@@ -320,7 +320,6 @@
     </div>
   </div>
 
-  <!-- Add to Collection Modal -->
   <AddToCollectionModal
     v-model="showAddToCollectionModal"
     :quote="quote"
@@ -334,7 +333,6 @@
     @quote-updated="onQuoteUpdated"
   />
 
-  <!-- Delete Quote Dialog -->
   <DeleteQuoteDialog
     v-if="quote"
     v-model="showDeleteQuoteDialog"
@@ -369,10 +367,15 @@
         <button
           @click="addToCollection"
           :disabled="!user"
-          class="m-1 inline-flex items-center gap-2 px-4 py-2 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+          :class="[
+            'm-1 inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors',
+            savedState === 'saved'
+              ? 'text-green-600 bg-green-50 dark:bg-green-900/20'
+              : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'
+          ]"
         >
-          <UIcon name="i-ph-bookmark-simple" class="w-5 h-5" />
-          <span class="text-sm font-sans">Save</span>
+          <UIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-bookmark-simple'" class="w-5 h-5" />
+          <span class="text-sm font-sans">{{ savedState === 'saved' ? 'Saved' : 'Save' }}</span>
         </button>
 
         <!-- Share -->
@@ -430,6 +433,9 @@ onMounted(async () => {
 const isLiked = ref(false)
 const likePending = ref(false)
 const sharePending = ref(false)
+// Temporary saved UI state for Save buttons (header + mobile)
+const savedState = ref('idle') // 'idle' | 'saved'
+let savedTimeoutId
 
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -587,12 +593,12 @@ const addToCollection = () => {
 }
 
 const onAddedToCollection = (collection) => {
-  const { toast } = useToast()
-  toast({
-    title: 'Quote added to collection!',
-    description: `Added to "${collection.name}" collection.`,
-    variant: 'success'
-  })
+  // Show temporary Saved state (icon/text/green style) for a few seconds
+  savedState.value = 'saved'
+  if (savedTimeoutId) clearTimeout(savedTimeoutId)
+  savedTimeoutId = setTimeout(() => {
+    savedState.value = 'idle'
+  }, 3000)
 }
 
 const downloadQuote = () => {
@@ -687,5 +693,9 @@ watch(user, (newUser) => {
   } else {
     isLiked.value = false
   }
+})
+
+onUnmounted(() => {
+  if (savedTimeoutId) clearTimeout(savedTimeoutId)
 })
 </script>

@@ -63,7 +63,7 @@
   </UDialog>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import { z } from 'zod'
 
 const props = defineProps({
@@ -75,13 +75,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'created'])
 
-// Modal state
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-// Form state
 const loading = ref(false)
 const state = ref({
   name: '',
@@ -100,7 +98,6 @@ const schema = z.object({
   is_public: z.boolean().optional()
 })
 
-// Create collection
 const createCollection = async () => {
   try {
     loading.value = true
@@ -112,17 +109,18 @@ const createCollection = async () => {
     
     emit('created', response.data)
     closeModal()
-    
-    // TODO: Show success toast
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create collection:', error)
-    // TODO: Show error toast
+    useToast().toast({
+      title: 'List Creation Error',
+      description: `Failed to create collection: ${error.message}`,
+      toast: 'error',
+    })
   } finally {
     loading.value = false
   }
 }
 
-// Close modal and reset form
 const closeModal = () => {
   isOpen.value = false
   state.value = {

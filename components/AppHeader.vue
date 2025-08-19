@@ -76,6 +76,7 @@
         </div>
 
         <UserMenu v-if="user" :user="user" />
+        <UButton v-else btn="outline-dark dark:outline-white" to="/login" class="h-7 relative left-2">Log in</UButton>
       </div>
     </div>
   </nav>

@@ -197,12 +197,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
-// SEO
 useHead({
   title: 'Lists - Dashboard - Verbatims'
 })
 
-// Data
 const loading = ref(true)
 const loadingMore = ref(false)
 const deleting = ref(false)
@@ -212,24 +210,20 @@ const visibilityFilter = ref({ label: 'All Lists', value: 'all' })
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-// Modals
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedCollection = ref<DashboardCollection | null>(null)
 
-// Options
 const visibilityOptions = [
   { label: 'All Lists', value: 'all' },
   { label: 'Public Only', value: 'public' },
   { label: 'Private Only', value: 'private' }
 ]
 
-// Computed
 const filteredCollections = computed(() => {
   let filtered = [...collections.value]
   
-  // Search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(collection => 
@@ -238,7 +232,6 @@ const filteredCollections = computed(() => {
     )
   }
   
-  // Visibility filter
   if (visibilityFilter.value.value !== 'all') {
     filtered = filtered.filter(collection => 
       visibilityFilter.value.value === 'public' ? collection.is_public : !collection.is_public
@@ -248,7 +241,6 @@ const filteredCollections = computed(() => {
   return filtered
 })
 
-// Methods
 const loadCollections = async (page = 1) => {
   try {
     const response = await $fetch('/api/dashboard/collections', {
@@ -277,7 +269,7 @@ const loadMore = async () => {
 }
 
 const navigateToCollection = (collection: DashboardCollection) => {
-  navigateTo(`/dashboard/collections/${collection.id}`)
+  navigateTo(`/dashboard/lists/${collection.id}`)
 }
 
 const getCollectionActions = (collection: DashboardCollection) => [
@@ -312,7 +304,6 @@ const deleteCollection = async () => {
       method: 'DELETE'
     } as any)
 
-    // Remove from list
     collections.value = collections.value.filter(c => c.id !== selectedCollection.value?.id)
     showDeleteModal.value = false
     selectedCollection.value = null

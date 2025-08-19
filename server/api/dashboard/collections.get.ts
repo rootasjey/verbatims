@@ -1,14 +1,6 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
-    
+    const session = await requireUserSession(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 10, 50)
     const page = parseInt(query.page as string) || 1
@@ -35,10 +27,11 @@ export default defineEventHandler(async (event) => {
       FROM user_collections
       WHERE user_id = ?
     `).bind(session.user.id).first()
-    
-    const total = totalResult?.total || 0
-    const hasMore = offset + collections.length < total
-    
+
+    const total = Number(totalResult?.total) ?? 0
+    const collectionCount = Number(collections.results.length) ?? 0
+    const hasMore = offset + collectionCount < total
+
     return {
       success: true,
       data: collections,
@@ -50,7 +43,7 @@ export default defineEventHandler(async (event) => {
         totalPages: Math.ceil(total / limit)
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }

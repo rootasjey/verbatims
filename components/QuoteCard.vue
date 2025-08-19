@@ -33,15 +33,15 @@
           </div>
         </div>
 
-        <UDropdown :items="dropdownItems" :popper="{ placement: 'bottom-end' }">
+        <UDropdownMenu :items="dropdownItems" :popper="{ placement: 'bottom-end' }">
           <UButton
-            variant="ghost"
+            btn="ghost-gray"
             icon
             label="i-ph-dots-three-vertical"
             size="sm"
             class="opacity-0 group-hover:opacity-100 transition-opacity"
           />
-        </UDropdown>
+        </UDropdownMenu>
       </div>
     </template>
 
@@ -172,7 +172,6 @@ const props = defineProps({
 
 const { user } = useUserSession()
 
-// Reactive state
 const isLiked = ref(false)
 const likePending = ref(false)
 
@@ -188,7 +187,6 @@ const checkLikeStatus = async () => {
   }
 }
 
-// Toggle like status
 const toggleLike = async () => {
   if (!user.value || likePending.value) return
 
@@ -212,7 +210,6 @@ const toggleLike = async () => {
   }
 }
 
-// Share quote
 const shareQuote = async () => {
   try {
     if (navigator.share) {
@@ -237,7 +234,6 @@ const shareQuote = async () => {
   }
 }
 
-// Add to collection
 const showAddToCollectionModal = ref(false)
 
 const addToCollection = () => {
@@ -248,13 +244,10 @@ const addToCollection = () => {
   showAddToCollectionModal.value = true
 }
 
-// Handle quote added to collection
 const onAddedToCollection = (collection) => {
   // TODO: Show success toast
-  console.log(`Quote added to collection: ${collection.name}`)
 }
 
-// Report quote
 const reportQuote = () => {
   if (!user.value) {
     navigateTo('/login')
@@ -263,26 +256,25 @@ const reportQuote = () => {
   // TODO: Open report modal
 }
 
-// Dropdown menu items
-const dropdownItems = computed(() => [
-  [{
-    label: 'Share',
-    icon: 'i-ph-share',
-    click: shareQuote
-  }],
-  ...(user.value ? [[{
-    label: 'Add to Collection',
-    icon: 'i-ph-bookmark',
-    click: addToCollection
-  }]] : []),
-  [{
-    label: 'Report',
-    icon: 'i-ph-flag',
-    click: reportQuote
-  }]
-])
+const dropdownItems = computed(() =>  [
+    {
+      label: 'Share',
+      leading: 'i-ph-share',
+      onclick: shareQuote
+    },
+    ...(user.value.role === 'admin' || user.value.role === 'moderator' ? [{
+      label: 'Add to Collection',
+      leading: 'i-ph-bookmark',
+      onclick: addToCollection
+    }] : []),
+    {},
+    {
+      label: 'Report',
+      leading: 'i-ph-flag',
+      onclick: reportQuote
+    }
+  ])
 
-// Utility functions
 const getLanguageName = (code) => {
   const languages = {
     en: 'English',
@@ -322,14 +314,12 @@ const formatNumber = (num) => {
   return num.toString()
 }
 
-// Check like status on mount
 onMounted(() => {
   if (user.value) {
     checkLikeStatus()
   }
 })
 
-// Watch for user changes
 watch(user, (newUser) => {
   if (newUser) {
     checkLikeStatus()

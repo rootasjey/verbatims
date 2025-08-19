@@ -1,6 +1,6 @@
 <template>
   <UDialog v-model:open="isOpen">
-    <UCard>
+    <UCard class="border-none">
       <template #header>
         <h3 class="text-lg font-semibold">Add to Collection</h3>
       </template>
@@ -8,47 +8,45 @@
       <div class="space-y-4">
         <!-- Create New Collection -->
         <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="font-medium text-gray-900 dark:text-white">Create New Collection</h4>
-            <UButton
-              size="xs"
-              variant="ghost"
-              icon
-              label="i-ph-plus"
-              @click="showCreateForm = !showCreateForm"
-            >
-              {{ showCreateForm ? 'Cancel' : 'New' }}
-            </UButton>
-          </div>
-          
-          <div v-if="showCreateForm" class="space-y-3">
-            <UInput
-              v-model="newCollectionName"
-              placeholder="Collection name"
-              :disabled="creating"
-            />
-            <UInput
-              type="textarea"
-              v-model="newCollectionDescription"
-              placeholder="Optional description"
-              :rows="2"
-              :disabled="creating"
-            />
-            <div class="flex items-center justify-between">
-              <UCheckbox
-                v-model="newCollectionPublic"
-                label="Make public"
-                :disabled="creating"
-              />
-              <UButton
-                size="xs"
-                :loading="creating"
-                @click="createAndAddToCollection"
-              >
-                Create & Add
+          <UCollapsible v-model:open="createOpen">
+            <UCollapsibleTrigger as-child class="flex items-center justify-between w-full">
+              <UButton btn="ghost" size="xs">
+                <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
+                <UIcon name="i-ph-caret-down" class="w-4 h-4" />
               </UButton>
-            </div>
-          </div>
+            </UCollapsibleTrigger>
+            <UCollapsibleContent>
+              <div class="m-2 mt-3 space-y-3">
+                <UInput
+                  v-model="newCollectionName"
+                  placeholder="Collection name"
+                  :disabled="creating"
+                />
+                <UInput
+                  type="textarea"
+                  v-model="newCollectionDescription"
+                  placeholder="Optional description"
+                  :rows="2"
+                  :disabled="creating"
+                />
+                <div class="flex items-center justify-between">
+                  <UCheckbox
+                    v-model="newCollectionPublic"
+                    label="Make public"
+                    :disabled="creating"
+                  />
+                  <UButton
+                    size="xs"
+                    :loading="creating"
+                    :disabled="!newCollectionName.trim() || creating"
+                    @click="createAndAddToCollection"
+                  >
+                    Create & Add
+                  </UButton>
+                </div>
+              </div>
+            </UCollapsibleContent>
+          </UCollapsible>
         </div>
 
         <!-- Existing Collections -->
@@ -64,11 +62,13 @@
 
           <!-- Collections List -->
           <div v-else-if="collections.length > 0" class="space-y-2 max-h-64 overflow-y-auto">
-            <div
+            <button
               v-for="collection in collections"
               :key="collection.id"
-              class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              :class="{ 'opacity-50': addingToCollections.has(collection.id) }"
+              type="button"
+              class="w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+              :class="{ 'opacity-50 pointer-events-none': addingToCollections.has(collection.id) }"
+              @click="addToCollection(collection)"
             >
               <div class="flex-1">
                 <div class="flex items-center gap-2">
@@ -86,20 +86,17 @@
                   {{ collection.quotes_count }} quotes
                 </p>
               </div>
-              
-              <UButton
+              <UIcon
                 v-if="!addingToCollections.has(collection.id)"
-                size="xs"
-                @click="addToCollection(collection)"
-              >
-                Add
-              </UButton>
+                name="i-ph-plus"
+                class="w-4 h-4 text-gray-400"
+              />
               <UIcon
                 v-else
                 name="i-ph-spinner"
                 class="w-4 h-4 animate-spin text-primary-500"
               />
-            </div>
+            </button>
           </div>
 
           <!-- Empty State -->
@@ -110,7 +107,8 @@
             </p>
             <UButton
               size="sm"
-              @click="showCreateForm = true"
+              btn="soft"
+              @click="createOpen = true"
             >
               Create Your First Collection
             </UButton>
@@ -132,7 +130,8 @@
   </UDialog>
 </template>
 
-<script setup>
+<script lang="ts" setup>
+import type { CollectionWithStats } from '~/types'
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -146,32 +145,28 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'added'])
 
-// Modal state
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-// Data
-const collections = ref([])
+const collections = ref<CollectionWithStats[]>([])
 const loading = ref(false)
 const creating = ref(false)
-const addingToCollections = ref(new Set())
-
-// New collection form
-const showCreateForm = ref(false)
+const addingToCollections = ref<Set<number>>(new Set())
+const createOpen = ref(false)
 const newCollectionName = ref('')
 const newCollectionDescription = ref('')
 const newCollectionPublic = ref(false)
 
-// Load user collections
 const loadCollections = async () => {
   try {
     loading.value = true
-    const response = await $fetch('/api/dashboard/collections', {
+  // The API returns { data: { results: [...] }, pagination: {...} }
+  const response: any = await $fetch('/api/dashboard/collections', {
       query: { limit: 50 }
     })
-    collections.value = response.data
+  collections.value = (response?.data?.results ?? response?.data ?? []) as CollectionWithStats[]
   } catch (error) {
     console.error('Failed to load collections:', error)
   } finally {
@@ -179,7 +174,6 @@ const loadCollections = async () => {
   }
 }
 
-// Create new collection and add quote
 const createAndAddToCollection = async () => {
   if (!newCollectionName.value.trim()) return
 
@@ -188,8 +182,9 @@ const createAndAddToCollection = async () => {
   try {
     creating.value = true
 
-    // Create collection
-    const createResponse = await $fetch('/api/collections', {
+    const createResponse = await $fetch<{ success: boolean; data: CollectionWithStats }>(
+      '/api/collections',
+      {
       method: 'POST',
       body: {
         name: newCollectionName.value.trim(),
@@ -198,7 +193,6 @@ const createAndAddToCollection = async () => {
       }
     })
 
-    // Add quote to collection
     await $fetch(`/api/collections/${createResponse.data.id}/quotes`, {
       method: 'POST',
       body: { quote_id: props.quote.id }
@@ -207,27 +201,17 @@ const createAndAddToCollection = async () => {
     emit('added', createResponse.data)
     closeModal()
 
-    toast({
-      title: 'Collection created!',
-      description: `"${createResponse.data.name}" created and quote added.`,
-      variant: 'success'
-    })
+    toast({ title: 'Collection created!', description: `"${createResponse.data.name}" created and quote added.`, toast: 'success' })
   } catch (error) {
     console.error('Failed to create collection and add quote:', error)
-    toast({
-      title: 'Failed to create collection',
-      description: 'Please try again.',
-      variant: 'error'
-    })
+    toast({ title: 'Failed to create collection', description: 'Please try again.', toast: 'error' })
   } finally {
     creating.value = false
   }
 }
 
-// Add quote to existing collection
-const addToCollection = async (collection) => {
+const addToCollection = async (collection: CollectionWithStats) => {
   if (addingToCollections.value.has(collection.id)) return
-
   const { toast } = useToast()
 
   try {
@@ -241,49 +225,35 @@ const addToCollection = async (collection) => {
     emit('added', collection)
     closeModal()
 
-    toast({
-      title: 'Quote added to collection!',
-      description: `Added to "${collection.name}" collection.`,
-      variant: 'success'
-    })
   } catch (error) {
     console.error('Failed to add quote to collection:', error)
 
-    if (error.statusCode === 409) {
-      toast({
-        title: 'Quote already in collection',
-        description: `Quote is already in "${collection.name}" collection.`,
-        variant: 'info'
-      })
+    const err = error as any
+    if (err && err.statusCode === 409) {
+      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.`, })
     } else {
-      toast({
-        title: 'Failed to add quote',
-        description: 'Please try again.',
-        variant: 'error'
-      })
+      toast({ title: 'Failed to add quote', description: 'Please try again.', toast: 'error' })
     }
   } finally {
     addingToCollections.value.delete(collection.id)
   }
 }
 
-// Close modal and reset
 const closeModal = () => {
   isOpen.value = false
-  showCreateForm.value = false
+  createOpen.value = false
   newCollectionName.value = ''
   newCollectionDescription.value = ''
   newCollectionPublic.value = false
   addingToCollections.value.clear()
 }
 
-// Load collections when modal opens
 watch(isOpen, (newValue) => {
   if (newValue) {
     loadCollections()
   } else {
     nextTick(() => {
-      showCreateForm.value = false
+  createOpen.value = false
       newCollectionName.value = ''
       newCollectionDescription.value = ''
       newCollectionPublic.value = false

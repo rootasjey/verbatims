@@ -149,13 +149,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'added'])
 
-// Modal state
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-// Data
 const collections = ref([])
 const loading = ref(false)
 const creating = ref(false)
@@ -163,18 +161,16 @@ const processing = ref(false)
 const processedCount = ref(0)
 const addingToCollections = ref(new Set())
 
-// New collection form
 const showCreateForm = ref(false)
 const newCollectionName = ref('')
 const newCollectionDescription = ref('')
 const newCollectionPublic = ref(false)
 
-// Load user collections
 const loadCollections = async () => {
   try {
     loading.value = true
     const response = await $fetch('/api/dashboard/collections', { query: { limit: 100 } })
-    collections.value = response.data || []
+    collections.value = (response?.data?.results ?? response?.data ?? [])
   } catch (error) {
     console.error('Failed to load collections:', error)
   } finally {
@@ -182,7 +178,6 @@ const loadCollections = async () => {
   }
 }
 
-// Add all selected quotes to a collection (batched)
 const addAllToCollection = async (collection) => {
   if (processing.value || !props.quoteIds?.length) return
   const { toast } = useToast()
@@ -225,7 +220,6 @@ const addAllToCollection = async (collection) => {
   }
 }
 
-// Create collection and add all
 const createAndAddToCollection = async () => {
   if (!newCollectionName.value.trim() || processing.value) return
   const { toast } = useToast()
@@ -280,7 +274,6 @@ const createAndAddToCollection = async () => {
   }
 }
 
-// Close modal and reset
 const closeModal = () => {
   isOpen.value = false
   showCreateForm.value = false
@@ -291,7 +284,6 @@ const closeModal = () => {
   processedCount.value = 0
 }
 
-// Load collections when modal opens
 watch(isOpen, (newValue) => {
   if (newValue) {
     loadCollections()

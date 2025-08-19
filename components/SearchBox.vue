@@ -28,6 +28,73 @@
           @input="debouncedSearch"
         />
 
+        <!-- Active Filter Chips -->
+        <div
+          v-if="selectedLanguage || selectedAuthor || selectedReference"
+          class="flex flex-wrap items-center gap-2 -mt-2"
+        >
+          <!-- Language chip -->
+          <span
+            v-if="selectedLanguageLabel"
+            class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 border border-primary-200 dark:border-primary-800"
+          >
+            <UIcon name="i-ph-translate" class="w-3.5 h-3.5" />
+            <span>{{ selectedLanguageLabel }}</span>
+            <button
+              class="ml-1 text-primary-700/70 hover:text-primary-900 dark:text-primary-300/80 dark:hover:text-primary-200"
+              aria-label="Remove language filter"
+              @click="removeLanguageFilter"
+              type="button"
+            >
+              <UIcon name="i-ph-x" class="w-3.5 h-3.5" />
+            </button>
+          </span>
+
+          <!-- Author chip -->
+          <span
+            v-if="selectedAuthorLabel"
+            class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+          >
+            <UIcon name="i-ph-user" class="w-3.5 h-3.5" />
+            <span>{{ selectedAuthorLabel }}</span>
+            <button
+              class="ml-1 text-emerald-700/70 hover:text-emerald-900 dark:text-emerald-300/80 dark:hover:text-emerald-200"
+              aria-label="Remove author filter"
+              @click="removeAuthorFilter"
+              type="button"
+            >
+              <UIcon name="i-ph-x" class="w-3.5 h-3.5" />
+            </button>
+          </span>
+
+          <!-- Reference chip -->
+          <span
+            v-if="selectedReferenceLabel"
+            class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+          >
+            <UIcon name="i-ph-book" class="w-3.5 h-3.5" />
+            <span>{{ selectedReferenceLabel }}</span>
+            <button
+              class="ml-1 text-blue-700/70 hover:text-blue-900 dark:text-blue-300/80 dark:hover:text-blue-200"
+              aria-label="Remove reference filter"
+              @click="removeReferenceFilter"
+              type="button"
+            >
+              <UIcon name="i-ph-x" class="w-3.5 h-3.5" />
+            </button>
+          </span>
+
+          <UButton
+            btn="ghost-gray"
+            size="xs"
+            class="ml-1"
+            rounded="full"
+            @click="clearFilters"
+          >
+            Clear all
+          </UButton>
+        </div>
+
         <div class="flex gap-2">
           <USelect
             v-model="selectedLanguage"
@@ -184,7 +251,17 @@
   </UDialog>
 </template>
 
-<script setup>
+<script lang="ts" setup>
+import type { Ref, ComponentPublicInstance } from 'vue'
+import type {
+  SearchResults,
+  SearchApiResponse,
+  ProcessedQuoteResult,
+  AuthorSearchResult,
+  ReferenceSearchResult,
+} from '~/types'
+import type { QuoteReferencePrimaryType } from '~/types'
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -195,60 +272,72 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const isOpen = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  get: (): boolean => props.modelValue,
+  set: (value: boolean) => emit('update:modelValue', value)
 })
 
-const searchQuery = ref('')
-const searchResults = ref({ quotes: [], authors: [], references: [], total: 0 })
-const loading = ref(false)
-const selectedIndex = ref(-1)
-const resultRefs = ref({})
-const resultsContainer = ref(null)
+const searchQuery = ref<string>('')
+const searchResults = ref<SearchResults>({ quotes: [], authors: [], references: [], total: 0 })
+const loading = ref<boolean>(false)
+const selectedIndex = ref<number>(-1)
+const resultRefs = ref<{ quotes?: HTMLElement[]; authors?: HTMLElement[]; references?: HTMLElement[] }>({})
+const resultsContainer = ref<HTMLDivElement | null>(null)
 
-const selectedLanguage = ref(null)
-const selectedAuthor = ref(null)
-const selectedReference = ref(null)
+const selectedLanguage = ref<{ label: string; value: string | number }>()
+const selectedAuthor = ref<{ label: string; value: string | number }>()
+const selectedReference = ref<{ label: string; value: string | number }>()
 
 const languageOptions = [
   { label: 'English', value: 'en' },
   { label: 'French', value: 'fr' },
 ]
 
-const authorOptions = ref([])
-const referenceOptions = ref([])
+const authorOptions: Ref<Array<{ label: string; value: number | string }>> = ref([])
+const referenceOptions: Ref<Array<{ label: string; value: number | string }>> = ref([])
 
-const totalResults = computed(() => searchResults.value.total || 0)
-const allResults = computed(() => {
-  const results = []
+type ResultItem =
+  | (ProcessedQuoteResult & { type: 'quote'; sectionIndex: number })
+  | (AuthorSearchResult & { type: 'author'; sectionIndex: number })
+  | (ReferenceSearchResult & { type: 'reference'; sectionIndex: number })
+
+const totalResults = computed<number>(() => searchResults.value.total || 0)
+const allResults = computed<ResultItem[]>(() => {
+  const results: ResultItem[] = []
   if (searchResults.value.quotes) {
     searchResults.value.quotes.forEach((item, index) => {
-      results.push({ ...item, type: 'quote', sectionIndex: index })
+      results.push({ ...(item as ProcessedQuoteResult), type: 'quote', sectionIndex: index })
     })
   }
   if (searchResults.value.authors) {
     searchResults.value.authors.forEach((item, index) => {
-      results.push({ ...item, type: 'author', sectionIndex: index })
+      results.push({ ...(item as AuthorSearchResult), type: 'author', sectionIndex: index })
     })
   }
   if (searchResults.value.references) {
     searchResults.value.references.forEach((item, index) => {
-      results.push({ ...item, type: 'reference', sectionIndex: index })
+      results.push({ ...(item as ReferenceSearchResult), type: 'reference', sectionIndex: index })
     })
   }
   return results
 })
 
-const setResultRef = (el, section, index) => {
+const setResultRef = (
+  el: Element | ComponentPublicInstance | null,
+  section: 'quotes' | 'authors' | 'references',
+  index: number
+) => {
   if (el) {
+    const rawEl = (el as ComponentPublicInstance & { $el?: Element }).$el ?? (el as Element)
+    const htmlEl = rawEl instanceof HTMLElement ? rawEl : null
+    if (!htmlEl) return
     if (!resultRefs.value[section]) {
-      resultRefs.value[section] = {}
+      resultRefs.value[section] = []
     }
-    resultRefs.value[section][index] = el
+    ;(resultRefs.value[section] as HTMLElement[])[index] = htmlEl
   }
 }
 
-const getGlobalIndex = (section, index) => {
+const getGlobalIndex = (section: 'quotes' | 'authors' | 'references', index: number) => {
   let globalIndex = 0
   if (section === 'quotes') return index
   if (section === 'authors') {
@@ -262,8 +351,8 @@ const getGlobalIndex = (section, index) => {
   return -1
 }
 
-const getReferenceIcon = (type) => {
-  const icons = {
+const getReferenceIcon = (type: QuoteReferencePrimaryType | string) => {
+  const icons: Record<string, string> = {
     film: 'i-ph-film-strip',
     book: 'i-ph-book',
     tv_series: 'i-ph-television',
@@ -277,7 +366,7 @@ const getReferenceIcon = (type) => {
   return icons[type] || 'i-ph-file'
 }
 
-const highlightText = (text) => {
+const highlightText = (text: string) => {
   if (!searchQuery.value.trim() || !text) return text
   const regex = new RegExp(`(${searchQuery.value.trim()})`, 'gi')
   return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">$1</mark>')
@@ -292,17 +381,17 @@ const debouncedSearch = useDebounceFn(async () => {
 
   loading.value = true
   try {
-    const { data } = await $fetch('/api/search', {
+    const response = await $fetch<SearchApiResponse>('/api/search', {
       query: {
         q: searchQuery.value,
-        language: selectedLanguage.value,
-        author: selectedAuthor.value,
-        reference: selectedReference.value,
+        language: selectedLanguage.value || undefined,
+        author: selectedAuthor.value || undefined,
+        reference: selectedReference.value || undefined,
         limit: 20
       }
     })
 
-    searchResults.value = data || { quotes: [], authors: [], references: [], total: 0 }
+    searchResults.value = response?.data || { quotes: [], authors: [], references: [], total: 0 }
     selectedIndex.value = -1
   } catch (error) {
     console.error('Search error:', error)
@@ -312,19 +401,26 @@ const debouncedSearch = useDebounceFn(async () => {
   }
 }, 300)
 
+// Re-run search when filters change (if a query is present)
+watch([selectedLanguage, selectedAuthor, selectedReference], () => {
+  if (searchQuery.value.trim()) debouncedSearch()
+})
+
 const loadFilterOptions = async () => {
+  // simple cache to avoid refetching every open
+  if (authorOptions.value.length && referenceOptions.value.length) return
   try {
     const [authorsData, referencesData] = await Promise.all([
-      $fetch('/api/authors?limit=100'),
-      $fetch('/api/references?limit=100')
+      $fetch<any>('/api/authors?limit=100'),
+      $fetch<any>('/api/references?limit=100')
     ])
 
-    authorOptions.value = (authorsData.data.results || []).map(author => ({
+    authorOptions.value = (authorsData.data.results || []).map((author: { id: number | string; name: string }) => ({
       label: author.name,
       value: author.id
     }))
 
-    referenceOptions.value = (referencesData.data.results || []).map(reference => ({
+    referenceOptions.value = (referencesData.data.results || []).map((reference: { id: number | string; name: string }) => ({
       label: reference.name,
       value: reference.id
     }))
@@ -333,18 +429,66 @@ const loadFilterOptions = async () => {
   }
 }
 
-const selectResult = (result, type) => {
+const clearFilters = () => {
+  selectedLanguage.value = undefined
+  selectedAuthor.value = undefined
+  selectedReference.value = undefined
+  if (searchQuery.value.trim()) debouncedSearch()
+}
+
+// Labels for chips
+const selectedLanguageLabel = computed<string | null>(() => {
+  const val = selectedLanguage.value
+  if (!val) return null
+  const item = languageOptions.find(o => o.value === val.value || o.label === val.label)
+  return item ? item.label : String(val.label)
+})
+
+const selectedAuthorLabel = computed<string | null>(() => {
+  const val = selectedAuthor.value
+  if (!val) return null
+  const item = (authorOptions.value || []).find(o => o.value === val.value || o.label === val.label)
+  return item ? item.label : String(val.label)
+})
+
+const selectedReferenceLabel = computed<string | null>(() => {
+  const val = selectedReference.value
+  if (!val) return null
+  const item = (referenceOptions.value || []).find(o => o.value === val.value || o.label === val.label)
+  return item ? item.label : String(val.label)
+})
+
+// Remove single chips
+const removeLanguageFilter = () => {
+  selectedLanguage.value = undefined
+  if (searchQuery.value.trim()) debouncedSearch()
+}
+
+const removeAuthorFilter = () => {
+  selectedAuthor.value = undefined
+  if (searchQuery.value.trim()) debouncedSearch()
+}
+
+const removeReferenceFilter = () => {
+  selectedReference.value = undefined
+  if (searchQuery.value.trim()) debouncedSearch()
+}
+
+const selectResult = (
+  result: ProcessedQuoteResult | AuthorSearchResult | ReferenceSearchResult,
+  type: 'quote' | 'author' | 'reference'
+) => {
   isOpen.value = false
 
   switch (type) {
     case 'quote':
-      navigateTo(`/quote/${result.id}`)
+  navigateTo(`/quote/${result.id}`)
       break
     case 'author':
-      navigateTo(`/author/${result.id}`)
+  navigateTo(`/author/${result.id}`)
       break
     case 'reference':
-      navigateTo(`/reference/${result.id}`)
+  navigateTo(`/reference/${result.id}`)
       break
   }
 }
@@ -363,8 +507,8 @@ const scrollToSelected = () => {
     const element = resultRefs.value[section]?.[result.sectionIndex]
 
     if (element && resultsContainer.value) {
-      const containerRect = resultsContainer.value.getBoundingClientRect()
-      const elementRect = element.getBoundingClientRect()
+  const containerRect = resultsContainer.value.getBoundingClientRect()
+  const elementRect = element.getBoundingClientRect()
 
       if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
         element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
@@ -373,7 +517,7 @@ const scrollToSelected = () => {
   }
 }
 
-const handleKeydown = (event) => {
+const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Escape') {
     isOpen.value = false
     return
@@ -410,19 +554,17 @@ watch(isOpen, (newValue) => {
     nextTick(() => {
       document.addEventListener('keydown', handleKeydown)
       // Focus the search input
-      const searchInput = document.querySelector('input[placeholder*="Search quotes"]')
-      if (searchInput) {
-        searchInput.focus()
-      }
+  const searchInput = document.querySelector<HTMLInputElement>('input[placeholder*="Search quotes"]')
+  searchInput?.focus()
     })
   } else {
     document.removeEventListener('keydown', handleKeydown)
     searchQuery.value = ''
     searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
     selectedIndex.value = -1
-    selectedLanguage.value = null
-    selectedAuthor.value = null
-    selectedReference.value = null
+    selectedLanguage.value = undefined
+    selectedAuthor.value = undefined
+    selectedReference.value = undefined
     resultRefs.value = {}
   }
 })

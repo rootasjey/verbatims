@@ -54,7 +54,7 @@ const menuItems = computed(() => [
   {
     label: 'My Collections',
     leading: 'i-ph-bookmark',
-    onclick: () => navigateTo('/dashboard/collections')
+    onclick: () => navigateTo('/dashboard/lists')
   },
   {
     label: 'My Submissions',

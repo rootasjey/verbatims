@@ -1,25 +1,8 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
-    
-    // Check if user is active
-    if (!session.user.is_active) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Account is deactivated'
-      })
-    }
-    
+    const session = await requireUserSession(event)
     const body = await readBody(event)
-    
-    // Validate input
+
     if (!body.name || typeof body.name !== 'string') {
       throw createError({
         statusCode: 400,
@@ -84,7 +67,7 @@ export default defineEventHandler(async (event) => {
       data: collection,
       message: 'Collection created successfully'
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }
