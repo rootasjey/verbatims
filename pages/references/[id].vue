@@ -104,6 +104,7 @@
           </div>
         </div>
       </div>
+      
       <!-- Reference Header -->
       <header class="mt-12 p-8">
         <!-- Reference Type and Release Date -->
@@ -122,18 +123,14 @@
         </div>
 
         <div class="text-center mb-6">
-
-          <!-- Reference Name -->
           <h1 class="font-title text-size-54 font-600 line-height-none uppercase mb-4">
             {{ reference.name }}
           </h1>
 
-          <!-- Secondary Type -->
           <p v-if="reference.secondary_type" class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4">
             {{ reference.secondary_type }}
           </p>
 
-          <!-- Description -->
           <p v-if="reference.description"
             class="font-body text-size-5 font-200 text-gray-600
             dark:text-gray-400 max-w-2xl mx-auto mb-6
@@ -142,16 +139,11 @@
             {{ reference.description }}
           </p>
 
-          <!-- Language Info -->
           <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
             <UIcon name="i-ph-globe" class="w-4 h-4" />
             <span>Original Language: {{ formatLanguage(reference.original_language) }}</span>
           </div>
-
-
         </div>
-
-
       </header>
 
       <!-- External Links -->
@@ -173,51 +165,13 @@
           </div>
         </div>
       </div>
-
-      <UBadge :badge="isMetaBadgeOpen ? 'solid-gray' : 'soft'" rounded="full"
-        :class="[
-          'z-2 fixed top-20 right-12 overflow-hidden text-sm font-medium transition-all',
-          isMetaBadgeOpen ? 'w-auto px-4 text-center hover:scale-101 active:scale-99' : 'w-9 hover:scale-105 active:scale-99'
-        ]">
-        <div class="flex gap-4 justify-center items-center">
-          <div :class="['gap-4', isMetaBadgeOpen ? 'flex' : 'hidden']">
-            <div class="flex items-center">{{ referenceQuotes.length }} quotes</div>
-            <div class="flex items-center">{{ formatNumber(reference.views_count) }} views</div>
-            <div class="flex items-center">{{ formatNumber(totalQuoteLikes) }} quote likes</div>
-            <UButton
-              btn="~"
-              @click="toggleLike"
-              :disabled="!user || likePending"
-              :class="[
-                'min-w-0 min-h-0 h-auto w-auto p-0 flex items-center transition-all',
-                isLiked
-                  ? 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
-                  : 'hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20',
-                !user && 'cursor-not-allowed opacity-50'
-              ]"
-            >
-              <UIcon
-                :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'"
-                :class="[likePending && 'animate-pulse']"
-              />
-              <span>{{ formatNumber(reference.likes_count) }}</span>
-            </UButton>
-          </div>
-          <UButton
-            icon btn="text-pink"
-            :label="isMetaBadgeOpen ? 'i-ph-x-bold' : 'i-ph-asterisk-bold'"
-            :class="['min-w-0 min-h-0 h-auto w-auto p-0', isMetaBadgeOpen ? 'hover:animate-pulse' : 'hover:animate-spin']" size="xs"
-            @click="isMetaBadgeOpen = !isMetaBadgeOpen"
-          />
-        </div>
-      </UBadge>
-
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
         <!-- Sort Options -->
         <div class="font-body mb-8">
           <div class="flex gap-4 max-w-2xl mx-auto items-center justify-center">
             <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
+            <span>•</span>
             <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
               sorted by
             </span>
@@ -229,10 +183,6 @@
               value-key="label"
               @change="loadQuotes"
             />
-          </div>
-
-          <!-- Language Selector -->
-          <div class="flex items-center justify-center mt-4">
             <LanguageSelector @language-changed="onLanguageChange" />
           </div>
         </div>
@@ -302,14 +252,14 @@
         </UButton>
       </div>
     </div>
-    <!-- Edit Reference Dialog -->
+
     <AddReferenceDialog
       v-if="isEditDialogOpen && reference"
       v-model="isEditDialogOpen"
       :edit-reference="reference"
       @reference-updated="onReferenceUpdated"
     />
-    <!-- Delete Reference Dialog -->
+
     <DeleteReferenceDialog
       v-if="isDeleteDialogOpen && reference"
       v-model="isDeleteDialogOpen"
@@ -348,8 +298,6 @@ const hasMoreQuotes = ref(true)
 const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
 
-const isMetaBadgeOpen = ref(false)
-
 const sortOptions = [
   { label: 'Most Recent', value: 'created_at' },
   { label: 'Most Popular', value: 'likes_count' },
@@ -370,7 +318,6 @@ const headerTitle = computed(() => {
 const headerMenuItems = computed(() => {
   const items = []
 
-  // Admin/mod actions
   if (canEditReference.value) {
     items.push({
       label: 'Edit',
@@ -405,20 +352,17 @@ const headerMenuItems = computed(() => {
   return items
 })
 
-// Permissions
 const canEditReference = computed(() => {
   const role = user.value?.role
   return role === 'admin' || role === 'moderator'
 })
 
-// Edit dialog state and handlers
 const isEditDialogOpen = ref(false)
 const openEditReference = () => {
   if (!reference.value) return
   isEditDialogOpen.value = true
 }
 
-// Delete dialog state and handlers
 const isDeleteDialogOpen = ref(false)
 const openDeleteReference = () => {
   if (!reference.value) return
@@ -426,15 +370,12 @@ const openDeleteReference = () => {
 }
 
 const onReferenceDeleted = async () => {
-  // After deletion, navigate away from the deleted reference page
   await navigateTo('/references')
 }
 
 const onReferenceUpdated = async () => {
   try {
-    // Refetch updated reference details
     const refreshed = await $fetch(`/api/references/${route.params.id}`)
-    // Overwrite local cached data to update UI
     referenceData.value = refreshed
   } catch (error) {
     console.error('Failed to refresh reference after update:', error)
@@ -478,7 +419,6 @@ const loadQuotes = async (reset = true) => {
     hasMoreQuotes.value = response.pagination?.hasMore || false
   } catch (error) {
     console.error('Failed to load quotes:', error)
-    // Reset quotes on error to show empty state
     if (reset) {
       referenceQuotes.value = []
     }
@@ -633,48 +573,35 @@ const formatType = (type) => {
   return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
-// Refresh quotes after submission
-const refreshQuotes = async () => {
-  await loadQuotes()
-}
-
 onMounted(async () => {
   await waitForLanguageStore()
-
-  if (reference.value) {
-    // Track view (dedup handled server-side)
-    try {
-      const res = await $fetch(`/api/references/${route.params.id}/view`, { method: 'POST' })
-      if (res?.recorded) {
-        reference.value.views_count = (reference.value.views_count || 0) + 1
-      }
-    } catch (error) {
-      console.error('Failed to track reference view:', error)
+  if (!reference.value) return
+  
+  try { // Track view (dedup handled server-side)
+    const res = await $fetch(`/api/references/${route.params.id}/view`, { method: 'POST' })
+    if (res?.recorded) {
+      reference.value.views_count = (reference.value.views_count || 0) + 1
     }
+  } catch (error) { console.error('Failed to track reference view:', error) }
 
-    loadQuotes()
-    if (user.value) {
-      checkLikeStatus()
-    }
-  }
+  loadQuotes()
+  if (user.value) checkLikeStatus()
 })
 
-// Watch for changes
 watch(reference, (newReference) => {
-  if (newReference) {
-    loadQuotes()
-    if (user.value) {
-      checkLikeStatus()
-    }
-  }
+  if (!newReference) return
+  
+  loadQuotes()
+  if (user.value) checkLikeStatus()
 })
 
 watch(user, (newUser) => {
   if (newUser && reference.value) {
     checkLikeStatus()
-  } else {
-    isLiked.value = false
+    return
   }
+
+  isLiked.value = false
 })
 
 watch(sortBy, () => {

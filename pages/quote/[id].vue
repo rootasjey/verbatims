@@ -149,7 +149,7 @@
                   class="ring-2 ring-gray-200 dark:ring-gray-700 hover:scale-105 active:scale-99 transition-transform"
                 />
               </NuxtLink>
-              <div>
+              <div class="mt-2">
                 <NuxtLink
                   :to="`/authors/${quote.author.id}`"
                   class="font-body text-size-4  font-400 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
@@ -169,14 +169,13 @@
               <UIcon :name="getReferenceIcon(quote.reference.type)" />
               <NuxtLink
                 :to="`/references/${quote.reference.id}`"
-                class="font-serif font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors underline decoration-dashed decoration-offset-4"
+                class="font-serif font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 {{ quote.reference.name }}
               </NuxtLink>
             </div>
           </div>
         </div>
-
 
         <!-- Tags -->
         <div v-if="quote.tags?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8">
@@ -198,7 +197,6 @@
         </div>
       </div>
 
-      <!-- Quote Details & Actions (unified width) -->
       <div class="max-w-3xl mx-auto">
         <div class="rounded-xl border-0.5px border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-[#0C0A09]/50">
           <div class="border-b border-gray-200 dark:border-gray-800 mb-6 p-6">
@@ -326,7 +324,6 @@
     @added="onAddedToCollection"
   />
 
-  <!-- Edit Quote Dialog (re-uses AddQuoteDialog in edit mode) -->
   <AddQuoteDialog
     v-model="showEditQuoteDialog"
     :editQuote="quote"

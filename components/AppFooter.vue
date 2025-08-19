@@ -21,7 +21,7 @@
         <!-- Simple nav groups -->
         <nav aria-label="Footer navigation" class="grid grid-cols-2 gap-8 sm:grid-cols-3">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
-            <h3 id="footer-explore" class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Explore</h3>
+            <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Explore</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionExplore" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -33,7 +33,7 @@
           </section>
 
           <section v-if="sectionContribute.length" aria-labelledby="footer-contribute" data-testid="footer-contribute">
-            <h3 id="footer-contribute" class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Contribute</h3>
+            <h3 id="footer-contribute" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Contribute</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionContribute" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -42,7 +42,7 @@
           </section>
 
           <section v-if="sectionAccount.length" aria-labelledby="footer-account" data-testid="footer-account">
-            <h3 id="footer-account" class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Account</h3>
+            <h3 id="footer-account" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Account</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionAccount" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -51,7 +51,7 @@
           </section>
 
           <section v-if="isAdmin && sectionAdmin.length" aria-labelledby="footer-admin" data-testid="footer-admin">
-            <h3 id="footer-admin" class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Admin</h3>
+            <h3 id="footer-admin" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Admin</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionAdmin" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -81,15 +81,8 @@
 </template>
 
 <script setup lang="ts">
-// Notes:
-// - UnaUI atoms used: UButton, UIcon. UnoCSS handles layout/styles.
-// - link-muted class below centralizes hover/focus/visited tokens.
-// - Dynamic year for copyright.
-
-const year = new Date().getFullYear()
-
- // Session-based admin gating
 const { user } = useUserSession()
+const year = new Date().getFullYear()
 const isAdmin = computed(() => user.value?.role === 'admin')
 const isLoggedIn = computed(() => Boolean(user.value))
 

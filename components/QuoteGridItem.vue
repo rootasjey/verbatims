@@ -5,6 +5,7 @@
     @click="navigateToQuote"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
+    ref="containerRef"
   >
     <!-- Author and Reference Info (Top) -->
     <div 
@@ -44,17 +45,33 @@
 
     <!-- Quote Content (Main) -->
     <div class="flex-1 flex">
-      <!-- Default State: Quote Content -->
-      <blockquote
-        class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
-        :class="{
-          'text-sm': quote.name.length > 200,
-          'text-base': quote.name.length <= 200 && quote.name.length > 100,
-          'text-lg': quote.name.length <= 100
-        }"
-      >
-        {{ quote.name }}
-      </blockquote>
+      <!-- Client-only typewriter with SSR fallback -->
+      <ClientOnly>
+        <blockquote
+          class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+          :class="{
+            'text-sm': (quote.name || '').length > 200,
+            'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+            'text-lg': (quote.name || '').length <= 100
+          }"
+        >
+          <span>{{ displayedText }}</span>
+          <span v-show="showCaret" class="caret align-[-0.1em]"></span>
+        </blockquote>
+
+        <template #fallback>
+          <blockquote
+            class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+            :class="{
+              'text-sm': (quote.name || '').length > 200,
+              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-lg': (quote.name || '').length <= 100
+            }"
+          >
+            {{ quote.name }}
+          </blockquote>
+        </template>
+      </ClientOnly>
     </div>
 
     <!-- Featured Badge (if featured) -->
@@ -78,13 +95,81 @@ const props = defineProps({
   }
 })
 
-// Hover state management
 const isHovered = ref(false)
 
-// Navigation
 const navigateToQuote = () => {
   navigateTo(`/quote/${props.quote.id}`)
 }
 
 
+// Typewriter animation when the card appears
+const containerRef = ref(null)
+const displayedText = ref('')
+const showCaret = ref(false)
+let hasTyped = false
+let observer = null
+let intervalId = null
+
+const startTyping = () => {
+  if (hasTyped) return
+  const text = (props.quote?.name || '').toString()
+  if (!text) return
+
+  hasTyped = true
+  displayedText.value = ''
+  showCaret.value = true
+
+  const maxDuration = 1200 // ms cap
+  const baseInterval = 18 // ms
+  const steps = Math.max(1, Math.ceil(maxDuration / baseInterval))
+  const stepChars = Math.max(1, Math.ceil(text.length / steps))
+  let i = 0
+
+  intervalId = setInterval(() => {
+    displayedText.value = text.slice(0, i)
+    i += stepChars
+    if (i >= text.length) {
+      displayedText.value = text
+      clearInterval(intervalId)
+      intervalId = null
+      setTimeout(() => (showCaret.value = false), 400)
+    }
+  }, baseInterval)
+}
+
+onMounted(() => {
+  observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        startTyping()
+        if (observer && containerRef.value) observer.unobserve(containerRef.value)
+      }
+    }
+  }, { threshold: 0.2 })
+
+  if (containerRef.value && observer) observer.observe(containerRef.value)
+})
+
+onBeforeUnmount(() => {
+  if (observer && containerRef.value) observer.unobserve(containerRef.value)
+  if (observer) observer.disconnect()
+  observer = null
+  if (intervalId) clearInterval(intervalId)
+  intervalId = null
+})
 </script>
+
+<style scoped>
+.caret {
+  display: inline-block;
+  width: 0.6ch;
+  border-right: 2px solid currentColor;
+  margin-left: 2px;
+  animation: caret-blink 1s steps(1, end) infinite;
+}
+
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+</style>

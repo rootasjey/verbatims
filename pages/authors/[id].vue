@@ -214,6 +214,7 @@
         <div class="font-body mb-8">
           <div class="flex gap-4 max-w-2xl mx-auto items-center justify-center">
             <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
+            <span>•</span>
             <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
               sorted by
             </span>
@@ -225,10 +226,6 @@
               value-key="label"
               @change="loadQuotes"
             />
-          </div>
-
-          <!-- Language Selector -->
-          <div class="flex items-center justify-center mt-4">
             <LanguageSelector @language-changed="onLanguageChange" />
           </div>
         </div>

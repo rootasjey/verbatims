@@ -1,6 +1,6 @@
 <template>
   <UDialog v-model:open="isOpen">
-    <UCard class="border-none">
+    <UCard class="border-none shadow-none">
       <template #header>
         <h3 class="text-lg font-semibold">Add to Collection</h3>
       </template>
@@ -12,7 +12,7 @@
             <UCollapsibleTrigger as-child class="flex items-center justify-between w-full">
               <UButton btn="ghost" size="xs">
                 <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
-                <UIcon name="i-ph-caret-down" class="w-4 h-4" />
+                <UIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
               </UButton>
             </UCollapsibleTrigger>
             <UCollapsibleContent>
@@ -66,7 +66,7 @@
               v-for="collection in collections"
               :key="collection.id"
               type="button"
-              class="w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+              class="w-full flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
               :class="{ 'opacity-50 pointer-events-none': addingToCollections.has(collection.id) }"
               @click="addToCollection(collection)"
             >
@@ -86,16 +86,18 @@
                   {{ collection.quotes_count }} quotes
                 </p>
               </div>
-              <UIcon
-                v-if="!addingToCollections.has(collection.id)"
-                name="i-ph-plus"
-                class="w-4 h-4 text-gray-400"
-              />
-              <UIcon
-                v-else
-                name="i-ph-spinner"
-                class="w-4 h-4 animate-spin text-primary-500"
-              />
+              <div class="mr-2">
+                <UIcon
+                  v-if="!addingToCollections.has(collection.id)"
+                  name="i-ph-plus-bold"
+                  class="w-4 h-4 text-gray-400"
+                />
+                <UIcon
+                  v-else
+                  name="i-ph-spinner"
+                  class="w-4 h-4 animate-spin text-primary-500"
+                />
+              </div>
             </button>
           </div>
 
@@ -115,18 +117,18 @@
           </div>
         </div>
       </div>
-
-      <template #footer>
-        <div class="flex justify-end">
-          <UButton
-            variant="ghost"
-            @click="closeModal"
-          >
-            Close
-          </UButton>
-        </div>
-      </template>
     </UCard>
+
+    <template #footer>
+      <div class="flex justify-end">
+        <UButton
+          btn="ghost"
+          @click="closeModal"
+        >
+          Close
+        </UButton>
+      </div>
+    </template>
   </UDialog>
 </template>
 

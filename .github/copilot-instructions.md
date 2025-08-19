@@ -143,6 +143,7 @@ const props = withDefaults(defineProps<Props>(), {
 - Color palette: Primary blue (`#687FE5`), semantic colors for status
 - In USelect component: Use `value-key="label"` so that the selected value is nicely displayed with its label (e.g. `Pending Review` instead of `pending`)
 - In UDropdownMenu component: Use `onclick` event for item actions
+- In UButton component: Use `btn` prop for styling variations
 
 ## Key Files to Reference
 - `/nuxt.config.ts` - Core configuration and modules
