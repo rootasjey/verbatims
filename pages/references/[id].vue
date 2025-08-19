@@ -107,15 +107,19 @@
       
       <!-- Reference Header -->
       <header class="mt-12 p-8">
-        <!-- Reference Type and Release Date -->
-        <div class="flex items-center justify-center gap-4">
-          <UBadge
-            :color="getTypeColor(reference.primary_type)"
-            variant="subtle"
-            size="sm"
-          >
-            {{ formatType(reference.primary_type) }}
-          </UBadge>
+        <!-- Reference Type and Release Date (badge appears after content animates) -->
+        <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
+        <div class="flex items-center justify-center gap-4 min-h-8">
+          <Transition name="fade-up" appear>
+            <UBadge
+              v-if="showTypeBadge"
+              :color="getTypeColor(reference.primary_type)"
+              variant="subtle"
+              size="sm"
+            >
+              {{ formatType(reference.primary_type) }}
+            </UBadge>
+          </Transition>
 
           <span v-if="reference.release_date" class="font-serif text-gray-600 dark:text-gray-400">
             {{ formatReleaseDate(reference.release_date) }}
@@ -123,18 +127,29 @@
         </div>
 
         <div class="text-center mb-6">
-          <h1 class="font-title text-size-54 font-600 line-height-none uppercase mb-4">
+          <h1
+            class="font-title text-size-54 font-600 line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(0)"
+          >
             {{ reference.name }}
           </h1>
 
-          <p v-if="reference.secondary_type" class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4">
+          <p
+            v-if="reference.secondary_type"
+            class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(1)"
+          >
             {{ reference.secondary_type }}
           </p>
 
           <p v-if="reference.description"
             class="font-body text-size-5 font-200 text-gray-600
             dark:text-gray-400 max-w-2xl mx-auto mb-6
-            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6"
+            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(2)"
           >
             {{ reference.description }}
           </p>
@@ -308,6 +323,8 @@ const isLiked = ref(false)
 const likePending = ref(false)
 const sharePending = ref(false)
 const copyState = ref('idle')
+const headerIn = ref(false)
+const showTypeBadge = ref(false)
 
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -520,6 +537,22 @@ const reportReference = () => {
   // TODO: Open report modal for reference
 }
 
+// Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
+const handleGlobalKeydown = (e) => {
+  if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
+
+  // Skip when typing in inputs/contenteditable elements
+  const target = e.target
+  const tag = target?.tagName?.toLowerCase?.()
+  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
+  if (isEditable) return
+
+  if (reference.value && canEditReference.value) {
+    e.preventDefault()
+    isEditDialogOpen.value = true
+  }
+}
+
 const formatReleaseDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
@@ -574,6 +607,9 @@ const formatType = (type) => {
 }
 
 onMounted(async () => {
+  // Attach global shortcut as soon as component mounts
+  window.addEventListener('keydown', handleGlobalKeydown)
+
   await waitForLanguageStore()
   if (!reference.value) return
   
@@ -586,6 +622,9 @@ onMounted(async () => {
 
   loadQuotes()
   if (user.value) checkLikeStatus()
+
+  // Trigger enter animation and delayed type badge
+  await triggerHeaderEnter()
 })
 
 watch(reference, (newReference) => {
@@ -593,6 +632,9 @@ watch(reference, (newReference) => {
   
   loadQuotes()
   if (user.value) checkLikeStatus()
+
+  // retrigger header animation on reference change
+  triggerHeaderEnter()
 })
 
 watch(user, (newUser) => {
@@ -607,4 +649,50 @@ watch(user, (newUser) => {
 watch(sortBy, () => {
   loadQuotes()
 })
+
+// Small helper to stagger items
+const enterAnim = (i) => ({ transitionDelay: `${i * 80}ms` })
+
+// Ensure animations run after initial render and when data finishes loading
+const triggerHeaderEnter = async () => {
+  headerIn.value = false
+  showTypeBadge.value = false
+  await nextTick()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      headerIn.value = true
+      setTimeout(() => { showTypeBadge.value = true }, 450)
+    })
+  })
+}
+
+// Re-run animations after client-side navigation when pending flips
+watch(pending, (now, prev) => {
+  if (prev && !now && reference.value) {
+    triggerHeaderEnter()
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
+
+<style scoped>
+.fade-up-enter-from,
+.fade-up-appear-from {
+  opacity: 0;
+  transform: translateY(6px);
+  filter: blur(2px);
+}
+.fade-up-enter-active,
+.fade-up-appear-active {
+  transition: all 420ms cubic-bezier(.22,.61,.36,1);
+}
+.fade-up-enter-to,
+.fade-up-appear-to {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+</style>

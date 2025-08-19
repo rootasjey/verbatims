@@ -103,36 +103,56 @@
       </div>
       <!-- Author Header -->
       <header class="mt-12 p-8">
-        <!-- Author Type -->
-        <div class="flex items-center justify-center gap-4">
-          <UBadge
-            :color="author.is_fictional ? 'purple' : 'blue'"
-            variant="subtle"
-            size="sm"
-          >
-            {{ author.is_fictional ? 'Fictional Character' : 'Real Person' }}
-          </UBadge>
+        <!-- Author Type (appears after header content animates) -->
+        <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
+        <div class="flex items-center justify-center gap-4 min-h-8">
+          <Transition name="fade-up" appear>
+            <UBadge
+              v-if="showTypeBadge"
+              :color="author.is_fictional ? 'purple' : 'blue'"
+              variant="subtle"
+              size="sm"
+            >
+              {{ author.is_fictional ? 'Fictional Character' : 'Real Person' }}
+            </UBadge>
+          </Transition>
         </div>
 
         <div class="text-center mb-6">
-          <h1 class="font-title text-size-54 font-600 line-height-none uppercase mb-4">
+          <h1
+            class="font-title text-size-54 font-600 line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(0)"
+          >
             {{ author.name }}
           </h1>
 
-          <span v-if="!author.is_fictional && (author.birth_date || author.death_date)" class="font-serif font-600 text-gray-600 dark:text-gray-400">
+          <span
+            v-if="!author.is_fictional && (author.birth_date || author.death_date)"
+            class="block font-serif font-600 text-gray-600 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(1)"
+          >
             {{ formatLifeDates(author.birth_date, author.death_date) }}
           </span>
 
           <!-- Job Title -->
-          <p v-if="author.job" class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4">
+          <p
+            v-if="author.job"
+            class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(2)"
+          >
             {{ author.job }}
           </p>
 
           <!-- Description -->
-          <p v-if="author.description" 
+          <p v-if="author.description"
             class="font-body text-size-5 font-200 text-gray-600 
             dark:text-gray-400 max-w-2xl mx-auto mb-6
-            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6"
+            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(3)"
           >
             {{ author.description }}
           </p>
@@ -342,6 +362,8 @@ const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
 
 const isMetaBadgeOpen = ref(false)
+const headerIn = ref(false)
+const showTypeBadge = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'created_at' },
@@ -355,6 +377,23 @@ const sharePending = ref(false)
 const copyState = ref('idle')
 const showEditAuthorDialog = ref(false)
 const showDeleteAuthorDialog = ref(false)
+
+// Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
+const handleGlobalKeydown = (e) => {
+  if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
+
+  // Skip when typing in inputs/contenteditable elements
+  const target = e.target
+  const tag = target?.tagName?.toLowerCase?.()
+  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
+  if (isEditable) return
+
+  const role = user.value?.role
+  if (author.value && (role === 'admin' || role === 'moderator')) {
+    e.preventDefault()
+    showEditAuthorDialog.value = true
+  }
+}
 
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -612,7 +651,13 @@ onMounted(async () => {
     if (user.value) {
       checkLikeStatus()
     }
+    
+    // Trigger enter animation once content is available
+    await triggerHeaderEnter()
   }
+
+  // Attach global shortcut
+  window.addEventListener('keydown', handleGlobalKeydown)
 })
 
 watch(author, (newAuthor) => {
@@ -621,6 +666,9 @@ watch(author, (newAuthor) => {
     if (user.value) {
       checkLikeStatus()
     }
+    
+    // retrigger header animation on author change
+    triggerHeaderEnter()
   }
 })
 
@@ -635,4 +683,52 @@ watch(user, (newUser) => {
 watch(sortBy, () => {
   loadQuotes()
 })
+
+// Small helper to stagger items
+const enterAnim = (i) => ({ transitionDelay: `${i * 80}ms` })
+
+// Ensure animations run after initial render and when data finishes loading
+const triggerHeaderEnter = async () => {
+  headerIn.value = false
+  showTypeBadge.value = false
+  await nextTick()
+  // double rAF to guarantee the browser paints the initial hidden state
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      headerIn.value = true
+      setTimeout(() => { showTypeBadge.value = true }, 450)
+    })
+  })
+}
+
+// When navigating client-side, author fetch sets `pending` true -> false.
+// Trigger animation right after pending turns false and author is present.
+watch(pending, (now, prev) => {
+  if (prev && !now && author.value) {
+    triggerHeaderEnter()
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
+
+<style scoped>
+.fade-up-enter-from,
+.fade-up-appear-from {
+  opacity: 0;
+  transform: translateY(6px);
+  filter: blur(2px);
+}
+.fade-up-enter-active,
+.fade-up-appear-active {
+  transition: all 420ms cubic-bezier(.22,.61,.36,1);
+}
+.fade-up-enter-to,
+.fade-up-appear-to {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+</style>

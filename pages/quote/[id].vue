@@ -440,9 +440,26 @@ const headerTitle = computed(() => {
   return text.length > 80 ? text.slice(0, 80) + '…' : text
 })
 
-// Edit dialog state
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
+
+// Global keyboard shortcut: Ctrl/Cmd + E to edit (admin/moderator only)
+const handleGlobalKeydown = (e) => {
+  // Only react to Ctrl/Cmd + E
+  if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
+
+  // Ignore when typing in inputs, textareas, selects, or contenteditable elements
+  const target = e.target
+  const tag = target?.tagName?.toLowerCase?.()
+  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
+  if (isEditable) return
+
+  const role = user.value?.role
+  if (quote.value && (role === 'admin' || role === 'moderator')) {
+    e.preventDefault()
+    showEditQuoteDialog.value = true
+  }
+}
 
 const onQuoteUpdated = async () => {
   const { toast } = useToast()
@@ -677,11 +694,12 @@ const formatDate = (dateString) => {
   })
 }
 
-// Check like status on mount
 onMounted(() => {
   if (user.value && quote.value) {
     checkLikeStatus()
   }
+  // Attach global shortcut
+  window.addEventListener('keydown', handleGlobalKeydown)
 })
 
 watch(user, (newUser) => {
@@ -694,5 +712,7 @@ watch(user, (newUser) => {
 
 onUnmounted(() => {
   if (savedTimeoutId) clearTimeout(savedTimeoutId)
+  // Detach global shortcut
+  window.removeEventListener('keydown', handleGlobalKeydown)
 })
 </script>
