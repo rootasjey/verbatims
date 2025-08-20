@@ -1,16 +1,21 @@
 <template>
   <div
     :style="containerStyle"
-  class="app-icon font-title font-600 uppercase line-height-tight bg-black text-color-white border flex items-center justify-center"
+    class="app-icon font-title font-600 uppercase line-height-tight text-color-white light:border flex items-center justify-center"
+    :class="['app-icon', { ' bg-black': !props.icon }]"
     role="img"
     aria-label="Verbatims logo"
   >
-    <span :style="labelStyle">v.b.t</span>
+    <NuxtImg v-if="props.icon && !props.outline" src="/images/letter-v.png" :width="sizeNumber" alt="Verbatims logo" />
+    <NuxtImg v-else-if="props.icon && props.outline" src="/images/letter-v-outline.png" class="outline-icon" :width="sizeNumber" alt="Verbatims logo" />
+    <span v-else :style="labelStyle">v.b.t</span>
   </div>
 </template>
 
 <script setup lang="ts">
 const props = defineProps({
+  icon: { type: Boolean, default: false },
+  outline: { type: Boolean, default: false },
   /** size in pixels (number or numeric string) */
   size: { type: [Number, String], default: 48 },
   /** optional border-radius */
@@ -42,6 +47,10 @@ const labelStyle = {
 .app-icon:hover,
 .app-icon:focus-visible {
   animation: borderRainbow 2.5s linear infinite;
+}
+
+.dark .outline-icon {
+  filter: brightness(0) invert(1);
 }
 
 @keyframes borderRainbow {

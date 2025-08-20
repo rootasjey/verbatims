@@ -30,25 +30,25 @@ export interface Author {
   is_fictional: boolean;
   
   /** Birth date in YYYY-MM-DD format */
-  birth_date: string | null;
+  birth_date?: string;
   
   /** Location where the author was born */
-  birth_location: string | null;
+  birth_location?: string;
   
   /** Death date in YYYY-MM-DD format (null if still alive) */
-  death_date: string | null;
+  death_date?: string;
   
   /** Location where the author died */
-  death_location: string | null;
+  death_location?: string;
   
   /** Primary profession or job title */
-  job: string | null;
+  job?: string;
   
   /** Biographical description */
-  description: string | null;
+  description?: string;
   
   /** URL to author's profile image */
-  image_url: string | null;
+  image_url?: string;
   
   /** JSON string containing social media links */
   socials: string;

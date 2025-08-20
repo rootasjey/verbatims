@@ -69,6 +69,9 @@
 
         <ul class="flex items-center gap-6 text-xs sm:text-sm">
           <li>
+            <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">Licenses</NuxtLink>
+          </li>
+          <li>
             <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">Privacy & Policy</NuxtLink>
           </li>
           <li>

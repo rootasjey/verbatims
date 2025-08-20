@@ -411,16 +411,16 @@ const loadFilterOptions = async () => {
   if (authorOptions.value.length && referenceOptions.value.length) return
   try {
     const [authorsData, referencesData] = await Promise.all([
-      $fetch<any>('/api/authors?limit=100'),
-      $fetch<any>('/api/references?limit=100')
+      $fetch('/api/authors?limit=100'),
+      $fetch('/api/references?limit=100')
     ])
 
-    authorOptions.value = (authorsData.data.results || []).map((author: { id: number | string; name: string }) => ({
+    authorOptions.value = (authorsData.data || []).map((author: { id: number | string; name: string }) => ({
       label: author.name,
       value: author.id
     }))
 
-    referenceOptions.value = (referencesData.data.results || []).map((reference: { id: number | string; name: string }) => ({
+    referenceOptions.value = (referencesData.data || []).map((reference: { id: number | string; name: string }) => ({
       label: reference.name,
       value: reference.id
     }))

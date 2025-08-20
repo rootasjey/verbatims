@@ -118,7 +118,8 @@ export type {
   SearchResults,
   SearchParams,
   SearchQuery,
-  SearchApiResponse
+  SearchApiResponse,
+  QuotesSearchPayload,
 } from './search';
 
 // API Result types

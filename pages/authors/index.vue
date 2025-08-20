@@ -114,7 +114,6 @@ const searchInput = ref(null)
 const infiniteScrollTrigger = ref(null)
 const isSearching = ref(false)
 
-// Sort options
 const sortOptions = [
   { label: 'Name', value: 'name' },
   { label: 'Quote Count', value: 'quotes_count' },
@@ -122,7 +121,6 @@ const sortOptions = [
   { label: 'Recently Added', value: 'created_at' }
 ]
 
-// Load authors
 const loadAuthors = async (reset = true) => {
   if (reset) {
     loading.value = true
@@ -143,7 +141,7 @@ const loadAuthors = async (reset = true) => {
       }
     })
 
-    const authorsData = response.data.results || []
+    const authorsData = response.data || []
 
     if (reset) {
       authors.value = authorsData
@@ -213,7 +211,7 @@ const performSearch = async (query) => {
       }
     })
 
-    const apiResults = response.data.results || []
+    const apiResults = response.data || []
 
     // Merge results, avoiding duplicates
     const existingIds = new Set(localResults.map(a => a.id))

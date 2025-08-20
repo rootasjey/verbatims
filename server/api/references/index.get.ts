@@ -1,9 +1,10 @@
+import { QuoteReference } from "~/types"
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
     const db = hubDatabase()
     
-    // Parse query parameters
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100)
     const search = query.search as string
@@ -29,12 +30,10 @@ export default defineEventHandler(async (event) => {
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
     
-    // Validate sort column
     const allowedSortColumns = ['name', 'created_at', 'release_date', 'views_count', 'likes_count']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
-    // Main query with quote count
     const referencesQuery = `
       SELECT
         r.*,
@@ -47,14 +46,12 @@ export default defineEventHandler(async (event) => {
       LIMIT ? OFFSET ?
     `
 
-    // Count query for pagination
     const countQuery = `
       SELECT COUNT(*) as total
       FROM quote_references r
       ${whereClause}
     `
     
-    // Execute queries
     const [references, countResult] = await Promise.all([
       db.prepare(referencesQuery).bind(...params, limit, offset).all(),
       db.prepare(countQuery).bind(...params).first()
@@ -66,7 +63,7 @@ export default defineEventHandler(async (event) => {
     
     return {
       success: true,
-      data: references,
+      data: references.results as unknown as QuoteReference[],
       pagination: {
         page,
         limit,
@@ -75,7 +72,7 @@ export default defineEventHandler(async (event) => {
         hasMore
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching references:', error)
     throw createError({
       statusCode: 500,

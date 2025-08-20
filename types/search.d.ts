@@ -16,28 +16,28 @@ export type SearchContentType = 'quotes' | 'authors' | 'references' | 'all';
  */
 export interface QuoteSearchResult extends Quote {
   /** Author name from JOIN with authors table */
-  author_name?: string | null;
+  author_name?: string;
   
   /** Author fictional status from JOIN with authors table */
-  author_is_fictional?: boolean | null;
+  author_is_fictional?: boolean;
   
   /** Author image URL from JOIN with authors table */
-  author_image_url?: string | null;
+  author_image_url?: string;
   
   /** Reference name from JOIN with quote_references table */
-  reference_name?: string | null;
+  reference_name?: string;
   
   /** Reference type from JOIN with quote_references table */
-  reference_type?: string | null;
+  reference_type?: string;
   
   /** User name from JOIN with users table */
-  user_name?: string | null;
+  user_name?: string;
   
   /** Comma-separated tag names from GROUP_CONCAT */
-  tag_names?: string | null;
+  tag_names?: string;
   
   /** Comma-separated tag colors from GROUP_CONCAT */
-  tag_colors?: string | null;
+  tag_colors?: string;
   
   /** Result type identifier for search results */
   result_type: 'quote';

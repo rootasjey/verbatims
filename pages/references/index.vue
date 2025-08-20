@@ -7,7 +7,6 @@
       </p>
     </header>
 
-    <!-- Show Empty View if no references -->
     <ReferencesEmptyView
       v-if="references.length === 0 && !loading"
       :search-query="searchQuery"
@@ -61,7 +60,6 @@
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
         <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
           <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
@@ -74,7 +72,6 @@
         </div>
       </div>
 
-      <!-- References Grid -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
         <ReferenceGridItem
           v-for="reference in references"
@@ -84,10 +81,8 @@
         />
       </div>
 
-      <!-- Infinite Scroll Trigger -->
       <div ref="infiniteScrollTrigger" class="h-10"></div>
 
-      <!-- Loading More Indicator -->
       <div v-if="loadingMore" class="text-center py-8">
         <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin text-gray-400 mx-auto" />
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more references...</p>
@@ -108,7 +103,6 @@ useHead({
   ]
 })
 
-// Reactive state
 const searchQuery = ref('')
 const primaryType = ref('')
 const sortBy = ref('name')
@@ -125,7 +119,6 @@ const searchInput = ref(null)
 const infiniteScrollTrigger = ref(null)
 const isSearching = ref(false)
 
-// Type options
 const typeOptions = [
   { label: 'All Types', value: '' },
   { label: 'Books', value: 'book' },
@@ -142,7 +135,6 @@ const typeOptions = [
   { label: 'Other', value: 'other' }
 ]
 
-// Sort options
 const sortOptions = [
   { label: 'Name', value: 'name' },
   { label: 'Quote Count', value: 'quotes_count' },
@@ -151,7 +143,6 @@ const sortOptions = [
   { label: 'Recently Added', value: 'created_at' }
 ]
 
-// Load references
 const loadReferences = async (reset = true) => {
   if (reset) {
     loading.value = true
@@ -173,9 +164,7 @@ const loadReferences = async (reset = true) => {
       }
     })
 
-    // Handle nested response structure from API
-    const referencesData = Array.isArray(response.data?.results) ? response.data.results :
-                          Array.isArray(response.data) ? response.data : []
+    const referencesData = Array.isArray(response.data) ? response.data : []
 
     if (reset) {
       references.value = referencesData
@@ -185,18 +174,17 @@ const loadReferences = async (reset = true) => {
       allFetchedReferences.value = [...allFetchedReferences.value, ...referencesData]
     }
 
-    // Get pagination info from response
     const paginationInfo = response.pagination || {}
 
     hasMore.value = paginationInfo.hasMore || false
     totalReferences.value = paginationInfo.total || 0
   } catch (error) {
     console.error('Failed to load references:', error)
-    // Set empty arrays on error
     if (reset) {
       references.value = []
       allFetchedReferences.value = []
     }
+    
     hasMore.value = false
     totalReferences.value = 0
   } finally {
@@ -205,7 +193,6 @@ const loadReferences = async (reset = true) => {
   }
 }
 
-// Load more references (for infinite scroll)
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
 
@@ -213,7 +200,6 @@ const loadMore = async () => {
   await loadReferences(false)
 }
 
-// Toggle sort order
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'ASC' ? 'DESC' : 'ASC'
   loadReferences()
@@ -289,7 +275,6 @@ const refreshReferences = async () => {
   await loadReferences()
 }
 
-// Infinite scroll setup
 const setupInfiniteScroll = () => {
   if (!infiniteScrollTrigger.value) return
 
@@ -307,13 +292,11 @@ const setupInfiniteScroll = () => {
 
   observer.observe(infiniteScrollTrigger.value)
 
-  // Cleanup function
   return () => {
     observer.disconnect()
   }
 }
 
-// Auto-focus search input
 const focusSearchInput = () => {
   nextTick(() => {
     if (searchInput.value?.$el?.querySelector('input')) {
@@ -325,25 +308,21 @@ const focusSearchInput = () => {
 // Cleanup function for infinite scroll
 let infiniteScrollCleanup = null
 
-// Load references on mount
 onMounted(() => {
   loadReferences()
   focusSearchInput()
 
-  // Setup infinite scroll after initial load
   nextTick(() => {
     infiniteScrollCleanup = setupInfiniteScroll()
   })
 })
 
-// Cleanup on unmount
 onUnmounted(() => {
   if (infiniteScrollCleanup) {
     infiniteScrollCleanup()
   }
 })
 
-// Watch for sort and type changes
 watch([sortBy, primaryType], () => {
   if (searchQuery.value) {
     performSearch(searchQuery.value)
@@ -352,7 +331,6 @@ watch([sortBy, primaryType], () => {
   }
 })
 
-// Watch for search query changes
 watch(searchQuery, (newQuery) => {
   // Let debouncedSearch handle all search logic including empty queries
   debouncedSearch()

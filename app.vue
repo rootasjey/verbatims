@@ -3,6 +3,7 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <MobileBottomNavigation />
     <NuxtRouteAnnouncer />
     <UToaster />
   </div>

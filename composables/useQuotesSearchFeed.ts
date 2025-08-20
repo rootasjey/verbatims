@@ -1,4 +1,4 @@
-import type { QuotesSearchPayload } from '~/types/search'
+import type { ProcessedQuoteResult, QuotesSearchPayload } from '~/types'
 
 // types/sort.d.ts is likely a global declaration file, not a module.
 // So we reference the type name directly instead of importing.
@@ -44,12 +44,12 @@ export function useQuoteSearchFeed() {
   // Pagination / UI state
   const loadingMore = ref(false)
   const currentPage = ref(1)
-  const additionalQuotes = ref<any[]>([])
+  const additionalQuotes = ref<ProcessedQuoteResult[]>([])
   const searchQuery = ref('')
 
   // Data retention and initial load control
   const initialLoading = ref(true)
-  const lastSuccessfulQuotes = ref<any[]>([])
+  const lastSuccessfulQuotes = ref<ProcessedQuoteResult[]>([])
   const lastSuccessfulMeta = ref<{
     total: number
     page: number
@@ -98,7 +98,6 @@ export function useQuoteSearchFeed() {
     }
   )
 
-  // Fetch
   const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading } = useLazyFetch('/api/quotes/search', {
     query: computed(() => {
       const isAscending = (selectedSortOrder.value?.value || 'desc') === 'asc'

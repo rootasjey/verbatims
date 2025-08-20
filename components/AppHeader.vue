@@ -12,7 +12,7 @@
     <div class="flex justify-between items-center p-4">
       <div class="flex items-center space-x-4">
         <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-          <AppIcon />
+          <AppIcon icon :size="24" />
         </UButton>
 
         <!-- Page Title for Admin/Dashboard -->
@@ -34,9 +34,8 @@
         </div>
       </div>
 
-      <div class="flex items-center space-x-3 
-        font-subtitle font-700 color-gray-6 dark:color-gray-4 mr-8">
-        <div class="flex space-x-3 mr-3">
+      <div class="flex items-center space-x-3 font-subtitle font-700 color-gray-6 dark:color-gray-4 mr-2 md:mr-8">
+        <div class="flex space-x-3 md:mr-3">
           <UButton
             icon
             btn="ghost-gray"
@@ -53,7 +52,8 @@
           />
         </div>
 
-        <div class="flex space-x-8">
+        <!-- Desktop nav links -->
+        <div class="hidden md:flex space-x-8">
           <NuxtLink
             to="/authors"
             class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
@@ -75,11 +75,29 @@
           </NuxtLink>
         </div>
 
+        <!-- Mobile nav dropdown -->
+        <UDropdownMenu
+          v-if="isMobile"
+          class="md:hidden"
+          :items="navMenuItems"
+          :popper="{ placement: 'bottom-end' }"
+        >
+          <UButton
+            icon
+            btn="ghost-gray"
+            label="i-ph-list-bold"
+            title="Menu"
+          />
+        </UDropdownMenu>
+
         <UserMenu v-if="user" :user="user" />
-        <UButton v-else btn="outline-dark dark:outline-white" to="/login" class="h-7 relative left-2">Log in</UButton>
+        <UButton v-else btn="soft" to="/login" class="h-7 font-800 relative left-2">
+          Sign in
+        </UButton>
       </div>
     </div>
   </nav>
+
   <SearchBox 
     :model-value="showSearch" 
     @update:model-value="showSearch = $event"
@@ -91,6 +109,8 @@
 </template>
 
 <script lang="ts" setup>
+const { isMobile } = useMobileDetection()
+
 interface Props {
   // Responsive utility classes to pad the header from the left (e.g., 'lg:pl-64' | 'lg:pl-16')
   leftPadClass?: string
@@ -105,8 +125,21 @@ const scrollY = ref(0)
 const route = useRoute()
 const showSearch = ref(false)
 const showAddQuote = ref(false)
+const navMenuItems = computed(() => [
+  {
+    label: 'Authors',
+    onclick: () => navigateTo('/authors')
+  },
+  {
+    label: 'References',
+    onclick: () => navigateTo('/references')
+  },
+  {
+    label: 'About',
+    onclick: () => navigateTo('/about')
+  }
+])
 
-// Page header functionality
 const pageHeader = usePageHeader()
 
 // Only show page title for admin and dashboard pages
@@ -133,13 +166,10 @@ const handleLogoClick = (event: MouseEvent) => {
   })
 }
 
-// Set up scroll listener on mount
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
-  // Initialize scroll position
   scrollY.value = window.scrollY
 
-  // Clean up scroll listener on unmount
   onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll)
   })
