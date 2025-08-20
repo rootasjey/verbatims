@@ -104,29 +104,34 @@
 
       <!-- Quotes Table -->
       <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
-        <!-- Bulk Actions -->
-        <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-4">
-          <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
-              </span>
-              <div class="flex items-center gap-3">
-                <UButton size="sm" btn="soft-blue" @click="showBulkAddToCollection = true">
-                  <UIcon name="i-ph-bookmark" />
-                  Add to Collection
-                </UButton>
-                <UButton size="sm" btn="soft-pink" @click="bulkUnpublish">
-                  <UIcon name="i-ph-eye-slash" />
-                  Unpublish
-                </UButton>
-                <UButton size="sm" btn="ghost-gray" @click="clearSelection">
-                  Clear Selection
-                </UButton>
+        <!-- Bulk Actions (animated) -->
+        <UCollapsible v-model:open="bulkOpen">
+          <UCollapsibleContent>
+            <div class="flex-shrink-0 mb-4">
+              <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
+                  </span>
+                  <div class="flex items-center gap-3">
+                    <UButton size="sm" btn="ghost-blue" @click="showBulkAddToCollection = true">
+                      <UIcon name="i-ph-bookmark" />
+                      Add to Collection
+                    </UButton>
+                    <UButton size="sm" btn="ghost-pink" @click="bulkUnpublish">
+                      <UIcon name="i-ph-eye-slash" />
+                      Unpublish
+                    </UButton>
+                    <UButton size="sm" btn="ghost-gray" @click="clearSelection">
+                      Clear Selection
+                    </UButton>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </UCollapsibleContent>
+        </UCollapsible>
+
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
@@ -339,6 +344,7 @@ const selectedQuotes = computed<number[]>(() => Object
   .map(([k]) => Number(k)))
 // Bulk modal
 const showBulkAddToCollection = ref(false)
+const bulkOpen = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -636,6 +642,11 @@ const bulkUnpublish = async () => {
 watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
   loadQuotes()
 }, { debounce: 300, immediate: true })
+
+// Smoothly show/hide bulk actions based on selection
+watch(selectedQuotes, (ids) => {
+  bulkOpen.value = ids.length > 0
+}, { immediate: true })
 
 // Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
 onMounted(() => {

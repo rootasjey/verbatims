@@ -98,29 +98,34 @@
 
       <!-- Quotes Table -->
       <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
-        <!-- Bulk Actions -->
-        <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-4">
-          <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} selected
-              </span>
-              <div class="flex items-center gap-3">
-                <UButton size="sm" btn="soft-blue" :loading="bulkProcessing" @click="bulkSubmit">
-                  <UIcon name="i-ph-paper-plane-tilt" />
-                  Submit Selected
-                </UButton>
-                <UButton size="sm" btn="soft-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
-                  <UIcon name="i-ph-trash" />
-                  Delete Selected
-                </UButton>
-                <UButton size="sm" btn="ghost" @click="clearSelection">
-                  Clear Selection
-                </UButton>
+        <!-- Bulk Actions (animated) -->
+        <UCollapsible v-model:open="bulkOpen">
+          <UCollapsibleContent>
+            <div class="flex-shrink-0 mb-4">
+              <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} selected
+                  </span>
+                  <div class="flex items-center gap-3">
+                    <UButton size="sm" btn="ghost-blue" :loading="bulkProcessing" @click="bulkSubmit">
+                      <UIcon name="i-ph-paper-plane-tilt" />
+                      Submit Selected
+                    </UButton>
+                    <UButton size="sm" btn="ghost-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
+                      <UIcon name="i-ph-trash" />
+                      Delete Selected
+                    </UButton>
+                    <UButton size="sm" btn="ghost" @click="clearSelection">
+                      Clear Selection
+                    </UButton>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </UCollapsibleContent>
+        </UCollapsible>
+
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
           <UTable
@@ -348,6 +353,7 @@ const showDeleteModal = ref(false)
 const showBulkDeleteModal = ref(false)
 const deleting = ref(false)
 const bulkProcessing = ref(false)
+const bulkOpen = ref(false)
 
 // Selection state
 const selectionMode = ref(false)
@@ -356,6 +362,11 @@ const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
+
+// Smoothly show/hide bulk actions based on selection
+watch(selectedQuotes, (ids) => {
+  bulkOpen.value = ids.length > 0
+}, { immediate: true })
 
 const { availableLanguages } = useLanguageStore()
 

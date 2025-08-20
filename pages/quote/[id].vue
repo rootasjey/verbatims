@@ -337,6 +337,13 @@
     @quote-deleted="onQuoteDeleted"
   />
 
+  <ReportDialog
+    v-if="quote"
+    v-model="showReportDialog"
+    targetType="quote"
+    :targetId="quote.id"
+  />
+
   <!-- Mobile Action Dock -->
   <div
     v-if="quote"
@@ -619,9 +626,8 @@ const downloadQuote = () => {
   // TODO: Generate and download quote image
 }
 
-const reportQuote = () => {
-  // TODO: Open report modal
-}
+const showReportDialog = ref(false)
+const reportQuote = () => { showReportDialog.value = true }
 
 const copyQuoteText = async () => {
   if (!quote.value) return

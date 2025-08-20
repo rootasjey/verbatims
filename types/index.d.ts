@@ -142,6 +142,14 @@ export {
   SortQuery
 } from './sort';
 
+export {
+  AdminUserMessage,
+  AdminMessagesListResponse,
+  CreateUserMessageInput,
+  CreateUserMessageResult,
+  UserMessage,
+} from './report';
+
 // Common utility types
 export interface DatabaseEntity {
   id: number;

@@ -329,6 +329,13 @@
       :author="author"
       @author-deleted="onAuthorDeleted"
     />
+
+    <ReportDialog
+      v-if="author"
+      v-model="showReportDialog"
+      targetType="author"
+      :targetId="author.id"
+    />
   </div>
 </template>
 
@@ -596,9 +603,8 @@ const copyLink = async () => {
   }
 }
 
-const reportAuthor = () => {
-  // TODO: Open report modal for author
-}
+const showReportDialog = ref(false)
+const reportAuthor = () => { showReportDialog.value = true }
 
 // Utility functions
 const formatLifeDates = (birthDate, deathDate) => {

@@ -191,16 +191,43 @@ CREATE TABLE IF NOT EXISTS quote_reports (
   FOREIGN KEY (reviewed_by) REFERENCES users(id)
 );
 
+-- General and content-specific user messages/reports (supports anonymous)
+-- NOTE: user_id is NULL for anonymous messages
+--       name and email are optional for anonymous messages
+--       target_id is nullable when general
+--       IP address is for anonymous rate limiting
+CREATE TABLE IF NOT EXISTS user_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  name TEXT,
+  email TEXT,
+  category TEXT NOT NULL CHECK (category IN ('bug', 'feature', 'feedback', 'content', 'other')),
+  tags TEXT DEFAULT '[]' CHECK (json_valid(tags)),
+  message TEXT NOT NULL CHECK (length(message) >= 10 AND length(message) <= 4000),
+  target_type TEXT DEFAULT 'general' CHECK (target_type IN ('general', 'quote', 'author', 'reference')),
+  target_id INTEGER,
+  ip_address TEXT,
+  user_agent TEXT,
+  status TEXT DEFAULT 'new' CHECK (status IN ('new', 'triaged', 'spam', 'resolved')),
+  reviewed_by INTEGER,
+  reviewed_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- ============================================================================
 -- ANALYTICS & TRACKING
 -- ============================================================================
 
 -- Quote views tracking for analytics and engagement metrics
+-- NOTE: user_id is NULL for anonymous views
+--       ip_address is for anonymous tracking
 CREATE TABLE IF NOT EXISTS quote_views (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   quote_id INTEGER NOT NULL,
-  user_id INTEGER, -- NULL for anonymous views
-  ip_address TEXT, -- For anonymous tracking
+  user_id INTEGER,
+  ip_address TEXT,
   user_agent TEXT,
   viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
@@ -208,11 +235,13 @@ CREATE TABLE IF NOT EXISTS quote_views (
 );
 
 -- Author views tracking for analytics and engagement metrics
+-- NOTE: user_id is NULL for anonymous views
+--       ip_address is for anonymous tracking
 CREATE TABLE IF NOT EXISTS author_views (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   author_id INTEGER NOT NULL,
-  user_id INTEGER, -- NULL for anonymous views
-  ip_address TEXT, -- For anonymous tracking
+  user_id INTEGER,
+  ip_address TEXT,
   user_agent TEXT,
   viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE CASCADE,
@@ -220,11 +249,13 @@ CREATE TABLE IF NOT EXISTS author_views (
 );
 
 -- Reference views tracking for analytics and engagement metrics
+-- NOTE: user_id is NULL for anonymous views
+--       ip_address is for anonymous tracking
 CREATE TABLE IF NOT EXISTS reference_views (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   reference_id INTEGER NOT NULL,
-  user_id INTEGER, -- NULL for anonymous views
-  ip_address TEXT, -- For anonymous tracking
+  user_id INTEGER,
+  ip_address TEXT,
   user_agent TEXT,
   viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (reference_id) REFERENCES quote_references(id) ON DELETE CASCADE,
@@ -283,6 +314,12 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at
 
 -- Moderation indexes
 CREATE INDEX IF NOT EXISTS idx_quote_reports_status ON quote_reports(status);
+CREATE INDEX IF NOT EXISTS idx_user_messages_created ON user_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_messages_category ON user_messages(category);
+CREATE INDEX IF NOT EXISTS idx_user_messages_status ON user_messages(status);
+CREATE INDEX IF NOT EXISTS idx_user_messages_target ON user_messages(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_user_messages_user ON user_messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_messages_ip ON user_messages(ip_address);
 
 -- Analytics indexes
 CREATE INDEX IF NOT EXISTS idx_quote_views_quote ON quote_views(quote_id);

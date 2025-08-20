@@ -174,6 +174,24 @@
                 System Management
               </h3>
               
+              <!-- Messages Inbox -->
+              <UTooltip :content="sidebarCollapsed ? 'Messages' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/messages"
+                  :class="[
+                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    $route.path === '/admin/messages'
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <UIcon name="i-ph-envelope" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Messages</span>
+                </NuxtLink>
+              </UTooltip>
+              
               <!-- Users -->
               <UTooltip :content="sidebarCollapsed ? 'Users' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink

@@ -65,3 +65,26 @@ export function parseIntSafe(value: any, defaultValue: number) {
   const n = parseInt(String(value || ''))
   return Number.isFinite(n) ? n : defaultValue
 }
+
+/**
+ * Safely parses a JSON string and returns the parsed value, or an empty array on failure.
+ *
+ * If `input` is `null` or an empty string, this function returns `[]`. It calls `JSON.parse`
+ * inside a try/catch and returns `[]` if parsing throws (invalid JSON).
+ *
+ * The function intentionally never throws and uses an empty array as the fallback sentinel value.
+ *
+ * @param input - A JSON string to parse, or `null` to indicate no input.
+ * @returns The parsed value (object, array, primitive, or `null`) when parsing succeeds;
+ *          otherwise an empty array `[]` to indicate missing or invalid JSON.
+ *
+ * @example
+ * safeParseJSON('{"a":1}') // => { a: 1 }
+ * safeParseJSON('[1,2,3]') // => [1, 2, 3]
+ * safeParseJSON('invalid') // => []
+ * safeParseJSON(null)      // => []
+ */
+export function parseJSONSafely(input: string | null): any {
+  if (!input) return []
+  try { return JSON.parse(input) } catch { return [] }
+}

@@ -67,43 +67,33 @@
       </div>
     </div>
 
-    <!-- Bulk Actions -->
-    <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-6">
-      <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
-          </span>
-          <div class="flex items-center gap-3">
-            <UButton
-              size="sm"
-              btn="soft-blue"
-              :loading="bulkProcessing"
-              @click="bulkApprove"
-            >
-              <UIcon name="i-ph-check" />
-              Approve Selected
-            </UButton>
-            <UButton
-              size="sm"
-              btn="soft-pink"
-              :loading="bulkProcessing"
-              @click="showBulkRejectModal = true"
-            >
-              <UIcon name="i-ph-x" />
-              Reject Selected
-            </UButton>
-            <UButton
-              size="sm"
-              btn="ghost-gray"
-              @click="clearSelection"
-            >
-              Clear Selection
-            </UButton>
+    <!-- Bulk Actions (animated) -->
+    <UCollapsible v-model:open="bulkOpen">
+      <UCollapsibleContent>
+        <div class="flex-shrink-0 mb-6">
+          <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
+              </span>
+              <div class="flex items-center gap-3">
+                <UButton size="sm" btn="ghost-blue" :loading="bulkProcessing" @click="bulkApprove">
+                  <UIcon name="i-ph-check" />
+                  Approve Selected
+                </UButton>
+                <UButton size="sm" btn="ghost-pink" :loading="bulkProcessing" @click="showBulkRejectModal = true">
+                  <UIcon name="i-ph-x" />
+                  Reject Selected
+                </UButton>
+                <UButton size="sm" btn="ghost-gray" @click="clearSelection">
+                  Clear Selection
+                </UButton>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </UCollapsibleContent>
+    </UCollapsible>
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
@@ -180,7 +170,7 @@
                   class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
                   :title="cell.row.original.name"
                 >
-                  "{{ cell.row.original.name }}"
+                  {{ cell.row.original.name }}
                 </blockquote>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="cell.row.original.author_name">{{ cell.row.original.author_name }}</span>
@@ -305,7 +295,7 @@
 
     <!-- Reject Quote Modal -->
     <UDialog v-model:open="showRejectModal">
-      <UCard>
+      <UCard class="border-none shadow-none">
         <template #header>
           <h3 class="text-lg font-semibold">Reject Quote</h3>
         </template>
@@ -341,7 +331,7 @@
               Cancel
             </UButton>
             <UButton
-              color="red"
+              btn="soft-red"
               :loading="processing.has(selectedQuote?.id)"
               @click="confirmRejectQuote"
             >
@@ -437,6 +427,7 @@ const showQuoteDialog = ref(false)
 const selectedQuote = ref(null)
 const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
+const bulkOpen = ref(false)
 
 const statusOptions = [
   { label: 'Pending Review', value: 'pending' },
@@ -816,6 +807,11 @@ onMounted(() => {
     window.removeEventListener('keydown', onKeydown)
   })
 })
+
+// Smoothly show/hide bulk actions based on selection
+watch(selectedQuotes, (ids) => {
+  bulkOpen.value = ids.length > 0
+}, { immediate: true })
 
 </script>
 

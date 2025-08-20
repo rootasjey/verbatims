@@ -281,6 +281,13 @@
       :reference="reference"
       @reference-deleted="onReferenceDeleted"
     />
+
+    <ReportDialog
+      v-if="reference"
+      v-model="showReportDialog"
+      targetType="reference"
+      :targetId="reference.id"
+    />
   </div>
 </template>
 
@@ -533,9 +540,8 @@ const copyLink = async () => {
   }
 }
 
-const reportReference = () => {
-  // TODO: Open report modal for reference
-}
+const showReportDialog = ref(false)
+const reportReference = () => { showReportDialog.value = true }
 
 // Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
 const handleGlobalKeydown = (e) => {
