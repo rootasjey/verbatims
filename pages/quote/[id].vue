@@ -1,23 +1,21 @@
 <template>
   <div class="min-h-screen">
     <!-- Desktop-only Sticky Header -->
-    <div class="hidden md:block">
-      <QuoteStickyHeader
-        v-if="quote"
-        :quote="quote"
-        :user="user"
-        :is-liked="isLiked"
-        :like-pending="likePending"
-        :share-pending="sharePending"
-        :saved-state="savedState"
-        :copy-state="copyState"
-        :menu-items="headerMenuItems"
-        @toggle-like="toggleLike"
-        @share="shareQuote"
-        @add-to-collection="addToCollection"
-        @copy-link="copyLink"
-      />
-    </div>
+    <QuoteStickyHeader
+      v-if="quote"
+      :quote="quote"
+      :user="user"
+      :is-liked="isLiked"
+      :like-pending="likePending"
+      :share-pending="sharePending"
+      :saved-state="savedState"
+      :copy-state="copyState"
+      :menu-items="headerMenuItems"
+      @toggle-like="toggleLike"
+      @share="shareQuote"
+      @add-to-collection="addToCollection"
+      @copy-link="copyLink"
+    />
 
     <!-- Loading State -->
     <div v-if="pending" class="px-8 py-16">

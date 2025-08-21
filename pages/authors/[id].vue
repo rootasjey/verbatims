@@ -20,12 +20,12 @@
     <!-- Author Content -->
     <div v-else-if="author">
       <!-- Sticky Top Header: compact title + stats/actions -->
-      <div class="sticky top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+      <div class="sticky top-[60px] md:top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <div class="flex items-center justify-between gap-3">
             <!-- Left: compact author title and context -->
-            <div class="min-w-0 flex items-center gap-3">
-              <UIcon name="i-ph-user" class="w-5 h-5 text-gray-400" />
+            <div @click.stop="scrollToTop" class="min-w-0 flex items-center gap-3">
+              <UIcon name="i-ph-person-simple-hike-duotone" class="w-5 h-5 text-gray-400" />
               <div class="truncate">
                 <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
                 <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
@@ -101,6 +101,7 @@
           </div>
         </div>
       </div>
+
       <!-- Author Header -->
       <header class="mt-12 p-8">
         <!-- Author Type (appears after header content animates) -->
@@ -118,9 +119,9 @@
           </Transition>
         </div>
 
-        <div class="text-center mb-6">
+        <div class="text-center mb-6 w-full">
           <h1
-            class="font-title text-size-54 font-600 line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            class="font-title text-size-42 md:text-size-54 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(0)"
           >
@@ -230,9 +231,10 @@
 
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
-        <!-- Sort Options -->
+        <!-- Sort / Filters -->
         <div class="font-body mb-8">
-          <div class="flex gap-4 max-w-2xl mx-auto items-center justify-center">
+          <!-- Desktop controls -->
+          <div class="hidden md:flex gap-4 max-w-2xl mx-auto items-center justify-center">
             <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
             <span>•</span>
             <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
@@ -246,7 +248,16 @@
               value-key="label"
               @change="loadQuotes"
             />
-            <LanguageSelector @language-changed="onLanguageChange" />
+            <LanguageSelector class="hidden md:block" @language-changed="onLanguageChange" />
+          </div>
+
+          <!-- Mobile controls: filter button opens drawer -->
+          <div class="md:hidden flex items-center justify-between max-w-xl mx-auto">
+            <p class="font-600 text-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
+            <UButton size="sm" btn="outline-gray" class="rounded-full" @click="mobileFiltersOpen = true">
+              <UIcon name="i-ph-faders" class="w-4 h-4 mr-1" />
+              Filters
+            </UButton>
           </div>
         </div>
 
@@ -265,16 +276,28 @@
 
         <!-- Quotes Display -->
         <div v-else-if="authorQuotes.length > 0" class="mb-12">
-          <!-- Masonry Grid Layout -->
-          <MasonryGrid>
-            <QuoteMasonryItem
-              v-for="(quote, index) in authorQuotes"
+          <!-- Desktop: Masonry Grid -->
+          <div class="hidden md:block">
+            <MasonryGrid>
+              <QuoteMasonryItem
+                v-for="(quote, index) in authorQuotes"
+                :key="quote.id"
+                :quote="quote"
+                :index="index"
+                class="fade-in"
+              />
+            </MasonryGrid>
+          </div>
+
+          <!-- Mobile: List -->
+          <div class="md:hidden space-y-4">
+            <QuoteListItem
+              v-for="quote in authorQuotes"
               :key="quote.id"
               :quote="quote"
-              :index="index"
-              class="fade-in"
+              class="border rounded-1 border-gray-100 dark:border-dark-400"
             />
-          </MasonryGrid>
+          </div>
         </div>
 
         <!-- Empty State -->
@@ -300,7 +323,7 @@
           </UButton>
         </div>
       </div>
-    </div>
+  </div>
 
     <!-- Error State -->
     <div v-else class="p-8">
@@ -337,9 +360,22 @@
       :targetId="author.id"
     />
   </div>
+
+  <!-- Mobile Filters Drawer -->
+  <MobileAuthorFiltersDrawer
+    v-if="isMobile"
+    v-model:open="mobileFiltersOpen"
+    v-model:sortBy="sortBy"
+    :sortOptions="sortOptions"
+    @language-changed="onLanguageChange"
+  />
 </template>
 
 <script setup>
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
+definePageMeta({ layout: false })
+
 const route = useRoute()
 const { user } = useUserSession()
 
@@ -367,6 +403,7 @@ const loadingMoreQuotes = ref(false)
 const hasMoreQuotes = ref(true)
 const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
+const mobileFiltersOpen = ref(false)
 
 const isMetaBadgeOpen = ref(false)
 const headerIn = ref(false)
@@ -468,7 +505,8 @@ const loadQuotes = async (reset = true) => {
       author_id: author.value.id,
       page: currentQuotePage.value,
       limit: 12,
-      sort_by: sortBy.value,
+      // Support both object and string for sortBy
+      sort_by: typeof sortBy.value === 'string' ? sortBy.value : sortBy.value?.value,
       sort_order: 'DESC',
       ...languageStore.getLanguageQuery()
     }
@@ -603,6 +641,10 @@ const copyLink = async () => {
   }
 }
 
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 const showReportDialog = ref(false)
 const reportAuthor = () => { showReportDialog.value = true }
 
@@ -639,6 +681,7 @@ const getSocialIcon = (platform) => {
 }
 
 onMounted(async () => {
+  setPageLayout(currentLayout.value)
   await waitForLanguageStore()
 
   if (author.value) {
@@ -664,6 +707,10 @@ onMounted(async () => {
 
   // Attach global shortcut
   window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+watch(currentLayout, (newLayout) => {
+  setPageLayout(newLayout)
 })
 
 watch(author, (newAuthor) => {

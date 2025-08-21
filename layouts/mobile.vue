@@ -1,9 +1,11 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-[#0C0A09] dark:to-gray-900 mobile-layout">
     <header
-      class="fixed top-0 left-0 right-0 z-40 dark:bg-[#0C0A09]/95 backdrop-blur-md px-4 py-3 safe-area-pt"
+      class="fixed top-0 left-0 right-0 z-40 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur-md px-4 py-3 safe-area-pt"
     >
-      <div class="flex items-center justify-between">
+      <div 
+        @click.self="scrollToTop"
+        class="flex items-center justify-between">
         <div class="flex items-center">
           <UButton
             v-if="canGoBack"
@@ -28,16 +30,14 @@
           </div>
         </div>
 
-        <!-- Right: Settings/Menu -->
         <div class="flex items-center space-x-2">
-          <!-- Settings Button -->
           <UButton
             icon
             btn="ghost-gray"
-            label="i-ph-gear-six-bold"
-            @click="showSettings = true"
+            label="i-ph-flag-duotone"
             size="sm"
             class="text-gray-600 dark:text-gray-400"
+            @click="showReportDrawer = true"
           />
         </div>
       </div>
@@ -54,16 +54,11 @@
       @quote-added="handleQuoteAdded"
     />
 
-    <!-- Settings Modal (placeholder for now) -->
-    <UDialog v-model="showSettings">
-      <div class="p-6">
-        <h2 class="text-xl font-600 mb-4">Settings</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-4">Settings panel coming soon...</p>
-        <UButton @click="showSettings = false" btn="solid-black" class="w-full">
-          Close
-        </UButton>
-      </div>
-    </UDialog>
+    <!-- Report Drawer for mobile bug/feedback reports -->
+    <ReportDrawer
+      v-model:open="showReportDrawer"
+      :target-type="'general'"
+    />
   </div>
 </template>
 
@@ -71,7 +66,7 @@
 const route = useRoute()
 const router = useRouter()
 const showAddQuote = ref(false)
-const showSettings = ref(false)
+const showReportDrawer = ref(false)
 
 // Check if we can go back in navigation history
 const canGoBack = computed(() => {
@@ -93,6 +88,12 @@ const handleQuoteAdded = () => {
   showAddQuote.value = false
 }
 
+const scrollToTop = () => {
+  if (import.meta.client) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 const handleAppIconClick = (event: MouseEvent) => {
   if (route.path !== '/') {
     navigateTo('/')
@@ -101,10 +102,7 @@ const handleAppIconClick = (event: MouseEvent) => {
 
   // If we're on the home page, prevent navigation and scroll to top instead
   event.preventDefault()
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
+  scrollToTop()
 }
 
 // Set page meta to use mobile layout on mobile devices

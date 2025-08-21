@@ -9,9 +9,14 @@
     <div class="flex items-center justify-between mb-3">
       <!-- Author Name with Avatar -->
       <div class="flex items-center space-x-2">
-        <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-lime-500 flex items-center justify-center text-white text-xs font-bold">
-          {{ getAuthorInitials() }}
-        </div>
+        <UAvatar
+          v-if="showAvatar"
+          :src="quote.author?.image_url || undefined"
+          :alt="quote.author?.name || 'Unknown Author'"
+          size="xs"
+          rounded="full"
+          square="1.5rem"
+        />
         <span v-if="quote.author" class="text-sm font-600 text-gray-700 dark:text-gray-300 truncate">
           {{ quote.author.name }}
         </span>
@@ -23,13 +28,13 @@
       <!-- Reference Info -->
       <div v-if="quote.reference" class="flex items-center space-x-2">
         <UBadge
-          v-if="quote.reference.primary_type"
-          :color="getReferenceTypeColor(quote.reference.primary_type)"
+          v-if="quote.reference.type"
+          :color="getReferenceTypeColor(quote.reference.type)"
           variant="subtle"
           size="xs"
           class="text-xs"
         >
-          {{ quote.reference.primary_type }}
+          {{ quote.reference.type }}
         </UBadge>
       </div>
     </div>
@@ -91,12 +96,16 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  quote: {
-    type: Object,
-    required: true
-  }
+<script lang="ts" setup>
+import type { ProcessedQuoteResult } from '~/types'
+
+interface Props {
+  quote: ProcessedQuoteResult
+  showAvatar?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showAvatar: true,
 })
 
 const isHovered = ref(false)
@@ -105,8 +114,8 @@ const navigateToQuote = () => {
   navigateTo(`/quote/${props.quote.id}`)
 }
 
-const getReferenceTypeColor = (type) => {
-  const colors = {
+const getReferenceTypeColor = (type: string) => {
+  const colors: Record<string, string> = {
     'book': 'green',
     'film': 'blue',
     'tv_series': 'purple',
@@ -117,16 +126,6 @@ const getReferenceTypeColor = (type) => {
     'speech': 'red'
   }
   return colors[type] || 'gray'
-}
-
-const getAuthorInitials = () => {
-  const name = props.quote.author?.name || 'Unknown'
-  return name
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
 }
 
 const handleLike = () => {

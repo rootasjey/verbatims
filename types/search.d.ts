@@ -84,8 +84,8 @@ export interface ProcessedQuoteResult extends Omit<QuoteSearchResult, 'tag_names
    * Normalized relations for UI convenience.
    * These are added in addition to the flattened *_name fields for backward compatibility.
    */
-  author?: Pick<Author, 'id' | 'name'> & Partial<Pick<Author, 'is_fictional' | 'image_url'>> | null;
-  reference?: Pick<QuoteReference, 'id' | 'name'> & { type?: string } | null;
+  author?: Pick<Author, 'id' | 'name'> & Partial<Pick<Author, 'is_fictional' | 'image_url'>>;
+  reference?: Pick<QuoteReference, 'id' | 'name'> & { type?: string };
 }
 
 export type QuotesSearchPayload = {

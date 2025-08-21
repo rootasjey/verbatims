@@ -1,6 +1,6 @@
 <template>
   <!-- Sticky Top Header: compact title + stats/actions -->
-  <div v-if="quote" class="sticky top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+  <div v-if="quote" class="sticky top-[60px] md:top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact quote title and context -->
