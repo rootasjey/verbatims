@@ -16,7 +16,15 @@
           />
 
           <div class="flex items-center space-x-2">
-            <AppIcon icon :outline="true" :size="24" />
+            <UButton
+              icon
+              btn="~"
+              @click="handleAppIconClick"
+              size="sm"
+              class="text-gray-600 dark:text-gray-400"
+            >
+              <AppIcon icon :outline="true" :size="24" />
+            </UButton>
           </div>
         </div>
 
@@ -83,6 +91,20 @@ const handleBackClick = () => {
 const handleQuoteAdded = () => {
   // Handle quote added - could refresh data or show toast
   showAddQuote.value = false
+}
+
+const handleAppIconClick = (event: MouseEvent) => {
+  if (route.path !== '/') {
+    navigateTo('/')
+    return
+  }
+
+  // If we're on the home page, prevent navigation and scroll to top instead
+  event.preventDefault()
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
 }
 
 // Set page meta to use mobile layout on mobile devices

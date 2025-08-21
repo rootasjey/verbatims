@@ -41,11 +41,9 @@
       :stats="stats"
     />
 
-    <!-- Desktop: Quotes Grid extracted to component -->
     <DesktopQuotesGrid v-else-if="!isMobile" :feed="feed" />
     <MobileRecentQuotes v-if="isMobile" :feed="feed" :limit="5" />
 
-    <!-- Add Quote Drawer (Mobile Only) -->
     <AddQuoteDrawer
       v-if="isMobile"
       v-model:open="showAddQuoteDrawer"

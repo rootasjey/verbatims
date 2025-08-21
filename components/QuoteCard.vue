@@ -257,53 +257,23 @@ const reportQuote = () => {
 }
 
 const dropdownItems = computed(() =>  [
-    {
-      label: 'Share',
-      leading: 'i-ph-share',
-      onclick: shareQuote
-    },
-    ...(user.value.role === 'admin' || user.value.role === 'moderator' ? [{
-      label: 'Add to Collection',
-      leading: 'i-ph-bookmark',
-      onclick: addToCollection
-    }] : []),
-    {},
-    {
-      label: 'Report',
-      leading: 'i-ph-flag',
-      onclick: reportQuote
-    }
-  ])
-
-const getLanguageName = (code) => {
-  const languages = {
-    en: 'English',
-    fr: 'French',
-    es: 'Spanish',
-    de: 'German',
-    it: 'Italian',
-    pt: 'Portuguese',
-    ru: 'Russian',
-    ja: 'Japanese',
-    zh: 'Chinese'
+  {
+    label: 'Share',
+    leading: 'i-ph-share',
+    onclick: shareQuote
+  },
+  ...(user.value.role === 'admin' || user.value.role === 'moderator' ? [{
+    label: 'Add to Collection',
+    leading: 'i-ph-bookmark',
+    onclick: addToCollection
+  }] : []),
+  {},
+  {
+    label: 'Report',
+    leading: 'i-ph-flag',
+    onclick: reportQuote
   }
-  return languages[code] || code.toUpperCase()
-}
-
-const getReferenceIcon = (type) => {
-  const icons = {
-    film: 'i-ph-film-strip',
-    book: 'i-ph-book',
-    tv_series: 'i-ph-television',
-    music: 'i-ph-music-note',
-    speech: 'i-ph-microphone',
-    podcast: 'i-ph-microphone',
-    interview: 'i-ph-chat-circle',
-    documentary: 'i-ph-video',
-    other: 'i-ph-file'
-  }
-  return icons[type] || 'i-ph-file'
-}
+])
 
 const formatNumber = (num) => {
   if (num >= 1000000) {

@@ -9,8 +9,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const db = hubDatabase()
-
-    // Fetch quote with all related data
     const quote = await db.prepare(`
       SELECT 
         q.*,
@@ -39,7 +37,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Transform the result
     const transformedQuote = {
       id: quote.id,
       name: quote.name,
@@ -60,7 +57,7 @@ export default defineEventHandler(async (event) => {
       reference: quote.reference_id ? {
         id: quote.reference_id,
         name: quote.reference_name,
-        type: quote.reference_type
+        primary_type: quote.reference_type
       } : null,
       user: {
         name: quote.user_name
@@ -75,7 +72,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: transformedQuote
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.statusCode) {
       throw error
     }
