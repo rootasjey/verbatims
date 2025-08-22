@@ -1,3 +1,5 @@
+import { Author } from "~/types"
+
 export default defineEventHandler(async (event) => {
   try {
     const authorId = getRouterParam(event, 'id')
@@ -10,16 +12,32 @@ export default defineEventHandler(async (event) => {
 
     const db = hubDatabase()
 
-    // Fetch author with quote count
-    const author = await db.prepare(`
+    // Fetch author with quote count and origin reference if any
+  const author: Author | null = await db.prepare(`
       SELECT 
         a.*,
-        COUNT(q.id) as quotes_count
+        COUNT(q.id) as quotes_count,
+        (
+          SELECT r.id FROM quotes q2
+          JOIN quote_references r ON r.id = q2.reference_id
+          WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
+          GROUP BY q2.reference_id
+          ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
+          LIMIT 1
+        ) AS origin_reference_id,
+        (
+          SELECT r.name FROM quotes q2
+          JOIN quote_references r ON r.id = q2.reference_id
+          WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
+          GROUP BY q2.reference_id
+          ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
+          LIMIT 1
+        ) AS origin_reference_name
       FROM authors a
       LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
       WHERE a.id = ?
       GROUP BY a.id
-    `).bind(authorId).first()
+  `).bind(authorId).first()
 
     if (!author) {
       throw createError({
@@ -29,9 +47,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Parse JSON fields
-    let socials = []
+    let socials = [] as any[]
     try {
-      socials = author.socials ? JSON.parse(author.socials) : []
+      socials = author && author.socials ? JSON.parse(author.socials as string) : []
     } catch (error) {
       console.error('Failed to parse author socials:', error)
     }
@@ -54,15 +72,17 @@ export default defineEventHandler(async (event) => {
       shares_count: author.shares_count,
       quotes_count: author.quotes_count,
       created_at: author.created_at,
-      updated_at: author.updated_at
+      updated_at: author.updated_at,
+      origin_reference_id: author.origin_reference_id,
+      origin_reference_name: author.origin_reference_name
     }
 
     return {
       success: true,
       data: transformedAuthor
     }
-  } catch (error) {
-    if (error.statusCode) {
+  } catch (error: any) {
+    if (error && error.statusCode) {
       throw error
     }
     

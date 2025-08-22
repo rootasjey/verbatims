@@ -34,7 +34,7 @@
           size="xs"
           class="text-xs"
         >
-          {{ quote.reference.type }}
+          {{ formatReferenceType(quote.reference.type) }}
         </UBadge>
       </div>
     </div>

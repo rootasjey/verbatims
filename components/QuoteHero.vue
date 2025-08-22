@@ -22,7 +22,6 @@
       />
     </div>
 
-    <!-- Quote Content -->
     <div class="mb-4">
       <blockquote class="font-serif text-xl leading-relaxed text-gray-800 dark:text-gray-200 mb-4">
         "{{ quote.name }}"

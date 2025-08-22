@@ -23,19 +23,36 @@ export default defineEventHandler(async (event) => {
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
     
-    const allowedSortColumns = ['name', 'created_at', 'views_count', 'likes_count']
+    const allowedSortColumns = ['name', 'created_at', 'views_count', 'likes_count', 'quotes_count']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
+    const orderByExpr = sortColumn === 'quotes_count' ? 'quotes_count' : `a.${sortColumn}`
     
     const authorsQuery = `
       SELECT 
         a.*,
-        COUNT(q.id) as quotes_count
+        COUNT(q.id) as quotes_count,
+        (
+          SELECT r.id FROM quotes q2
+          JOIN quote_references r ON r.id = q2.reference_id
+          WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
+          GROUP BY q2.reference_id
+          ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
+          LIMIT 1
+        ) AS origin_reference_id,
+        (
+          SELECT r.name FROM quotes q2
+          JOIN quote_references r ON r.id = q2.reference_id
+          WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
+          GROUP BY q2.reference_id
+          ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
+          LIMIT 1
+        ) AS origin_reference_name
       FROM authors a
       LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
       ${whereClause}
       GROUP BY a.id
-      ORDER BY a.${sortColumn} ${sortDirection}
+      ORDER BY ${orderByExpr} ${sortDirection}
       LIMIT ? OFFSET ?
     `
     

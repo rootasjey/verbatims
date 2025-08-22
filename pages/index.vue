@@ -12,7 +12,9 @@
     <div v-else>
       <MobileHeroSection
         :quote="feed.quotes?.value?.[0]"
-        @quote-interaction="handleHeroInteraction"
+        @new-quote="handleNewQuote"
+        @on-click-quote="handleClickQuote"
+        @on-click-author="handleClickAuthor"
       />
 
       <MobileRecentAuthors
@@ -87,14 +89,16 @@ onMounted(() => {
   feed.init()
 })
 
-const handleHeroInteraction = (quoteId?: number) => {
-  if (isMobile.value) {
-    // On mobile, open the add quote drawer
-    showAddQuoteDrawer.value = true
-  } else if (quoteId) {
-    // On desktop, navigate to the quote page
-    navigateTo(`/quote/${quoteId}`)
-  }
+const handleNewQuote = () => {
+  showAddQuoteDrawer.value = true
+}
+
+const handleClickQuote = (quoteId: number) => {
+  navigateTo(`/quote/${quoteId}`)
+}
+
+const handleClickAuthor = (authorId: number) => {
+  navigateTo(`/authors/${authorId}`)
 }
 
 watch(currentLayout, (newLayout) => {

@@ -32,7 +32,7 @@
         >
           {{ quote.author.name }}
         </NuxtLink>
-        <UTooltip>
+        <UTooltip v-if="quote.author.is_fictional">
           <template #default>
             <UIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
           </template>

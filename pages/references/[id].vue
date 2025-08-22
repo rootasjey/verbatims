@@ -52,7 +52,7 @@
 
         <div class="text-center mb-6">
           <h1
-            class="font-title text-size-24 md:text-size-42 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            class="font-title text-size-18 sm:text-size-24 md:text-size-42 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(0)"
           >
@@ -77,7 +77,7 @@
           </p>
 
           <p v-if="reference.description"
-            class="font-body text-size-5 font-200 text-gray-600
+            class="font-body text-size-4 md:text-size-5 font-200 text-gray-600
             dark:text-gray-400 max-w-2xl mx-auto mb-6
             border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"

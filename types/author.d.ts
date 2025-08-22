@@ -70,6 +70,12 @@ export interface Author {
   
   /** (Calculated) Number of quotes attributed to this author */
   quotes_count?: number;
+
+  /** If fictional: origin reference id inferred from quotes */
+  origin_reference_id?: number;
+
+  /** If fictional: origin reference name inferred from quotes */
+  origin_reference_name?: string;
 }
 
 /**

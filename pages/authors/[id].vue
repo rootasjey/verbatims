@@ -78,7 +78,7 @@
           </p>
 
           <p v-if="author.description"
-            class="font-body text-size-5 font-200 text-gray-600 
+            class="font-body text-size-4 md:text-size-5 font-200 text-gray-600 
             dark:text-gray-400 max-w-2xl mx-auto mb-6
             border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"

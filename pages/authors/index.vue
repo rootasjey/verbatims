@@ -1,7 +1,9 @@
 <template>
   <div class="min-h-screen">
     <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title text-size-24 md:text-size-82 hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">Authors</h1>
+      <h1 class="font-title text-size-16 sm:text-size-28 md:text-size-54 lg:text-size-82 hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+        Authors
+      </h1>
       <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400 md:mt-4">
         Discover quotes from your favorite authors, both real and fictional.
       </p>
@@ -39,9 +41,7 @@
         </div>
       </div>
 
-      <!-- Authors Grid -->
       <div v-else>
-        <!-- Desktop grid (unchanged) -->
         <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
           <AuthorGridItem
             v-for="author in authors"
@@ -51,28 +51,30 @@
           />
         </div>
 
-        <!-- Mobile: compact avatar grid -->
-        <div v-else class="grid grid-cols-4 gap-4 px-2 mb-12">
-          <NuxtLink
-            v-for="author in authors"
-            :key="author.id"
-            :to="`/authors/${author.id}`"
-            class="flex flex-col items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
-          >
-            <UAvatar size="sm" :class="{ 'border-2 border-primary-500 rounded-full': author.is_fictional }">
-              <UAvatarImage v-if="author.image_url" :src="author.image_url" :alt="author.name" class="grayscale" />
-              <template #fallback>
-                <span class="font-800">{{ author.name?.[0]?.toUpperCase() }}</span>
-              </template>
-            </UAvatar>
-            <span class="text-xs text-center text-gray-700 dark:text-gray-300">
-              {{ author.name }}
-            </span>
-          </NuxtLink>
+        <!-- Mobile: small horizontal cards -->
+        <div v-else class="space-y-2 px-2 mb-12">
+          <AuthorCard v-for="author in authors" :key="author.id" :author="author" />
         </div>
       </div>
 
-      <div ref="infiniteScrollTrigger" class="h-10"></div>
+      <!-- Infinite scroll: desktop keeps auto-load at bottom; mobile uses inverted pull-up gesture -->
+      <div v-if="!isMobile" ref="infiniteScrollTrigger" class="h-10"></div>
+
+      <!-- Mobile inverted pull-to-load-more (pull up from bottom) -->
+      <div
+        v-else
+        class="overflow-hidden select-none"
+        :style="{ height: `${Math.max(40, pullDistance)}px` }"
+        @touchstart.passive="onPullStart"
+        @touchmove="onPullMove"
+        @touchend="onPullEnd"
+      >
+        <div class="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+          <UButton v-if="pullDistance < pullThreshold && hasMore" btn="text" @click="loadMore">Pull up to load more</UButton>
+          <span v-else-if="hasMore">Release to load more</span>
+          <span v-else>No more authors</span>
+        </div>
+      </div>
 
       <div v-if="loadingMore" class="text-center py-8">
         <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin text-gray-400 mx-auto" />
@@ -120,6 +122,11 @@ const hasMore = ref(true)
 const currentPage = ref(1)
 const totalAuthors = ref(0)
 const infiniteScrollTrigger = ref(null)
+// Inverted pull-to-load-more (mobile)
+const pullDistance = ref(0)
+const isPulling = ref(false)
+const startY = ref(0)
+const pullThreshold = 80
 const isSearching = ref(false)
 const mobileFiltersOpen = ref(false)
 
@@ -258,13 +265,52 @@ const setupInfiniteScroll = () => {
   }
 }
 
+// Helpers and handlers for mobile pull-up
+const atBottom = () => {
+  const scrollEl = document.scrollingElement || document.documentElement
+  return scrollEl.scrollHeight - (scrollEl.scrollTop + window.innerHeight) <= 2
+}
+
+const onPullStart = (e) => {
+  if (!isMobile.value || loadingMore.value || !hasMore.value) return
+  if (!atBottom()) return
+  isPulling.value = true
+  startY.value = (e.touches ? e.touches[0]?.clientY : e.clientY) || 0
+  pullDistance.value = 0
+}
+
+const onPullMove = (e) => {
+  if (!isPulling.value) return
+  const currentY = (e.touches ? e.touches[0]?.clientY : e.clientY) || 0
+  const delta = startY.value - currentY // moving up => positive
+  if (delta > 0) {
+    // Cap a bit above threshold for a rubber-band feel
+    pullDistance.value = Math.min(delta, pullThreshold * 1.8)
+    // Prevent native bounce while actively pulling
+    if (e.cancelable) e.preventDefault()
+  } else {
+    pullDistance.value = 0
+  }
+}
+
+const onPullEnd = async () => {
+  if (!isPulling.value) return
+  const shouldLoad = pullDistance.value >= pullThreshold
+  isPulling.value = false
+  pullDistance.value = 0
+  if (shouldLoad && hasMore.value && !loadingMore.value) {
+    await loadMore()
+  }
+}
+
 
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadAuthors()
 
   nextTick(() => {
-    const cleanup = setupInfiniteScroll()
+  // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
+  const cleanup = !isMobile.value ? setupInfiniteScroll() : undefined
 
     onUnmounted(() => {
       if (cleanup) cleanup()
