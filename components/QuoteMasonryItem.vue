@@ -175,29 +175,15 @@ const getTextSizeClass = () => {
   return 'text-size-4 font-500'
 }
 
-// Get opacity level for visual variety
 const getOpacityLevel = (index) => {
   const levels = [100, 95, 90]
   return levels[index % levels.length]
 }
 
-// Navigate to quote detail
 const navigateToQuote = () => {
-  navigateTo(`/quote/${props.quote.id}`)
+  navigateTo(`/quotes/${props.quote.id}`)
 }
 
-// Format numbers
-const formatNumber = (num) => {
-  if (!num) return '0'
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M'
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K'
-  }
-  return num.toString()
-}
-
-// Quote like functionality
 const toggleQuoteLike = async () => {
   if (!user.value || quoteLikePending.value) return
   
@@ -216,7 +202,6 @@ const toggleQuoteLike = async () => {
   }
 }
 
-// Check like status on mount
 onMounted(async () => {
   if (user.value) {
     try {

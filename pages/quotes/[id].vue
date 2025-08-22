@@ -50,7 +50,6 @@
           <MobileQuoteAuthorReference :quote="quote" v-if="isMobile" />
           <QuoteAuthorReference :quote="quote" v-else />
 
-          <!-- Mobile action bar just below author/reference -->
           <div v-if="isMobile">
             <MobileQuoteActionBar
               :is-liked="isLiked"

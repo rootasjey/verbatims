@@ -94,7 +94,7 @@ const handleNewQuote = () => {
 }
 
 const handleClickQuote = (quoteId: number) => {
-  navigateTo(`/quote/${quoteId}`)
+  navigateTo(`/quotes/${quoteId}`)
 }
 
 const handleClickAuthor = (authorId: number) => {

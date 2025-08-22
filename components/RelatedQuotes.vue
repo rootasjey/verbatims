@@ -7,7 +7,7 @@
         v-for="relatedQuote in relatedQuotes"
         :key="relatedQuote.id"
         class="border border-dashed border-gray-300 dark:border-gray-600 p-6 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors cursor-pointer group"
-        @click="navigateTo(`/quote/${relatedQuote.id}`)"
+        @click="navigateTo(`/quotes/${relatedQuote.id}`)"
       >
         <blockquote class="font-serif text-lg text-gray-800 dark:text-gray-200 mb-4 line-clamp-3 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
           "{{ relatedQuote.name }}"

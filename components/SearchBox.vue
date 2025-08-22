@@ -482,13 +482,13 @@ const selectResult = (
 
   switch (type) {
     case 'quote':
-  navigateTo(`/quote/${result.id}`)
+  navigateTo(`/quotes/${result.id}`)
       break
     case 'author':
-  navigateTo(`/author/${result.id}`)
+      navigateTo(`/authors/${result.id}`)
       break
     case 'reference':
-  navigateTo(`/reference/${result.id}`)
+      navigateTo(`/references/${result.id}`)
       break
   }
 }

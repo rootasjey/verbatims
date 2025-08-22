@@ -502,7 +502,7 @@ const getQuoteActions = (quote: DashboardQuote) => [
 ]
 
 const viewQuote = (quote: DashboardQuote) => {
-  navigateTo(`/quote/${quote.id}`)
+  navigateTo(`/quotes/${quote.id}`)
 }
 
 const addToCollection = (quote: DashboardQuote) => {
@@ -511,7 +511,7 @@ const addToCollection = (quote: DashboardQuote) => {
 }
 
 const shareQuote = (quote: DashboardQuote) => {
-  const url = `${window.location.origin}/quote/${quote.id}`
+  const url = `${window.location.origin}/quotes/${quote.id}`
   navigator.clipboard.writeText(url)
 }
 

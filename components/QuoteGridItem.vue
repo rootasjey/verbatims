@@ -98,7 +98,7 @@ const props = defineProps({
 const isHovered = ref(false)
 
 const navigateToQuote = () => {
-  navigateTo(`/quote/${props.quote.id}`)
+  navigateTo(`/quotes/${props.quote.id}`)
 }
 
 

@@ -555,7 +555,7 @@ const getQuoteActions = (quote: AdminQuote) => [
 ]
 
 const viewQuote = (quote: AdminQuote) => {
-  navigateTo(`/quote/${quote.id}`)
+  navigateTo(`/quotes/${quote.id}`)
 }
 
 const editQuote = (quote: AdminQuote) => {

@@ -87,7 +87,7 @@ const props = defineProps({
 })
 
 const navigateToQuote = () => {
-  navigateTo(`/quote/${props.quote.id}`)
+  navigateTo(`/quotes/${props.quote.id}`)
 }
 
 const getReferenceTypeColor = (type) => {
@@ -114,7 +114,7 @@ const handleShare = () => {
     navigator.share({
       title: 'Featured Quote from Verbatims',
       text: `"${props.quote.name}" - ${props.quote.author?.name || 'Unknown'}`,
-      url: `${window.location.origin}/quote/${props.quote.id}`
+      url: `${window.location.origin}/quotes/${props.quote.id}`
     })
   } else {
     // Fallback: copy to clipboard

@@ -140,7 +140,7 @@
 
           <!-- View Details -->
           <NuxtLink
-            :to="`/quote/${quote.id}`"
+            :to="`/quotes/${quote.id}`"
             class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
           >
             View Details
@@ -216,12 +216,12 @@ const shareQuote = async () => {
       await navigator.share({
         title: 'Quote from Verbatims',
         text: `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}`,
-        url: `${window.location.origin}/quote/${props.quote.id}`
+        url: `${window.location.origin}/quotes/${props.quote.id}`
       })
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(
-        `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}\n\n${window.location.origin}/quote/${props.quote.id}`
+        `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}\n\n${window.location.origin}/quotes/${props.quote.id}`
       )
       // TODO: Show toast notification
     }
