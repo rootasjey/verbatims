@@ -8,7 +8,6 @@
       </div>
     </div>
 
-    <!-- Loading State for Reference Data -->
     <div v-else-if="pending" class="p-8">
       <div class="animate-pulse">
         <div class="h-16 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-8"></div>
@@ -17,97 +16,26 @@
       </div>
     </div>
 
-    <!-- Reference Content -->
     <div v-else-if="reference">
-      <!-- Sticky Top Header: compact title + stats/actions -->
-      <div class="sticky top-[60px] md:top-[68px] z-30 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div class="flex items-center justify-between gap-3">
-            <!-- Left: compact reference title and context -->
-            <div @click.stop="scrollToTop" class="min-w-0 flex items-center gap-3">
-              <UIcon name="i-ph-book" class="w-5 h-5 text-gray-400" />
-              <div class="truncate">
-                <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
-                <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
-                  <template v-if="reference.secondary_type">
-                    <span class="truncate">{{ reference.secondary_type }}</span>
-                  </template>
-                  <template v-else-if="reference.primary_type || reference.release_date">
-                    <span class="truncate">
-                      {{ formatType(reference.primary_type) }}
-                      <template v-if="reference.release_date"> • {{ formatReleaseDate(reference.release_date) }}</template>
-                    </span>
-                  </template>
-                </div>
-              </div>
-            </div>
-
-            <!-- Middle: stats chips -->
-            <div class="hidden md:flex items-center gap-2">
-              <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
-                <UIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
-                <span class="font-medium">{{ formatNumber(reference.views_count || 0) }}</span>
-              </div>
-
-              <UButton
-                btn="~"
-                size="xs"
-                :disabled="sharePending"
-                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
-                @click="shareReference"
-              >
-                <UIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
-                <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(reference.shares_count || 0) }}</span>
-              </UButton>
-
-              <UButton
-                btn="~"
-                size="xs"
-                :disabled="!user || likePending"
-                :class="[
-                  'min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full',
-                  isLiked
-                    ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
-                    : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
-                  !user && 'cursor-not-allowed opacity-50'
-                ]"
-                @click="toggleLike"
-              >
-                <UIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
-                <span>{{ formatNumber(reference.likes_count || 0) }}</span>
-              </UButton>
-            </div>
-
-            <!-- Right: quick actions -->
-            <div class="flex items-center gap-2">
-              <UButton
-                :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
-                size="xs"
-                class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
-                @click="copyLink"
-              >
-                <UIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
-                <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
-              </UButton>
-
-              <UDropdownMenu :items="headerMenuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
-                <UButton
-                  icon
-                  btn="ghost-gray"
-                  label="i-ph-dots-three-vertical-bold"
-                  size="xs"
-                  class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
-                  title="More actions"
-                />
-              </UDropdownMenu>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ReferenceTopHeader
+        :header-title="headerTitle"
+        :reference="reference"
+        :share-pending="sharePending"
+        :like-pending="likePending"
+        :is-liked="isLiked"
+        :has-user="!!user"
+        :copy-state="copyState"
+        :header-menu-items="headerMenuItems"
+        :format-number="formatNumber"
+        :format-type="formatReferenceType"
+        :format-release-date="formatReleaseDate"
+        @share="shareReference"
+        @toggle-like="toggleLike"
+        @copy-link="copyLink"
+        @scroll-top="scrollToTop"
+      />
       
-      <!-- Reference Header -->
       <header class="mt-12 p-8">
-        <!-- Reference Type and Release Date (badge appears after content animates) -->
         <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
         <div class="flex items-center justify-center gap-4 min-h-8">
           <Transition name="fade-up" appear>
@@ -117,14 +45,14 @@
               variant="subtle"
               size="sm"
             >
-              {{ formatType(reference.primary_type) }}
+              {{ formatReferenceType(reference.primary_type) }}
             </UBadge>
           </Transition>
         </div>
 
         <div class="text-center mb-6">
           <h1
-            class="font-title text-size-42 md:text-size-54 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            class="font-title text-size-24 md:text-size-42 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(0)"
           >
@@ -165,7 +93,6 @@
         </div>
       </header>
 
-      <!-- External Links -->
       <div v-if="reference.urls && reference.urls.length > 0" class="px-8 mb-8">
         <div class="text-center">
           <h3 class="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-4">External Links</h3>
@@ -184,6 +111,7 @@
           </div>
         </div>
       </div>
+      
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
         <!-- Sort / Filters -->
@@ -216,7 +144,6 @@
           </div>
         </div>
 
-        <!-- Loading State -->
         <div v-if="quotesLoading" class="mb-12">
           <MasonryGrid>
             <div v-for="i in 12" :key="i" class="quote-skeleton animate-pulse">
@@ -255,7 +182,6 @@
           </div>
         </div>
 
-        <!-- Empty State -->
         <div v-else class="text-center py-16">
           <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No quotes yet</h3>
@@ -264,7 +190,6 @@
           </p>
         </div>
 
-        <!-- Load More -->
         <div v-if="hasMoreQuotes && !quotesLoading" class="text-center">
           <UButton
             @click="loadMoreQuotes"
@@ -280,7 +205,6 @@
       </div>
     </div>
 
-    <!-- Error State -->
     <div v-else class="p-8">
       <div class="text-center py-16">
         <UIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -316,7 +240,6 @@
     />
   </div>
 
-  <!-- Mobile Filters Drawer -->
   <MobileAuthorFiltersDrawer
     v-if="isMobile"
     v-model:open="mobileFiltersOpen"
@@ -650,10 +573,6 @@ const getTypeColor = (type) => {
     'other': 'slate'
   }
   return colors[type] || 'gray'
-}
-
-const formatType = (type) => {
-  return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
 onMounted(async () => {

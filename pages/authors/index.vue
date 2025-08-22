@@ -1,56 +1,30 @@
 <template>
   <div class="min-h-screen">
-    <header class="p-8">
-      <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Authors</h1>
-      <p class="font-serif text-center text-gray-600 dark:text-gray-400 mt-4 text-lg">
+    <header class="mt-12 md:mt-0 p-8">
+      <h1 class="font-title text-size-24 md:text-size-82 hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">Authors</h1>
+      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400 md:mt-4">
         Discover quotes from your favorite authors, both real and fictional.
       </p>
     </header>
 
-    <!-- Show Empty View if no authors -->
     <AuthorsEmptyView
       v-if="authors.length === 0 && !loading"
       :search-query="searchQuery"
     />
 
-    <!-- Authors Content (when authors exist) -->
     <div v-else class="px-8 pb-16">
-      <!-- Search and Stats -->
-      <div class="font-serif mb-8">
-        <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400 mb-4">
-          Showing {{ authors.length }} of {{ totalAuthors || 0 }} authors
-        </span>
-
-        <div class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
-          <div class="flex-1">
-            <UInput
-              ref="searchInput"
-              v-model="searchQuery"
-              placeholder="Search authors..."
-              leading="i-ph-magnifying-glass"
-              size="md"
-              @input="debouncedSearch"
-              class="w-full"
-            />
-          </div>
-          <div class="flex gap-2">
-            <USelect
-              v-model="sortBy"
-              :items="sortOptions"
-              placeholder="Sort by"
-              item-key="label"
-              value-key="label"
-              @change="loadAuthors"
-            />
-            <UButton
-              icon
-              :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
-              variant="outline"
-              @click="toggleSortOrder"
-            />
-          </div>
-        </div>
-      </div>
+      <AuthorsSearch
+        :authors-count="authors.length"
+        :total-authors="totalAuthors"
+        v-model:search-query="searchQuery"
+        v-model:sort-by="sortBy"
+        :sort-order="sortOrder"
+        :sort-options="sortOptions"
+        v-model:mobile-filters-open="mobileFiltersOpen"
+        @toggle-sort-order="toggleSortOrder"
+        @change-sort="loadAuthors"
+        @search-input="debouncedSearch"
+      />
 
       <!-- Loading State -->
       <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
@@ -66,29 +40,65 @@
       </div>
 
       <!-- Authors Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-        <AuthorGridItem
-          v-for="author in authors"
-          :key="author.id"
-          :author="author"
-          class="fade-in"
-        />
+      <div v-else>
+        <!-- Desktop grid (unchanged) -->
+        <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
+          <AuthorGridItem
+            v-for="author in authors"
+            :key="author.id"
+            :author="author"
+            class="fade-in"
+          />
+        </div>
+
+        <!-- Mobile: compact avatar grid -->
+        <div v-else class="grid grid-cols-4 gap-4 px-2 mb-12">
+          <NuxtLink
+            v-for="author in authors"
+            :key="author.id"
+            :to="`/authors/${author.id}`"
+            class="flex flex-col items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+          >
+            <UAvatar size="sm" :class="{ 'border-2 border-primary-500 rounded-full': author.is_fictional }">
+              <UAvatarImage v-if="author.image_url" :src="author.image_url" :alt="author.name" class="grayscale" />
+              <template #fallback>
+                <span class="font-800">{{ author.name?.[0]?.toUpperCase() }}</span>
+              </template>
+            </UAvatar>
+            <span class="text-xs text-center text-gray-700 dark:text-gray-300">
+              {{ author.name }}
+            </span>
+          </NuxtLink>
+        </div>
       </div>
 
-      <!-- Infinite Scroll Trigger -->
       <div ref="infiniteScrollTrigger" class="h-10"></div>
 
-      <!-- Loading More Indicator -->
       <div v-if="loadingMore" class="text-center py-8">
         <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin text-gray-400 mx-auto" />
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more authors...</p>
       </div>
     </div>
+    
+    <MobileSortAuthors
+      v-if="isMobile"
+      v-model:open="mobileFiltersOpen"
+      v-model:sortBy="sortBy"
+      :sort-order="sortOrder"
+      :sort-options="sortOptions"
+      @toggle-sort-order="toggleSortOrder"
+    />
   </div>
 </template>
 
 <script setup>
-// SEO
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
+
+definePageMeta({
+  layout: false
+})
+
 useHead({
   title: 'Authors - Verbatims',
   meta: [
@@ -99,7 +109,6 @@ useHead({
   ]
 })
 
-// Reactive state
 const searchQuery = ref('')
 const sortBy = ref('name')
 const sortOrder = ref('ASC')
@@ -110,9 +119,9 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 const totalAuthors = ref(0)
-const searchInput = ref(null)
 const infiniteScrollTrigger = ref(null)
 const isSearching = ref(false)
+const mobileFiltersOpen = ref(false)
 
 const sortOptions = [
   { label: 'Name', value: 'name' },
@@ -151,7 +160,6 @@ const loadAuthors = async (reset = true) => {
       allFetchedAuthors.value.push(...authorsData)
     }
 
-    // Get pagination info from response
     const paginationInfo = response.pagination || {}
 
     hasMore.value = paginationInfo.hasMore || false
@@ -164,7 +172,6 @@ const loadAuthors = async (reset = true) => {
   }
 }
 
-// Load more authors (for infinite scroll)
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
 
@@ -172,7 +179,6 @@ const loadMore = async () => {
   await loadAuthors(false)
 }
 
-// Toggle sort order
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'ASC' ? 'DESC' : 'ASC'
   loadAuthors()
@@ -181,7 +187,6 @@ const toggleSortOrder = () => {
 // Hybrid search function
 const performSearch = async (query) => {
   if (!query || query.trim().length === 0) {
-    // No search query, load all authors
     await loadAuthors()
     return
   }
@@ -189,7 +194,6 @@ const performSearch = async (query) => {
   isSearching.value = true
   const searchTerm = query.trim().toLowerCase()
 
-  // First, search locally in already fetched authors
   const localResults = allFetchedAuthors.value.filter(author =>
     author.name.toLowerCase().includes(searchTerm) ||
     (author.job && author.job.toLowerCase().includes(searchTerm)) ||
@@ -254,18 +258,10 @@ const setupInfiniteScroll = () => {
   }
 }
 
-// Auto-focus search input
-const focusSearchInput = () => {
-  nextTick(() => {
-    if (searchInput.value?.$el?.querySelector('input')) {
-      searchInput.value.$el.querySelector('input').focus()
-    }
-  })
-}
 
 onMounted(() => {
+  setPageLayout(currentLayout.value)
   loadAuthors()
-  focusSearchInput()
 
   nextTick(() => {
     const cleanup = setupInfiniteScroll()
@@ -276,7 +272,10 @@ onMounted(() => {
   })
 })
 
-// Watch for sort changes
+watch(currentLayout, (newLayout) => {
+  setPageLayout(newLayout)
+})
+
 watch([sortBy], () => {
   if (searchQuery.value) {
     performSearch(searchQuery.value)
@@ -285,10 +284,8 @@ watch([sortBy], () => {
   }
 })
 
-// Watch for search query changes
 watch(searchQuery, (newQuery) => {
   if (!newQuery || newQuery.trim().length === 0) {
-    // Reset to show all authors when search is cleared
     loadAuthors()
   }
 })
