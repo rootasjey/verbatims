@@ -1,6 +1,6 @@
 # Verbatims
 
-A Nuxt 3 quote management app for discovering, curating, and sharing timeless words — with moderation and admin workflows.
+Quote service for discovering, curating, and sharing timeless words — with moderation and admin workflows.
 
 ![Verbatims screenshot](verbatims.png)
 

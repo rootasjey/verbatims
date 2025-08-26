@@ -3,7 +3,7 @@
  * Deletes backup file from both R2 storage and database
  */
 
-import { BackupService } from '~/server/utils/backupStorage'
+import { deleteBackup } from '~/server/utils/backup-storage'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -18,9 +18,8 @@ export default defineEventHandler(async (event) => {
     }
 
     const db = hubDatabase()
-    const backupService = new BackupService(db)
-    await backupService.deleteBackup(Number(backupId))
-    
+    await deleteBackup(db, Number(backupId))
+
     return {
       success: true,
       message: 'Backup file deleted successfully'

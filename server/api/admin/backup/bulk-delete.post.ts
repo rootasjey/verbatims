@@ -1,4 +1,4 @@
-import { BackupService } from '~/server/utils/backupStorage'
+import { deleteBackup } from '~/server/utils/backup-storage'
 
 /**
  * Admin API: Bulk Delete Backup Files
@@ -24,7 +24,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const db = hubDatabase()
-    const backupService = new BackupService(db)
     const results = {
       total: validIds.length,
       deleted: 0,
@@ -34,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
     for (const backupId of validIds) {
       try {
-        await backupService.deleteBackup(backupId)
+        await deleteBackup(db, backupId)
         results.deleted++
       } catch (error: any) {
         results.failed++

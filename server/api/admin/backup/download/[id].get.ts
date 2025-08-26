@@ -1,4 +1,4 @@
-import { BackupService } from '~/server/utils/backupStorage'
+import { getBackup } from '~/server/utils/backup-storage'
 
 /**
  * Admin API: Download Backup File
@@ -17,9 +17,8 @@ export default defineEventHandler(async (event) => {
     }
 
     const db = hubDatabase()
-    const backupService = new BackupService(db)
-    const { content, metadata, backupFile } = await backupService.getBackup(Number(backupId))
-    
+    const { content, metadata, backupFile } = await getBackup(db, Number(backupId))
+
     let mimeType = 'application/octet-stream'
     const format = backupFile.filename.split('.').pop()?.toLowerCase()
     

@@ -1,5 +1,5 @@
-import { deleteExpiredBackupFiles, listBackupFiles } from '~/server/utils/backupDatabase'
-import { deleteBackupFile } from '~/server/utils/backupStorage'
+import { deleteExpiredBackupFiles, listBackupFiles } from '~/server/utils/backup-database'
+import { deleteBackupFile } from '~/server/utils/backup-storage'
 
 /**
  * Admin API: Cleanup Expired Backup Files

@@ -1,5 +1,5 @@
 /**
- * Backup Storage Service
+ * Backup Storage Utilities (Functional)
  * Handles file storage and retrieval using Cloudflare R2 via NuxtHub blob storage
  */
 
@@ -230,7 +230,7 @@ export async function backupFileExists(fileKey: string): Promise<boolean> {
 }
 
 /**
- * Check if backup file exists in R2 storage
+ * Get backup file metadata from R2 storage (placeholder; metadata now in DB)
  */
 export async function getBackupFileMetadata(fileKey: string): Promise<Record<string, string> | null> {
   try {
@@ -243,126 +243,121 @@ export async function getBackupFileMetadata(fileKey: string): Promise<Record<str
   }
 }
 
+// Functional orchestrators replacing class-based service
+
 /**
- * Complete backup service that handles both storage and database operations
+ * Create a complete backup (upload to R2 + database record)
  */
-export class BackupService {
-  private db: any
+export async function createBackup(
+  db: any,
+  content: string,
+  filename: string,
+  dataType: string,
+  format: string,
+  options: {
+    exportLogId?: number
+    retentionDays?: number
+    metadata?: Record<string, any>
+  } = {}
+): Promise<{
+  backupId: number
+  fileKey: string
+  filePath: string
+  fileSize: number
+  compressedSize: number
+  contentHash: string
+  compressionType: BackupCompressionType
+}> {
+  const { exportLogId, retentionDays = 90, metadata } = options
 
-  constructor(database: any) {
-    this.db = database
-  }
+  try {
+    const uploadResult = await uploadBackupFile(content, filename, dataType, format)
 
-  /**
-   * Create a complete backup (upload to R2 + database record)
-   */
-  async createBackup(
-    content: string,
-    filename: string,
-    dataType: string,
-    format: string,
-    options: {
-      exportLogId?: number
-      retentionDays?: number
-      metadata?: Record<string, any>
-    } = {}
-  ): Promise<{
-    backupId: number
-    fileKey: string
-    filePath: string
-    fileSize: number
-    compressedSize: number
-    contentHash: string
-    compressionType: BackupCompressionType
-  }> {
-    const { exportLogId, retentionDays = 90, metadata } = options
+    const { createBackupFile, updateBackupFileStatus } = await import('./backup-database')
+    const backupId = await createBackupFile(db, {
+      file_key: uploadResult.fileKey,
+      export_log_id: exportLogId,
+      filename,
+      file_path: uploadResult.filePath,
+      file_size: uploadResult.fileSize,
+      compressed_size: uploadResult.compressedSize,
+      content_hash: uploadResult.contentHash,
+      compression_type: uploadResult.compressionType,
+      retention_days: retentionDays,
+      metadata: metadata ? JSON.stringify(metadata) : undefined
+    })
 
-    try {
-      const uploadResult = await uploadBackupFile(content, filename, dataType, format)
+    await updateBackupFileStatus(db, backupId, 'stored', new Date())
 
-      const { createBackupFile } = await import('./backupDatabase')
-      const backupId = await createBackupFile(this.db, {
-        file_key: uploadResult.fileKey,
-        export_log_id: exportLogId,
-        filename,
-        file_path: uploadResult.filePath,
-        file_size: uploadResult.fileSize,
-        compressed_size: uploadResult.compressedSize,
-        content_hash: uploadResult.contentHash,
-        compression_type: uploadResult.compressionType,
-        retention_days: retentionDays,
-        metadata: metadata ? JSON.stringify(metadata) : undefined
-      })
-
-      const { updateBackupFileStatus } = await import('./backupDatabase')
-      await updateBackupFileStatus(this.db, backupId, 'stored', new Date())
-
-      return {
-        backupId,
-        ...uploadResult
-      }
-    } catch (error: any) {
-      console.error('Failed to create backup:', error)
-      throw new Error(`Backup creation failed: ${error.message}`)
+    return {
+      backupId,
+      ...uploadResult
     }
-  }
-
-  /**
-   * Retrieve backup content
-   */
-  async getBackup(backupId: number): Promise<{
-    content: string
-    metadata: Record<string, any>
-    backupFile: BackupFile
-  }> {
-    try {
-      const { getBackupFileById, trackBackupFileAccess } = await import('./backupDatabase')
-      const backupFile = await getBackupFileById(this.db, backupId)
-
-      if (!backupFile) {
-        throw new Error('Backup file not found')
-      }
-
-      if (backupFile.storage_status !== 'stored') {
-        throw new Error(`Backup file is not available (status: ${backupFile.storage_status})`)
-      }
-
-      const { content, metadata: r2Metadata } = await downloadBackupFile(
-        backupFile.file_key,
-        backupFile.compression_type as BackupCompressionType
-      )
-
-      await trackBackupFileAccess(this.db, backupId)
-      const dbMetadata = backupFile.metadata ? JSON.parse(backupFile.metadata) : {}
-
-      return {
-        content,
-        metadata: { ...dbMetadata, ...r2Metadata },
-        backupFile
-      }
-    } catch (error: any) {
-      console.error('Failed to get backup:', error)
-      throw new Error(`Backup retrieval failed: ${error.message}`)
-    }
-  }
-
-  /**
-   * Delete backup (both R2 and database)
-   */
-  async deleteBackup(backupId: number): Promise<void> {
-    try {
-      const { getBackupFileById, deleteBackupFileRecord } = await import('./backupDatabase')
-      const backupFile = await getBackupFileById(this.db, backupId)
-
-      if (!backupFile) {
-        throw new Error('Backup file not found')
-      }
-
-      await deleteBackupFile(backupFile.file_key)
-      await deleteBackupFileRecord(this.db, backupId)
-    } catch (error: any) {
-      console.error('Failed to delete backup:', error)
-      throw new Error(`Backup deletion failed: ${error.message}`)
-    }
+  } catch (error: any) {
+    console.error('Failed to create backup:', error)
+    throw new Error(`Backup creation failed: ${error.message}`)
   }
 }
+
+/**
+ * Retrieve backup content by backup ID
+ */
+export async function getBackup(
+  db: any,
+  backupId: number
+): Promise<{
+  content: string
+  metadata: Record<string, any>
+  backupFile: BackupFile
+}> {
+  try {
+    const { getBackupFileById, trackBackupFileAccess } = await import('./backup-database')
+    const backupFile = await getBackupFileById(db, backupId)
+
+    if (!backupFile) {
+      throw new Error('Backup file not found')
+    }
+
+    if (backupFile.storage_status !== 'stored') {
+      throw new Error(`Backup file is not available (status: ${backupFile.storage_status})`)
+    }
+
+    const { content, metadata: r2Metadata } = await downloadBackupFile(
+      backupFile.file_key,
+      backupFile.compression_type as BackupCompressionType
+    )
+
+    await trackBackupFileAccess(db, backupId)
+    const dbMetadata = backupFile.metadata ? JSON.parse(backupFile.metadata) : {}
+
+    return {
+      content,
+      metadata: { ...dbMetadata, ...r2Metadata },
+      backupFile
+    }
+  } catch (error: any) {
+    console.error('Failed to get backup:', error)
+    throw new Error(`Backup retrieval failed: ${error.message}`)
+  }
+}
+
+/**
+ * Delete backup (both R2 and database)
+ */
+export async function deleteBackup(db: any, backupId: number): Promise<void> {
+  try {
+    const { getBackupFileById, deleteBackupFileRecord } = await import('./backup-database')
+    const backupFile = await getBackupFileById(db, backupId)
+
+    if (!backupFile) {
+      throw new Error('Backup file not found')
+    }
+
+    await deleteBackupFile(backupFile.file_key)
+    await deleteBackupFileRecord(db, backupId)
+  } catch (error: any) {
+    console.error('Failed to delete backup:', error)
+    throw new Error(`Backup deletion failed: ${error.message}`)
+  }
+}
+
