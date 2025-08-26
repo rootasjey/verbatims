@@ -1,18 +1,15 @@
+import type { ExportOptions, ReferenceExportFilters, ExportResult, ExportedReference } from '~/types/export'
+import { BackupService } from '~/server/utils/backupStorage'
+
 /**
  * Admin API: Export References Data
  * Comprehensive references export with filtering, multiple formats, and progress tracking
  */
-
-import type { ExportOptions, ReferenceExportFilters, ExportResult, ExportedReference } from '~/types/export'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
     const body = await readBody(event) as ExportOptions
@@ -20,45 +17,23 @@ export default defineEventHandler(async (event) => {
 
     const filterValidation = validateFiltersForReferencesExport(filters as ReferenceExportFilters)
     if (!filterValidation.valid) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}`
-      })
+      throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
     }
 
     if (!format) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Export format is required'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Export format is required' })
     }
 
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Unsupported export format. Supported formats: json, csv, xml'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
     }
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Generate unique export ID
     const exportId = `references_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    
-    // Build query with filters
     const { query, bindings } = buildReferencesQuery(filters as ReferenceExportFilters, include_relations, limit)
-
-    // Execute query to get references data
     const referencesResult = await db.prepare(query).bind(...bindings).all()
     const references = (referencesResult?.results || []) as any[]
 
-    // Process references data
     const processedReferences: ExportedReference[] = references.map((reference: any) => {
       const processed: ExportedReference = {
         id: reference.id,
@@ -74,22 +49,15 @@ export default defineEventHandler(async (event) => {
         updated_at: reference.updated_at
       }
 
-      // Parse URLs if present
       if (reference.urls) {
-        try {
-          processed.urls = JSON.parse(reference.urls)
-        } catch {
-          // Keep as string if parsing fails
-          processed.urls = [reference.urls]
-        }
+        try { processed.urls = JSON.parse(reference.urls) } 
+        catch { processed.urls = [reference.urls] } // Keep as string if parsing fails
       }
 
-      // Add quotes count if included
       if (include_relations && reference.quotes_count !== undefined) {
         processed.quotes_count = reference.quotes_count
       }
 
-      // Add metadata if requested
       if (include_metadata) {
         processed._metadata = {
           exported_at: new Date().toISOString(),
@@ -131,7 +99,6 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // Log the export to database
     await logReferencesExport(db, {
       exportId,
       filename,

@@ -2,39 +2,23 @@
  * Admin API: Clear All Export History
  * Deletes all export history entries with confirmation
  */
-
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin permissions
     const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+    if (!user || user.role !== 'admin') {
+      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
     }
 
     const body = await readBody(event)
     const { confirm } = body
 
     if (!confirm) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Confirmation required to clear all export history'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Confirmation required to clear all export history' })
     }
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Get count of entries to be deleted
     const countResult = await db.prepare(`
-      SELECT COUNT(*) as total FROM quotes_export_logs
+      SELECT COUNT(*) as total FROM export_logs
     `).first()
 
     const totalEntries = Number(countResult?.total) || 0
@@ -47,16 +31,12 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Delete all export history entries
     const result = await db.prepare(`
-      DELETE FROM quotes_export_logs
+      DELETE FROM export_logs
     `).run()
 
     if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to clear export history'
-      })
+      throw createError({ statusCode: 500, statusMessage: 'Failed to clear export history' })
     }
 
     return {

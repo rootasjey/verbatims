@@ -1,18 +1,15 @@
+import type { ExportOptions, AuthorExportFilters, ExportResult, ExportedAuthor, ExportResultWithBackup } from '~/types/export'
+import { BackupService } from '~/server/utils/backupStorage'
+
 /**
  * Admin API: Export Authors Data
  * Comprehensive authors export with filtering, multiple formats, and progress tracking
  */
-
-import type { ExportOptions, AuthorExportFilters, ExportResult, ExportedAuthor } from '~/types/export'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
     const body = await readBody(event) as ExportOptions
@@ -21,45 +18,24 @@ export default defineEventHandler(async (event) => {
     const authorsFilters = filters as AuthorExportFilters
     const filterValidation = validateFiltersForAuthorsExport(authorsFilters)
     if (!filterValidation.valid) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}`
-      })
+      throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
     }
 
     if (!format) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Export format is required'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Export format is required' })
     }
 
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Unsupported export format. Supported formats: json, csv, xml'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
     }
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Generate unique export ID
-    const exportId = `authors_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    
-    // Build query with filters
+    const uniqueExportId = `authors_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildAuthorsQuery(authorsFilters, include_relations, limit)
 
-    // Execute query to get authors data
     const authorsResult = await db.prepare(query).bind(...bindings).all()
-    const authors = (authorsResult?.results || []) as any[]
+    const authors = (authorsResult?.results || [])
 
-    // Process authors data
     const processedAuthors: ExportedAuthor[] = authors.map((author: any) => {
       const processed: ExportedAuthor = {
         id: author.id,
@@ -79,27 +55,23 @@ export default defineEventHandler(async (event) => {
         updated_at: author.updated_at
       }
 
-      // Parse socials JSON
       if (author.socials) {
-        try {
-          processed.socials = JSON.parse(author.socials)
-        } catch (error) {
+        try { processed.socials = JSON.parse(author.socials) } 
+        catch (error) {
           console.error('Failed to parse author socials:', error)
           processed.socials = []
         }
       }
 
-      // Add quote count if relations are included
       if (include_relations && author.quotes_count !== undefined) {
         processed.quotes_count = author.quotes_count
       }
 
-      // Add metadata if requested
       if (include_metadata) {
         processed._metadata = {
           exported_at: new Date().toISOString(),
           exported_by: user.id,
-          export_id: exportId,
+          export_id: uniqueExportId,
           export_filters: authorsFilters
         }
       }
@@ -136,10 +108,10 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // Log the export
+    // Log the export first to get the export log ID
     const fileSize = new TextEncoder().encode(contentData).length
-    await logAuthorsExport(db, {
-      exportId,
+    const exportLogResult = await logAuthorsExport(db, {
+      exportId: uniqueExportId,
       filename,
       format,
       filters: authorsFilters,
@@ -148,23 +120,60 @@ export default defineEventHandler(async (event) => {
       fileSize: fileSize
     })
 
-    const result: ExportResult = {
+    // Create backup in R2 storage
+    const backupService = new BackupService(db)
+    let backupInfo = undefined
+
+    try {
+      const backupResult = await backupService.createBackup(
+        contentData,
+        filename,
+        'authors',
+        format,
+        {
+          exportLogId: exportLogResult.exportLogId,
+          retentionDays: 90,
+          metadata: {
+            export_config: body,
+            filters: authorsFilters,
+            created_by: user.id,
+            backup_type: 'export',
+            data_type: 'authors'
+          }
+        }
+      )
+
+      backupInfo = {
+        backup_id: backupResult.backupId,
+        file_key: backupResult.fileKey,
+        file_path: backupResult.filePath,
+        storage_status: 'stored' as const,
+        backup_download_url: `/api/admin/backup/download/${backupResult.backupId}`,
+        retention_days: 90,
+        expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    } catch (backupError) {
+      console.error('Failed to create backup, continuing with export:', backupError)
+      // Don't fail the export if backup fails
+    }
+
+    const result: ExportResultWithBackup = {
       success: true,
       data: {
-        export_id: exportId,
+        export_id: uniqueExportId,
         filename,
         format,
         record_count: processedAuthors.length,
         file_size: fileSize,
-        download_url: `/api/admin/export/download/${exportId}`,
+        download_url: `/api/admin/export/download/${uniqueExportId}`,
         options: body,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-      }
+      },
+      backup: backupInfo
     }
 
-    // Store the export content temporarily (in production, use blob storage)
-    // For now, we'll return the content directly for smaller exports
-    if (contentData.length < 10 * 1024 * 1024) { // Less than 10MB
+    // For smaller exports, still provide direct content for immediate download
+    if (contentData.length < 5 * 1024 * 1024) { // Less than 5MB
       const resultData = result.data as any
       resultData.content = contentData
       resultData.mimeType = mimeType
@@ -422,7 +431,7 @@ async function logAuthorsExport(db: any, exportInfo: {
   fileSize: number
   includeRelations?: boolean
   includeMetadata?: boolean
-}) {
+}): Promise<{ exportLogId: number }> {
   try {
     // Create unified export logs table if it doesn't exist
     await db.prepare(`
@@ -446,7 +455,7 @@ async function logAuthorsExport(db: any, exportInfo: {
     `).run()
 
     // Log the export with serialized filters
-    await db.prepare(`
+    const result = await db.prepare(`
       INSERT INTO export_logs (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
@@ -462,9 +471,12 @@ async function logAuthorsExport(db: any, exportInfo: {
       exportInfo.includeMetadata || false
     ).run()
 
+    return { exportLogId: result.meta.last_row_id }
+
   } catch (error) {
     console.error('Failed to log authors export:', error)
-    // Don't fail the export if logging fails
+    // Return a fallback ID if logging fails
+    return { exportLogId: 0 }
   }
 }
 

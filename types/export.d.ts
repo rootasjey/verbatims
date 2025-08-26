@@ -177,7 +177,7 @@ export interface ExportState {
   successMessage: string
   errorMessage: string
   previewData: ExportValidation | null
-  exportHistory: ExportHistoryEntry[]
+  exportHistory: ExportHistoryEntryWithBackup[]
   isLoadingHistory: boolean
   historyPagination: {
     page: number
@@ -631,4 +631,173 @@ export interface ParsedExportLog extends Omit<ExportLogEntry, 'filters_applied'>
   filters: QuoteExportFilters
   /** Raw filters string for reference */
   filters_applied: string | null
+}
+
+/**
+ * Backup file storage status
+ */
+export type BackupStorageStatus = 'uploading' | 'stored' | 'failed' | 'expired'
+
+/**
+ * Backup file compression type
+ */
+export type BackupCompressionType = 'none' | 'gzip'
+
+/**
+ * Backup file entity from the database
+ */
+export interface BackupFile {
+  /** Unique identifier */
+  id: number
+  /** R2 object key (unique identifier) */
+  file_key: string
+  /** Link to export_logs (optional for standalone backups) */
+  export_log_id: number | null
+  /** Original filename */
+  filename: string
+  /** Full R2 path (archives/YYYY-MM-DD/filename) */
+  file_path: string
+  /** File size in bytes */
+  file_size: number | null
+  /** Compressed size if gzipped */
+  compressed_size: number | null
+  /** SHA-256 hash for integrity verification */
+  content_hash: string | null
+  /** Compression type */
+  compression_type: BackupCompressionType
+  /** Storage status */
+  storage_status: BackupStorageStatus
+  /** Retention period in days */
+  retention_days: number
+  /** Created timestamp */
+  created_at: string
+  /** Upload completion timestamp */
+  uploaded_at: string | null
+  /** Calculated expiration date */
+  expires_at: string | null
+  /** Last access timestamp */
+  last_accessed_at: string | null
+  /** Download count */
+  access_count: number
+  /** JSON metadata (export config, etc.) */
+  metadata: string | null
+}
+
+/**
+ * Backup file with parsed metadata
+ */
+export interface BackupFileWithMetadata extends Omit<BackupFile, 'metadata'> {
+  /** Parsed metadata */
+  metadata: {
+    /** Export configuration used */
+    export_config?: ExportOptions
+    /** Original export filters */
+    filters?: QuoteExportFilters | ReferenceExportFilters | AuthorExportFilters | UserExportFilters
+    /** User who created the backup */
+    created_by?: number
+    /** Additional backup metadata */
+    backup_type?: 'export' | 'manual' | 'scheduled'
+    /** Data integrity verification */
+    integrity_verified?: boolean
+    /** Backup description */
+    description?: string
+  } | null
+}
+
+/**
+ * Backup file creation data
+ */
+export interface CreateBackupFileData {
+  /** R2 object key */
+  file_key: string
+  /** Link to export log (optional) */
+  export_log_id?: number
+  /** Original filename */
+  filename: string
+  /** Full R2 path */
+  file_path: string
+  /** File size in bytes */
+  file_size: number
+  /** Compressed size if applicable */
+  compressed_size?: number
+  /** Content hash for integrity */
+  content_hash?: string
+  /** Compression type */
+  compression_type?: BackupCompressionType
+  /** Retention period in days */
+  retention_days?: number
+  /** Metadata as JSON string */
+  metadata?: string
+}
+
+/**
+ * Backup file upload progress
+ */
+export interface BackupUploadProgress {
+  /** Backup file ID */
+  backup_id: number
+  /** Upload progress percentage (0-100) */
+  progress: number
+  /** Current status */
+  status: BackupStorageStatus
+  /** Bytes uploaded */
+  bytes_uploaded: number
+  /** Total bytes to upload */
+  total_bytes: number
+  /** Upload speed in bytes/second */
+  upload_speed?: number
+  /** Estimated time remaining in seconds */
+  eta_seconds?: number
+  /** Error message if failed */
+  error?: string
+}
+
+/**
+ * Enhanced export result with backup file information
+ */
+export interface ExportResultWithBackup extends ExportResult {
+  /** Backup file information */
+  backup?: {
+    /** Backup file ID */
+    backup_id: number
+    /** R2 file key */
+    file_key: string
+    /** R2 file path */
+    file_path: string
+    /** Storage status */
+    storage_status: BackupStorageStatus
+    /** Upload progress (if uploading) */
+    upload_progress?: BackupUploadProgress
+    /** Backup download URL */
+    backup_download_url?: string
+    /** Retention information */
+    retention_days: number
+    /** Expiration date */
+    expires_at?: string
+  }
+}
+
+/**
+ * Enhanced export history entry with backup information
+ */
+export interface ExportHistoryEntryWithBackup extends ExportHistoryEntry {
+  /** Associated backup file */
+  backup_file?: {
+    /** Backup file ID */
+    id: number
+    /** Storage status */
+    storage_status: BackupStorageStatus
+    /** R2 file path */
+    file_path: string
+    /** File size */
+    file_size: number | null
+    /** Compressed size */
+    compressed_size: number | null
+    /** Upload completion date */
+    uploaded_at: string | null
+    /** Expiration date */
+    expires_at: string | null
+    /** Access count */
+    access_count: number
+  }
 }

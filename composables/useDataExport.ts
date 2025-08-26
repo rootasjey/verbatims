@@ -1,8 +1,3 @@
-/**
- * Data Export Composable
- * Handles export logic and state management for the admin export interface
- */
-
 import type {
   QuoteExportFilters,
   ReferenceExportFilters,
@@ -11,11 +6,14 @@ import type {
   ExportResult,
   ExportOptions,
   UIExportOptions,
-  ExportState
+  ExportState // Uses ExportHistoryEntryWithBackup[] for exportHistory
 } from '~/types/export'
 
+/**
+ * Data Export Composable
+ * Handles export logic and state management for the admin export interface
+ */
 export const useDataExport = () => {
-  // Reactive state
   const state = reactive<ExportState>({
     isExporting: false,
     showProgressDialog: false,
@@ -33,7 +31,6 @@ export const useDataExport = () => {
     }
   })
 
-  // Export options (UI format)
   const exportOptions = ref<UIExportOptions>({
     format: { label: 'JSON', value: 'json' },
     data_type: { label: 'Quotes', value: 'quotes' },
@@ -45,7 +42,6 @@ export const useDataExport = () => {
     limit: 0
   })
 
-  // Filters for different data types
   const quotesFilters = ref<QuoteExportFilters>({
     status: [],
     language: [],
@@ -148,7 +144,6 @@ export const useDataExport = () => {
     { label: 'Other', value: 'other' }
   ]
 
-  // Get current filters based on data type
   const getCurrentFilters = () => {
     const dataType = exportOptions.value.data_type.value
     switch (dataType) {
@@ -165,7 +160,6 @@ export const useDataExport = () => {
     }
   }
 
-  // Clean filters to remove empty/default values that might cause issues
   const cleanFilters = (filters: any) => {
     const cleaned: any = {}
 
@@ -260,7 +254,6 @@ export const useDataExport = () => {
     return cleaned
   }
 
-  // Convert UI export options to API format
   const convertToApiOptions = (): ExportOptions => {
     const rawFilters = getCurrentFilters()
     const cleanedFilters = cleanFilters(rawFilters)
@@ -278,7 +271,6 @@ export const useDataExport = () => {
     }
   }
 
-  // Validate export configuration
   const validateExport = async () => {
     try {
       state.errorMessage = ''
@@ -323,7 +315,6 @@ export const useDataExport = () => {
     }
   }
 
-  // Start export process
   const startExport = async () => {
     try {
       state.isExporting = true
@@ -331,9 +322,6 @@ export const useDataExport = () => {
       state.errorMessage = ''
       state.successMessage = ''
 
-      const { toast } = useToast()
-
-      // Determine API endpoint based on data type
       const dataType = exportOptions.value.data_type.value
       let apiEndpoint = ''
 
@@ -354,7 +342,6 @@ export const useDataExport = () => {
           throw new Error('Invalid data type selected')
       }
 
-      // Convert UI options to API format and start the export
       const apiOptions = convertToApiOptions()
       const response = await $fetch(apiEndpoint, {
         method: 'POST',
@@ -362,24 +349,22 @@ export const useDataExport = () => {
       }) as ExportResult
 
       if (response.success) {
-        // Handle export result
         if (response.data.content && response.data.mimeType) {
           downloadContent(response.data.content, response.data.filename, response.data.mimeType)
           state.successMessage = `Export completed successfully! ${response.data.record_count} records exported.`
-          toast({
+          useToast().toast({
             title: 'Export Completed',
             description: `Successfully exported ${response.data.record_count} records`
           })
         } else {
           window.open(response.data.download_url, '_blank')
           state.successMessage = `Export completed successfully! ${response.data.record_count} records exported. Download started.`
-          toast({
+          useToast().toast({
             title: 'Export Completed',
             description: `Successfully exported ${response.data.record_count} records. Download started.`
           })
         }
 
-        // Reset preview data and reload history
         state.previewData = null
         loadExportHistory()
       }
@@ -389,8 +374,7 @@ export const useDataExport = () => {
       const errorMsg = error.data?.message || 'Export failed'
       state.errorMessage = errorMsg
 
-      const { toast } = useToast()
-      toast({
+      useToast().toast({
         title: 'Export Failed',
         description: errorMsg
       })
@@ -400,7 +384,6 @@ export const useDataExport = () => {
     }
   }
 
-  // Reset filters for current data type
   const resetFilters = () => {
     const dataType = exportOptions.value.data_type.value
 
@@ -444,7 +427,6 @@ export const useDataExport = () => {
     state.successMessage = ''
   }
 
-  // Download content helper
   const downloadContent = (content: string, filename: string, mimeType: string) => {
     const blob = new Blob([content], { type: mimeType })
     const url = window.URL.createObjectURL(blob)
@@ -457,12 +439,11 @@ export const useDataExport = () => {
     window.URL.revokeObjectURL(url)
   }
 
-  // Load export history
   const loadExportHistory = async (page = 1) => {
     try {
       state.isLoadingHistory = true
 
-      const response = await $fetch('/api/admin/export/history', {
+      const response = await $fetch('/api/admin/export/history-with-backups', {
         query: {
           page,
           limit: state.historyPagination.limit
@@ -470,10 +451,10 @@ export const useDataExport = () => {
       })
 
       if (response.success) {
-        state.exportHistory = response.data
+        state.exportHistory = response.data.entries
         state.historyPagination = {
           ...state.historyPagination,
-          ...response.pagination
+          ...response.data.pagination
         }
       }
 
@@ -485,77 +466,58 @@ export const useDataExport = () => {
     }
   }
 
-  // Download export from history
   const downloadExport = async (exportId: string) => {
     try {
       window.open(`/api/admin/export/download/${exportId}`, '_blank')
-
-      const { toast } = useToast()
-      toast({
-        title: 'Download Started',
-        description: 'Export download has been initiated'
-      })
     } catch (error: any) {
       console.error('Failed to download export:', error)
       state.errorMessage = 'Failed to download export'
 
-      const { toast } = useToast()
-      toast({
+      useToast().toast({
         title: 'Download Failed',
         description: 'Failed to start export download'
       })
     }
   }
 
-  // Delete individual export history entry
   const deleteExportHistoryEntry = async (exportId: string) => {
     try {
       const response = await $fetch('/api/admin/export/history', {
         method: 'DELETE' as any,
         body: { exportId }
-      }) as { success: boolean; message: string }
+      })
 
       if (response.success) {
-        // Remove from local state
         state.exportHistory = state.exportHistory.filter(entry => entry.id !== exportId)
 
-        // Update pagination if needed
         if (state.exportHistory.length === 0 && state.historyPagination.page > 1) {
           await loadExportHistory(state.historyPagination.page - 1)
-        } else {
-          // Recalculate pagination
-          state.historyPagination.total = Math.max(0, state.historyPagination.total - 1)
-          state.historyPagination.totalPages = Math.ceil(state.historyPagination.total / state.historyPagination.limit)
+          return
         }
 
-        const { toast } = useToast()
-        toast({
-          title: 'Export Deleted',
-          description: 'Export history entry has been deleted'
-        })
+        // Recalculate pagination
+        state.historyPagination.total = Math.max(0, state.historyPagination.total - 1)
+        state.historyPagination.totalPages = Math.ceil(state.historyPagination.total / state.historyPagination.limit)
       }
     } catch (error: any) {
       console.error('Failed to delete export history entry:', error)
       state.errorMessage = error.data?.message || 'Failed to delete export history entry'
 
-      const { toast } = useToast()
-      toast({
+      useToast().toast({
         title: 'Delete Failed',
         description: 'Failed to delete export history entry'
       })
     }
   }
 
-  // Clear all export history
   const clearAllExportHistory = async () => {
     try {
       const response = await $fetch('/api/admin/export/history/clear', {
-        method: 'DELETE' as any,
+        method: 'DELETE',
         body: { confirm: true }
-      }) as { success: boolean; message: string; deletedCount: number }
+      })
 
       if (response.success) {
-        // Clear local state
         state.exportHistory = []
         state.historyPagination = {
           page: 1,
@@ -564,26 +526,18 @@ export const useDataExport = () => {
           totalPages: 0,
           hasMore: false
         }
-
-        const { toast } = useToast()
-        toast({
-          title: 'History Cleared',
-          description: `Successfully cleared ${response.deletedCount} export history entries`
-        })
       }
     } catch (error: any) {
       console.error('Failed to clear export history:', error)
       state.errorMessage = error.data?.message || 'Failed to clear export history'
 
-      const { toast } = useToast()
-      toast({
+      useToast().toast({
         title: 'Clear Failed',
         description: 'Failed to clear export history'
       })
     }
   }
 
-  // Utility functions
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -616,6 +570,46 @@ export const useDataExport = () => {
     return new Date(expiresAt) <= new Date()
   }
 
+  const getBackupStatusLabel = (status: string) => {
+    const labels = {
+      'uploading': 'Uploading',
+      'stored': 'Stored',
+      'failed': 'Failed',
+      'expired': 'Expired'
+    }
+    return labels[status as keyof typeof labels] || status
+  }
+
+  const getBackupStatusColor = (status: string) => {
+    const colors = {
+      'uploading': '#0046FF',
+      'stored': '#78C841',
+      'failed': '#FB4141',
+      'expired': '#D7D7D7'
+    }
+    return colors[status as keyof typeof colors] || '#D7D7D7'
+  }
+
+  const downloadBackup = async (backupId: number) => {
+    try {
+      const downloadUrl = `/api/admin/backup/download/${backupId}`
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+    } catch (error: any) {
+      console.error('Backup download error:', error)
+      useToast().toast({
+        title: 'Download Failed',
+        description: error.message || 'Failed to download backup file.',
+        toast: 'error'
+      })
+    }
+  }
+
   return {
     // State
     state,
@@ -645,6 +639,11 @@ export const useDataExport = () => {
     formatFileSize,
     getFormatColor,
     formatDate,
-    isExpired
+    isExpired,
+
+    // Backup utilities
+    getBackupStatusLabel,
+    getBackupStatusColor,
+    downloadBackup
   }
 }

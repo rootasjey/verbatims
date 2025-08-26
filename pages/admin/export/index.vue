@@ -1,25 +1,21 @@
 <template>
   <div>
-
-    <!-- Success/Error Alerts -->
     <div class="mb-6 space-y-4">
       <UAlert
         v-if="state.successMessage"
-        color="green"
-        variant="soft"
+        btn="soft"
         closable
         :title="state.successMessage"
-        :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+        :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
         @close="clearMessages"
       />
 
       <UAlert
         v-if="state.errorMessage"
-        color="red"
-        variant="soft"
+        btn="soft"
         closable
         :title="state.errorMessage"
-        :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+        :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
         @close="clearMessages"
       />
     </div>
@@ -27,12 +23,10 @@
     <!-- Main Export Interface with Tabs -->
     <UTabs v-model="activeTab" :items="mainTabs" class="w-full">
       <template #content="{ item }">
-        <!-- Data Export Tab (Quotes, References, Authors, Users) -->
-        <div v-if="['quotes', 'references', 'authors', 'users'].includes(item.value)" class="pt-6">
-          <!-- Step-by-Step Interface with Cards -->
+        <div v-if="['export'].includes(item.value)" class="pt-6">
           <div class="space-y-6">
             <!-- Step 1: Export Configuration -->
-            <UCard class="border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20">
+            <UCard class="shadow-none bg-gray-50/50 dark:bg-gray-800/20">
               <template #header>
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
@@ -134,7 +128,7 @@
             </UCard>
 
             <!-- Step 2: Filters -->
-            <UCard class="border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20">
+            <UCard class="shadow-none bg-gray-50/50 dark:bg-gray-800/20">
               <template #header>
                 <UCollapsible>
                   <UCollapsibleTrigger class="w-full">
@@ -188,7 +182,7 @@
             </UCard>
 
             <!-- Step 3: Preview Export -->
-            <UCard class="border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20">
+            <UCard class="shadow-none bg-gray-50/50 dark:bg-gray-800/20">
               <template #header>
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
@@ -256,7 +250,7 @@
             </UCard>
 
             <!-- Step 4: Export Data -->
-            <UCard class="border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20">
+            <UCard class="shadow-none bg-gray-50/50 dark:bg-gray-800/20">
               <template #header>
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
@@ -314,7 +308,7 @@
               </div>
               <div class="flex items-center gap-3">
                 <UButton
-                  btn="outline"
+                  btn="soft"
                   size="sm"
                   @click="loadExportHistory"
                 >
@@ -322,9 +316,8 @@
                   Refresh
                 </UButton>
                 <UButton
-                  btn="outline"
+                  btn="soft-pink"
                   size="sm"
-                  color="red"
                   :disabled="state.exportHistory.length === 0"
                   @click="showClearHistoryDialog = true"
                 >
@@ -335,7 +328,7 @@
             </div>
 
             <!-- Export History Content -->
-            <UCard>
+            <div>
               <div v-if="state.isLoadingHistory" class="flex justify-center py-8">
                 <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
               </div>
@@ -366,6 +359,7 @@
                         <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Format</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Records</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Size</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Storage</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">User</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Created</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Downloads</th>
@@ -390,7 +384,7 @@
                           <UBadge
                             :label="entry.format.toUpperCase()"
                             :color="getFormatColor(entry.format)"
-                            variant="subtle"
+                            badge="subtle"
                             size="xs"
                           />
                         </td>
@@ -399,6 +393,32 @@
                         </td>
                         <td class="py-3 px-4 text-gray-600 dark:text-gray-400">
                           {{ formatFileSize(entry.file_size || 0) }}
+                        </td>
+                        <td class="py-3 px-4">
+                          <div class="flex items-center gap-2">
+                            <!-- Backup Status Badge -->
+                            <UBadge
+                              v-if="entry.backup_file"
+                              :label="getBackupStatusLabel(entry.backup_file.storage_status)"
+                              :color="getBackupStatusColor(entry.backup_file.storage_status)"
+                              badge="subtle"
+                              size="xs"
+                            />
+                            <UBadge
+                              v-else
+                              label="Legacy"
+                              color="gray"
+                              badge="subtle"
+                              size="xs"
+                            />
+                            <!-- R2 Storage Indicator -->
+                            <UIcon
+                              v-if="entry.backup_file && entry.backup_file.storage_status === 'stored'"
+                              name="i-ph-cloud-check"
+                              class="w-4 h-4 text-green-500"
+                              title="Stored in R2"
+                            />
+                          </div>
                         </td>
                         <td class="py-3 px-4 text-gray-600 dark:text-gray-400">
                           {{ entry.user_name }}
@@ -411,19 +431,42 @@
                         </td>
                         <td class="py-3 px-4">
                           <div class="flex items-center gap-2">
+                            <!-- Legacy Export Download -->
                             <UButton
                               v-if="!isExpired(entry.expires_at)"
                               btn="ghost"
                               size="xs"
                               @click="downloadExport(entry.id)"
+                              title="Download legacy export"
                             >
                               <UIcon name="i-ph-download" />
                             </UButton>
-                            <span v-else class="text-xs text-gray-400">Expired</span>
+
+                            <!-- Backup Download -->
+                            <UButton
+                              v-if="entry.backup_file && entry.backup_file.storage_status === 'stored'"
+                              btn="ghost"
+                              size="xs"
+                              @click="downloadBackup(entry.backup_file.id)"
+                              title="Download from R2 backup"
+                            >
+                              <UIcon name="i-ph-cloud-arrow-down" />
+                            </UButton>
+
+                            <!-- Expired/Failed Status -->
+                            <span
+                              v-if="isExpired(entry.expires_at) && (!entry.backup_file || entry.backup_file.storage_status !== 'stored')"
+                              class="text-xs text-gray-400"
+                            >
+                              Expired
+                            </span>
+
+                            <!-- Delete Button -->
                             <UButton
                               btn="ghost"
                               size="xs"
                               @click="confirmDeleteEntry(entry.id, entry.filename)"
+                              title="Delete export entry"
                             >
                               <UIcon name="i-ph-trash" />
                             </UButton>
@@ -459,7 +502,7 @@
                   </div>
                 </div>
               </div>
-            </UCard>
+            </div>
           </div>
         </div>
       </template>
@@ -521,7 +564,6 @@
             </UButton>
             <UButton
               btn="solid"
-              color="red"
               @click="handleClearAllHistory"
             >
               Clear All History
@@ -533,7 +575,7 @@
 
     <!-- Delete Entry Confirmation Dialog -->
     <UDialog v-model:open="showDeleteEntryDialog">
-      <UCard>
+      <UCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Delete Export Entry</h3>
         </template>
@@ -604,26 +646,24 @@ const {
   formatFileSize,
   getFormatColor,
   formatDate,
-  isExpired
+  isExpired,
+  getBackupStatusLabel,
+  getBackupStatusColor,
+  downloadBackup
 } = useDataExport()
 
-// Tab management
-const activeTab = ref('quotes')
+const activeTab = ref('export')
 
 const mainTabs = [
-  { name: 'Quotes', value: 'quotes', icon: 'i-ph-quotes' },
-  { name: 'References', value: 'references', icon: 'i-ph-book' },
-  { name: 'Authors', value: 'authors', icon: 'i-ph-user-circle' },
-  { name: 'Users', value: 'users', icon: 'i-ph-users' },
+  { name: 'Export', value: 'export', icon: 'i-ph-quotes' },
   {
-    name: 'Export History',
+    name: 'History',
     value: 'history',
     icon: 'i-ph-clock-countdown',
     class: 'border-l border-gray-200 dark:border-gray-700 ml-2 pl-2'
   }
 ]
 
-// Data type options with availability status
 const dataTypeOptions = [
   {
     label: 'Quotes',
@@ -655,12 +695,10 @@ const dataTypeOptions = [
   }
 ]
 
-// Dialog management
 const showClearHistoryDialog = ref(false)
 const showDeleteEntryDialog = ref(false)
 const deleteEntryData = ref({ id: '', filename: '' })
 
-// Methods for new UI
 const selectDataType = (dataType: any) => {
   if (!dataType.available) return
 
@@ -669,7 +707,6 @@ const selectDataType = (dataType: any) => {
     value: dataType.value
   }
 
-  // Clear preview when changing data type
   state.previewData = null
   clearMessages()
 }
@@ -690,7 +727,6 @@ const getIncludeRelationsLabel = () => {
   }
 }
 
-// Watch for tab changes to update export data type and clear state
 watch(activeTab, (newTabValue) => {
   const selectedTab = mainTabs.find((tab: any) => tab.value === newTabValue)
   if (selectedTab && selectedTab.value !== 'history') {
@@ -700,12 +736,10 @@ watch(activeTab, (newTabValue) => {
     }
   }
 
-  // Clear alerts and preview when switching tabs
   clearMessages()
   state.previewData = null
 })
 
-// State management helpers
 const clearMessages = () => {
   state.successMessage = ''
   state.errorMessage = ''
@@ -715,7 +749,6 @@ const closeProgressDialog = () => {
   state.showProgressDialog = false
 }
 
-// Export history management
 const confirmDeleteEntry = (exportId: string, filename: string) => {
   deleteEntryData.value = { id: exportId, filename }
   showDeleteEntryDialog.value = true
@@ -732,7 +765,6 @@ const handleClearAllHistory = async () => {
   showClearHistoryDialog.value = false
 }
 
-// Load export history on mount
 onMounted(() => {
   loadExportHistory()
 })
@@ -740,7 +772,6 @@ onMounted(() => {
 
 <style scoped>
 .export-history-container {
-  max-width: calc(100vw - 20rem);
   max-height: calc(100vh - 20rem);
   overflow-y: auto;
 }

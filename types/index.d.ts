@@ -3,7 +3,6 @@
  * Re-exports all database entity types for easy importing
  */
 
-// Author types
 export type {
   Author,
   AuthorSocials,
@@ -13,7 +12,6 @@ export type {
   AuthorStats
 } from './author';
 
-// Quote Reference types
 export type {
   QuoteReference,
   QuoteReferencePrimaryType,
@@ -25,7 +23,6 @@ export type {
   QuoteReferenceWithMetadata
 } from './quote-reference';
 
-// Quote types
 export type {
   Quote,
   QuoteLanguage,
@@ -43,7 +40,6 @@ export type {
   DatabaseAdminQuote,
 } from './quote';
 
-// Tag types
 export type {
   Tag,
   QuoteTag,
@@ -56,7 +52,6 @@ export type {
   PopularTag
 } from './tag';
 
-// User Interaction types
 export type {
   UserLike,
   LikeableType,
@@ -73,7 +68,6 @@ export type {
   PopularCollection
 } from './user-interactions';
 
-// Session types
 export type {
   UserSession,
   CreateSessionData,
@@ -81,7 +75,6 @@ export type {
   SessionCleanupOptions
 } from './session';
 
-// Moderation types
 export type {
   QuoteReport,
   ReportReason,
@@ -94,7 +87,6 @@ export type {
   BulkModerationAction
 } from './moderation';
 
-// Analytics types
 export type {
   QuoteView,
   CreateViewData,
@@ -108,7 +100,6 @@ export type {
   AnalyticsFilters
 } from './analytics';
 
-// Search types
 export type {
   SearchContentType,
   QuoteSearchResult,
@@ -122,7 +113,6 @@ export type {
   QuotesSearchPayload,
 } from './search';
 
-// API Result types
 export type {
   CreatedQuoteResult,
   FeaturedQuoteResult,
@@ -130,7 +120,6 @@ export type {
   TagProcessor
 } from './api-results';
 
-// Import Progress types
 export type {
   ImportProgress,
   ImportOptions,
@@ -150,6 +139,17 @@ export {
   CreateUserMessageResult,
   UserMessage,
 } from './report';
+
+export {
+  BackupFile,
+  BackupCompressionType,
+  BackupFileWithMetadata,
+  BackupStorageStatus,
+  BackupUploadProgress,
+  CreateBackupFileData,
+  ExportResultWithBackup,
+  ExportHistoryEntryWithBackup,
+} from './export';
 
 // Common utility types
 export interface DatabaseEntity {

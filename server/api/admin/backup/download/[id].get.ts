@@ -1,0 +1,66 @@
+import { BackupService } from '~/server/utils/backupStorage'
+
+/**
+ * Admin API: Download Backup File
+ * Serves backup files from Cloudflare R2 storage via NuxtHub blob
+ */
+export default defineEventHandler(async (event) => {
+  try {
+    const { user } = await requireUserSession(event)
+    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+    }
+
+    const backupId = getRouterParam(event, 'id')
+    if (!backupId || isNaN(Number(backupId))) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid backup ID' })
+    }
+
+    const db = hubDatabase()
+    const backupService = new BackupService(db)
+    const { content, metadata, backupFile } = await backupService.getBackup(Number(backupId))
+    
+    let mimeType = 'application/octet-stream'
+    const format = backupFile.filename.split('.').pop()?.toLowerCase()
+    
+    switch (format) {
+      case 'json':
+        mimeType = 'application/json'
+        break
+      case 'csv':
+        mimeType = 'text/csv'
+        break
+      case 'xml':
+        mimeType = 'application/xml'
+        break
+    }
+    
+    setHeader(event, 'Content-Type', mimeType)
+    setHeader(event, 'Content-Disposition', `attachment; filename="${backupFile.filename}"`)
+    setHeader(event, 'Content-Length', Buffer.byteLength(content, 'utf-8'))
+    setHeader(event, 'Cache-Control', 'private, max-age=3600') // Cache for 1 hour
+    
+    setHeader(event, 'X-Backup-ID', backupFile.id.toString())
+    setHeader(event, 'X-Backup-Created', backupFile.created_at)
+    setHeader(event, 'X-Backup-File-Path', backupFile.file_path)
+    
+    if (backupFile.content_hash) {
+      setHeader(event, 'X-Content-Hash', backupFile.content_hash)
+    }
+    
+    return content
+
+  } catch (error: any) {
+    console.error('Backup download endpoint error:', error)
+    if (error.message.includes('not found')) {
+      throw createError({ statusCode: 404, statusMessage: 'Backup file not found' })
+    }
+
+    if (error.message.includes('not available')) {
+      throw createError({ statusCode: 410, statusMessage: 'Backup file is not available' })
+    }
+
+    if (error.statusCode) throw error
+    throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
+  }
+})

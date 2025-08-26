@@ -1,19 +1,16 @@
+import type { ExportOptions, QuoteExportFilters, ExportedQuote, ExportResultWithBackup } from '~/types/export'
+import { validateFiltersForExport, buildFilterConditions, serializeFiltersForStorage } from '~/server/utils/export-filters'
+import { BackupService } from '~/server/utils/backupStorage'
+
 /**
  * Admin API: Export Quotes Data
  * Comprehensive quotes export with filtering, multiple formats, and progress tracking
  */
-
-import type { ExportOptions, QuoteExportFilters, ExportResult, ExportedQuote } from '~/types/export'
-import { validateFiltersForExport, buildFilterConditions, serializeFiltersForStorage } from '~/server/utils/export-filters'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
     const body = await readBody(event) as ExportOptions
@@ -22,45 +19,23 @@ export default defineEventHandler(async (event) => {
     const quotesFilters = filters as QuoteExportFilters
     const filterValidation = validateFiltersForExport(quotesFilters)
     if (!filterValidation.valid) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}`
-      })
+      throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
     }
 
     if (!format) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Export format is required'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Export format is required' })
     }
 
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Unsupported export format. Supported formats: json, csv, xml'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
     }
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Generate unique export ID
-    const exportId = `quotes_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    
-    // Build query with filters
+    const uniqueExportId = `quotes_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildQuotesQuery(quotesFilters, include_relations, limit)
-
-    // Execute query to get quotes data
     const quotesResult = await db.prepare(query).bind(...bindings).all()
     const quotes = (quotesResult?.results || []) as any[]
 
-    // Process quotes data
     const processedQuotes: ExportedQuote[] = quotes.map((quote: any) => {
       const processed: ExportedQuote = {
         id: quote.id,
@@ -77,7 +52,6 @@ export default defineEventHandler(async (event) => {
         rejection_reason: quote.rejection_reason || undefined
       }
 
-      // Add related data if requested
       if (include_relations) {
         if (quote.author_name) {
           processed.author = {
@@ -118,7 +92,6 @@ export default defineEventHandler(async (event) => {
           }
         }
 
-        // Process tags
         if (quote.tag_names) {
           const tagNames = quote.tag_names.split(',')
           const tagColors = quote.tag_colors ? quote.tag_colors.split(',') : []
@@ -132,12 +105,11 @@ export default defineEventHandler(async (event) => {
         }
       }
 
-      // Add metadata if requested
       if (include_metadata) {
         processed._metadata = {
           exported_at: new Date().toISOString(),
           exported_by: user.id,
-          export_id: exportId,
+          export_id: uniqueExportId,
           export_filters: quotesFilters
         }
       }
@@ -174,10 +146,10 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // Log the export
+    // Log the export first to get the export log ID
     const fileSize = new TextEncoder().encode(contentData).length
-    await logQuotesExport(db, {
-      exportId,
+    const exportLogResult = await logQuotesExport(db, {
+      exportId: uniqueExportId,
       filename,
       format,
       filters: quotesFilters,
@@ -186,23 +158,59 @@ export default defineEventHandler(async (event) => {
       fileSize: fileSize
     })
 
-    const result: ExportResult = {
+    const backupService = new BackupService(db)
+    let backupInfo = undefined
+
+    try {
+      const backupResult = await backupService.createBackup(
+        contentData,
+        filename,
+        'quotes',
+        format,
+        {
+          exportLogId: exportLogResult.exportLogId,
+          retentionDays: 90,
+          metadata: {
+            export_config: body,
+            filters: quotesFilters,
+            created_by: user.id,
+            backup_type: 'export',
+            data_type: 'quotes'
+          }
+        }
+      )
+
+      backupInfo = {
+        backup_id: backupResult.backupId,
+        file_key: backupResult.fileKey,
+        file_path: backupResult.filePath,
+        storage_status: 'stored' as const,
+        backup_download_url: `/api/admin/backup/download/${backupResult.backupId}`,
+        retention_days: 90,
+        expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    } catch (backupError) {
+      console.error('Failed to create backup, continuing with export:', backupError)
+      // Don't fail the export if backup fails
+    }
+
+    const result: ExportResultWithBackup = {
       success: true,
       data: {
-        export_id: exportId,
+        export_id: uniqueExportId,
         filename,
         format,
         record_count: processedQuotes.length,
         file_size: fileSize,
-        download_url: `/api/admin/export/download/${exportId}`,
+        download_url: `/api/admin/export/download/${uniqueExportId}`,
         options: body,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-      }
+      },
+      backup: backupInfo
     }
 
-    // Store the export content temporarily (in production, use blob storage)
-    // For now, we'll return the content directly for smaller exports
-    if (contentData.length < 10 * 1024 * 1024) { // Less than 10MB
+    // For smaller exports, still provide direct content for immediate download
+    if (contentData.length < 5 * 1024 * 1024) { // Less than 5MB (reduced from 10MB)
       const resultData = result.data as any
       resultData.content = contentData
       resultData.mimeType = mimeType
@@ -456,7 +464,7 @@ async function logQuotesExport(db: any, exportInfo: {
   fileSize: number
   includeRelations?: boolean
   includeMetadata?: boolean
-}) {
+}): Promise<{ exportLogId: number }> {
   try {
     // Create unified export logs table if it doesn't exist
     await db.prepare(`
@@ -480,7 +488,7 @@ async function logQuotesExport(db: any, exportInfo: {
     `).run()
 
     // Log the export with type-safe filter serialization
-    await db.prepare(`
+    const result = await db.prepare(`
       INSERT INTO export_logs (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
@@ -496,8 +504,11 @@ async function logQuotesExport(db: any, exportInfo: {
       exportInfo.includeMetadata || false
     ).run()
 
+    return { exportLogId: result.meta.last_row_id }
+
   } catch (error) {
     console.error('Failed to log quotes export:', error)
-    // Don't fail the export if logging fails
+    // Return a fallback ID if logging fails
+    return { exportLogId: 0 }
   }
 }
