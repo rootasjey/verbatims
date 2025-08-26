@@ -31,7 +31,7 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
       id: quote.author_id,
       name: quote.author_name!,
       is_fictional: quote.author_is_fictional!,
-      image_url: quote.author_image_url ?? null
+      image_url: quote.author_image_url ?? undefined
     } : undefined,
     reference: quote.reference_id ? {
       id: quote.reference_id,
@@ -59,8 +59,19 @@ export function transformAdminQuotes(quotes: DatabaseAdminQuote[]): AdminQuote[]
       author_name: quote.author_name,
       author_is_fictional: quote.author_is_fictional,
       author_image_url: quote.author_image_url,
+      author: quote.author_id ? {
+        id: quote.author_id,
+        name: quote.author_name!,
+        is_fictional: quote.author_is_fictional!,
+        image_url: quote.author_image_url ?? undefined
+      } : undefined,
       reference_name: quote.reference_name,
       reference_type: quote.reference_type,
+      reference: quote.reference_id ? {
+        id: quote.reference_id,
+        name: quote.reference_name,
+        primary_type: quote.reference_type
+      } : undefined,
       user_name: quote.user_name,
       user_email: quote.user_email,
       user_avatar_url: quote.user_avatar || quote.user_avatar_url,

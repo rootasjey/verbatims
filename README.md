@@ -88,7 +88,7 @@ The most common scripts are:
 - `bun run build` – production build
 - `bun run preview` – preview the production build
 
-Additional utilities are available under `scripts/` and `docs/` for database reset, import/export round trips, and migration testing.
+Note: The legacy local CLI utilities under `scripts/` have been removed. Admin operations are now performed through the in-app Admin pages and server APIs (e.g., export, import, backup).
 
 ## Data, privacy, and contributions
 

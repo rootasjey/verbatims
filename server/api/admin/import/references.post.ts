@@ -3,7 +3,7 @@
  * Handles bulk import of reference data with validation, progress tracking, and rollback
  */
 
-import { validateReferenceData } from '~/server/utils/data-validation'
+import { validateReferenceDataZod } from '~/server/utils/validation/reference'
 import type { ImportOptions, ImportProgress } from '~/types'
 
 // In-memory store for import progress (in production, use Redis or database)
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
     // Generate unique import ID
     const importId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
+
     // Initialize progress tracking
     const progress: ImportProgress = {
       id: importId,
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
       warnings: [],
       startedAt: new Date()
     }
-    
+
     importProgressStore.set(importId, progress)
 
     // Process import asynchronously
@@ -77,9 +77,9 @@ export default defineEventHandler(async (event) => {
 })
 
 async function processImport(
-  importId: string, 
-  rawData: any, 
-  format: 'json' | 'csv' | 'firebase', 
+  importId: string,
+  rawData: any,
+  format: 'json' | 'csv' | 'firebase',
   options: ImportOptions,
   userId: number
 ) {
@@ -89,7 +89,7 @@ async function processImport(
   try {
     // Parse and transform data based on format
     let references: any[] = []
-    
+
     if (format === 'json') {
       references = Array.isArray(rawData) ? rawData : [rawData]
     } else if (format === 'csv') {
@@ -100,8 +100,8 @@ async function processImport(
 
     progress.totalRecords = references.length
 
-    // Validate data
-    const validationResult = validateReferenceData(references)
+    // Validate data (Zod-based)
+    const validationResult = validateReferenceDataZod(references)
     progress.warnings.push(...validationResult.warnings)
 
     if (!validationResult.isValid && !options.ignoreValidationErrors) {
@@ -129,21 +129,21 @@ async function processImport(
       // Process references in batches
       const batchSize = options.batchSize || 50
       const batches = []
-      
+
       for (let i = 0; i < references.length; i += batchSize) {
         batches.push(references.slice(i, i + batchSize))
       }
 
       for (const batch of batches) {
         await processBatch(db, batch, progress, userId)
-        
+
         // Update progress
         progress.processedRecords = Math.min(progress.processedRecords + batch.length, progress.totalRecords)
       }
 
       // Commit transaction
       await db.prepare('COMMIT').run()
-      
+
       progress.status = 'completed'
       progress.completedAt = new Date()
 
@@ -226,7 +226,7 @@ async function processBatch(db: any, batch: any[], progress: ImportProgress, use
           progress.successfulRecords++
         } catch (individualError: any) {
           progress.failedRecords++
-          progress.errors.push(`Failed to import "${reference.name}": ${individualError.message}`)
+          progress.errors.push(`Failed to import \"${reference.name}\": ${individualError.message}`)
         }
       }
     }
@@ -313,13 +313,13 @@ function parseCSVLine(line: string): string[] {
 
 async function createDatabaseBackup(db: any): Promise<string> {
   const backupId = `backup_${Date.now()}`
-  
+
   // Export current references to backup table
   await db.prepare(`
-    CREATE TABLE IF NOT EXISTS quote_references_backup_${backupId} AS 
+    CREATE TABLE IF NOT EXISTS quote_references_backup_${backupId} AS
     SELECT * FROM quote_references
   `).run()
-  
+
   return backupId
 }
 

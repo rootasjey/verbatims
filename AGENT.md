@@ -3,9 +3,9 @@
 ## Commands
 - `bun run dev` - Development server (localhost:3000)
 - `bun run build` - Production build
-- `node scripts/test-migration-system.js` - Test database migrations
-- `node scripts/test-admin-initialization.js` - Test admin initialization
-- `node scripts/test-import-system.js` - Test data import system
+- `bun run preview` - Preview production build
+
+Note: Legacy CLI scripts under `scripts/` were removed. Use the in-app Admin pages and API endpoints for migrations, initialization, import/export, and backups.
 
 ## Architecture
 - **Nuxt 3** app with **Cloudflare D1** database via **NuxtHub**
