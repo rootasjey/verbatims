@@ -3,14 +3,13 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
 
-  // App configuration
   app: {
     head: {
-      title: 'Verbatims - Universal Quotes Database',
+      title: 'Verbatims - Universal Quotes Service',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'A comprehensive, user-generated quotes database with moderation capabilities' }
+        { name: 'description', content: 'A comprehensive, user-generated quotes service' }
       ]
     }
   },
@@ -21,10 +20,10 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxthub/core',
     'nuxt-auth-utils',
-    '@una-ui/nuxt'
+    '@una-ui/nuxt',
+    '@vueuse/nuxt',
   ],
 
-  // NuxtHub configuration
   hub: {
     analytics: true,
     blob: true,
@@ -33,7 +32,6 @@ export default defineNuxtConfig({
     kv: true,
   },
 
-  // Nitro configuration
   nitro: {
     experimental: {
       wasm: true
@@ -41,10 +39,8 @@ export default defineNuxtConfig({
     ignore: ['scripts/**']
   },
 
-  // CSS configuration
   // css: ['~/assets/css/main.css'],
 
-  // Runtime config
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
@@ -94,7 +90,6 @@ export default defineNuxtConfig({
     themeable: true,
   },
 
-  // Component configuration
   components: {
     global: true,
     dirs: [
