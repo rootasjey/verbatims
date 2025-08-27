@@ -1,6 +1,5 @@
 import type { ExportOptions, QuoteExportFilters, ExportedQuote, ExportResultWithBackup } from '~/types/export'
 import { validateFiltersForExport, buildFilterConditions, serializeFiltersForStorage } from '~/server/utils/export-filters'
-import { BackupService } from '~/server/utils/backupStorage'
 
 /**
  * Admin API: Export Quotes Data
@@ -158,11 +157,11 @@ export default defineEventHandler(async (event) => {
       fileSize: fileSize
     })
 
-    const backupService = new BackupService(db)
     let backupInfo = undefined
 
     try {
-      const backupResult = await backupService.createBackup(
+      const backupResult = await createBackup(
+        db,
         contentData,
         filename,
         'quotes',

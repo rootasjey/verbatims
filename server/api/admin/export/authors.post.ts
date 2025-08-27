@@ -1,5 +1,4 @@
 import type { ExportOptions, AuthorExportFilters, ExportResult, ExportedAuthor, ExportResultWithBackup } from '~/types/export'
-import { BackupService } from '~/server/utils/backupStorage'
 
 /**
  * Admin API: Export Authors Data
@@ -121,11 +120,11 @@ export default defineEventHandler(async (event) => {
     })
 
     // Create backup in R2 storage
-    const backupService = new BackupService(db)
     let backupInfo = undefined
 
     try {
-      const backupResult = await backupService.createBackup(
+      const backupResult = await createBackup(
+        db,
         contentData,
         filename,
         'authors',
