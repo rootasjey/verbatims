@@ -3,9 +3,9 @@
  * Handles file storage and retrieval using Cloudflare R2 via NuxtHub blob storage
  */
 
-import { createHash } from 'crypto'
-import { gzip, gunzip } from 'zlib'
-import { promisify } from 'util'
+import { createHash } from 'node:crypto'
+import { gzip, gunzip } from 'node:zlib'
+import { promisify } from 'node:util'
 import type { BackupFile, BackupCompressionType } from '~/types'
 
 const gzipAsync = promisify(gzip)

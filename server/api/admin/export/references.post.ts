@@ -1,5 +1,4 @@
 import type { ExportOptions, ReferenceExportFilters, ExportResult, ExportedReference } from '~/types/export'
-import { BackupService } from '~/server/utils/backupStorage'
 
 /**
  * Admin API: Export References Data
@@ -365,28 +364,6 @@ function serializeReferencesFilters(filters: ReferenceExportFilters): string {
  */
 async function logReferencesExport(db: any, exportInfo: any) {
   try {
-    // Create unified export logs table if it doesn't exist
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS export_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        export_id TEXT NOT NULL UNIQUE,
-        filename TEXT NOT NULL,
-        format TEXT NOT NULL,
-        data_type TEXT NOT NULL CHECK (data_type IN ('quotes', 'references', 'authors', 'users')),
-        filters_applied TEXT,
-        record_count INTEGER,
-        file_size INTEGER,
-        user_id INTEGER,
-        include_relations BOOLEAN DEFAULT FALSE,
-        include_metadata BOOLEAN DEFAULT FALSE,
-        download_count INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expires_at DATETIME DEFAULT (datetime('now', '+24 hours')),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-      )
-    `).run()
-
-    // Log the export
     await db.prepare(`
       INSERT INTO export_logs
       (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)

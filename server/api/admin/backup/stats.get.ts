@@ -11,30 +11,6 @@ export default defineEventHandler(async (event) => {
 
     const db = hubDatabase()
 
-    // Ensure backup_files table exists
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS backup_files (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        file_key TEXT NOT NULL UNIQUE,
-        export_log_id INTEGER,
-        filename TEXT NOT NULL,
-        file_path TEXT NOT NULL,
-        file_size INTEGER,
-        compressed_size INTEGER,
-        content_hash TEXT,
-        compression_type TEXT DEFAULT 'none',
-        storage_status TEXT DEFAULT 'uploading' CHECK (storage_status IN ('uploading', 'stored', 'failed', 'expired')),
-        retention_days INTEGER DEFAULT 90,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        uploaded_at DATETIME,
-        expires_at DATETIME,
-        last_accessed_at DATETIME,
-        access_count INTEGER DEFAULT 0,
-        metadata TEXT,
-        FOREIGN KEY (export_log_id) REFERENCES export_logs(id) ON DELETE CASCADE
-      )
-    `).run()
-
     // Get overall statistics
     const overallStats = await db.prepare(`
       SELECT 

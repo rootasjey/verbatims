@@ -165,6 +165,7 @@ export interface UIExportOptions {
   include_moderation_data: boolean
   include_analytics: boolean
   include_metadata: boolean
+  download_after_export: boolean
   limit: number
 }
 

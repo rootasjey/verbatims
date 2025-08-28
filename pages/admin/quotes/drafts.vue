@@ -245,7 +245,7 @@
         </div>
 
         <!-- Pagination -->
-  <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>

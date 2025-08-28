@@ -1,54 +1,62 @@
 <template>
   <div class="space-y-6">
-    <!-- Status Filter -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Quote Status
-      </label>
+    <div class="grid grid-cols-2 gap-3">
       <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Quote Status
+        </label>
         <USelect
           :model-value="modelValue.status"
           @update:model-value="updateFilter('status', $event)"
           :items="statusOptions"
-          item-key="value"
-          value-key="value"
+          item-key="label"
+          value-key="label"
           placeholder="All statuses"
           multiple
         />
       </div>
-    </div>
 
-    <!-- Language Filter -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Language
-      </label>
       <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Language
+        </label>
         <USelect
           :model-value="modelValue.language"
           @update:model-value="updateFilter('language', $event)"
           :items="languageOptions"
-          item-key="value"
-          value-key="value"
+          item-key="label"
+          value-key="label"
           placeholder="All languages"
           multiple
         />
       </div>
     </div>
 
-    <!-- Author Filter -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Author Name (search)
-      </label>
-      <UInput
-        :model-value="modelValue.author_name"
-        @update:model-value="updateFilter('author_name', $event)"
-        placeholder="Search by author name"
-      />
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Author Name
+        </label>
+        <UInput
+          :model-value="modelValue.author_name"
+          @update:model-value="updateFilter('author_name', $event)"
+          placeholder="Search by author name"
+          class="mx-0.5"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Quote Content
+        </label>
+        <UInput
+          :model-value="modelValue.search"
+          @update:model-value="updateFilter('search', $event)"
+          placeholder="Search in quote content"
+          class="mx-0.5"
+        />
+      </div>
     </div>
 
-    <!-- Date Range -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Date Range
@@ -69,19 +77,6 @@
       </div>
     </div>
 
-    <!-- Search -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Quote Content Search
-      </label>
-      <UInput
-        :model-value="modelValue.search"
-        @update:model-value="updateFilter('search', $event)"
-        placeholder="Search in quote content"
-      />
-    </div>
-
-    <!-- Featured Only -->
     <div>
       <UCheckbox
         :model-value="modelValue.featured_only"

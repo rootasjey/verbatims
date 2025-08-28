@@ -1,0 +1,434 @@
+<template>
+  <div class="pt-6">
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Export History</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            View and manage your previous exports
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <UButton
+            btn="light:soft dark:link-gray"
+            size="sm"
+            @click="refresh"
+          >
+            <UIcon name="i-ph-arrow-clockwise" />
+            Refresh
+          </UButton>
+          <UButton
+            btn="light:soft-pink dark:link-pink"
+            size="sm"
+            :disabled="dataExport.state.exportHistory.length === 0"
+            @click="showClearHistoryDialog = true"
+          >
+            <UIcon name="i-ph-trash" />
+            Clear All
+          </UButton>
+        </div>
+      </div>
+
+      <div>
+        <div v-if="dataExport.state.isLoadingHistory" class="flex justify-center py-8">
+          <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
+        </div>
+
+        <div v-else-if="dataExport.state.exportHistory.length === 0" class="text-center py-12">
+          <UIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No Export History
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            Your export history will appear here once you start creating exports.
+          </p>
+          <UButton
+            btn="outline"
+            @click="emit('go-to-export')"
+          >
+            <UIcon name="i-ph-download" />
+            Create Your First Export
+          </UButton>
+        </div>
+
+        <div v-else class="export-history-container flex flex-col bg-white dark:bg-[#0C0A09]">
+          <UCollapsible v-model:open="bulkOpen">
+            <UCollapsibleContent>
+              <div class="flex-shrink-0 mb-4">
+                <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">
+                      {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'entry' : 'entries' }} selected
+                    </span>
+                    <div class="flex items-center gap-3">
+                      <UButton size="sm" btn="light:ghost-pink dark:link-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
+                        <UIcon name="i-ph-trash" />
+                        Delete Selected
+                      </UButton>
+                      <UButton size="sm" btn="light:ghost dark:link-ghost" @click="clearSelection">
+                        Clear Selection
+                      </UButton>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </UCollapsibleContent>
+          </UCollapsible>
+
+          <div class="flex-1 overflow-auto">
+            <UTable
+              :columns="historyColumns"
+              :data="dataExport.state.exportHistory"
+              :loading="dataExport.state.isLoadingHistory"
+              manual-pagination
+              empty-text="No export history"
+              empty-icon="i-ph-clock-countdown"
+            >
+              <template #actions-header>
+                <div class="flex items-center justify-center gap-1">
+                  <template v-if="selectionMode">
+                    <UTooltip text="Select all on page">
+                      <UButton
+                        icon
+                        btn="ghost"
+                        size="2xs"
+                        label="i-ph-checks"
+                        :disabled="allSelectedOnPage"
+                        @click="selectAllOnPage"
+                      />
+                    </UTooltip>
+                  </template>
+                  <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                    <UButton
+                      icon
+                      btn="ghost-gray"
+                      size="2xs"
+                      :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
+                      @click="toggleSelectionMode"
+                    />
+                  </UTooltip>
+                </div>
+              </template>
+
+              <template #filename-cell="{ cell }">
+                <div>
+                  <div class="font-medium text-gray-900 dark:text-white">{{ cell.row.original.filename }}</div>
+                  <div v-if="cell.row.original.filters_applied" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Filters applied
+                  </div>
+                </div>
+              </template>
+
+              <template #format-cell="{ cell }">
+                <UBadge
+                  :label="cell.row.original.format.toUpperCase()"
+                  :color="dataExport.getFormatColor(cell.row.original.format)"
+                  badge="subtle"
+                  size="xs"
+                />
+              </template>
+
+              <template #records-cell="{ cell }">
+                <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.record_count.toLocaleString() }}</span>
+              </template>
+
+              <template #size-cell="{ cell }">
+                <span class="text-gray-600 dark:text-gray-400">{{ dataExport.formatFileSize(cell.row.original.file_size || 0) }}</span>
+              </template>
+
+              <template #storage-cell="{ cell }">
+                <div class="flex items-center gap-2">
+                  <UBadge
+                    v-if="cell.row.original.backup_file"
+                    :label="dataExport.getBackupStatusLabel(cell.row.original.backup_file.storage_status)"
+                    :color="dataExport.getBackupStatusColor(cell.row.original.backup_file.storage_status)"
+                    badge="subtle"
+                    size="xs"
+                  />
+                  <UBadge
+                    v-else
+                    label="Legacy"
+                    color="gray"
+                    badge="subtle"
+                    size="xs"
+                  />
+                  <UIcon
+                    v-if="cell.row.original.backup_file && cell.row.original.backup_file.storage_status === 'stored'"
+                    name="i-ph-cloud-check"
+                    class="w-4 h-4 text-green-500"
+                    title="Stored in R2"
+                  />
+                </div>
+              </template>
+
+              <template #user-cell="{ cell }">
+                <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.user_name }}</span>
+              </template>
+
+              <template #created-cell="{ cell }">
+                <span class="text-gray-600 dark:text-gray-400">{{ dataExport.formatDate(cell.row.original.created_at) }}</span>
+              </template>
+
+              <template #downloads-cell="{ cell }">
+                <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.download_count }}</span>
+              </template>
+
+              <template #actions-cell="{ cell }">
+                <template v-if="!selectionMode">
+                  <UDropdownMenu :items="getEntryActions(cell.row.original)">
+                    <UButton
+                      icon
+                      btn="ghost"
+                      size="sm"
+                      label="i-ph-dots-three-vertical"
+                    />
+                  </UDropdownMenu>
+                </template>
+                <template v-else>
+                  <div class="flex items-center justify-center">
+                    <UCheckbox
+                      :model-value="!!rowSelection[cell.row.original.id]"
+                      @update:model-value="val => setRowSelected(cell.row.original.id, val)"
+                    />
+                  </div>
+                </template>
+              </template>
+            </UTable>
+          </div>
+
+          <div class="flex-shrink-0 flex items-center justify-between p-4">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              Page {{ dataExport.state.historyPagination.page }} of {{ dataExport.state.historyPagination.totalPages }} • {{ dataExport.state.historyPagination.total }} total exports
+            </div>
+            <UPagination
+              v-model:page="dataExport.state.historyPagination.page"
+              :total="dataExport.state.historyPagination.total"
+              :items-per-page="dataExport.state.historyPagination.limit"
+              :sibling-count="2"
+              show-edges
+              size="sm"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <UDialog v-model:open="showBulkDeleteModal">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Delete {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'Entry' : 'Entries' }}</h3>
+        </template>
+
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          You are about to delete {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'export history entry' : 'export history entries' }}. This action cannot be undone.
+        </p>
+
+        <template #footer>
+          <div class="flex justify-end space-x-3">
+            <UButton btn="ghost" @click="showBulkDeleteModal = false">Cancel</UButton>
+            <UButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UDialog>
+
+    <UDialog v-model:open="showClearHistoryDialog">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold text-red-600">Clear All Export History</h3>
+        </template>
+
+        <div class="space-y-4">
+          <p class="text-gray-600 dark:text-gray-400">
+            Are you sure you want to clear all export history? This action cannot be undone.
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-500">
+            This will permanently delete {{ dataExport.state.exportHistory.length }} export history entries.
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton btn="ghost" @click="showClearHistoryDialog = false">Cancel</UButton>
+            <UButton btn="solid" @click="handleClearAllHistory">Clear All History</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UDialog>
+
+    <UDialog v-model:open="showDeleteEntryDialog">
+      <UCard class="shadow-none border-none">
+        <template #header>
+          <h3 class="text-lg font-semibold text-red-600">Delete Export Entry</h3>
+        </template>
+
+        <div class="space-y-4">
+          <p class="text-gray-600 dark:text-gray-400">
+            Are you sure you want to delete this export history entry?
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-500 font-mono">
+            {{ deleteEntryData.filename }}
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton btn="ghost" @click="showDeleteEntryDialog = false">Cancel</UButton>
+            <UButton btn="solid" @click="handleDeleteEntry">Delete Entry</UButton>
+          </div>
+        </template>
+      </UCard>
+    </UDialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
+import { useDataExport } from '~/composables/useDataExport'
+
+const emit = defineEmits<{ (e: 'go-to-export'): void }>()
+
+const dataExport = useDataExport()
+
+const selectionMode = ref(false)
+const bulkOpen = ref(false)
+const rowSelection = ref<Record<string, boolean>>({})
+const showBulkDeleteModal = ref(false)
+const bulkProcessing = ref(false)
+
+const showClearHistoryDialog = ref(false)
+const showDeleteEntryDialog = ref(false)
+const deleteEntryData = ref<{ id: string; filename: string }>({ id: '', filename: '' })
+
+const selectedEntries = computed<string[]>(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => k)
+)
+
+watch(selectedEntries, (ids) => {
+  bulkOpen.value = ids.length > 0
+}, { immediate: true })
+
+const clearSelection = () => { rowSelection.value = {} }
+
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) clearSelection()
+}
+
+const setRowSelected = (id: string, value: boolean | 'indeterminate') => {
+  rowSelection.value[id] = value === true
+}
+
+const visibleIds = computed<string[]>(() => dataExport.state.exportHistory.map((e: any) => e.id))
+const allSelectedOnPage = computed<boolean>(() =>
+  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
+)
+
+const selectAllOnPage = () => { visibleIds.value.forEach(id => { rowSelection.value[id] = true }) }
+
+const confirmDeleteEntry = (exportId: string, filename: string) => {
+  deleteEntryData.value = { id: exportId, filename }
+  showDeleteEntryDialog.value = true
+}
+
+const handleDeleteEntry = async () => {
+  await dataExport.deleteExportHistoryEntry(deleteEntryData.value.id)
+  showDeleteEntryDialog.value = false
+  deleteEntryData.value = { id: '', filename: '' }
+}
+
+const handleClearAllHistory = async () => {
+  await dataExport.clearAllExportHistory()
+  showClearHistoryDialog.value = false
+}
+
+const getEntryActions = (entry: any) => {
+  const items: any[] = []
+
+  if (!dataExport.isExpired(entry.expires_at)) {
+    items.push({
+      label: 'Execute Query',
+      leading: 'i-ph-caret-double-right-duotone',
+      onclick: () => dataExport.downloadExport(entry.id)
+    })
+  } else {
+    items.push({ label: 'Expired', leading: 'i-ph-clock', disabled: true })
+  }
+
+  if (entry.backup_file && entry.backup_file.storage_status === 'stored') {
+    items.push({
+      label: 'Download',
+      leading: 'i-ph-download',
+      onclick: () => dataExport.downloadBackup(entry.backup_file.id)
+    })
+  }
+
+  if (items.length) items.push({})
+
+  items.push({
+    label: 'Delete',
+    leading: 'i-ph-trash',
+    onclick: () => confirmDeleteEntry(entry.id, entry.filename)
+  })
+
+  return items
+}
+
+const bulkDelete = async () => {
+  if (selectedEntries.value.length === 0) return
+  const { toast } = useToast()
+  try {
+    bulkProcessing.value = true
+    const ids = [...selectedEntries.value]
+    const batchSize = 5
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize)
+      await Promise.all(batch.map(id => dataExport.deleteExportHistoryEntry(id)))
+    }
+    rowSelection.value = {}
+    showBulkDeleteModal.value = false
+    toast?.({ title: 'Deleted', description: 'Selected export entries deleted.' })
+  } catch (error) {
+    console.error('Failed to bulk delete export history entries:', error)
+    useToast().toast?.({
+      toast: 'error',
+      title: 'Bulk Delete Failed',
+      description: 'Please try again.'
+    })
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+const historyColumns = [
+  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
+  { header: 'Filename', accessorKey: 'filename', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
+  { header: 'Format', accessorKey: 'format', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: 'Records', accessorKey: 'records', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
+  { header: 'Size', accessorKey: 'size', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: 'Storage', accessorKey: 'storage', enableSorting: false, meta: { una: { tableHead: 'w-36', tableCell: 'w-36' } } },
+  { header: 'User', accessorKey: 'user', enableSorting: false, meta: { una: { tableHead: 'w-40', tableCell: 'w-40' } } },
+  { header: 'Created', accessorKey: 'created', enableSorting: false, meta: { una: { tableHead: 'w-36', tableCell: 'w-36' } } },
+  { header: 'Downloads', accessorKey: 'downloads', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } }
+]
+
+const refresh = () => dataExport.loadExportHistory(dataExport.state.historyPagination.page)
+
+watch(
+  () => dataExport.state.historyPagination.page,
+  (page) => { dataExport.loadExportHistory(page as number) }
+)
+
+onMounted(() => {
+  if (!dataExport.state.exportHistory.length) dataExport.loadExportHistory()
+})
+</script>
+
+<style scoped>
+.export-history-container {
+  max-height: calc(100vh - 20rem);
+  overflow-y: auto;
+}
+</style>

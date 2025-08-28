@@ -6,14 +6,24 @@ import type {
   ExportResult,
   ExportOptions,
   UIExportOptions,
-  ExportState // Uses ExportHistoryEntryWithBackup[] for exportHistory
+  ExportState,
+  ExportDataType,
 } from '~/types/export'
+import { useLocalStorage } from '@vueuse/core'
 
 /**
  * Data Export Composable
  * Handles export logic and state management for the admin export interface
  */
 export const useDataExport = () => {
+  const STORAGE_KEYS = {
+    options: 'verbatims-admin-export-options',
+    quotes: 'verbatims-admin-export-filters-quotes',
+    references: 'verbatims-admin-export-filters-references',
+    authors: 'verbatims-admin-export-filters-authors',
+    users: 'verbatims-admin-export-filters-users'
+  } as const
+  
   const state = reactive<ExportState>({
     isExporting: false,
     showProgressDialog: false,
@@ -39,6 +49,7 @@ export const useDataExport = () => {
     include_moderation_data: false,
     include_analytics: true,
     include_metadata: false,
+    download_after_export: true,
     limit: 0
   })
 
@@ -110,7 +121,6 @@ export const useDataExport = () => {
     min_collections: 0
   })
 
-  // Options for selects
   const formatOptions = [
     { label: 'JSON', value: 'json' },
     { label: 'CSV', value: 'csv' },
@@ -143,6 +153,66 @@ export const useDataExport = () => {
     { label: 'Music', value: 'music' },
     { label: 'Other', value: 'other' }
   ]
+
+  // Persistence mirrors
+  const savedExportOptions = useLocalStorage<any>(STORAGE_KEYS.options, {
+    format: 'json',
+    data_type: 'quotes',
+    include_relations: true,
+    include_user_data: false,
+    include_moderation_data: false,
+    include_analytics: true,
+    include_metadata: false,
+    download_after_export: true,
+    limit: 0
+  })
+
+  const savedQuotesFilters = useLocalStorage<any>(STORAGE_KEYS.quotes, {
+    status: [] as string[],
+    language: [] as string[],
+    author_name: '',
+    date_range: { start: '', end: '' },
+    search: '',
+    featured_only: false,
+    min_views: 0,
+    min_likes: 0
+  })
+
+  const savedReferencesFilters = useLocalStorage<any>(STORAGE_KEYS.references, {
+    primary_type: [] as string[],
+    search: '',
+    date_range: { start: '', end: '' },
+    min_views: 0,
+    min_quotes: 0
+  })
+
+  const savedAuthorsFilters = useLocalStorage<any>(STORAGE_KEYS.authors, {
+    search: '',
+    is_fictional: undefined as undefined | boolean,
+    job: '',
+    date_range: { start: '', end: '' },
+    birth_date_range: { start: '', end: '' },
+    death_date_range: { start: '', end: '' },
+    birth_location: '',
+    death_location: '',
+    min_views: 0,
+    min_likes: 0,
+    min_quotes: 0
+  })
+
+  const savedUsersFilters = useLocalStorage<any>(STORAGE_KEYS.users, {
+    search: '',
+    role: [] as string[],
+    email_verified: undefined as undefined | boolean,
+    is_active: undefined as undefined | boolean,
+    date_range: { start: '', end: '' },
+    last_login_range: { start: '', end: '' },
+    language: [] as string[],
+    location: '',
+    job: '',
+    min_quotes: 0,
+    min_collections: 0
+  })
 
   const getCurrentFilters = () => {
     const dataType = exportOptions.value.data_type.value
@@ -271,16 +341,38 @@ export const useDataExport = () => {
     }
   }
 
+  const buildAllApiOptions = () => {
+    return {
+      format: exportOptions.value.format.value,
+      data_type: 'all' as const,
+      include_metadata: exportOptions.value.include_metadata,
+      include_relations: exportOptions.value.include_relations,
+      include_user_data: exportOptions.value.include_user_data,
+      include_moderation_data: exportOptions.value.include_moderation_data,
+      include_analytics: exportOptions.value.include_analytics,
+      limit: exportOptions.value.limit,
+      all_filters: {
+        quotes: cleanFilters(quotesFilters.value),
+        references: cleanFilters(referencesFilters.value),
+        authors: cleanFilters(authorsFilters.value),
+        users: cleanFilters(usersFilters.value)
+      }
+    }
+  }
+
   const validateExport = async () => {
     try {
       state.errorMessage = ''
 
       const dataType = exportOptions.value.data_type.value
-      const apiOptions = convertToApiOptions()
+      const apiOptions = dataType === 'all' ? (buildAllApiOptions() as any) : convertToApiOptions()
 
       let apiEndpoint = ''
 
       switch (dataType) {
+        case 'all':
+          apiEndpoint = '/api/admin/export/all/validate'
+          break
         case 'quotes':
           apiEndpoint = '/api/admin/export/quotes/validate'
           break
@@ -315,31 +407,71 @@ export const useDataExport = () => {
     }
   }
 
+  const getExportEndpoint = (dataType: string): string => {
+    switch (dataType) {
+      case 'all':
+        return '/api/admin/export/all'
+      case 'quotes':
+        return '/api/admin/export/quotes'
+      case 'references':
+        return '/api/admin/export/references'
+      case 'authors':
+        return '/api/admin/export/authors'
+      case 'users':
+        return '/api/admin/export/users'
+      default:
+        throw new Error('Invalid data type selected')
+    }
+  }
+
+  const startDownload = (data: { content?: string; download_url?: string; mimeType?: string; filename: string }) => {
+    if (data.content && data.mimeType) {
+      downloadContent(data.content, data.filename, data.mimeType)
+      return
+    } 
+    
+    if (data.download_url) {
+      window.open(data.download_url, '_blank')
+      return
+    }
+
+    useToast().toast({
+      toast: "error",
+      title: 'Download Export Failed',
+      description: 'Failed to start download (no content or download URL available)',
+    })
+  }
+
   const startExport = async () => {
     try {
       state.isExporting = true
       state.showProgressDialog = true
       state.errorMessage = ''
       state.successMessage = ''
+      const shouldDownload = exportOptions.value.download_after_export
 
       const dataType = exportOptions.value.data_type.value
-      let apiEndpoint = ''
+      let apiEndpoint = getExportEndpoint(dataType)
 
-      switch (dataType) {
-        case 'quotes':
-          apiEndpoint = '/api/admin/export/quotes'
-          break
-        case 'references':
-          apiEndpoint = '/api/admin/export/references'
-          break
-        case 'authors':
-          apiEndpoint = '/api/admin/export/authors'
-          break
-        case 'users':
-          apiEndpoint = '/api/admin/export/users'
-          break
-        default:
-          throw new Error('Invalid data type selected')
+      if (dataType === 'all') {
+        // Request a ZIP blob containing each dataset in the chosen internal format
+        const allOptions = buildAllApiOptions()
+        const blob = await $fetch(apiEndpoint, {
+          method: 'POST',
+          body: allOptions,
+          responseType: 'blob'
+        }) as Blob
+
+        if (shouldDownload && blob) {
+          const ts = new Date().toISOString().slice(0, 10)
+          const name = `verbatims-export-${ts}.zip`
+          downloadContentBlob(blob, name)
+        }
+
+        state.successMessage = 'Combined export generated successfully!'
+        state.previewData = null
+        await loadExportHistory()
+        return
       }
 
       const apiOptions = convertToApiOptions()
@@ -348,26 +480,27 @@ export const useDataExport = () => {
         body: apiOptions
       }) as ExportResult
 
-      if (response.success) {
-        if (response.data.content && response.data.mimeType) {
-          downloadContent(response.data.content, response.data.filename, response.data.mimeType)
-          state.successMessage = `Export completed successfully! ${response.data.record_count} records exported.`
-          useToast().toast({
-            title: 'Export Completed',
-            description: `Successfully exported ${response.data.record_count} records`
-          })
-        } else {
-          window.open(response.data.download_url, '_blank')
-          state.successMessage = `Export completed successfully! ${response.data.record_count} records exported. Download started.`
-          useToast().toast({
-            title: 'Export Completed',
-            description: `Successfully exported ${response.data.record_count} records. Download started.`
-          })
-        }
-
-        state.previewData = null
-        loadExportHistory()
+      if (!response.success) {
+        state.errorMessage = response.error || 'Unknown error occurred'
+        useToast().toast({
+          title: 'Export Failed',
+          description: state.errorMessage,
+        })
+        return
       }
+
+      if (shouldDownload) startDownload(response.data)
+
+      state.successMessage = `Export generated successfully! ${response.data.record_count} records exported.`
+      useToast().toast({
+        title: 'Export Generated',
+        description: shouldDownload 
+          ? `Successfully exported ${response.data.record_count} records. Download started.` 
+          : `Export is ready. You can download it from the history panel.`
+      })
+
+      state.previewData = null
+      loadExportHistory()
 
     } catch (error: any) {
       console.error('Export failed:', error)
@@ -376,7 +509,7 @@ export const useDataExport = () => {
 
       useToast().toast({
         title: 'Export Failed',
-        description: errorMsg
+        description: errorMsg,
       })
     } finally {
       state.isExporting = false
@@ -384,47 +517,197 @@ export const useDataExport = () => {
     }
   }
 
-  const resetFilters = () => {
-    const dataType = exportOptions.value.data_type.value
+  const clearMessages = () => {
+    state.successMessage = ''
+    state.errorMessage = ''
+  }
 
-    if (dataType === 'quotes') {
-      quotesFilters.value = {
-        status: [],
-        language: [],
-        author_name: '',
-        date_range: { start: '', end: '' },
-        search: '',
-        featured_only: false,
-        min_views: 0,
-        min_likes: 0
+  const closeProgressDialog = () => {
+    state.showProgressDialog = false
+  }
+
+  const setDataType = (dataType: { label: string; value: ExportDataType; available?: boolean }) => {
+    if (dataType?.available === false) return
+    exportOptions.value.data_type = { label: dataType.label, value: dataType.value }
+    state.previewData = null
+    clearMessages()
+  }
+
+  const getIncludeRelationsLabel = () => {
+    const dataType = exportOptions.value.data_type.value as ExportDataType
+    switch (dataType) {
+      case 'all':
+        return 'Include related data in each file'
+      case 'quotes':
+        return 'Include related data (author, reference, tags)'
+      case 'references':
+        return 'Include quotes count'
+      case 'authors':
+        return 'Include quotes count'
+      case 'users':
+        return 'Include collection data'
+      default:
+        return 'Include related data'
+    }
+  }
+
+  const init = async () => {
+    const eo: any = exportOptions.value
+    const fmt = (formatOptions as any[]).find((f: any) => f.value === savedExportOptions.value.format)
+    if (fmt) eo.format = fmt as any
+
+    const dt = (savedExportOptions.value.data_type || 'quotes') as ExportDataType
+    const dtLabel: Record<ExportDataType, string> = {
+      quotes: 'Quotes',
+      references: 'References',
+      authors: 'Authors',
+      users: 'Users',
+      all: 'Everything'
+    }
+    eo.data_type = { label: dtLabel[dt], value: dt }
+
+    eo.include_relations = savedExportOptions.value.include_relations
+    eo.include_user_data = savedExportOptions.value.include_user_data
+    eo.include_moderation_data = savedExportOptions.value.include_moderation_data
+    eo.include_analytics = savedExportOptions.value.include_analytics
+    eo.include_metadata = savedExportOptions.value.include_metadata
+    eo.download_after_export = !!savedExportOptions.value.download_after_export
+    eo.limit = savedExportOptions.value.limit
+
+    quotesFilters.value = { ...(quotesFilters.value as any), ...(savedQuotesFilters.value as any) } as any
+    referencesFilters.value = { ...(referencesFilters.value as any), ...(savedReferencesFilters.value as any) } as any
+    authorsFilters.value = { ...(authorsFilters.value as any), ...(savedAuthorsFilters.value as any) } as any
+    usersFilters.value = { ...(usersFilters.value as any), ...(savedUsersFilters.value as any) } as any
+
+    await loadExportHistory()
+  }
+
+  // Auto-initialize on client mount to restore persisted options/filters
+  const initialized = ref(false)
+  onMounted(async () => {
+    if (initialized.value) return
+    initialized.value = true
+    await init()
+  })
+
+  // Persist exportOptions primitives
+  watch(
+    () => ({ ...exportOptions.value }),
+    (opts) => {
+      savedExportOptions.value = {
+        format: opts.format?.value || 'json',
+        data_type: (opts.data_type?.value || 'quotes'),
+        include_relations: !!opts.include_relations,
+        include_user_data: !!opts.include_user_data,
+        include_moderation_data: !!opts.include_moderation_data,
+        include_analytics: !!opts.include_analytics,
+        include_metadata: !!opts.include_metadata,
+        download_after_export: !!(opts as any).download_after_export,
+        limit: Number(opts.limit || 0)
       }
-    } else if (dataType === 'references') {
-      referencesFilters.value = {
-        primary_type: [],
-        search: '',
-        date_range: { start: '', end: '' },
-        min_views: 0,
-        min_quotes: 0
-      }
-    } else if (dataType === 'authors') {
-      authorsFilters.value = {
-        search: '',
-        is_fictional: undefined,
-        job: '',
-        date_range: { start: '', end: '' },
-        birth_date_range: { start: '', end: '' },
-        death_date_range: { start: '', end: '' },
-        birth_location: '',
-        death_location: '',
-        min_views: 0,
-        min_likes: 0,
-        min_quotes: 0
-      }
+    },
+    { deep: true }
+  )
+
+  // Persist each filter group
+  watch(() => ({ ...quotesFilters.value }), v => { savedQuotesFilters.value = v as any }, { deep: true })
+  watch(() => ({ ...referencesFilters.value }), v => { savedReferencesFilters.value = v as any }, { deep: true })
+  watch(() => ({ ...authorsFilters.value }), v => { savedAuthorsFilters.value = v as any }, { deep: true })
+  watch(() => ({ ...usersFilters.value }), v => { savedUsersFilters.value = v as any }, { deep: true })
+
+  const resetFilters = (opts?: { clearStorage?: boolean }) => {
+    const defaultFmt = (formatOptions as any[]).find((f: any) => f.value === 'json') || (formatOptions as any[])[0]
+    exportOptions.value = {
+      format: defaultFmt,
+      data_type: { label: 'Quotes', value: 'quotes' },
+      include_relations: true,
+      include_user_data: false,
+      include_moderation_data: false,
+      include_analytics: true,
+      include_metadata: false,
+      download_after_export: true,
+      limit: 0
+    }
+
+    quotesFilters.value = {
+      status: [],
+      language: [],
+      author_name: '',
+      date_range: { start: '', end: '' },
+      search: '',
+      featured_only: false,
+      min_views: 0,
+      min_likes: 0
+    }
+
+    referencesFilters.value = {
+      primary_type: [],
+      search: '',
+      date_range: { start: '', end: '' },
+      min_views: 0,
+      min_quotes: 0
+    }
+
+    authorsFilters.value = {
+      search: '',
+      is_fictional: undefined,
+      job: '',
+      date_range: { start: '', end: '' },
+      birth_date_range: { start: '', end: '' },
+      death_date_range: { start: '', end: '' },
+      birth_location: '',
+      death_location: '',
+      min_views: 0,
+      min_likes: 0,
+      min_quotes: 0
+    }
+
+    usersFilters.value = {
+      search: '',
+      role: [],
+      email_verified: undefined,
+      is_active: undefined,
+      date_range: { start: '', end: '' },
+      last_login_range: { start: '', end: '' },
+      language: [],
+      location: '',
+      job: '',
+      min_quotes: 0,
+      min_collections: 0
     }
 
     state.previewData = null
     state.errorMessage = ''
     state.successMessage = ''
+
+    if (opts?.clearStorage && typeof window !== 'undefined') {
+      const keys = [
+        STORAGE_KEYS.options,
+        STORAGE_KEYS.quotes,
+        STORAGE_KEYS.references,
+        STORAGE_KEYS.authors,
+        STORAGE_KEYS.users
+      ]
+      try {
+        keys.forEach(k => window.localStorage.removeItem(k))
+      } catch {}
+      // Reset mirrors
+      savedExportOptions.value = {
+        format: 'json',
+        data_type: 'quotes',
+        include_relations: true,
+        include_user_data: false,
+        include_moderation_data: false,
+        include_analytics: true,
+        include_metadata: false,
+        download_after_export: true,
+        limit: 0
+      }
+      savedQuotesFilters.value = { ...quotesFilters.value } as any
+      savedReferencesFilters.value = { ...referencesFilters.value } as any
+      savedAuthorsFilters.value = { ...authorsFilters.value } as any
+      savedUsersFilters.value = { ...usersFilters.value } as any
+    }
   }
 
   const downloadContent = (content: string, filename: string, mimeType: string) => {
@@ -438,6 +721,19 @@ export const useDataExport = () => {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
   }
+
+  const downloadContentBlob = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
+  const isAllSelected = computed(() => exportOptions.value.data_type.value === 'all')
 
   const loadExportHistory = async (page = 1) => {
     try {
@@ -483,7 +779,7 @@ export const useDataExport = () => {
   const deleteExportHistoryEntry = async (exportId: string) => {
     try {
       const response = await $fetch('/api/admin/export/history', {
-        method: 'DELETE' as any,
+        method: 'DELETE',
         body: { exportId }
       })
 
@@ -630,6 +926,11 @@ export const useDataExport = () => {
     validateExport,
     startExport,
     resetFilters,
+    clearMessages,
+    closeProgressDialog,
+    setDataType,
+    getIncludeRelationsLabel,
+    init,
     loadExportHistory,
     downloadExport,
     deleteExportHistoryEntry,
@@ -640,6 +941,7 @@ export const useDataExport = () => {
     getFormatColor,
     formatDate,
     isExpired,
+    isAllSelected,
 
     // Backup utilities
     getBackupStatusLabel,

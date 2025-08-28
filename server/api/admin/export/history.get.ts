@@ -7,13 +7,9 @@ import type { ExportHistoryEntry } from '~/types/export'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin permissions
     const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+    if (user.role !== 'admin' && user.role !== 'moderator') {
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
     const query = getQuery(event)
@@ -24,35 +20,6 @@ export default defineEventHandler(async (event) => {
     const user_id = query.user_id ? parseInt(query.user_id as string) : undefined
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Ensure unified export logs table exists
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS export_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        export_id TEXT NOT NULL UNIQUE,
-        filename TEXT NOT NULL,
-        format TEXT NOT NULL,
-        data_type TEXT NOT NULL CHECK (data_type IN ('quotes', 'references', 'authors', 'users')),
-        filters_applied TEXT,
-        record_count INTEGER,
-        file_size INTEGER,
-        user_id INTEGER,
-        include_relations BOOLEAN DEFAULT FALSE,
-        include_metadata BOOLEAN DEFAULT FALSE,
-        download_count INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expires_at DATETIME DEFAULT (datetime('now', '+24 hours')),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-      )
-    `).run()
-
-    // Build WHERE conditions
     const conditions: string[] = []
     const bindings: any[] = []
 
@@ -68,7 +35,6 @@ export default defineEventHandler(async (event) => {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-    // Get export history with user information
     const historyResult = await db.prepare(`
       SELECT
         el.*,
@@ -82,7 +48,6 @@ export default defineEventHandler(async (event) => {
 
     const history = (historyResult?.results || []) as any[]
 
-    // Get total count
     const countResult = await db.prepare(`
       SELECT COUNT(*) as total
       FROM export_logs el
@@ -92,12 +57,11 @@ export default defineEventHandler(async (event) => {
     const total = Number(countResult?.total) || 0
     const hasMore = offset + history.length < total
 
-    // Process history data
     const processedHistory: ExportHistoryEntry[] = history.map((entry: any) => ({
       id: entry.export_id,
       filename: entry.filename,
       format: entry.format,
-      data_type: 'quotes', // Currently only supporting quotes
+      data_type: entry.data_type,
       filters_applied: entry.filters_applied,
       record_count: entry.record_count || 0,
       file_size: entry.file_size || 0,
