@@ -147,8 +147,14 @@ export {
   BackupStorageStatus,
   BackupUploadProgress,
   CreateBackupFileData,
+  ExportDataType,
+  ExportedReference,
+  ExportOptions,
   ExportResultWithBackup,
   ExportHistoryEntryWithBackup,
+  ExportedQuote,
+  QuoteExportFilters,
+  ReferenceExportFilters,
 } from './export';
 
 // Common utility types

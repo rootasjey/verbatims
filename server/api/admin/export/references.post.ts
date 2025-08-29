@@ -1,4 +1,9 @@
-import type { ExportOptions, ReferenceExportFilters, ExportResult, ExportedReference } from '~/types/export'
+import type {
+  ExportOptions,
+  ReferenceExportFilters,
+  ExportResultWithBackup,
+  ExportedReference,
+} from '~/types'
 
 /**
  * Admin API: Export References Data
@@ -7,16 +12,28 @@ import type { ExportOptions, ReferenceExportFilters, ExportResult, ExportedRefer
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+    if (user.role !== 'admin' && user.role !== 'moderator') {
+      throw createError({ 
+        statusCode: 403,
+        statusMessage: 'Admin or moderator access required',
+      })
     }
 
     const body = await readBody(event) as ExportOptions
-    const { format, filters = {}, include_relations = true, include_metadata = false, limit = 0 } = body
+    const {
+      format,
+      filters = {},
+      include_relations = true,
+      include_metadata = false,
+      limit = 0,
+    } = body
 
-    const filterValidation = validateFiltersForReferencesExport(filters as ReferenceExportFilters)
+    const filterValidation = validateFiltersForReferencesExport(filters)
     if (!filterValidation.valid) {
-      throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
+      throw createError({
+        statusCode: 400, 
+        statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}`,
+      })
     }
 
     if (!format) {
@@ -24,12 +41,15 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Unsupported export format. Supported formats: json, csv, xml',
+      })
     }
 
     const db = hubDatabase()
     const exportId = `references_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    const { query, bindings } = buildReferencesQuery(filters as ReferenceExportFilters, include_relations, limit)
+    const { query, bindings } = buildReferencesQuery(filters, include_relations, limit)
     const referencesResult = await db.prepare(query).bind(...bindings).all()
     const references = (referencesResult?.results || []) as any[]
 
@@ -49,8 +69,8 @@ export default defineEventHandler(async (event) => {
       }
 
       if (reference.urls) {
-        try { processed.urls = JSON.parse(reference.urls) } 
-        catch { processed.urls = [reference.urls] } // Keep as string if parsing fails
+        try { processed.urls = [JSON.parse(reference.urls)] } 
+        catch { processed.urls = [reference.urls] }
       }
 
       if (include_relations && reference.quotes_count !== undefined) {
@@ -69,7 +89,6 @@ export default defineEventHandler(async (event) => {
       return processed
     })
 
-    // Generate export content based on format
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const filename = `references-export-${timestamp}.${format}`
     let contentData: string
@@ -98,32 +117,68 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    await logReferencesExport(db, {
+    const fileSize = new TextEncoder().encode(contentData).length
+    const exportLogResult = await logReferencesExport(db, {
       exportId,
       filename,
       format,
       filters: serializeReferencesFilters(filters as ReferenceExportFilters),
       recordCount: processedReferences.length,
       userId: user.id,
+      fileSize,
       includeRelations: include_relations,
       includeMetadata: include_metadata
     })
 
-    const result: ExportResult = {
+    const backupResult = await createBackup(
+      db,
+      contentData,
+      filename,
+      'references',
+      format,
+      {
+        exportLogId: exportLogResult.exportLogId,
+        retentionDays: 90,
+        metadata: {
+          export_config: body,
+          filters,
+          created_by: user.id,
+          backup_type: 'export',
+          data_type: 'references'
+        }
+      }
+    )
+
+    const backupInfo = {
+      backup_id: backupResult.backupId,
+      file_key: backupResult.fileKey,
+      file_path: backupResult.filePath,
+      storage_status: 'stored' as const,
+      backup_download_url: `/api/admin/backup/download/${backupResult.backupId}`,
+      retention_days: 90,
+      expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+    }
+
+    const result: ExportResultWithBackup = {
       success: true,
       data: {
         export_id: exportId,
         filename,
         format,
         record_count: processedReferences.length,
-        file_size: Buffer.byteLength(contentData, 'utf8'),
+        file_size: fileSize,
         download_url: `/api/admin/export/download/${exportId}`,
         options: body,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-        // Include content directly for small exports
-        content: processedReferences.length < 1000 ? contentData : undefined,
-        mimeType
-      }
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      },
+      backup: backupInfo
+    }
+
+    // Include content directly for smaller exports
+    if (contentData.length < 5 * 1024 * 1024) { // Less than 5MB
+      const resultData = result.data as any
+      resultData.content = contentData
+      resultData.mimeType = mimeType
     }
 
     return result
@@ -146,7 +201,6 @@ function validateFiltersForReferencesExport(filters: ReferenceExportFilters) {
     errors: [] as string[]
   }
 
-  // Validate primary_type
   if (filters.primary_type) {
     const validTypes = ['book', 'film', 'tv_series', 'music', 'other']
     const types = Array.isArray(filters.primary_type) ? filters.primary_type : [filters.primary_type]
@@ -159,7 +213,6 @@ function validateFiltersForReferencesExport(filters: ReferenceExportFilters) {
     }
   }
 
-  // Validate numeric filters
   if (filters.min_views !== undefined && (filters.min_views < 0 || !Number.isInteger(filters.min_views))) {
     validation.errors.push('min_views must be a non-negative integer')
     validation.valid = false
@@ -177,8 +230,7 @@ function validateFiltersForReferencesExport(filters: ReferenceExportFilters) {
  * Build SQL query for references export with filters
  */
 function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations: boolean, limit: number) {
-  // Base query
-  let query = `
+  let baseQuery = `
     SELECT 
       r.*
       ${includeRelations ? `, COUNT(q.id) as quotes_count` : ''}
@@ -189,7 +241,6 @@ function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations:
   const conditions: string[] = []
   const bindings: any[] = []
 
-  // Apply filters
   if (filters.primary_type) {
     const types = Array.isArray(filters.primary_type) ? filters.primary_type : [filters.primary_type]
     const placeholders = types.map(() => '?').join(',')
@@ -234,32 +285,27 @@ function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations:
     bindings.push(filters.min_views)
   }
 
-  // Add WHERE clause if we have conditions
   if (conditions.length > 0) {
-    query += ` WHERE ${conditions.join(' AND ')}`
+    baseQuery += ` WHERE ${conditions.join(' AND ')}`
   }
 
-  // Add GROUP BY for relations
   if (includeRelations) {
-    query += ' GROUP BY r.id'
+    baseQuery += ' GROUP BY r.id'
     
-    // Add HAVING clause for min_quotes filter
     if (filters.min_quotes !== undefined && filters.min_quotes > 0) {
-      query += ' HAVING quotes_count >= ?'
+      baseQuery += ' HAVING quotes_count >= ?'
       bindings.push(filters.min_quotes)
     }
   }
 
-  // Add ORDER BY
-  query += ' ORDER BY r.created_at DESC'
+  baseQuery += ' ORDER BY r.created_at DESC'
 
-  // Add LIMIT if specified
   if (limit > 0) {
-    query += ' LIMIT ?'
+    baseQuery += ' LIMIT ?'
     bindings.push(limit)
   }
 
-  return { query, bindings }
+  return { query: baseQuery, bindings }
 }
 
 /**
@@ -310,21 +356,21 @@ function generateReferencesXML(references: ExportedReference[]): string {
     const urls = reference.urls ? reference.urls.map(url => `<url>${escapeXml(url)}</url>`).join('') : ''
 
     return `
-  <reference>
-    <id>${reference.id}</id>
-    <name>${escapeXml(reference.name)}</name>
-    <primary_type>${escapeXml(reference.primary_type)}</primary_type>
-    <secondary_type>${escapeXml(reference.secondary_type || '')}</secondary_type>
-    <description>${escapeXml(reference.description || '')}</description>
-    <release_date>${escapeXml(reference.release_date || '')}</release_date>
-    <image_url>${escapeXml(reference.image_url || '')}</image_url>
-    <urls>${urls}</urls>
-    <views_count>${reference.views_count}</views_count>
-    <likes_count>${reference.likes_count}</likes_count>
-    <quotes_count>${reference.quotes_count || 0}</quotes_count>
-    <created_at>${escapeXml(reference.created_at)}</created_at>
-    <updated_at>${escapeXml(reference.updated_at)}</updated_at>
-  </reference>`
+      <reference>
+        <id>${reference.id}</id>
+        <name>${escapeXml(reference.name)}</name>
+        <primary_type>${escapeXml(reference.primary_type)}</primary_type>
+        <secondary_type>${escapeXml(reference.secondary_type || '')}</secondary_type>
+        <description>${escapeXml(reference.description || '')}</description>
+        <release_date>${escapeXml(reference.release_date || '')}</release_date>
+        <image_url>${escapeXml(reference.image_url || '')}</image_url>
+        <urls>${urls}</urls>
+        <views_count>${reference.views_count}</views_count>
+        <likes_count>${reference.likes_count}</likes_count>
+        <quotes_count>${reference.quotes_count || 0}</quotes_count>
+        <created_at>${escapeXml(reference.created_at)}</created_at>
+        <updated_at>${escapeXml(reference.updated_at)}</updated_at>
+      </reference>`
   }).join('')
 
   return `${xmlHeader}\n${rootStart}${xmlContent}\n${rootEnd}`
@@ -334,6 +380,7 @@ function generateReferencesXML(references: ExportedReference[]): string {
  * Escape XML special characters
  */
 function escapeXml(text: string): string {
+  if (typeof text !== 'string') return text
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -362,9 +409,9 @@ function serializeReferencesFilters(filters: ReferenceExportFilters): string {
 /**
  * Log references export to database
  */
-async function logReferencesExport(db: any, exportInfo: any) {
+async function logReferencesExport(db: any, exportInfo: any): Promise<{ exportLogId: number }> {
   try {
-    await db.prepare(`
+    const result = await db.prepare(`
       INSERT INTO export_logs
       (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -381,8 +428,10 @@ async function logReferencesExport(db: any, exportInfo: any) {
       exportInfo.includeMetadata
     ).run()
 
+    return { exportLogId: result.meta.last_row_id }
+
   } catch (error) {
     console.error('Failed to log references export:', error)
-    // Don't fail the export if logging fails
+    return { exportLogId: 0 } // Return a fallback ID if logging fails
   }
 }

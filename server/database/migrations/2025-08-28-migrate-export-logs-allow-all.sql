@@ -3,8 +3,7 @@
 -- Purpose: SQLite cannot alter CHECK constraints in-place. We recreate export_logs
 --          with an updated CHECK to include 'all' and migrate existing data.
 
-PRAGMA foreign_keys=OFF;
-BEGIN TRANSACTION;
+PRAGMA defer_foreign_keys = on;
 
 -- Create new table with the updated CHECK constraint
 CREATE TABLE IF NOT EXISTS export_logs_new (
@@ -52,6 +51,3 @@ CREATE INDEX IF NOT EXISTS idx_export_logs_user ON export_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_export_logs_data_type ON export_logs(data_type);
 CREATE INDEX IF NOT EXISTS idx_export_logs_created ON export_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_export_logs_expires ON export_logs(expires_at);
-
-COMMIT;
-PRAGMA foreign_keys=ON;

@@ -12,20 +12,11 @@ const gzipAsync = promisify(gzip)
 const gunzipAsync = promisify(gunzip)
 
 /**
- * Generate unique file key for R2 storage
- */
-export function generateBackupFileKey(dataType: string, format: string): string {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const randomSuffix = Math.random().toString(36).substring(2, 8)
-  return `${dataType}-${timestamp}-${randomSuffix}.${format}`
-}
-
-/**
  * Generate R2 file path using archives prefix
  */
 export function generateBackupFilePath(filename: string): string {
   const date = new Date().toISOString().split('T')[0] // YYYY-MM-DD
-  return `archives/${date}/${filename}`
+  return `backups/${date}/${filename}`
 }
 
 /**
@@ -128,9 +119,10 @@ export async function uploadBackupFile(
   compressionType: BackupCompressionType
 }> {
   try {
-    const fileKey = generateBackupFileKey(dataType, format)
-    const filePath = generateBackupFilePath(filename)
-    
+    // Use full path as the storage key to keep DB and R2 consistent
+    const fileKey = generateBackupFilePath(filename)
+    const filePath = fileKey
+
     const { compressed, originalSize, compressedSize, compressionType } = await compressContent(content)
     const contentHash = calculateContentHash(compressed)
 
@@ -153,11 +145,13 @@ export async function uploadBackupFile(
         type: compressionType === 'gzip' ? 'application/octet-stream' : 'application/json'
       })
 
-      await blob.put(fileKey, uploadData)
+      await blob.put(fileKey, uploadData, {
+        addRandomSuffix: false,
+      })
     } catch (uploadError: any) {
       throw uploadError
     }
-    
+
     return {
       fileKey,
       filePath,
@@ -243,8 +237,6 @@ export async function getBackupFileMetadata(fileKey: string): Promise<Record<str
   }
 }
 
-// Functional orchestrators replacing class-based service
-
 /**
  * Create a complete backup (upload to R2 + database record)
  */
@@ -272,8 +264,6 @@ export async function createBackup(
 
   try {
     const uploadResult = await uploadBackupFile(content, filename, dataType, format)
-
-    const { createBackupFile, updateBackupFileStatus } = await import('./backup-database')
     const backupId = await createBackupFile(db, {
       file_key: uploadResult.fileKey,
       export_log_id: exportLogId,
@@ -311,12 +301,8 @@ export async function getBackup(
   backupFile: BackupFile
 }> {
   try {
-    const { getBackupFileById, trackBackupFileAccess } = await import('./backup-database')
     const backupFile = await getBackupFileById(db, backupId)
-
-    if (!backupFile) {
-      throw new Error('Backup file not found')
-    }
+    if (!backupFile) { throw new Error('Backup file not found') }
 
     if (backupFile.storage_status !== 'stored') {
       throw new Error(`Backup file is not available (status: ${backupFile.storage_status})`)
@@ -346,12 +332,8 @@ export async function getBackup(
  */
 export async function deleteBackup(db: any, backupId: number): Promise<void> {
   try {
-    const { getBackupFileById, deleteBackupFileRecord } = await import('./backup-database')
     const backupFile = await getBackupFileById(db, backupId)
-
-    if (!backupFile) {
-      throw new Error('Backup file not found')
-    }
+    if (!backupFile) { throw new Error('Backup file not found') }
 
     await deleteBackupFile(backupFile.file_key)
     await deleteBackupFileRecord(db, backupId)

@@ -156,12 +156,19 @@ export interface QuoteWithMetadata extends QuoteWithRelations {
 export interface DatabaseQuoteWithRelations extends Quote {
   // Joined author fields
   author_name?: string;
+  author_job?: string;
+  author_birth_date?: string;
+  author_death_date?: string;
   author_is_fictional?: boolean;
   author_image_url?: string;
   
   // Joined reference fields
   reference_name?: string;
   reference_type?: QuoteReferencePrimaryType;
+  reference_secondary_type?: string;
+  reference_image_url?: string;
+  reference_release_date?: string;
+  reference_description?: string;
 
   // Joined user fields
   user_name?: string;
@@ -170,6 +177,7 @@ export interface DatabaseQuoteWithRelations extends Quote {
   user_avatar_url?: string;
   
   // Joined tag fields (comma-separated)
+  tag_ids?: string;
   tag_names?: string;
   tag_colors?: string;
 }

@@ -1,7 +1,12 @@
+import { generateBackupFilePath, calculateContentHash } from '~/server/utils/backup-storage'
+
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
-  if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+  if (user.role !== 'admin' && user.role !== 'moderator') {
+    throw createError({ 
+      statusCode: 403, 
+      statusMessage: 'Admin or moderator access required',
+    })
   }
 
   const body = await readBody(event) as any
@@ -17,7 +22,10 @@ export default defineEventHandler(async (event) => {
   } = body || {}
 
   if (!['json', 'csv', 'xml'].includes(format)) {
-    throw createError({ statusCode: 400, statusMessage: 'Unsupported export format (use json, csv, or xml)' })
+    throw createError({ 
+      statusCode: 400,
+      statusMessage: 'Unsupported export format (use json, csv, or xml)',
+    })
   }
 
   const db = hubDatabase()
@@ -35,22 +43,28 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
     `
+    
     const bindings: any[] = []
     const where: string[] = []
     const qf = all_filters.quotes || {}
+    
     if (qf.language && Array.isArray(qf.language) && qf.language.length) {
       where.push(`q.language IN (${qf.language.map(() => '?').join(',')})`)
       bindings.push(...qf.language)
     }
+    
     if (qf.status && Array.isArray(qf.status) && qf.status.length) {
       where.push(`q.status IN (${qf.status.map(() => '?').join(',')})`)
       bindings.push(...qf.status)
     }
+    
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
     query += ' ORDER BY q.created_at DESC'
+    
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    const res = await db.prepare(query).bind(...bindings).all()
-    return res.results || []
+
+    const queryResponse = await db.prepare(query).bind(...bindings).all()
+    return queryResponse.results || []
   }
 
   async function fetchAuthors() {
@@ -58,12 +72,16 @@ export default defineEventHandler(async (event) => {
     const bindings: any[] = []
     const where: string[] = []
     const af = all_filters.authors || {}
+    
     if (af.is_fictional !== undefined) { where.push('a.is_fictional = ?'); bindings.push(!!af.is_fictional) }
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
+    
     query += ' ORDER BY a.created_at DESC'
+    
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    const res = await db.prepare(query).bind(...bindings).all()
-    return res.results || []
+    
+    const queryResponse = await db.prepare(query).bind(...bindings).all()
+    return queryResponse.results || []
   }
 
   async function fetchReferences() {
@@ -71,15 +89,18 @@ export default defineEventHandler(async (event) => {
     const bindings: any[] = []
     const where: string[] = []
     const rf = all_filters.references || {}
+    
     if (rf.primary_type && Array.isArray(rf.primary_type) && rf.primary_type.length) {
       where.push(`r.primary_type IN (${rf.primary_type.map(() => '?').join(',')})`)
       bindings.push(...rf.primary_type)
     }
+    
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
     query += ' ORDER BY r.created_at DESC'
+    
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    const res = await db.prepare(query).bind(...bindings).all()
-    return res.results || []
+    const queryResponse = await db.prepare(query).bind(...bindings).all()
+    return queryResponse.results || []
   }
 
   async function fetchUsers() {
@@ -87,15 +108,19 @@ export default defineEventHandler(async (event) => {
     const bindings: any[] = []
     const where: string[] = []
     const uf = all_filters.users || {}
+    
     if (uf.role && Array.isArray(uf.role) && uf.role.length) {
       where.push(`u.role IN (${uf.role.map(() => '?').join(',')})`)
       bindings.push(...uf.role)
     }
+    
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
     query += ' ORDER BY u.created_at DESC'
+    
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    const res = await db.prepare(query).bind(...bindings).all()
-    return res.results || []
+    
+    const queryResponse = await db.prepare(query).bind(...bindings).all()
+    return queryResponse.results || []
   }
 
   const [quotes, authors, references, users] = await Promise.all([
@@ -110,6 +135,7 @@ export default defineEventHandler(async (event) => {
       const s = String(v)
       return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
     }
+    
     const lines = [headers.join(','), ...rows.map(r => headers.map(h => esc(r[h])).join(','))]
     return lines.join('\n')
   }
@@ -154,38 +180,87 @@ export default defineEventHandler(async (event) => {
   }
 
   const content = createZip(files)
+  // Convert to ArrayBuffer for consistent Blob handling (and for upload)
+  const ab = content.byteOffset === 0 && content.byteLength === content.buffer.byteLength
+    ? (content.buffer as ArrayBuffer)
+    : content.slice().buffer as ArrayBuffer
 
   const totalRecords = (quotes?.length || 0) + (authors?.length || 0) + (references?.length || 0) + (users?.length || 0)
   const fileSize = content.byteLength
   const exportId = `all_export_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
   setHeader(event, 'Content-Type', 'application/zip')
-  const ts = new Date().toISOString().replace(/[:.]/g, '-')
-  const filename = `verbatims-export-${ts}.zip`
+  const currentDate = new Date().toISOString().replace(/[:.]/g, '-')
+  const filename = `all-export-${currentDate}.zip`
   setHeader(event, 'Content-Disposition', `attachment; filename="${filename}"`)
 
-  try {
-    const filtersApplied = JSON.stringify({ all_filters, include_relations, include_metadata, include_user_data, include_moderation_data, include_analytics, limit })
-    await db.prepare(`
-      INSERT INTO export_logs (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      exportId,
-      filename,
-      'zip',
-      'all',
-      filtersApplied,
-      totalRecords,
-      fileSize,
-      user.id,
-      include_relations,
+  const filtersApplied = JSON.stringify({ 
+    all_filters,
+    include_relations,
+    include_metadata,
+    include_user_data,
+    include_moderation_data,
+    include_analytics,
+    limit,
+  })
+
+  const insertRes = await db.prepare(`
+    INSERT INTO export_logs (
+      export_id, 
+      filename, 
+      format, 
+      data_type, 
+      filters_applied, 
+      record_count, 
+      file_size, 
+      user_id, 
+      include_relations, 
       include_metadata
-    ).run()
-  } catch (e) {
-    console.error('Failed to log all export:', e)
-  }
-  const ab = content.byteOffset === 0 && content.byteLength === content.buffer.byteLength
-    ? (content.buffer as ArrayBuffer)
-    : content.slice().buffer as ArrayBuffer
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    exportId,
+    filename,
+    'zip',
+    'all',
+    filtersApplied,
+    totalRecords,
+    fileSize,
+    user.id,
+    include_relations,
+    include_metadata
+  ).run()
+
+  const fileKey = generateBackupFilePath(filename)
+  const filePath = fileKey
+  const contentHash = calculateContentHash(Buffer.from(new Uint8Array(ab)))
+
+  const blob = hubBlob()
+  const uploadData = new Blob([ab], { type: 'application/zip' })
+
+  await blob.put(fileKey, uploadData, {
+    addRandomSuffix: false,
+  })
+
+  const exportLogId = insertRes.meta.last_row_id as number
+  const backupId = await createBackupFile(db, {
+    file_key: fileKey,
+    export_log_id: exportLogId,
+    filename,
+    file_path: filePath,
+    file_size: fileSize,
+    compressed_size: fileSize,
+    content_hash: contentHash,
+    compression_type: 'none',
+    retention_days: 90,
+    metadata: JSON.stringify({
+      export_config: body,
+      filters: all_filters,
+      created_by: user.id,
+      backup_type: 'export',
+      data_type: 'all'
+    })
+  })
+
+  await updateBackupFileStatus(db, backupId, 'stored', new Date())
   return new Blob([ab])
 })

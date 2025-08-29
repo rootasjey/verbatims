@@ -1,109 +1,82 @@
+import type {
+  ExportOptions,
+  UserExportFilters,
+  ExportResultWithBackup,
+  ExportedUser,
+} from '~/types/export'
+
 /**
  * Admin API: Export Users Data
  * Comprehensive users export with filtering, multiple formats, and progress tracking
  */
-
-import type { ExportOptions, UserExportFilters, ExportResult, ExportedUser } from '~/types/export'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+    if (user.role !== 'admin' && user.role !== 'moderator') {
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
     const body = await readBody(event) as ExportOptions
-    const { format, filters = {}, include_relations = true, include_metadata = false, limit = 0 } = body
+    const {
+      format,
+      filters = {},
+      include_relations = true,
+      include_metadata = false,
+      limit = 0,
+    } = body
 
     const usersFilters = filters as UserExportFilters
     const filterValidation = validateFiltersForUsersExport(usersFilters)
+    
     if (!filterValidation.valid) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}`
-      })
+      throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
     }
 
-    if (!format) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Export format is required'
-      })
-    }
-
+    if (!format) { throw createError({ statusCode: 400, statusMessage: 'Export format is required' }) }
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Unsupported export format. Supported formats: json, csv, xml'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
     }
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Generate unique export ID
-    const exportId = `users_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    
-    // Build query with filters
+    const uniqueExportId = `users_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildUsersQuery(usersFilters, include_relations, limit)
 
-    // Execute query to get users data
     const usersResult = await db.prepare(query).bind(...bindings).all()
     const users = (usersResult?.results || []) as any[]
 
-    // Process users data
     const processedUsers: ExportedUser[] = users.map((userRecord: any) => {
       const processed: ExportedUser = {
         id: userRecord.id,
         email: userRecord.email,
         name: userRecord.name,
-        avatar_url: userRecord.avatar_url || undefined,
+        avatar_url: userRecord.avatar_url,
         role: userRecord.role,
         is_active: Boolean(userRecord.is_active),
         email_verified: Boolean(userRecord.email_verified),
-        biography: userRecord.biography || undefined,
-        job: userRecord.job || undefined,
+        biography: userRecord.biography,
+        job: userRecord.job,
         language: userRecord.language,
-        location: userRecord.location || undefined,
-        last_login_at: userRecord.last_login_at || undefined,
+        location: userRecord.location,
+        last_login_at: userRecord.last_login_at,
         created_at: userRecord.created_at,
         updated_at: userRecord.updated_at
       }
 
-      // Parse socials JSON
       if (userRecord.socials) {
-        try {
-          processed.socials = JSON.parse(userRecord.socials)
-        } catch (error) {
-          console.error('Failed to parse user socials:', error)
-          processed.socials = []
-        }
+        try { processed.socials = JSON.parse(userRecord.socials) } 
+        catch (error) { processed.socials = []; console.error('Failed to parse user socials:', error) }
       }
 
-      // Add relation counts if included
       if (include_relations) {
-        if (userRecord.quotes_count !== undefined) {
-          processed.quotes_count = userRecord.quotes_count
-        }
-        if (userRecord.collections_count !== undefined) {
-          processed.collections_count = userRecord.collections_count
-        }
+        if (userRecord.quotes_count !== undefined) { processed.quotes_count = userRecord.quotes_count }
+        if (userRecord.collections_count !== undefined) { processed.collections_count = userRecord.collections_count }
       }
 
-      // Add metadata if requested
       if (include_metadata) {
         processed._metadata = {
           exported_at: new Date().toISOString(),
           exported_by: user.id,
-          export_id: exportId,
+          export_id: uniqueExportId,
           export_filters: usersFilters
         }
       }
@@ -111,7 +84,6 @@ export default defineEventHandler(async (event) => {
       return processed
     })
 
-    // Generate export content based on format
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const filename = `users-export-${timestamp}.${format}`
     let contentData: string
@@ -140,10 +112,9 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // Log the export
-    const fileSize = new TextEncoder().encode(contentData).length
-    await logUsersExport(db, {
-      exportId,
+    const fileSize: number = new TextEncoder().encode(contentData).length
+    const { exportLogId } = await logUsersExport(db, {
+      exportId: uniqueExportId,
       filename,
       format,
       filters: usersFilters,
@@ -152,23 +123,52 @@ export default defineEventHandler(async (event) => {
       fileSize: fileSize
     })
 
-    const result: ExportResult = {
+    const backupResult = await createBackup(
+      db,
+      contentData,
+      filename,
+      'users',
+      format,
+      {
+        exportLogId,
+        retentionDays: 90,
+        metadata: {
+          export_config: body,
+          filters: usersFilters,
+          created_by: user.id,
+          backup_type: 'export',
+          data_type: 'users'
+        }
+      }
+    )
+
+    const backupInfo = {
+      backup_id: backupResult.backupId,
+      file_key: backupResult.fileKey,
+      file_path: backupResult.filePath,
+      storage_status: 'stored' as const,
+      backup_download_url: `/api/admin/backup/download/${backupResult.backupId}`,
+      retention_days: 90,
+      expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+    }
+
+    const result: ExportResultWithBackup = {
       success: true,
       data: {
-        export_id: exportId,
+        export_id: uniqueExportId,
         filename,
         format,
         record_count: processedUsers.length,
         file_size: fileSize,
-        download_url: `/api/admin/export/download/${exportId}`,
+        download_url: `/api/admin/export/download/${uniqueExportId}`,
         options: body,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-      }
+      },
+      backup: backupInfo
     }
 
-    // Store the export content temporarily (in production, use blob storage)
-    // For now, we'll return the content directly for smaller exports
-    if (contentData.length < 10 * 1024 * 1024) { // Less than 10MB
+    // For smaller exports, still provide direct content for immediate download
+    if (contentData.length < 5 * 1024 * 1024) { // Less than 5MB
       const resultData = result.data as any
       resultData.content = contentData
       resultData.mimeType = mimeType
@@ -189,8 +189,7 @@ export default defineEventHandler(async (event) => {
  * Build SQL query for users export with filters
  */
 function buildUsersQuery(filters: UserExportFilters, includeRelations: boolean, limit: number) {
-  // Base query with optional relations
-  let query = `
+  let baseQuery = `
     SELECT 
       u.*
       ${includeRelations ? `,
@@ -204,7 +203,6 @@ function buildUsersQuery(filters: UserExportFilters, includeRelations: boolean, 
     ` : ''}
   `
 
-  // Build filter conditions
   const conditions: string[] = []
   const bindings: any[] = []
 
@@ -265,39 +263,34 @@ function buildUsersQuery(filters: UserExportFilters, includeRelations: boolean, 
     bindings.push(filters.last_login_range.end + ' 23:59:59')
   }
 
-  // Add WHERE clause if we have conditions
   if (conditions.length > 0) {
-    query += ` WHERE ${conditions.join(' AND ')}`
+    baseQuery += ` WHERE ${conditions.join(' AND ')}`
   }
 
-  // Add GROUP BY for relations
   if (includeRelations) {
-    query += ' GROUP BY u.id'
+    baseQuery += ' GROUP BY u.id'
   }
 
-  // Add HAVING clause for activity filters
   if (filters.min_quotes && filters.min_quotes > 0 && includeRelations) {
-    query += ` HAVING quotes_count >= ${filters.min_quotes}`
+    baseQuery += ` HAVING quotes_count >= ${filters.min_quotes}`
   }
 
   if (filters.min_collections && filters.min_collections > 0 && includeRelations) {
-    if (query.includes('HAVING')) {
-      query += ` AND collections_count >= ${filters.min_collections}`
+    if (baseQuery.includes('HAVING')) {
+      baseQuery += ` AND collections_count >= ${filters.min_collections}`
     } else {
-      query += ` HAVING collections_count >= ${filters.min_collections}`
+      baseQuery += ` HAVING collections_count >= ${filters.min_collections}`
     }
   }
 
-  // Add ORDER BY
-  query += ' ORDER BY u.created_at DESC'
+  baseQuery += ' ORDER BY u.created_at DESC'
 
-  // Add LIMIT if specified
   if (limit > 0) {
-    query += ' LIMIT ?'
+    baseQuery += ' LIMIT ?'
     bindings.push(limit)
   }
 
-  return { query, bindings }
+  return { query: baseQuery, bindings }
 }
 
 /**
@@ -306,14 +299,12 @@ function buildUsersQuery(filters: UserExportFilters, includeRelations: boolean, 
 function generateUsersCSV(users: ExportedUser[]): string {
   if (users.length === 0) return ''
 
-  // Define CSV headers
   const headers = [
     'id', 'email', 'name', 'avatar_url', 'role', 'is_active', 'email_verified',
     'biography', 'job', 'language', 'location', 'socials', 'last_login_at',
     'quotes_count', 'collections_count', 'created_at', 'updated_at'
   ]
 
-  // Create CSV rows
   const csvRows = [
     headers.join(','), // Header row
     ...users.map(user => {
@@ -435,11 +426,14 @@ async function logUsersExport(db: any, exportInfo: {
   fileSize: number
   includeRelations?: boolean
   includeMetadata?: boolean
-}) {
+}): Promise<{ exportLogId: number }> {
   try {
-    await db.prepare(`
-      INSERT INTO export_logs (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    const result = await db.prepare(`
+      INSERT INTO export_logs (
+        export_id, filename, format, data_type, 
+        filters_applied, record_count, file_size, 
+        user_id, include_relations, include_metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       exportInfo.exportId,
       exportInfo.filename,
@@ -451,11 +445,13 @@ async function logUsersExport(db: any, exportInfo: {
       exportInfo.userId,
       exportInfo.includeRelations || false,
       exportInfo.includeMetadata || false
-    ).run()
+  ).run()
+
+  return { exportLogId: result.meta.last_row_id }
 
   } catch (error) {
     console.error('Failed to log users export:', error)
-    // Don't fail the export if logging fails
+    return { exportLogId: 0 } // Return a fallback ID if logging fails
   }
 }
 
@@ -469,7 +465,6 @@ function validateFiltersForUsersExport(filters: UserExportFilters) {
     warnings: [] as string[]
   }
 
-  // Validate date ranges
   if (filters.date_range?.start && filters.date_range?.end) {
     if (new Date(filters.date_range.start) > new Date(filters.date_range.end)) {
       validation.errors.push('Date range start must be before end date')
@@ -484,7 +479,6 @@ function validateFiltersForUsersExport(filters: UserExportFilters) {
     }
   }
 
-  // Validate numeric filters
   if (filters.min_quotes !== undefined && filters.min_quotes < 0) {
     validation.errors.push('Minimum quotes count must be non-negative')
     validation.valid = false
@@ -495,23 +489,27 @@ function validateFiltersForUsersExport(filters: UserExportFilters) {
     validation.valid = false
   }
 
-  // Validate role filter
   if (filters.role && Array.isArray(filters.role)) {
     const validRoles = ['user', 'moderator', 'admin']
     const invalidRoles = filters.role.filter(role => !validRoles.includes(role))
     if (invalidRoles.length > 0) {
-      validation.errors.push(`Invalid roles: ${invalidRoles.join(', ')}. Valid roles are: ${validRoles.join(', ')}`)
       validation.valid = false
+      validation.errors.push(`
+        Invalid roles: ${invalidRoles.join(', ')}. 
+        Valid roles are: ${validRoles.join(', ')}
+      `)
     }
   }
 
-  // Validate language filter
   if (filters.language && Array.isArray(filters.language)) {
     const validLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh']
     const invalidLanguages = filters.language.filter(lang => !validLanguages.includes(lang))
     if (invalidLanguages.length > 0) {
-      validation.errors.push(`Invalid languages: ${invalidLanguages.join(', ')}. Valid languages are: ${validLanguages.join(', ')}`)
       validation.valid = false
+      validation.errors.push(`
+        Invalid languages: ${invalidLanguages.join(', ')}. 
+        Valid languages are: ${validLanguages.join(', ')}
+      `)
     }
   }
 

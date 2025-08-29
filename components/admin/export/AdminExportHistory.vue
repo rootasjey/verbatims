@@ -36,14 +36,14 @@
 
         <div v-else-if="dataExport.state.exportHistory.length === 0" class="text-center py-12">
           <UIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          <h3 class="font-body text-size-8 font-medium text-gray-900 dark:text-white">
             No Export History
           </h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+          <p class="font-body text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             Your export history will appear here once you start creating exports.
           </p>
           <UButton
-            btn="outline"
+            btn="soft-blue"
             @click="emit('go-to-export')"
           >
             <UIcon name="i-ph-download" />
@@ -51,7 +51,7 @@
           </UButton>
         </div>
 
-        <div v-else class="export-history-container flex flex-col bg-white dark:bg-[#0C0A09]">
+        <div v-else class="export-history-container flex flex-col">
           <UCollapsible v-model:open="bulkOpen">
             <UCollapsibleContent>
               <div class="flex-shrink-0 mb-4">
@@ -61,6 +61,10 @@
                       {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'entry' : 'entries' }} selected
                     </span>
                     <div class="flex items-center gap-3">
+                      <UButton size="sm" btn="light:ghost-blue dark:link-blue" :loading="bulkDownloading" @click="bulkDownload">
+                        <UIcon name="i-ph-download" />
+                        Download Selected
+                      </UButton>
                       <UButton size="sm" btn="light:ghost-pink dark:link-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
                         <UIcon name="i-ph-trash" />
                         Delete Selected
@@ -196,7 +200,7 @@
             </UTable>
           </div>
 
-          <div class="flex-shrink-0 flex items-center justify-between p-4">
+          <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 rounded-2 border">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               Page {{ dataExport.state.historyPagination.page }} of {{ dataExport.state.historyPagination.totalPages }} • {{ dataExport.state.historyPagination.total }} total exports
             </div>
@@ -233,7 +237,7 @@
     </UDialog>
 
     <UDialog v-model:open="showClearHistoryDialog">
-      <UCard>
+      <UCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Clear All Export History</h3>
         </template>
@@ -249,8 +253,8 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton btn="ghost" @click="showClearHistoryDialog = false">Cancel</UButton>
-            <UButton btn="solid" @click="handleClearAllHistory">Clear All History</UButton>
+            <UButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</UButton>
+            <UButton btn="link-red" @click="handleClearAllHistory">Clear All History</UButton>
           </div>
         </template>
       </UCard>
@@ -283,7 +287,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
 import { useDataExport } from '~/composables/useDataExport'
 
 const emit = defineEmits<{ (e: 'go-to-export'): void }>()
@@ -295,6 +298,7 @@ const bulkOpen = ref(false)
 const rowSelection = ref<Record<string, boolean>>({})
 const showBulkDeleteModal = ref(false)
 const bulkProcessing = ref(false)
+const bulkDownloading = ref(false)
 
 const showClearHistoryDialog = ref(false)
 const showDeleteEntryDialog = ref(false)
@@ -347,14 +351,14 @@ const handleClearAllHistory = async () => {
 const getEntryActions = (entry: any) => {
   const items: any[] = []
 
-  if (!dataExport.isExpired(entry.expires_at)) {
+  if (dataExport.isExpired(entry.expires_at)) {
+    items.push({ label: 'Expired', leading: 'i-ph-clock', disabled: true })
+  } else {
     items.push({
       label: 'Execute Query',
       leading: 'i-ph-caret-double-right-duotone',
       onclick: () => dataExport.downloadExport(entry.id)
     })
-  } else {
-    items.push({ label: 'Expired', leading: 'i-ph-clock', disabled: true })
   }
 
   if (entry.backup_file && entry.backup_file.storage_status === 'stored') {
@@ -378,21 +382,22 @@ const getEntryActions = (entry: any) => {
 
 const bulkDelete = async () => {
   if (selectedEntries.value.length === 0) return
-  const { toast } = useToast()
+
   try {
     bulkProcessing.value = true
     const ids = [...selectedEntries.value]
     const batchSize = 5
+
     for (let i = 0; i < ids.length; i += batchSize) {
       const batch = ids.slice(i, i + batchSize)
       await Promise.all(batch.map(id => dataExport.deleteExportHistoryEntry(id)))
     }
+
     rowSelection.value = {}
     showBulkDeleteModal.value = false
-    toast?.({ title: 'Deleted', description: 'Selected export entries deleted.' })
   } catch (error) {
     console.error('Failed to bulk delete export history entries:', error)
-    useToast().toast?.({
+    useToast().toast({
       toast: 'error',
       title: 'Bulk Delete Failed',
       description: 'Please try again.'
@@ -400,6 +405,52 @@ const bulkDelete = async () => {
   } finally {
     bulkProcessing.value = false
   }
+}
+
+const bulkDownload = async () => {
+  if (selectedEntries.value.length === 0) return
+  
+  bulkDownloading.value = true
+  let success = 0
+  let skipped = 0
+  let failed = 0
+
+  const entriesById = new Map<string, any>(
+    dataExport.state.exportHistory.map((e: any) => [e.id as string, e])
+  )
+
+  for (const id of selectedEntries.value) {
+    const entry = entriesById.get(id)
+    if (!entry) { skipped++; continue; }
+
+    try {
+      if (entry.backup_file && entry.backup_file.storage_status === 'stored') {
+        await dataExport.downloadBackup(entry.backup_file.id)
+        success++
+      } else if (!dataExport.isExpired(entry.expires_at)) {
+        await dataExport.downloadExport(entry.id)
+        success++
+      } else { skipped++ } // Expired and no backup available
+
+      // Small delay to avoid overwhelming the browser/network
+      await new Promise(resolve => setTimeout(resolve, 150))
+    } catch (e) {
+      console.error('Download failed for entry', id, e)
+      failed++
+    }
+  }
+
+  const parts = [] as string[]
+  parts.push(`${success} downloaded`)
+  if (skipped) parts.push(`${skipped} skipped`)
+  if (failed) parts.push(`${failed} failed`)
+
+  toast({
+    title: 'Bulk download complete',
+    description: parts.join(', ') + '.',
+  })
+  
+  bulkDownloading.value = false
 }
 
 const historyColumns = [

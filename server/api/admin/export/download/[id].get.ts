@@ -1,58 +1,61 @@
+import type { QuoteExportFilters } from '~/types/export'
+import { parseFiltersFromExportLog, buildFilterConditions } from '~/server/utils/export-filters'
+import { getBackupFilesForExport } from '~/server/utils/backup-database'
+
 /**
  * Admin API: Download Export File
  * Handles downloading of exported data files with proper MIME types and cleanup
  */
-
-import type { QuoteExportFilters } from '~/types/export'
-import { parseFiltersFromExportLog, buildFilterConditions } from '~/server/utils/export-filters'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+    if (user.role !== 'admin' && user.role !== 'moderator') {
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
     const exportId = getRouterParam(event, 'id')
     if (!exportId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Export ID is required'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Export ID is required' })
     }
 
     const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
-    // Get export information from database
     const exportLog = await db.prepare(`
       SELECT * FROM export_logs
       WHERE export_id = ? AND expires_at > datetime('now')
     `).bind(exportId).first()
 
     if (!exportLog) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Export not found or expired'
-      })
+      throw createError({ statusCode: 404, statusMessage: 'Export not found or expired' })
     }
 
-    // For this demo implementation, we'll regenerate the export content
-    // In production, you would store files in blob storage and serve them directly
+    // If this is an 'all' export (zip), try to serve the stored backup directly from R2
+    if (exportLog.data_type === 'all') {
+      const backups = await getBackupFilesForExport(db, Number(exportLog.id ?? -1))
+      const latest = backups.find(b => b.file_path?.endsWith('.zip')) || backups[0]
 
-    // Parse filters from the log with type safety
+      if (latest && latest.file_key) {
+        // Fallback if no backup found: return 404 instead of trying to rebuild zip
+        throw createError({ statusCode: 404, statusMessage: 'Export file not found in storage' })
+      }
+
+      const blob = hubBlob()
+      const file = await blob.get(latest.file_key)
+      if (!file) { throw createError({ statusCode: 404, statusMessage: 'Archive not found in storage' }) }
+
+      const ab = await file.arrayBuffer()
+      setHeader(event, 'Content-Type', 'application/zip')
+      setHeader(event, 'Content-Disposition', `attachment; filename="${exportLog.filename}"`)
+      setHeader(event, 'Content-Length', ab.byteLength)
+      setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+      setHeader(event, 'Pragma', 'no-cache')
+      setHeader(event, 'Expires', '0')
+      return new Uint8Array(ab)
+    }
+
+    // For single-type exports, regenerate the content (JSON/CSV/XML)
     const filters = parseFiltersFromExportLog(exportLog)
 
     // Rebuild the export (this is a simplified approach for demo)
-    // In production, you'd store the actual file content
     const { query, bindings } = buildQuotesQueryForDownload(filters, true, 0)
     const quotesResult = await db.prepare(query).bind(...bindings).all()
     const quotes = (quotesResult?.results || []) as any[]
@@ -91,7 +94,6 @@ export default defineEventHandler(async (event) => {
       })) : undefined
     }))
 
-    // Generate content based on format
     let content: string
     let mimeType: string
 
@@ -118,14 +120,12 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // Update download count
     await db.prepare(`
       UPDATE export_logs
       SET download_count = download_count + 1
       WHERE export_id = ?
     `).bind(exportId).run()
 
-    // Set response headers for file download
     setHeader(event, 'Content-Type', mimeType)
     setHeader(event, 'Content-Disposition', `attachment; filename="${exportLog.filename}"`)
     setHeader(event, 'Content-Length', Buffer.byteLength(content, 'utf8'))
@@ -166,7 +166,6 @@ function buildQuotesQueryForDownload(filters: QuoteExportFilters, includeRelatio
     LEFT JOIN tags t ON qt.tag_id = t.id
   `
 
-  // Use the type-safe filter condition builder
   const { conditions, bindings } = buildFilterConditions(filters)
 
   if (conditions.length > 0) {

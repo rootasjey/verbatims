@@ -22,7 +22,7 @@
                 @click="dataExport.startExport"
                 class="flex-1"
               >
-                <UIcon name="i-ph-download" />
+                <UIcon :name="dataExport.exportOptions.value.download_after_export ? 'i-ph-download' : 'i-ph-export-duotone'" />
                 {{
                   dataExport.state.isExporting
                     ? 'Exporting...'
@@ -280,7 +280,7 @@ import ReferencesFilters from '~/components/admin/export/ReferencesFilters.vue'
 import AuthorsFilters from '~/components/admin/export/AuthorsFilters.vue'
 import UsersFilters from '~/components/admin/export/UsersFilters.vue'
 import { useDataExport } from '~/composables/useDataExport'
-import type { ExportDataType } from '~/types/export'
+import type { ExportDataType } from '~/types'
 
 const dataExport = useDataExport()
 
@@ -291,4 +291,31 @@ const dataTypeOptions: Array<{ label: string; value: ExportDataType; icon: strin
   { label: 'Authors', value: 'authors', icon: 'i-ph-user-circle', description: 'Export authors', available: true },
   { label: 'Users', value: 'users', icon: 'i-ph-users', description: 'Export users', available: true }
 ]
+
+// Keyboard shortcut: Ctrl/Cmd + E → Generate export (or Generate & Download based on option)
+const onKeydown = (keyEvent: KeyboardEvent) => {
+  // Ignore when typing in inputs/textareas or contenteditable elements
+  const target = keyEvent.target as HTMLElement | null
+  if (target) {
+    const tag = target.tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (target as HTMLElement).isContentEditable) return
+  }
+
+  if ((keyEvent.ctrlKey || keyEvent.metaKey) && keyEvent.key.toLowerCase() === 'e') {
+    // Mirror the same disabled conditions as the Generate button
+    const hasFormat = Boolean(dataExport.exportOptions.value.format?.value)
+    if (!dataExport.state.isExporting && hasFormat) {
+      keyEvent.preventDefault()
+      dataExport.startExport()
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
