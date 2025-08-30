@@ -91,7 +91,7 @@
             <span class="hidden sm:inline">{{ savedState === 'saved' ? 'Saved' : 'Save' }}</span>
           </UButton>
 
-          <UDropdownMenu :items="menuItems" :popper="{ placement: 'bottom-end' }" class="font-sans">
+          <UDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
             <UButton
               icon
               btn="ghost-gray"

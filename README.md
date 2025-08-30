@@ -1,12 +1,12 @@
-# Verbatims
+# verbatims
 
 Quote service for discovering, curating, and sharing timeless words — with moderation and admin workflows.
 
-![Verbatims screenshot](verbatims.png)
+![verbatims screenshot](verbatims.png)
 
 ## Overview
 
-Verbatims brings quotes, sources, and context together in one place. Browse by topic or author, build personal collections, and quickly share cleanly attributed quotes. The project focuses on accuracy, thoughtful curation, and a pleasant reading experience.
+verbatims brings quotes, sources, and context together in one place. Browse by topic or author, build personal collections, and quickly share cleanly attributed quotes. The project focuses on accuracy, thoughtful curation, and a pleasant reading experience.
 
 Key ideas:
 - Delightful discovery with fast search and smart ranking

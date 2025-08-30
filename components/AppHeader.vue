@@ -80,7 +80,7 @@
           v-if="isMobile"
           class="md:hidden"
           :items="navMenuItems"
-          :popper="{ placement: 'bottom-end' }"
+          :_dropdown-menu-content="{ side: 'bottom', align: 'end' }"
         >
           <UButton
             icon

@@ -33,7 +33,7 @@
           </div>
         </div>
 
-        <UDropdownMenu :items="dropdownItems" :popper="{ placement: 'bottom-end' }">
+        <UDropdownMenu :items="dropdownItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
           <UButton
             btn="ghost-gray"
             icon
