@@ -59,7 +59,7 @@ const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
 definePageMeta({
-  layout: false // We'll handle layout switching dynamically
+  layout: false // layout switching handled dynamically in watcher
 })
 
 useHead({

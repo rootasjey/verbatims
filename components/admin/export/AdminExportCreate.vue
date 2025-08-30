@@ -75,18 +75,18 @@
             </div>
 
             <!-- Export Preview Results -->
-            <div v-if="dataExport.state.previewData" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                      {{ dataExport.state.previewData.estimated_count?.toLocaleString() || 0 }}
+                      {{ dataExport.state.previewData?.estimated_count?.toLocaleString() || 0 }}
                     </div>
                     <div class="text-gray-600 dark:text-gray-400">Records</div>
                   </div>
                   <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                      {{ dataExport.formatFileSize(dataExport.state.previewData.estimated_size || 0) }}
+                      {{ dataExport.formatFileSize(dataExport.state.previewData?.estimated_size || 0) }}
                     </div>
                     <div class="text-gray-600 dark:text-gray-400">Estimated Size</div>
                   </div>
@@ -98,17 +98,17 @@
                   </div>
                 </div>
 
-                <div v-if="dataExport.state.previewData.warnings.length > 0" class="space-y-2">
+                <div v-if="(dataExport.state.previewData?.warnings.length ?? 0) > 0" class="space-y-2">
                   <h4 class="font-medium text-yellow-700 dark:text-yellow-300">Warnings:</h4>
                   <ul class="list-disc list-inside text-sm text-yellow-600 dark:text-yellow-400 space-y-1">
-                    <li v-for="warning in dataExport.state.previewData.warnings" :key="warning">{{ warning }}</li>
+                    <li v-for="warning in dataExport.state.previewData?.warnings" :key="warning">{{ warning }}</li>
                   </ul>
                 </div>
 
-                <div v-if="dataExport.state.previewData.errors.length > 0" class="space-y-2">
+                <div v-if="(dataExport.state.previewData?.errors.length ?? 0) > 0" class="space-y-2">
                   <h4 class="font-medium text-red-700 dark:text-red-300">Errors:</h4>
                   <ul class="list-disc list-inside text-sm text-red-600 dark:text-red-400 space-y-1">
-                    <li v-for="error in dataExport.state.previewData.errors" :key="error">{{ error }}</li>
+                    <li v-for="error in dataExport.state.previewData?.errors" :key="error">{{ error }}</li>
                   </ul>
                 </div>
               </div>
@@ -292,6 +292,18 @@ const dataTypeOptions: Array<{ label: string; value: ExportDataType; icon: strin
   { label: 'Users', value: 'users', icon: 'i-ph-users', description: 'Export users', available: true }
 ]
 
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  dataExport.startAutoPreview()
+  if (dataExport.exportOptions.value.format?.value) {
+    dataExport.triggerPreviewUpdate()
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
+
 // Keyboard shortcut: Ctrl/Cmd + E → Generate export (or Generate & Download based on option)
 const onKeydown = (keyEvent: KeyboardEvent) => {
   // Ignore when typing in inputs/textareas or contenteditable elements
@@ -310,12 +322,4 @@ const onKeydown = (keyEvent: KeyboardEvent) => {
     }
   }
 }
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
-})
 </script>

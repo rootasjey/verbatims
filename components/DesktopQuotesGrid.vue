@@ -41,9 +41,12 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
       <QuoteGridItem
-        v-for="q in feed.quotes?.value"
-        :key="(q as any).id"
+        v-for="q in feed.quotes.value"
+        :key="q.id"
         :quote="q"
+        @edit="openEdit"
+        @delete="openDelete"
+        @report="openReport"
       />
     </div>
 
@@ -60,11 +63,68 @@
       </UButton>
     </div>
   </div>
+
+  <AddQuoteDialog
+    v-model="showEditQuoteDialog"
+    :edit-quote="selectedQuote as any"
+    @quote-updated="closeEditAfterUpdate"
+  />
+
+  <DeleteQuoteDialog
+    v-model="showDeleteQuoteDialog"
+    :quote="selectedQuote as any"
+    @quote-deleted="onQuoteDeleted"
+  />
+
+  <ReportDialog
+    v-model="showReportDialog"
+    targetType="quote"
+    :targetId="selectedQuote?.id || null"
+  />
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  // Search feed composable instance with ref fields
-  feed: any
+const props = defineProps<{
+  feed: UseQuoteSearchFeed
 }>()
+
+import type { ProcessedQuoteResult } from '~/types'
+
+const selectedQuote = ref<ProcessedQuoteResult | null>(null)
+const showEditQuoteDialog = ref(false)
+const showDeleteQuoteDialog = ref(false)
+const showReportDialog = ref(false)
+
+const openEdit = (quote: ProcessedQuoteResult) => {
+  selectedQuote.value = quote
+  showEditQuoteDialog.value = true
+}
+
+const openDelete = (quote: ProcessedQuoteResult) => {
+  selectedQuote.value = quote
+  showDeleteQuoteDialog.value = true
+}
+
+const openReport = (quote: ProcessedQuoteResult) => {
+  selectedQuote.value = quote
+  showReportDialog.value = true
+}
+
+const closeEditAfterUpdate = async () => {
+  showEditQuoteDialog.value = false
+  
+  try { // Fetch fresh data for the updated quote and patch it locally in the feed
+    if (!selectedQuote.value?.id) return
+    const res = await $fetch(`/api/quotes/${selectedQuote.value.id}`)
+    const updated = res.data
+    if (updated) props.feed.updateQuoteInFeed(updated)
+  } catch (e) { console.error('Failed to update quote:', e) }
+}
+
+const onQuoteDeleted = async () => {
+  showDeleteQuoteDialog.value = false
+  if (selectedQuote.value?.id) {
+    props.feed.removeQuoteFromFeed(selectedQuote.value.id)
+  }
+}
 </script>

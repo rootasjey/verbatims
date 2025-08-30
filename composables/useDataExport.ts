@@ -9,7 +9,7 @@ import type {
   ExportState,
   ExportDataType,
 } from '~/types/export'
-import { useLocalStorage } from '@vueuse/core'
+import { useLocalStorage, useDebounceFn } from '@vueuse/core'
 
 /**
  * Data Export Composable
@@ -906,6 +906,69 @@ export const useDataExport = () => {
     }
   }
 
+  // Debounced preview trigger and auto-preview watchers
+  const triggerPreviewUpdate = useDebounceFn(async () => {
+    if (!exportOptions.value.format?.value) return
+    if (state.isExporting) return
+    try {
+      await validateExport()
+    } catch {
+      // validateExport manages its own error state
+    }
+  }, 600)
+
+  const autoPreviewStarted = ref(false)
+  const startAutoPreview = () => {
+    if (autoPreviewStarted.value) return
+    autoPreviewStarted.value = true
+
+    // Watch export option changes (format, data_type, include flags, limit)
+    watch(
+      () => ({ ...exportOptions.value }),
+      () => {
+        triggerPreviewUpdate()
+      },
+      { deep: true }
+    )
+
+    // Watch filters per data type; only trigger when relevant for current selection or when 'all'
+    watch(
+      () => ({ ...quotesFilters.value }),
+      () => {
+        const dt = exportOptions.value.data_type.value
+        if (dt === 'quotes' || dt === 'all') triggerPreviewUpdate()
+      },
+      { deep: true }
+    )
+
+    watch(
+      () => ({ ...referencesFilters.value }),
+      () => {
+        const dt = exportOptions.value.data_type.value
+        if (dt === 'references' || dt === 'all') triggerPreviewUpdate()
+      },
+      { deep: true }
+    )
+
+    watch(
+      () => ({ ...authorsFilters.value }),
+      () => {
+        const dt = exportOptions.value.data_type.value
+        if (dt === 'authors' || dt === 'all') triggerPreviewUpdate()
+      },
+      { deep: true }
+    )
+
+    watch(
+      () => ({ ...usersFilters.value }),
+      () => {
+        const dt = exportOptions.value.data_type.value
+        if (dt === 'users' || dt === 'all') triggerPreviewUpdate()
+      },
+      { deep: true }
+    )
+  }
+
   return {
     // State
     state,
@@ -946,6 +1009,10 @@ export const useDataExport = () => {
     // Backup utilities
     getBackupStatusLabel,
     getBackupStatusColor,
-    downloadBackup
+  downloadBackup,
+
+  // Auto preview API
+  triggerPreviewUpdate,
+  startAutoPreview
   }
 }

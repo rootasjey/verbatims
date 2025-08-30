@@ -1,3 +1,5 @@
+import { ProcessedQuoteResult } from "~/types"
+
 export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
@@ -53,29 +55,27 @@ export default defineEventHandler(async (event) => {
         name: quote.author_name,
         is_fictional: quote.author_is_fictional,
         image_url: quote.author_image_url
-      } : null,
+      } : undefined,
       reference: quote.reference_id ? {
         id: quote.reference_id,
         name: quote.reference_name,
         primary_type: quote.reference_type
-      } : null,
+      } : undefined,
       user: {
         name: quote.user_name
       },
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name, index) => ({
+      tags: typeof quote.tag_names === 'string' ? quote.tag_names.split(',').map((name, index) => ({
         name,
-        color: quote.tag_colors.split(',')[index]
+        color: typeof quote.tag_colors === 'string' ? quote.tag_colors.split(',')[index] : undefined
       })) : []
     }
 
     return {
       success: true,
-      data: transformedQuote
+      data: transformedQuote as unknown as ProcessedQuoteResult
     }
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
+    if (error.statusCode) throw error
     
     console.error('Error fetching quote:', error)
     throw createError({

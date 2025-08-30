@@ -17,7 +17,6 @@
       @copy-link="copyLink"
     />
 
-    <!-- Loading State -->
     <div v-if="pending" class="px-8 py-16">
       <div class="max-w-4xl mx-auto">
         <div class="animate-pulse space-y-8">
@@ -31,12 +30,10 @@
       </div>
     </div>
 
-    <!-- Quote Content -->
     <div v-else-if="quote" class="mt-16 px-8 py-16">
       <div class="max-w-4xl mx-auto">
         <!-- Main Quote Section -->
         <div class="text-center mb-16">
-          <!-- Quote Text - Typography Focused -->
           <div class="relative mb-12">
             <blockquote class="font-serif text-4xl sm:text-4xl lg:text-5xl xl:text-6xl md:font-600 leading-tight text-gray-900 dark:text-white mb-8 md:px-4">
               {{ quote.name }}

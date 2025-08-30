@@ -1,27 +1,26 @@
 <template>
   <div
     class="quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col
-    dark:hover:b-lime hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300 "
+    dark:hover:b-blue hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300 "
     @click="navigateToQuote"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     ref="containerRef"
   >
-    <!-- Author and Reference Info (Top) -->
     <div 
       :class="[
         'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
         isHovered ? 'opacity-100' : 'opacity-50'
       ]"
     >
-      <!-- Author Name -->
-      <span
+      <ULink
         v-if="quote.author"
+        :to="`/authors/${quote.author.id}`"
         class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300"
         :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
       >
         {{ quote.author.name }}
-      </span>
+      </ULink>
       <span
         v-else
         class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
@@ -30,17 +29,17 @@
         Unknown Author
       </span>
       
-      <!-- Book Icon (if reference exists) -->
-      <UIcon
-        v-if="quote.reference"
-        name="i-ph-book-open-text-bold"
-        :class="[
-          'opacity-0 group-hover:opacity-100',
-          'text-gray-600 dark:text-gray-400 flex-shrink-0 transition-opacity duration-300',
-          'hover:scale-125 hover:rotate-180 active:scale-99 ease-in-out transition-transform duration-300'
-        ]"
-        :title="`From: ${quote.reference.name}`"
-      />
+      <UDropdownMenu :items="menuItems">
+        <UButton
+          icon
+          btn="ghost"
+          size="xs"
+          label="i-ph-dots-three-vertical"
+          class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
+          @click.stop
+          :title="'Quote actions'"
+        />
+      </UDropdownMenu>
     </div>
 
     <!-- Quote Content (Main) -->
@@ -74,7 +73,6 @@
       </ClientOnly>
     </div>
 
-    <!-- Featured Badge (if featured) -->
     <UBadge
       v-if="quote.is_featured"
       color="yellow"
@@ -87,13 +85,19 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  quote: {
-    type: Object,
-    required: true
-  }
-})
+<script lang="ts" setup>
+import type { ProcessedQuoteResult } from '~/types';
+
+interface Props {
+  quote: ProcessedQuoteResult
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'edit', quote: ProcessedQuoteResult): void
+  (e: 'delete', quote: ProcessedQuoteResult): void
+  (e: 'report', quote: ProcessedQuoteResult): void
+}>()
 
 const isHovered = ref(false)
 
@@ -101,14 +105,13 @@ const navigateToQuote = () => {
   navigateTo(`/quotes/${props.quote.id}`)
 }
 
-
 // Typewriter animation when the card appears
 const containerRef = ref(null)
 const displayedText = ref('')
 const showCaret = ref(false)
 let hasTyped = false
-let observer = null
-let intervalId = null
+let observer: IntersectionObserver | undefined = undefined
+let intervalId: NodeJS.Timeout | undefined = undefined
 
 const startTyping = () => {
   if (hasTyped) return
@@ -131,7 +134,7 @@ const startTyping = () => {
     if (i >= text.length) {
       displayedText.value = text
       clearInterval(intervalId)
-      intervalId = null
+      intervalId = undefined
       setTimeout(() => (showCaret.value = false), 400)
     }
   }, baseInterval)
@@ -153,10 +156,122 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (observer && containerRef.value) observer.unobserve(containerRef.value)
   if (observer) observer.disconnect()
-  observer = null
+  observer = undefined
   if (intervalId) clearInterval(intervalId)
-  intervalId = null
+  intervalId = undefined
 })
+
+// Keep displayed text in sync when the quote content changes (e.g., after edit)
+watch(() => props.quote?.name, (newText) => {
+  const text = (newText || '').toString()
+  displayedText.value = text
+  showCaret.value = false
+})
+
+const { user } = useUserSession()
+const sharePending = ref(false)
+
+const menuItems = computed(() => {
+  const items: { label: string; leading: string; onclick: () => void }[] = []
+
+  const role = user.value?.role
+  if (role === 'admin' || role === 'moderator') {
+    items.push(
+      {
+        label: 'Edit',
+        leading: 'i-ph-pencil-simple',
+        onclick: () => emit('edit', props.quote)
+      },
+      {
+        label: 'Delete',
+        leading: 'i-ph-trash',
+        onclick: () => emit('delete', props.quote)
+      }
+    )
+  }
+
+  items.push(
+    {
+      label: 'Copy link',
+      leading: 'i-ph-link',
+      onclick: () => copyLink()
+    },
+    {
+      label: 'Copy text',
+      leading: 'i-ph-quotes',
+      onclick: () => copyQuoteText()
+    },
+    {
+      label: 'Share',
+      leading: 'i-ph-share-network',
+      onclick: () => shareQuote()
+    },
+    {
+      label: 'Report',
+      leading: 'i-ph-flag',
+      onclick: () => emit('report', props.quote)
+    }
+  )
+
+  return items
+})
+
+const copyLink = async () => {
+  const { toast } = useToast()
+  try {
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
+    if (!url) throw new Error('no-url')
+    await navigator.clipboard.writeText(url)
+    toast({ title: 'Link copied', toast: 'success' })
+  } catch (error) {
+    toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'error' })
+  }
+}
+
+const copyQuoteText = async () => {
+  const { toast } = useToast()
+  try {
+    const text = `"${props.quote.name}"${props.quote.author ? ` — ${props.quote.author.name}` : ''}${props.quote.reference ? ` (${props.quote.reference.name})` : ''}`
+    await navigator.clipboard.writeText(text)
+    toast({ title: 'Text copied', toast: 'success' })
+  } catch (error) {
+    toast({ title: 'Copy failed', description: 'Clipboard is not available.', toast: 'error' })
+  }
+}
+
+const shareQuote = async () => {
+  if (sharePending.value) return
+  sharePending.value = true
+  const { toast } = useToast()
+  try {
+    const shareData = {
+      title: 'Quote from Verbatims',
+      text: `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}`,
+      url: typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
+    }
+
+    if (navigator.share) {
+      await navigator.share(shareData as any)
+      toast({ title: 'Quote shared!', toast: 'success' })
+    } else {
+      await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
+      toast({ title: 'Quote link copied', toast: 'success' })
+    }
+
+    // Best-effort share tracking
+    try { await $fetch(`/api/quotes/${props.quote.id}/share`, { method: 'POST' }) } catch {}
+    if (typeof (props.quote as any).shares_count === 'number') {
+      ;(props.quote as any).shares_count++
+    }
+  } catch (error) {
+    console.error('Failed to share quote:', error)
+    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'error' })
+  } finally {
+    sharePending.value = false
+  }
+}
+
+// Dialogs are owned by parent; this item only emits events
 </script>
 
 <style scoped>

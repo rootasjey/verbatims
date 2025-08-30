@@ -1,7 +1,4 @@
 import type { ProcessedQuoteResult, QuotesSearchPayload } from '~/types'
-
-// types/sort.d.ts is likely a global declaration file, not a module.
-// So we reference the type name directly instead of importing.
 type SortMode = 'relevance' | 'recent' | 'popular'
 
 /**
@@ -21,7 +18,6 @@ export function useQuoteSearchFeed() {
   const languageStore = useLanguageStore()
   const { waitForLanguageStore } = useLanguageReady()
 
-  // Sorting controls
   const selectedSortBy = ref<{ label: string; value: string }>({ label: 'Most Recent', value: 'created_at' })
   const selectedSortOrder = ref<{ label: string; value: 'asc' | 'desc' }>({ label: 'Desc', value: 'desc' })
   const sortByOptions = [
@@ -41,51 +37,37 @@ export function useQuoteSearchFeed() {
     }
   })
 
-  // Pagination / UI state
   const loadingMore = ref(false)
   const currentPage = ref(1)
   const additionalQuotes = ref<ProcessedQuoteResult[]>([])
   const searchQuery = ref('')
 
-  // Data retention and initial load control
+  const limit = 50
   const initialLoading = ref(true)
   const lastSuccessfulQuotes = ref<ProcessedQuoteResult[]>([])
-  const lastSuccessfulMeta = ref<{
-    total: number
-    page: number
-    limit: number
-    offset: number
-    pageCount: number
-    sort: SortMode
-    q?: string
-    hasMore: boolean
-  }>({
+  const lastSuccessfulMeta = ref({
     total: 0,
     page: 1,
-    limit: 25,
+    limit,
     offset: 0,
     pageCount: 0,
-    sort: 'recent',
-    q: undefined,
+    sort: 'recent' as SortMode,
+    q: undefined as string | undefined,
     hasMore: false
   })
 
-  // Debounced search
   const debouncedQuery = ref('')
   const applyDebounce = useDebounceFn(() => {
     debouncedQuery.value = searchQuery.value.trim()
   }, 250)
 
-  // Keep debouncedQuery in sync when user types
   watch(searchQuery, () => {
     applyDebounce()
   })
 
-  // Nudge refresh when sort controls change (also applies debounce so empty query still refetches)
   watch(
     () => selectedSortBy.value?.value,
     () => {
-      // reset to page 1 and trigger search debounced update
       currentPage.value = 1
       applyDebounce()
     }
@@ -107,7 +89,7 @@ export function useQuoteSearchFeed() {
         sort,
         sortOrder: isAscending ? 'asc' : 'desc',
         page: currentPage.value,
-        limit: 25,
+        limit,
         ...languageStore.getLanguageQuery()
       }
     }),
@@ -125,7 +107,7 @@ export function useQuoteSearchFeed() {
         quotes: [],
         total: 0,
         page: 1,
-        limit: 25,
+        limit,
         offset: 0,
         pageCount: 0,
         sort: 'recent' as SortMode,
@@ -138,12 +120,11 @@ export function useQuoteSearchFeed() {
 
   // Keep previous data during refetch and mark initial loading off after first success
   watch(searchQuery, () => {
-    // reset page when user types to ensure results start from first page
     currentPage.value = 1
   })
 
   watch(quotesData, (val) => {
-    const payload = (val as any)?.data
+    const payload = val.data
     const quotes = payload?.quotes
     if (Array.isArray(quotes)) {
       lastSuccessfulQuotes.value = quotes
@@ -156,27 +137,26 @@ export function useQuoteSearchFeed() {
         pageCount: typeof payload?.pageCount === 'number' ? payload.pageCount : lastSuccessfulMeta.value.pageCount,
         sort: (payload?.sort as SortMode) || lastSuccessfulMeta.value.sort,
         q: payload?.q ?? lastSuccessfulMeta.value.q,
-        hasMore: typeof payload?.hasMore === 'boolean' ? payload.hasMore : lastSuccessfulMeta.value.hasMore,
+        hasMore: typeof (payload as any)?.hasMore === 'boolean' ? (payload as any).hasMore : lastSuccessfulMeta.value.hasMore,
       }
 
       if (initialLoading.value) initialLoading.value = false
     }
   }, { immediate: true })
 
-  // Re-run first page when debounced query changes
   watch(debouncedQuery, () => {
     currentPage.value = 1
   })
 
-  const searchData = computed<QuotesSearchPayload | null>(() => {
-    const d = quotesData.value?.data as any
-    if (!d) return null
-    if ('quotes' in d) return d as QuotesSearchPayload
-    if ('data' in d && Array.isArray(d.data)) {
+  const searchData = computed<QuotesSearchPayload | undefined>(() => {
+    const data = quotesData.value?.data as any
+    if (!data) return undefined
+    if ('quotes' in data) return data as QuotesSearchPayload
+    if ('data' in data && Array.isArray(data.data)) {
       return {
         sort: 'recent',
         page: 1,
-        limit: 25,
+        limit: limit,
         q: undefined,
         quotes: [],
         total: 0,
@@ -186,7 +166,7 @@ export function useQuoteSearchFeed() {
         hasMore: false
       }
     }
-    return null
+    return undefined
   })
 
   const displayedQuotes = computed(() => {
@@ -221,19 +201,19 @@ export function useQuoteSearchFeed() {
       const sort = mapSort(selectedSortBy.value?.value, !!searchQuery.value?.trim())
       const isAscending = (selectedSortOrder.value?.value || 'desc') === 'asc'
 
-      const query: any = {
+      const query = {
         q: searchQuery.value?.trim() || undefined,
         sort,
         sortOrder: isAscending ? 'asc' : 'desc',
         page: nextPage,
-        limit: 25,
+        limit,
         ...languageStore.getLanguageQuery()
       }
 
       const response = await $fetch('/api/quotes/search', { query })
 
-      if ((response as any)?.data?.quotes) {
-        additionalQuotes.value = [...additionalQuotes.value, ...(((response as any).data.quotes) || [])]
+      if (response.data?.quotes) {
+        additionalQuotes.value = [...additionalQuotes.value, ...(response.data.quotes || [])]
         currentPage.value = nextPage
       }
     } catch (error) {
@@ -250,12 +230,39 @@ export function useQuoteSearchFeed() {
     await refreshQuotesFromAPI()
   }
 
+  // Allow parent components to update quotes locally without a full refresh
+  const updateQuoteInFeed = (updated: ProcessedQuoteResult) => {
+    if (!updated || typeof updated.id !== 'number') return
+    
+    const baseIndex = lastSuccessfulQuotes.value.findIndex(q => q.id === updated.id)
+    if (baseIndex !== -1) {
+      lastSuccessfulQuotes.value[baseIndex] = { ...lastSuccessfulQuotes.value[baseIndex], ...updated }
+      return
+    }
+
+    const additionalIndex = additionalQuotes.value.findIndex(q => q.id === updated.id)
+    if (additionalIndex !== -1) {
+      additionalQuotes.value[additionalIndex] = { ...additionalQuotes.value[additionalIndex], ...updated }
+    }
+  }
+
+  const removeQuoteFromFeed = (id: number) => {
+    if (typeof id !== 'number') return
+    const before = lastSuccessfulQuotes.value.length + additionalQuotes.value.length
+    lastSuccessfulQuotes.value = lastSuccessfulQuotes.value.filter(q => q.id !== id)
+    additionalQuotes.value = additionalQuotes.value.filter(q => q.id !== id)
+    const after = lastSuccessfulQuotes.value.length + additionalQuotes.value.length
+    // Best-effort meta update
+    if (after < before) {
+      lastSuccessfulMeta.value.total = Math.max(0, (lastSuccessfulMeta.value.total || 0) - (before - after))
+    }
+  }
+
   const init = async () => {
     await waitForLanguageStore()
     await refresh()
   }
 
-  // Public surface
   return {
     // state
     searchQuery,
@@ -268,7 +275,7 @@ export function useQuoteSearchFeed() {
     loadingMore,
 
     // data
-    quotes: computed(() => displayedQuotes.value || []),
+    quotes: displayedQuotes,
     hasMore,
     meta,
 
@@ -279,7 +286,11 @@ export function useQuoteSearchFeed() {
     onLanguageChange,
 
     // options
-    sortByOptions
+    sortByOptions,
+
+    // local update helpers
+    updateQuoteInFeed,
+    removeQuoteFromFeed,
   }
 }
 
