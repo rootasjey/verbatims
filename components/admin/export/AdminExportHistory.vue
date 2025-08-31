@@ -270,7 +270,7 @@
           <p class="text-gray-600 dark:text-gray-400">
             Are you sure you want to delete this export history entry?
           </p>
-          <p class="text-sm text-gray-500 dark:text-gray-500 font-mono">
+          <p class="text-sm text-gray-500 dark:text-gray-500">
             {{ deleteEntryData.filename }}
           </p>
         </div>

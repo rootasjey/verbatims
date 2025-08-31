@@ -26,12 +26,12 @@
       />
     </div>
 
-    <!-- Initial-only loading: show until first successful data load -->
-    <div v-if="!isLanguageReady || feed.initialLoading?.value" class="flex items-center justify-center py-16">
+    <!-- Initial-only loading: render identically on SSR and during hydration -->
+    <div v-if="!hydrated || !isLanguageReady || feed.initialLoading?.value" class="flex items-center justify-center py-16">
       <div class="flex items-center gap-3">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
         <span class="text-gray-600 dark:text-gray-400">
-          {{ !isLanguageReady ? 'Initializing...' : 'Loading quotes...' }}
+          {{ !hydrated ? 'Loading...' : (!isLanguageReady ? 'Initializing...' : 'Loading quotes...') }}
         </span>
       </div>
     </div>
@@ -59,7 +59,8 @@ const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
 definePageMeta({
-  layout: false // layout switching handled dynamically in watcher
+  // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
+  layout: 'default'
 })
 
 useHead({
@@ -83,10 +84,16 @@ const onboardingStatus = computed(() => onboardingData.value?.data)
 const needsOnboarding = computed(() => onboardingStatus.value?.needsOnboarding || false)
 
 const showAddQuoteDrawer = ref(false)
+// Mark as ready only after Nuxt has fully hydrated to avoid layout switching during hydration
+const hydrated = ref(false)
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   feed.init()
+})
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
 })
 
 const handleNewQuote = () => {
@@ -102,6 +109,6 @@ const handleClickAuthor = (authorId: number) => {
 }
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 </script>
