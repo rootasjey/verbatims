@@ -159,6 +159,24 @@
 
     <!-- Table View -->
     <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+      <!-- Bulk Actions -->
+      <UCollapsible v-model:open="bulkOpen" class="px-4 py-2">
+        <UCollapsibleContent>
+          <div class="flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 rounded-md px-3 py-2 border border-dashed border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-2 text-sm">
+              <UIcon name="i-ph-check-square" class="w-4 h-4" />
+              <span>{{ selectedIds.length }} selected</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <UButton size="xs" btn="ghost" @click="clearSelection">Clear</UButton>
+              <UButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
+                <UIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
+              </UButton>
+            </div>
+          </div>
+        </UCollapsibleContent>
+      </UCollapsible>
+
       <!-- Scrollable Table Container -->
       <div class="authors-table-container flex-1 overflow-auto">
         <UTable
@@ -169,16 +187,33 @@
           empty-text="No authors found"
           empty-icon="i-ph-user"
         >
+          <template #actions-header>
+            <div class="flex items-center justify-center">
+              <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <UButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
+              </UTooltip>
+              <UTooltip class="ml-2" text="Select all on page">
+                <UCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              </UTooltip>
+            </div>
+          </template>
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
-            <UDropdownMenu :items="getAuthorActions(cell.row.original)">
-              <UButton
-                icon
-                btn="ghost"
-                size="sm"
-                label="i-ph-dots-three-vertical"
-              />
-            </UDropdownMenu>
+            <template v-if="!selectionMode">
+              <UDropdownMenu :items="getAuthorActions(cell.row.original)">
+                <UButton
+                  icon
+                  btn="ghost"
+                  size="sm"
+                  label="i-ph-dots-three-vertical"
+                />
+              </UDropdownMenu>
+            </template>
+            <template v-else>
+              <div class="flex items-center justify-center">
+                <UCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+              </div>
+            </template>
           </template>
 
           <!-- Author Column -->
@@ -263,6 +298,33 @@
     :author="authorToDelete"
     @author-deleted="onAuthorDeleted"
   />
+
+  <!-- Bulk Delete Confirmation -->
+  <UDialog v-model:open="showBulkDeleteDialog">
+    <UCard>
+      <template #header>
+        <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Author' : 'Authors' }}</h3>
+      </template>
+      <div class="space-y-3">
+        <p class="text-gray-600 dark:text-gray-400">
+          You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'author' : 'authors' }}. If they have related quotes, choose a strategy:
+        </p>
+        <URadioGroup
+          v-model="bulkDeleteStrategy"
+          :items="[
+            { label: 'Anonymize related quotes (keep quotes, remove author link)', value: 'anonymize' },
+            { label: 'Delete related quotes (remove quotes and the author)', value: 'delete' }
+          ]"
+        />
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</UButton>
+          <UButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</UButton>
+        </div>
+      </template>
+    </UCard>
+  </UDialog>
 </template>
 
 <script setup lang="ts">
@@ -290,6 +352,22 @@ const showAddAuthorDialog = ref(false)
 const selectedAuthor = ref<Author | undefined>()
 const showDeleteAuthorDialog = ref(false)
 const authorToDelete = ref<Author | null>(null)
+
+// Bulk selection state
+const selectionMode = ref(false)
+const rowSelection = ref<Record<number, boolean>>({})
+const bulkOpen = ref(false)
+const bulkProcessing = ref(false)
+const showBulkDeleteDialog = ref(false)
+const bulkDeleteStrategy = ref<'delete' | 'anonymize'>('anonymize')
+const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
+watch(selectedIds, (ids) => { bulkOpen.value = ids.length > 0 }, { immediate: true })
+const visibleIds = computed<number[]>(() => filteredAuthors.value.map(a => a.id))
+const allSelectedOnPage = computed<boolean>(() => visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id]))
+const toggleSelectionMode = () => { selectionMode.value = !selectionMode.value; if (!selectionMode.value) rowSelection.value = {} }
+const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
+const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
+const clearSelection = () => { rowSelection.value = {}; selectionMode.value = false }
 
 const fictionalFilterOptions = [
   { label: 'All Types', value: '' },
@@ -493,6 +571,28 @@ watchDebounced([currentPage, searchQuery, selectedFictionalFilter, selectedSort]
 onMounted(() => {
   loadAuthors()
 })
+
+const confirmBulkDelete = async () => {
+  if (selectedIds.value.length === 0) return
+  bulkProcessing.value = true
+  try {
+    const ids = [...selectedIds.value]
+    const results = await Promise.allSettled(
+      ids.map(id => $fetch(`/api/admin/authors/${id}`, { method: 'DELETE', body: { strategy: bulkDeleteStrategy.value } }))
+    )
+    const failed = results.filter(r => r.status === 'rejected').length
+    const succeeded = results.length - failed
+    useToast().toast({ toast: failed ? 'warning' : 'success', title: `Deleted ${succeeded} author${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
+  } catch (e) {
+    useToast().toast({ toast: 'error', title: 'Bulk delete failed' })
+  } finally {
+    bulkProcessing.value = false
+    showBulkDeleteDialog.value = false
+    rowSelection.value = {}
+    selectionMode.value = false
+    loadAuthors()
+  }
+}
 </script>
 
 <style scoped>

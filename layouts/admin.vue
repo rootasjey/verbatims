@@ -167,6 +167,24 @@
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">References</span>
                 </NuxtLink>
               </UTooltip>
+
+              <!-- Tags -->
+              <UTooltip :content="sidebarCollapsed ? 'Tags' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/tags"
+                  :class="[
+                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    $route.path === '/admin/tags'
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <UIcon name="i-ph-hash" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Tags</span>
+                </NuxtLink>
+              </UTooltip>
             </div>
 
             <div class="pt-4">
@@ -294,7 +312,7 @@
       />
 
       <!-- Main Content -->
-  <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
+      <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
         <div class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div class="flex items-center justify-between">

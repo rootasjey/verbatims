@@ -62,6 +62,7 @@ export default defineEventHandler(async (event) => {
         primary_type: quote.reference_type
       } : undefined,
       user: {
+        id: quote.user_id,
         name: quote.user_name
       },
       tags: typeof quote.tag_names === 'string' ? quote.tag_names.split(',').map((name, index) => ({

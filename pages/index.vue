@@ -2,8 +2,8 @@
   <div class="min-h-screen">
     <!-- Desktop Header -->
     <header v-if="!isMobile" class="p-8">
-      <h1 class="font-title text-size-82 font-600 text-center line-height-none uppercase">Verbatims</h1>
-      <span class="-mt-12 text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
+      <h1 class="font-title font-600 text-center line-height-none uppercase">Verbatims</h1>
+      <span class="text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
         Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, video games, books, music, podcasts, documentaries.
         It's an open source community platform. You can post your own interesting quotes.
       </span>
@@ -112,3 +112,18 @@ watch(currentLayout, (newLayout) => {
   if (hydrated.value) setPageLayout(newLayout)
 })
 </script>
+
+<style scoped>
+header h1 {
+  font-size: 4.0rem;
+  transition: font-size 0.3s ease;
+
+  @media (min-width: 480px)   { font-size: 8.5rem;  }
+  @media (min-width: 768px)   { font-size: 10.0rem; }
+  @media (min-width: 812px)   { font-size: 12.0rem; }
+  @media (min-width: 912px)   { font-size: 13.5rem; }
+  @media (min-width: 1024px)  { font-size: 15.0rem; }
+  @media (min-width: 1124px)  { font-size: 18.0rem; }
+  @media (min-width: 1224px)  { font-size: 20.5rem; }
+}
+</style>

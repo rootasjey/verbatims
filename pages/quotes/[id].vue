@@ -3,6 +3,7 @@
     <!-- Desktop-only Sticky Header -->
     <QuoteStickyHeader
       v-if="quote"
+      class="animate-fade-in animate-duration-300 animate-ease-out"
       :quote="quote"
       :user="user"
       :is-liked="isLiked"
@@ -30,7 +31,7 @@
       </div>
     </div>
 
-    <div v-else-if="quote" class="mt-16 px-8 py-16">
+    <div v-else-if="quote" class="mt-16 px-8 py-16 animate-fade-in animate-duration-700 animate-ease-out">
       <div class="max-w-4xl mx-auto">
         <!-- Main Quote Section -->
         <div class="text-center mb-16">
@@ -49,6 +50,7 @@
 
           <div v-if="isMobile">
             <MobileQuoteActionBar
+              class="animate-fade-in animate-duration-500 animate-delay-150"
               :is-liked="isLiked"
               :like-pending="likePending"
               :share-pending="sharePending"
@@ -66,7 +68,7 @@
         </div>
 
         <!-- Tags -->
-        <div v-if="quote.tags?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8">
+        <div v-if="quote.tags?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 animate-fade-in animate-duration-500 animate-delay-200">
           <div class="flex flex-wrap justify-center gap-3">
             <NuxtLink
               v-for="tag in quote.tags"
@@ -86,11 +88,11 @@
       </div>
 
       <QuoteMetadata :quote="quote" class="flex flex-col items-center md:mx-auto" />
-      <RelatedQuotes :quote="quote" :related-quotes="relatedQuotes" class="mt-16" />
+      <RelatedQuotes :quote="quote" :related-quotes="relatedQuotes" class="mt-16 animate-fade-in animate-duration-500 animate-delay-300" />
     </div>
 
     <!-- Error State -->
-    <div v-else class="px-8 py-16">
+    <div v-else class="px-8 py-16 animate-fade-in animate-duration-500">
       <div class="max-w-4xl mx-auto text-center">
         <UIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="text-3xl font-serif font-semibold text-gray-900 dark:text-white mb-4">Quote Not Found</h2>
@@ -119,6 +121,13 @@
     v-model="showDeleteQuoteDialog"
     :quote="quote"
     @quote-deleted="onQuoteDeleted"
+  />
+
+  <EditQuoteTagsDialog
+    v-if="quote"
+    v-model="showEditTagsDialog"
+    :quote-id="quote.id"
+    @tags-updated="onTagsUpdated"
   />
 
   <ReportDialog
@@ -177,6 +186,7 @@ let savedTimeoutId
 
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
+const showEditTagsDialog = ref(false)
 
 // Global keyboard shortcut: Ctrl/Cmd + E to edit (admin/moderator only)
 const handleGlobalKeydown = (e) => {
@@ -190,7 +200,9 @@ const handleGlobalKeydown = (e) => {
   if (isEditable) return
 
   const role = user.value?.role
-  if (quote.value && (role === 'admin' || role === 'moderator')) {
+  const isAdminMod = role === 'admin' || role === 'moderator'
+  const isOwnerDraft = quote.value && user.value && quote.value.user?.id === user.value.id && quote.value.status === 'draft'
+  if (quote.value && (isAdminMod || isOwnerDraft)) {
     e.preventDefault()
     showEditQuoteDialog.value = true
   }
@@ -217,14 +229,30 @@ const onQuoteDeleted = async () => {
   await navigateTo('/')
 }
 
+const onTagsUpdated = async () => {
+  try {
+    const fresh = await $fetch(`/api/quotes/${route.params.id}`)
+    quoteData.value = fresh
+  } catch (e) {
+    console.error('Failed to refresh quote after tags update', e)
+  }
+}
+
 const headerMenuItems = computed(() => {
   const items = []
 
-  if (user.value && (user.value.role === 'admin' || user.value.role === 'moderator')) {
+  const isAdminMod = user.value && (user.value.role === 'admin' || user.value.role === 'moderator')
+  const isOwnerDraft = user.value && quote.value && quote.value.user && quote.value.user.id === user.value.id && quote.value.status === 'draft'
+  if (isAdminMod || isOwnerDraft) {
     items.push({
       label: 'Edit',
       leading: 'i-ph-pencil-simple',
       onclick: () => { showEditQuoteDialog.value = true }
+    })
+    items.push({
+      label: 'Edit tag',
+      leading: 'i-ph-tag',
+      onclick: () => { showEditTagsDialog.value = true }
     })
     items.push({
       label: 'Delete',
