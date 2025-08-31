@@ -44,7 +44,7 @@
     </header>
     
     <!-- Main Content with proper spacing for fixed header and bottom nav -->
-    <main class="-mt-24 pt-24 pb-24 min-h-screen">
+    <main class="mt-12 pb-24 min-h-screen">
       <slot />
     </main>
 

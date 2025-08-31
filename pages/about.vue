@@ -1,5 +1,5 @@
 <template>
-  <main class="prose mx-auto max-w-3xl px-5 py-12">
+  <main class="prose mx-auto max-w-3xl px-4 sm:px-5 py-8 sm:py-12">
     <div class="mt-12">
       <h1>About Verbatims</h1>
       <p class="text-sm text-gray-500 relative -top-2">

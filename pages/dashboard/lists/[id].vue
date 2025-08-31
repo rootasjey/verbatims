@@ -1,109 +1,175 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Loading State -->
-    <div v-if="loading" class="animate-pulse">
-      <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-      <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-    </div>
-
-    <!-- Collection Content -->
-    <div v-else-if="collection">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-3 mb-2">
-              <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
-                {{ collection.name }}
-              </h1>
-              <UBadge v-if="collection.is_public" color="green" variant="subtle">Public</UBadge>
-            </div>
-            <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-              {{ collection.description }}
-            </p>
-            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                <UIcon name="i-ph-quotes" class="w-4 h-4" />
-                {{ collection.quotes_count }} quotes
-              </span>
-              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                <UIcon name="i-ph-calendar-plus" class="w-4 h-4" />
-                Created {{ formatDate(collection.created_at) }}
-              </span>
-              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                <UIcon name="i-ph-clock" class="w-4 h-4" />
-                Updated {{ formatDate(collection.updated_at) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <UButton btn="outline" @click="shareCollection">
-              <UIcon name="i-ph-share" />
-              Share
-            </UButton>
-            <UDropdownMenu :items="collectionActions">
-              <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-            </UDropdownMenu>
-          </div>
+  <div class="min-h-screen">
+    <!-- Mobile: Collection Detail -->
+    <div v-if="isMobile" class="mobile-collection-detail">
+      <div class="p-4 pt-6">
+        <div class="mb-3 flex items-center gap-2">
+          <UButton icon btn="ghost" size="sm" aria-label="Back" to="/dashboard/lists">
+            <UIcon name="i-ph-caret-left" />
+          </UButton>
+          <h1 class="text-xl font-600 text-gray-900 dark:text-white truncate">{{ collection?.name || 'Collection' }}</h1>
         </div>
-
-        <!-- Back Button -->
-        <UButton btn="ghost" size="sm" to="/dashboard/lists">
-          <UIcon name="i-ph-arrow-left" />
-          Back to Lists
-        </UButton>
+        <p v-if="collection?.description" class="text-sm text-gray-600 dark:text-gray-400">
+          {{ collection.description }}
+        </p>
+        <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          {{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}
+          <span class="mx-1">·</span>
+          <UBadge :color="collection?.is_public ? 'green' : 'gray'" variant="subtle" size="xs">
+            {{ collection?.is_public ? 'Public' : 'Private' }}
+          </UBadge>
+        </div>
       </div>
 
-      <!-- Quotes Grid -->
-      <div v-if="collection.quotes && collection.quotes.length > 0">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <QuoteCard
-            v-for="quote in collection.quotes"
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-12">
+        <div class="flex items-center gap-3">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+          <span class="text-gray-600 dark:text-gray-400">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Empty -->
+      <div v-else-if="(collection?.quotes?.length || 0) === 0" class="text-center py-16 px-4">
+        <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No quotes yet</h3>
+        <p class="text-gray-600 dark:text-gray-400">Add quotes to this collection from any quote page.</p>
+      </div>
+
+      <!-- Quotes List -->
+      <div v-else class="px-0 pb-6">
+        <div class="divide-y divide-dashed divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+          <QuoteListItem
+            v-for="quote in processedMobileQuotes"
             :key="quote.id"
             :quote="quote"
           />
         </div>
-
-        <!-- Load More -->
-        <div v-if="hasMore" class="text-center mt-8">
-          <UButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
-            Load More Quotes
+        <div v-if="hasMore" class="px-4 pt-6">
+          <UButton
+            :loading="loadingMore"
+            btn="dark:solid-black"
+            size="md"
+            class="w-full hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
+            @click="loadMoreQuotes"
+          >
+            Load More
           </UButton>
         </div>
       </div>
-
-      <!-- Empty State -->
-      <div v-else class="text-center py-12">
-        <UIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          No quotes in this collection
-        </h3>
-        <p class="text-gray-500 dark:text-gray-400">
-          This collection is empty or all quotes are pending approval.
-        </p>
-      </div>
     </div>
 
-    <!-- Error State -->
-    <div v-else class="text-center py-12">
-      <UIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        Collection not found
-      </h3>
-      <p class="text-gray-500 dark:text-gray-400 mb-6">
-        The collection you're looking for doesn't exist or is not public.
-      </p>
-      <UButton to="/dashboard/lists">Back to Lists</UButton>
+    <!-- Desktop: Collection Detail -->
+    <div v-else class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Loading State -->
+      <div v-if="loading" class="animate-pulse">
+        <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
+      </div>
+
+      <!-- Collection Content -->
+      <div v-else-if="collection">
+        <!-- Header -->
+        <div class="mb-8">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 mb-2">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
+                  {{ collection.name }}
+                </h1>
+                <UBadge v-if="collection.is_public" color="green" variant="subtle">Public</UBadge>
+              </div>
+              <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                {{ collection.description }}
+              </p>
+              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                  <UIcon name="i-ph-quotes" class="w-4 h-4" />
+                  {{ collection.quotes_count }} quotes
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                  <UIcon name="i-ph-calendar-plus" class="w-4 h-4" />
+                  Created {{ formatDate(collection.created_at) }}
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                  <UIcon name="i-ph-clock" class="w-4 h-4" />
+                  Updated {{ formatDate(collection.updated_at) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <UButton btn="outline" @click="shareCollection">
+                <UIcon name="i-ph-share" />
+                Share
+              </UButton>
+              <UDropdownMenu :items="collectionActions">
+                <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              </UDropdownMenu>
+            </div>
+          </div>
+
+          <!-- Back Button -->
+          <UButton btn="ghost" size="sm" to="/dashboard/lists">
+            <UIcon name="i-ph-arrow-left" />
+            Back to Lists
+          </UButton>
+        </div>
+
+        <!-- Quotes Grid -->
+        <div v-if="collection.quotes && collection.quotes.length > 0">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <QuoteCard
+              v-for="quote in collection.quotes"
+              :key="quote.id"
+              :quote="quote"
+            />
+          </div>
+
+          <!-- Load More -->
+          <div v-if="hasMore" class="text-center mt-8">
+            <UButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
+              Load More Quotes
+            </UButton>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-12">
+          <UIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No quotes in this collection
+          </h3>
+          <p class="text-gray-500 dark:text-gray-400">
+            This collection is empty or all quotes are pending approval.
+          </p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else class="text-center py-12">
+        <UIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          Collection not found
+        </h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">
+          The collection you're looking for doesn't exist or is not public.
+        </p>
+        <UButton to="/dashboard/lists">Back to Lists</UButton>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { CollectionWithQuotes } from '~/types/user-interactions'
+import type { ProcessedQuoteResult } from '~/types'
+
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: false,
   middleware: 'auth'
 })
 
@@ -167,6 +233,16 @@ const loadMoreQuotes = () => {
   loadCollection(false)
 }
 
+const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
+  return (collection.value?.quotes || []).map((q: any) => ({
+    ...q,
+    result_type: 'quote',
+    author: q.author_id ? { id: q.author_id, name: q.author_name, is_fictional: q.author_is_fictional, image_url: q.author_image_url } : undefined,
+    reference: q.reference_id ? { id: q.reference_id, name: q.reference_name, type: q.reference_type } : undefined,
+    tags: q.tags || [],
+  }))
+})
+
 const shareCollection = async () => {
   if (!collection.value) return
   
@@ -212,6 +288,15 @@ const formatDate = (dateString: string) => {
 }
 
 onMounted(() => {
+  setPageLayout(currentLayout.value)
   loadCollection()
 })
+
+watch(currentLayout, (newLayout) => setPageLayout(newLayout))
 </script>
+
+<style scoped>
+.mobile-collection-detail {
+  min-height: calc(100vh - 80px);
+}
+</style>

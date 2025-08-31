@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen">
     <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title text-size-16 sm:text-size-28 md:text-size-54 lg:text-size-82 hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+      <h1 class="font-title hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
         Authors
       </h1>
-      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400 md:mt-4">
+      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400">
         Discover quotes from your favorite authors, both real and fictional.
       </p>
     </header>
@@ -336,3 +336,18 @@ watch(searchQuery, (newQuery) => {
   }
 })
 </script>
+
+<style scoped>
+header h1 {
+  font-size: 4.0rem;
+  transition: font-size 0.3s ease;
+
+  @media (min-width: 480px)   { font-size: 8.0rem;  }
+  @media (min-width: 768px)   { font-size: 10.0rem; }
+  @media (min-width: 812px)   { font-size: 12.0rem; }
+  @media (min-width: 912px)   { font-size: 13.5rem; }
+  @media (min-width: 1024px)  { font-size: 15.0rem; }
+  @media (min-width: 1124px)  { font-size: 18.0rem; }
+  @media (min-width: 1224px)  { font-size: 20.5rem; }
+}
+</style>

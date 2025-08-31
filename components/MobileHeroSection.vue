@@ -1,5 +1,5 @@
 <template>
-  <div class="px-6 py-24 pb-16 rounded-b-8 bg-gradient-to-br from-green-50 to-purple-50 dark:from-#0B0A09 dark:to-black dark:rounded-b-0">
+  <div class="px-6 pt-8 pb-16 rounded-b-8 bg-gradient-to-br from-green-50 to-purple-50 dark:from-#0B0A09 dark:to-black dark:rounded-b-0">
     <div @click="handleClickAuthor" class="mb-2">
       <p class="text-size-6 font-300 line-height-tight text-gray-600 dark:text-gray-400 tracking-wide">
         {{ quote?.author?.name || 'Featured Author' }}

@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen">
     <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title text-size-16 sm:text-size-28 md:text-size-54 lg:text-size-64 xl:text-size-70 hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+      <h1 class="font-title hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
         References
       </h1>
-      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400 md:-mt-8">
+      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400">
         Explore the sources behind your favorite quotes, from books and films to speeches and more.
       </p>
     </header>
@@ -365,13 +365,11 @@ const focusSearchInput = () => {
   })
 }
 
-// Cleanup function for infinite scroll
 let infiniteScrollCleanup = null
 
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadReferences()
-  // focusSearchInput()
 
   nextTick(() => {
   // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
@@ -401,3 +399,19 @@ watch(searchQuery, (newQuery) => {
   debouncedSearch()
 })
 </script>
+
+<style scoped>
+header h1 {
+  font-size: 3.0rem;
+  transition: font-size 0.3s ease;
+
+  @media (min-width: 480px)   { font-size: 8.5rem;  }
+  @media (min-width: 768px)   { font-size: 10.0rem; }
+  @media (min-width: 854px)   { font-size: 11.0rem; }
+  @media (min-width: 912px)   { font-size: 12.0rem; }
+  @media (min-width: 1024px)  { font-size: 13.0rem; }
+  @media (min-width: 1124px)  { font-size: 15.0rem; }
+  @media (min-width: 1224px)  { font-size: 16.0rem; }
+  @media (min-width: 1424px)  { font-size: 18.0rem; }
+}
+</style>
