@@ -27,6 +27,7 @@
         <div>
           <label class="block text-sm font-medium mb-1">Message</label>
           <UInput
+            autofocus
             type="textarea"
             v-model="form.message"
             :rows="5"
@@ -51,13 +52,14 @@
 </template>
 
 <script setup lang="ts">
-import type { ReportTargetType } from '~/types/report'
+import type { ReportCategory, ReportTargetType } from '~/types'
 import { useReportForm } from '~/composables/useReportForm'
 
 interface Props {
   modelValue: boolean
   targetType?: ReportTargetType
-  targetId?: number | null
+  targetId?: number
+  category?: ReportCategory
 }
 
 interface Emits {
@@ -67,7 +69,8 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   targetType: 'general',
-  targetId: null
+  targetId: undefined,
+  category: undefined
 })
 
 const emit = defineEmits<Emits>()
@@ -89,7 +92,19 @@ const {
   reset,
   submit,
   titleFor
-} = useReportForm({ targetType: computed(() => props.targetType), targetId: computed(() => props.targetId) })
+} = useReportForm({
+  targetType: computed(() => props.targetType),
+  targetId: computed(() => props.targetId)
+})
+
+watch(
+  () => isOpen.value,
+  (open) => {
+    if (!open || !props.category) return
+    const found = categories.find(c => c.value === props.category)
+    if (found) form.value.category = found
+  }
+)
 
 const title = computed(() => titleFor(props.targetType))
 
@@ -101,13 +116,14 @@ const onSubmit = async () => {
     const res = await submit()
     if (res?.status === 'ratelimited') {
       toast({ title: 'Too many messages', description: 'Please slow down and try again later.', toast: 'error' })
-    } else {
-      toast({ title: 'Thanks for your message!', toast: 'success' })
-      emit('submitted')
-      close()
+      return
     }
-  } catch (err) {
-    console.error('Report submit error:', err)
+
+    toast({ title: 'Thanks for your message!', toast: 'success' })
+    emit('submitted')
+    close()
+  } catch (error) {
+    console.error('Report submit error:', error)
     toast({ title: 'Submission failed', description: 'Please try again.', toast: 'error' })
   }
 }

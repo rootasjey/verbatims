@@ -1,30 +1,34 @@
 <template>
   <UDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
     <UButton
-      btn="text"
-      size="md"
-      class="hover:scale-105 active:scale-95 transition-transform"
+      btn="~"
+      size="sm"
+      icon
+      class="hover:scale-105 active:scale-95 transition-transform min-w-0 min-h-0"
     >
       <UAvatar
-        size="md"
+        size="2"
+        :src="user.avatar_url" 
+        :alt="user.name"
       >
-        <UAvatarImage v-if="user && user.avatar_url" :src="user.avatar_url" :alt="user.name" />
-        <UAvatarFallback v-else>
-          <svg viewBox="0 0 36 36" fill="none" role="img" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-            <mask id="«r1q»" maskUnits="userSpaceOnUse" x="0" y="0" width="36" height="36">
-              <rect width="36" height="36" rx="72" fill="#FFFFFF"></rect>
-            </mask>
-            <g mask="url(#«r1q»)">
-              <rect width="36" height="36" fill="#ff005b"></rect>
-              <rect x="0" y="0" width="36" height="36" transform="translate(-5 9) rotate(189 18 18) scale(1)" fill="#ffb238" rx="36"></rect>
-              <g transform="translate(-5 4.5) rotate(9 18 18)">
-                <path d="M13,19 a1,0.75 0 0,0 10,0" fill="#000000"></path>
-                <rect x="10" y="14" width="1.5" height="2" rx="1" stroke="none" fill="#000000"></rect>
-                <rect x="24" y="14" width="1.5" height="2" rx="1" stroke="none" fill="#000000"></rect>
+        <template #fallback>
+          <div>
+            <svg viewBox="0 0 36 36" fill="none" role="img" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+              <mask id="«r1q»" maskUnits="userSpaceOnUse" x="0" y="0" width="36" height="36">
+                <rect width="36" height="36" rx="72" fill="#FFFFFF"></rect>
+              </mask>
+              <g mask="url(#«r1q»)">
+                <rect width="36" height="36" fill="#ff005b"></rect>
+                <rect x="0" y="0" width="36" height="36" transform="translate(-5 9) rotate(189 18 18) scale(1)" fill="#ffb238" rx="36"></rect>
+                <g transform="translate(-5 4.5) rotate(9 18 18)">
+                  <path d="M13,19 a1,0.75 0 0,0 10,0" fill="#000000"></path>
+                  <rect x="10" y="14" width="1.5" height="2" rx="1" stroke="none" fill="#000000"></rect>
+                  <rect x="24" y="14" width="1.5" height="2" rx="1" stroke="none" fill="#000000"></rect>
+                </g>
               </g>
-            </g>
-          </svg>
-        </UAvatarFallback>
+            </svg>
+          </div>
+        </template>
       </UAvatar>
     </UButton>
   </UDropdownMenu>

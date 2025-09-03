@@ -34,66 +34,34 @@
         </div>
       </div>
 
-      <div class="flex items-center space-x-3 font-subtitle font-700 color-gray-6 dark:color-gray-4 mr-2 md:mr-8">
-        <div class="flex space-x-3 md:mr-3">
-          <UButton
-            icon
-            btn="ghost-gray"
-            label="i-ph-magnifying-glass-bold"
-            @click="showSearch = true"
-          />
+      <UNavigationMenu
+        v-if="!isMobile"
+        :items="navMenuItems"
+        indicator
+        class="ml-24"
+      />
 
+      <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
+        <div class="flex">
           <UButton
             icon
             btn="ghost-gray"
-            label="i-ph-plus-bold"
+            label="i-ph-quotes-duotone"
             @click="showAddQuote = true"
             title="Add Quote (Ctrl/Cmd+N)"
           />
-        </div>
-
-        <!-- Desktop nav links -->
-        <div class="hidden md:flex space-x-8">
-          <NuxtLink
-            to="/authors"
-            class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-          >
-            Authors
-          </NuxtLink>
-          <NuxtLink
-            to="/references"
-            class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-          >
-            References
-          </NuxtLink>
-
-          <NuxtLink
-            to="/about"
-            class="hover:color-gray-8 dark:hover:color-gray-2 transition-colors cursor-pointer"
-          >
-            About
-          </NuxtLink>
-        </div>
-
-        <!-- Mobile nav dropdown -->
-        <UDropdownMenu
-          v-if="isMobile"
-          class="md:hidden"
-          :items="navMenuItems"
-          :_dropdown-menu-content="{ side: 'bottom', align: 'end' }"
-        >
           <UButton
             icon
             btn="ghost-gray"
-            label="i-ph-list-bold"
-            title="Menu"
+            label="i-ph-magnifying-glass-duotone"
+            @click="showSearch = true"
           />
-        </UDropdownMenu>
 
-        <UserMenu v-if="user" :user="user" />
-        <UButton v-else btn="soft" to="/login" class="h-7 font-800 relative left-2">
-          Sign in
-        </UButton>
+          <UserMenu v-if="user" :user="user" />
+          <UButton v-else btn="soft" to="/login" class="h-7 font-800 relative left-2">
+            Sign in
+          </UButton>
+        </div>
       </div>
     </div>
   </nav>
@@ -102,13 +70,22 @@
     :model-value="showSearch" 
     @update:model-value="showSearch = $event"
   />
+
   <AddQuoteDialog 
     v-model="showAddQuote"
     @quote-added="handleQuoteAdded"
   />
+  
+  <ReportDialog
+      v-model="showReportDrawer"
+      :target-type="reportTargetType"
+      :category="reportCategory"
+    />
 </template>
 
 <script lang="ts" setup>
+import type { ReportTargetType, ReportCategory } from '~/types';
+
 const { isMobile } = useMobileDetection()
 
 interface Props {
@@ -125,21 +102,9 @@ const scrollY = ref(0)
 const route = useRoute()
 const showSearch = ref(false)
 const showAddQuote = ref(false)
-const navMenuItems = computed(() => [
-  {
-    label: 'Authors',
-    onclick: () => navigateTo('/authors')
-  },
-  {
-    label: 'References',
-    onclick: () => navigateTo('/references')
-  },
-  {
-    label: 'About',
-    onclick: () => navigateTo('/about')
-  }
-])
-
+const showReportDrawer = ref(false)
+const reportTargetType: Ref<ReportTargetType> = ref('general')
+const reportCategory: Ref<ReportCategory> = ref('feedback')
 const pageHeader = usePageHeader()
 
 // Only show page title for admin and dashboard pages
@@ -147,6 +112,89 @@ const shouldShowPageTitle = computed(() => {
   return pageHeader.shouldShow.value &&
          (pageHeader.section.value === 'admin' || pageHeader.section.value === 'dashboard')
 })
+
+const navMenuItems = computed(() => [
+  {
+    label: 'Explore',
+    trailing: 'i-ph-dot-bold',
+    items: [
+      {
+        label: 'Authors',
+        description: 'Browse quotes by author',
+        to: '/authors'
+      },
+      {
+        label: 'References',
+        description: 'Explore books, films, and more',
+        to: '/references'
+      },
+      {
+        label: 'Quotes',
+        description: 'Explore quotes from various sources',
+        to: '/quotes'
+      },
+    ]
+  },
+  {
+    label: 'Contribute',
+    trailing: 'i-ph-dot-bold',
+    items: [
+      {
+        label: 'Add Quote',
+        description: 'Contribute a new quote',
+        onclick: () => { showAddQuote.value = true }
+      },
+      {
+        label: 'Suggest Edit',
+        description: 'Suggest an edit to an existing quote',
+        onclick: () => {
+          reportTargetType.value = 'quote'
+          reportCategory.value = 'content'
+          showReportDrawer.value = true
+        }
+      },
+      {
+        label: 'Report Issue',
+        description: 'Report a problem or bug',
+        onclick: () => {
+          reportCategory.value = 'bug'
+          showReportDrawer.value = true
+        }
+      },
+    ]
+  },
+  {
+    label: 'About',
+    trailing: 'i-ph-dot-bold',
+    items: [
+      {
+        label: 'About Verbatims',
+        description: 'Learn more about Verbatims',
+        to: '/about'
+      },
+      {
+        label: 'Contact',
+        description: 'Get in touch with us',
+        to: '/contact'
+      },
+      {
+        label: 'Privacy Policy',
+        description: 'Read our privacy policy',
+        to: '/privacy'
+      },
+      {
+        label: 'Terms',
+        description: 'Read our terms of service',
+        to: '/terms'
+      },
+      {
+        label: 'Licenses',
+        description: 'Read our licenses',
+        to: '/licenses'
+      },
+    ]
+  }
+])
 
 const handleScroll = () => {
   scrollY.value = window.scrollY

@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ReportTargetType } from '~/types/report'
+import type { ReportTargetType, ReportCategory } from '~/types/report'
 import { useReportForm } from '~/composables/useReportForm'
 
 interface Emits {
@@ -67,10 +67,12 @@ interface Emits {
 const props = withDefaults(defineProps<{
   open?: boolean
   targetType?: ReportTargetType
-  targetId?: number | null
+  targetId?: number
+  category?: ReportCategory
 }>(), {
   targetType: 'general',
-  targetId: null
+  targetId: undefined,
+  category: undefined
 })
 
 const emit = defineEmits<Emits>()
@@ -92,7 +94,20 @@ const {
   reset,
   submit,
   titleFor
-} = useReportForm({ targetType: computed(() => props.targetType), targetId: computed(() => props.targetId) })
+} = useReportForm({
+  targetType: computed(() => props.targetType),
+  targetId: computed(() => props.targetId)
+})
+
+// Watch for drawer open and set category if provided
+watch(
+  () => isOpen.value,
+  (open) => {
+    if (!open || !props.category) return
+    const found = categories.find(c => c.value === props.category)
+    if (found) form.value.category = found
+  }
+)
 
 const title = computed(() => titleFor(props.targetType))
 
@@ -104,12 +119,13 @@ const onSubmit = async () => {
     const res = await submit()
     if (res?.status === 'ratelimited') {
       toast({ title: 'Too many messages', description: 'Please slow down and try again later.', toast: 'error' })
-    } else {
-      toast({ title: 'Thanks for your message!', toast: 'success' })
-      emit('submitted')
-      close()
+      return
     }
-  } catch (err) {
+    
+    toast({ title: 'Thanks for your message!', toast: 'success' })
+    emit('submitted')
+    close()
+  } catch (error) {
     toast({ title: 'Submission failed', description: 'Please try again.', toast: 'error' })
   }
 }

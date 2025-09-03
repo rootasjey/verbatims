@@ -79,7 +79,7 @@
   <ReportDialog
     v-model="showReportDialog"
     targetType="quote"
-    :targetId="selectedQuote?.id || null"
+    :targetId="selectedQuote?.id"
   />
 </template>
 

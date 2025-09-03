@@ -10,12 +10,12 @@ export function useReportForm(options: UseReportFormOptions = {}) {
   const { user } = useUserSession()
   const isAuthenticated = computed(() => !!user.value)
 
-  const categories = [
-    { label: 'Bug', value: 'bug' as ReportCategory },
-    { label: 'Feature', value: 'feature' as ReportCategory },
-    { label: 'Feedback', value: 'feedback' as ReportCategory },
-    { label: 'Content', value: 'content' as ReportCategory },
-    { label: 'Other', value: 'other' as ReportCategory }
+  const categories: Array<{ label: string; value: ReportCategory }> = [
+    { label: 'Bug', value: 'bug' },
+    { label: 'Feature', value: 'feature' },
+    { label: 'Feedback', value: 'feedback' },
+    { label: 'Content', value: 'content' },
+    { label: 'Other', value: 'other' }
   ]
 
   const form = ref({

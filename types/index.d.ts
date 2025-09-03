@@ -137,6 +137,9 @@ export {
   AdminMessagesListResponse,
   CreateUserMessageInput,
   CreateUserMessageResult,
+  ReportCategory,
+  ReportStatus,
+  ReportTargetType,
   UserMessage,
 } from './report';
 
