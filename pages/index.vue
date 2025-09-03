@@ -64,7 +64,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Verbatims • Universal Quotes',
+  title: 'verbatims • universal quotes',
   meta: [
     {
       name: 'description',

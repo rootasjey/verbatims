@@ -207,10 +207,10 @@
       </div>
     </div>
 
-    <!-- Add Quote Dialog -->
-    <AddQuoteDialog 
-      v-model="showAddQuote"
-      @quote-added="handleQuoteAdded"
+    <AddQuoteDrawer
+      v-if="isMobile"
+      v-model:open="showAddQuote"
+      @submitted="handleQuoteAdded"
     />
   </div>
 </template>

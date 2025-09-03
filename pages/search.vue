@@ -3,7 +3,7 @@
     <!-- Mobile Search Interface -->
     <div v-if="isMobile" class="mobile-search-page">
       <!-- Search Header -->
-      <div class="sticky top-16 bg-white dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
+      <div class="sticky top-14 bg-white dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
         <UInput
           v-model="searchQuery"
           placeholder="Search quotes, authors, references..."
@@ -172,16 +172,21 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchResults, SearchApiResponse } from '~/types'
+import type { SearchResults } from '~/types'
+import { useSearchStore } from '~/stores/search'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const route = useRoute()
+const router = useRouter()
+const searchStore = useSearchStore()
 
 definePageMeta({
-  layout: false
+  layout: false,
+  keepalive: true
 })
 
 useHead({
-  title: 'Search - Verbatims',
+  title: 'verbatims - search',
   meta: [
     {
       name: 'description',
@@ -190,47 +195,47 @@ useHead({
   ]
 })
 
-const searchQuery = ref<string>('')
-const searchResults = ref<SearchResults>({ quotes: [], authors: [], references: [], total: 0 })
-const loading = ref<boolean>(false)
-const recentSearches = ref<string[]>([])
+// Proxy to store so the template remains unchanged
+const searchQuery = computed({
+  get: () => searchStore.query,
+  set: (v: string) => searchStore.setQuery(v)
+})
+
+const searchResults = computed<SearchResults>(() => searchStore.results)
+const loading = computed<boolean>(() => searchStore.loading)
+const recentSearches = computed<string[]>(() => searchStore.recent)
 
 const debouncedSearch = useDebounceFn(async () => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
-    return
-  }
-
-  loading.value = true
-  try {
-    const response = await $fetch<SearchApiResponse>('/api/search', {
-      query: {
-        q: searchQuery.value,
-        limit: 20
-      }
-    })
-
-    searchResults.value = (response?.data as SearchResults) || { quotes: [], authors: [], references: [], total: 0 }
-    
-    // Add to recent searches
-    if (!recentSearches.value.includes(searchQuery.value)) {
-      recentSearches.value.unshift(searchQuery.value)
-      recentSearches.value = recentSearches.value.slice(0, 5) // Keep only 5 recent searches
-    }
-  } catch (error) {
-    console.error('Search error:', error)
-    searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
-  } finally {
-    loading.value = false
-  }
+  const q = searchQuery.value.trim()
+  // Keep the query in the URL to support back/forward and deep-linking
+  router.replace({ path: '/search', query: q ? { q } : {} })
+  await searchStore.search({ limit: 20 })
 }, 300)
 
-onMounted(() => {
+onMounted(async () => {
   setPageLayout(currentLayout.value)
+
+  const q = typeof route.query.q === 'string' ? route.query.q : ''
+  if (q && q !== searchStore.query) {
+    searchStore.setQuery(q)
+  }
+  if (searchStore.query && (searchStore.results.total === 0 || searchStore.isStale())) {
+    await searchStore.search({ limit: 20 })
+  }
 })
 
 watch(currentLayout, (newLayout) => {
   setPageLayout(newLayout)
+})
+
+// Keep store in sync when user navigates back/forward
+watch(() => route.query.q, (newQ) => {
+  const q = typeof newQ === 'string' ? newQ : ''
+  if (q !== searchStore.query) {
+    searchStore.setQuery(q)
+    if (q) searchStore.search({ limit: 20 })
+    else searchStore.clear()
+  }
 })
 </script>
 

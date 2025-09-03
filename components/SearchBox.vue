@@ -20,7 +20,7 @@
 
       <div class="space-y-4">
         <UInput
-          v-model="searchQuery"
+          v-model="storeQuery"
           placeholder="Search quotes, authors, or references..."
           leading="i-ph-magnifying-glass"
           size="md"
@@ -133,9 +133,9 @@
             </div>
           </div>
 
-          <div v-else-if="totalResults === 0 && searchQuery" class="text-center py-8">
+          <div v-else-if="totalResults === 0 && storeQuery" class="text-center py-8">
             <UIcon name="i-ph-magnifying-glass" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p class="text-gray-500 dark:text-gray-400">No results found for "{{ searchQuery }}"</p>
+            <p class="text-gray-500 dark:text-gray-400">No results found for "{{ storeQuery }}"</p>
           </div>
 
           <div v-else-if="totalResults > 0" class="space-y-4">
@@ -254,13 +254,12 @@
 <script lang="ts" setup>
 import type { Ref, ComponentPublicInstance } from 'vue'
 import type {
-  SearchResults,
-  SearchApiResponse,
   ProcessedQuoteResult,
   AuthorSearchResult,
   ReferenceSearchResult,
 } from '~/types'
 import type { QuoteReferencePrimaryType } from '~/types'
+import { useSearchStore } from '~/stores/search'
 
 const props = defineProps({
   modelValue: {
@@ -276,9 +275,13 @@ const isOpen = computed({
   set: (value: boolean) => emit('update:modelValue', value)
 })
 
-const searchQuery = ref<string>('')
-const searchResults = ref<SearchResults>({ quotes: [], authors: [], references: [], total: 0 })
-const loading = ref<boolean>(false)
+const searchStore = useSearchStore()
+const storeQuery = computed({
+  get: () => searchStore.query,
+  set: (v: string) => searchStore.setQuery(v)
+})
+const searchResults = computed(() => searchStore.results)
+const loading = computed(() => searchStore.loading)
 const selectedIndex = ref<number>(-1)
 const resultRefs = ref<{ quotes?: HTMLElement[]; authors?: HTMLElement[]; references?: HTMLElement[] }>({})
 const resultsContainer = ref<HTMLDivElement | null>(null)
@@ -367,43 +370,35 @@ const getReferenceIcon = (type: QuoteReferencePrimaryType | string) => {
 }
 
 const highlightText = (text: string) => {
-  if (!searchQuery.value.trim() || !text) return text
-  const regex = new RegExp(`(${searchQuery.value.trim()})`, 'gi')
+  if (!storeQuery.value.trim() || !text) return text
+  const regex = new RegExp(`(${storeQuery.value.trim()})`, 'gi')
   return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">$1</mark>')
 }
 
 const debouncedSearch = useDebounceFn(async () => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
+  if (!storeQuery.value.trim()) {
+    searchStore.clear()
     selectedIndex.value = -1
     return
   }
 
-  loading.value = true
   try {
-    const response = await $fetch<SearchApiResponse>('/api/search', {
-      query: {
-        q: searchQuery.value,
-        language: selectedLanguage.value || undefined,
-        author: selectedAuthor.value || undefined,
-        reference: selectedReference.value || undefined,
-        limit: 20
-      }
+    await searchStore.search({
+      limit: 20,
+      language: selectedLanguage.value?.value as any,
+      author: selectedAuthor.value?.value as any,
+      reference: selectedReference.value?.value as any
     })
-
-    searchResults.value = response?.data || { quotes: [], authors: [], references: [], total: 0 }
     selectedIndex.value = -1
   } catch (error) {
     console.error('Search error:', error)
-    searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
-  } finally {
-    loading.value = false
+    searchStore.clear()
   }
 }, 300)
 
 // Re-run search when filters change (if a query is present)
 watch([selectedLanguage, selectedAuthor, selectedReference], () => {
-  if (searchQuery.value.trim()) debouncedSearch()
+  if (storeQuery.value.trim()) debouncedSearch()
 })
 
 const loadFilterOptions = async () => {
@@ -415,12 +410,14 @@ const loadFilterOptions = async () => {
       $fetch('/api/references?limit=100')
     ])
 
-    authorOptions.value = (authorsData.data || []).map((author: { id: number | string; name: string }) => ({
+    authorOptions.value = (authorsData.data || [])
+    .map((author: { id: number | string; name: string }) => ({
       label: author.name,
       value: author.id
     }))
 
-    referenceOptions.value = (referencesData.data || []).map((reference: { id: number | string; name: string }) => ({
+    referenceOptions.value = (referencesData.data || [])
+    .map((reference: { id: number | string; name: string }) => ({
       label: reference.name,
       value: reference.id
     }))
@@ -433,7 +430,7 @@ const clearFilters = () => {
   selectedLanguage.value = undefined
   selectedAuthor.value = undefined
   selectedReference.value = undefined
-  if (searchQuery.value.trim()) debouncedSearch()
+  if (storeQuery.value.trim()) debouncedSearch()
 }
 
 // Labels for chips
@@ -458,20 +455,19 @@ const selectedReferenceLabel = computed<string | null>(() => {
   return item ? item.label : String(val.label)
 })
 
-// Remove single chips
 const removeLanguageFilter = () => {
   selectedLanguage.value = undefined
-  if (searchQuery.value.trim()) debouncedSearch()
+  if (storeQuery.value.trim()) debouncedSearch()
 }
 
 const removeAuthorFilter = () => {
   selectedAuthor.value = undefined
-  if (searchQuery.value.trim()) debouncedSearch()
+  if (storeQuery.value.trim()) debouncedSearch()
 }
 
 const removeReferenceFilter = () => {
   selectedReference.value = undefined
-  if (searchQuery.value.trim()) debouncedSearch()
+  if (storeQuery.value.trim()) debouncedSearch()
 }
 
 const selectResult = (
@@ -494,26 +490,25 @@ const selectResult = (
 }
 
 const selectCurrentResult = () => {
-  if (selectedIndex.value >= 0 && allResults.value[selectedIndex.value]) {
-    const result = allResults.value[selectedIndex.value]
+  const index = selectedIndex.value
+  if (index >= 0 && allResults.value[index]) {
+    const result = allResults.value[index]
     selectResult(result, result.type)
   }
 }
 
 const scrollToSelected = () => {
-  if (selectedIndex.value >= 0 && allResults.value[selectedIndex.value]) {
-    const result = allResults.value[selectedIndex.value]
-    const section = result.type === 'quote' ? 'quotes' : result.type === 'author' ? 'authors' : 'references'
-    const element = resultRefs.value[section]?.[result.sectionIndex]
+  const index = selectedIndex.value ; if (index < 0 || index >= allResults.value.length) return
+  const result = allResults.value[index] ; if (!result) return
 
-    if (element && resultsContainer.value) {
+  const section = result.type === 'quote' ? 'quotes' : result.type === 'author' ? 'authors' : 'references'
+
+  const element = resultRefs.value[section]?.[result.sectionIndex] ; if (!element || !resultsContainer.value) return
   const containerRect = resultsContainer.value.getBoundingClientRect()
   const elementRect = element.getBoundingClientRect()
 
-      if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
-        element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-      }
-    }
+  if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
+    element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }
 }
 
@@ -548,25 +543,25 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-watch(isOpen, (newValue) => {
-  if (newValue) {
+watch(isOpen, (isStillOpen) => {
+  if (isStillOpen) {
     loadFilterOptions()
     nextTick(() => {
       document.addEventListener('keydown', handleKeydown)
-      // Focus the search input
-  const searchInput = document.querySelector<HTMLInputElement>('input[placeholder*="Search quotes"]')
-  searchInput?.focus()
+      const searchInput = document.querySelector<HTMLInputElement>('input[placeholder*="Search quotes"]')
+      searchInput?.focus()
     })
-  } else {
-    document.removeEventListener('keydown', handleKeydown)
-    searchQuery.value = ''
-    searchResults.value = { quotes: [], authors: [], references: [], total: 0 }
-    selectedIndex.value = -1
-    selectedLanguage.value = undefined
-    selectedAuthor.value = undefined
-    selectedReference.value = undefined
-    resultRefs.value = {}
+
+    return
   }
+
+  document.removeEventListener('keydown', handleKeydown)
+  // Preserve store state when closing; only reset local UI state
+  selectedIndex.value = -1
+  selectedLanguage.value = undefined
+  selectedAuthor.value = undefined
+  selectedReference.value = undefined
+  resultRefs.value = {}
 })
 
 onUnmounted(() => {

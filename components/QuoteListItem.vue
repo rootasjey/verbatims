@@ -11,30 +11,27 @@
       <div class="flex items-center space-x-2">
         <UAvatar
           v-if="showAvatar"
-          :src="quote.author?.image_url || undefined"
+          :src="quote.author?.image_url || quote.author_image_url || undefined"
           :alt="quote.author?.name || 'Unknown Author'"
           size="xs"
           rounded="full"
           square="1.5rem"
         />
-        <span v-if="quote.author" class="text-sm font-600 text-gray-700 dark:text-gray-300 truncate">
-          {{ quote.author.name }}
-        </span>
-        <span v-else class="text-sm text-gray-400 dark:text-gray-500 italic">
-          Unknown Author
+        <span class="text-sm font-600 text-gray-700 dark:text-gray-300 truncate">
+          {{ quote.author?.name || quote.author_name || 'Unknown Author' }}
         </span>
       </div>
 
       <!-- Reference Info -->
-      <div v-if="quote.reference" class="flex items-center space-x-2">
+    <div v-if="quote.reference || quote.reference_type" class="flex items-center space-x-2">
         <UBadge
-          v-if="quote.reference.type"
-          :color="getReferenceTypeColor(quote.reference.type)"
+      v-if="(quote.reference && quote.reference.type) || quote.reference_type"
+      :color="getReferenceTypeColor(quote.reference?.type || quote.reference_type as string)"
           variant="subtle"
           size="xs"
           class="text-xs"
         >
-          {{ formatReferenceType(quote.reference.type) }}
+      {{ formatReferenceType((quote.reference?.type || quote.reference_type) as string) }}
         </UBadge>
       </div>
     </div>
@@ -143,7 +140,7 @@ const handleShare = () => {
     })
   } else {
     // Fallback: copy to clipboard
-    navigator.clipboard.writeText(`"${props.quote.name}" - ${props.quote.author?.name || 'Unknown'}`)
+  navigator.clipboard.writeText(`"${props.quote.name}" - ${props.quote.author?.name || props.quote.author_name || 'Unknown'}`)
   }
 }
 </script>

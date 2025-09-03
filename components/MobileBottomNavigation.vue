@@ -6,7 +6,6 @@
     <!-- Floating Navigation Container -->
     <div class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 px-2 py-2">
       <div class="flex items-center space-x-2">
-        <!-- Home Tab -->
         <NuxtLink
           to="/"
           class="flex flex-col items-center justify-center transition-all duration-300 group"
@@ -27,7 +26,6 @@
           </div>
         </NuxtLink>
 
-        <!-- Search Tab -->
         <NuxtLink
           to="/search"
           class="flex flex-col items-center justify-center transition-all duration-300 group"
@@ -48,7 +46,6 @@
           </div>
         </NuxtLink>
 
-        <!-- Diary Tab -->
         <NuxtLink
           to="/diary"
           class="flex flex-col items-center justify-center transition-all duration-300 group"

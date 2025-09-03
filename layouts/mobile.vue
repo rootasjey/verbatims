@@ -34,6 +34,14 @@
           <UButton
             icon
             btn="ghost-gray"
+            label="i-ph-quotes-duotone"
+            size="sm"
+            class="text-gray-600 dark:text-gray-400"
+            @click="showAddQuote = true"
+          />
+          <UButton
+            icon
+            btn="ghost-gray"
             label="i-ph-flag-duotone"
             size="sm"
             class="text-gray-600 dark:text-gray-400"
@@ -48,13 +56,11 @@
       <slot />
     </main>
 
-    <!-- Global Modals -->
-    <AddQuoteDialog
-      v-model="showAddQuote"
-      @quote-added="handleQuoteAdded"
+    <AddQuoteDrawer
+      v-model:open="showAddQuote"
+      @submitted="handleQuoteAdded"
     />
 
-    <!-- Report Drawer for mobile bug/feedback reports -->
     <ReportDrawer
       v-model:open="showReportDrawer"
       :target-type="'general'"
