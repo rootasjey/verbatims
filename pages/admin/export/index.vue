@@ -60,7 +60,6 @@
         </template>
       </UCard>
     </UDialog>
-
   </div>
 </template>
 

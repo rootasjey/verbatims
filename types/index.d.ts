@@ -137,6 +137,7 @@ export {
   AdminMessagesListResponse,
   CreateUserMessageInput,
   CreateUserMessageResult,
+  ExportFormat,
   ReportCategory,
   ReportStatus,
   ReportTargetType,

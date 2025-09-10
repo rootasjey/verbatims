@@ -233,19 +233,19 @@ function generateXMLForDownload(quotes: any[]): string {
     xml += `    <is_featured>${quote.is_featured}</is_featured>\n`
     xml += `    <created_at>${quote.created_at}</created_at>\n`
     xml += `    <updated_at>${quote.updated_at}</updated_at>\n`
-    
+
     if (quote.author) {
       xml += `    <author><![CDATA[${quote.author.name}]]></author>\n`
     }
-    
+
     if (quote.reference) {
       xml += `    <reference><![CDATA[${quote.reference.name}]]></reference>\n`
     }
-    
+
     if (quote.tags && quote.tags.length > 0) {
       xml += `    <tags>${quote.tags.map((t: any) => t.name).join(', ')}</tags>\n`
     }
-    
+
     xml += '  </quote>\n'
   })
 

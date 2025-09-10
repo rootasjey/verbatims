@@ -2,7 +2,7 @@ import type { ExportValidation } from '~/types/export'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
-  if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
+  if (user.role !== 'admin' && user.role !== 'moderator') {
     throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
   }
 
@@ -29,14 +29,17 @@ export default defineEventHandler(async (event) => {
     let quotesWhere: string[] = []
     let qBind: any[] = []
     const qf = (all_filters?.quotes || {})
+    
     if (qf.language && Array.isArray(qf.language) && qf.language.length) {
       quotesWhere.push(`q.language IN (${qf.language.map(() => '?').join(',')})`)
       qBind.push(...qf.language)
     }
+    
     if (qf.status && Array.isArray(qf.status) && qf.status.length) {
       quotesWhere.push(`q.status IN (${qf.status.map(() => '?').join(',')})`)
       qBind.push(...qf.status)
     }
+    
     const quotesCount = await countFrom(`
       SELECT COUNT(DISTINCT q.id) as total
       FROM quotes q
@@ -51,6 +54,7 @@ export default defineEventHandler(async (event) => {
       authorsWhere.push('a.is_fictional = ?')
       aBind.push(!!af.is_fictional)
     }
+    
     const authorsCount = await countFrom(`
       SELECT COUNT(*) as total FROM authors a
       ${authorsWhere.length ? 'WHERE ' + authorsWhere.join(' AND ') : ''}
@@ -60,10 +64,12 @@ export default defineEventHandler(async (event) => {
     let refsWhere: string[] = []
     let rBind: any[] = []
     const rf = (all_filters?.references || {})
+    
     if (rf.primary_type && Array.isArray(rf.primary_type) && rf.primary_type.length) {
       refsWhere.push(`r.primary_type IN (${rf.primary_type.map(() => '?').join(',')})`)
       rBind.push(...rf.primary_type)
     }
+    
     const referencesCount = await countFrom(`
       SELECT COUNT(*) as total FROM quote_references r
       ${refsWhere.length ? 'WHERE ' + refsWhere.join(' AND ') : ''}
@@ -73,16 +79,47 @@ export default defineEventHandler(async (event) => {
     let usersWhere: string[] = []
     let uBind: any[] = []
     const uf = (all_filters?.users || {})
+    
     if (uf.role && Array.isArray(uf.role) && uf.role.length) {
       usersWhere.push(`u.role IN (${uf.role.map(() => '?').join(',')})`)
       uBind.push(...uf.role)
     }
+    
     const usersCount = await countFrom(`
       SELECT COUNT(*) as total FROM users u
       ${usersWhere.length ? 'WHERE ' + usersWhere.join(' AND ') : ''}
     `, uBind)
 
-    const parts = [quotesCount, referencesCount, authorsCount, usersCount]
+    // Tags count
+    let tagsWhere: string[] = []
+    let tBind: any[] = []
+    const tf = (all_filters?.tags || {})
+    
+    if (tf.category && Array.isArray(tf.category) && tf.category.length) {
+      tagsWhere.push(`t.category IN (${tf.category.map(() => '?').join(',')})`)
+      tBind.push(...tf.category)
+    }
+    
+    if (tf.color && Array.isArray(tf.color) && tf.color.length) {
+      tagsWhere.push(`t.color IN (${tf.color.map(() => '?').join(',')})`)
+      tBind.push(...tf.color)
+    }
+    
+    if (tf.unused_only) {
+      tagsWhere.push('NOT EXISTS (SELECT 1 FROM quote_tags qt WHERE qt.tag_id = t.id)')
+    }
+    
+    if (tf.min_usage && tf.min_usage > 0) {
+      tagsWhere.push('(SELECT COUNT(*) FROM quote_tags qt2 WHERE qt2.tag_id = t.id) >= ?')
+      tBind.push(tf.min_usage)
+    }
+    
+    const tagsCount = await countFrom(`
+      SELECT COUNT(DISTINCT t.id) as total FROM tags t
+      ${tagsWhere.length ? 'WHERE ' + tagsWhere.join(' AND ') : ''}
+    `, tBind)
+
+    const parts = [quotesCount, referencesCount, authorsCount, usersCount, tagsCount]
     const limitedParts = parts.map(c => limit > 0 ? Math.min(c, limit) : c)
     const total = limitedParts.reduce((a, b) => a + b, 0)
 

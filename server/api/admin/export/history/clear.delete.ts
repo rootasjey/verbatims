@@ -5,16 +5,11 @@
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
-    }
+    if (user.role !== 'admin') { throw createError({ statusCode: 403, statusMessage: 'Admin access required' }) }
 
     const body = await readBody(event)
     const { confirm } = body
-
-    if (!confirm) {
-      throw createError({ statusCode: 400, statusMessage: 'Confirmation required to clear all export history' })
-    }
+    if (!confirm) { throw createError({ statusCode: 400, statusMessage: 'Confirmation required to clear all export history' }) }
 
     const db = hubDatabase()
     const countResult = await db.prepare(`
@@ -31,17 +26,29 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    // Find all backup file keys before deleting export_logs
+    const backupFiles = await db.prepare(`
+      SELECT file_key FROM backup_files
+    `).all()
+
+    if (backupFiles?.results?.length) {
+      for (const row of backupFiles.results) {
+        if (row.file_key && typeof row.file_key === 'string') {
+          try { await deleteBackupFile(String(row.file_key)) } 
+          catch (err) { console.error('Failed to delete backup file from blob storage:', err) }
+        }
+      }
+    }
+
     const result = await db.prepare(`
       DELETE FROM export_logs
     `).run()
 
-    if (!result.success) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to clear export history' })
-    }
+    if (!result.success) { throw createError({ statusCode: 500, statusMessage: 'Failed to clear export history' }) }
 
     return {
       success: true,
-      message: `Successfully cleared ${totalEntries} export history entries`,
+      message: `Successfully cleared ${totalEntries} export history entries and deleted backup files`,
       deletedCount: totalEntries
     }
 

@@ -3,10 +3,7 @@ import { generateBackupFilePath, calculateContentHash } from '~/server/utils/bac
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (user.role !== 'admin' && user.role !== 'moderator') {
-    throw createError({ 
-      statusCode: 403, 
-      statusMessage: 'Admin or moderator access required',
-    })
+    throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
   }
 
   const body = await readBody(event) as any
@@ -22,7 +19,7 @@ export default defineEventHandler(async (event) => {
   } = body || {}
 
   if (!['json', 'csv', 'xml'].includes(format)) {
-    throw createError({ 
+    throw createError({
       statusCode: 400,
       statusMessage: 'Unsupported export format (use json, csv, or xml)',
     })
@@ -43,24 +40,24 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
     `
-    
+
     const bindings: any[] = []
     const where: string[] = []
     const qf = all_filters.quotes || {}
-    
+
     if (qf.language && Array.isArray(qf.language) && qf.language.length) {
       where.push(`q.language IN (${qf.language.map(() => '?').join(',')})`)
       bindings.push(...qf.language)
     }
-    
+
     if (qf.status && Array.isArray(qf.status) && qf.status.length) {
       where.push(`q.status IN (${qf.status.map(() => '?').join(',')})`)
       bindings.push(...qf.status)
     }
-    
+
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
     query += ' ORDER BY q.created_at DESC'
-    
+
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
 
     const queryResponse = await db.prepare(query).bind(...bindings).all()
@@ -72,14 +69,14 @@ export default defineEventHandler(async (event) => {
     const bindings: any[] = []
     const where: string[] = []
     const af = all_filters.authors || {}
-    
+
     if (af.is_fictional !== undefined) { where.push('a.is_fictional = ?'); bindings.push(!!af.is_fictional) }
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
-    
+
     query += ' ORDER BY a.created_at DESC'
-    
+
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    
+
     const queryResponse = await db.prepare(query).bind(...bindings).all()
     return queryResponse.results || []
   }
@@ -89,42 +86,68 @@ export default defineEventHandler(async (event) => {
     const bindings: any[] = []
     const where: string[] = []
     const rf = all_filters.references || {}
-    
+
     if (rf.primary_type && Array.isArray(rf.primary_type) && rf.primary_type.length) {
       where.push(`r.primary_type IN (${rf.primary_type.map(() => '?').join(',')})`)
       bindings.push(...rf.primary_type)
     }
-    
+
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
     query += ' ORDER BY r.created_at DESC'
-    
+
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
     const queryResponse = await db.prepare(query).bind(...bindings).all()
     return queryResponse.results || []
   }
+
+  async function fetchTags() {
+    let query = 'SELECT t.* FROM tags t'
+    const bindings: any[] = []
+    const where: string[] = []
+    const tf = all_filters.tags || {}
+
+    if (tf.category && Array.isArray(tf.category) && tf.category.length) {
+      where.push(`t.category IN (${tf.category.map(() => '?').join(',')})`)
+      bindings.push(...tf.category)
+    }
+
+    if (tf.search && tf.search.trim()) {
+      where.push('(t.name LIKE ? OR t.description LIKE ?)')
+      bindings.push(`%${tf.search.trim()}%`, `%${tf.search.trim()}%`)
+    }
+
+    if (where.length) query += ` WHERE ${where.join(' AND ')}`
+    query += ' ORDER BY t.created_at DESC'
+
+    if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
+
+    const queryResponse = await db.prepare(query).bind(...bindings).all()
+    return queryResponse.results || []
+  }
+
 
   async function fetchUsers() {
     let query = 'SELECT u.* FROM users u'
     const bindings: any[] = []
     const where: string[] = []
     const uf = all_filters.users || {}
-    
+
     if (uf.role && Array.isArray(uf.role) && uf.role.length) {
       where.push(`u.role IN (${uf.role.map(() => '?').join(',')})`)
       bindings.push(...uf.role)
     }
-    
+
     if (where.length) query += ` WHERE ${where.join(' AND ')}`
     query += ' ORDER BY u.created_at DESC'
-    
+
     if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    
+
     const queryResponse = await db.prepare(query).bind(...bindings).all()
     return queryResponse.results || []
   }
 
-  const [quotes, authors, references, users] = await Promise.all([
-    fetchQuotes(), fetchAuthors(), fetchReferences(), fetchUsers()
+  const [quotes, authors, references, users, tags] = await Promise.all([
+    fetchQuotes(), fetchAuthors(), fetchReferences(), fetchUsers(), fetchTags()
   ])
 
   function toCSV(rows: any[]): string {
@@ -135,7 +158,7 @@ export default defineEventHandler(async (event) => {
       const s = String(v)
       return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
     }
-    
+
     const lines = [headers.join(','), ...rows.map(r => headers.map(h => esc(r[h])).join(','))]
     return lines.join('\n')
   }
@@ -165,6 +188,7 @@ export default defineEventHandler(async (event) => {
   files.push({ name: `authors.${format}`, data: enc.encode(serialize(authors, format, 'authors', 'author')) })
   files.push({ name: `references.${format}`, data: enc.encode(serialize(references, format, 'references', 'reference')) })
   files.push({ name: `users.${format}`, data: enc.encode(serialize(users, format, 'users', 'user')) })
+  files.push({ name: `tags.${format}`, data: enc.encode(serialize(tags, format, 'tags', 'tag')) })
 
   if (include_metadata) {
     const meta = {
@@ -185,7 +209,7 @@ export default defineEventHandler(async (event) => {
     ? (content.buffer as ArrayBuffer)
     : content.slice().buffer as ArrayBuffer
 
-  const totalRecords = (quotes?.length || 0) + (authors?.length || 0) + (references?.length || 0) + (users?.length || 0)
+  const totalRecords = (quotes?.length || 0) + (authors?.length || 0) + (references?.length || 0) + (users?.length || 0) + (tags?.length || 0)
   const fileSize = content.byteLength
   const exportId = `all_export_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
@@ -194,7 +218,7 @@ export default defineEventHandler(async (event) => {
   const filename = `all-export-${currentDate}.zip`
   setHeader(event, 'Content-Disposition', `attachment; filename="${filename}"`)
 
-  const filtersApplied = JSON.stringify({ 
+  const filtersApplied = JSON.stringify({
     all_filters,
     include_relations,
     include_metadata,
@@ -206,15 +230,15 @@ export default defineEventHandler(async (event) => {
 
   const insertRes = await db.prepare(`
     INSERT INTO export_logs (
-      export_id, 
-      filename, 
-      format, 
-      data_type, 
-      filters_applied, 
-      record_count, 
-      file_size, 
-      user_id, 
-      include_relations, 
+      export_id,
+      filename,
+      format,
+      data_type,
+      filters_applied,
+      record_count,
+      file_size,
+      user_id,
+      include_relations,
       include_metadata
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(

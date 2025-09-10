@@ -268,7 +268,7 @@ CREATE TABLE IF NOT EXISTS export_logs (
   export_id TEXT NOT NULL UNIQUE,
   filename TEXT NOT NULL,
   format TEXT NOT NULL,
-  data_type TEXT NOT NULL CHECK (data_type IN ('quotes', 'references', 'authors', 'users', 'all')),
+  data_type TEXT NOT NULL CHECK (data_type IN ('all', 'authors', 'quotes', 'references', 'tags', 'users')),
   filters_applied TEXT,
   record_count INTEGER,
   file_size INTEGER,

@@ -13,7 +13,7 @@ export type ExportFormat = 'json' | 'csv' | 'xml'
 /**
  * Export data types
  */
-export type ExportDataType = 'quotes' | 'authors' | 'references' | 'users' | 'all'
+export type ExportDataType = 'all' | 'authors' | 'quotes' | 'references' | 'tags' | 'users'
 
 /**
  * Date range filter for exports
@@ -135,7 +135,7 @@ export interface ExportOptions {
   /** Data type to export */
   data_type: ExportDataType
   /** Filters to apply */
-  filters?: QuoteExportFilters | ReferenceExportFilters | AuthorExportFilters | UserExportFilters
+  filters?: QuoteExportFilters | ReferenceExportFilters | AuthorExportFilters | UserExportFilters | TagExportFilters
   /** Include metadata in export */
   include_metadata?: boolean
   /** Include related data (author, reference, tags) */
@@ -428,6 +428,50 @@ export interface UserExportFilters {
   /** Minimum collections created */
   min_collections?: number
 }
+
+/**
+ * Tag export filters
+ */
+export interface TagExportFilters {
+  /** Search in tag name or description */
+  search?: string
+  /** Filter by category */
+  category?: string | string[]
+  /** Filter by color (hex or token) */
+  color?: string | string[]
+  /** Date range filter for creation date */
+  date_range?: ExportDateRange
+  /** Minimum usage count across quotes */
+  min_usage?: number
+  /** Only tags not used by any quote */
+  unused_only?: boolean
+}
+
+/**
+ * Exported tag data structure
+ */
+export interface ExportedTag {
+  /** Tag data */
+  id: number
+  name: string
+  description?: string
+  category?: string
+  color: string
+  created_at: string
+  updated_at: string
+
+  /** Usage count (if included) */
+  usage_count?: number
+
+  /** Export metadata (if included) */
+  _metadata?: {
+    exported_at: string
+    exported_by: number
+    export_id: string
+    export_filters?: TagExportFilters
+  }
+}
+
 
 /**
  * Exported reference data structure

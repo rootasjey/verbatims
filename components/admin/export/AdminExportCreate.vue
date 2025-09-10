@@ -235,7 +235,7 @@
               <UCollapsibleContent>
                 <div class="pt-4 space-y-6">
                   <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 text-sm">
-                    Using the last saved filters of each data type (Quotes, Authors, References, Users). To change them, switch to a specific data type and adjust its filters.
+                    Using the last saved filters of each data type (Quotes, Authors, References, Users, Tags). To change them, switch to a specific data type and adjust its filters.
                   </div>
                   <!-- Dynamic Filters based on Data Type -->
                   <div v-if="dataExport.exportOptions.value.data_type.value === 'quotes' && !dataExport.isAllSelected.value">
@@ -264,6 +264,12 @@
                       v-model="dataExport.usersFilters.value"
                     />
                   </div>
+
+	                  <div v-else-if="dataExport.exportOptions.value.data_type.value === 'tags' && !dataExport.isAllSelected.value">
+	                    <TagsFilters
+	                      v-model="dataExport.tagsFilters.value"
+	                    />
+	                  </div>
                 </div>
               </UCollapsibleContent>
             </UCollapsible>
@@ -278,6 +284,8 @@
 import QuotesFilters from '~/components/admin/export/QuotesFilters.vue'
 import ReferencesFilters from '~/components/admin/export/ReferencesFilters.vue'
 import AuthorsFilters from '~/components/admin/export/AuthorsFilters.vue'
+import TagsFilters from '~/components/admin/export/TagsFilters.vue'
+
 import UsersFilters from '~/components/admin/export/UsersFilters.vue'
 import { useDataExport } from '~/composables/useDataExport'
 import type { ExportDataType } from '~/types'
@@ -289,7 +297,8 @@ const dataTypeOptions: Array<{ label: string; value: ExportDataType; icon: strin
   { label: 'Quotes', value: 'quotes', icon: 'i-ph-quotes', description: 'Export quotes', available: true },
   { label: 'References', value: 'references', icon: 'i-ph-book', description: 'Export references', available: true },
   { label: 'Authors', value: 'authors', icon: 'i-ph-user-circle', description: 'Export authors', available: true },
-  { label: 'Users', value: 'users', icon: 'i-ph-users', description: 'Export users', available: true }
+  { label: 'Users', value: 'users', icon: 'i-ph-users', description: 'Export users', available: true },
+  { label: 'Tags', value: 'tags', icon: 'i-ph-tag', description: 'Export tags', available: true }
 ]
 
 onMounted(() => {

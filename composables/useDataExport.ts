@@ -3,6 +3,7 @@ import type {
   ReferenceExportFilters,
   AuthorExportFilters,
   UserExportFilters,
+  TagExportFilters,
   ExportResult,
   ExportOptions,
   UIExportOptions,
@@ -10,6 +11,7 @@ import type {
   ExportDataType,
 } from '~/types/export'
 import { useLocalStorage, useDebounceFn } from '@vueuse/core'
+import type { ExportFormat } from '~/types'
 
 /**
  * Data Export Composable
@@ -21,9 +23,10 @@ export const useDataExport = () => {
     quotes: 'verbatims-admin-export-filters-quotes',
     references: 'verbatims-admin-export-filters-references',
     authors: 'verbatims-admin-export-filters-authors',
-    users: 'verbatims-admin-export-filters-users'
+    users: 'verbatims-admin-export-filters-users',
+    tags: 'verbatims-admin-export-filters-tags'
   } as const
-  
+
   const state = reactive<ExportState>({
     isExporting: false,
     showProgressDialog: false,
@@ -121,6 +124,15 @@ export const useDataExport = () => {
     min_collections: 0
   })
 
+  const tagsFilters = ref<TagExportFilters>({
+    search: '',
+    category: [],
+    color: [],
+    date_range: { start: '', end: '' },
+    min_usage: 0,
+    unused_only: false,
+  })
+
   const formatOptions = [
     { label: 'JSON', value: 'json' },
     { label: 'CSV', value: 'csv' },
@@ -214,6 +226,15 @@ export const useDataExport = () => {
     min_collections: 0
   })
 
+  const savedTagsFilters = useLocalStorage<any>(STORAGE_KEYS.tags, {
+    search: '',
+    category: [] as string[],
+    color: [] as string[],
+    date_range: { start: '', end: '' },
+    min_usage: 0,
+    unused_only: false,
+  })
+
   const getCurrentFilters = () => {
     const dataType = exportOptions.value.data_type.value
     switch (dataType) {
@@ -225,6 +246,8 @@ export const useDataExport = () => {
         return authorsFilters.value
       case 'users':
         return usersFilters.value
+      case 'tags':
+        return tagsFilters.value
       default:
         return {}
     }
@@ -385,6 +408,9 @@ export const useDataExport = () => {
         case 'users':
           apiEndpoint = '/api/admin/export/users/validate'
           break
+        case 'tags':
+          apiEndpoint = '/api/admin/export/tags/validate'
+          break
         default:
           state.errorMessage = `Validation for ${dataType} export is not yet implemented. You can still proceed with the export.`
           return
@@ -419,6 +445,8 @@ export const useDataExport = () => {
         return '/api/admin/export/authors'
       case 'users':
         return '/api/admin/export/users'
+      case 'tags':
+        return '/api/admin/export/tags'
       default:
         throw new Error('Invalid data type selected')
     }
@@ -428,8 +456,8 @@ export const useDataExport = () => {
     if (data.content && data.mimeType) {
       downloadContent(data.content, data.filename, data.mimeType)
       return
-    } 
-    
+    }
+
     if (data.download_url) {
       window.open(data.download_url, '_blank')
       return
@@ -494,8 +522,8 @@ export const useDataExport = () => {
       state.successMessage = `Export generated successfully! ${response.data.record_count} records exported.`
       useToast().toast({
         title: 'Export Generated',
-        description: shouldDownload 
-          ? `Successfully exported ${response.data.record_count} records. Download started.` 
+        description: shouldDownload
+          ? `Successfully exported ${response.data.record_count} records. Download started.`
           : `Export is ready. You can download it from the history panel.`
       })
 
@@ -552,9 +580,9 @@ export const useDataExport = () => {
   }
 
   const init = async () => {
-    const eo: any = exportOptions.value
-    const fmt = (formatOptions as any[]).find((f: any) => f.value === savedExportOptions.value.format)
-    if (fmt) eo.format = fmt as any
+    const eo = exportOptions.value
+    const fmt = (formatOptions).find((f) => f.value === savedExportOptions.value.format)
+    if (fmt) eo.format = fmt as { label: string; value: ExportFormat }
 
     const dt = (savedExportOptions.value.data_type || 'quotes') as ExportDataType
     const dtLabel: Record<ExportDataType, string> = {
@@ -562,8 +590,10 @@ export const useDataExport = () => {
       references: 'References',
       authors: 'Authors',
       users: 'Users',
+      tags: 'Tags',
       all: 'Everything'
     }
+    
     eo.data_type = { label: dtLabel[dt], value: dt }
 
     eo.include_relations = savedExportOptions.value.include_relations
@@ -574,10 +604,11 @@ export const useDataExport = () => {
     eo.download_after_export = !!savedExportOptions.value.download_after_export
     eo.limit = savedExportOptions.value.limit
 
-    quotesFilters.value = { ...(quotesFilters.value as any), ...(savedQuotesFilters.value as any) } as any
-    referencesFilters.value = { ...(referencesFilters.value as any), ...(savedReferencesFilters.value as any) } as any
-    authorsFilters.value = { ...(authorsFilters.value as any), ...(savedAuthorsFilters.value as any) } as any
-    usersFilters.value = { ...(usersFilters.value as any), ...(savedUsersFilters.value as any) } as any
+    quotesFilters.value      = { ...(quotesFilters.value), ...(savedQuotesFilters.value) }
+    referencesFilters.value  = { ...(referencesFilters.value), ...(savedReferencesFilters.value) }
+    authorsFilters.value     = { ...(authorsFilters.value), ...(savedAuthorsFilters.value) }
+    usersFilters.value       = { ...(usersFilters.value), ...(savedUsersFilters.value) }
+    tagsFilters.value        = { ...(tagsFilters.value), ...(savedTagsFilters.value) }
 
     await loadExportHistory()
   }
@@ -610,10 +641,11 @@ export const useDataExport = () => {
   )
 
   // Persist each filter group
-  watch(() => ({ ...quotesFilters.value }), v => { savedQuotesFilters.value = v as any }, { deep: true })
-  watch(() => ({ ...referencesFilters.value }), v => { savedReferencesFilters.value = v as any }, { deep: true })
-  watch(() => ({ ...authorsFilters.value }), v => { savedAuthorsFilters.value = v as any }, { deep: true })
-  watch(() => ({ ...usersFilters.value }), v => { savedUsersFilters.value = v as any }, { deep: true })
+  watch(() => ({ ...quotesFilters.value }),     v => { savedQuotesFilters.value     = v as QuoteExportFilters }, { deep: true })
+  watch(() => ({ ...referencesFilters.value }), v => { savedReferencesFilters.value = v as ReferenceExportFilters }, { deep: true })
+  watch(() => ({ ...authorsFilters.value }),    v => { savedAuthorsFilters.value    = v as AuthorExportFilters }, { deep: true })
+  watch(() => ({ ...usersFilters.value }),      v => { savedUsersFilters.value      = v as UserExportFilters }, { deep: true })
+  watch(() => ({ ...tagsFilters.value }),       v => { savedTagsFilters.value       = v as TagExportFilters }, { deep: true })
 
   const resetFilters = (opts?: { clearStorage?: boolean }) => {
     const defaultFmt = (formatOptions as any[]).find((f: any) => f.value === 'json') || (formatOptions as any[])[0]
@@ -707,6 +739,7 @@ export const useDataExport = () => {
       savedReferencesFilters.value = { ...referencesFilters.value } as any
       savedAuthorsFilters.value = { ...authorsFilters.value } as any
       savedUsersFilters.value = { ...usersFilters.value } as any
+      savedTagsFilters.value = { ...tagsFilters.value } as any
     }
   }
 
@@ -783,18 +816,18 @@ export const useDataExport = () => {
         body: { exportId }
       })
 
-      if (response.success) {
-        state.exportHistory = state.exportHistory.filter(entry => entry.id !== exportId)
+      if (!response.success) throw new Error(response.message || 'Failed to delete export history entry')
+      
+      state.exportHistory = state.exportHistory.filter(entry => entry.id !== exportId)
 
-        if (state.exportHistory.length === 0 && state.historyPagination.page > 1) {
-          await loadExportHistory(state.historyPagination.page - 1)
-          return
-        }
-
-        // Recalculate pagination
-        state.historyPagination.total = Math.max(0, state.historyPagination.total - 1)
-        state.historyPagination.totalPages = Math.ceil(state.historyPagination.total / state.historyPagination.limit)
+      if (state.exportHistory.length === 0 && state.historyPagination.page > 1) {
+        await loadExportHistory(state.historyPagination.page - 1)
+        return
       }
+
+      // Recalculate pagination
+      state.historyPagination.total = Math.max(0, state.historyPagination.total - 1)
+      state.historyPagination.totalPages = Math.ceil(state.historyPagination.total / state.historyPagination.limit)
     } catch (error: any) {
       console.error('Failed to delete export history entry:', error)
       state.errorMessage = error.data?.message || 'Failed to delete export history entry'
@@ -895,7 +928,7 @@ export const useDataExport = () => {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
     } catch (error: any) {
       console.error('Backup download error:', error)
       useToast().toast({
@@ -910,11 +943,7 @@ export const useDataExport = () => {
   const triggerPreviewUpdate = useDebounceFn(async () => {
     if (!exportOptions.value.format?.value) return
     if (state.isExporting) return
-    try {
-      await validateExport()
-    } catch {
-      // validateExport manages its own error state
-    }
+    await validateExport()
   }, 600)
 
   const autoPreviewStarted = ref(false)
@@ -967,6 +996,16 @@ export const useDataExport = () => {
       },
       { deep: true }
     )
+
+    // Watch tags filters for preview update
+    watch(
+      () => ({ ...tagsFilters.value }),
+      () => {
+        const dt = exportOptions.value.data_type.value
+        if (dt === 'tags' || dt === 'all') triggerPreviewUpdate()
+      },
+      { deep: true }
+    )
   }
 
   return {
@@ -975,6 +1014,9 @@ export const useDataExport = () => {
     exportOptions,
     quotesFilters,
     referencesFilters,
+
+	    tagsFilters,
+
     authorsFilters,
     usersFilters,
 
