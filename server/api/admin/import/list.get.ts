@@ -1,97 +1,111 @@
+import { getAdminImport } from '~/server/utils/admin-import-progress'
+
 /**
- * Admin API: List Import History
- * Returns a list of all imports with their status and summary information
+ * Admin API: List Import History (backed by import_logs + live overlay)
  */
-
-import { importProgressStore } from './references.post'
-
 export default defineEventHandler(async (event) => {
-  try {
-    // Check admin permissions
-    const { user } = await requireUserSession(event)
-    if (!user || user.role !== 'admin') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin access required'
-      })
-    }
+  // Admin check
+  const { user } = await requireUserSession(event)
+  if (!user || user.role !== 'admin') {
+    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+  }
 
-    const query = getQuery(event)
-    const limit = parseInt(query.limit as string) || 50
-    const offset = parseInt(query.offset as string) || 0
-    const status = query.status as string
+  const query = getQuery(event)
+  const limit = parseInt((query.limit as string) || '50')
+  const offset = parseInt((query.offset as string) || '0')
+  const status = (query.status as string) || ''
 
-    // Get all imports from store
-    const allImports = Array.from(importProgressStore.values())
-    
-    // Filter by status if specified
-    let filteredImports = allImports
-    if (status && ['pending', 'processing', 'completed', 'failed'].includes(status)) {
-      filteredImports = allImports.filter(imp => imp.status === status)
-    }
+  const db = hubDatabase()
+  if (!db) throw createError({ statusCode: 500, statusMessage: 'Database not available' })
 
-    // Sort by start time (newest first)
-    filteredImports.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
+  // Base query
+  const filters: string[] = []
+  const params: any[] = []
+  if (status && ['pending','processing','completed','failed'].includes(status)) {
+    filters.push('status = ?')
+    params.push(status)
+  }
+  const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
 
-    // Apply pagination
-    const paginatedImports = filteredImports.slice(offset, offset + limit)
+  // List imports ordered by created_at desc
+  const listStmt = db.prepare(`
+    SELECT import_id, filename, format, data_type, record_count, successful_count, failed_count, warnings_count,
+           status, created_at, completed_at
+    FROM import_logs
+    ${where}
+    ORDER BY datetime(created_at) DESC
+    LIMIT ? OFFSET ?
+  `).bind(...params, limit, offset)
 
-    // Transform data for response
-    const imports = paginatedImports.map(imp => {
-      const duration = imp.completedAt 
-        ? imp.completedAt.getTime() - imp.startedAt.getTime()
-        : Date.now() - imp.startedAt.getTime()
+  const { results: rows = [] } = await listStmt.all<any>()
 
-      const progressPercentage = imp.totalRecords > 0 
-        ? Math.round((imp.processedRecords / imp.totalRecords) * 100)
-        : 0
-
-      return {
-        id: imp.id,
-        status: imp.status,
-        totalRecords: imp.totalRecords,
-        processedRecords: imp.processedRecords,
-        successfulRecords: imp.successfulRecords,
-        failedRecords: imp.failedRecords,
-        errorCount: imp.errors.length,
-        warningCount: imp.warnings.length,
-        progressPercentage,
-        duration,
-        startedAt: imp.startedAt,
-        completedAt: imp.completedAt
-      }
-    })
-
-    // Calculate summary statistics
-    const summary = {
-      total: allImports.length,
-      pending: allImports.filter(imp => imp.status === 'pending').length,
-      processing: allImports.filter(imp => imp.status === 'processing').length,
-      completed: allImports.filter(imp => imp.status === 'completed').length,
-      failed: allImports.filter(imp => imp.status === 'failed').length,
-      totalRecordsImported: allImports
-        .filter(imp => imp.status === 'completed')
-        .reduce((sum, imp) => sum + imp.successfulRecords, 0)
-    }
+  // Overlay live in-memory progress when available
+  const imports = rows.map((row: any) => {
+    const live = getAdminImport(row.import_id)
+    const total = live?.totalRecords ?? row.record_count ?? 0
+    const processed = live?.processedRecords ?? ((row.successful_count ?? 0) + (row.failed_count ?? 0))
+    const success = live?.successfulRecords ?? (row.successful_count ?? 0)
+    const failed = live?.failedRecords ?? (row.failed_count ?? 0)
+    const warnings = live?.warnings?.length ?? (row.warnings_count ?? 0)
+    const startedAt = row.created_at
+    const completedAt = row.completed_at
+    const duration = completedAt ? (new Date(completedAt).getTime() - new Date(startedAt).getTime()) : (Date.now() - new Date(startedAt).getTime())
+    const progressPercentage = total > 0 ? Math.round((processed / total) * 100) : 0
 
     return {
-      success: true,
-      data: {
-        imports,
-        summary,
-        pagination: {
-          limit,
-          offset,
-          total: filteredImports.length,
-          hasMore: offset + limit < filteredImports.length
-        }
+      id: row.import_id,
+      status: live?.status ?? row.status,
+      totalRecords: total,
+      processedRecords: processed,
+      successfulRecords: success,
+      failedRecords: failed,
+      errorCount: failed, // approximation; detailed errors live in memory only
+      warningCount: warnings,
+      progressPercentage,
+      duration,
+      startedAt,
+      completedAt,
+      // Extra context for UI
+      dataType: row.data_type,
+      filename: row.filename,
+      format: row.format,
+    }
+  })
+
+  // Summary stats from DB
+  const summaryRows = await db.prepare(`
+    SELECT status, COUNT(*) AS c FROM import_logs GROUP BY status
+  `).all<any>()
+  const summaryMap: Record<string, number> = {}
+  for (const r of summaryRows.results || []) summaryMap[r.status] = Number(r.c)
+
+  const sumSuccess = await db.prepare(`
+    SELECT COALESCE(SUM(successful_count),0) AS s FROM import_logs WHERE status = 'completed'
+  `).all<any>()
+  const totalRecordsImported = Number((sumSuccess.results?.[0]?.s) ?? 0)
+
+  const countStmt = db.prepare(`SELECT COUNT(*) AS total FROM import_logs ${where}`).bind(...params)
+  const countRes = await countStmt.all<any>()
+  const total = Number(countRes.results?.[0]?.total ?? imports.length)
+
+  return {
+    success: true,
+    data: {
+      imports,
+      summary: {
+        total,
+        pending: summaryMap['pending'] || 0,
+        processing: summaryMap['processing'] || 0,
+        completed: summaryMap['completed'] || 0,
+        failed: summaryMap['failed'] || 0,
+        totalRecordsImported,
+      },
+      pagination: {
+        limit,
+        offset,
+        total,
+        hasMore: offset + limit < total,
       }
     }
-
-  } catch (error: any) {
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to list imports'
-    })
   }
 })

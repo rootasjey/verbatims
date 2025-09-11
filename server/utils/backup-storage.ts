@@ -4,12 +4,8 @@
  */
 
 import { createHash } from 'node:crypto'
-import { gzip, gunzip } from 'node:zlib'
-import { promisify } from 'node:util'
+import { gzipSync, gunzipSync, strToU8, strFromU8 } from 'fflate'
 import type { BackupFile, BackupCompressionType } from '~/types'
-
-const gzipAsync = promisify(gzip)
-const gunzipAsync = promisify(gunzip)
 
 /**
  * Generate R2 file path using archives prefix
@@ -30,18 +26,18 @@ export function calculateContentHash(content: string | Buffer): string {
  * Compress content using gzip if beneficial
  */
 export async function compressContent(content: string): Promise<{
-  compressed: Buffer
+  compressed: Uint8Array
   originalSize: number
   compressedSize: number
   compressionType: BackupCompressionType
 }> {
-  const originalBuffer = Buffer.from(content, 'utf-8')
-  const originalSize = originalBuffer.length
-  
+  const originalU8 = strToU8(content)
+  const originalSize = originalU8.byteLength
+
   // Only compress if content is larger than 1KB
   if (originalSize < 1024) {
     return {
-      compressed: originalBuffer,
+      compressed: originalU8,
       originalSize,
       compressedSize: originalSize,
       compressionType: 'none'
@@ -49,13 +45,13 @@ export async function compressContent(content: string): Promise<{
   }
 
   try {
-    const compressed = await gzipAsync(originalBuffer)
-    const compressedSize = compressed.length
+    const gz = gzipSync(originalU8, { level: 6 })
+    const compressedSize = gz.byteLength
 
     // Only use compression if it reduces size by at least 10%
     if (compressedSize < originalSize * 0.9) {
       return {
-        compressed,
+        compressed: gz,
         originalSize,
         compressedSize,
         compressionType: 'gzip'
@@ -63,7 +59,7 @@ export async function compressContent(content: string): Promise<{
     }
 
     return {
-      compressed: originalBuffer,
+      compressed: originalU8,
       originalSize,
       compressedSize: originalSize,
       compressionType: 'none'
@@ -71,7 +67,7 @@ export async function compressContent(content: string): Promise<{
   } catch (error) {
     console.warn('Compression failed, using uncompressed content:', error)
     return {
-      compressed: originalBuffer,
+      compressed: originalU8,
       originalSize,
       compressedSize: originalSize,
       compressionType: 'none'
@@ -83,22 +79,22 @@ export async function compressContent(content: string): Promise<{
  * Decompress content if it was compressed
  */
 export async function decompressContent(
-  content: Buffer,
+  content: Uint8Array,
   compressionType: BackupCompressionType
 ): Promise<string> {
   if (compressionType === 'none') {
-    return content.toString('utf-8')
+    return strFromU8(content)
   }
-  
+
   if (compressionType === 'gzip') {
     try {
-      const decompressed = await gunzipAsync(content)
-      return decompressed.toString('utf-8')
+      const decompressed = gunzipSync(content)
+      return strFromU8(decompressed)
     } catch (error: any) {
       throw new Error(`Failed to decompress gzipped content: ${error.message}`)
     }
   }
-  
+
   throw new Error(`Unsupported compression type: ${compressionType}`)
 }
 
@@ -124,7 +120,7 @@ export async function uploadBackupFile(
     const filePath = fileKey
 
     const { compressed, originalSize, compressedSize, compressionType } = await compressContent(content)
-    const contentHash = calculateContentHash(compressed)
+    const contentHash = calculateContentHash(Buffer.from(compressed))
 
     const blob = hubBlob()
     if (!fileKey || fileKey.length === 0) {
@@ -140,8 +136,10 @@ export async function uploadBackupFile(
 
       // Always use the compressed data (whether actually compressed or not) for consistency
       // This ensures upload/download symmetry
-      const uint8Array = new Uint8Array(compressed)
-      uploadData = new Blob([uint8Array], {
+      const ab = compressed.byteOffset === 0 && compressed.byteLength === compressed.buffer.byteLength
+        ? (compressed.buffer as ArrayBuffer)
+        : compressed.slice().buffer as ArrayBuffer
+      uploadData = new Blob([ab], {
         type: compressionType === 'gzip' ? 'application/octet-stream' : 'application/json'
       })
 
@@ -183,8 +181,8 @@ export async function downloadBackupFile(
     if (!file) { throw new Error('Backup file not found in R2 storage') }
 
     const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const content = await decompressContent(buffer, compressionType)
+    const u8 = new Uint8Array(arrayBuffer)
+    const content = await decompressContent(u8, compressionType)
 
     return {
       content,

@@ -1,4 +1,4 @@
-import { generateBackupFilePath, calculateContentHash } from '~/server/utils/backup-storage'
+import { zipSync } from 'fflate'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
@@ -179,16 +179,14 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Build ZIP (STORE, no compression) using in-memory utility
-  const { createZip } = await import('~/server/utils/zip')
-  const files: { name: string; data: Uint8Array }[] = []
   const enc = new TextEncoder()
+  const filesMap: Record<string, Uint8Array> = {}
 
-  files.push({ name: `quotes.${format}`, data: enc.encode(serialize(quotes, format, 'quotes', 'quote')) })
-  files.push({ name: `authors.${format}`, data: enc.encode(serialize(authors, format, 'authors', 'author')) })
-  files.push({ name: `references.${format}`, data: enc.encode(serialize(references, format, 'references', 'reference')) })
-  files.push({ name: `users.${format}`, data: enc.encode(serialize(users, format, 'users', 'user')) })
-  files.push({ name: `tags.${format}`, data: enc.encode(serialize(tags, format, 'tags', 'tag')) })
+  filesMap[`quotes.${format}`] = enc.encode(serialize(quotes, format, 'quotes', 'quote'))
+  filesMap[`authors.${format}`] = enc.encode(serialize(authors, format, 'authors', 'author'))
+  filesMap[`references.${format}`] = enc.encode(serialize(references, format, 'references', 'reference'))
+  filesMap[`users.${format}`] = enc.encode(serialize(users, format, 'users', 'user'))
+  filesMap[`tags.${format}`] = enc.encode(serialize(tags, format, 'tags', 'tag'))
 
   if (include_metadata) {
     const meta = {
@@ -200,10 +198,10 @@ export default defineEventHandler(async (event) => {
       include_moderation_data,
       include_analytics,
     }
-    files.push({ name: 'README.txt', data: enc.encode(`Verbatims Combined Export\n${JSON.stringify(meta, null, 2)}`) })
+    filesMap['README.txt'] = enc.encode(`Verbatims Combined Export\n${JSON.stringify(meta, null, 2)}`)
   }
 
-  const content = createZip(files)
+  const content = zipSync(filesMap, { level: 0 })
   // Convert to ArrayBuffer for consistent Blob handling (and for upload)
   const ab = content.byteOffset === 0 && content.byteLength === content.buffer.byteLength
     ? (content.buffer as ArrayBuffer)
@@ -286,5 +284,5 @@ export default defineEventHandler(async (event) => {
   })
 
   await updateBackupFileStatus(db, backupId, 'stored', new Date())
-  return new Blob([ab])
+  return new Blob([ab], { type: 'application/zip' })
 })

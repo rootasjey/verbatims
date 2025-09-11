@@ -11,13 +11,14 @@ export async function createBackupFile(db: any, data: CreateBackupFileData): Pro
     const expiresAt = data.retention_days ? new Date(Date.now() + data.retention_days * 24 * 60 * 60 * 1000).toISOString() : null
     const result = await db.prepare(`
       INSERT INTO backup_files (
-        file_key, export_log_id, filename, file_path, file_size, 
-        compressed_size, content_hash, compression_type, retention_days, 
+        file_key, export_log_id, import_log_id, filename, file_path, file_size,
+        compressed_size, content_hash, compression_type, retention_days,
         expires_at, metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.file_key,
       data.export_log_id || null,
+      data.import_log_id || null,
       data.filename,
       data.file_path,
       data.file_size,
@@ -195,6 +196,7 @@ async function ensureBackupFilesTable(db: any): Promise<void> {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         file_key TEXT NOT NULL UNIQUE,
         export_log_id INTEGER,
+        import_log_id INTEGER,
         filename TEXT NOT NULL,
         file_path TEXT NOT NULL,
         file_size INTEGER,
@@ -209,7 +211,8 @@ async function ensureBackupFilesTable(db: any): Promise<void> {
         last_accessed_at DATETIME,
         access_count INTEGER DEFAULT 0,
         metadata TEXT,
-        FOREIGN KEY (export_log_id) REFERENCES export_logs(id) ON DELETE CASCADE
+        FOREIGN KEY (export_log_id) REFERENCES export_logs(id) ON DELETE CASCADE,
+        FOREIGN KEY (import_log_id) REFERENCES import_logs(id) ON DELETE SET NULL
       )`
     ).run()
   } catch (error) {

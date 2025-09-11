@@ -698,6 +698,8 @@ export interface BackupFile {
   file_key: string
   /** Link to export_logs (optional for standalone backups) */
   export_log_id: number | null
+  /** Link to import_logs (optional for import backups) */
+  import_log_id: number | null
   /** Original filename */
   filename: string
   /** Full R2 path (archives/YYYY-MM-DD/filename) */
@@ -757,6 +759,7 @@ export interface CreateBackupFileData {
   file_key: string
   /** Link to export log (optional) */
   export_log_id?: number
+  import_log_id?: number
   /** Original filename */
   filename: string
   /** Full R2 path */

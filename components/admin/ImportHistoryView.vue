@@ -87,10 +87,14 @@
                   :color="getStatusColor(importItem.status)"
                   :label="importItem.status.toUpperCase()"
                 />
+                <UBadge
+                  color="gray"
+                  :label="(importItem.dataType || 'unknown').toUpperCase()"
+                />
                 <span class="text-sm text-gray-500">{{ importItem.id }}</span>
               </div>
               
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-3">
                 <div>
                   <span class="font-medium">Total Records:</span>
                   {{ importItem.totalRecords }}
@@ -102,6 +106,10 @@
                 <div>
                   <span class="font-medium">Failed:</span>
                   <span class="text-red-600">{{ importItem.failedRecords }}</span>
+                </div>
+                <div>
+                  <span class="font-medium">Warnings:</span>
+                  <span class="text-yellow-600">{{ importItem.warningCount }}</span>
                 </div>
                 <div>
                   <span class="font-medium">Duration:</span>
@@ -193,18 +201,31 @@
             Import Details - {{ selectedImport.id }}
           </h3>
         </template>
-        
+
         <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div><strong>Status:</strong> {{ selectedImport.status }}</div>
+            <div><strong>Type:</strong> {{ (selectedImport.dataType || 'unknown').toUpperCase() }}</div>
             <div><strong>Total Records:</strong> {{ selectedImport.totalRecords }}</div>
             <div><strong>Successful:</strong> {{ selectedImport.successfulRecords }}</div>
             <div><strong>Failed:</strong> {{ selectedImport.failedRecords }}</div>
-            <div><strong>Errors:</strong> {{ selectedImport.errorCount }}</div>
             <div><strong>Warnings:</strong> {{ selectedImport.warningCount }}</div>
           </div>
-          
-          <!-- Show detailed errors/warnings here -->
+
+          <div v-if="importDetails?.warnings?.length > 0">
+            <h4 class="font-medium text-yellow-600 mb-2">Warnings</h4>
+            <div class="max-h-40 overflow-y-auto space-y-1">
+              <div
+                v-for="(warning, index) in importDetails.warnings"
+                :key="index"
+                class="text-sm text-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded"
+              >
+                {{ warning }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Detailed errors -->
           <div v-if="importDetails?.errors?.length > 0">
             <h4 class="font-medium text-red-600 mb-2">Errors</h4>
             <div class="max-h-40 overflow-y-auto space-y-1">
@@ -217,8 +238,29 @@
               </div>
             </div>
           </div>
+
+          <!-- Backup snapshots linked to this import -->
+          <div>
+            <h4 class="font-medium mb-2">Backup Snapshots</h4>
+            <div v-if="importBackups.length === 0" class="text-sm text-gray-500">No backups found for this import.</div>
+            <ul v-else class="space-y-2">
+              <li v-for="file in importBackups" :key="file.id" class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2">
+                  <UBadge color="gray" :label="(file.metadata?.data_type || 'unknown').toUpperCase()" />
+                  <span class="truncate max-w-[50ch]" :title="file.file_path">{{ file.filename }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-500">{{ new Date(file.created_at).toLocaleString() }}</span>
+                  <UButton size="xs" btn="ghost" :to="file.downloadUrl" target="_blank">
+                    <UIcon name="i-ph-download" />
+                    Download
+                  </UButton>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
-        
+
         <template #footer>
           <div class="flex justify-end gap-2">
             <UButton
@@ -249,6 +291,7 @@ const pagination = ref(null)
 const showDetailsModal = ref(false)
 const selectedImport = ref(null)
 const importDetails = ref(null)
+const importBackups = ref([])
 
 const statusOptions = [
   { label: 'All Statuses', value: '' },
@@ -298,14 +341,18 @@ const viewProgress = (importId) => {
 
 const viewDetails = async (importItem) => {
   selectedImport.value = importItem
-  
+
   try {
-    const response = await $fetch(`/api/admin/import/progress/${importItem.id}`)
-    importDetails.value = response.data
+    const [progressRes, backupsRes] = await Promise.all([
+      $fetch(`/api/admin/import/progress/${importItem.id}`),
+      $fetch(`/api/admin/import/backups/${importItem.id}`)
+    ])
+    importDetails.value = progressRes.data
+    importBackups.value = backupsRes?.data?.files || []
   } catch (error) {
     console.error('Failed to load import details:', error)
   }
-  
+
   showDetailsModal.value = true
 }
 

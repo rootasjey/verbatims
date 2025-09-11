@@ -3,6 +3,119 @@
  * Utilities for handling author/reference lookup and creation during imports
  */
 
+/**
+ * Decodes a base64 string to Uint8Array (Node.js and browser compatible)
+ */
+export function base64ToUint8(base64: string): Uint8Array {
+  if (typeof Buffer !== 'undefined') return new Uint8Array(Buffer.from(base64, 'base64'))
+  const binary = atob(base64)
+  const u8 = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) u8[i] = binary.charCodeAt(i)
+  return u8
+}
+
+/**
+ * Parses ZIP import entries into a normalized bundle and warnings array.
+ * Accepts the entries object from unzipSync, and strFromU8 for decoding.
+ */
+export function parseZipImportEntries(entries: Record<string, Uint8Array>, strFromU8: (u8: Uint8Array) => string): { bundle: Record<string, any[]>; warnings: string[] } {
+  const result: Record<string, any[]> = { references: [], authors: [], tags: [], users: [], quotes: [] }
+  const warnings: string[] = []
+  for (const [name, data] of Object.entries(entries)) {
+    const base = name.split('/').pop() || name
+    const lower = base.toLowerCase()
+    const match = lower.match(/^(quotes|authors|references|users|tags)\.(json|csv|xml)$/)
+    if (!match) { warnings.push(`Skipped unknown file: ${name}`); continue }
+    
+    const type = match[1]
+    const ext = match[2]
+    const text = strFromU8(data as Uint8Array)
+    
+    try {
+      let rows: any[] = []
+      if (ext === 'json') {
+        const parsed = JSON.parse(text)
+        rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.data) ? parsed.data : [])
+      } else if (ext === 'csv') {
+        rows = parseCSV(text)
+      } else if (ext === 'xml') {
+        const singular = type.replace(/s$/, '')
+        rows = parseXMLFlat(text, singular)
+      }
+      
+      if (Array.isArray(rows)) {
+        result[type] = rows
+      } else {
+        warnings.push(`File did not parse to array: ${name}`)
+      }
+    } catch (e: any) {
+      warnings.push(`Failed to parse ${name}: ${e.message}`)
+    }
+  }
+
+  return { bundle: result, warnings }
+}
+
+/**
+ * Parses a CSV string into an array of objects (handles quoted fields)
+ */
+export function parseCSV(text: string): any[] {
+  const lines = text.split(/\r?\n/).filter(l => l.length > 0)
+  if (lines.length === 0) return []
+  const headers = [] as string[]
+  ;(function parseHeader() {
+    const hline = lines.shift() as string
+    let cur = ''
+    let inQ = false
+    for (let i = 0; i < hline.length; i++) {
+      const ch = hline[i]
+      if (ch === '"') inQ = !inQ
+      else if (ch === ',' && !inQ) { headers.push(cur.replace(/^"|"$/g, '').replace(/""/g, '"')); cur = '' }
+      else cur += ch
+    }
+    headers.push(cur.replace(/^"|"$/g, '').replace(/""/g, '"'))
+  })()
+  const rows: any[] = []
+  for (const line of lines) {
+    let cur = ''
+    let inQ = false
+    const cols: string[] = []
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (ch === '"') inQ = !inQ
+      else if (ch === ',' && !inQ) { cols.push(cur.replace(/^"|"$/g, '').replace(/""/g, '"')); cur = '' }
+      else cur += ch
+    }
+    cols.push(cur.replace(/^"|"$/g, '').replace(/""/g, '"'))
+    const obj: any = {}
+    headers.forEach((h, idx) => obj[h] = cols[idx] ?? '')
+    rows.push(obj)
+  }
+  return rows
+}
+
+/**
+ * Parses a flat XML string into an array of objects (for simple import formats)
+ */
+export function parseXMLFlat(text: string, itemTag: string): any[] {
+  const items: any[] = []
+  const itemRegex = new RegExp(`<${itemTag}>([\s\S]*?)<\/${itemTag}>`, 'g')
+  let m: RegExpExecArray | null
+  while ((m = itemRegex.exec(text)) !== null) {
+    const block = m[1]
+    const obj: any = {}
+    const fieldRegex = /<([A-Za-z0-9_:-]+)>([\s\S]*?)<\/\1>/g
+    let f: RegExpExecArray | null
+    while ((f = fieldRegex.exec(block)) !== null) {
+      const key = f[1]
+      const val = f[2].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      obj[key] = val
+    }
+    items.push(obj)
+  }
+  return items
+}
+
 interface ImportAuthor {
   id?: string
   name: string

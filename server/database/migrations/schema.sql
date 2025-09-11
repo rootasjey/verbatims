@@ -282,26 +282,67 @@ CREATE TABLE IF NOT EXISTS export_logs (
 );
 
 -- Backup files stored in Cloudflare R2 via NuxtHub blob storage
+-- Field notes:
+--   file_key: R2 object key (unique identifier)
+--   export_log_id: Link to export_logs (optional for standalone backups)
+--   import_log_id: Link to import_logs (optional for import backups)
+--   filename: Original filename
+--   file_path: Full R2 path (archives/YYYY-MM-DD/filename)
+--   compressed_size: Compressed size if gzipped
+--   content_hash: SHA-256 hash for integrity verification
+--   compression_type: 'none', 'gzip'
+--   retention_days: Retention period in days
+--   last_accessed_at: Track access for analytics
+--   access_count: Download count
+--   metadata: JSON metadata (export config, etc.)
 CREATE TABLE IF NOT EXISTS backup_files (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  file_key TEXT NOT NULL UNIQUE,           -- R2 object key (unique identifier)
-  export_log_id INTEGER,                   -- Link to export_logs (optional for standalone backups)
-  filename TEXT NOT NULL,                  -- Original filename
-  file_path TEXT NOT NULL,                 -- Full R2 path (archives/YYYY-MM-DD/filename)
-  file_size INTEGER,                       -- File size in bytes
-  compressed_size INTEGER,                 -- Compressed size if gzipped
-  content_hash TEXT,                       -- SHA-256 hash for integrity verification
-  compression_type TEXT DEFAULT 'none',   -- 'none', 'gzip'
+  file_key TEXT NOT NULL UNIQUE,
+  export_log_id INTEGER,
+  import_log_id INTEGER,
+  filename TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size INTEGER,
+  compressed_size INTEGER,
+  content_hash TEXT,
+  compression_type TEXT DEFAULT 'none',
   storage_status TEXT DEFAULT 'uploading' CHECK (storage_status IN ('uploading', 'stored', 'failed', 'expired')),
-  retention_days INTEGER DEFAULT 90,      -- Retention period in days
+  retention_days INTEGER DEFAULT 90,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  uploaded_at DATETIME,                    -- When upload completed
-  expires_at DATETIME,                     -- Calculated expiration date
-  last_accessed_at DATETIME,              -- Track access for analytics
-  access_count INTEGER DEFAULT 0,         -- Download count
-  metadata TEXT,                           -- JSON metadata (export config, etc.)
-  FOREIGN KEY (export_log_id) REFERENCES export_logs(id) ON DELETE CASCADE
+  uploaded_at DATETIME,
+  expires_at DATETIME,
+  last_accessed_at DATETIME,
+  access_count INTEGER DEFAULT 0,
+  metadata TEXT,
+  
+  FOREIGN KEY (export_log_id) REFERENCES export_logs(id) ON DELETE CASCADE,
+  FOREIGN KEY (import_log_id) REFERENCES import_logs(id) ON DELETE CASCADE
 );
+
+
+-- Import logs for tracking admin data imports (unified for all data types)
+CREATE TABLE IF NOT EXISTS import_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  import_id TEXT NOT NULL UNIQUE,
+  filename TEXT,
+  format TEXT NOT NULL,
+  data_type TEXT NOT NULL CHECK (data_type IN ('all', 'authors', 'quotes', 'references', 'tags', 'users')),
+  record_count INTEGER,
+  successful_count INTEGER,
+  failed_count INTEGER,
+  warnings_count INTEGER,
+  user_id INTEGER,
+  options TEXT,
+  status TEXT NOT NULL CHECK (status IN ('pending','processing','completed','failed')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at DATETIME,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Import logs indexes
+CREATE INDEX IF NOT EXISTS idx_import_logs_import_id ON import_logs(import_id);
+CREATE INDEX IF NOT EXISTS idx_import_logs_status ON import_logs(status);
+CREATE INDEX IF NOT EXISTS idx_import_logs_created ON import_logs(created_at DESC);
 
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
@@ -364,6 +405,8 @@ CREATE INDEX IF NOT EXISTS idx_export_logs_created ON export_logs(created_at DES
 CREATE INDEX IF NOT EXISTS idx_export_logs_expires ON export_logs(expires_at);
 
 -- Backup files indexes
+CREATE INDEX IF NOT EXISTS idx_backup_files_import_log ON backup_files(import_log_id);
+
 CREATE INDEX IF NOT EXISTS idx_backup_files_file_key ON backup_files(file_key);
 CREATE INDEX IF NOT EXISTS idx_backup_files_export_log ON backup_files(export_log_id);
 CREATE INDEX IF NOT EXISTS idx_backup_files_status ON backup_files(storage_status);

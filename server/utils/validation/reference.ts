@@ -8,9 +8,6 @@ export const validPrimaryTypes = [
 
 export const validLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh'] as const
 
-// URL regex is brittle; rely on z.string().url() for basic validation
-const UrlString = z.string().url().max(2000)
-
 export const ReferenceSchema = z.object({
   name: z.string().min(2).max(200),
   original_language: z.enum(validLanguages).optional(),

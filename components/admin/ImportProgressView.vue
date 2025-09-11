@@ -159,13 +159,13 @@
       </div>
     </UCard>
 
-    <!-- Failed Records Modal -->
-    <UModal v-model="showFailedRecords">
+    <!-- Failed Records Dialog -->
+    <UDialog v-model:open="showFailedRecords">
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Failed Records</h3>
         </template>
-        
+
         <div class="space-y-2 max-h-96 overflow-y-auto">
           <div
             v-for="(error, index) in allErrors"
@@ -175,14 +175,14 @@
             {{ error }}
           </div>
         </div>
-        
+
         <template #footer>
           <div class="flex justify-end">
             <UButton @click="showFailedRecords = false">Close</UButton>
           </div>
         </template>
       </UCard>
-    </UModal>
+    </UDialog>
   </div>
 </template>
 
@@ -198,7 +198,38 @@ const props = defineProps({
 const progress = ref(null)
 const showFailedRecords = ref(false)
 const allErrors = ref([])
-const polling = ref(null)
+const polling = ref<any>(null)
+const esRef = ref<EventSource | null>(null)
+
+const startSSE = () => {
+  if (esRef.value) return
+  try {
+    const es = new EventSource(`/api/admin/import/progress/${props.importId}`)
+    es.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data)
+        progress.value = data
+        // Stop polling if SSE active
+        if (polling.value) { clearInterval(polling.value); polling.value = null }
+        if (data?.status === 'completed' || data?.status === 'failed') {
+          es.close(); esRef.value = null
+        }
+      } catch {}
+    }
+    es.onerror = () => {
+      // Fallback to polling
+      try { es.close() } catch {}
+      esRef.value = null
+      if (isActive.value && !polling.value) {
+        polling.value = setInterval(fetchProgress, 2000)
+      }
+    }
+    esRef.value = es
+  } catch (e) {
+    // Fallback to polling if EventSource fails
+    if (isActive.value && !polling.value) polling.value = setInterval(fetchProgress, 2000)
+  }
+}
 
 // Computed
 const isActive = computed(() => {
@@ -270,17 +301,15 @@ const formatDuration = (milliseconds) => {
 // Lifecycle
 onMounted(() => {
   fetchProgress()
-  
-  // Start polling if import is active
-  if (isActive.value) {
-    polling.value = setInterval(fetchProgress, 2000) // Poll every 2 seconds
+  startSSE()
+  if (isActive.value && !polling.value && !esRef.value) {
+    polling.value = setInterval(fetchProgress, 2000)
   }
 })
 
 onUnmounted(() => {
-  if (polling.value) {
-    clearInterval(polling.value)
-  }
+  if (polling.value) clearInterval(polling.value)
+  if (esRef.value) { try { esRef.value.close() } catch {} esRef.value = null }
 })
 
 // Watch for status changes to start/stop polling
