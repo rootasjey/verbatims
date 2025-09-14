@@ -28,6 +28,13 @@ export default defineEventHandler(async (event) => {
   const db = hubDatabase()
 
   // Lightweight fetchers; rely on per-route builders if needed later
+
+  // Place fetchQuoteTags after db is defined
+  async function fetchQuoteTags() {
+    const query = 'SELECT * FROM quote_tags';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
   async function fetchQuotes() {
     let query = `
       SELECT q.*,
@@ -125,7 +132,6 @@ export default defineEventHandler(async (event) => {
     return queryResponse.results || []
   }
 
-
   async function fetchUsers() {
     let query = 'SELECT u.* FROM users u'
     const bindings: any[] = []
@@ -146,9 +152,98 @@ export default defineEventHandler(async (event) => {
     return queryResponse.results || []
   }
 
+  // User-related fetchers
+  async function fetchUserLikes() {
+    const query = 'SELECT * FROM user_likes';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  async function fetchUserCollections() {
+    const query = 'SELECT * FROM user_collections';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  async function fetchCollectionQuotes() {
+    const query = 'SELECT * FROM collection_quotes';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  async function fetchUserSessions() {
+    const query = 'SELECT * FROM user_sessions';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  async function fetchUserMessages() {
+    const query = 'SELECT * FROM user_messages';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  // Moderation-related fetchers
+  async function fetchQuoteReports() {
+    const query = 'SELECT * FROM quote_reports';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  // Analytics-related fetchers
+  async function fetchQuoteViews() {
+    const query = 'SELECT * FROM quote_views';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  async function fetchAuthorViews() {
+    const query = 'SELECT * FROM author_views';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
+  async function fetchReferenceViews() {
+    const query = 'SELECT * FROM reference_views';
+    const queryResponse = await db.prepare(query).all();
+    return queryResponse.results || [];
+  }
+
   const [quotes, authors, references, users, tags] = await Promise.all([
     fetchQuotes(), fetchAuthors(), fetchReferences(), fetchUsers(), fetchTags()
-  ])
+  ]);
+
+  // Conditionally fetch additional data based on export options
+  let quoteTags: any[] = [];
+  let userLikes: any[] = [], userCollections: any[] = [], collectionQuotes: any[] = [], userSessions: any[] = [], userMessages: any[] = [];
+  let quoteReports: any[] = [];
+  let quoteViews: any[] = [], authorViews: any[] = [], referenceViews: any[] = [];
+
+  if (include_relations) {
+    quoteTags = await fetchQuoteTags();
+  }
+
+  if (include_user_data) {
+    [userLikes, userCollections, collectionQuotes, userSessions, userMessages] = await Promise.all([
+      fetchUserLikes(),
+      fetchUserCollections(),
+      fetchCollectionQuotes(),
+      fetchUserSessions(),
+      fetchUserMessages()
+    ]);
+  }
+
+  if (include_moderation_data) {
+    quoteReports = await fetchQuoteReports();
+  }
+
+  if (include_analytics) {
+    [quoteViews, authorViews, referenceViews] = await Promise.all([
+      fetchQuoteViews(),
+      fetchAuthorViews(),
+      fetchReferenceViews()
+    ]);
+  }
 
   function toCSV(rows: any[]): string {
     if (!rows || rows.length === 0) return ''
@@ -188,6 +283,32 @@ export default defineEventHandler(async (event) => {
   filesMap[`users.${format}`] = enc.encode(serialize(users, format, 'users', 'user'))
   filesMap[`tags.${format}`] = enc.encode(serialize(tags, format, 'tags', 'tag'))
 
+  // Conditionally include quote_tags if include_relations is true
+  if (include_relations) {
+    filesMap[`quote_tags.${format}`] = enc.encode(serialize(quoteTags, format, 'quote_tags', 'quote_tag'));
+  }
+
+  // Conditionally include user-related tables if include_user_data is true
+  if (include_user_data) {
+    filesMap[`user_likes.${format}`] = enc.encode(serialize(userLikes, format, 'user_likes', 'user_like'));
+    filesMap[`user_collections.${format}`] = enc.encode(serialize(userCollections, format, 'user_collections', 'user_collection'));
+    filesMap[`collection_quotes.${format}`] = enc.encode(serialize(collectionQuotes, format, 'collection_quotes', 'collection_quote'));
+    filesMap[`user_sessions.${format}`] = enc.encode(serialize(userSessions, format, 'user_sessions', 'user_session'));
+    filesMap[`user_messages.${format}`] = enc.encode(serialize(userMessages, format, 'user_messages', 'user_message'));
+  }
+
+  // Conditionally include moderation-related tables if include_moderation_data is true
+  if (include_moderation_data) {
+    filesMap[`quote_reports.${format}`] = enc.encode(serialize(quoteReports, format, 'quote_reports', 'quote_report'));
+  }
+
+  // Conditionally include analytics-related tables if include_analytics is true
+  if (include_analytics) {
+    filesMap[`quote_views.${format}`] = enc.encode(serialize(quoteViews, format, 'quote_views', 'quote_view'));
+    filesMap[`author_views.${format}`] = enc.encode(serialize(authorViews, format, 'author_views', 'author_view'));
+    filesMap[`reference_views.${format}`] = enc.encode(serialize(referenceViews, format, 'reference_views', 'reference_view'));
+  }
+
   if (include_metadata) {
     const meta = {
       generated_at: new Date().toISOString(),
@@ -207,7 +328,10 @@ export default defineEventHandler(async (event) => {
     ? (content.buffer as ArrayBuffer)
     : content.slice().buffer as ArrayBuffer
 
-  const totalRecords = (quotes?.length || 0) + (authors?.length || 0) + (references?.length || 0) + (users?.length || 0) + (tags?.length || 0)
+  const totalRecords = (quotes?.length || 0) + (authors?.length || 0) + (references?.length || 0) + (users?.length || 0) + (tags?.length || 0) +
+    (quoteTags?.length || 0) + (userLikes?.length || 0) + (userCollections?.length || 0) + (collectionQuotes?.length || 0) +
+    (userSessions?.length || 0) + (userMessages?.length || 0) + (quoteReports?.length || 0) +
+    (quoteViews?.length || 0) + (authorViews?.length || 0) + (referenceViews?.length || 0)
   const fileSize = content.byteLength
   const exportId = `all_export_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 

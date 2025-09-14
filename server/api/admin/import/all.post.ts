@@ -43,7 +43,10 @@ export default defineEventHandler(async (event) => {
     }
   } else {
     if (!bundle || typeof bundle !== 'object') {
-      throw createError({ statusCode: 400, statusMessage: 'Missing or invalid bundle. Expected an object with references/authors/tags/users/quotes arrays.' })
+      throw createError({ 
+        statusCode: 400, 
+        statusMessage: 'Missing or invalid bundle. Expected an object with references/authors/tags/users/quotes arrays.',
+      })
     }
     parsedBundle = bundle
   }

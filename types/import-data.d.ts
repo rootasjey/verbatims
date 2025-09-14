@@ -37,3 +37,19 @@ export interface ImportOptions {
   retentionDays?: number
   conflict?: ImportConflictOptions
 }
+
+interface ImportSummary {
+  pending: number
+  processing: number
+  completed: number
+  failed: number
+  total: number
+  totalRecordsImported: number
+}
+
+interface ImportPagination {
+  limit: number
+  total: number
+  hasMore: boolean
+  offset: number
+}

@@ -14,7 +14,6 @@
 -- - The script temporarily disables foreign keys while rebuilding the table.
 
 PRAGMA foreign_keys=OFF;
-BEGIN TRANSACTION;
 
 -- Create a new table with the desired FK behaviours
 CREATE TABLE IF NOT EXISTS backup_files_new (
@@ -83,7 +82,6 @@ PRAGMA foreign_keys=ON;
 -- ===========================================================================
 --
 -- PRAGMA foreign_keys=OFF;
--- BEGIN TRANSACTION;
 --
 -- -- Add the column if it doesn't exist. If it already exists this statement
 -- -- will fail; use this combined migration only in fresh DBs where the

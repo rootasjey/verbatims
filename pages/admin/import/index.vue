@@ -1,157 +1,174 @@
 <template>
   <div class="mb-8 space-y-6">
-    <!-- Upload Data File -->
-    <UCollapsible v-model:open="openUpload" title="Upload Data File" :ui="{ base: 'border border-dashed rounded-xl' }">
-      <template #content>
-        <div class="space-y-6 p-4">
-          <UCard>
-            <template #header>
-              <h2 class="text-xl font-semibold">Upload Data File</h2>
-            </template>
-
-            <div class="space-y-4">
-              <!-- File Upload -->
-              <div>
-                <label class="block text-sm font-medium mb-2">Select File</label>
-                <input
-                  ref="fileInput"
-                  type="file"
-                  accept=".json,.csv,.xml,.zip"
-                  @change="handleFileSelect"
-                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                />
-                <p class="mt-1 text-sm text-gray-500">
-                  Supported formats: JSON (.json), CSV (.csv), XML (.xml), All (ZIP .zip)
-                </p>
-              </div>
-
-              <!-- Format Selection -->
-              <div>
-                <label class="block text-sm font-medium mb-2">Data Format</label>
-                <div>
-                  <USelect
-                    v-model="selectedFormat"
-                    :items="formatOptions"
-                    placeholder="Select data format"
-                    item-key="label"
-                    value-key="value"
-                  />
-                </div>
-                <p v-if="selectedFormat?.value === 'zip'" class="mt-2 text-xs text-gray-500">
-                  Dependency order for ALL imports: users → authors → references → tags → quotes
-                </p>
-              </div>
-
-              <!-- Data Type (for non-ZIP imports) -->
-              <div v-if="selectedFormat?.value !== 'zip'">
-                <label class="block text-sm font-medium mb-2">Data Type</label>
-                <div>
-                  <USelect
-                    v-model="selectedDataType"
-                    :items="dataTypeOptions"
-                    placeholder="Select data type"
-                    item-key="label"
-                    value-key="value"
-                  />
-                </div>
-              </div>
-
-              <!-- Import Options -->
-              <div class="space-y-3">
-                <h3 class="text-sm font-medium">Import Options</h3>
-                <UCheckbox v-model="importOptions.createBackup" label="Create backup before import" help="Recommended for production imports" />
-                <UCheckbox v-model="importOptions.ignoreValidationErrors" label="Ignore validation errors" help="Import data even if validation fails (not recommended)" />
-                <div>
-                  <label class="block text-sm font-medium mb-1">Batch Size</label>
-                  <UInput v-model.number="importOptions.batchSize" type="number" min="1" max="1000" placeholder="50" />
-                  <p class="mt-1 text-xs text-gray-500">Number of records to process at once (1-1000)</p>
-                </div>
-              </div>
-
-              <!-- Actions -->
-              <div class="flex gap-3 pt-4">
-                <UButton :disabled="!selectedFile || !selectedFormat" :loading="isValidating" btn="soft-blue" @click="validateData">Validate Data</UButton>
-                <UButton v-if="validationResult" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" btn="soft-green" @click="startImport">Start Import</UButton>
-              </div>
+    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+      <template #content="{ item }">
+        <div v-if="item.value === 'import'" class="mt-6 space-y-6">
+          <UCollapsible v-model:open="openUpload" title="Upload Data File" :ui="{ base: 'border border-dashed rounded-xl' }">
+            <div class="flex items-center justify-between px-4 space-x-4">
+              <h2 class="text-xl font-semibold">1 • Upload Data File</h2>
+              <UCollapsibleTrigger as-child>
+                <UButton btn="ghost-gray" square>
+                  <UIcon name="i-radix-icons-caret-sort" />
+                </UButton>
+              </UCollapsibleTrigger>
             </div>
-          </UCard>
 
-          <!-- Validation Results -->
-          <UCard v-if="validationResult">
-            <template #header>
-              <div class="flex items-center gap-2">
-                <UIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
-                <h3 class="text-lg font-semibold">Validation {{ validationResult.isValid ? 'Passed' : 'Failed' }}</h3>
-              </div>
-            </template>
-            <div class="space-y-4">
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div class="text-2xl font-bold">{{ previewData.length }}</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">Total Records</div>
-                </div>
-                <div class="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div class="text-2xl font-bold text-red-600">{{ validationResult.errorCount }}</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">Errors</div>
-                </div>
-                <div class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <div class="text-2xl font-bold text-yellow-600">{{ validationResult.warningCount }}</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">Warnings</div>
-                </div>
-                <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div class="text-2xl font-bold text-green-600">{{ previewData.length - validationResult.errorCount }}</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">Valid Records</div>
-                </div>
-              </div>
+            <UCollapsibleContent>
+              <div class="space-y-6 p-4">
+                <UCard>
+                  <template #header>
+                    <h2 class="text-xl font-semibold">Upload Data File</h2>
+                  </template>
 
-              <div v-if="validationResult.errors.length > 0">
-                <h4 class="font-medium text-red-600 mb-2">Validation Errors</h4>
-                <div class="max-h-40 overflow-y-auto space-y-1">
-                  <div v-for="(error, index) in validationResult.errors.slice(0, 10)" :key="index" class="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-2 rounded">{{ error }}</div>
-                  <div v-if="validationResult.errors.length > 10" class="text-sm text-gray-500">... and {{ validationResult.errors.length - 10 }} more errors</div>
-                </div>
-              </div>
+                  <div class="space-y-4">
+                    <!-- File Upload -->
+                    <div>
+                      <label class="block text-sm font-medium mb-2">Select File</label>
+                      <input
+                        ref="fileInput"
+                        type="file"
+                        accept=".json,.csv,.xml,.zip"
+                        @change="handleFileSelect"
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                      />
+                      <p class="mt-1 text-sm text-gray-500">
+                        Supported formats: JSON (.json), CSV (.csv), XML (.xml), All (ZIP .zip)
+                      </p>
+                    </div>
 
-              <div v-if="validationResult.warnings.length > 0">
-                <h4 class="font-medium text-yellow-600 mb-2">Validation Warnings</h4>
-                <div class="max-h-40 overflow-y-auto space-y-1">
-                  <div v-for="(warning, index) in validationResult.warnings.slice(0, 5)" :key="index" class="text-sm text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">{{ warning }}</div>
-                  <div v-if="validationResult.warnings.length > 5" class="text-sm text-gray-500">... and {{ validationResult.warnings.length - 5 }} more warnings</div>
-                </div>
+                    <!-- Format Selection -->
+                    <div>
+                      <label class="block text-sm font-medium mb-2">Data Format</label>
+                      <div>
+                        <USelect
+                          v-model="selectedFormat"
+                          :items="formatOptions"
+                          placeholder="Select data format"
+                          item-key="label"
+                          value-key="value"
+                        />
+                      </div>
+                      <p v-if="selectedFormat?.value === 'zip'" class="mt-2 text-xs text-gray-500">
+                        Dependency order for ALL imports: users → authors → references → tags → quotes
+                      </p>
+                    </div>
+
+                    <!-- Data Type (for non-ZIP imports) -->
+                    <div v-if="selectedFormat?.value !== 'zip'">
+                      <label class="block text-sm font-medium mb-2">Data Type</label>
+                      <div>
+                        <USelect
+                          v-model="selectedDataType"
+                          :items="dataTypeOptions"
+                          placeholder="Select data type"
+                          item-key="label"
+                          value-key="label"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Import Options -->
+                    <div class="space-y-3">
+                      <h3 class="text-sm font-medium">Import Options</h3>
+                      <UCheckbox v-model="importOptions.createBackup" label="Create backup before import" help="Recommended for production imports" />
+                      <UCheckbox v-model="importOptions.ignoreValidationErrors" label="Ignore validation errors" help="Import data even if validation fails (not recommended)" />
+                      <div>
+                        <label class="block text-sm font-medium mb-1">Batch Size</label>
+                        <UInput v-model.number="importOptions.batchSize" type="number" min="1" max="1000" placeholder="50" />
+                        <p class="mt-1 text-xs text-gray-500">Number of records to process at once (1-1000)</p>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-3 pt-4">
+                      <UButton :disabled="!selectedFile || !selectedFormat" :loading="isValidating" btn="soft-blue" @click="validateData">Validate Data</UButton>
+                      <UButton v-if="validationResult" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" btn="soft-green" @click="startImport">Start Import</UButton>
+                    </div>
+                  </div>
+                </UCard>
+
+                <UCard v-if="validationResult">
+                  <template #header>
+                    <div class="flex items-center gap-2">
+                      <UIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
+                      <h3 class="text-lg font-semibold">Validation {{ validationResult.isValid ? 'Passed' : 'Failed' }}</h3>
+                    </div>
+                  </template>
+                  <div class="space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div class="text-2xl font-bold">{{ previewData.length }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Total Records</div>
+                      </div>
+                      <div class="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div class="text-2xl font-bold text-red-600">{{ validationResult.errorCount }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Errors</div>
+                      </div>
+                      <div class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-600">{{ validationResult.warningCount }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Warnings</div>
+                      </div>
+                      <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">{{ previewData.length - validationResult.errorCount }}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Valid Records</div>
+                      </div>
+                    </div>
+
+                    <div v-if="validationResult.errors.length > 0">
+                      <h4 class="font-medium text-red-600 mb-2">Validation Errors</h4>
+                      <div class="max-h-40 overflow-y-auto space-y-1">
+                        <div v-for="(error, index) in validationResult.errors.slice(0, 10)" :key="index" class="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-2 rounded">{{ error }}</div>
+                        <div v-if="validationResult.errors.length > 10" class="text-sm text-gray-500">... and {{ validationResult.errors.length - 10 }} more errors</div>
+                      </div>
+                    </div>
+
+                    <div v-if="validationResult.warnings.length > 0">
+                      <h4 class="font-medium text-yellow-600 mb-2">Validation Warnings</h4>
+                      <div class="max-h-40 overflow-y-auto space-y-1">
+                        <div v-for="(warning, index) in validationResult.warnings.slice(0, 5)" :key="index" class="text-sm text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">{{ warning }}</div>
+                        <div v-if="validationResult.warnings.length > 5" class="text-sm text-gray-500">... and {{ validationResult.warnings.length - 5 }} more warnings</div>
+                      </div>
+                    </div>
+                  </div>
+                </UCard>
+
+                <DataPreviewTable :data="previewData" :type="selectedDataType?.value || 'references'" :max-rows="5" />
               </div>
+            </UCollapsibleContent>
+          </UCollapsible>
+
+          <!-- Import Progress -->
+          <UCollapsible v-model:open="openProgress" title="Import Progress" :ui="{ base: 'border border-dashed rounded-xl' }">
+            <div class="flex items-center justify-between px-4 space-x-4">
+              <h2 class="text-xl font-semibold">2 • Import Progress</h2>
+              <UCollapsibleTrigger as-child>
+                <UButton btn="ghost-gray" square>
+                  <UIcon name="i-radix-icons-caret-sort" />
+                </UButton>
+              </UCollapsibleTrigger>
             </div>
-          </UCard>
+            <UCollapsibleContent>
+              <div class="p-4">
+                <ImportProgress v-if="currentImportId" :import-id="currentImportId" />
+                <div v-else class="text-center py-12 text-gray-500">No active import. Start an import from the Upload section.</div>
+              </div>
+            </UCollapsibleContent>
+          </UCollapsible>
+        </div>
 
-          <!-- Data Preview -->
-          <DataPreviewTable :data="previewData" :type="selectedDataType?.value || 'references'" :max-rows="5" />
+        <div v-else-if="item.value === 'history'">
+          <div class="p-4">
+            <ImportHistory />
+          </div>
         </div>
       </template>
-    </UCollapsible>
-
-    <!-- Import Progress -->
-    <UCollapsible v-model:open="openProgress" title="Import Progress" :ui="{ base: 'border border-dashed rounded-xl' }">
-      <template #content>
-        <div class="p-4">
-          <ImportProgressView v-if="currentImportId" :import-id="currentImportId" />
-          <div v-else class="text-center py-12 text-gray-500">No active import. Start an import from the Upload section.</div>
-        </div>
-      </template>
-    </UCollapsible>
-
-    <!-- Import History -->
-    <UCollapsible v-model:open="openHistory" title="Import History" :ui="{ base: 'border border-dashed rounded-xl' }">
-      <template #content>
-        <div class="p-4">
-          <ImportHistoryView />
-        </div>
-      </template>
-    </UCollapsible>
+    </UTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import ImportProgressView from '~/components/admin/ImportProgressView.vue'
-import ImportHistoryView from '~/components/admin/ImportHistoryView.vue'
+import ImportProgress from '~/components/admin/import/ImportProgress.vue'
+import ImportHistory from '~/components/admin/import/ImportHistory.vue'
 import DataPreviewTable from '~/components/admin/DataPreviewTable.vue'
 
 definePageMeta({
@@ -212,6 +229,16 @@ const dataTypeOptions: SelectOption[] = [
   { label: 'Users', value: 'users' },
   { label: 'Quotes', value: 'quotes' },
 ]
+
+const tabs = [
+  { name: 'Import', value: 'import', icon: 'i-ph-upload-simple' },
+  { name: 'History', value: 'history', icon: 'i-ph-clock-countdown', class: 'border-l border-gray-200 dark:border-gray-700 ml-2 pl-2' }
+]
+
+const activeTab = useLocalStorage<'import' | 'history'>(
+  'verbatims-admin-import-active-tab',
+  'import'
+)
 
 const handleFileSelect = (event: Event) => {
   const input = event.target as HTMLInputElement | null

@@ -121,8 +121,14 @@ export type {
 } from './api-results';
 
 export type {
+  ConflictPolicy,
+  ConflictMode,
   ImportProgress,
   ImportOptions,
+  ImportConflictOptions,
+  ImportSummary,
+  ImportPagination,
+  UpdateStrategy,
 } from './import-data';
 
 export {

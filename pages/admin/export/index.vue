@@ -23,11 +23,11 @@
     <UTabs v-model="activeTab" :items="mainTabs" class="w-full">
       <template #content="{ item }">
         <div v-if="['export'].includes(item.value)">
-          <AdminExportCreate />
+          <ExportCreate />
         </div>
 
         <div v-else-if="item.value === 'history'">
-          <AdminExportHistory @go-to-export="activeTab = 'export'" />
+          <ExportHistory @go-to-export="activeTab = 'export'" />
         </div>
       </template>
     </UTabs>
@@ -64,8 +64,8 @@
 </template>
 
 <script setup lang="ts">
-import AdminExportCreate from '~/components/admin/export/AdminExportCreate.vue'
-import AdminExportHistory from '~/components/admin/export/AdminExportHistory.vue'
+import ExportCreate from '~/components/admin/export/ExportCreate.vue'
+import ExportHistory from '~/components/admin/export/ExportHistory.vue'
 import { useLocalStorage } from '@vueuse/core'
 
 definePageMeta({
