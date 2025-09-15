@@ -266,55 +266,20 @@
       :quote="selectedQuote"
       @edit="editQuote"
     />
+
+    <DeleteDraftDialog
+      v-model:open="showDeleteModal"
+      :deleting="deleting"
+      @delete-draft="deleteDraft"
+    />
   </div>
 
-  <!-- Delete Confirmation Modal -->
-  <UDialog v-model:open="showDeleteModal">
-    <UCard>
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete Draft</h3>
-      </template>
-      
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Are you sure you want to delete this draft? This action cannot be undone.
-      </p>
-      
-      <template #footer>
-        <div class="flex justify-end space-x-3">
-          <UButton btn="outline" @click="showDeleteModal = false">
-            Cancel
-          </UButton>
-          <UButton
-            color="red"
-            :loading="deleting"
-            @click="deleteDraft"
-          >
-            Delete
-          </UButton>
-        </div>
-      </template>
-    </UCard>
-  </UDialog>
-
-  <!-- Bulk Delete Confirmation -->
-  <UDialog v-model="showBulkDeleteModal">
-    <UCard>
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'Draft' : 'Drafts' }}</h3>
-      </template>
-
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        You are about to delete {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }}. This action cannot be undone.
-      </p>
-
-      <template #footer>
-        <div class="flex justify-end space-x-3">
-          <UButton btn="ghost" @click="showBulkDeleteModal = false">Cancel</UButton>
-          <UButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</UButton>
-        </div>
-      </template>
-    </UCard>
-  </UDialog>
+  <DeleteQuoteInBulkDialog
+    v-model:open="showBulkDeleteModal"
+    :deleting="bulkProcessing"
+    :selected-quotes="selectedQuotesData"
+    @bulk-delete="bulkDelete"
+  />
 
   <AddQuoteDialog
     v-model="showEditQuoteDialog"
@@ -327,6 +292,7 @@
 import type { LanguageOption } from '~/stores/language'
 import type { AdminQuote } from '~/types'
 import { formatRelativeTime } from '~/utils/time-formatter'
+import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -362,6 +328,11 @@ const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
+
+// Get actual quote data for selected quotes
+const selectedQuotesData = computed<AdminQuote[]>(() => 
+  quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
+)
 
 // Smoothly show/hide bulk actions based on selection
 watch(selectedQuotes, (ids) => {

@@ -5,6 +5,7 @@
       <p class="text-sm text-gray-500 relative -top-2">
         A home for timeless words — curated, searchable, and crafted for daily inspiration.
       </p>
+      <p class="text-sm font-600 text-gray-500 relative -top-6">version: {{ version }}</p>
     </div>
 
     <section>
@@ -145,6 +146,8 @@
 </template>
 
 <script setup lang="ts">
+import { version } from '@/types/version';
+
 useHead({
   title: 'About \u2022 Verbatims',
   meta: [

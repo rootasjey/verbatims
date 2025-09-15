@@ -77,6 +77,9 @@
           <li>
             <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">Terms & Condition</NuxtLink>
           </li>
+          <li>
+            <p class="color-gray-500 font-600">Version: {{ version }}</p>
+          </li>
         </ul>
       </div>
     </div>
@@ -84,6 +87,8 @@
 </template>
 
 <script setup lang="ts">
+import { version } from '@/types/version';
+
 const { user } = useUserSession()
 const year = new Date().getFullYear()
 const isAdmin = computed(() => user.value?.role === 'admin')

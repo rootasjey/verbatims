@@ -187,9 +187,13 @@
                   @click="selectResult(author, 'author')"
                 >
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                      <UIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    </div>
+                    <UAvatar :src="author.image_url" :alt="author.name" size="md">
+                      <template #fallback>
+                        <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                          <UIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                        </div>
+                      </template>
+                    </UAvatar>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 dark:text-white" v-html="highlightText(author.name)"></p>
                       <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</p>
@@ -216,9 +220,13 @@
                   @click="selectResult(reference, 'reference')"
                 >
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                      <UIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    </div>
+                    <UAvatar :src="reference.image_url" :alt="reference.name" size="md">
+                      <template #fallback>
+                        <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                          <UIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                        </div>
+                      </template>
+                    </UAvatar>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 dark:text-white" v-html="highlightText(reference.name)"></p>
                       <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ reference.primary_type.replace('_', ' ') }}</p>
@@ -252,22 +260,20 @@
 </template>
 
 <script lang="ts" setup>
-import type { Ref, ComponentPublicInstance } from 'vue'
 import type {
-  ProcessedQuoteResult,
   AuthorSearchResult,
+  ProcessedQuoteResult,
+  QuoteReferencePrimaryType,
   ReferenceSearchResult,
 } from '~/types'
-import type { QuoteReferencePrimaryType } from '~/types'
+
 import { useSearchStore } from '~/stores/search'
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false
-  }
-})
+interface Props {
+  modelValue: boolean
+}
 
+const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const isOpen = computed({
@@ -280,6 +286,7 @@ const storeQuery = computed({
   get: () => searchStore.query,
   set: (v: string) => searchStore.setQuery(v)
 })
+
 const searchResults = computed(() => searchStore.results)
 const loading = computed(() => searchStore.loading)
 const selectedIndex = ref<number>(-1)

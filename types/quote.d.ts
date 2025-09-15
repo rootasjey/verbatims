@@ -103,6 +103,15 @@ export interface CreateQuoteData {
   name: string;
   language?: QuoteLanguage;
   author_id?: number;
+  new_author?: {
+    name: string;
+    is_fictional?: boolean;
+  };
+  new_reference?: {
+    name: string;
+    primary_type: QuoteReferencePrimaryType;
+    original_language?: QuoteLanguage;
+  };
   reference_id?: number;
   user_id: number;
   status?: QuoteStatus;

@@ -60,7 +60,7 @@ export interface QuoteReference {
   secondary_type: string | null;
   
   /** URL to cover image or poster */
-  image_url: string | null;
+  image_url?: string;
   
   /** JSON string containing related URLs */
   urls: string;

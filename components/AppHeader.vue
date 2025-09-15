@@ -43,19 +43,23 @@
 
       <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
         <div class="flex">
-          <UButton
+          <UTooltip content="Add Quote (Ctrl/Cmd+N)" placement="bottom">
+            <UButton
             icon
             btn="ghost-gray"
             label="i-ph-quotes-duotone"
             @click="showAddQuote = true"
-            title="Add Quote (Ctrl/Cmd+N)"
-          />
-          <UButton
-            icon
-            btn="ghost-gray"
-            label="i-ph-magnifying-glass-duotone"
-            @click="showSearch = true"
-          />
+            />
+          </UTooltip>
+
+          <UTooltip content="Search (Ctrl/Cmd+K)" placement="bottom">
+            <UButton
+              icon
+              btn="ghost-gray"
+              label="i-ph-magnifying-glass-duotone"
+              @click="showSearch = true"
+            />
+          </UTooltip>
 
           <UserMenu v-if="user" :user="user" />
           <UButton v-else btn="soft" to="/login" class="font-800 relative left-2">
@@ -77,14 +81,20 @@
   />
   
   <ReportDialog
-      v-model="showReportDrawer"
-      :target-type="reportTargetType"
-      :category="reportCategory"
-    />
+    v-model="showReportDrawer"
+    :target-type="reportTargetType"
+    :category="reportCategory"
+  />
+
+  <!-- Display version number -->
+  <div class="text-center text-xs text-gray-500 dark:text-gray-400 py-2">
+    Version: {{ version }}
+  </div>
 </template>
 
 <script lang="ts" setup>
 import type { ReportTargetType, ReportCategory } from '~/types';
+import { version } from '@/types/version';
 
 const { isMobile } = useMobileDetection()
 
@@ -120,16 +130,19 @@ const navMenuItems = computed(() => [
     items: [
       {
         label: 'Authors',
+        leading: 'i-ph-users-duotone',
         description: 'Browse quotes by author',
         to: '/authors'
       },
       {
         label: 'References',
+        leading: 'i-ph-book-duotone',
         description: 'Explore books, films, and more',
         to: '/references'
       },
       {
         label: 'Quotes',
+        leading: 'i-ph-quotes',
         description: 'Explore quotes from various sources',
         to: '/quotes'
       },
@@ -141,11 +154,13 @@ const navMenuItems = computed(() => [
     items: [
       {
         label: 'Add Quote',
+        leading: 'i-ph-quotes-duotone',
         description: 'Contribute a new quote',
         onclick: () => { showAddQuote.value = true }
       },
       {
         label: 'Suggest Edit',
+        leading: 'i-ph-pencil-duotone',
         description: 'Suggest an edit to an existing quote',
         onclick: () => {
           reportTargetType.value = 'quote'
@@ -155,6 +170,7 @@ const navMenuItems = computed(() => [
       },
       {
         label: 'Report Issue',
+        leading: 'i-ph-bug-duotone',
         description: 'Report a problem or bug',
         onclick: () => {
           reportCategory.value = 'bug'
@@ -175,22 +191,34 @@ const navMenuItems = computed(() => [
       {
         label: 'Contact',
         description: 'Get in touch with us',
-        to: '/contact'
+        onclick: () => {
+          reportTargetType.value = 'general'
+          reportCategory.value = 'feedback'
+          showReportDrawer.value = true
+        }
       },
       {
         label: 'Privacy Policy',
+        leading: 'i-ph-shield-check-duotone',
         description: 'Read our privacy policy',
         to: '/privacy'
       },
       {
         label: 'Terms',
+        leading: 'i-ph-file-text-duotone',
         description: 'Read our terms of service',
         to: '/terms'
       },
       {
         label: 'Licenses',
+        leading: 'i-ph-book-open-duotone',
         description: 'Read our licenses',
         to: '/licenses'
+      },
+      {
+        label: 'Version',
+        leading: 'i-ph-git-branch-duotone',
+        description: version,
       },
     ]
   }

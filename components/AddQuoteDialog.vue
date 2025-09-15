@@ -206,9 +206,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Author } from '~/types/author'
-import type { QuoteReference } from '~/types/quote-reference'
-import type { QuoteWithRelations, AdminQuote } from '~/types/quote'
+import type {
+  Author, QuoteReference, QuoteWithRelations,
+  AdminQuote, CreateQuoteData, QuoteLanguage,
+} from '~/types'
 
 interface Props {
   modelValue: boolean
@@ -530,7 +531,7 @@ const createNewReference = () => {
     description: null,
     primary_type: 'other',
     secondary_type: null,
-    image_url: null,
+    image_url: undefined,
     urls: '{}',
     views_count: 0,
     likes_count: 0,
@@ -601,65 +602,103 @@ const closeDialog = () => {
 
 // Watch for editQuote changes to initialize form
 watch(() => props.editQuote, (newQuote) => {
-  if (newQuote) {
-    initializeFormForEdit()
-  } else {
-    resetForm()
-  }
+  if (newQuote) initializeFormForEdit()
+  else resetForm()
 }, { immediate: true })
 
-const submitQuote = async () => {
-  if (!form.value.content.trim() || !user.value) return
+const showContentEmptyError = () => {
+  useToast().toast({
+    title: 'Content Required',
+    description: 'Please enter the quote content before submitting.'
+  })
+}
 
+const showNotLoggedInError = () => {
+  useToast().toast({
+    title: 'Not Logged In',
+    description: 'You must be logged in to submit a quote.',
+    actions: [
+      {
+        label: 'Log In',
+        btn: 'primary',
+        altText: 'Log in to your account',
+        onClick: () => {
+          navigateTo('/login')
+          closeDialog()
+        }
+      },
+      {
+        label: 'Create Account',
+        btn: 'ghost',
+        altText: 'Create a new account',
+        onClick: () => {
+          navigateTo('/signup')
+          closeDialog()
+        }
+      }
+    ]
+  })
+}
+
+const submitQuote = async () => {
+  if (!form.value.content.trim()) { showContentEmptyError(); return }
+  if (!user.value) { showNotLoggedInError(); return }
   submitting.value = true
+
   try {
-    const payload = {
+    const payload: CreateQuoteData = {
       name: form.value.content.trim(),
-      language: form.value.language.value,
-      author_id: form.value.selectedAuthor?.id || null,
-      reference_id: form.value.selectedReference?.id || null,
-      // Include new author/reference data if needed
+      language: form.value.language.value as QuoteLanguage,
+      author_id: form.value.selectedAuthor?.id,
+      reference_id: form.value.selectedReference?.id,
       new_author: form.value.selectedAuthor?.id === 0 ? {
         name: form.value.selectedAuthor.name,
         is_fictional: false
-      } : null,
+      } : undefined,
       new_reference: form.value.selectedReference?.id === 0 ? {
         name: form.value.selectedReference.name,
-        original_language: form.value.language.value,
+        original_language: form.value.language.value as QuoteLanguage,
         primary_type: 'other' as const
-      } : null
+      } : undefined,
+      user_id: user?.value?.id || -1,
     }
 
     if (isEditMode.value && props.editQuote) {
-      await $fetch(`/api/quotes/${props.editQuote.id}`, {
-        method: 'PUT',
-        body: payload
-      })
-      emit('quote-updated')
-    } else {
-      // Create new quote
-      await $fetch('/api/quotes', {
-        method: 'POST',
-        body: {
-          ...payload,
-          user_id: user.value.id,
-          status: 'draft' as const
-        }
-      })
-      emit('quote-added')
+      const id = props.editQuote.id
+      await submitUpdateQuote(id, payload)
+      return
     }
 
-    closeDialog()
+    await submitCreateQuote(payload)
   } catch (error) {
     console.error('Error submitting quote:', error)
     useToast().toast({
-      toast: 'error',
       title: 'Error',
       description: isEditMode.value ? 'Failed to update quote. Please try again.' : 'Failed to add quote. Please try again.'
     })
   } finally {
     submitting.value = false
   }
+}
+
+const submitCreateQuote = async (payload: CreateQuoteData) => {
+  await $fetch('/api/quotes', {
+    method: 'POST',
+    body: payload
+  })
+  
+  emit('quote-added')
+  closeDialog()
+}
+
+const submitUpdateQuote = async (editQuoteId: number, payload: CreateQuoteData) => {
+  await $fetch(`/api/quotes/${editQuoteId}`, {
+    method: 'PUT',
+    body: payload,
+  })
+  
+  emit('quote-updated')
+  closeDialog()
 }
 
 // Click outside to close suggestions

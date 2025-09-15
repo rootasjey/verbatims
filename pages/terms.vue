@@ -2,18 +2,16 @@
   <div class="tos-root" :class="{ 'prefers-dark': isDark }">
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <header class="tos-header" role="banner">
-      <div class="container">
-        <h1 class="title">Terms of Service</h1>
-        <p class="subtitle">
-          Clear, simple terms for using our quotes platform.
-        </p>
-        <p class="meta">
-          <span aria-label="Version">Version 0.1</span>
-          <span aria-hidden="true">•</span>
-          <time datetime="2025-07-08">Last updated: 8 August 2025</time>
-        </p>
-      </div>
+    <header class="tos-header relative left-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" role="banner">
+      <h1 class="title">Terms of Service</h1>
+      <p class="subtitle">
+        Clear, simple terms for using our quotes platform.
+      </p>
+      <p class="meta">
+        <span aria-label="Version">Version 0.1</span>
+        <span aria-hidden="true">•</span>
+        <time datetime="2025-07-08">Last updated: 8 August 2025</time>
+      </p>
     </header>
 
     <div class="tos-body">
@@ -359,7 +357,10 @@ onMounted(() => {
   background: var(--bg);
   color: #1b1b1b;
   min-height: 100%;
+  max-width: 100%;
+  /* margin-top: 6rem; */
 }
+
 .tos-root.prefers-dark {
   color: #e7e7ea;
 }
@@ -376,11 +377,9 @@ onMounted(() => {
 }
 
 .tos-header {
-  /* border-bottom: 1px dashed gray; */
-  /* Sticky removed to avoid overlap with AppHeader */
   background: color-mix(in oklab, var(--bg), transparent 0%);
   backdrop-filter: saturate(120%) blur(6px);
-  z-index: 30;
+  margin-top: 6rem;
 }
 
 .title {
@@ -414,7 +413,6 @@ onMounted(() => {
   gap: 2rem;
   align-items: start;
   padding: 1rem clamp(1rem, 3vw, 2rem);
-  max-width: 1200px;
   margin: 0 auto;
 }
 
