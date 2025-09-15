@@ -13,7 +13,7 @@
 -- - Always backup your database before running this migration.
 -- - The script temporarily disables foreign keys while rebuilding the table.
 
-PRAGMA foreign_keys=OFF;
+PRAGMA defer_foreign_keys = on;
 
 -- Create a new table with the desired FK behaviours
 CREATE TABLE IF NOT EXISTS backup_files_new (
@@ -69,9 +69,6 @@ CREATE INDEX IF NOT EXISTS idx_backup_files_status ON backup_files(storage_statu
 CREATE INDEX IF NOT EXISTS idx_backup_files_created ON backup_files(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_backup_files_expires ON backup_files(expires_at);
 CREATE INDEX IF NOT EXISTS idx_backup_files_path ON backup_files(file_path);
-
-COMMIT;
-PRAGMA foreign_keys=ON;
 
 -- ===========================================================================
 -- Alternate combined path (use only if you need to both add the column and
