@@ -62,7 +62,7 @@
           </UTooltip>
 
           <UserMenu v-if="user" :user="user" />
-          <UButton v-else btn="soft" to="/login" class="font-800 relative left-2">
+          <UButton v-else btn="light:soft dark:soft-blue" to="/login" class="font-800 relative left-2">
             Sign in
           </UButton>
         </div>

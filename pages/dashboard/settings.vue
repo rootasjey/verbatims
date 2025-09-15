@@ -385,6 +385,40 @@
           </UCard>
         </div>
 
+        <!-- User Interface Tab -->
+        <div v-else-if="item.value === 'ui'" class="space-y-8">
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                User Interface
+              </h2>
+            </template>
+
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Theme
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Choose your preferred theme for the application.
+                </p>
+                <ThemeSelector />
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Show Home Title
+                  </label>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Show the big "VERBATIMS" title on the home page.
+                  </p>
+                </div>
+                <USwitch v-model="showHomeTitle" />
+              </div>
+            </div>
+          </UCard>
+        </div>
+
         <!-- Notifications Tab -->
         <div v-else-if="item.value === 'notifications'" class="space-y-8">
           <UCard class="shadow-none">
@@ -521,6 +555,8 @@
 </template>
 
 <script setup lang="ts">
+import { useStorage } from '@vueuse/core'
+
 interface ProfileForm {
   name: string
   email: string
@@ -555,6 +591,7 @@ const { user } = useUserSession()
 const activeTab = ref('profile')
 const tabs = [
   { name: 'Profile', value: 'profile' },
+  { name: 'User Interface', value: 'ui' },
   { name: 'Notifications', value: 'notifications' },
   { name: 'Data', value: 'data' }
 ]
@@ -587,6 +624,8 @@ const savingPrivacy = ref(false)
 const deleting = ref(false)
 
 const showDeleteModal = ref(false)
+
+const showHomeTitle = useStorage('verbatims.show_home_title', true)
 
 const saveProfile = async () => {
   savingProfile.value = true

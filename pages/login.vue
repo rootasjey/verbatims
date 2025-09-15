@@ -143,7 +143,6 @@ const form = ref({
 
 const isPasswordVisible = ref(false)
 
-// Loading states
 const loading = ref({
   email: false,
   github: false,
@@ -162,7 +161,7 @@ const signInWithEmail = async () => {
   error.value = ''
 
   try {
-    const { user } = await $fetch('/api/auth/login', {
+    await $fetch('/api/auth/login', {
       method: 'POST',
       body: {
         email: form.value.email,
@@ -171,6 +170,7 @@ const signInWithEmail = async () => {
     })
 
     await refreshCookie('nuxt-session')
+    await useUserSession().fetch()
     await navigateTo('/')
   } catch (err: any) {
     console.error('Email sign in error:', err)

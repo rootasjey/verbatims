@@ -67,20 +67,14 @@
           © {{ year }} Verbatims. All rights reserved.
         </p>
 
-        <ul class="flex items-center gap-6 text-xs sm:text-sm">
-          <li>
-            <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">Licenses</NuxtLink>
-          </li>
-          <li>
-            <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">Privacy & Policy</NuxtLink>
-          </li>
-          <li>
-            <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">Terms & Condition</NuxtLink>
-          </li>
-          <li>
-            <p class="color-gray-500 font-600">Version: {{ version }}</p>
-          </li>
-        </ul>
+        <div class="flex items-center gap-6 text-xs sm:text-sm">
+          <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">Licenses</NuxtLink>
+          <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">Privacy & Policy</NuxtLink>
+          <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">Terms & Condition</NuxtLink>
+          <span class="color-gray-500 font-600">Version: {{ version }}</span>
+          
+          <ThemeSelector />
+        </div>
       </div>
     </div>
   </footer>
@@ -157,7 +151,6 @@ const sectionAbout = allLinks
 
 const sectionAdmin = allLinks
   .filter(l => l.path.startsWith('/admin'))
-
 </script>
 
 <style scoped>

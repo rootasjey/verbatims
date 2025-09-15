@@ -1,12 +1,14 @@
 <template>
   <div class="min-h-screen">
     <!-- Desktop Header -->
-    <header v-if="!isMobile" class="p-8">
-      <h1 class="font-title font-600 text-center line-height-none uppercase">Verbatims</h1>
-      <span class="text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
-        Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, video games, books, music, podcasts, documentaries.
-        It's an open source community platform. You can post your own interesting quotes.
-      </span>
+    <header v-if="!isMobile">
+      <div v-if="showHomeTitle" class="p-8">
+        <h1 class="font-title font-600 text-center line-height-none uppercase default">Verbatims</h1>
+        <span class="text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
+          Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, video games, books, music, podcasts, documentaries.
+          It's an open source community platform. You can post your own interesting quotes.
+        </span>
+      </div>
     </header>
 
     <div v-else>
@@ -55,6 +57,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useStorage } from '@vueuse/core'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
@@ -73,6 +76,7 @@ useHead({
   ]
 })
 
+const showHomeTitle = useStorage('verbatims.show_home_title', true)
 const { isLanguageReady } = useLanguageReady()
 const feed = useQuoteSearchFeed()
 
@@ -114,7 +118,7 @@ watch(currentLayout, (newLayout) => {
 </script>
 
 <style scoped>
-header h1 {
+header h1.default {
   font-size: 4.0rem;
   transition: font-size 0.3s ease;
 
