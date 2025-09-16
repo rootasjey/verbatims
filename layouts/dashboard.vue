@@ -17,18 +17,20 @@
         <div class="flex flex-col">
           <!-- Sidebar Header -->
           <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h2>
-            <UButton
-              icon
-              btn="soft"
-              size="xs"
-              label="i-ph-x-bold"
-              @click="sidebarOpen = false"
-            />
+            <h2 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h2>
+            <UTooltip content="Close sidebar" :_tooltip-content="{ side: 'right' }">
+              <UButton
+                icon
+                btn="light:soft dark:soft-blue"
+                size="xs"
+                label="i-ph-x-bold"
+                @click="sidebarOpen = false"
+              />
+            </UTooltip>
           </div>
 
           <!-- Desktop Collapse Toggle -->
-          <div class="hidden lg:flex items-center justify-end p-3 border-b border-gray-200 dark:border-gray-700">
+          <div class="hidden lg:flex justify-center pb-4 border-b border-gray-200 dark:border-gray-700">
             <UButton
               icon
               size="xs"
@@ -230,15 +232,17 @@
       <!-- Main Content -->
       <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
-        <div class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div class="lg:hidden bg-white dark:bg-[#0C0A09]/70 border-b b-dashed border-gray-200 dark:border-gray-800 px-4 py-3">
           <div class="flex items-center justify-between">
-            <UButton
-              icon
-              btn="soft"
-              size="xs"
-              label="i-ph-list-bold"
-              @click="sidebarOpen = true"
-            />
+            <UTooltip content="Open sidebar" :_tooltip-content="{ side: 'right' }">
+              <UButton
+                icon
+                btn="light:soft dark:text"
+                size="xs"
+                label="i-ph-list-bold"
+                @click="sidebarOpen = true"
+              />
+            </UTooltip>
             <div class="w-8" /> <!-- Spacer for centering -->
           </div>
         </div>

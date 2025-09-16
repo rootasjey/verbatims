@@ -85,16 +85,12 @@
     :target-type="reportTargetType"
     :category="reportCategory"
   />
-
-  <!-- Display version number -->
-  <div class="text-center text-xs text-gray-500 dark:text-gray-400 py-2">
-    Version: {{ version }}
-  </div>
 </template>
 
 <script lang="ts" setup>
 import type { ReportTargetType, ReportCategory } from '~/types';
 import { version } from '@/types/version';
+import { useStorage } from '@vueuse/core'
 
 const { isMobile } = useMobileDetection()
 
@@ -110,12 +106,14 @@ const props = withDefaults(defineProps<Props>(), {
 const { user } = useUserSession()
 const scrollY = ref(0)
 const route = useRoute()
+const pageHeader = usePageHeader()
+const showHomeTitle = useStorage('verbatims.show_home_title', true)
+
 const showSearch = ref(false)
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
 const reportTargetType: Ref<ReportTargetType> = ref('general')
 const reportCategory: Ref<ReportCategory> = ref('feedback')
-const pageHeader = usePageHeader()
 
 // Only show page title for admin and dashboard pages
 const shouldShowPageTitle = computed(() => {
@@ -219,6 +217,8 @@ const navMenuItems = computed(() => [
         label: 'Version',
         leading: 'i-ph-git-branch-duotone',
         description: version,
+        to: 'https://github.com/rootasjey/verbatims',
+        target: '_blank'
       },
     ]
   }
@@ -234,8 +234,14 @@ const handleLogoClick = (event: MouseEvent) => {
     return
   }
 
-  // If we're on the home page, prevent navigation and scroll to top instead
+  // If we're on the home page, prevent navigation.
   event.preventDefault()
+
+  if (scrollY.value === 0) {
+    showHomeTitle.value = !showHomeTitle.value
+    return
+  }
+
   window.scrollTo({
     top: 0,
     behavior: 'smooth'

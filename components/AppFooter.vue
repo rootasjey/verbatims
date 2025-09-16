@@ -1,7 +1,7 @@
 <template>
   <!-- Compact footer aligned with the home page spacing and typography -->
   <footer
-    class="mt-18 lg:mt-22 border-t border-gray-3/80 dark:border-gray-8/80"
+    class="pt-8 border-t border-gray-3/80 dark:border-gray-8/80"
     role="contentinfo"
     aria-label="Site footer"
     data-testid="footer"
@@ -14,12 +14,16 @@
             <AppIcon />
           </div>
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Discover and share memorable quotes from films, books, music, and more.
+            Discover and share memorable quotes <br /> from films, books, music, and more.
           </p>
         </div>
 
         <!-- Simple nav groups -->
-        <nav aria-label="Footer navigation" class="grid grid-cols-2 gap-8 sm:grid-cols-3">
+        <nav aria-label="Footer navigation" class="grid grid-cols-2 gap-8"
+          :class="{
+            'grid-cols-2': !isAdmin,
+            'grid-cols-2 sm:grid-cols-4': isAdmin
+          }">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
             <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Explore</h3>
             <ul class="mt-3 space-y-2 text-sm">

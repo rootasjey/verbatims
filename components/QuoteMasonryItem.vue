@@ -3,7 +3,7 @@
     class="quote-masonry-item group border b-dashed border-gray-300 dark:border-gray-600 
     relative rounded-2 cursor-pointer transition-all duration-300 ease-in-out
     hover:shadow-lg hover:b-solid hover:border-gray-400 dark:hover:border-blue-500
-    bg-white dark:bg-[#101010]"
+    bg-white dark:bg-[#101010] overflow-hidden"
     :class="[
       getMasonryItemClasses(),
       `opacity-${getOpacityLevel(index)}`
@@ -32,26 +32,30 @@
         <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div class="flex items-center space-x-3">
             <!-- Like Button -->
-            <UButton
-              icon
-              btn="~"
-              @click.stop="toggleQuoteLike"
-              :disabled="!user || quoteLikePending"
-              class="p-0 min-w-0 min-h-0 h-auto w-auto transition-all duration-300 hover:scale-105"
-              :class="isQuoteLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'"
-            >
-              <UIcon
-                :name="isQuoteLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'"
-                :class="[quoteLikePending && 'animate-pulse']"
-              />
-              <span>{{ formatNumber(quote.likes_count) }}</span>
-            </UButton>
+             <UTooltip content="Like this quote" :_tooltip-content="{ side: 'bottom' }">
+              <UButton
+                icon
+                btn="~"
+                @click.stop="toggleQuoteLike"
+                :disabled="!user || quoteLikePending"
+                class="p-0 min-w-0 min-h-0 h-auto w-auto transition-all duration-300 hover:scale-105"
+                :class="isQuoteLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'"
+              >
+                <UIcon
+                  :name="isQuoteLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'"
+                  :class="[quoteLikePending && 'animate-pulse']"
+                />
+                <span>{{ formatNumber(quote.likes_count) }}</span>
+              </UButton>
+            </UTooltip>
 
             <!-- View Count -->
-            <div class="flex items-center space-x-1 text-size-4">
-              <UIcon name="i-ph-eyes" />
-              <span>{{ formatNumber(quote.views_count) }}</span>
-            </div>
+            <UTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
+              <div class="flex items-center space-x-1 text-size-4">
+                <UIcon name="i-ph-eyes" />
+                <span>{{ formatNumber(quote.views_count) }}</span>
+              </div>
+            </UTooltip>
           </div>
         </div>
       </div>

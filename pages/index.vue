@@ -2,12 +2,23 @@
   <div class="min-h-screen">
     <!-- Desktop Header -->
     <header v-if="!isMobile">
-      <div v-if="showHomeTitle" class="p-8">
+      <div v-if="showHomeTitle" class="relative p-8">
         <h1 class="font-title font-600 text-center line-height-none uppercase default">Verbatims</h1>
         <span class="text-center font-sans font-400 block text-gray-600 dark:text-gray-400">
           Discover <b>{{ stats.quotes || 0 }}</b> quotes from films, tv series, video games, books, music, podcasts, documentaries.
           It's an open source community platform. You can post your own interesting quotes.
         </span>
+
+        <UTooltip content="Hide title" :_tooltip-content="{ side: 'bottom', sideOffset: 4 }">
+          <UButton
+            class="absolute right-8 top-8 hover:animate-pulse"
+            :btn="['text-lime', 'text-blue', 'text-red', 'text-yellow'][Math.floor(Math.random() * 4)]"
+            size="sm"
+            icon
+            label="i-ph-asterisk-bold"
+            @click="showHomeTitle = false"
+          />
+        </UTooltip>
       </div>
     </header>
 
@@ -71,7 +82,8 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: 'Discover inspiring quotes from authors, films, books, and more. A comprehensive, user-generated quotes database with moderation capabilities.',
+      content: `Discover inspiring quotes from authors, films, books, and more. 
+        A comprehensive, user-generated quotes database with moderation capabilities.`,
     }
   ]
 })

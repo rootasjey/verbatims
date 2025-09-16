@@ -119,43 +119,6 @@
         </div>
       </div>
 
-      <UBadge :badge="isMetaBadgeOpen ? 'solid-gray' : 'soft'" rounded="full" 
-        :class="[
-          'z-2 fixed top-20 right-12 overflow-hidden text-sm font-medium transition-all', 
-          isMetaBadgeOpen ? 'w-auto px-4 text-center hover:scale-101 active:scale-99' : 'w-9 hover:scale-105 active:scale-99'
-        ]">
-        <div class="flex gap-4 justify-center items-center">
-          <div :class="['gap-4', isMetaBadgeOpen ? 'flex' : 'hidden']">
-            <div class="flex items-center">{{ formatNumber(author.views_count) }} views</div>
-            <div class="flex items-center">{{ formatNumber(totalQuoteLikes) }} quote likes</div>
-            <UButton
-              btn="~"
-              @click="toggleLike"
-              :disabled="!user || likePending"
-              :class="[
-                'min-w-0 min-h-0 h-auto w-auto p-0 flex items-center transition-all',
-                isLiked
-                  ? 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
-                  : 'hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20',
-                !user && 'cursor-not-allowed opacity-50'
-              ]"
-            >
-              <UIcon
-                :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'"
-                :class="[likePending && 'animate-pulse']"
-              />
-              <span>{{ formatNumber(author.likes_count) }}</span>
-            </UButton>
-          </div>
-          <UButton 
-            icon btn="text-pink" 
-            :label="isMetaBadgeOpen ? 'i-ph-x-bold' : 'i-ph-asterisk-bold'" 
-            :class="['min-w-0 min-h-0 h-auto w-auto p-0', isMetaBadgeOpen ? 'hover:animate-pulse' : 'hover:animate-spin']" size="xs" 
-            @click="isMetaBadgeOpen = !isMetaBadgeOpen"
-          />
-        </div>
-      </UBadge>
-
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
         <!-- Sort / Filters -->
@@ -328,7 +291,6 @@ const currentQuotePage = ref(1)
 const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
 const mobileFiltersOpen = ref(false)
 
-const isMetaBadgeOpen = ref(false)
 const headerIn = ref(false)
 const showTypeBadge = ref(false)
 
