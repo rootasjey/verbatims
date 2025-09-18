@@ -8,7 +8,7 @@
       <div class="flex items-center space-x-2">
         <NuxtLink
           to="/"
-          class="flex flex-col items-center justify-center transition-all duration-300 group"
+          class="flex flex-col items-center justify-center hover:scale-102 active:scale-99 transition-all duration-300 group"
           @click="handleNavigation('/')"
         >
           <div
@@ -28,7 +28,7 @@
 
         <NuxtLink
           to="/search"
-          class="flex flex-col items-center justify-center transition-all duration-300 group"
+          class="flex flex-col items-center justify-center hover:scale-102 active:scale-99 transition-all duration-300 group"
           @click="handleNavigation('/search')"
         >
           <div
@@ -48,7 +48,7 @@
 
         <NuxtLink
           to="/diary"
-          class="flex flex-col items-center justify-center transition-all duration-300 group"
+          class="flex flex-col items-center justify-center hover:scale-102 active:scale-99 transition-all duration-300 group"
           @click="handleNavigation('/diary')"
         >
           <div

@@ -2,7 +2,7 @@
 
 Quote service for discovering, curating, and sharing timeless words — with moderation and admin workflows.
 
-![verbatims screenshot](verbatims.png)
+![verbatims screenshot](./public/images/verbatims.jpeg)
 
 ## Overview
 
