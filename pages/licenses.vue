@@ -112,6 +112,27 @@ useHead({
     { name: 'description', content: 'License summary for Verbatims and attributions for third‑party libraries, icons, and assets.' },
   ],
 })
+
+definePageMeta({
+  // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
+  layout: 'default'
+})
+
+import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
+
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
+watch(currentLayout, (newLayout) => {
+  if (hydrated.value) setPageLayout(newLayout)
+})
 </script>
 
 <style scoped>

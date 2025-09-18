@@ -156,6 +156,39 @@
           </UCard>
         </div>
 
+        <div v-else-if="selectedTab.value === 'ui'" class="space-y-6">
+          <UCard class="shadow-none">
+            <template #header>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                User Interface
+              </h2>
+            </template>
+
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Theme
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Choose your preferred theme for the application.
+                </p>
+                <ThemeSelector />
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Show Home Title
+                  </label>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Show the big "VERBATIMS" title on the home page.
+                  </p>
+                </div>
+                <USwitch v-model="showHomeTitle" />
+              </div>
+            </div>
+          </UCard>
+        </div>
+
         <!-- Notifications Tab -->
         <div v-else-if="selectedTab.value === 'notifications'" class="space-y-6">
           <UCard class="shadow-none">

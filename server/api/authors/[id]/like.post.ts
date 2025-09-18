@@ -1,6 +1,5 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
       throw createError({

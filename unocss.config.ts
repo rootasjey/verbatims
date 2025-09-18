@@ -44,6 +44,28 @@ export default {
     presetUna(),
     presetAnimations(),
   ],
+  safelist: [
+    // Ensure these rules are always generated
+    // because they are generated dynamically in some cases
+    'i-ph-robot-duotone',
+    'i-ph-atom-duotone',
+    'i-ph-brain-duotone',
+    'i-ph-game-controller-duotone',
+    'i-ph-feather-duotone',
+    'i-ph-yin-yang-duotone',
+    'i-ph-television',
+    'i-ph-hands-clapping-duotone',
+    'i-ph-heart-duotone',
+    'i-ph-palette-duotone',
+    'i-ph-music-notes-duotone',
+    'i-ph-sword-duotone',
+    'i-openmoji-face-screaming-in-fear',
+    'i-openmoji-bat',
+    'i-ph-hand-fist-duotone',
+    'i-ph-skull-duotone',
+    'i-ph-shooting-star-duotone',
+    'i-ph-film-reel-duotone',
+  ],
   shortcuts: [
     {
       "btn-glowing": "from-primary-500 via-primary-600 to-primary-700 bg-gradient-to-r text-white shadow-lg shadow-primary-500/50 hover:bg-gradient-to-br dark:shadow-lg dark:shadow-primary-800/80 dark:focus:ring-primary-800",

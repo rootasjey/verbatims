@@ -8,76 +8,163 @@
           v-model="searchQuery"
           placeholder="Search quotes, authors, references..."
           leading="i-ph-magnifying-glass"
-          size="lg"
           autofocus
+          size="lg"
+          rounded="6"
           @input="debouncedSearch"
           class="w-full"
+          :una="{
+            inputTrailing: 'pointer-events-auto cursor-pointer',
+          }"
+          :trailing="searchQuery ? 'i-ph-x-circle-duotone' : ''"
+          @trailing="searchQuery = ''"
         />
       </div>
 
-      <!-- Search Results or Navigation -->
-      <div class="p-4">
-        <!-- Empty State: Show Navigation Links -->
-        <div v-if="!searchQuery.trim()" class="space-y-6">
-          <div class="text-center py-8">
-            <UIcon name="i-ph-magnifying-glass" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-2">Search Verbatims</h2>
-            <p class="text-gray-600 dark:text-gray-400">Find quotes, authors, and references</p>
-          </div>
-
-          <!-- Quick Navigation -->
-          <div class="space-y-3">
-            <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-4">Browse by Category</h3>
-            
-            <NuxtLink
-              to="/authors"
-              class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div class="flex items-center space-x-3">
-                <UIcon name="i-ph-user-bold" class="w-6 h-6 text-blue-500" />
-                <div>
-                  <h4 class="font-600 text-gray-900 dark:text-white">Authors</h4>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Browse quotes by author</p>
-                </div>
-              </div>
-              <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-            </NuxtLink>
-
-            <NuxtLink
-              to="/references"
-              class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div class="flex items-center space-x-3">
-                <UIcon name="i-ph-book-bold" class="w-6 h-6 text-green-500" />
-                <div>
-                  <h4 class="font-600 text-gray-900 dark:text-white">References</h4>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Explore books, films, and more</p>
-                </div>
-              </div>
-              <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-            </NuxtLink>
-          </div>
-
-          <!-- Recent Searches (if any) -->
-          <div v-if="recentSearches.length > 0" class="space-y-3">
-            <h3 class="text-lg font-600 text-gray-900 dark:text-white">Recent Searches</h3>
-            <div class="space-y-2">
-              <button
-                v-for="search in recentSearches"
+      <div class="p-6">
+        <!-- Empty State Start Page -->
+        <div v-if="!searchQuery.trim()" class="space-y-12">
+          <div v-if="recentSearches.length > 0">
+            <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white mt-3 mb-3">Recent searches</h3>
+            <div class="flex flex-wrap gap-2">
+              <UBadge 
+                v-for="search in recentSearches" 
                 :key="search"
-                @click="searchQuery = search"
-                class="flex items-center justify-between w-full p-3 text-left bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                rounded="full"
+                badge="solid-gray"
+                class="cursor-pointer hover:scale-102 active:scale-99 transition-transform"
               >
-                <span class="text-gray-700 dark:text-gray-300">{{ search }}</span>
-                <UIcon name="i-ph-clock" class="w-4 h-4 text-gray-400" />
-              </button>
+              <UIcon name="i-ph-magnifying-glass-bold" @click="searchQuery = search" />
+              <span class="font-400 font-size-3.5" @click="searchQuery = search">{{ search }}</span>
+              <UTooltip :content="`Remove ${search} from recent searches`">
+                <UIcon 
+                  name="i-ph-x-circle-duotone" 
+                  @click="searchStore.removeRecent(search)" 
+                  class="ml-1"
+                />
+              </UTooltip>
+            </UBadge>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center">
+              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white mb-3">Suggested searches</h3>
+              <UTooltip content="Refresh suggestions">
+                <UButton 
+                  @click="refreshSuggestions()"
+                  icon
+                  label="i-ph-arrows-clockwise"
+                  btn="ghost-gray"
+                />
+              </UTooltip>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <UBadge v-for="s in suggestions" 
+                :key="s.text"
+                rounded="full"
+                badge="soft-gray"
+                class="cursor-pointer hover:scale-102 active:scale-99 transition-transform animate-bounce-in"
+                @click="searchQuery = s.text"
+              >
+                <UIcon :name="s.icon" size="4" />
+                <span class="ml-1 text-sm text-gray-700 dark:text-gray-300">{{ s.text }}</span>
+              </UBadge>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white" @click="goToAuthors()">
+                Random authors
+              </h3>
+
+              <UTooltip content="Fetch new random authors">
+                <UButton 
+                  @click="fetchRandomAuthors()"
+                  icon
+                  label="i-ph-arrows-clockwise"
+                  btn="ghost-gray"
+                />
+              </UTooltip>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <NuxtLink
+                v-for="author in randomAuthors"
+                :key="author.id"
+                :to="`/authors/${author.id}`"
+                class="flex items-center gap-3 p-3 
+                bg-white dark:bg-gray-800 rounded-lg 
+                hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
+              >
+                <UAvatar :src="author.image_url">
+                  <template #fallback>
+                    <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400">
+                      <UIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
+                    </div>
+                  </template>
+                </UAvatar>
+                <div>
+                  <UTooltip :content="author.name">
+                    <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ author.name }}</div>
+                  </UTooltip>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count }} quotes</div>
+                </div>
+              </NuxtLink>
+              <div v-if="randomAuthors.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">No authors yet</div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex justify-between items-center">
+              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white" @click="goToReferences()">
+                Random references
+              </h3>
+
+              <UTooltip content="Fetch new random references">
+                <UButton 
+                  @click="fetchRandomReferences()"
+                  icon
+                  label="i-ph-arrows-clockwise"
+                  btn="ghost-gray"
+                />
+              </UTooltip>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <NuxtLink
+                v-for="reference in randomReferences"
+                :key="reference.id"
+                :to="`/references/${reference.id}`"
+                class="flex items-center gap-3 p-3 
+                bg-white dark:bg-gray-800 rounded-lg 
+                hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
+              >
+                <UAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
+                  <template #fallback>
+                    <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
+                      <UIcon name="i-ph-book-duotone" class="w-6 h-6" />
+                    </div>
+                  </template>
+                </UAvatar>
+                <div>
+                  <UTooltip :content="reference.name">
+                    <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ reference.name }}</div>
+                  </UTooltip>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ formatReferenceType(reference.primary_type) }} • 
+                    <UTooltip :content="`${reference.quotes_count} quotes`">
+                      <span>{{ reference.quotes_count }} <UIcon name="i-ph-quotes-duotone" /></span>
+                    </UTooltip>
+                  </div>
+                </div>
+              </NuxtLink>
+              <div v-if="randomReferences.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">No references yet</div>
             </div>
           </div>
         </div>
 
         <!-- Search Results -->
         <div v-else class="space-y-6">
-          <!-- Loading State -->
           <div v-if="loading" class="flex items-center justify-center py-8">
             <div class="flex items-center gap-3">
               <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
@@ -85,18 +172,15 @@
             </div>
           </div>
 
-          <!-- Results -->
           <div v-else-if="searchResults.total > 0" class="space-y-6">
-            <!-- Results Summary -->
             <div class="text-center py-4">
               <p class="text-gray-600 dark:text-gray-400">
                 Found <b>{{ searchResults.total }}</b> results for "<b>{{ searchQuery }}</b>"
               </p>
             </div>
 
-            <!-- Quotes Results -->
             <div v-if="searchResults.quotes.length > 0" class="space-y-4">
-              <h3 class="text-lg font-600 text-gray-900 dark:text-white">Quotes</h3>
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">Quotes</h3>
               <div class="space-y-0">
                 <QuoteListItem
                   v-for="quote in searchResults.quotes"
@@ -106,9 +190,8 @@
               </div>
             </div>
 
-            <!-- Authors Results -->
             <div v-if="searchResults.authors.length > 0" class="space-y-4">
-              <h3 class="text-lg font-600 text-gray-900 dark:text-white">Authors</h3>
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">Authors</h3>
               <div class="grid gap-3">
                 <NuxtLink
                   v-for="author in searchResults.authors"
@@ -116,18 +199,26 @@
                   :to="`/authors/${author.id}`"
                   class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <div>
-                    <h4 class="font-600 text-gray-900 dark:text-white">{{ author.name }}</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ author.quotes_count }} quotes</p>
+                  <div class="flex space-x-3">
+                    <NuxtImg
+                      :src="author.image_url"
+                      alt="Author Avatar"
+                      class="w-10 h-10 rounded-full object-cover"
+                      width="40"
+                      height="40"
+                    />
+                    <div>
+                      <h4 class="font-600 text-gray-900 dark:text-white">{{ author.name }}</h4>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ author.quotes_count }} quotes</p>
+                    </div>
                   </div>
                   <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
                 </NuxtLink>
               </div>
             </div>
 
-            <!-- References Results -->
             <div v-if="searchResults.references.length > 0" class="space-y-4">
-              <h3 class="text-lg font-600 text-gray-900 dark:text-white">References</h3>
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">References</h3>
               <div class="grid gap-3">
                 <NuxtLink
                   v-for="reference in searchResults.references"
@@ -135,6 +226,9 @@
                   :to="`/references/${reference.id}`"
                   class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
+                  <div class="bg-gray-100 dark:bg-gray-700 rounded-2 w-10 h-10 flex items-center justify-center shrink-0">
+                    <UIcon :name="getReferenceIcon(reference.primary_type)" />
+                  </div>
                   <div>
                     <h4 class="font-600 text-gray-900 dark:text-white">{{ reference.name }}</h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -174,6 +268,7 @@
 <script setup lang="ts">
 import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
+import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
@@ -194,6 +289,11 @@ useHead({
     }
   ]
 })
+
+const suggestions = ref(searchStore.getRandomSuggestedSearch(5))
+function refreshSuggestions() {
+  suggestions.value = searchStore.getRandomSuggestedSearch(5)
+}
 
 // Proxy to store so the template remains unchanged
 const searchQuery = computed({
@@ -237,11 +337,67 @@ watch(() => route.query.q, (newQ) => {
     else searchStore.clear()
   }
 })
+
+const randomAuthors = ref<any[]>([])
+const randomReferences = ref<any[]>([])
+
+async function fetchRandomAuthors(n = 4) {
+  try {
+    const res = await $fetch('/api/authors/random', { params: { count: n } })
+    randomAuthors.value = res.authors || []
+  } catch (e) {
+    randomAuthors.value = []
+  }
+}
+
+async function fetchRandomReferences(n = 4) {
+  try {
+    const res = await $fetch('/api/references/random', { params: { count: n } })
+    randomReferences.value = res.references || []
+  } catch (e) {
+    randomReferences.value = []
+  }
+}
+
+function goToAuthors() {
+  router.push('/authors')
+}
+
+function goToReferences() {
+  router.push('/references')
+}
+
+onMounted(async () => {
+  setPageLayout(currentLayout.value)
+
+  const q = typeof route.query.q === 'string' ? route.query.q : ''
+  if (q && q !== searchStore.query) {
+    searchStore.setQuery(q)
+  }
+  if (searchStore.query && (searchStore.results.total === 0 || searchStore.isStale())) {
+    await searchStore.search({ limit: 20 })
+  }
+  // Fetch random authors/references if no search query
+  if (!searchStore.query.trim()) {
+    await Promise.all([
+      fetchRandomAuthors(4),
+      fetchRandomReferences(4)
+    ])
+  }
+})
 </script>
 
 <style scoped>
 .mobile-search-page {
   /* Ensure proper spacing for mobile layout */
   min-height: calc(100vh - 80px); /* Account for bottom navigation */
+}
+
+.author-name {
+  font-size: 0.8rem;
+
+  @media screen and (min-width: 460px) {
+    font-size: 1.125rem; /* 18px on sm and up */    
+  }
 }
 </style>

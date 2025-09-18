@@ -42,7 +42,6 @@
             <UBadge
               v-if="showTypeBadge"
               :color="author.is_fictional ? 'purple' : 'blue'"
-              variant="subtle"
               size="sm"
             >
               {{ author.is_fictional ? 'Fictional Character' : 'Real Person' }}
@@ -423,7 +422,7 @@ const onAuthorUpdated = async () => {
   try {
     const fresh = await $fetch(`/api/authors/${route.params.id}`)
     authorData.value = fresh
-    toast({ title: 'Author updated', variant: 'success' })
+    toast({ title: 'Author updated' })
   } catch (error) {
     console.error('Failed to refresh author after update:', error)
   } finally {
@@ -496,17 +495,17 @@ const shareAuthor = async () => {
 
     if (navigator.share) {
       await navigator.share(shareData)
-      toast({ title: 'Author shared successfully!', variant: 'success' })
+      toast({ title: 'Author shared successfully!' })
     } else {
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
-      toast({ title: 'Author link copied to clipboard!', variant: 'success' })
+      toast({ title: 'Author link copied to clipboard!' })
     }
 
     // Optimistically increment local share count (no server endpoint yet)
     author.value.shares_count = (author.value.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share author:', error)
-    toast({ title: 'Failed to share', description: 'Please try again.', variant: 'error' })
+    toast({ title: 'Failed to share', description: 'Please try again.' })
   } finally {
     sharePending.value = false
   }
@@ -522,7 +521,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.', variant: 'error' })
+    toast({ title: 'Copy failed', description: 'Could not copy the link.' })
   }
 }
 

@@ -7,15 +7,17 @@
         @click.self="scrollToTop"
         class="flex items-center justify-between">
         <div class="flex items-center">
-          <UButton
-            v-if="canGoBack"
-            icon
-            btn="ghost-gray"
-            label="i-ph-arrow-left-bold"
-            @click="handleBackClick"
-            class="mr-3"
-            size="sm"
-          />
+          <UTooltip v-if="canGoBack" content="Go back">
+            <UButton
+              v-if="canGoBack"
+              icon
+              btn="ghost-gray"
+              label="i-ph-arrow-left-bold"
+              @click="handleBackClick"
+              class="mr-3"
+              size="sm"
+            />
+          </UTooltip>
 
           <div class="flex items-center space-x-2">
             <UButton
@@ -31,22 +33,27 @@
         </div>
 
         <div class="flex items-center space-x-2">
-          <UButton
-            icon
-            btn="ghost-gray"
-            label="i-ph-quotes-duotone"
-            size="sm"
-            class="text-gray-600 dark:text-gray-400"
-            @click="showAddQuote = true"
-          />
-          <UButton
-            icon
-            btn="ghost-gray"
-            label="i-ph-flag-duotone"
-            size="sm"
-            class="text-gray-600 dark:text-gray-400"
-            @click="showReportDrawer = true"
-          />
+          <UTooltip content="Add a quote">
+            <UButton
+              icon
+              btn="ghost-gray"
+              label="i-ph-quotes-duotone"
+              size="sm"
+              class="text-gray-600 dark:text-gray-400"
+              @click="showAddQuote = true"
+            />
+          </UTooltip>
+
+          <UTooltip content="Report an issue">
+            <UButton
+              icon
+              btn="ghost-gray"
+              label="i-ph-flag-duotone"
+              size="sm"
+              class="text-gray-600 dark:text-gray-400"
+              @click="showReportDrawer = true"
+            />
+          </UTooltip>
         </div>
       </div>
     </header>

@@ -2,7 +2,9 @@
   <div class="px-6 py-6">
     <!-- Section Header -->
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-body font-200 text-gray-900 dark:text-white">
+      <h2 class="text-lg font-body font-200 text-gray-900 dark:text-white"
+        @click="showMoreAuthors"
+      >
         recent authors
       </h2>
       <UButton

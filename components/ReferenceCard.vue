@@ -11,17 +11,17 @@
       <!-- Overlay for better text readability -->
       <div class="absolute rounded-2xl inset-0 opacity-100 group-hover:opacity-20 transition-opacity" :style="{ background: getCardBackgroundColor(reference) }"></div>
 
-      <div class="absolute group-hover:hidden inset-0 p-4 flex flex-col justify-between">
+      <div class="absolute inset-0 p-4 flex flex-col justify-between" :class="{ 'group-hover:hidden': reference.image_url }">
         <h3 class="text-white font-bold text-sm leading-tight line-clamp-2">
           {{ reference.name }}
         </h3>
 
         <div class="flex items-center justify-between">
           <span class="text-white/90 text-xs">
-            {{ getTypeDisplay(reference) }}
+            {{ formatReferenceType(reference.primary_type) }}
           </span>
           <div class="shrink-0 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <UIcon :name="getTypeIcon(reference.primary_type)" class="w-4 h-4 text-white" />
+            <UIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-white" />
           </div>
         </div>
       </div>
@@ -113,45 +113,5 @@ const getCardBackgroundColor = (reference: QuoteReference): string => {
   }
   const index = Math.abs(hash) % referenceGradients.length
   return referenceGradients[index]
-}
-
-const getTypeIcon = (type: string) => {
-  const iconMap: Record<string, string> = {
-    book: 'i-ph-book',
-    film: 'i-ph-film-strip',
-    tv_series: 'i-ph-television',
-    music: 'i-ph-music-note',
-    speech: 'i-ph-microphone',
-    podcast: 'i-ph-microphone-stage',
-    interview: 'i-ph-chat-circle',
-    documentary: 'i-ph-video-camera',
-    media_stream: 'i-ph-play-circle',
-    writings: 'i-ph-article',
-    video_game: 'i-ph-game-controller',
-    other: 'i-ph-file',
-  }
-  return iconMap[type] || 'i-ph-file'
-}
-
-const getTypeDisplay = (reference: QuoteReference) => {
-  if (reference.secondary_type) {
-    return reference.secondary_type
-  }
-
-  const typeMap: Record<string, string> = {
-    book: 'Book',
-    film: 'Film',
-    tv_series: 'TV Series',
-    music: 'Music',
-    speech: 'Speech',
-    podcast: 'Podcast',
-    interview: 'Interview',
-    documentary: 'Documentary',
-    media_stream: 'Stream',
-    writings: 'Writing',
-    video_game: 'Game',
-    other: 'Other',
-  }
-  return typeMap[reference.primary_type] || 'Reference'
 }
 </script>

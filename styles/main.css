@@ -163,21 +163,6 @@ input:-webkit-autofill {
   }
 }
 
-/* Mobile bottom navigation spacing */
-@media (max-width: 767px) {
-  body {
-    padding-bottom: 80px; /* Height of bottom navigation */
-  }
-
-  /* Ensure mobile pages have proper spacing */
-  .mobile-layout main,
-  .mobile-search-page,
-  .mobile-diary-page {
-    padding-bottom: 2rem;
-    margin-bottom: 80px;
-  }
-}
-
 /* Enhanced typography for quotes */
 .quote-text {
   font-size: 1.125rem;

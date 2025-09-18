@@ -42,7 +42,6 @@
             <UBadge
               v-if="showTypeBadge"
               :color="getTypeColor(reference.primary_type)"
-              variant="subtle"
               size="sm"
             >
               {{ formatReferenceType(reference.primary_type) }}
@@ -473,17 +472,17 @@ const shareReference = async () => {
 
     if (navigator.share) {
       await navigator.share(shareData)
-      toast({ title: 'Reference shared successfully!', variant: 'success' })
+      toast({ title: 'Reference shared successfully!' })
     } else {
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
-      toast({ title: 'Reference link copied to clipboard!', variant: 'success' })
+      toast({ title: 'Reference link copied to clipboard!' })
     }
 
     // Optimistically increment local share count (no server endpoint yet)
     reference.value.shares_count = (reference.value.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share reference:', error)
-    toast({ title: 'Failed to share', description: 'Please try again.', variant: 'error' })
+    toast({ title: 'Failed to share', description: 'Please try again.' })
   } finally {
     sharePending.value = false
   }
@@ -499,7 +498,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.', variant: 'error' })
+    toast({ title: 'Copy failed', description: 'Could not copy the link.' })
   }
 }
 

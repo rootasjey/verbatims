@@ -133,13 +133,16 @@
     <section>
       <h2>Contact & support</h2>
       <p>
-        Questions, ideas, or found a hiccup? We’d love to hear from you.
+        Questions, ideas, or found a hiccup? We'd love to hear from you.
+        Open a GitHub issue or use the feedback form in the header <UIcon name="i-ph-flag" class="mb-1" /> .
       </p>
-      <ul>
-        <li><a href="mailto:support@verbatims.app">support@verbatims.app</a></li>
-        <li><NuxtLink to="/help">Help Center</NuxtLink></li>
-        <li><NuxtLink to="/feedback">Send feedback</NuxtLink></li>
-      </ul>
+      <div>
+        <UButton 
+          leading="i-ph-bug" label="Open a GitHub issue" 
+          btn="soft" size="sm" 
+          to="https://github.com/rootasjey/verbatims/issues" target="_blank" 
+        />
+      </div>
       <p class="font-medium mt-6">Built with care, curiosity, and plenty of coffee.</p>
     </section>
   </main>
@@ -147,6 +150,12 @@
 
 <script setup lang="ts">
 import { version } from '@/types/version';
+import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+
+definePageMeta({
+  // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
+  layout: 'default'
+})
 
 useHead({
   title: 'About \u2022 Verbatims',
@@ -154,6 +163,20 @@ useHead({
     { name: 'robots', content: 'index,follow' },
     { name: 'description', content: 'Learn about Verbatims, its purpose, history, community, and the tech stack behind it.' },
   ],
+})
+
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
+
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
+watch(currentLayout, (newLayout) => {
+  if (hydrated.value) setPageLayout(newLayout)
 })
 </script>
 

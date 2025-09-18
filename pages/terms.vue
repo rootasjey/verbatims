@@ -2,7 +2,7 @@
   <div class="tos-root" :class="{ 'prefers-dark': isDark }">
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <header class="tos-header relative left-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" role="banner">
+    <header class="tos-header relative pt-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" role="banner">
       <h1 class="title">Terms of Service</h1>
       <p class="subtitle">
         Clear, simple terms for using our quotes platform.
@@ -232,9 +232,9 @@
                 Questions or notices can be sent to:
               </p>
               <address class="contact" aria-label="Contact information">
-                Quotes Platform Legal<br />
+                Jérémie CORPINOT<br />
                 123 Literary Lane, Suite 4<br />
-                Paris, France<br />
+                Yvelines, France<br />
                 legal@example.com
               </address>
             </template>
@@ -254,19 +254,53 @@
         aria-label="In-page navigation"
         role="navigation"
       >
-        <details :open="tocOpen" @toggle="onDetailsToggle">
-          <summary class="toc-summary" :aria-expanded="tocOpen">
-            <span class="toc-icon" aria-hidden="true">☰</span>
-            Contents
-          </summary>
-          <ol class="toc-list">
-            <li v-for="item in toc" :key="item.id">
-              <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
-                {{ item.title }}
-              </a>
-            </li>
-          </ol>
-        </details>
+        <template v-if="isMobile">
+          <UButton 
+            btn="soft-gray" 
+            size="md" 
+            icon 
+            label="i-ph-list-bold" 
+            rounded="2xl"
+            class="toc-fab fixed right-4 bottom-10 border border-gray-100 p-6 shadow-lg" 
+            aria-label="Open contents" 
+            @click="tocOpen = !tocOpen" 
+          />
+
+          <UDrawer v-model:open="tocOpen" direction="bottom">
+            <template #body>
+              <div class="px-4 pb-4 overflow-y-auto">
+                <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
+                  <h3 class="font-serif text-4xl font-700">Contents</h3>
+                  <UButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
+                </div>
+
+                <ol class="toc-list-mobile">
+                  <li v-for="item in toc" :key="item.id">
+                    <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
+                      {{ item.num }}. {{ item.title }}
+                    </a>
+                  </li>
+                </ol>
+              </div>
+            </template>
+          </UDrawer>
+        </template>
+
+        <template v-else>
+          <details :open="tocOpen" @toggle="onDetailsToggle">
+            <summary class="toc-summary" :aria-expanded="tocOpen">
+              <span class="toc-icon" aria-hidden="true">☰</span>
+              Contents
+            </summary>
+            <ol class="toc-list">
+              <li v-for="item in toc" :key="item.id">
+                <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
+                  {{ item.title }}
+                </a>
+              </li>
+            </ol>
+          </details>
+        </template>
       </nav>
     </div>
   </div>
@@ -274,13 +308,34 @@
 
 <script setup lang="ts">
 const isDark = usePreferredDark()
-const tocOpen = ref(true)
+const tocOpen = ref(false)
+
+definePageMeta({
+  // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
+  layout: 'default'
+})
 
 useSeoMeta({
   title: 'Terms of Service — Verbatims',
   ogTitle: 'Terms of Service — Verbatims',
   description: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.',
   ogDescription: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.'
+})
+
+import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
+
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
+watch(currentLayout, (newLayout) => {
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 const toc = [
@@ -379,7 +434,6 @@ onMounted(() => {
 .tos-header {
   background: color-mix(in oklab, var(--bg), transparent 0%);
   backdrop-filter: saturate(120%) blur(6px);
-  margin-top: 6rem;
 }
 
 .title {
@@ -459,6 +513,22 @@ onMounted(() => {
     display: block;
     padding: 0.6rem 0.25rem;
   }
+
+  /* Drawer body list styling */
+  .toc-list-mobile {
+    list-style: none;
+    margin: 0.8rem 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .toc-list-mobile .toc-link {
+    display: block;
+    padding: 0.75rem 0.25rem;
+    border-radius: 8px;
+  }
 }
 
 /* TOC */
@@ -483,11 +553,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-}
-
-.toc-icon {
-  font-size: 1rem;
-  opacity: 0.7;
 }
 
 .toc-list {

@@ -88,8 +88,7 @@
         <li>Receive a copy (data portability), where applicable</li>
       </ul>
       <p>
-        To request an export or exercise your rights, contact us at
-        <a href="mailto:privacy@verbatims.co">privacy@verbatims.co</a> with the email you used on the platform (if any). We may need to verify your identity to protect your account and data. We respond within the timeframes required by law.
+        To request an export or exercise your rights, contact us through the app form accessible in the header, with the email you used on the platform (if any). We may need to verify your identity to protect your account and data. We respond within the timeframes required by law.
       </p>
     </section>
 
@@ -122,7 +121,8 @@
       <h2>12 • Contact us</h2>
       <p>Questions, privacy requests, or concerns? Reach us at:</p>
       <ul>
-        <li>Email: <a href="mailto:privacy@verbatims.co">privacy@verbatims.co</a></li>
+        <li>GitHub: <a href="https://github.com/rootasjey/verbatims/issues" target="_blank">Open a GitHub issue</a></li>
+        <li>Feedback form: Use the form in the app header</li>
         <li>Address: Yvelines, France</li>
       </ul>
 
@@ -139,6 +139,23 @@ useHead({
     { name: 'description', content: 'Privacy-first policy: analytics-only, no ads, no profiling, Cloudflare as infrastructure provider.' },
   ],
 });
+
+definePageMeta({
+  // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
+  layout: 'default'
+})
+
+const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
+watch(currentLayout, (newLayout) => {
+  if (hydrated.value) setPageLayout(newLayout)
+})
 
 const effectiveDate = new Date().toLocaleDateString('fr-FR', {
   year: 'numeric',

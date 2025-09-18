@@ -15,7 +15,6 @@ export default defineEventHandler(async (event) => {
     const clientIP = getRequestIP(event) || 'unknown'
     const userAgent = getHeader(event, 'user-agent') || 'unknown'
 
-    // Ensure author exists
     const author = await db.prepare(`SELECT id FROM authors WHERE id = ?`).bind(authorId).first()
     if (!author) {
       throw createError({

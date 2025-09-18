@@ -3,17 +3,20 @@
   */
 export const getReferenceIcon = (type: string) => {
   const icons: Record<string, string> = {
-    film: 'i-ph-film-strip',
     book: 'i-ph-book',
+    film: 'i-ph-film-strip',
     tv_series: 'i-ph-television',
     music: 'i-ph-music-note',
     speech: 'i-ph-microphone',
-    podcast: 'i-ph-microphone',
+    podcast: 'i-ph-microphone-stage',
     interview: 'i-ph-chat-circle',
-    documentary: 'i-ph-video',
-    other: 'i-solar-document-broken'
+    documentary: 'i-ph-video-camera',
+    media_stream: 'i-ph-play-circle',
+    writings: 'i-ph-article',
+    video_game: 'i-ph-game-controller',
+    other: 'i-ph-file-text',
   }
-  return icons[type] || 'i-solar-document-broken'
+  return icons[type] || 'i-ph-question'
 }
 
 /**
