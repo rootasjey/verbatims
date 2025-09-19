@@ -28,7 +28,6 @@ export default defineNuxtConfig({
   ],
 
   hub: {
-    analytics: true,
     blob: true,
     cache: true,
     database: true,
