@@ -13,7 +13,8 @@ export const ReferenceSchema = z.object({
   original_language: z.enum(validLanguages).optional(),
   release_date: z.string().optional(), // ISO date preferred; allow string and defer strictness to importer
   description: z.string().max(5000).optional(),
-  primary_type: z.enum(validPrimaryTypes),
+  // Historically some exports might miss primary_type; accept missing and default to 'other'
+  primary_type: z.enum(validPrimaryTypes).default('other').optional(),
   secondary_type: z.string().max(100).optional(),
   image_url: z.string().url().optional(),
   urls: z
