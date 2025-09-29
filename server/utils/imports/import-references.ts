@@ -261,8 +261,14 @@ export async function parseReferencesCsv(csvData: string): Promise<any[]> {
         try { obj[h] = JSON.parse(String(v)) } catch { obj[h] = v }
       } else if (['views_count','likes_count','shares_count','quotes_count'].includes(h)) {
         obj[h] = v && v !== '' ? parseInt(String(v), 10) : 0
-      } else if (h === 'is_featured' && v) {
-        obj[h] = String(v).toLowerCase() === 'true'
+      } else if (h === 'is_featured') {
+        if (v === null || v === '') obj[h] = undefined
+        else {
+          const s = String(v).trim().toLowerCase()
+          if (['1','true','yes','y'].includes(s)) obj[h] = true
+          else if (['0','false','no','n'].includes(s)) obj[h] = false
+          else obj[h] = Boolean(v)
+        }
       } else {
         obj[h] = v
       }

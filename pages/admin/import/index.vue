@@ -150,7 +150,7 @@
             <UCollapsibleContent>
               <div class="p-4">
                 <ImportProgress v-if="currentImportId" :import-id="currentImportId" />
-                <div v-else class="text-center py-12 text-gray-500">No active import. Start an import from the Upload section.</div>
+                <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">No active import. Start an import from the Upload section.</div>
               </div>
             </UCollapsibleContent>
           </UCollapsible>
