@@ -103,6 +103,14 @@
           </UButton>
 
           <UButton
+            v-if="progress.status === 'completed' && progress.failedRecords > 0"
+            btn="soft-blue"
+            @click="downloadUnresolved"
+          >
+            Download Unresolved Rows
+          </UButton>
+
+          <UButton
             v-if="progress.status === 'failed'"
             btn="outline"
             color="blue"
@@ -268,6 +276,26 @@ const cancelImport = async () => {
 const retryImport = async () => {
   // TODO: Implement retry logic
   console.log('Retry import not implemented yet')
+}
+
+const downloadUnresolved = async () => {
+  try {
+    const id = props.importId
+    const url = `/api/admin/import/unresolved/${id}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Failed to download unresolved rows: ${res.status}`)
+    const blob = await res.blob()
+    const a = document.createElement('a')
+    const objectUrl = URL.createObjectURL(blob)
+    a.href = objectUrl
+    a.download = `unresolved-${id}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(objectUrl)
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const getStatusColor = (status) => {

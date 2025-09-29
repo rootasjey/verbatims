@@ -154,6 +154,75 @@
               </div>
             </UCollapsibleContent>
           </UCollapsible>
+
+          <!-- Relink Relations -->
+          <UCollapsible v-model:open="openRelink" title="Relink Relations" :ui="{ base: 'border border-dashed rounded-xl' }">
+            <div class="flex items-center justify-between px-4 space-x-4">
+              <h2 class="text-xl font-semibold">3 • Relink Post-Quote Relations</h2>
+              <UCollapsibleTrigger as-child>
+                <UButton btn="ghost-gray" square>
+                  <UIcon name="i-radix-icons-caret-sort" />
+                </UButton>
+              </UCollapsibleTrigger>
+            </div>
+            <UCollapsibleContent>
+              <div class="space-y-6 p-4">
+                <UCard>
+                  <template #header>
+                    <div class="flex items-center gap-2">
+                      <UIcon name="i-ph-link-simple" />
+                      <h2 class="text-xl font-semibold">Relink Post-Quote Relations</h2>
+                    </div>
+                  </template>
+
+                  <div class="space-y-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Use this to re-import relation datasets after a quotes import. Supported keys: 
+                      <span class="font-medium">quote_tags</span>, <span class="font-medium">user_likes</span>, 
+                      <span class="font-medium">user_collections</span>, <span class="font-medium">collection_quotes</span>,
+                      <span class="font-medium">user_sessions</span>, <span class="font-medium">user_messages</span>,
+                      <span class="font-medium">quote_reports</span>, <span class="font-medium">quote_views</span>,
+                      <span class="font-medium">author_views</span>, <span class="font-medium">reference_views</span>.
+                    </p>
+
+                    <!-- Relink File Upload -->
+                    <div>
+                      <label class="block text-sm font-medium mb-2">Select Relink Bundle (JSON or ZIP)</label>
+                      <input
+                        ref="relinkFileInput"
+                        type="file"
+                        accept=".json,.zip"
+                        @change="handleRelinkFileSelect"
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                      />
+                      <p class="mt-1 text-xs text-gray-500">
+                        JSON: object with arrays under supported keys. ZIP: server will parse counts.
+                      </p>
+                    </div>
+
+                    <!-- Preview (JSON only) -->
+                    <div v-if="relinkFormat === 'json' && Object.keys(relinkPreviewCounts).length" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div v-for="(count, key) in relinkPreviewCounts" :key="key" class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div class="text-xs uppercase tracking-wide text-gray-500">{{ key }}</div>
+                        <div class="text-xl font-bold">{{ count }}</div>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-3 pt-2">
+                      <UButton :disabled="!selectedRelinkFile" :loading="isRelinking" btn="soft-indigo" @click="startRelink">
+                        Start Relink
+                      </UButton>
+                    </div>
+
+                    <p class="mt-2 text-xs text-gray-500">
+                      Tip: If collection/quote IDs are missing, include <code>collection_name</code> and/or <code>quote_name</code> (and optional <code>language</code> or <code>user_id</code>) to resolve links.
+                    </p>
+                  </div>
+                </UCard>
+              </div>
+            </UCollapsibleContent>
+          </UCollapsible>
         </div>
 
         <div v-else-if="item.value === 'history'">
@@ -208,6 +277,14 @@ const currentImportId = ref<string | null>(null)
 const openUpload = ref<boolean>(true)
 const openProgress = ref<boolean>(false)
 const openHistory = ref<boolean>(false)
+const openRelink = ref<boolean>(false)
+
+// Relink state
+const relinkFileInput = ref<HTMLInputElement | null>(null)
+const selectedRelinkFile = ref<File | null>(null)
+const relinkFormat = ref<'json' | 'zip' | null>(null)
+const isRelinking = ref<boolean>(false)
+const relinkPreviewCounts = ref<Record<string, number>>({})
 
 const importOptions = ref<ImportOptions>({
   createBackup: true,
@@ -263,6 +340,70 @@ const handleFileSelect = (event: Event) => {
   }
 }
 
+const handleRelinkFileSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement | null
+  const file = input?.files?.[0] ?? null
+  selectedRelinkFile.value = file
+  relinkPreviewCounts.value = {}
+  relinkFormat.value = null
+
+  if (!file) return
+  const name = file.name.toLowerCase()
+  if (name.endsWith('.zip')) {
+    relinkFormat.value = 'zip'
+    return
+  }
+  if (name.endsWith('.json')) {
+    relinkFormat.value = 'json'
+    // parse minimal counts preview
+    readFileContent(file).then((text) => {
+      try {
+        const obj = JSON.parse(text) || {}
+        const keys = ['quote_tags', 'user_likes', 'user_collections', 'collection_quotes', 'user_sessions', 'user_messages', 'quote_reports', 'quote_views', 'author_views', 'reference_views']
+        const counts: Record<string, number> = {}
+        for (const k of keys) {
+          const arr = Array.isArray(obj[k]) ? obj[k] : []
+          if (arr.length) counts[k] = arr.length
+        }
+        relinkPreviewCounts.value = counts
+      } catch (e) {
+        relinkPreviewCounts.value = {}
+      }
+    })
+  }
+}
+
+const startRelink = async (): Promise<void> => {
+  if (!selectedRelinkFile.value) return
+  isRelinking.value = true
+  try {
+    let body: any = { filename: selectedRelinkFile.value.name }
+    if (relinkFormat.value === 'zip') {
+      const zipBase64 = await readFileAsBase64(selectedRelinkFile.value)
+      body.zipBase64 = zipBase64
+    } else {
+      // JSON: send as bundle directly
+      const text = await readFileContent(selectedRelinkFile.value)
+      body.bundle = JSON.parse(text)
+    }
+    const response: any = await $fetch('/api/admin/import/relink', {
+      method: 'POST',
+      body
+    })
+    currentImportId.value = response.importId
+    openProgress.value = true
+  } catch (error: any) {
+    console.error('Relink failed:', error)
+    useToast().toast({
+      title: 'Relink Failed',
+      description: error?.data?.message || 'An error occurred during relink.',
+      toast: 'error',
+    })
+  } finally {
+    isRelinking.value = false
+  }
+}
+
 const validateData = async (): Promise<void> => {
   if (!selectedFile.value || !selectedFormat.value) return
   isValidating.value = true
@@ -290,6 +431,24 @@ const validateData = async (): Promise<void> => {
       parsedData = JSON.parse(fileContent)
       if (parsedData?.data && Array.isArray(parsedData.data)) parsedData = parsedData.data
       else if (!Array.isArray(parsedData)) parsedData = [parsedData]
+
+      // Auto-detect dataset type for JSON to avoid validating with wrong schema
+      const sample = Array.isArray(parsedData) && parsedData.length > 0 ? parsedData[0] : null
+      if (sample && typeof sample === 'object') {
+        // Heuristics: keys typical to each dataset
+        const k = Object.keys(sample)
+        const hasQuoteKeys = k.includes('language') || k.includes('status') || k.includes('author_id') || k.includes('reference_id')
+        const hasReferenceKeys = k.includes('primary_type') || k.includes('secondary_type') || k.includes('release_date')
+        const hasAuthorKeys = k.includes('is_fictional') || k.includes('birth_date') || k.includes('death_date')
+        const hasUserKeys = k.includes('email') || k.includes('role')
+        const hasTagKeys = k.includes('color') && !k.includes('email') && !k.includes('language')
+
+        if (hasQuoteKeys) selectedDataType.value = { label: 'Quotes', value: 'quotes' }
+        else if (hasReferenceKeys) selectedDataType.value = { label: 'References', value: 'references' }
+        else if (hasAuthorKeys) selectedDataType.value = { label: 'Authors', value: 'authors' }
+        else if (hasUserKeys) selectedDataType.value = { label: 'Users', value: 'users' }
+        else if (hasTagKeys) selectedDataType.value = { label: 'Tags', value: 'tags' }
+      }
     }
 
     previewData.value = parsedData

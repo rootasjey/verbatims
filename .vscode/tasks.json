@@ -11,6 +11,39 @@
 				"$tsc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Nuxt build (typecheck)",
+			"type": "shell",
+			"command": "bun run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Nuxt build (typecheck)",
+			"type": "shell",
+			"command": "bun run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Nuxt build (typecheck)",
+			"type": "shell",
+			"command": "bun run build",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
 		}
 	]
 }
