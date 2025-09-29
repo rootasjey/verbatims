@@ -112,7 +112,6 @@
 </template>
 
 <script lang="ts" setup>
-// SEO
 useHead({
   title: 'Create Admin User - Verbatims Onboarding',
   meta: [
@@ -120,7 +119,6 @@ useHead({
   ]
 })
 
-// Form state
 const form = ref({
   username: '',
   email: '',
@@ -133,7 +131,6 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-// Form validation
 const isFormValid = computed(() => {
   return form.value.username.trim() &&
          form.value.email.trim() &&
@@ -143,7 +140,6 @@ const isFormValid = computed(() => {
          form.value.password === form.value.confirmPassword
 })
 
-// Create admin user
 const createAdminUser = async () => {
   if (!isFormValid.value) {
     error.value = 'Please fill in all fields correctly'
@@ -173,7 +169,6 @@ const createAdminUser = async () => {
     if (response.success) {
       success.value = 'Admin user created successfully!'
       
-      // Redirect to database initialization after a short delay
       setTimeout(() => {
         navigateTo('/onboarding/database')
       }, 2000)

@@ -1,0 +1,1610 @@
+[
+  {
+    "id": 16,
+    "quote_id": 1953,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-08 23:44:23"
+  },
+  {
+    "id": 17,
+    "quote_id": 1764,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-09 02:35:43"
+  },
+  {
+    "id": 18,
+    "quote_id": 1309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-09 14:08:21"
+  },
+  {
+    "id": 19,
+    "quote_id": 487,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-09 14:08:26"
+  },
+  {
+    "id": 20,
+    "quote_id": 1953,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 01:35:12"
+  },
+  {
+    "id": 21,
+    "quote_id": 910,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 01:42:53"
+  },
+  {
+    "id": 22,
+    "quote_id": 386,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 01:56:56"
+  },
+  {
+    "id": 23,
+    "quote_id": 1145,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:40:29"
+  },
+  {
+    "id": 24,
+    "quote_id": 597,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:00"
+  },
+  {
+    "id": 25,
+    "quote_id": 1776,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:16"
+  },
+  {
+    "id": 26,
+    "quote_id": 386,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:27"
+  },
+  {
+    "id": 27,
+    "quote_id": 779,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:35"
+  },
+  {
+    "id": 28,
+    "quote_id": 624,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:39"
+  },
+  {
+    "id": 29,
+    "quote_id": 274,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:42"
+  },
+  {
+    "id": 30,
+    "quote_id": 174,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:51"
+  },
+  {
+    "id": 31,
+    "quote_id": 1292,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:54"
+  },
+  {
+    "id": 32,
+    "quote_id": 872,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:41:56"
+  },
+  {
+    "id": 33,
+    "quote_id": 596,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 10:42:22"
+  },
+  {
+    "id": 34,
+    "quote_id": 522,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:22:46"
+  },
+  {
+    "id": 35,
+    "quote_id": 1152,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:23:49"
+  },
+  {
+    "id": 36,
+    "quote_id": 487,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:28:15"
+  },
+  {
+    "id": 37,
+    "quote_id": 354,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:28:17"
+  },
+  {
+    "id": 38,
+    "quote_id": 1953,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:29:11"
+  },
+  {
+    "id": 39,
+    "quote_id": 1764,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:29:13"
+  },
+  {
+    "id": 40,
+    "quote_id": 1115,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:29:15"
+  },
+  {
+    "id": 41,
+    "quote_id": 910,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:29:23"
+  },
+  {
+    "id": 42,
+    "quote_id": 1584,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:29:27"
+  },
+  {
+    "id": 43,
+    "quote_id": 274,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 11:49:37"
+  },
+  {
+    "id": 44,
+    "quote_id": 1953,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 12:29:19"
+  },
+  {
+    "id": 45,
+    "quote_id": 2275,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-11 14:33:58"
+  },
+  {
+    "id": 46,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-15 00:11:08"
+  },
+  {
+    "id": 47,
+    "quote_id": 653,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-15 00:12:08"
+  },
+  {
+    "id": 48,
+    "quote_id": 2306,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-15 00:19:51"
+  },
+  {
+    "id": 49,
+    "quote_id": 2303,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-15 00:19:58"
+  },
+  {
+    "id": 50,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-16 11:15:52"
+  },
+  {
+    "id": 51,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 01:20:15"
+  },
+  {
+    "id": 52,
+    "quote_id": 2290,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 01:31:56"
+  },
+  {
+    "id": 53,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 15:15:24"
+  },
+  {
+    "id": 54,
+    "quote_id": 2274,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 15:20:27"
+  },
+  {
+    "id": 55,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 15:20:53"
+  },
+  {
+    "id": 56,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 15:27:04"
+  },
+  {
+    "id": 57,
+    "quote_id": 922,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 15:31:39"
+  },
+  {
+    "id": 58,
+    "quote_id": 171,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 15:33:33"
+  },
+  {
+    "id": 59,
+    "quote_id": 2289,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 16:09:14"
+  },
+  {
+    "id": 60,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 16:18:22"
+  },
+  {
+    "id": 61,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 17:57:50"
+  },
+  {
+    "id": 62,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 20:17:07"
+  },
+  {
+    "id": 63,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 22:52:28"
+  },
+  {
+    "id": 64,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 23:57:04"
+  },
+  {
+    "id": 65,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-17 23:59:38"
+  },
+  {
+    "id": 66,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 01:52:44"
+  },
+  {
+    "id": 67,
+    "quote_id": 2086,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 01:55:41"
+  },
+  {
+    "id": 68,
+    "quote_id": 922,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 02:19:11"
+  },
+  {
+    "id": 69,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 02:30:08"
+  },
+  {
+    "id": 70,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 02:44:37"
+  },
+  {
+    "id": 71,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 02:44:56"
+  },
+  {
+    "id": 72,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 12:56:22"
+  },
+  {
+    "id": 73,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 13:02:41"
+  },
+  {
+    "id": 74,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 17:17:13"
+  },
+  {
+    "id": 75,
+    "quote_id": 1063,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 18:18:29"
+  },
+  {
+    "id": 76,
+    "quote_id": 1063,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-18 23:27:53"
+  },
+  {
+    "id": 77,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 00:28:30"
+  },
+  {
+    "id": 78,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 00:28:50"
+  },
+  {
+    "id": 79,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 00:53:09"
+  },
+  {
+    "id": 80,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 01:18:06"
+  },
+  {
+    "id": 81,
+    "quote_id": 2285,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 02:05:55"
+  },
+  {
+    "id": 82,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 02:07:41"
+  },
+  {
+    "id": 83,
+    "quote_id": 2301,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 02:07:50"
+  },
+  {
+    "id": 84,
+    "quote_id": 2295,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 02:08:00"
+  },
+  {
+    "id": 85,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 02:08:08"
+  },
+  {
+    "id": 86,
+    "quote_id": 2299,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 02:09:24"
+  },
+  {
+    "id": 87,
+    "quote_id": 602,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 03:35:15"
+  },
+  {
+    "id": 88,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 11:21:45"
+  },
+  {
+    "id": 89,
+    "quote_id": 2303,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 11:31:34"
+  },
+  {
+    "id": 90,
+    "quote_id": 2233,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 11:45:10"
+  },
+  {
+    "id": 91,
+    "quote_id": 2169,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 11:45:26"
+  },
+  {
+    "id": 92,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 13:49:27"
+  },
+  {
+    "id": 93,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 13:50:03"
+  },
+  {
+    "id": 94,
+    "quote_id": 1627,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 13:50:51"
+  },
+  {
+    "id": 95,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:07:49"
+  },
+  {
+    "id": 96,
+    "quote_id": 2302,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:07:57"
+  },
+  {
+    "id": 97,
+    "quote_id": 2301,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:08:08"
+  },
+  {
+    "id": 98,
+    "quote_id": 1965,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:19:03"
+  },
+  {
+    "id": 99,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:26:34"
+  },
+  {
+    "id": 100,
+    "quote_id": 2278,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:30:25"
+  },
+  {
+    "id": 101,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:35:58"
+  },
+  {
+    "id": 102,
+    "quote_id": 852,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:38:19"
+  },
+  {
+    "id": 103,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:53:59"
+  },
+  {
+    "id": 104,
+    "quote_id": 2273,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 14:58:37"
+  },
+  {
+    "id": 105,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 20:52:46"
+  },
+  {
+    "id": 106,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 21:33:52"
+  },
+  {
+    "id": 107,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 21:34:03"
+  },
+  {
+    "id": 108,
+    "quote_id": 2302,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 21:37:25"
+  },
+  {
+    "id": 109,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-19 23:55:28"
+  },
+  {
+    "id": 110,
+    "quote_id": 2283,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 01:25:42"
+  },
+  {
+    "id": 111,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 02:25:22"
+  },
+  {
+    "id": 112,
+    "quote_id": 2307,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 02:26:08"
+  },
+  {
+    "id": 113,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 02:26:12"
+  },
+  {
+    "id": 114,
+    "quote_id": 2259,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 02:27:26"
+  },
+  {
+    "id": 115,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 02:32:14"
+  },
+  {
+    "id": 116,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-20 11:57:45"
+  },
+  {
+    "id": 117,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-20 13:01:45"
+  },
+  {
+    "id": 118,
+    "quote_id": 2306,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-20 19:36:50"
+  },
+  {
+    "id": 119,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-20 19:45:00"
+  },
+  {
+    "id": 120,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-20 20:48:52"
+  },
+  {
+    "id": 121,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-20 22:31:01"
+  },
+  {
+    "id": 122,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 01:00:44"
+  },
+  {
+    "id": 123,
+    "quote_id": 2307,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 01:15:02"
+  },
+  {
+    "id": 124,
+    "quote_id": 2305,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 01:17:44"
+  },
+  {
+    "id": 125,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 13:47:40"
+  },
+  {
+    "id": 126,
+    "quote_id": 2308,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 14:51:08"
+  },
+  {
+    "id": 127,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-21 14:57:12"
+  },
+  {
+    "id": 128,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 14:57:29"
+  },
+  {
+    "id": 129,
+    "quote_id": 2305,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 15:24:22"
+  },
+  {
+    "id": 130,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 15:59:39"
+  },
+  {
+    "id": 131,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-21 18:38:11"
+  },
+  {
+    "id": 132,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 18:39:21"
+  },
+  {
+    "id": 133,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-21 18:57:02"
+  },
+  {
+    "id": 134,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 19:42:47"
+  },
+  {
+    "id": 135,
+    "quote_id": 2308,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 19:52:52"
+  },
+  {
+    "id": 136,
+    "quote_id": 2307,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.1 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 19:55:57"
+  },
+  {
+    "id": 137,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-21 22:26:55"
+  },
+  {
+    "id": 138,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 00:05:25"
+  },
+  {
+    "id": 139,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 01:26:59"
+  },
+  {
+    "id": 140,
+    "quote_id": 2305,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 01:36:47"
+  },
+  {
+    "id": 141,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 14:23:27"
+  },
+  {
+    "id": 142,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 19:45:53"
+  },
+  {
+    "id": 143,
+    "quote_id": 2307,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 19:49:48"
+  },
+  {
+    "id": 144,
+    "quote_id": 2305,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 19:49:54"
+  },
+  {
+    "id": 145,
+    "quote_id": 2281,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 19:50:03"
+  },
+  {
+    "id": 146,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.2 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "viewed_at": "2025-08-22 22:51:59"
+  },
+  {
+    "id": 147,
+    "quote_id": 2283,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-22 23:19:14"
+  },
+  {
+    "id": 148,
+    "quote_id": 2287,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-22 23:22:31"
+  },
+  {
+    "id": 149,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-22 23:33:05"
+  },
+  {
+    "id": 150,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-27 13:40:57"
+  },
+  {
+    "id": 151,
+    "quote_id": 2306,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-28 14:39:00"
+  },
+  {
+    "id": 152,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-28 14:39:08"
+  },
+  {
+    "id": 153,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "viewed_at": "2025-08-28 14:39:15"
+  },
+  {
+    "id": 154,
+    "quote_id": 2301,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 21:56:45"
+  },
+  {
+    "id": 155,
+    "quote_id": 2284,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 22:07:45"
+  },
+  {
+    "id": 156,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 22:07:55"
+  },
+  {
+    "id": 157,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 22:08:42"
+  },
+  {
+    "id": 158,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 22:18:42"
+  },
+  {
+    "id": 159,
+    "quote_id": 2268,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 22:19:35"
+  },
+  {
+    "id": 160,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-29 23:59:48"
+  },
+  {
+    "id": 161,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-30 00:20:52"
+  },
+  {
+    "id": 162,
+    "quote_id": 2307,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-30 01:03:48"
+  },
+  {
+    "id": 163,
+    "quote_id": 2088,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-30 01:18:33"
+  },
+  {
+    "id": 164,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-30 02:19:24"
+  },
+  {
+    "id": 165,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:18:02"
+  },
+  {
+    "id": 166,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:18:09"
+  },
+  {
+    "id": 167,
+    "quote_id": 1436,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:18:23"
+  },
+  {
+    "id": 168,
+    "quote_id": 2087,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:20:26"
+  },
+  {
+    "id": 169,
+    "quote_id": 2305,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:23:33"
+  },
+  {
+    "id": 170,
+    "quote_id": 2291,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:23:39"
+  },
+  {
+    "id": 171,
+    "quote_id": 2288,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:23:43"
+  },
+  {
+    "id": 172,
+    "quote_id": 2282,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:23:48"
+  },
+  {
+    "id": 173,
+    "quote_id": 2280,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:23:56"
+  },
+  {
+    "id": 174,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:24:14"
+  },
+  {
+    "id": 175,
+    "quote_id": 2301,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:24:53"
+  },
+  {
+    "id": 176,
+    "quote_id": 2285,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:24:58"
+  },
+  {
+    "id": 177,
+    "quote_id": 2296,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:25:30"
+  },
+  {
+    "id": 178,
+    "quote_id": 2297,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:27:24"
+  },
+  {
+    "id": 179,
+    "quote_id": 2298,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:27:30"
+  },
+  {
+    "id": 180,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:27:41"
+  },
+  {
+    "id": 181,
+    "quote_id": 2307,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 13:27:46"
+  },
+  {
+    "id": 182,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 14:34:20"
+  },
+  {
+    "id": 183,
+    "quote_id": 2304,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 19:59:05"
+  },
+  {
+    "id": 184,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 19:59:58"
+  },
+  {
+    "id": 185,
+    "quote_id": 2306,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 22:00:47"
+  },
+  {
+    "id": 186,
+    "quote_id": 749,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 22:46:49"
+  },
+  {
+    "id": 187,
+    "quote_id": 1277,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 22:47:11"
+  },
+  {
+    "id": 188,
+    "quote_id": 242,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-08-31 23:04:07"
+  },
+  {
+    "id": 189,
+    "quote_id": 749,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-01 10:57:14"
+  },
+  {
+    "id": 190,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-01 10:57:21"
+  },
+  {
+    "id": 191,
+    "quote_id": 2301,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-01 10:57:39"
+  },
+  {
+    "id": 192,
+    "quote_id": 2302,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-01 10:57:50"
+  },
+  {
+    "id": 193,
+    "quote_id": 2302,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-01 13:47:43"
+  },
+  {
+    "id": 194,
+    "quote_id": 1448,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 11:37:46"
+  },
+  {
+    "id": 195,
+    "quote_id": 1448,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 12:44:43"
+  },
+  {
+    "id": 196,
+    "quote_id": 749,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 12:45:16"
+  },
+  {
+    "id": 197,
+    "quote_id": 1277,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 12:45:23"
+  },
+  {
+    "id": 198,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 12:45:28"
+  },
+  {
+    "id": 199,
+    "quote_id": 2301,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 12:45:39"
+  },
+  {
+    "id": 200,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 13:45:01"
+  },
+  {
+    "id": 201,
+    "quote_id": 2300,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-03 14:15:42"
+  },
+  {
+    "id": 202,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-10 13:37:26"
+  },
+  {
+    "id": 203,
+    "quote_id": 2308,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-14 16:57:37"
+  },
+  {
+    "id": 204,
+    "quote_id": 2304,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-14 16:57:41"
+  },
+  {
+    "id": 205,
+    "quote_id": 1627,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-14 16:58:15"
+  },
+  {
+    "id": 206,
+    "quote_id": 2087,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-15 00:20:28"
+  },
+  {
+    "id": 207,
+    "quote_id": 2279,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-15 01:05:12"
+  },
+  {
+    "id": 208,
+    "quote_id": 2300,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-15 13:23:05"
+  },
+  {
+    "id": 209,
+    "quote_id": 2292,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-15 13:23:12"
+  },
+  {
+    "id": 210,
+    "quote_id": 2275,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-15 13:39:47"
+  },
+  {
+    "id": 211,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-16 15:12:13"
+  },
+  {
+    "id": 212,
+    "quote_id": 2309,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-16 18:50:26"
+  },
+  {
+    "id": 213,
+    "quote_id": 2300,
+    "user_id": null,
+    "ip_address": "unknown",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-16 18:50:33"
+  },
+  {
+    "id": 214,
+    "quote_id": 2309,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-16 23:56:08"
+  },
+  {
+    "id": 215,
+    "quote_id": 2308,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-16 23:56:14"
+  },
+  {
+    "id": 216,
+    "quote_id": 2299,
+    "user_id": 1,
+    "ip_address": null,
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0",
+    "viewed_at": "2025-09-18 17:49:00"
+  }
+]

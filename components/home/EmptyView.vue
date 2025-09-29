@@ -27,6 +27,16 @@
             <UIcon name="i-ph-database" />
             <span>2. Initialize Database</span>
           </UButton>
+          <UButton
+            v-if="onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser"
+            size="lg"
+            to="/onboarding/database"
+            class="px-8 py-4"
+            btn="outline"
+          >
+            <UIcon name="i-ph-skip-forward" />
+            <span>Skip • Import Backup</span>
+          </UButton>
         </div>
       </div>
     </div>
@@ -118,23 +128,27 @@
   </div>
 </template>
 
-<script setup>
-// Props
-const props = defineProps({
-  needsOnboarding: {
-    type: Boolean,
-    default: false
-  },
+<script lang="ts" setup>
+interface Props {
+  needsOnboarding: boolean
   onboardingStatus: {
-    type: Object,
-    default: () => ({})
-  },
-  stats: {
-    type: Object,
-    default: () => ({ quotes: 0, authors: 0, references: 0, users: 0 })
+    step?: string
+    hasAdminUser?: boolean
+    hasData?: boolean
   }
+  stats: {
+    quotes: number
+    authors: number
+    references: number
+    users: number
+  }
+}
+
+withDefaults(defineProps<Props>(), {
+  needsOnboarding: false,
+  onboardingStatus: () => ({}),
+  stats: () => ({ quotes: 0, authors: 0, references: 0, users: 0 })
 })
 
-// Emits
 const emit = defineEmits(['openSubmitModal'])
 </script>

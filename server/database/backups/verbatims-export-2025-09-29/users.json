@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "user",
+    "password": "",
+    "avatar_url": null,
+    "role": "admin",
+    "is_active": 1,
+    "email_verified": 1,
+    "biography": null,
+    "job": null,
+    "language": "en",
+    "location": "On Earth",
+    "socials": "[]",
+    "last_login_at": "2025-09-29 12:17:50",
+    "created_at": "2025-07-24 16:05:56",
+    "updated_at": "2025-09-29 12:17:50"
+  }
+]
