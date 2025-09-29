@@ -1,0 +1,29 @@
+[
+  {
+    "id": 3,
+    "name": "music",
+    "description": "All quote related to music.",
+    "category": "genre",
+    "color": "#FF70A4",
+    "created_at": "2025-09-10 13:43:35",
+    "updated_at": "2025-09-10 13:43:35"
+  },
+  {
+    "id": 2,
+    "name": "cinema",
+    "description": "All quote related to cinema.",
+    "category": "genre",
+    "color": "#FF6868",
+    "created_at": "2025-09-10 13:39:40",
+    "updated_at": "2025-09-10 13:39:40"
+  },
+  {
+    "id": 1,
+    "name": "inspiration",
+    "description": "Something that motivate to take action.",
+    "category": "emotion",
+    "color": "#FFDBB6",
+    "created_at": "2025-08-31 18:54:11",
+    "updated_at": "2025-08-31 18:58:25"
+  }
+]

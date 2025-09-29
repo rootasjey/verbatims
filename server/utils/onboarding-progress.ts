@@ -6,8 +6,15 @@
 export interface OnboardingProgress {
   id: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
-  currentStep: 'authors' | 'references' | 'quotes' | null
+  currentStep: 'users' | 'authors' | 'references' | 'tags' | 'quotes' | null
   steps: {
+    users: {
+      status: 'pending' | 'processing' | 'completed' | 'failed'
+      message: string
+      current: number
+      total: number
+      imported: number
+    }
     authors: {
       status: 'pending' | 'processing' | 'completed' | 'failed'
       message: string
@@ -22,6 +29,13 @@ export interface OnboardingProgress {
       total: number
       imported: number
     }
+    tags: {
+      status: 'pending' | 'processing' | 'completed' | 'failed'
+      message: string
+      current: number
+      total: number
+      imported: number
+    }
     quotes: {
       status: 'pending' | 'processing' | 'completed' | 'failed'
       message: string
@@ -29,6 +43,18 @@ export interface OnboardingProgress {
       total: number
       imported: number
     }
+  }
+  // Aggregated counts for optional datasets imported alongside main steps
+  extras: {
+    user_collections: number
+    collection_quotes: number
+    user_likes: number
+    user_sessions: number
+    user_messages: number
+    quote_reports: number
+    quote_views: number
+    author_views: number
+    reference_views: number
   }
   errors: string[]
   warnings: string[]
@@ -63,6 +89,13 @@ export function initializeProgress(importId: string): OnboardingProgress {
     status: 'pending',
     currentStep: null,
     steps: {
+      users: {
+        status: 'pending',
+        message: 'Ready to import users from backup',
+        current: 0,
+        total: 0,
+        imported: 0
+      },
       authors: {
         status: 'pending',
         message: 'Ready to import authors from backup files',
@@ -77,6 +110,13 @@ export function initializeProgress(importId: string): OnboardingProgress {
         total: 0,
         imported: 0
       },
+      tags: {
+        status: 'pending',
+        message: 'Ready to import tags from backup',
+        current: 0,
+        total: 0,
+        imported: 0
+      },
       quotes: {
         status: 'pending',
         message: 'Ready to import quotes from backup files',
@@ -84,6 +124,17 @@ export function initializeProgress(importId: string): OnboardingProgress {
         total: 0,
         imported: 0
       }
+    },
+    extras: {
+      user_collections: 0,
+      collection_quotes: 0,
+      user_likes: 0,
+      user_sessions: 0,
+      user_messages: 0,
+      quote_reports: 0,
+      quote_views: 0,
+      author_views: 0,
+      reference_views: 0
     },
     errors: [],
     warnings: [],
@@ -113,9 +164,21 @@ export function updateProgress(importId: string, updates: Partial<OnboardingProg
   Object.assign(progress, updates)
 
   // Calculate total imported
-  progress.totalImported = progress.steps.authors.imported +
+  progress.totalImported = progress.steps.users.imported +
+                          progress.steps.authors.imported +
                           progress.steps.references.imported +
-                          progress.steps.quotes.imported
+                          progress.steps.tags.imported +
+                          progress.steps.quotes.imported +
+                          // sum of optional datasets
+                          progress.extras.user_collections +
+                          progress.extras.collection_quotes +
+                          progress.extras.user_likes +
+                          progress.extras.user_sessions +
+                          progress.extras.user_messages +
+                          progress.extras.quote_reports +
+                          progress.extras.quote_views +
+                          progress.extras.author_views +
+                          progress.extras.reference_views
 
   // Update store
   onboardingProgressStore.set(importId, progress)
@@ -167,7 +230,7 @@ function throttledNotify(importId: string, progress: OnboardingProgress): void {
  */
 export function updateStepProgress(
   importId: string, 
-  step: 'authors' | 'references' | 'quotes',
+  step: 'users' | 'authors' | 'references' | 'tags' | 'quotes',
   stepUpdates: Partial<OnboardingProgress['steps']['authors']>
 ): void {
   const progress = onboardingProgressStore.get(importId)
@@ -195,14 +258,60 @@ export function updateStepProgress(
   }
 
   // Calculate total imported
-  progress.totalImported = progress.steps.authors.imported + 
+  progress.totalImported = progress.steps.users.imported +
+                          progress.steps.authors.imported + 
                           progress.steps.references.imported + 
-                          progress.steps.quotes.imported
+                          progress.steps.tags.imported +
+                          progress.steps.quotes.imported +
+                          progress.extras.user_collections +
+                          progress.extras.collection_quotes +
+                          progress.extras.user_likes +
+                          progress.extras.user_sessions +
+                          progress.extras.user_messages +
+                          progress.extras.quote_reports +
+                          progress.extras.quote_views +
+                          progress.extras.author_views +
+                          progress.extras.reference_views
 
   // Update store
   onboardingProgressStore.set(importId, progress)
 
   // Notify SSE connections
+  notifySSEConnections(importId, progress)
+}
+
+/**
+ * Incrementally add counts for optional datasets and recompute totals
+ */
+export function addExtras(importId: string, extras: Partial<OnboardingProgress['extras']>): void {
+  const progress = onboardingProgressStore.get(importId)
+  if (!progress) return
+
+  // Increment extras
+  for (const key of Object.keys(extras) as (keyof OnboardingProgress['extras'])[]) {
+    const value = extras[key] || 0
+    if (typeof value === 'number' && value > 0) {
+      progress.extras[key] += value
+    }
+  }
+
+  // Recompute totalImported
+  progress.totalImported = progress.steps.users.imported +
+                          progress.steps.authors.imported +
+                          progress.steps.references.imported +
+                          progress.steps.tags.imported +
+                          progress.steps.quotes.imported +
+                          progress.extras.user_collections +
+                          progress.extras.collection_quotes +
+                          progress.extras.user_likes +
+                          progress.extras.user_sessions +
+                          progress.extras.user_messages +
+                          progress.extras.quote_reports +
+                          progress.extras.quote_views +
+                          progress.extras.author_views +
+                          progress.extras.reference_views
+
+  onboardingProgressStore.set(importId, progress)
   notifySSEConnections(importId, progress)
 }
 
