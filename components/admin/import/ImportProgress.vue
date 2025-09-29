@@ -201,8 +201,6 @@ const props = defineProps({
     required: true
   }
 })
-
-// Data
 const progress = ref(null)
 const showFailedRecords = ref(false)
 const allErrors = ref([])

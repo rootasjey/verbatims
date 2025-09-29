@@ -1,6 +1,18 @@
 import { z } from 'zod'
 import { validLanguages } from './reference'
 
+// Accept common boolean-ish inputs (true/false, 1/0, yes/no, y/n, strings)
+const booleanish = z.preprocess((val) => {
+  if (typeof val === 'boolean') return val
+  if (typeof val === 'number') return val === 1 ? true : val === 0 ? false : val
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase()
+    if (['1','true','yes','y'].includes(s)) return true
+    if (['0','false','no','n',''].includes(s)) return false
+  }
+  return val
+}, z.boolean())
+
 export const QuoteSchema = z.object({
   name: z.string().min(1).max(5000),
   language: z.enum(validLanguages).optional(),
@@ -17,7 +29,7 @@ export const QuoteSchema = z.object({
   views_count: z.number().int().nonnegative().optional(),
   likes_count: z.number().int().nonnegative().optional(),
   shares_count: z.number().int().nonnegative().optional(),
-  is_featured: z.boolean().optional(),
+  is_featured: booleanish.optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 })
