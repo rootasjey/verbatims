@@ -4,6 +4,7 @@ import { validLanguages } from './reference'
 // Accept common boolean-ish inputs (true/false, 1/0, yes/no, y/n, strings)
 const booleanish = z.preprocess((val) => {
   if (typeof val === 'boolean') return val
+  if (val === null) return null
   if (typeof val === 'number') return val === 1 ? true : val === 0 ? false : val
   if (typeof val === 'string') {
     const s = val.trim().toLowerCase()
@@ -13,25 +14,68 @@ const booleanish = z.preprocess((val) => {
   return val
 }, z.boolean())
 
+// Accept number-like inputs ("42", 42) and treat empty string as null
+const numberishIntPositive = z.preprocess((val) => {
+  if (val === null || val === undefined) return val
+  if (typeof val === 'number') return val
+  if (typeof val === 'string') {
+    const s = val.trim()
+    if (s === '') return null
+    const n = Number(s)
+    return Number.isNaN(n) ? val : n
+  }
+  return val
+}, z.number().int().positive())
+
+const numberishIntNonnegative = z.preprocess((val) => {
+  if (val === null || val === undefined) return val
+  if (typeof val === 'number') return val
+  if (typeof val === 'string') {
+    const s = val.trim()
+    if (s === '') return null
+    const n = Number(s)
+    return Number.isNaN(n) ? val : n
+  }
+  return val
+}, z.number().int().nonnegative())
+
 export const QuoteSchema = z.object({
   name: z.string().min(1).max(5000),
-  language: z.enum(validLanguages).optional(),
-  author_id: z.number().int().positive().nullable().optional(),
-  author_name: z.string().optional(),
-  reference_id: z.number().int().positive().nullable().optional(),
-  reference_name: z.string().optional(),
-  user_id: z.number().int().positive().optional(),
-  user_email: z.string().email().optional(),
-  status: z.enum(['draft','pending','approved','rejected']).optional(),
+  language: z.preprocess((v) => {
+    if (v === null || v === undefined) return v
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase()
+      return s === '' ? null : s
+    }
+    return v
+  }, z.enum(validLanguages)).nullable().optional(),
+  author_id: numberishIntPositive.nullable().optional(),
+  author_name: z.string().nullable().optional(),
+  reference_id: numberishIntPositive.nullable().optional(),
+  reference_name: z.string().nullable().optional(),
+  user_id: numberishIntPositive.nullable().optional(),
+  user_email: z.preprocess((v) => {
+    if (v === null || v === undefined) return v
+    if (typeof v === 'string' && v.trim() === '') return null
+    return v
+  }, z.string().email()).nullable().optional(),
+  status: z.preprocess((v) => {
+    if (v === null || v === undefined) return v
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase()
+      return s === '' ? null : s
+    }
+    return v
+  }, z.enum(['draft','pending','approved','rejected'])).nullable().optional(),
   moderator_id: z.number().int().positive().nullable().optional(),
   moderated_at: z.string().nullable().optional(),
   rejection_reason: z.string().nullable().optional(),
-  views_count: z.number().int().nonnegative().optional(),
-  likes_count: z.number().int().nonnegative().optional(),
-  shares_count: z.number().int().nonnegative().optional(),
-  is_featured: booleanish.optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
+  views_count: numberishIntNonnegative.nullable().optional(),
+  likes_count: numberishIntNonnegative.nullable().optional(),
+  shares_count: numberishIntNonnegative.nullable().optional(),
+  is_featured: booleanish.nullable().optional(),
+  created_at: z.string().nullable().optional(),
+  updated_at: z.string().nullable().optional(),
 })
 
 export type QuoteInput = z.infer<typeof QuoteSchema>
