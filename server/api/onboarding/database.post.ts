@@ -101,12 +101,15 @@ export default defineEventHandler(async (event) => {
 
     // If async mode, start processing in background and return import ID
     if (isAsync) {
-      // Start processing asynchronously
-      processImportAsync(db, adminUser?.id || 0, importId, zipBytes, preloadedDatasets || undefined)
+      // Start processing asynchronously; keep worker alive with waitUntil on Cloudflare
+      const runJob = () => processImportAsync(db, adminUser?.id || 0, importId, zipBytes, preloadedDatasets || undefined)
         .catch(error => {
           console.error('Async import failed:', error)
           addError(importId, `Import failed: ${error.message}`)
         })
+
+      const { scheduleBackground } = await import('~/server/utils/schedule')
+      scheduleBackground(event, runJob)
 
       return {
         success: true,

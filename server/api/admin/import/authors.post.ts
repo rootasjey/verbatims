@@ -1,6 +1,7 @@
 import type { ImportOptions } from '~/types'
 import { createAdminImport, getAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
 import { processImportAuthors } from '~/server/utils/imports/import-authors'
+import { scheduleBackground } from '~/server/utils/schedule'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -25,16 +26,19 @@ export default defineEventHandler(async (event) => {
       console.warn('Failed to log authors import start:', e)
     }
 
-    processImportAuthors(importId, data, format, options)
-    .catch((err) => {
-      addAdminImportError(importId, `Fatal error: ${err.message}`)
-      try {
-        const db = hubDatabase()
-        const p = getAdminImport(importId)!
-        db.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-          .bind('failed', p.totalRecords, p.successfulRecords, p.failedRecords, p.warnings.length, importId).run()
-      } catch {}
-    })
+    const runJob = () =>
+      processImportAuthors(importId, data, format, options)
+        .catch((err) => {
+          addAdminImportError(importId, `Fatal error: ${err.message}`)
+          try {
+            const db = hubDatabase()
+            const p = getAdminImport(importId)!
+            db.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
+              .bind('failed', p.totalRecords, p.successfulRecords, p.failedRecords, p.warnings.length, importId).run()
+          } catch {}
+        })
+
+  scheduleBackground(event, runJob)
 
     return {
       success: true,

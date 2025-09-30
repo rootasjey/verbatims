@@ -5,6 +5,7 @@
 import type { ImportOptions } from '~/types'
 import { createAdminImport, getAdminImport, updateAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
 import { processImportQuotes } from '~/server/utils/imports/import-quotes'
+import { scheduleBackground } from '~/server/utils/schedule'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -34,16 +35,19 @@ export default defineEventHandler(async (event) => {
       console.warn('Failed to log quotes import start:', e)
     }
 
-    // Process async
-    processImportQuotes(importId, data, format, options, user.id).catch((err) => {
-      addAdminImportError(importId, `Fatal error: ${err.message}`)
-      try {
-        const db = hubDatabase()
-        const p = getAdminImport(importId)!
-        db.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-          .bind('failed', p.totalRecords, p.successfulRecords, p.failedRecords, p.warnings.length, importId).run()
-      } catch {}
-    })
+    // Process async (schedule with Cloudflare waitUntil when available)
+    const runJob = () =>
+      processImportQuotes(importId, data, format, options, user.id).catch((err) => {
+        addAdminImportError(importId, `Fatal error: ${err.message}`)
+        try {
+          const db = hubDatabase()
+          const p = getAdminImport(importId)!
+          db.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
+            .bind('failed', p.totalRecords, p.successfulRecords, p.failedRecords, p.warnings.length, importId).run()
+        } catch {}
+      })
+
+  scheduleBackground(event, runJob)
 
     return { success: true, importId, message: 'Quotes import started', progressUrl: `/api/admin/import/progress/${importId}` }
   } catch (error: any) {
