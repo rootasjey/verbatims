@@ -4,7 +4,7 @@ import { generateImportId, initializeProgress, updateProgress, addError, updateS
 export default defineEventHandler(async (event) => {
   // Check if this is a request for async processing
   const query = getQuery(event)
-  const isAsync = query.async === 'true'
+  let isAsync = query.async === 'true'
 
   try {
     const db = hubDatabase()
@@ -37,6 +37,10 @@ export default defineEventHandler(async (event) => {
     if (isMultipart) {
       const formData = await readMultipartFormData(event)
       const filePart = (formData || []).find(p => p.name === 'file' && p.type)
+      const asyncPart = (formData || []).find(p => p.name === 'async')
+      if (!isAsync && asyncPart && asyncPart.data) {
+        try { isAsync = new TextDecoder().decode(asyncPart.data).trim() === 'true' } catch {}
+      }
       if (filePart && filePart.data) {
         const filename = (filePart as any).filename || ''
         const mime = filePart.type || ''
