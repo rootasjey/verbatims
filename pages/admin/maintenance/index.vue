@@ -103,8 +103,8 @@
               What will happen:
             </h4>
             <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <li>• All database tables will be dropped</li>
-              <li>• Database schema will be recreated from scratch</li>
+              <li>• All data rows in every table will be permanently deleted</li>
+              <li>• The database schema (tables, indexes, triggers) will remain intact</li>
               <li>• A new admin user will be initialized</li>
               <li>• You will need to log in again after the reset</li>
             </ul>
@@ -213,8 +213,8 @@ const confirmReset = async () => {
 
     console.log('✅ Database reset completed:', response)
 
-    // Show success message
-    successMessage.value = `Database reset completed successfully! ${response.data.droppedTables} tables dropped, ${response.data.createdTables} tables created.`
+  // Show success message (Worker-safe: data cleared, schema unchanged)
+  successMessage.value = `Database reset completed successfully! ${response.data.tablesCleared} tables cleared, ${response.data.rowsDeleted} rows deleted.`
 
     // Close dialog
     showResetConfirmation.value = false
