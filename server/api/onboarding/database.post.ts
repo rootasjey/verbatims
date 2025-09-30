@@ -33,12 +33,39 @@ export default defineEventHandler(async (event) => {
     const contentType = getHeader(event, 'content-type') || ''
     const isMultipart = contentType.includes('multipart/form-data')
     let zipBytes: Uint8Array | null = null
+    let preloadedDatasets: Record<string, any[]> | null = null
     if (isMultipart) {
       const formData = await readMultipartFormData(event)
       const filePart = (formData || []).find(p => p.name === 'file' && p.type)
       if (filePart && filePart.data) {
-        zipBytes = new Uint8Array(filePart.data)
+        const filename = (filePart as any).filename || ''
+        const mime = filePart.type || ''
+        const bytes = new Uint8Array(filePart.data)
+        if (mime.includes('zip') || filename.toLowerCase().endsWith('.zip')) {
+          zipBytes = bytes
+        } else if (mime.includes('json') || filename.toLowerCase().endsWith('.json')) {
+          try {
+            const text = new TextDecoder().decode(bytes)
+            const parsed = JSON.parse(text)
+            if (!Array.isArray(parsed)) {
+              throw new Error('Uploaded JSON must be an array of objects')
+            }
+            // Only support single quotes.json upload for onboarding
+            preloadedDatasets = { quotes: parsed }
+          } catch (e: any) {
+            throw createError({ statusCode: 400, statusMessage: `Invalid JSON file: ${e?.message || 'parse error'}` })
+          }
+        }
       }
+    }
+
+    // Enforce explicit import source: require an uploaded file (ZIP or quotes.json).
+    // We no longer auto-import from repository backups in onboarding.
+    if (!zipBytes && !preloadedDatasets) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Please upload a ZIP (full export) or a quotes.json file. No default backups are used.'
+      })
     }
 
     // Check if admin user exists unless we're importing users from ZIP
@@ -62,7 +89,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    console.log('Starting database initialization with backup data...')
+  console.log('Starting database initialization with uploaded data...')
 
     // Generate import ID and initialize progress tracking
     const importId = generateImportId()
@@ -71,7 +98,7 @@ export default defineEventHandler(async (event) => {
     // If async mode, start processing in background and return import ID
     if (isAsync) {
       // Start processing asynchronously
-      processImportAsync(db, adminUser?.id || 0, importId, zipBytes)
+      processImportAsync(db, adminUser?.id || 0, importId, zipBytes, preloadedDatasets || undefined)
         .catch(error => {
           console.error('Async import failed:', error)
           addError(importId, `Import failed: ${error.message}`)
@@ -86,7 +113,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Synchronous processing (legacy mode)
-  const results = await processImportSync(db, adminUser?.id || 0, importId, zipBytes)
+  const results = await processImportSync(db, adminUser?.id || 0, importId, zipBytes, preloadedDatasets || undefined)
 
     return {
       success: true,
@@ -113,7 +140,7 @@ export default defineEventHandler(async (event) => {
 /**
  * Process import synchronously (legacy mode)
  */
-async function processImportSync(db: any, adminUserId: number, importId: string, zipBytes?: Uint8Array | null) {
+async function processImportSync(db: any, adminUserId: number, importId: string, zipBytes?: Uint8Array | null, preloadedDatasets?: Record<string, any[]>) {
   const results = {
     users: 0,
     authors: 0,
@@ -125,20 +152,24 @@ async function processImportSync(db: any, adminUserId: number, importId: string,
   // Update overall status
   updateProgress(importId, { status: 'processing' })
 
-  // If provided a ZIP, extract datasets
-  let datasets: Record<string, any[]> | null = null
-  if (zipBytes && zipBytes.byteLength > 0) {
+  // Extract datasets from the provided ZIP; or use preloaded datasets (e.g., quotes.json upload)
+  let datasets: Record<string, any[]> = preloadedDatasets || {}
+  if (!preloadedDatasets && zipBytes && zipBytes.byteLength > 0) {
     datasets = await extractDatasetsFromZip(zipBytes)
   }
 
   // 0. Import Users (if zip provides users)
   try {
-    if (datasets?.users) {
+    if (datasets?.users && datasets.users.length > 0) {
       console.log('Importing users...')
       results.users = await importUsersFromDataset(db, importId, datasets.users)
       // Refresh adminUserId in case added via import
       const admin: User | null = await db.prepare(`SELECT id FROM users WHERE role='admin' LIMIT 1`).first()
       if (admin) adminUserId = admin.id
+    } else {
+      updateStepProgress(importId, 'users', {
+        status: 'completed', total: 0, current: 0, imported: 0, message: 'No users dataset provided'
+      })
     }
   } catch (error: any) {
     console.error('Failed to import users:', error)
@@ -149,10 +180,15 @@ async function processImportSync(db: any, adminUserId: number, importId: string,
   // 1. Import Authors
   try {
     console.log('Importing authors...')
-    results.authors = datasets?.authors ?
-      await importAuthorsFromDataset(db, importId, datasets.authors) :
-      await importAuthorsFromBackup(db, importId)
-    console.log(`✅ Imported ${results.authors} authors`)
+    if (datasets?.authors && datasets.authors.length > 0) {
+      results.authors = await importAuthorsFromDataset(db, importId, datasets.authors)
+      console.log(`✅ Imported ${results.authors} authors`)
+    } else {
+      updateStepProgress(importId, 'authors', {
+        status: 'completed', total: 0, current: 0, imported: 0, message: 'No authors dataset provided'
+      })
+      results.authors = 0
+    }
   } catch (error: any) {
     console.error('Failed to import authors:', error)
     addError(importId, `Failed to import authors: ${error.message}`)
@@ -165,10 +201,15 @@ async function processImportSync(db: any, adminUserId: number, importId: string,
   // 2. Import References
   try {
     console.log('Importing references...')
-    results.references = datasets?.references ?
-      await importReferencesFromDataset(db, importId, datasets.references) :
-      await importReferencesFromBackup(db, importId)
-    console.log(`✅ Imported ${results.references} references`)
+    if (datasets?.references && datasets.references.length > 0) {
+      results.references = await importReferencesFromDataset(db, importId, datasets.references)
+      console.log(`✅ Imported ${results.references} references`)
+    } else {
+      updateStepProgress(importId, 'references', {
+        status: 'completed', total: 0, current: 0, imported: 0, message: 'No references dataset provided'
+      })
+      results.references = 0
+    }
   } catch (error: any) {
     console.error('Failed to import references:', error)
     addError(importId, `Failed to import references: ${error.message}`)
@@ -180,10 +221,14 @@ async function processImportSync(db: any, adminUserId: number, importId: string,
 
   // 2.5 Import Tags (optional)
   try {
-    if (datasets?.tags) {
+    if (datasets?.tags && datasets.tags.length > 0) {
       console.log('Importing tags...')
       results.tags = await importTagsFromDataset(db, importId, datasets.tags)
       console.log(`✅ Imported ${results.tags} tags`)
+    } else {
+      updateStepProgress(importId, 'tags', {
+        status: 'completed', total: 0, current: 0, imported: 0, message: 'No tags dataset provided'
+      })
     }
   } catch (error: any) {
     console.error('Failed to import tags:', error)
@@ -194,10 +239,15 @@ async function processImportSync(db: any, adminUserId: number, importId: string,
   // 3. Import Quotes
   try {
     console.log('Importing quotes...')
-    results.quotes = datasets?.quotes ?
-      await importQuotesFromDataset(db, adminUserId, importId, datasets.quotes) :
-      await importQuotesFromBackup(db, adminUserId, importId)
-    console.log(`✅ Imported ${results.quotes} quotes`)
+    if (datasets?.quotes && datasets.quotes.length > 0) {
+      results.quotes = await importQuotesFromDataset(db, adminUserId, importId, datasets.quotes)
+      console.log(`✅ Imported ${results.quotes} quotes`)
+    } else {
+      updateStepProgress(importId, 'quotes', {
+        status: 'completed', total: 0, current: 0, imported: 0, message: 'No quotes dataset provided'
+      })
+      results.quotes = 0
+    }
 
     // 3.5 Import quote_tags relations if present in ZIP (after tags and quotes exist)
     if (datasets?.quote_tags && datasets.quote_tags.length > 0) {
@@ -316,10 +366,13 @@ async function processImportSync(db: any, adminUserId: number, importId: string,
   }
 
   // Mark Quotes as completed after all related optional data is processed
-  updateStepProgress(importId, 'quotes', {
-    status: 'completed',
-    message: 'Completed quotes and related data import'
-  })
+  // If quotes dataset existed, mark message accordingly; otherwise already marked above
+  if (datasets?.quotes && datasets.quotes.length > 0) {
+    updateStepProgress(importId, 'quotes', {
+      status: 'completed',
+      message: 'Completed quotes and related data import'
+    })
+  }
 
 // ===== Additional dataset import helpers =====
 async function importUserCollectionsFromDataset(db: any, importId: string, cols: any[]): Promise<number> {
@@ -553,7 +606,7 @@ async function importReferenceViewsFromDataset(db: any, importId: string, views:
   return imported
 }
 
-  const totalImported = results.authors + results.references + results.quotes
+  const totalImported = results.users + results.tags + results.authors + results.references + results.quotes
   console.log(`🎉 Database initialization completed! Total items imported: ${totalImported}`)
 
   // Update final status
@@ -568,9 +621,9 @@ async function importReferenceViewsFromDataset(db: any, importId: string, views:
 /**
  * Process import asynchronously (for real-time progress)
  */
-async function processImportAsync(db: any, adminUserId: number, importId: string, zipBytes?: Uint8Array | null) {
+async function processImportAsync(db: any, adminUserId: number, importId: string, zipBytes?: Uint8Array | null, preloadedDatasets?: Record<string, any[]>) {
   try {
-    await processImportSync(db, adminUserId, importId, zipBytes)
+    await processImportSync(db, adminUserId, importId, zipBytes, preloadedDatasets)
   } catch (error: any) {
     console.error('Async import failed:', error)
     addError(importId, `Import failed: ${error.message}`)
@@ -624,358 +677,6 @@ async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<stri
   return result
 }
 
-/**
- * Import authors from backup file
- */
-async function importAuthorsFromBackup(db: any, importId?: string): Promise<number> {
-  const { readFileSync } = await import('fs')
-  const { join } = await import('path')
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
-
-  // Find the latest authors export file
-  const { readdirSync } = await import('fs')
-  const backupDir = join(process.cwd(), 'server/database/backups')
-  const files = readdirSync(backupDir)
-  const authorsFile = files.find(file => file.startsWith('authors-export-') && file.endsWith('.json'))
-
-  if (!authorsFile) {
-    throw new Error('No authors export file found in backups directory')
-  }
-
-  // Load authors backup file
-  const backupPath = join(backupDir, authorsFile)
-  const rawData = readFileSync(backupPath, 'utf-8')
-  const authors = JSON.parse(rawData)
-
-  if (!Array.isArray(authors)) {
-    throw new Error('Invalid authors export format: expected array')
-  }
-
-  const totalAuthors = authors.length
-
-  let importedCount = 0
-
-  // Update progress: starting authors import
-  if (importId) {
-    updateStepProgress(importId, 'authors', {
-      status: 'processing',
-      message: `Starting import of ${totalAuthors} authors...`,
-      total: totalAuthors,
-      current: 0,
-      imported: 0
-    })
-  }
-
-  // Process in batches
-  const batchSize = 50
-  for (let i = 0; i < authors.length; i += batchSize) {
-    const batch = authors.slice(i, i + batchSize)
-
-    for (const [index, authorData] of batch.entries()) {
-      try {
-        // D1 export data is already in the correct format, just need to handle optional fields
-        await db.prepare(`
-          INSERT INTO authors (
-            name, description, birth_date, death_date, birth_location, job,
-            image_url, is_fictional, views_count, likes_count, shares_count,
-            created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          authorData.name || '',
-          authorData.description || '',
-          authorData.birth_date || null,
-          authorData.death_date || null,
-          authorData.birth_location || '',
-          authorData.job || '',
-          authorData.image_url || '',
-          authorData.is_fictional || false,
-          authorData.views_count || 0,
-          authorData.likes_count || 0,
-          authorData.shares_count || 0,
-          authorData.created_at || new Date().toISOString(),
-          authorData.updated_at || new Date().toISOString()
-        ).run()
-
-        importedCount++
-
-        // Update progress periodically
-        if (importId && importedCount % 10 === 0) {
-          updateStepProgress(importId, 'authors', {
-            current: i + index + 1,
-            imported: importedCount,
-            message: `Imported ${importedCount} of ${totalAuthors} authors...`
-          })
-        }
-      } catch (error) {
-        console.error(`Failed to import author ${authorData.name || 'unknown'}:`, error)
-        // Continue with other authors
-      }
-    }
-  }
-
-  // Update progress: completed authors import
-  if (importId) {
-    updateStepProgress(importId, 'authors', {
-      status: 'completed',
-      message: `Successfully imported ${importedCount} authors`,
-      current: totalAuthors,
-      imported: importedCount
-    })
-  }
-
-  return importedCount
-}
-
-/**
- * Import references from backup file
- */
-async function importReferencesFromBackup(db: any, importId?: string): Promise<number> {
-  const { readFileSync } = await import('fs')
-  const { join } = await import('path')
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
-
-  // Find the latest references export file
-  const { readdirSync } = await import('fs')
-  const backupDir = join(process.cwd(), 'server/database/backups')
-  const files = readdirSync(backupDir)
-  const referencesFile = files.find(file => file.startsWith('references-export-') && file.endsWith('.json'))
-
-  if (!referencesFile) {
-    throw new Error('No references export file found in backups directory')
-  }
-
-  // Load references backup file
-  const backupPath = join(backupDir, referencesFile)
-  const rawData = readFileSync(backupPath, 'utf-8')
-  const references = JSON.parse(rawData)
-
-  if (!Array.isArray(references)) {
-    throw new Error('Invalid references export format: expected array')
-  }
-
-  const totalReferences = references.length
-
-  let importedCount = 0
-
-  // Update progress: starting references import
-  if (importId) {
-    updateStepProgress(importId, 'references', {
-      status: 'processing',
-      message: `Starting import of ${totalReferences} references...`,
-      total: totalReferences,
-      current: 0,
-      imported: 0
-    })
-  }
-
-  // Process in batches
-  const batchSize = 50
-  for (let i = 0; i < references.length; i += batchSize) {
-    const batch = references.slice(i, i + batchSize)
-
-    for (const [index, referenceData] of batch.entries()) {
-      try {
-        // D1 export data is already in the correct format, just need to handle optional fields
-        await db.prepare(`
-          INSERT INTO quote_references (
-            name, original_language, release_date, description, primary_type, secondary_type,
-            image_url, urls, views_count, likes_count, shares_count,
-            created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          referenceData.name || '',
-          referenceData.original_language || 'en',
-          referenceData.release_date || null,
-          referenceData.description || '',
-          referenceData.primary_type || 'other',
-          referenceData.secondary_type || '',
-          referenceData.image_url || '',
-          JSON.stringify(referenceData.urls || []),
-          referenceData.views_count || 0,
-          referenceData.likes_count || 0,
-          referenceData.shares_count || 0,
-          referenceData.created_at || new Date().toISOString(),
-          referenceData.updated_at || new Date().toISOString()
-        ).run()
-
-        importedCount++
-
-        // Update progress periodically
-        if (importId && importedCount % 10 === 0) {
-          updateStepProgress(importId, 'references', {
-            current: i + index + 1,
-            imported: importedCount,
-            message: `Imported ${importedCount} of ${totalReferences} references...`
-          })
-        }
-      } catch (error) {
-        console.error(`Failed to import reference ${referenceData.name || 'unknown'}:`, error)
-        // Continue with other references
-      }
-    }
-  }
-
-  // Update progress: completed references import
-  if (importId) {
-    updateStepProgress(importId, 'references', {
-      status: 'completed',
-      message: `Successfully imported ${importedCount} references`,
-      current: totalReferences,
-      imported: importedCount
-    })
-  }
-
-  return importedCount
-}
-
-/**
- * Import quotes from backup files
- */
-async function importQuotesFromBackup(db: any, adminUserId: number, importId?: string): Promise<number> {
-  const { readFileSync, readdirSync } = await import('fs')
-  const { join } = await import('path')
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
-
-  // Find the latest quotes export file
-  const backupDir = join(process.cwd(), 'server/database/backups')
-  const files = readdirSync(backupDir)
-  const quotesFile = files.find(file => file.startsWith('quotes-export-') && file.endsWith('.json'))
-
-  if (!quotesFile) {
-    throw new Error('No quotes export file found in backups directory')
-  }
-
-  // Load quotes backup file
-  const backupPath = join(backupDir, quotesFile)
-  const rawData = readFileSync(backupPath, 'utf-8')
-  const quotes = JSON.parse(rawData)
-
-  if (!Array.isArray(quotes)) {
-    throw new Error('Invalid quotes export format: expected array')
-  }
-
-  const totalQuotes = quotes.length
-
-  let importedCount = 0
-  let skippedCount = 0
-
-  // Update progress: starting quotes import
-  if (importId) {
-    updateStepProgress(importId, 'quotes', {
-      status: 'processing',
-      message: `Starting import of ${totalQuotes} quotes...`,
-      total: totalQuotes,
-      current: 0,
-      imported: 0
-    })
-  }
-
-  // Process in batches
-  const batchSize = 50
-  for (let i = 0; i < quotes.length; i += batchSize) {
-    const batch = quotes.slice(i, i + batchSize)
-
-    for (const [index, quoteData] of batch.entries()) {
-      try {
-        // Sanitize inputs defensively to avoid enum/constraint errors
-        const allowedStatuses = new Set(['draft','pending','approved','rejected'])
-        const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh'])
-        const str = (v: any) => typeof v === 'string' ? v.trim() : ''
-        const toInt = (v: any) => {
-          if (v === null || v === undefined || v === '') return null
-          const n = Number(v)
-          return Number.isFinite(n) ? Math.trunc(n) : null
-        }
-        const toNonNeg = (v: any) => {
-          const n = toInt(v)
-          return n == null ? 0 : Math.max(0, n)
-        }
-        const toBool = (v: any) => {
-          if (typeof v === 'boolean') return v
-          if (typeof v === 'number') return v === 1
-          if (typeof v === 'string') {
-            const s = v.trim().toLowerCase()
-            if (['1','true','yes','y'].includes(s)) return true
-            if (['0','false','no','n'].includes(s)) return false
-          }
-          return !!v
-        }
-
-        const language = allowedLanguages.has(str(quoteData.language).toLowerCase())
-          ? str(quoteData.language).toLowerCase()
-          : 'en'
-        const status = allowedStatuses.has(str(quoteData.status).toLowerCase())
-          ? str(quoteData.status).toLowerCase()
-          : 'approved'
-        const authorId = toInt(quoteData.author_id)
-        const referenceId = toInt(quoteData.reference_id)
-        const userId = toInt(quoteData.user_id) ?? adminUserId
-        const likes = toNonNeg(quoteData.likes_count)
-        const shares = toNonNeg(quoteData.shares_count)
-        const views = toNonNeg(quoteData.views_count)
-        const isFeatured = toBool(quoteData.is_featured)
-        const createdAt = quoteData.created_at || new Date().toISOString()
-        const updatedAt = quoteData.updated_at || new Date().toISOString()
-        const moderatorId = toInt(quoteData.moderator_id) ?? adminUserId
-        const moderatedAt = quoteData.moderated_at || new Date().toISOString()
-
-        // Insert
-        await db.prepare(`
-          INSERT INTO quotes (
-            name, language, author_id, reference_id, user_id, status,
-            likes_count, shares_count, views_count, is_featured,
-            created_at, updated_at, moderator_id, moderated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          quoteData.name || '',
-          language,
-          authorId,
-          referenceId,
-          userId,
-          status,
-          likes,
-          shares,
-          views,
-          isFeatured,
-          createdAt,
-          updatedAt,
-          moderatorId,
-          moderatedAt
-        ).run()
-
-        importedCount++
-
-        // Update progress periodically
-        if (importId && importedCount % 25 === 0) {
-          updateStepProgress(importId, 'quotes', {
-            current: i + index + 1,
-            imported: importedCount,
-            message: `Imported ${importedCount} of ${totalQuotes} quotes...`
-          })
-        }
-      } catch (error: any) {
-        console.error(`Failed to import quote ${quoteData.name || 'unknown'}:`, error)
-        skippedCount++
-        if (importId) {
-          const { addWarning } = await import('~/server/utils/onboarding-progress')
-          addWarning(importId, `Quote ${i + index + 1} "${String(quoteData.name || '').slice(0,80)}" skipped: ${error?.message || 'unknown error'}`)
-        }
-      }
-    }
-  }
-
-  // Update progress: completed quotes import
-  if (importId) {
-    updateStepProgress(importId, 'quotes', {
-      status: 'completed',
-      message: `Imported ${importedCount}/${totalQuotes} quotes${skippedCount ? ` • Skipped ${skippedCount}` : ''}`,
-      current: totalQuotes,
-      imported: importedCount
-    })
-  }
-
-  return importedCount
-}
 
 // Dataset-based import helpers (JSON arrays already parsed)
 async function importUsersFromDataset(db: any, importId: string, users: any[]): Promise<number> {

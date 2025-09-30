@@ -213,17 +213,17 @@ const confirmReset = async () => {
 
     console.log('✅ Database reset completed:', response)
 
-  // Show success message (Worker-safe: data cleared, schema unchanged)
-  successMessage.value = `Database reset completed successfully! ${response.data.tablesCleared} tables cleared, ${response.data.rowsDeleted} rows deleted.`
+    // Show success message (Worker-safe: data cleared, schema unchanged)
+    successMessage.value = `Database reset completed successfully! ${response.data.tablesCleared} tables cleared, ${response.data.rowsDeleted} rows deleted. You will be redirected shortly.`
 
     // Close dialog
     showResetConfirmation.value = false
     cancelReset()
 
-    // Redirect to login after a delay since user session will be invalid
+    // Redirect to home after a short delay since the user session has been cleared
     setTimeout(() => {
-      console.log('🔄 Redirecting to login page...')
-      navigateTo('/login')
+      console.log('🔄 Redirecting to home page...')
+      navigateTo('/')
     }, 3000)
 
   } catch (error) {
