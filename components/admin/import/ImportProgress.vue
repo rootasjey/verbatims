@@ -201,27 +201,51 @@ const props = defineProps({
     required: true
   }
 })
+const emit = defineEmits([
+  'finished',    // when status becomes completed or failed
+  'not-found'    // when the progress endpoint returns 404 / missing
+])
 const progress = ref(null)
 const showFailedRecords = ref(false)
 const allErrors = ref([])
 const polling = ref<any>(null)
 const esRef = ref<EventSource | null>(null)
+const previousStatus = ref<string | null>(null)
+
+const toast = () => useToast()
 
 const startSSE = () => {
   if (esRef.value) return
   try {
     const es = new EventSource(`/api/admin/import/progress/${props.importId}`)
-    es.onmessage = (ev) => {
+    esRef.value = es
+
+    let gotEvent = false
+
+    const handleProgress = (ev) => {
       try {
+        gotEvent = true
         const data = JSON.parse(ev.data)
         progress.value = data
         // Stop polling if SSE active
         if (polling.value) { clearInterval(polling.value); polling.value = null }
         if (data?.status === 'completed' || data?.status === 'failed') {
-          es.close(); esRef.value = null
+          try { es.close() } catch {}
+          esRef.value = null
         }
       } catch {}
     }
+
+    // Server emits named events ("progress", "heartbeat", "close"). Listen explicitly.
+    es.addEventListener('progress', handleProgress)
+    // Fallback in case server ever emits default message events
+    es.onmessage = handleProgress
+
+    es.addEventListener('close', (ev) => {
+      try { es.close() } catch {}
+      esRef.value = null
+    })
+
     es.onerror = () => {
       // Fallback to polling
       try { es.close() } catch {}
@@ -230,9 +254,15 @@ const startSSE = () => {
         polling.value = setInterval(fetchProgress, 2000)
       }
     }
-    esRef.value = es
+
+    // If no SSE message arrives shortly after connection, start polling as a safety net
+    setTimeout(() => {
+      if (!gotEvent && isActive.value && !polling.value) {
+        polling.value = setInterval(fetchProgress, 2000)
+      }
+    }, 1500)
   } catch (e) {
-    // Fallback to polling if EventSource fails
+    // Fallback to polling if EventSource fails to construct
     if (isActive.value && !polling.value) polling.value = setInterval(fetchProgress, 2000)
   }
 }
@@ -254,7 +284,18 @@ const fetchProgress = async () => {
       polling.value = null
     }
   } catch (error) {
-    console.error('Failed to fetch progress:', error)
+    // If not found, notify parent so it can clear persisted state
+    const statusCode = (error && (error.statusCode || error.status)) || error?.response?.status
+    if (statusCode === 404) {
+      emit('not-found')
+      toast().toast({
+        title: 'Import Not Found',
+        description: 'This import may have finished or expired.',
+        toast: 'warning',
+      })
+    } else {
+      console.error('Failed to fetch progress:', error)
+    }
     if (polling.value) {
       clearInterval(polling.value)
       polling.value = null
@@ -347,4 +388,21 @@ watch(isActive, (newValue) => {
     polling.value = null
   }
 })
+
+// Watch for completion to emit and toast once
+watch(
+  () => progress.value?.status,
+  (newStatus) => {
+    if (!newStatus) return
+    if (previousStatus.value === newStatus) return
+    previousStatus.value = newStatus
+    if (newStatus === 'completed') {
+      toast().toast({ title: 'Import Completed', description: 'Your data import has finished successfully.', toast: 'success' })
+      emit('finished', { status: 'completed' })
+    } else if (newStatus === 'failed') {
+      toast().toast({ title: 'Import Failed', description: 'The import encountered errors and stopped.', toast: 'error' })
+      emit('finished', { status: 'failed' })
+    }
+  }
+)
 </script>

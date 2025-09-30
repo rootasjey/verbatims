@@ -1,5 +1,7 @@
-import { readFileSync } from 'fs'
-import { join } from 'path'
+// Load schema at build-time using Vite raw import (works on Cloudflare Workers)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - type provided by custom declaration in types/sql-raw.d.ts
+import schemaSql from '~/server/database/migrations/schema.sql'
 
 /**
  * Initialize the database with the schema
@@ -22,25 +24,31 @@ export async function initializeDatabase() {
       return false
     }
 
-    // Read the consolidated schema file
-    const migrationPath = join(process.cwd(), 'server/database/migrations/schema.sql')
-    const migration = readFileSync(migrationPath, 'utf-8')
+  // Use the bundled schema string (no filesystem access required)
+  const migration = schemaSql as string
 
-    // Split the migration into individual statements
-    const statements = migration
-      .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0)
+    // Execute the full schema at once so triggers and multi-statement blocks are handled properly
+    try {
+      // Prefer exec for multi-statement SQL
+      // Cloudflare D1 supports exec() to run a batch of SQL statements
+      // @ts-ignore - exec exists on D1 database bindings
+      await db.exec(migration)
+    } catch (execError) {
+      console.error('Failed to exec full schema, falling back to per-statement execution...')
+      // Fallback: best-effort split for environments without exec
+      const statements = migration
+        .split(/;\s*\n/)
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length > 0)
 
-    // Execute each statement using prepare/run instead of exec
-    for (const statement of statements) {
-      try {
-        await db.prepare(statement).run()
-        console.log('Executed SQL statement successfully')
-      } catch (sqlError) {
-        console.error('Failed to execute SQL statement:', statement.substring(0, 100) + '...')
-        console.error('SQL Error:', sqlError)
-        throw sqlError
+      for (const statement of statements) {
+        try {
+          await db.prepare(statement).run()
+        } catch (sqlError) {
+          console.error('Failed to execute SQL statement:', statement.substring(0, 120) + '...')
+          console.error('SQL Error:', sqlError)
+          throw sqlError
+        }
       }
     }
 
