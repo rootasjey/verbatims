@@ -128,41 +128,41 @@
     </UCard>
 
     <!-- Recent Errors -->
-    <UCard v-if="progress?.recentErrors?.length > 0">
+  <UCard v-if="recentErrors.length > 0">
       <template #header>
         <h3 class="text-lg font-semibold text-red-600">Recent Errors</h3>
       </template>
       
       <div class="space-y-2">
         <div
-          v-for="(error, index) in progress.recentErrors"
+          v-for="(error, index) in recentErrors"
           :key="index"
           class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-sm text-red-700 dark:text-red-300"
         >
           {{ error }}
         </div>
-        <div v-if="progress.errorCount > progress.recentErrors.length" class="text-sm text-gray-500">
-          ... and {{ progress.errorCount - progress.recentErrors.length }} more errors
+        <div v-if="errorCount > recentErrors.length" class="text-sm text-gray-500">
+          ... and {{ errorCount - recentErrors.length }} more errors
         </div>
       </div>
     </UCard>
 
     <!-- Recent Warnings -->
-    <UCard v-if="progress?.recentWarnings?.length > 0">
+  <UCard v-if="recentWarnings.length > 0">
       <template #header>
         <h3 class="text-lg font-semibold text-yellow-600">Recent Warnings</h3>
       </template>
       
       <div class="space-y-2">
         <div
-          v-for="(warning, index) in progress.recentWarnings"
+          v-for="(warning, index) in recentWarnings"
           :key="index"
           class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-sm text-yellow-700 dark:text-yellow-300"
         >
           {{ warning }}
         </div>
-        <div v-if="progress.warningCount > progress.recentWarnings.length" class="text-sm text-gray-500">
-          ... and {{ progress.warningCount - progress.recentWarnings.length }} more warnings
+        <div v-if="warningCount > recentWarnings.length" class="text-sm text-gray-500">
+          ... and {{ warningCount - recentWarnings.length }} more warnings
         </div>
       </div>
     </UCard>
@@ -194,7 +194,48 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { ImportProgress as BaseImportProgress } from '~/types'
+
+// Extend server ImportProgress with optional UI-only fields we render
+type UiImportProgress = BaseImportProgress & {
+  progressPercentage?: number
+  estimatedTimeRemaining?: number
+  duration?: number
+  errorCount?: number
+  warningCount?: number
+  recentErrors?: string[]
+  recentWarnings?: string[]
+}
+
+const normalizeProgress = (p: any): UiImportProgress => {
+  const recentErrors = Array.isArray(p?.recentErrors) ? p.recentErrors : []
+  const recentWarnings = Array.isArray(p?.recentWarnings) ? p.recentWarnings : []
+  const total = typeof p?.totalRecords === 'number' ? p.totalRecords : 0
+  const processed = typeof p?.processedRecords === 'number' ? p.processedRecords : 0
+  const computedPct = total > 0 ? Math.min(100, Math.max(0, Math.round((processed / total) * 100))) : undefined
+
+  // Derive duration if not provided
+  let duration: number | undefined = p?.duration
+  try {
+    const started = p?.startedAt ? new Date(p.startedAt).getTime() : undefined
+    const completed = p?.completedAt ? new Date(p.completedAt).getTime() : undefined
+    if (typeof duration !== 'number' && started) {
+      const now = completed ?? Date.now()
+      duration = Math.max(0, now - started)
+    }
+  } catch {}
+
+  return {
+    ...(p || {}),
+    progressPercentage: typeof p?.progressPercentage === 'number' ? p.progressPercentage : computedPct,
+    duration,
+    recentErrors,
+    recentWarnings,
+    errorCount: typeof p?.errorCount === 'number' ? p.errorCount : (typeof p?.failedRecords === 'number' ? p.failedRecords : recentErrors.length),
+    warningCount: typeof p?.warningCount === 'number' ? p.warningCount : recentWarnings.length,
+  }
+}
 const props = defineProps({
   importId: {
     type: String,
@@ -205,12 +246,13 @@ const emit = defineEmits([
   'finished',    // when status becomes completed or failed
   'not-found'    // when the progress endpoint returns 404 / missing
 ])
-const progress = ref(null)
-const showFailedRecords = ref(false)
-const allErrors = ref([])
-const polling = ref<any>(null)
+const progress = ref<UiImportProgress | null>(null)
+const showFailedRecords = ref<boolean>(false)
+const allErrors = ref<string[]>([])
+const polling = ref<ReturnType<typeof setInterval> | null>(null)
 const esRef = ref<EventSource | null>(null)
-const previousStatus = ref<string | null>(null)
+const fetchAbort = ref<AbortController | null>(null)
+const previousStatus = ref<UiImportProgress['status'] | null>(null)
 
 const toast = () => useToast()
 
@@ -222,11 +264,11 @@ const startSSE = () => {
 
     let gotEvent = false
 
-    const handleProgress = (ev) => {
+    const handleProgress = (ev: MessageEvent) => {
       try {
         gotEvent = true
-        const data = JSON.parse(ev.data)
-        progress.value = data
+  const data = JSON.parse(ev.data)
+  progress.value = normalizeProgress(data)
         // Stop polling if SSE active
         if (polling.value) { clearInterval(polling.value); polling.value = null }
         if (data?.status === 'completed' || data?.status === 'failed') {
@@ -240,6 +282,11 @@ const startSSE = () => {
     es.addEventListener('progress', handleProgress)
     // Fallback in case server ever emits default message events
     es.onmessage = handleProgress
+
+    es.addEventListener('heartbeat', () => {
+      // Keep-alive event from server
+      gotEvent = true
+    })
 
     es.addEventListener('close', (ev) => {
       try { es.close() } catch {}
@@ -268,24 +315,34 @@ const startSSE = () => {
 }
 
 // Computed
-const isActive = computed(() => {
-  return progress.value?.status === 'processing' || progress.value?.status === 'pending'
+const isActive = computed<boolean>(() => {
+  const s = progress.value?.status
+  return s === 'processing' || s === 'pending'
 })
 
 // Methods
-const fetchProgress = async () => {
+const fetchProgress = async (): Promise<void> => {
   try {
-    const response = await $fetch(`/api/admin/import/progress/${props.importId}`)
-    progress.value = response.data
+    // Abort previous in-flight request to avoid overlaps
+    if (fetchAbort.value) {
+      try { fetchAbort.value.abort() } catch {}
+    }
+    fetchAbort.value = new AbortController()
+    const response = await $fetch<{ data: UiImportProgress }>(`/api/admin/import/progress/${props.importId}` , {
+      signal: fetchAbort.value.signal
+    })
+  progress.value = normalizeProgress(response.data)
     
     // Stop polling if import is complete
     if (!isActive.value && polling.value) {
       clearInterval(polling.value)
       polling.value = null
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Ignore intentional aborts
+    if (error?.name === 'AbortError') return
     // If not found, notify parent so it can clear persisted state
-    const statusCode = (error && (error.statusCode || error.status)) || error?.response?.status
+    const statusCode = getErrorStatusCode(error)
     if (statusCode === 404) {
       emit('not-found')
       toast().toast({
@@ -301,6 +358,10 @@ const fetchProgress = async () => {
       polling.value = null
     }
   }
+}
+
+const getErrorStatusCode = (err: any): number | undefined => {
+  return err?.statusCode ?? err?.status ?? err?.response?.status ?? err?.data?.statusCode ?? undefined
 }
 
 const cancelImport = async () => {
@@ -337,7 +398,7 @@ const downloadUnresolved = async () => {
   }
 }
 
-const getStatusColor = (status) => {
+const getStatusColor = (status: UiImportProgress['status'] | undefined): string => {
   switch (status) {
     case 'pending': return 'blue'
     case 'processing': return 'yellow'
@@ -347,11 +408,13 @@ const getStatusColor = (status) => {
   }
 }
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string | Date | undefined): string => {
+  if (!dateString) return ''
   return new Date(dateString).toLocaleString()
 }
 
-const formatDuration = (milliseconds) => {
+const formatDuration = (milliseconds?: number): string => {
+  if (!milliseconds || milliseconds < 0) return '0s'
   const seconds = Math.floor(milliseconds / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
@@ -377,6 +440,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (polling.value) clearInterval(polling.value)
   if (esRef.value) { try { esRef.value.close() } catch {} esRef.value = null }
+  if (fetchAbort.value) { try { fetchAbort.value.abort() } catch {} fetchAbort.value = null }
 })
 
 // Watch for status changes to start/stop polling
@@ -392,7 +456,7 @@ watch(isActive, (newValue) => {
 // Watch for completion to emit and toast once
 watch(
   () => progress.value?.status,
-  (newStatus) => {
+  (newStatus: UiImportProgress['status'] | undefined) => {
     if (!newStatus) return
     if (previousStatus.value === newStatus) return
     previousStatus.value = newStatus
@@ -405,4 +469,10 @@ watch(
     }
   }
 )
+
+// Safe computed collections for template
+const recentErrors = computed<string[]>(() => progress.value?.recentErrors ?? [])
+const recentWarnings = computed<string[]>(() => progress.value?.recentWarnings ?? [])
+const errorCount = computed<number>(() => progress.value?.errorCount ?? 0)
+const warningCount = computed<number>(() => progress.value?.warningCount ?? 0)
 </script>

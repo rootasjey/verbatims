@@ -19,18 +19,60 @@ export function base64ToUint8(base64: string): Uint8Array {
  * Accepts the entries object from unzipSync, and strFromU8 for decoding.
  */
 export function parseZipImportEntries(entries: Record<string, Uint8Array>, strFromU8: (u8: Uint8Array) => string): { bundle: Record<string, any[]>; warnings: string[] } {
-  const result: Record<string, any[]> = { references: [], authors: [], tags: [], users: [], quotes: [] }
+  // Initialize all supported collections so counts work even if missing
+  const result: Record<string, any[]> = {
+    // core
+    references: [], authors: [], tags: [], users: [], quotes: [],
+    // relations and activity
+    quote_tags: [], user_likes: [], user_collections: [], collection_quotes: [], user_sessions: [], user_messages: [], quote_reports: [], quote_views: [], author_views: [], reference_views: [],
+  }
   const warnings: string[] = []
+
+  // Map normalized basenames to canonical bundle keys
+  const nameMap: Record<string, keyof typeof result> = {
+    // core
+    'quotes': 'quotes',
+    'authors': 'authors',
+    'references': 'references',
+    'quote_references': 'references',
+    'users': 'users',
+    'tags': 'tags',
+    // relations and activity (accept hyphen/underscore forms)
+    'quote_tags': 'quote_tags',
+    'quote-tags': 'quote_tags',
+    'user_likes': 'user_likes',
+    'user-likes': 'user_likes',
+    'user_collections': 'user_collections',
+    'user-collections': 'user_collections',
+    'collection_quotes': 'collection_quotes',
+    'collection-quotes': 'collection_quotes',
+    'user_sessions': 'user_sessions',
+    'user-sessions': 'user_sessions',
+    'user_messages': 'user_messages',
+    'user-messages': 'user_messages',
+    'quote_reports': 'quote_reports',
+    'quote-reports': 'quote_reports',
+    'quote_views': 'quote_views',
+    'quote-views': 'quote_views',
+    'author_views': 'author_views',
+    'author-views': 'author_views',
+    'reference_views': 'reference_views',
+    'reference-views': 'reference_views',
+  }
+
   for (const [name, data] of Object.entries(entries)) {
     const base = name.split('/').pop() || name
     const lower = base.toLowerCase()
-    const match = lower.match(/^(quotes|authors|references|users|tags)\.(json|csv|xml)$/)
-    if (!match) { warnings.push(`Skipped unknown file: ${name}`); continue }
-    
-    const type = match[1]
-    const ext = match[2]
+    const m = lower.match(/^(.*)\.(json|csv|xml)$/)
+    if (!m) { warnings.push(`Skipped unknown file: ${name}`); continue }
+    const rawStem = m[1]
+    const ext = m[2] as 'json' | 'csv' | 'xml'
+
+    // Normalize stem: keep hyphen and underscore variants supported via nameMap
+    const canonical = nameMap[rawStem]
+    if (!canonical) { warnings.push(`Skipped unknown file: ${name}`); continue }
+
     const text = strFromU8(data as Uint8Array)
-    
     try {
       let rows: any[] = []
       if (ext === 'json') {
@@ -39,12 +81,12 @@ export function parseZipImportEntries(entries: Record<string, Uint8Array>, strFr
       } else if (ext === 'csv') {
         rows = parseCSV(text)
       } else if (ext === 'xml') {
-        const singular = type.replace(/s$/, '')
+        const singular = String(canonical).replace(/s$/, '')
         rows = parseXMLFlat(text, singular)
       }
-      
+
       if (Array.isArray(rows)) {
-        result[type] = rows
+        result[canonical] = rows
       } else {
         warnings.push(`File did not parse to array: ${name}`)
       }
