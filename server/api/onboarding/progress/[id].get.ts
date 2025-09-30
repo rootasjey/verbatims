@@ -3,7 +3,7 @@
  * Provides real-time progress updates via Server-Sent Events
  */
 
-import { getProgress, registerSSEConnection, unregisterSSEConnection } from '~/server/utils/onboarding-progress'
+import { getProgress, registerProgressHandler, unregisterProgressHandler } from '~/server/utils/onboarding-progress'
 
 export default defineEventHandler(async (event) => {
   const importId = getRouterParam(event, 'id')
@@ -130,8 +130,8 @@ async function handleSSE(event: any, importId: string, initialProgress: any) {
           }
         }
 
-        // Store the progress handler for this connection
-        registerProgressHandler(importId, progressHandler)
+  // Store the progress handler for this connection (via utils)
+  registerProgressHandler(importId, progressHandler)
 
         // Handle client disconnect
         event.node.req.on('close', () => {
@@ -160,7 +160,7 @@ async function handleSSE(event: any, importId: string, initialProgress: any) {
       isConnected = false
       if (heartbeatInterval) clearInterval(heartbeatInterval)
       if (connectionTimeout) clearTimeout(connectionTimeout)
-      unregisterProgressHandler(importId, null)
+      unregisterProgressHandler(importId)
     }
   })
 
@@ -182,41 +182,4 @@ function formatSSEMessage(type: string, data: any): string {
   return `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`
 }
 
-// Simple event system for progress updates
-const progressHandlers = new Map<string, Set<Function>>()
-
-function registerProgressHandler(importId: string, handler: Function) {
-  if (!progressHandlers.has(importId)) {
-    progressHandlers.set(importId, new Set())
-  }
-  progressHandlers.get(importId)!.add(handler)
-}
-
-function unregisterProgressHandler(importId: string, handler: Function | null) {
-  const handlers = progressHandlers.get(importId)
-  if (handlers) {
-    if (handler) {
-      handlers.delete(handler)
-    } else {
-      handlers.clear()
-    }
-    
-    if (handlers.size === 0) {
-      progressHandlers.delete(importId)
-    }
-  }
-}
-
-// Export for use in progress utilities
-export function notifyProgressHandlers(importId: string, progress: any) {
-  const handlers = progressHandlers.get(importId)
-  if (handlers) {
-    handlers.forEach(handler => {
-      try {
-        handler(progress)
-      } catch (error) {
-        console.error('Progress handler error:', error)
-      }
-    })
-  }
-}
+// Handlers now managed centrally in utils/onboarding-progress.ts

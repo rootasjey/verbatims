@@ -110,9 +110,22 @@ export default defineEventHandler(async (event) => {
     console.log(`🎉 Database reset completed successfully by ${user.name} (${user.email})`)
     console.log(`⏱️  Operation completed at: ${new Date().toISOString()}`)
 
+    // Proactively clear the current user's auth session (logout) after data reset
+    // This removes any session cookies/tokens so the client is effectively logged out.
+    try {
+      await clearUserSession(event)
+      console.log('🔐 User session cleared after database reset')
+    } catch (sessionClearError) {
+      console.warn('⚠️  Failed to clear user session after reset:', sessionClearError)
+      // Continue: session table is cleared anyway; cookie clearing might have failed
+    }
+
     return {
       success: true,
       message: 'Database data cleared successfully',
+      // Hint to clients that server cleared the session and where to go next
+      loggedOut: true,
+      redirectTo: '/',
       data: {
         tablesCleared,
         rowsDeleted,

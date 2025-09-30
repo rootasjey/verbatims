@@ -7,14 +7,14 @@ This guide explains how to set up your Verbatims quotes application from scratch
 Verbatims uses a manual onboarding flow to ensure secure setup of your quotes database. The process consists of two main steps:
 
 1. **Admin User Creation** - Set up your administrator account
-2. **Database Initialization** - Import quotes, authors, and references from backup files
+2. **Database Initialization** - Import data by uploading a dataset (ZIP export or quotes.json)
 
 ## Prerequisites
 
 Before starting the onboarding process, ensure you have:
 
 - A running Nuxt 3 application with NuxtHub and Cloudflare D1 configured
-- Access to the backup data files in `/server/database/backups/`
+- An export ZIP produced by the Admin Export in Verbatims, or a `quotes.json` file if you want to import quotes only
 - Environment variables properly configured (see below)
 
 ## Environment Variables
@@ -64,48 +64,51 @@ USER_PASSWORD=your-admin-user-password
 
 1. You'll be automatically redirected to `/onboarding/database` after admin user creation
 2. Or navigate there manually if you already have an admin user
-3. Click "Start Import" to begin the database population process
-4. The system will import data in this order:
-   - **Authors** from `authors-1752638847.json`
-   - **References** from `references-1752639132.json`
-   - **Quotes** from `quotes_part_*.json` files (10 files total)
-
-5. Monitor the progress indicators for each import step
+3. Upload your dataset using the file input:
+   - Option A: Upload the ZIP export produced by the Admin Export feature (recommended)
+   - Option B: Upload a single `quotes.json` file (array) to import quotes only
+4. Click "Start Import" to begin
+5. Monitor the live progress indicators for each step (SSE-driven)
 6. Once complete, click "Go to Application" to start using Verbatims
 
-## Backup Data Structure
+## Dataset formats (uploads)
 
-The onboarding system imports data from D1 export files located in `/server/database/backups/`:
+The onboarding system imports data from uploaded datasets:
 
-### Authors
-- **File**: `authors-export-[timestamp].json`
-- **Format**: Native D1 export with clean JSON array structure
-- **Fields**: id, name, description, birth_date, death_date, birth_location, job, image_url, is_fictional, views_count, likes_count, shares_count, created_at, updated_at, socials
+### ZIP export (recommended)
+- Produced by the Admin Export feature in Verbatims
+- Supported filenames inside the ZIP (all are JSON arrays):
+   - `users.json`
+   - `authors.json`
+   - `references.json`
+   - `tags.json`
+   - `quotes.json`
+   - Optional relations/analytics: `quote_tags.json`, `user_collections.json`, `collection_quotes.json`, `user_likes.json`, `user_sessions.json`, `user_messages.json`, `quote_reports.json`, `quote_views.json`, `author_views.json`, `reference_views.json`
 
-### References
-- **File**: `references-export-[timestamp].json`
-- **Format**: Native D1 export with clean JSON array structure
-- **Fields**: id, name, original_language, release_date, description, primary_type, secondary_type, image_url, urls, views_count, likes_count, shares_count, created_at, updated_at
+### Single-file import
+- `quotes.json` (JSON array) — imports quotes only
 
-### Quotes
-- **File**: `quotes-export-[timestamp].json`
-- **Format**: Native D1 export with clean JSON array structure
-- **Fields**: id, name, language, author_id, reference_id, user_id, status, views_count, likes_count, shares_count, is_featured, created_at, updated_at, moderator_id, moderated_at
+Notes:
+- If you upload only `quotes.json`, an Admin user must already exist in the database.
+- If a dataset is not present in the upload, that step is marked completed with 0 items (no attempt to read repo backups).
 
 ## Data Import Process
 
-The onboarding system directly imports D1 export data without transformation:
+The onboarding system directly imports the uploaded datasets without additional transformation:
 
 ### Direct Import
-- Uses the latest export files automatically detected by timestamp
-- No data transformation needed - D1 exports are already in correct format
+- Reads uploaded ZIP/JSON payload only (does not auto-read repository backups)
+- Datasets are expected as JSON arrays with the same shapes as the Admin Export
 - Handles optional fields with sensible defaults
-- Maintains referential integrity through existing IDs
+- Maintains referential integrity when IDs are provided
 
-### Import Order
-1. **Authors** - Imported first to establish author records
-2. **References** - Imported second to establish reference records
-3. **Quotes** - Imported last, linking to existing authors and references
+### Import Order (when present)
+1. `users.json`
+2. `authors.json`
+3. `references.json`
+4. `tags.json`
+5. `quotes.json` (and then `quote_tags.json` if present)
+6. Optional: collections, likes, sessions/messages, analytics
 
 ### Progress Tracking
 - Real-time progress updates via Server-Sent Events
@@ -126,14 +129,19 @@ The onboarding system directly imports D1 export data without transformation:
 - Check your NuxtHub setup and database bindings
 
 **"Import failed" errors**
-- Ensure D1 export files exist in `/server/database/backups/`
-- Check that export files follow the naming pattern: `[type]-export-[timestamp].json`
-- Verify JSON format validity and array structure
+- Ensure you uploaded a valid dataset:
+   - ZIP produced by Admin Export, or
+   - A single `quotes.json` containing a JSON array
+- Verify JSON validity and array structure
 - Review server logs for detailed error messages
 
 **"Admin user already exists"**
 - If you need to reset, you can delete the existing admin user from the database
 - Or skip to Step 2 if you already have an admin user
+
+**"Admin required for quotes-only"**
+- When uploading only `quotes.json`, the system requires an existing Admin user
+- Upload a ZIP that includes `users.json` to create the admin during import if needed
 
 ### Manual Reset
 
@@ -166,6 +174,6 @@ If you encounter issues during onboarding:
 1. Check the browser console for client-side errors
 2. Review server logs for detailed error messages
 3. Verify all environment variables are set correctly
-4. Ensure backup files are present and valid JSON
+4. Ensure the uploaded file is valid JSON (or a valid ZIP export)
 
 For additional help, refer to the main project documentation or create an issue in the project repository.

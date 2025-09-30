@@ -70,8 +70,8 @@ export interface ProgressCallback {
 // In-memory store for onboarding progress (in production, consider using Redis or database)
 const onboardingProgressStore = new Map<string, OnboardingProgress>()
 
-// Store for SSE connections
-const sseConnections = new Map<string, Response>()
+// Progress listeners for SSE updates
+const progressHandlers = new Map<string, Set<(p: OnboardingProgress) => void>>()
 
 /**
  * Generate a unique import ID
@@ -200,7 +200,7 @@ function throttledNotify(importId: string, progress: OnboardingProgress): void {
     throttle.lastNotified = now
     throttle.pending = false
     notificationThrottles.set(importId, throttle)
-    notifySSEConnections(importId, progress)
+    notifyProgressHandlers(importId, progress)
     return
   }
 
@@ -220,7 +220,7 @@ function throttledNotify(importId: string, progress: OnboardingProgress): void {
         currentThrottle.pending = false
         notificationThrottles.set(importId, currentThrottle)
       }
-      notifySSEConnections(importId, currentProgress)
+      notifyProgressHandlers(importId, currentProgress)
     }
   }, THROTTLE_INTERVAL - (now - throttle.lastNotified))
 }
@@ -277,7 +277,7 @@ export function updateStepProgress(
   onboardingProgressStore.set(importId, progress)
 
   // Notify SSE connections
-  notifySSEConnections(importId, progress)
+  notifyProgressHandlers(importId, progress)
 }
 
 /**
@@ -312,7 +312,7 @@ export function addExtras(importId: string, extras: Partial<OnboardingProgress['
                           progress.extras.reference_views
 
   onboardingProgressStore.set(importId, progress)
-  notifySSEConnections(importId, progress)
+  notifyProgressHandlers(importId, progress)
 }
 
 /**
@@ -327,7 +327,7 @@ export function addError(importId: string, error: string): void {
   progress.completedAt = new Date()
 
   onboardingProgressStore.set(importId, progress)
-  notifySSEConnections(importId, progress)
+  notifyProgressHandlers(importId, progress)
 }
 
 /**
@@ -339,39 +339,30 @@ export function addWarning(importId: string, warning: string): void {
 
   progress.warnings.push(warning)
   onboardingProgressStore.set(importId, progress)
-  notifySSEConnections(importId, progress)
+  notifyProgressHandlers(importId, progress)
 }
 
 /**
- * Register SSE connection for progress updates
+ * Progress handler registration used by SSE endpoint
  */
-export function registerSSEConnection(importId: string, response: Response): void {
-  sseConnections.set(importId, response)
+export function registerProgressHandler(importId: string, handler: (p: OnboardingProgress) => void) {
+  if (!progressHandlers.has(importId)) progressHandlers.set(importId, new Set())
+  progressHandlers.get(importId)!.add(handler)
 }
 
-/**
- * Unregister SSE connection
- */
-export function unregisterSSEConnection(importId: string): void {
-  sseConnections.delete(importId)
+export function unregisterProgressHandler(importId: string, handler?: (p: OnboardingProgress) => void) {
+  const set = progressHandlers.get(importId)
+  if (!set) return
+  if (handler) set.delete(handler)
+  else set.clear()
+  if (set.size === 0) progressHandlers.delete(importId)
 }
 
-/**
- * Notify all SSE connections for a specific import
- */
-function notifySSEConnections(importId: string, progress: OnboardingProgress): void {
-  // Import the notification function dynamically to avoid circular imports
-  try {
-    // Use dynamic import to get the notification function
-    import('~/server/api/onboarding/progress/[id].get').then(module => {
-      if (module.notifyProgressHandlers) {
-        module.notifyProgressHandlers(importId, progress)
-      }
-    }).catch(error => {
-      console.error('Failed to notify progress handlers:', error)
-    })
-  } catch (error) {
-    console.error('Failed to send SSE update:', error)
+export function notifyProgressHandlers(importId: string, progress: OnboardingProgress) {
+  const set = progressHandlers.get(importId)
+  if (!set) return
+  for (const fn of set) {
+    try { fn(progress) } catch (e) { console.error('Onboarding progress handler failed:', e) }
   }
 }
 
@@ -386,7 +377,7 @@ export function cleanupOldProgress(maxAgeMs: number = 24 * 60 * 60 * 1000): void
 
     if (age > maxAgeMs && (progress.status === 'completed' || progress.status === 'failed')) {
       onboardingProgressStore.delete(importId)
-      sseConnections.delete(importId)
+      progressHandlers.delete(importId)
     }
   }
 }
