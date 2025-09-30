@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
+  const db = hubDatabase()
     console.log(`🔥 Database reset initiated by admin user: ${user.name} (${user.email})`)
 
     // Optional: Create automatic backup before reset (uncomment to enable)
@@ -44,74 +44,54 @@ export default defineEventHandler(async (event) => {
     //   // Continue with reset even if backup fails
     // }
 
-    // Get list of all tables before dropping
-    const tables = await db.prepare(`
-      SELECT name FROM sqlite_master 
-      WHERE type='table' AND name NOT LIKE 'sqlite_%'
-      ORDER BY name
-    `).all()
+    // Step 1: CLEAR all tables (no DDL) — use DELETE in a safe FK order
+    // Note: Some tables cascade on parent deletes; we still clear explicitly for completeness and resilience
+    console.log('🧹 Clearing all tables (DELETE, no DROP)...')
 
-    const tableNames = tables.results
-      .map((t: any) => t.name)
-      .filter((name: string) => !name.match(/_cf_METADATA/i))
+    const clearOrder = [
+      // Leaf and junction tables
+      'quote_tags',
+      'collection_quotes',
+      'quote_views',
+      'author_views',
+      'reference_views',
+      'quote_reports',
+      'user_messages',
+      'user_sessions',
+      'user_likes',
+      'backup_files',
+      'export_logs',
+      'import_logs',
+      'user_collections',
+      // Core content tables
+      'quotes',
+      'tags',
+      'authors',
+      'quote_references',
+      // Users last (referenced by many tables)
+      'users'
+    ] as const
 
-    // const tableNames = tables.map(t => t.name)
-    console.log(`📋 Found ${tableNames.length} tables to drop:`, tableNames)
-
-    // Step 1: Drop all existing tables safely (disable FKs)
-    console.log('🗑️  Dropping all existing tables...')
-
-    let droppedCount = 0
-    try {
-      // Disable foreign key enforcement for the connection
-      await db.prepare('PRAGMA foreign_keys = OFF').run()
-
-      // Drop each table sequentially to avoid transaction issues
-      for (const tableName of tableNames) {
-        await db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run()
-        droppedCount++
-        console.log(`✅ Dropped table: ${tableName}`)
-      }
-    } catch (error: any) {
-      console.error('❌ Failed to drop tables:', error)
-      throw createError({
-        statusCode: 500,
-        statusMessage: `Failed to drop tables: ${error.message}`
-      })
-    } finally {
-      // Re-enable foreign keys
+    let tablesCleared = 0
+    let rowsDeleted = 0
+    for (const table of clearOrder) {
       try {
-        await db.prepare('PRAGMA foreign_keys = ON').run()
-      } catch {}
-    }
-
-    // Step 2: Recreate database schema from schema.sql
-    console.log('🏗️  Recreating database schema...')
-    try {
-      const schemaInitialized = await initializeDatabase()
-      if (!schemaInitialized) {
+        const res = await db.prepare(`DELETE FROM ${table}`).run()
+        const changes = Number(res?.meta?.changes || 0)
+        rowsDeleted += changes
+        tablesCleared++
+        console.log(`✅ Cleared table '${table}' (deleted ${changes} rows)`) 
+      } catch (e: any) {
+        // If a table does not exist in a given environment or DELETE is not authorized, surface a clear error
+        console.error(`❌ Failed to clear table '${table}':`, e?.message || e)
         throw createError({
           statusCode: 500,
-          statusMessage: 'Failed to recreate database schema'
+          statusMessage: `Failed to clear table '${table}': ${e?.message || e}`
         })
       }
-      console.log('✅ Database schema recreated successfully')
-    } catch (schemaError: any) {
-      console.error('❌ Failed to recreate schema:', schemaError)
-      throw createError({
-        statusCode: 500,
-        statusMessage: `Failed to recreate database schema: ${schemaError.message}`
-      })
     }
 
-    // Count created tables
-    const createdTablesQuery = await db.prepare(`
-      SELECT COUNT(*) as count FROM sqlite_master 
-      WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '%_cf_METADATA%'
-    `).first()
-    const createdTables = Number(createdTablesQuery?.count || 0)
-
-    // Step 3: Initialize admin user (since all data was wiped)
+    // Step 2: Initialize admin user (since all users were deleted)
     console.log('👤 Reinitializing admin user...')
     let adminUserReinitialized = false
     try {
@@ -132,10 +112,10 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      message: 'Database reset completed successfully',
+      message: 'Database data cleared successfully',
       data: {
-        droppedTables: droppedCount,
-        createdTables,
+        tablesCleared,
+        rowsDeleted,
         adminUserReinitialized,
         timestamp: new Date().toISOString()
       }
