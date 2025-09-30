@@ -58,69 +58,65 @@ export default defineEventHandler(async (event) => {
     // const tableNames = tables.map(t => t.name)
     console.log(`📋 Found ${tableNames.length} tables to drop:`, tableNames)
 
-    // Step 1: Drop all existing tables using a single transaction
+    // Step 1: Drop all existing tables safely (disable FKs)
     console.log('🗑️  Dropping all existing tables...')
 
+    let droppedCount = 0
     try {
-      // Prepare all SQL statements for the transaction
-      const transactionStatements = []
+      // Disable foreign key enforcement for the connection
+      await db.prepare('PRAGMA foreign_keys = OFF').run()
 
-      // Start with disabling foreign key constraints
-      transactionStatements.push(db.prepare('PRAGMA defer_foreign_keys = on'))
-
-      // Add DROP TABLE statements for each table
+      // Drop each table sequentially to avoid transaction issues
       for (const tableName of tableNames) {
-        transactionStatements.push(db.prepare(`DROP TABLE IF EXISTS ${tableName}`))
-      }
-
-      // Re-enable foreign key constraints at the end
-      transactionStatements.push(db.prepare('PRAGMA defer_foreign_keys = off'))
-
-      // Execute all statements as a single batch transaction
-      console.log(`📦 Executing ${transactionStatements.length} SQL statements in single transaction...`)
-      await db.batch(transactionStatements)
-
-      console.log('🔄 All tables dropped successfully in transaction')
-
-      // Log each dropped table for confirmation
-      for (const tableName of tableNames) {
+        await db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run()
+        droppedCount++
         console.log(`✅ Dropped table: ${tableName}`)
       }
-
     } catch (error: any) {
-      console.error('❌ Failed to drop tables in transaction:', error)
+      console.error('❌ Failed to drop tables:', error)
       throw createError({
         statusCode: 500,
         statusMessage: `Failed to drop tables: ${error.message}`
       })
+    } finally {
+      // Re-enable foreign keys
+      try {
+        await db.prepare('PRAGMA foreign_keys = ON').run()
+      } catch {}
     }
 
     // Step 2: Recreate database schema from schema.sql
-    // console.log('🏗️  Recreating database schema...')
+    console.log('🏗️  Recreating database schema...')
+    try {
+      const schemaInitialized = await initializeDatabase()
+      if (!schemaInitialized) {
+        throw createError({
+          statusCode: 500,
+          statusMessage: 'Failed to recreate database schema'
+        })
+      }
+      console.log('✅ Database schema recreated successfully')
+    } catch (schemaError: any) {
+      console.error('❌ Failed to recreate schema:', schemaError)
+      throw createError({
+        statusCode: 500,
+        statusMessage: `Failed to recreate database schema: ${schemaError.message}`
+      })
+    }
 
-    // try {
-    //   const schemaInitialized = await initializeDatabase()
-    //   if (!schemaInitialized) {
-    //     throw createError({
-    //       statusCode: 500,
-    //       statusMessage: 'Failed to recreate database schema'
-    //     })
-    //   }
-    //   console.log('✅ Database schema recreated successfully')
-    // } catch (schemaError: any) {
-    //   console.error('❌ Failed to recreate schema:', schemaError)
-    //   throw createError({
-    //     statusCode: 500,
-    //     statusMessage: `Failed to recreate database schema: ${schemaError.message}`
-    //   })
-    // }
+    // Count created tables
+    const createdTablesQuery = await db.prepare(`
+      SELECT COUNT(*) as count FROM sqlite_master 
+      WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '%_cf_METADATA%'
+    `).first()
+    const createdTables = Number(createdTablesQuery?.count || 0)
 
     // Step 3: Initialize admin user (since all data was wiped)
     console.log('👤 Reinitializing admin user...')
-    
+    let adminUserReinitialized = false
     try {
-      const adminInitialized = await initializeAdminUser()
-      if (!adminInitialized) {
+      adminUserReinitialized = await initializeAdminUser()
+      if (!adminUserReinitialized) {
         console.warn('⚠️  Warning: Failed to reinitialize admin user after reset')
       } else {
         console.log('✅ Admin user reinitialized successfully')
@@ -138,8 +134,9 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: 'Database reset completed successfully',
       data: {
-        droppedTables: tableNames.length,
-        adminUserReinitialized: true,
+        droppedTables: droppedCount,
+        createdTables,
+        adminUserReinitialized,
         timestamp: new Date().toISOString()
       }
     }

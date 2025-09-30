@@ -857,6 +857,7 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
   const totalQuotes = quotes.length
 
   let importedCount = 0
+  let skippedCount = 0
 
   // Update progress: starting quotes import
   if (importId) {
@@ -876,7 +877,49 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
 
     for (const [index, quoteData] of batch.entries()) {
       try {
-        // D1 export data is already in the correct format, just need to handle optional fields
+        // Sanitize inputs defensively to avoid enum/constraint errors
+        const allowedStatuses = new Set(['draft','pending','approved','rejected'])
+        const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh'])
+        const str = (v: any) => typeof v === 'string' ? v.trim() : ''
+        const toInt = (v: any) => {
+          if (v === null || v === undefined || v === '') return null
+          const n = Number(v)
+          return Number.isFinite(n) ? Math.trunc(n) : null
+        }
+        const toNonNeg = (v: any) => {
+          const n = toInt(v)
+          return n == null ? 0 : Math.max(0, n)
+        }
+        const toBool = (v: any) => {
+          if (typeof v === 'boolean') return v
+          if (typeof v === 'number') return v === 1
+          if (typeof v === 'string') {
+            const s = v.trim().toLowerCase()
+            if (['1','true','yes','y'].includes(s)) return true
+            if (['0','false','no','n'].includes(s)) return false
+          }
+          return !!v
+        }
+
+        const language = allowedLanguages.has(str(quoteData.language).toLowerCase())
+          ? str(quoteData.language).toLowerCase()
+          : 'en'
+        const status = allowedStatuses.has(str(quoteData.status).toLowerCase())
+          ? str(quoteData.status).toLowerCase()
+          : 'approved'
+        const authorId = toInt(quoteData.author_id)
+        const referenceId = toInt(quoteData.reference_id)
+        const userId = toInt(quoteData.user_id) ?? adminUserId
+        const likes = toNonNeg(quoteData.likes_count)
+        const shares = toNonNeg(quoteData.shares_count)
+        const views = toNonNeg(quoteData.views_count)
+        const isFeatured = toBool(quoteData.is_featured)
+        const createdAt = quoteData.created_at || new Date().toISOString()
+        const updatedAt = quoteData.updated_at || new Date().toISOString()
+        const moderatorId = toInt(quoteData.moderator_id) ?? adminUserId
+        const moderatedAt = quoteData.moderated_at || new Date().toISOString()
+
+        // Insert
         await db.prepare(`
           INSERT INTO quotes (
             name, language, author_id, reference_id, user_id, status,
@@ -885,19 +928,19 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
           quoteData.name || '',
-          quoteData.language || 'en',
-          quoteData.author_id || null,
-          quoteData.reference_id || null,
-          quoteData.user_id || adminUserId,
-          quoteData.status || 'approved',
-          quoteData.likes_count || 0,
-          quoteData.shares_count || 0,
-          quoteData.views_count || 0,
-          quoteData.is_featured || false,
-          quoteData.created_at || new Date().toISOString(),
-          quoteData.updated_at || new Date().toISOString(),
-          quoteData.moderator_id || adminUserId,
-          quoteData.moderated_at || new Date().toISOString()
+          language,
+          authorId,
+          referenceId,
+          userId,
+          status,
+          likes,
+          shares,
+          views,
+          isFeatured,
+          createdAt,
+          updatedAt,
+          moderatorId,
+          moderatedAt
         ).run()
 
         importedCount++
@@ -910,9 +953,13 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
             message: `Imported ${importedCount} of ${totalQuotes} quotes...`
           })
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Failed to import quote ${quoteData.name || 'unknown'}:`, error)
-        // Continue with other quotes
+        skippedCount++
+        if (importId) {
+          const { addWarning } = await import('~/server/utils/onboarding-progress')
+          addWarning(importId, `Quote ${i + index + 1} "${String(quoteData.name || '').slice(0,80)}" skipped: ${error?.message || 'unknown error'}`)
+        }
       }
     }
   }
@@ -921,7 +968,7 @@ async function importQuotesFromBackup(db: any, adminUserId: number, importId?: s
   if (importId) {
     updateStepProgress(importId, 'quotes', {
       status: 'completed',
-      message: `Successfully imported ${importedCount} quotes`,
+      message: `Imported ${importedCount}/${totalQuotes} quotes${skippedCount ? ` • Skipped ${skippedCount}` : ''}`,
       current: totalQuotes,
       imported: importedCount
     })
@@ -1048,10 +1095,48 @@ async function importQuotesFromDataset(db: any, adminUserId: number, importId: s
   const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = quotes.length
   let imported = 0
+  let skipped = 0
   updateStepProgress(importId, 'quotes', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} quotes...` })
   for (let i = 0; i < quotes.length; i++) {
     const q = quotes[i]
     try {
+      const allowedStatuses = new Set(['draft','pending','approved','rejected'])
+      const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh'])
+      const str = (v: any) => typeof v === 'string' ? v.trim() : ''
+      const toInt = (v: any) => {
+        if (v === null || v === undefined || v === '') return null
+        const n = Number(v)
+        return Number.isFinite(n) ? Math.trunc(n) : null
+      }
+      const toNonNeg = (v: any) => {
+        const n = toInt(v)
+        return n == null ? 0 : Math.max(0, n)
+      }
+      const toBool = (v: any) => {
+        if (typeof v === 'boolean') return v
+        if (typeof v === 'number') return v === 1
+        if (typeof v === 'string') {
+          const s = v.trim().toLowerCase()
+          if (['1','true','yes','y'].includes(s)) return true
+          if (['0','false','no','n'].includes(s)) return false
+        }
+        return !!v
+      }
+
+      const language = allowedLanguages.has(str(q.language).toLowerCase()) ? str(q.language).toLowerCase() : 'en'
+      const status = allowedStatuses.has(str(q.status).toLowerCase()) ? str(q.status).toLowerCase() : 'approved'
+      const authorId = toInt(q.author_id)
+      const referenceId = toInt(q.reference_id)
+  const userId = toInt(q.user_id) ?? (adminUserId ?? 1)
+      const likes = toNonNeg(q.likes_count)
+      const shares = toNonNeg(q.shares_count)
+      const views = toNonNeg(q.views_count)
+      const isFeatured = toBool(q.is_featured)
+      const createdAt = q.created_at || new Date().toISOString()
+      const updatedAt = q.updated_at || new Date().toISOString()
+  const moderatorId = toInt(q.moderator_id) ?? adminUserId
+      const moderatedAt = q.moderated_at || new Date().toISOString()
+
       await db.prepare(`
         INSERT INTO quotes (
           name, language, author_id, reference_id, user_id, status,
@@ -1059,15 +1144,19 @@ async function importQuotesFromDataset(db: any, adminUserId: number, importId: s
           created_at, updated_at, moderator_id, moderated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
-        q.name || '', q.language || 'en', q.author_id || null, q.reference_id || null,
-        q.user_id || adminUserId || 1, q.status || 'approved', q.likes_count || 0, q.shares_count || 0, q.views_count || 0, !!q.is_featured,
-        q.created_at || new Date().toISOString(), q.updated_at || new Date().toISOString(), q.moderator_id || adminUserId || null, q.moderated_at || new Date().toISOString()
+        q.name || '', language, authorId, referenceId,
+        userId, status, likes, shares, views, isFeatured,
+        createdAt, updatedAt, moderatorId, moderatedAt
       ).run()
       imported++
       if (imported % 25 === 0) updateStepProgress(importId, 'quotes', { current: i + 1, imported, message: `Imported ${imported}/${total} quotes` })
-    } catch {}
+    } catch (e: any) {
+      skipped++
+      const { addWarning } = await import('~/server/utils/onboarding-progress')
+      addWarning(importId, `Quote ${i + 1} "${String(q.name || '').slice(0,80)}" skipped: ${e?.message || 'unknown error'}`)
+    }
   }
-  updateStepProgress(importId, 'quotes', { status: 'completed', current: total, imported, message: `Imported ${imported} quotes` })
+  updateStepProgress(importId, 'quotes', { status: 'completed', current: total, imported, message: `Imported ${imported}/${total} quotes${skipped ? ` • Skipped ${skipped}` : ''}` })
   return imported
 }
 

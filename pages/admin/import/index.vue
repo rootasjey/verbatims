@@ -149,7 +149,12 @@
             </div>
             <UCollapsibleContent>
               <div class="p-4">
-                <ImportProgress v-if="currentImportId" :import-id="currentImportId" />
+                <ImportProgress
+                  v-if="currentImportId"
+                  :import-id="currentImportId"
+                  @finished="() => { currentImportId = null; openProgress = false }"
+                  @not-found="() => { currentImportId = null; openProgress = false }"
+                />
                 <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">No active import. Start an import from the Upload section.</div>
               </div>
             </UCollapsibleContent>
@@ -276,6 +281,20 @@ const originalParsedData = ref<any | null>(null)
 const currentImportId = ref<string | null>(null)
 const openUpload = ref<boolean>(true)
 const openProgress = ref<boolean>(false)
+// Persist and restore current import id
+const IMPORT_LS_KEY = 'verbatims-admin-current-import-id'
+onMounted(() => {
+  const saved = localStorage.getItem(IMPORT_LS_KEY)
+  if (saved) {
+    currentImportId.value = saved
+    openProgress.value = true
+  }
+})
+
+watch(currentImportId, (id) => {
+  if (id) localStorage.setItem(IMPORT_LS_KEY, id)
+  else localStorage.removeItem(IMPORT_LS_KEY)
+})
 const openHistory = ref<boolean>(false)
 const openRelink = ref<boolean>(false)
 
