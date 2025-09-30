@@ -2,6 +2,7 @@ import { unzipSync, strFromU8 } from 'fflate'
 import type { ImportOptions } from '~/types'
 import { createAdminImport, getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
 import { base64ToUint8, parseZipImportEntries } from '~/server/utils/import-helpers'
+import { scheduleBackground } from '~/server/utils/schedule'
 import { importUsersInline } from '~/server/utils/imports/import-users'
 import { importAuthorsInline } from '~/server/utils/imports/import-authors'
 import { importReferencesInline } from '~/server/utils/imports/import-references'
@@ -110,8 +111,8 @@ export default defineEventHandler(async (event) => {
     updateAdminImport(importId, { warnings: [...p1.warnings, countsNote, orderNote] })
   } catch {}
 
-  // Run the heavy work asynchronously so the client can subscribe to progress immediately
-  ;(async () => {
+  // Define the heavy work as a function so we can schedule it with Cloudflare waitUntil
+  const runImport = async () => {
     try {
       // Process in dependency-friendly order
       if (parsedBundle) {
@@ -187,7 +188,10 @@ export default defineEventHandler(async (event) => {
       const p = getAdminImport(importId)
       if (p) updateAdminImport(importId, { status: 'failed', errors: [...p.errors, e.message], completedAt: new Date() })
     }
-  })()
+  }
+
+  // Run the heavy work asynchronously so the client can subscribe to progress immediately.
+  scheduleBackground(event, runImport)
 
   return {
     success: true,
