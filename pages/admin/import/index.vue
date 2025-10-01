@@ -345,16 +345,37 @@ const handleFileSelect = (event: Event) => {
     previewData.value = []
     originalParsedData.value = null
 
-    // Auto-detect format based on file extension
+    // Auto-detect format by extension first
     const name = file.name.toLowerCase()
-    if (name.endsWith('.json')) {
-      selectedFormat.value = formatOptions.find(o => o.value === 'json') || null
-    } else if (name.endsWith('.csv')) {
-      selectedFormat.value = formatOptions.find(o => o.value === 'csv') || null
-    } else if (name.endsWith('.xml')) {
-      selectedFormat.value = formatOptions.find(o => o.value === 'xml') || null
-    } else if (name.endsWith('.zip')) {
-      selectedFormat.value = formatOptions.find(o => o.value === 'zip') || null
+    const byExt =
+      name.endsWith('.json') ? 'json'
+      : name.endsWith('.csv') ? 'csv'
+      : name.endsWith('.xml') ? 'xml'
+      : name.endsWith('.zip') ? 'zip'
+      : null
+    if (byExt) {
+      selectedFormat.value = formatOptions.find(o => o.value === byExt) || null
+    }
+
+    // Auto-detect type by filename hints immediately
+    const byNameType = guessDataTypeFromName(name)
+    if (byNameType) selectedDataType.value = byNameType
+
+    // Lightweight content sniffing (skip for ZIP). This refines/backs up detection without heavy parsing.
+    if (byExt !== 'zip') {
+      // Read the first chunk to keep it cheap
+      readFileHead(file, 64 * 1024).then((headText) => {
+        // If format not set by extension, try to infer from content
+        if (!selectedFormat.value) {
+          const fmt = guessFormatFromContent(headText)
+          if (fmt) selectedFormat.value = formatOptions.find(o => o.value === fmt) || null
+        }
+
+        // If data type still unknown or came only from name, refine using content
+        const fmt = selectedFormat.value?.value || byExt || guessFormatFromContent(headText)
+        const byContentType = guessDataTypeFromContent(headText, fmt)
+        if (byContentType) selectedDataType.value = byContentType
+      }).catch(() => { /* ignore sniff errors */ })
     }
   }
 }
@@ -562,6 +583,21 @@ const readFileContent = (file: File | null): Promise<string> => {
   })
 }
 
+// Read only the first N bytes for quick sniffing
+const readFileHead = (file: File, maxBytes = 65536): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const blob = file.slice(0, Math.min(maxBytes, file.size))
+      const reader = new FileReader()
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+      reader.onerror = reject
+      reader.readAsText(blob)
+    } catch (e) {
+      resolve('')
+    }
+  })
+}
+
 const readFileAsBase64 = (file: File | null): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!file) return resolve('')
@@ -610,6 +646,117 @@ const parseXML = (xmlText: string): Record<string, any>[] => {
     console.error('XML parse failed:', e)
     return []
   }
+}
+
+// ---------- Detection Helpers ----------
+const guessDataTypeFromName = (lowerName: string): SelectOption | null => {
+  const pairs: Array<{ re: RegExp; type: SelectOption }> = [
+    { re: /(\b|[-_])(quote|quotes|qts)(\b|\.|[-_])/i, type: { label: 'Quotes', value: 'quotes' } },
+    { re: /(\b|[-_])(author|authors|people|persons)(\b|\.|[-_])/i, type: { label: 'Authors', value: 'authors' } },
+    { re: /(\b|[-_])(reference|references|books|films|works)(\b|\.|[-_])/i, type: { label: 'References', value: 'references' } },
+    { re: /(\b|[-_])(tag|tags)(\b|\.|[-_])/i, type: { label: 'Tags', value: 'tags' } },
+    { re: /(\b|[-_])(user|users|accounts)(\b|\.|[-_])/i, type: { label: 'Users', value: 'users' } },
+  ]
+  for (const p of pairs) {
+    if (p.re.test(lowerName)) return p.type
+  }
+  return null
+}
+
+const guessFormatFromContent = (text: string): 'json' | 'csv' | 'xml' | null => {
+  const t = text.trim()
+  if (!t) return null
+  if (t.startsWith('{') || t.startsWith('[')) return 'json'
+  if (/^<\?xml|^<([a-zA-Z_][\w:-]*)(\s|>)/.test(t)) return 'xml'
+  // crude CSV check: header, delimiter, newline
+  const firstLine = t.split(/\r?\n/)[0] || ''
+  if (firstLine.includes(',')) return 'csv'
+  return null
+}
+
+const selectOptionByValue = (options: SelectOption[], value: string): SelectOption | null => {
+  return options.find(o => o.value === value) || null
+}
+
+const guessDataTypeFromJSONSample = (sample: any): SelectOption | null => {
+  if (!sample || typeof sample !== 'object') return null
+  const k = Object.keys(sample)
+  const hasQuoteKeys = k.includes('language') || k.includes('status') || k.includes('author_id') || k.includes('reference_id') || k.includes('content')
+  const hasReferenceKeys = k.includes('primary_type') || k.includes('secondary_type') || k.includes('release_date') || k.includes('source_url')
+  const hasAuthorKeys = k.includes('is_fictional') || k.includes('birth_date') || k.includes('death_date') || k.includes('biography')
+  const hasUserKeys = k.includes('email') || k.includes('role') || k.includes('display_name')
+  const hasTagKeys = (k.includes('color') || k.includes('slug')) && !k.includes('email') && !k.includes('language')
+
+  if (hasQuoteKeys) return selectOptionByValue(dataTypeOptions, 'quotes')
+  if (hasReferenceKeys) return selectOptionByValue(dataTypeOptions, 'references')
+  if (hasAuthorKeys) return selectOptionByValue(dataTypeOptions, 'authors')
+  if (hasUserKeys) return selectOptionByValue(dataTypeOptions, 'users')
+  if (hasTagKeys) return selectOptionByValue(dataTypeOptions, 'tags')
+  return null
+}
+
+const guessDataTypeFromContent = (text: string, fmt?: string | null): SelectOption | null => {
+  const format = fmt || guessFormatFromContent(text)
+  if (!format) return null
+
+  if (format === 'json') {
+    // Try light regex-based hints first (no full parse required)
+    const t = text
+    const hintPairs: Array<{ re: RegExp; type: 'quotes'|'authors'|'references'|'tags'|'users' }> = [
+      { re: /"(language|status|author_id|reference_id|content)"\s*:/i, type: 'quotes' },
+      { re: /"(primary_type|secondary_type|release_date|source_url)"\s*:/i, type: 'references' },
+      { re: /"(is_fictional|birth_date|death_date|biography)"\s*:/i, type: 'authors' },
+      { re: /"(email|role|display_name)"\s*:/i, type: 'users' },
+      { re: /"(color|slug)"\s*:/i, type: 'tags' },
+    ]
+    for (const h of hintPairs) {
+      if (h.re.test(t)) return selectOptionByValue(dataTypeOptions, h.type)
+    }
+
+    // As a fallback, if the file is reasonably small, try parsing
+    try {
+      if (t.length < 2_000_000) {
+        const parsed = JSON.parse(text)
+        if (Array.isArray(parsed) && parsed.length) return guessDataTypeFromJSONSample(parsed[0])
+        if (parsed && typeof parsed === 'object') {
+          // If shape is { data: [...] }
+          if (Array.isArray((parsed as any).data) && (parsed as any).data.length) return guessDataTypeFromJSONSample((parsed as any).data[0])
+          // If shape is { quotes: [...]} etc.
+          const keys = ['quotes','authors','references','tags','users']
+          for (const k of keys) {
+            const arr = (parsed as any)[k]
+            if (Array.isArray(arr) && arr.length) return selectOptionByValue(dataTypeOptions, k)
+          }
+        }
+      }
+    } catch { /* ignore */ }
+    return null
+  }
+
+  if (format === 'csv') {
+    const firstLine = (text.split(/\r?\n/)[0] || '').toLowerCase()
+    const headers = firstLine.split(',').map(h => h.trim())
+    const has = (h: string) => headers.includes(h)
+    if (has('content') || has('author_id') || has('reference_id') || has('language')) return selectOptionByValue(dataTypeOptions, 'quotes')
+    if (has('primary_type') || has('release_date') || has('secondary_type')) return selectOptionByValue(dataTypeOptions, 'references')
+    if (has('is_fictional') || has('birth_date') || has('death_date')) return selectOptionByValue(dataTypeOptions, 'authors')
+    if (has('email') || has('role')) return selectOptionByValue(dataTypeOptions, 'users')
+    if (has('color') || has('slug')) return selectOptionByValue(dataTypeOptions, 'tags')
+    return null
+  }
+
+  if (format === 'xml') {
+    // Try to infer via tag names without full parse
+    const t = text.slice(0, 16384)
+    if (/<quotes?\b|<quote\b/i.test(t)) return selectOptionByValue(dataTypeOptions, 'quotes')
+    if (/<authors?\b|<author\b/i.test(t)) return selectOptionByValue(dataTypeOptions, 'authors')
+    if (/<references?\b|<reference\b|<book\b|<film\b/i.test(t)) return selectOptionByValue(dataTypeOptions, 'references')
+    if (/<tags?\b|<tag\b/i.test(t)) return selectOptionByValue(dataTypeOptions, 'tags')
+    if (/<users?\b|<user\b/i.test(t)) return selectOptionByValue(dataTypeOptions, 'users')
+    return null
+  }
+
+  return null
 }
 
 </script>

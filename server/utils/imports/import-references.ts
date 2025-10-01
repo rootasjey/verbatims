@@ -91,13 +91,13 @@ export async function importReferencesInline(parentImportId: string, references:
       let skipped = 0
 
       for (const reference of sub) {
-        let urlsField = '{}'
+        let urlsField = '[]'
         if (reference.urls) {
           if (Array.isArray(reference.urls)) urlsField = JSON.stringify(reference.urls)
           else if (typeof reference.urls === 'string') urlsField = reference.urls
           else if (typeof reference.urls === 'object') urlsField = JSON.stringify(reference.urls)
         }
-        const key = `${String(reference.name||'').toLowerCase().trim()}|${String(reference.primary_type||'')}`
+  const key = `${String(reference.name||'').toLowerCase().trim()}|${String(reference.primary_type||'other')}`
         const match = existingByKey.get(key)
 
         if (match && refPolicy === 'ignore') { skipped++; continue }
@@ -151,7 +151,7 @@ export async function importReferencesInline(parentImportId: string, references:
           reference.original_language || 'en',
           reference.release_date || null,
           reference.description || '',
-          reference.primary_type,
+          reference.primary_type || 'other',
           reference.secondary_type || '',
           reference.image_url || '',
           urlsField,
