@@ -22,7 +22,8 @@
         <nav aria-label="Footer navigation" class="grid grid-cols-2 gap-8"
           :class="{
             'grid-cols-2': !isAdmin,
-            'grid-cols-2 sm:grid-cols-4': isAdmin
+            'grid-cols-2 sm:grid-cols-4': isAdmin && sectionAccount.length,
+            'grid-cols-2 sm:grid-cols-3': isAdmin && !sectionAccount.length
           }">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
             <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Explore</h3>

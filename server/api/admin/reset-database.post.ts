@@ -91,7 +91,50 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Step 2: Initialize admin user (since all users were deleted)
+    // Step 2: Reset AUTOINCREMENT sequences for tables using INTEGER PRIMARY KEY AUTOINCREMENT
+    // This ensures IDs start from 1 again after a full data wipe
+    console.log('🔢 Resetting AUTOINCREMENT sequences...')
+    const autoIncrementTables = [
+      'users',
+      'authors',
+      'quote_references',
+      'quotes',
+      'tags',
+      'user_likes',
+      'user_collections',
+      'user_sessions',
+      'quote_reports',
+      'user_messages',
+      'quote_views',
+      'author_views',
+      'reference_views',
+      'export_logs',
+      'import_logs',
+      'backup_files'
+    ] as const
+
+    let sequencesReset = 0
+    try {
+      for (const table of autoIncrementTables) {
+        try {
+          await db.prepare(`DELETE FROM sqlite_sequence WHERE name = ?`).bind(table).run()
+          sequencesReset++
+          console.log(`✅ Reset sequence for '${table}'`)
+        } catch (seqErr: any) {
+          // In some environments sqlite_sequence may not exist yet; ignore specific error
+          const msg = String(seqErr?.message || seqErr)
+          if (msg.includes('no such table: sqlite_sequence')) {
+            console.warn('ℹ️  sqlite_sequence table not found; skipping sequence resets')
+            break
+          }
+          console.warn(`⚠️  Failed to reset sequence for '${table}':`, msg)
+        }
+      }
+    } catch (outerSeqErr) {
+      console.warn('⚠️  Sequence reset encountered issues:', outerSeqErr)
+    }
+
+    // Step 3: Initialize admin user (since all users were deleted)
     console.log('👤 Reinitializing admin user...')
     let adminUserReinitialized = false
     try {
@@ -129,6 +172,7 @@ export default defineEventHandler(async (event) => {
       data: {
         tablesCleared,
         rowsDeleted,
+        sequencesReset,
         adminUserReinitialized,
         timestamp: new Date().toISOString()
       }

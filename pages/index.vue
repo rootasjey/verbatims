@@ -88,16 +88,20 @@ useHead({
   ]
 })
 
+type StatsResponse = { quotes: number; authors: number; references: number; users: number }
+type OnboardingResponse = { needsOnboarding?: boolean; step?: string; hasAdminUser?: boolean; hasData?: boolean }
+
 const showHomeTitle = useStorage('verbatims.show_home_title', true)
 const { isLanguageReady } = useLanguageReady()
 const feed = useQuoteSearchFeed()
 
-const { data: statsData } = await useFetch('/api/stats')
-const { data: onboardingData } = await useFetch('/api/onboarding/status')
+const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
+const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
 
-const stats = computed(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
-const onboardingStatus = computed(() => onboardingData.value?.data)
-const needsOnboarding = computed(() => onboardingStatus.value?.needsOnboarding || false)
+// Ensure the computed values always match the shapes expected by child components
+const stats = computed<StatsResponse>(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
+const onboardingStatus = computed<OnboardingResponse>(() => onboardingData.value?.data || { needsOnboarding: false, step: undefined, hasAdminUser: false, hasData: false })
+const needsOnboarding = computed(() => !!onboardingStatus.value?.needsOnboarding)
 
 const showAddQuoteDrawer = ref(false)
 // Mark as ready only after Nuxt has fully hydrated to avoid layout switching during hydration
@@ -139,7 +143,7 @@ header h1.default {
   @media (min-width: 812px)   { font-size: 12.0rem; }
   @media (min-width: 912px)   { font-size: 13.5rem; }
   @media (min-width: 1024px)  { font-size: 15.0rem; }
-  @media (min-width: 1124px)  { font-size: 18.0rem; }
-  @media (min-width: 1224px)  { font-size: 20.5rem; }
+  @media (min-width: 1224px)  { font-size: 18.0rem; }
+  @media (min-width: 1380px)  { font-size: 20.5rem; }
 }
 </style>

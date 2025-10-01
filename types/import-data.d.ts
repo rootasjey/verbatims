@@ -35,6 +35,12 @@ export interface ImportOptions {
   ignoreValidationErrors?: boolean
   batchSize?: number
   retentionDays?: number
+  /**
+   * Preserve explicit IDs from import data when possible.
+   * When true and an item contains a valid numeric `id`, importers may insert using that ID
+   * and then adjust sqlite_sequence to MAX(id) to keep AUTOINCREMENT in sync.
+   */
+  preserveIds?: boolean
   conflict?: ImportConflictOptions
 }
 
