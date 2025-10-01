@@ -12,7 +12,7 @@
     <div class="flex justify-between items-center p-4">
       <div class="flex items-center space-x-4">
         <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-          <AppIcon icon :size="24" />
+          <AppIcon icon :size="24" outline />
         </UButton>
 
         <!-- Page Title for Admin/Dashboard -->

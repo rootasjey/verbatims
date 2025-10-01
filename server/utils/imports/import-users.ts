@@ -105,6 +105,11 @@ export async function importUsersInline(parentImportId: string, users: any[], op
   }
 
   const insert = db.prepare(insertSql)
+  // Optional variant to include id explicitly when preserveIds and not using upsert
+  const insertWithId = db.prepare(`INSERT INTO users (
+    id, email, name, password, avatar_url, role, is_active, email_verified,
+    biography, job, language, location, socials, last_login_at, created_at, updated_at
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 
   const batchSize = options.batchSize || 50
   const subSize = 10
@@ -115,6 +120,27 @@ export async function importUsersInline(parentImportId: string, users: any[], op
       const sub = batch.slice(j, j + subSize)
       const stmts = sub.map((u) => {
         const socialsField = u.socials ? (typeof u.socials === 'string' ? u.socials : JSON.stringify(u.socials)) : '[]'
+        const hasExplicit = options.preserveIds && Number.isFinite(Number(u.id))
+        if (hasExplicit && userPolicy !== 'upsert') {
+          return insertWithId.bind(
+            Number(u.id),
+            u.email,
+            u.name || 'User',
+            u.password || '',
+            u.avatar_url || null,
+            u.role || 'user',
+            u.is_active ?? true,
+            u.email_verified ?? false,
+            u.biography || null,
+            u.job || null,
+            u.language || 'en',
+            u.location || 'On Earth',
+            socialsField,
+            u.last_login_at || null,
+            u.created_at || new Date().toISOString(),
+            u.updated_at || new Date().toISOString(),
+          )
+        }
         return insert.bind(
           u.email,
           u.name || 'User',
@@ -163,6 +189,25 @@ export async function importUsersInline(parentImportId: string, users: any[], op
 
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
+  }
+
+  // Align sqlite_sequence if IDs preserved
+  if (options.preserveIds) {
+    try {
+      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM users').first()
+      const maxId = Number(row?.mx || 0)
+      if (maxId > 0) {
+        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'users'`).bind(maxId).run()
+        const changes = Number(upd?.meta?.changes || 0)
+        if (changes === 0) {
+          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ?)`).bind(maxId).run() }
+          catch {
+            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'users'`).run() } catch {}
+            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ?)`).bind(maxId).run() } catch {}
+          }
+        }
+      }
+    } catch {}
   }
 }
 

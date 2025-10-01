@@ -3,6 +3,7 @@ import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-p
 import { validateReferenceDataZod } from '~/server/utils/validation/reference'
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
+import { createImportReport } from '~/server/utils/import-report'
 
 export async function importReferencesInline(parentImportId: string, references: any[], options: ImportOptions) {
   const db = hubDatabase(); if (!db) throw new Error('Database not available')
@@ -67,9 +68,19 @@ export async function importReferencesInline(parentImportId: string, references:
       created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
+  // Optional insert with explicit id when preserveIds is enabled
+  const insertWithId = db.prepare(`
+    INSERT INTO quote_references (
+      id, name, original_language, release_date, description, primary_type, secondary_type,
+      image_url, urls, views_count, likes_count, shares_count,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
 
   const batchSize = options.batchSize || 50
   const subSize = 10
+
+  const report = createImportReport(parentImportId, 'references', 'ndjson')
 
   for (let i = 0; i < references.length; i += batchSize) {
     const batch = references.slice(i, i + batchSize)
@@ -145,22 +156,42 @@ export async function importReferencesInline(parentImportId: string, references:
           continue
         }
 
-        // default insert
-        stmts.push(insert.bind(
-          reference.name,
-          reference.original_language || 'en',
-          reference.release_date || null,
-          reference.description || '',
-          reference.primary_type || 'other',
-          reference.secondary_type || '',
-          reference.image_url || '',
-          urlsField,
-          reference.views_count || 0,
-          reference.likes_count || 0,
-          reference.shares_count || 0,
-          reference.created_at || new Date().toISOString(),
-          reference.updated_at || new Date().toISOString(),
-        ))
+        // default insert; allow explicit id when preserveIds
+        const explicitId = options.preserveIds && Number.isFinite(Number(reference.id)) ? Number(reference.id) : undefined
+        if (explicitId != null) {
+          stmts.push(insertWithId.bind(
+            explicitId,
+            reference.name,
+            reference.original_language || 'en',
+            reference.release_date || null,
+            reference.description || '',
+            reference.primary_type || 'other',
+            reference.secondary_type || '',
+            reference.image_url || '',
+            urlsField,
+            reference.views_count || 0,
+            reference.likes_count || 0,
+            reference.shares_count || 0,
+            reference.created_at || new Date().toISOString(),
+            reference.updated_at || new Date().toISOString(),
+          ))
+        } else {
+          stmts.push(insert.bind(
+            reference.name,
+            reference.original_language || 'en',
+            reference.release_date || null,
+            reference.description || '',
+            reference.primary_type || 'other',
+            reference.secondary_type || '',
+            reference.image_url || '',
+            urlsField,
+            reference.views_count || 0,
+            reference.likes_count || 0,
+            reference.shares_count || 0,
+            reference.created_at || new Date().toISOString(),
+            reference.updated_at || new Date().toISOString(),
+          ))
+        }
       }
 
       if (skipped > 0) {
@@ -194,11 +225,37 @@ export async function importReferencesInline(parentImportId: string, references:
               processedRecords: Math.min((p.processedRecords + 1), p.totalRecords),
               errors: [...p.errors, `Failed to import "${sub[idx]?.name}": ${ie.message}`]
             })
+            report.addFailure({ index: i + j + (idx + 1), reason: ie.message, item: sub[idx] })
           }
         }
         if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
       }
     }
+  }
+  const res = await report.finalize()
+  if (res) {
+    const p = getAdminImport(parentImportId)!
+    const link = `/api/admin/import/report/${parentImportId}`
+    updateAdminImport(parentImportId, { warnings: [...p.warnings, `Report available: ${link}`] })
+  }
+  // If IDs were preserved, align sqlite_sequence to MAX(id)
+  if (options.preserveIds) {
+    try {
+      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quote_references').first()
+      const maxId = Number(row?.mx || 0)
+      if (maxId > 0) {
+        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quote_references'`).bind(maxId).run()
+        const changes = Number(upd?.meta?.changes || 0)
+        if (changes === 0) {
+          try {
+            await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ?)`).bind(maxId).run()
+          } catch {
+            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quote_references'`).run() } catch {}
+            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ?)`).bind(maxId).run() } catch {}
+          }
+        }
+      }
+    } catch {}
   }
 }
 

@@ -197,16 +197,18 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="mt-6 flex justify-between items-center">
+        <div class="mt-12">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Import from ZIP</label>
+          <input type="file" accept=".zip" @change="handleFileChange" />
+        </div>
+
+        <div class="mt-2 flex justify-between items-center">
           <UButton btn="link" to="/onboarding/admin" class="p-0">
             ← Back to Admin Setup
           </UButton>
           
           <div class="flex space-x-3">
-            <div class="flex items-center gap-2">
-              <label class="text-sm text-gray-600">Import from ZIP</label>
-              <input type="file" accept=".zip" @change="handleFileChange" />
-            </div>
             <UButton
               v-if="!isStarted && !isCompleted"
               @click="startImport"
@@ -226,6 +228,7 @@
             </UButton>
           </div>
         </div>
+      </div>
 
         <!-- Navigation Info -->
         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -691,10 +694,10 @@ const goToHome = async () => {
 // Check if we should be here
 onMounted(async () => {
   try {
-    const status = await $fetch<StatusAPIResponse>('/api/onboarding/status')
-    if (status.success && !status.data.needsOnboarding) {
-      await navigateTo('/')
-    }
+    // const status = await $fetch<StatusAPIResponse>('/api/onboarding/status')
+    // if (status.success && !status.data.needsOnboarding) {
+    //   await navigateTo('/')
+    // }
     // If admin is missing, we still allow importing users via ZIP, so no redirect here
   } catch (error) {
     console.error('Failed to check onboarding status:', error)

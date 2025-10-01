@@ -83,6 +83,9 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
     }
   }
   const insert = db.prepare(insertSql)
+  // Optional variant including id when preserveIds is enabled and conflict mode is insert/ignore
+  const insertWithId = db.prepare(`INSERT INTO tags (id, name, description, category, color, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`)
 
   const batchSize = options.batchSize || 50
   const subSize = 10
@@ -91,14 +94,28 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
     const batch = tags.slice(i, i + batchSize)
     for (let j = 0; j < batch.length; j += subSize) {
       const sub = batch.slice(j, j + subSize)
-      const stmts = sub.map((tag) => insert.bind(
-        tag.name,
-        tag.description || null,
-        tag.category || null,
-        tag.color || '#3B82F6',
-        tag.created_at || new Date().toISOString(),
-        tag.updated_at || new Date().toISOString(),
-      ))
+      const stmts = sub.map((tag) => {
+        const hasExplicit = options.preserveIds && Number.isFinite(Number(tag.id))
+        if (hasExplicit && tagPolicy !== 'upsert') {
+          return insertWithId.bind(
+            Number(tag.id),
+            tag.name,
+            tag.description || null,
+            tag.category || null,
+            tag.color || '#3B82F6',
+            tag.created_at || new Date().toISOString(),
+            tag.updated_at || new Date().toISOString(),
+          )
+        }
+        return insert.bind(
+          tag.name,
+          tag.description || null,
+          tag.category || null,
+          tag.color || '#3B82F6',
+          tag.created_at || new Date().toISOString(),
+          tag.updated_at || new Date().toISOString(),
+        )
+      })
 
       try {
         await db.batch(stmts)
@@ -129,6 +146,25 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
 
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
+  }
+
+  // Align sqlite_sequence when IDs preserved
+  if (options.preserveIds) {
+    try {
+      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM tags').first()
+      const maxId = Number(row?.mx || 0)
+      if (maxId > 0) {
+        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'tags'`).bind(maxId).run()
+        const changes = Number(upd?.meta?.changes || 0)
+        if (changes === 0) {
+          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ?)`).bind(maxId).run() }
+          catch {
+            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'tags'`).run() } catch {}
+            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ?)`).bind(maxId).run() } catch {}
+          }
+        }
+      }
+    } catch {}
   }
 }
 

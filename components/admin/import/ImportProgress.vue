@@ -83,7 +83,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex gap-3">
+  <div class="flex flex-wrap items-center gap-3">
           <UButton
             v-if="progress.status === 'processing'"
             btn="outline"
@@ -108,6 +108,26 @@
             @click="downloadUnresolved"
           >
             Download Unresolved Rows
+          </UButton>
+
+          <div v-if="progress.status === 'completed' && progress.failedRecords > 0" class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">Format</span>
+            <URadio
+              v-model="reportFormat"
+              :items="[
+                { label: 'NDJSON', value: 'ndjson' },
+                { label: 'CSV', value: 'csv' }
+              ]"
+              size="xs"
+            />
+          </div>
+
+          <UButton
+            v-if="progress.status === 'completed' && progress.failedRecords > 0"
+            btn="soft-indigo"
+            @click="downloadReport"
+          >
+            Download Report
           </UButton>
 
           <UButton
@@ -398,6 +418,27 @@ const downloadUnresolved = async () => {
   }
 }
 
+const downloadReport = async () => {
+  try {
+    const id = props.importId
+    const fmt = reportFormat
+    const url = `/api/admin/import/report/${id}?format=${fmt}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Failed to download report: ${res.status}`)
+    const blob = await res.blob()
+    const a = document.createElement('a')
+    const objectUrl = URL.createObjectURL(blob)
+    a.href = objectUrl
+    a.download = `import-report-${id}.${fmt}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(objectUrl)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const getStatusColor = (status: UiImportProgress['status'] | undefined): string => {
   switch (status) {
     case 'pending': return 'blue'
@@ -475,4 +516,7 @@ const recentErrors = computed<string[]>(() => progress.value?.recentErrors ?? []
 const recentWarnings = computed<string[]>(() => progress.value?.recentWarnings ?? [])
 const errorCount = computed<number>(() => progress.value?.errorCount ?? 0)
 const warningCount = computed<number>(() => progress.value?.warningCount ?? 0)
+
+// Report format toggle (persist lightweight in-memory per session)
+const reportFormat = ref<'ndjson' | 'csv'>('ndjson')
 </script>

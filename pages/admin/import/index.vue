@@ -106,6 +106,7 @@
                       <h3 class="text-sm font-medium">Import Options</h3>
                       <UCheckbox v-model="importOptions.createBackup" label="Create backup before import" help="Recommended for production imports" />
                       <UCheckbox v-model="importOptions.ignoreValidationErrors" label="Ignore validation errors" help="Import data even if validation fails (not recommended)" />
+                      <UCheckbox v-model="importOptions.preserveIds" label="Preserve explicit IDs when present" help="Insert records using provided id fields and realign sequences. Use with caution." />
                       <div>
                         <label class="block text-sm font-medium mb-1">Batch Size</label>
                         <UInput v-model.number="importOptions.batchSize" type="number" min="1" max="1000" placeholder="50" />
@@ -302,6 +303,7 @@ interface ImportOptions {
   createBackup: boolean
   ignoreValidationErrors: boolean
   batchSize: number
+  preserveIds?: boolean
 }
 
 const selectedFile = ref<File | null>(null)
@@ -351,7 +353,8 @@ const relinkPreviewCounts = ref<Record<string, number>>({})
 const DEFAULT_IMPORT_OPTIONS: ImportOptions = {
   createBackup: true,
   ignoreValidationErrors: false,
-  batchSize: 50
+  batchSize: 50,
+  preserveIds: false
 }
 
 const sanitizeImportOptions = (options: Partial<ImportOptions> | null | undefined): ImportOptions => {
@@ -368,10 +371,15 @@ const sanitizeImportOptions = (options: Partial<ImportOptions> | null | undefine
     ? Math.min(1000, Math.max(1, Math.round(rawBatchSize)))
     : DEFAULT_IMPORT_OPTIONS.batchSize
 
+  const preserveIds = typeof options?.preserveIds === 'boolean'
+    ? options.preserveIds
+    : DEFAULT_IMPORT_OPTIONS.preserveIds
+
   return {
     createBackup,
     ignoreValidationErrors,
-    batchSize
+    batchSize,
+    preserveIds
   }
 }
 
@@ -388,7 +396,8 @@ watch(importOptions, (current) => {
   if (
     sanitized.createBackup !== current?.createBackup ||
     sanitized.ignoreValidationErrors !== current?.ignoreValidationErrors ||
-    sanitized.batchSize !== current?.batchSize
+    sanitized.batchSize !== current?.batchSize ||
+    sanitized.preserveIds !== current?.preserveIds
   ) {
     importOptions.value = sanitized
   }
@@ -531,10 +540,12 @@ const startRelink = async (): Promise<void> => {
     if (relinkFormat.value === 'zip') {
       const zipBase64 = await readFileAsBase64(selectedRelinkFile.value)
       body.zipBase64 = zipBase64
+      body.options = importOptions.value
     } else {
       // JSON: send as bundle directly
       const text = await readFileContent(selectedRelinkFile.value)
       body.bundle = JSON.parse(text)
+      body.options = importOptions.value
     }
     const response: any = await $fetch('/api/admin/import/relink', {
       method: 'POST',

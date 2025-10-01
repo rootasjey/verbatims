@@ -62,6 +62,14 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
       created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
+  // Optional insert with explicit id when preserveIds is enabled
+  const insertWithId = db.prepare(`
+    INSERT INTO authors (
+      id, name, is_fictional, birth_date, birth_location, death_date, death_location,
+      job, description, image_url, socials, views_count, likes_count, shares_count,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
 
   const batchSize = options.batchSize || 50
   const subSize = 10
@@ -152,25 +160,48 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
           continue
         }
 
-        // Default: insert
-        const stmt = insert.bind(
-          author.name,
-          Boolean(author.is_fictional) || false,
-          author.birth_date || null,
-          author.birth_location || null,
-          author.death_date || null,
-          author.death_location || null,
-          author.job || null,
-          author.description || null,
-          author.image_url || null,
-          socialsField,
-          author.views_count || 0,
-          author.likes_count || 0,
-          author.shares_count || 0,
-          author.created_at || new Date().toISOString(),
-          author.updated_at || new Date().toISOString(),
-        )
-        stmts.push(stmt)
+        // Default: insert; optionally preserve explicit id
+        const explicitId = options.preserveIds && Number.isFinite(Number(author.id)) ? Number(author.id) : undefined
+        if (explicitId != null) {
+          const stmt = insertWithId.bind(
+            explicitId,
+            author.name,
+            Boolean(author.is_fictional) || false,
+            author.birth_date || null,
+            author.birth_location || null,
+            author.death_date || null,
+            author.death_location || null,
+            author.job || null,
+            author.description || null,
+            author.image_url || null,
+            socialsField,
+            author.views_count || 0,
+            author.likes_count || 0,
+            author.shares_count || 0,
+            author.created_at || new Date().toISOString(),
+            author.updated_at || new Date().toISOString(),
+          )
+          stmts.push(stmt)
+        } else {
+          const stmt = insert.bind(
+            author.name,
+            Boolean(author.is_fictional) || false,
+            author.birth_date || null,
+            author.birth_location || null,
+            author.death_date || null,
+            author.death_location || null,
+            author.job || null,
+            author.description || null,
+            author.image_url || null,
+            socialsField,
+            author.views_count || 0,
+            author.likes_count || 0,
+            author.shares_count || 0,
+            author.created_at || new Date().toISOString(),
+            author.updated_at || new Date().toISOString(),
+          )
+          stmts.push(stmt)
+        }
       }
 
       // Account for skipped as processed
@@ -211,6 +242,26 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
 
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
+  }
+
+  // If IDs were preserved, align sqlite_sequence to MAX(id)
+  if (options.preserveIds) {
+    try {
+      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM authors').first()
+      const maxId = Number(row?.mx || 0)
+      if (maxId > 0) {
+        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'authors'`).bind(maxId).run()
+        const changes = Number(upd?.meta?.changes || 0)
+        if (changes === 0) {
+          try {
+            await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ?)`).bind(maxId).run()
+          } catch {
+            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'authors'`).run() } catch {}
+            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ?)`).bind(maxId).run() } catch {}
+          }
+        }
+      }
+    } catch {}
   }
 }
 

@@ -3,6 +3,7 @@ import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-p
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
 import { findOrCreateAuthor, findOrCreateReference } from '~/server/utils/import-helpers'
+import { createImportReport } from '~/server/utils/import-report'
 import { validateQuoteDataZod } from '~/server/utils/validation/quote'
 
 export async function importQuotesInline(
@@ -63,9 +64,18 @@ export async function importQuotesInline(
       rejection_reason, views_count, likes_count, shares_count, is_featured, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
+  // Optional explicit ID insert when preserveIds is enabled
+  const insertWithId = db.prepare(`
+    INSERT INTO quotes (
+      id, name, language, author_id, reference_id, user_id, status, moderator_id, moderated_at,
+      rejection_reason, views_count, likes_count, shares_count, is_featured, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
 
   const batchSize = options.batchSize || 25
   const subSize = 10
+
+  const report = createImportReport(parentImportId, 'quotes', 'ndjson')
 
   for (let i = 0; i < quotes.length; i += batchSize) {
     const batch = quotes.slice(i, i + batchSize)
@@ -160,24 +170,46 @@ export async function importQuotesInline(
           continue
         }
 
-        // Default: insert
-        stmts.push(insert.bind(
-          q.name,
-          lang,
-          authorId || null,
-          referenceId || null,
-          userId,
-          status,
-          q.moderator_id || null,
-          q.moderated_at || null,
-          q.rejection_reason || null,
-          views,
-          likes,
-          shares,
-          isFeatured ? 1 : 0,
-          q.created_at || new Date().toISOString(),
-          q.updated_at || new Date().toISOString(),
-        ))
+        // Default: insert; optionally preserve explicit id
+        const explicitId = options.preserveIds && Number.isFinite(Number(q.id)) ? Number(q.id) : undefined
+        if (explicitId != null) {
+          stmts.push(insertWithId.bind(
+            explicitId,
+            q.name,
+            lang,
+            authorId || null,
+            referenceId || null,
+            userId,
+            status,
+            q.moderator_id || null,
+            q.moderated_at || null,
+            q.rejection_reason || null,
+            views,
+            likes,
+            shares,
+            isFeatured ? 1 : 0,
+            q.created_at || new Date().toISOString(),
+            q.updated_at || new Date().toISOString(),
+          ))
+        } else {
+          stmts.push(insert.bind(
+            q.name,
+            lang,
+            authorId || null,
+            referenceId || null,
+            userId,
+            status,
+            q.moderator_id || null,
+            q.moderated_at || null,
+            q.rejection_reason || null,
+            views,
+            likes,
+            shares,
+            isFeatured ? 1 : 0,
+            q.created_at || new Date().toISOString(),
+            q.updated_at || new Date().toISOString(),
+          ))
+        }
       }
 
       if (skipped > 0) {
@@ -211,12 +243,44 @@ export async function importQuotesInline(
               processedRecords: Math.min((p.processedRecords + 1), p.totalRecords),
               errors: [...p.errors, `Failed to import quote: ${ie.message}`]
             })
+            // record failure details for report
+            report.addFailure({ index: i + j + (idx + 1), reason: ie.message })
           }
         }
       }
 
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
+  }
+  // If IDs were preserved, align sqlite_sequence to MAX(id) to keep AUTOINCREMENT consistent
+  if (options.preserveIds) {
+    try {
+      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quotes').first()
+      const maxId = Number(row?.mx || 0)
+      if (maxId > 0) {
+        // Try to update; if no row exists, insert
+        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quotes'`).bind(maxId).run()
+        const changes = Number(upd?.meta?.changes || 0)
+        if (changes === 0) {
+          try {
+            await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ?)`).bind(maxId).run()
+          } catch (insErr) {
+            // Fallback: delete and reinsert
+            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quotes'`).run() } catch {}
+            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ?)`).bind(maxId).run() } catch {}
+          }
+        }
+      }
+    } catch (seqErr) {
+      // Non-fatal
+    }
+  }
+  // finalize report if any failures/warnings and attach link into progress
+  const res = await report.finalize()
+  if (res) {
+    const p = getAdminImport(parentImportId)!
+    const link = `/api/admin/import/report/${parentImportId}`
+    updateAdminImport(parentImportId, { warnings: [...p.warnings, `Report available: ${link}`] })
   }
 }
 
