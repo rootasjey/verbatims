@@ -89,7 +89,8 @@
 
 <script lang="ts" setup>
 import type { ReportTargetType, ReportCategory } from '~/types';
-import { version } from '@/types/version';
+const config = useRuntimeConfig()
+const version: string = String((config.public as any).appVersion || '')
 import { useStorage } from '@vueuse/core'
 
 const { isMobile } = useMobileDetection()

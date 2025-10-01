@@ -149,7 +149,8 @@
 </template>
 
 <script setup lang="ts">
-import { version } from '@/types/version';
+const config = useRuntimeConfig()
+const version = config.public.appVersion
 import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
 
 definePageMeta({

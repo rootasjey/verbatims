@@ -86,7 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import { version } from '@/types/version';
+const config = useRuntimeConfig()
+const version = config.public.appVersion
 
 const { user } = useUserSession()
 const year = new Date().getFullYear()
