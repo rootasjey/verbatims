@@ -11,13 +11,12 @@ export const validLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', '
 export const ReferenceSchema = z.object({
   name: z.string().min(2).max(200),
   original_language: z.enum(validLanguages).optional(),
-  // Allow nulls coming from exports while keeping field optional
   release_date: z.string().nullable().optional(), // ISO date preferred; allow string/null and defer strictness to importer
   description: z.string().max(5000).nullable().optional(),
   // Historically some exports might miss primary_type; accept missing and default to 'other'
   primary_type: z.enum(validPrimaryTypes).default('other').optional(),
   secondary_type: z.string().max(100).nullable().optional(),
-  image_url: z.string().url().nullable().optional(),
+  image_url: z.string().nullable().optional(),
   urls: z
     .union([
       z.array(z.string().url()), // export array format
@@ -26,9 +25,9 @@ export const ReferenceSchema = z.object({
     ])
     .nullable()
     .optional(),
-  views_count: z.number().int().nonnegative().nullable().optional(),
-  likes_count: z.number().int().nonnegative().nullable().optional(),
-  shares_count: z.number().int().nonnegative().nullable().optional(),
+  views_count: z.number().int().nonnegative().default(0).optional(),
+  likes_count: z.number().int().nonnegative().default(0).optional(),
+  shares_count: z.number().int().nonnegative().default(0).optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 })
