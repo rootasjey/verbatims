@@ -1,0 +1,11 @@
+{
+  // Wrangler configuration for Workers/Pages Functions
+  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "name": "verbatims",
+  "limits": {
+    // Opt-in to higher CPU time for long-running import jobs.
+    // Default is 30000 ms. You can increase up to 300000 (5 minutes).
+    // Choose a conservative value first; adjust as needed.
+    "cpu_ms": 180000
+  }
+}

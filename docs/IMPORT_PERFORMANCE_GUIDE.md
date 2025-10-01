@@ -9,6 +9,7 @@ This guide covers performance considerations and optimizations for the data impo
 - **Batch Size**: Optimal batch size is 10-25 statements
 - **Concurrent Connections**: Limited concurrent database connections
 - **Memory Limits**: 128MB memory limit for serverless functions
+- **Workers CPU-time default**: 30 seconds CPU-time per request (can be increased via Wrangler)
 - **Request Timeout**: 30 seconds for HTTP requests
 
 ### Optimization Strategies
@@ -32,6 +33,22 @@ const BATCH_DELAY_MS = 10            // Delay between sub-batches
 - Clear processed data from memory
 
 ## Performance Recommendations
+### Opt-in to higher CPU-time (Wrangler)
+Cloudflare now allows up to 5 minutes of CPU-time per request. By default, Workers are capped at 30 seconds CPU-time to prevent accidental costs. For large imports (especially references/quotes), consider opting into a higher CPU-time budget using Wrangler config:
+
+wrangler.jsonc
+{
+  "limits": {
+    "cpu_ms": 180000
+  }
+}
+
+Notes:
+- limits require the Standard usage model and apply when deployed to Cloudflare’s network.
+- Set a conservative value (e.g., 120–180s) and adjust based on observed processing time.
+- CPU-time counts only when your code is actively computing; waiting on I/O doesn’t accrue CPU-time.
+- Reference: Cloudflare changelog “Run Workers for up to 5 minutes of CPU-time” (Mar 26, 2025) and Wrangler limits docs.
+
 
 ### File Size Guidelines
 - **Small files** (< 1MB, < 1,000 records): Process in single batch

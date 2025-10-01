@@ -38,8 +38,25 @@
 
                     <!-- Format Selection -->
                     <div>
-                      <label class="block text-sm font-medium mb-2">Data Format</label>
-                      <div>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <label class="block text-sm font-medium">Data Format</label>
+                        <div class="flex items-center gap-2">
+                          <UBadge
+                            v-if="detectedFormat && selectedFormat?.value === detectedFormat?.value"
+                            color="blue"
+                            variant="subtle"
+                            size="xs"
+                          >Auto-detected</UBadge>
+                          <div v-if="detectedFormat && selectedFormat?.value !== detectedFormat?.value">
+                            <UTooltip :text="`Reset to detected (${detectedFormat.label})`">
+                              <UButton btn="ghost-gray" square size="xs" @click="resetFormatToDetected" aria-label="Reset format to detected">
+                                <UIcon name="i-ph-arrow-counter-clockwise" />
+                              </UButton>
+                            </UTooltip>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
                         <USelect
                           v-model="selectedFormat"
                           :items="formatOptions"
@@ -55,8 +72,25 @@
 
                     <!-- Data Type (for non-ZIP imports) -->
                     <div v-if="selectedFormat?.value !== 'zip'">
-                      <label class="block text-sm font-medium mb-2">Data Type</label>
-                      <div>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <label class="block text-sm font-medium">Data Type</label>
+                        <div class="flex items-center gap-2">
+                          <UBadge
+                            v-if="detectedDataType && selectedDataType?.value === detectedDataType?.value"
+                            color="blue"
+                            variant="subtle"
+                            size="xs"
+                          >Auto-detected</UBadge>
+                          <div v-if="detectedDataType && selectedDataType?.value !== detectedDataType?.value">
+                            <UTooltip :text="`Reset to detected (${detectedDataType.label})`">
+                              <UButton btn="ghost-gray" square size="xs" @click="resetTypeToDetected" aria-label="Reset data type to detected">
+                                <UIcon name="i-ph-arrow-counter-clockwise" />
+                              </UButton>
+                            </UTooltip>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
                         <USelect
                           v-model="selectedDataType"
                           :items="dataTypeOptions"
@@ -273,6 +307,15 @@ interface ImportOptions {
 const selectedFile = ref<File | null>(null)
 const selectedFormat = ref<SelectOption | null>(null)
 const selectedDataType = ref<SelectOption>({ label: 'References', value: 'references' })
+// Auto-detected values (for reset-to-detected UX)
+const detectedFormat = ref<SelectOption | null>(null)
+const detectedDataType = ref<SelectOption | null>(null)
+// Track if user manually overrides after detection
+const userOverrodeFormat = ref<boolean>(false)
+const userOverrodeType = ref<boolean>(false)
+// Guards to avoid watchers counting programmatic updates as user overrides
+const isSettingFormat = ref<boolean>(false)
+const isSettingType = ref<boolean>(false)
 const isValidating = ref<boolean>(false)
 const isImporting = ref<boolean>(false)
 const validationResult = ref<ValidationResult | null>(null)
@@ -305,11 +348,51 @@ const relinkFormat = ref<'json' | 'zip' | null>(null)
 const isRelinking = ref<boolean>(false)
 const relinkPreviewCounts = ref<Record<string, number>>({})
 
-const importOptions = ref<ImportOptions>({
+const DEFAULT_IMPORT_OPTIONS: ImportOptions = {
   createBackup: true,
   ignoreValidationErrors: false,
   batchSize: 50
-})
+}
+
+const sanitizeImportOptions = (options: Partial<ImportOptions> | null | undefined): ImportOptions => {
+  const createBackup = typeof options?.createBackup === 'boolean'
+    ? options.createBackup
+    : DEFAULT_IMPORT_OPTIONS.createBackup
+
+  const ignoreValidationErrors = typeof options?.ignoreValidationErrors === 'boolean'
+    ? options.ignoreValidationErrors
+    : DEFAULT_IMPORT_OPTIONS.ignoreValidationErrors
+
+  const rawBatchSize = Number(options?.batchSize ?? DEFAULT_IMPORT_OPTIONS.batchSize)
+  const batchSize = Number.isFinite(rawBatchSize)
+    ? Math.min(1000, Math.max(1, Math.round(rawBatchSize)))
+    : DEFAULT_IMPORT_OPTIONS.batchSize
+
+  return {
+    createBackup,
+    ignoreValidationErrors,
+    batchSize
+  }
+}
+
+const importOptions = useLocalStorage<ImportOptions>(
+  'verbatims-admin-import-options',
+  sanitizeImportOptions(DEFAULT_IMPORT_OPTIONS),
+  {
+    deep: true
+  }
+)
+
+watch(importOptions, (current) => {
+  const sanitized = sanitizeImportOptions(current)
+  if (
+    sanitized.createBackup !== current?.createBackup ||
+    sanitized.ignoreValidationErrors !== current?.ignoreValidationErrors ||
+    sanitized.batchSize !== current?.batchSize
+  ) {
+    importOptions.value = sanitized
+  }
+}, { deep: true, immediate: true })
 
 const formatOptions: SelectOption[] = [
   { label: 'JSON File', value: 'json' },
@@ -344,6 +427,11 @@ const handleFileSelect = (event: Event) => {
     validationResult.value = null
     previewData.value = []
     originalParsedData.value = null
+    // reset detected/override state on new selection
+    detectedFormat.value = null
+    detectedDataType.value = null
+    userOverrodeFormat.value = false
+    userOverrodeType.value = false
 
     // Auto-detect format by extension first
     const name = file.name.toLowerCase()
@@ -354,27 +442,49 @@ const handleFileSelect = (event: Event) => {
       : name.endsWith('.zip') ? 'zip'
       : null
     if (byExt) {
-      selectedFormat.value = formatOptions.find(o => o.value === byExt) || null
+      const fmtOpt = formatOptions.find(o => o.value === byExt) || null
+      detectedFormat.value = fmtOpt
+      isSettingFormat.value = true
+      selectedFormat.value = fmtOpt
+      isSettingFormat.value = false
     }
 
     // Auto-detect type by filename hints immediately
     const byNameType = guessDataTypeFromName(name)
-    if (byNameType) selectedDataType.value = byNameType
+    if (byNameType) {
+      detectedDataType.value = byNameType
+      isSettingType.value = true
+      selectedDataType.value = byNameType
+      isSettingType.value = false
+    }
 
     // Lightweight content sniffing (skip for ZIP). This refines/backs up detection without heavy parsing.
     if (byExt !== 'zip') {
       // Read the first chunk to keep it cheap
       readFileHead(file, 64 * 1024).then((headText) => {
         // If format not set by extension, try to infer from content
-        if (!selectedFormat.value) {
-          const fmt = guessFormatFromContent(headText)
-          if (fmt) selectedFormat.value = formatOptions.find(o => o.value === fmt) || null
+        const fmt = guessFormatFromContent(headText)
+        if (fmt) {
+          const opt = formatOptions.find(o => o.value === fmt) || null
+          detectedFormat.value = opt
+          if (!selectedFormat.value && opt && !userOverrodeFormat.value) {
+            isSettingFormat.value = true
+            selectedFormat.value = opt
+            isSettingFormat.value = false
+          }
         }
 
         // If data type still unknown or came only from name, refine using content
-        const fmt = selectedFormat.value?.value || byExt || guessFormatFromContent(headText)
-        const byContentType = guessDataTypeFromContent(headText, fmt)
-        if (byContentType) selectedDataType.value = byContentType
+        const fmtVal = selectedFormat.value?.value || byExt || fmt
+        const byContentType = guessDataTypeFromContent(headText, fmtVal)
+        if (byContentType) {
+          detectedDataType.value = byContentType
+          if (!userOverrodeType.value) {
+            isSettingType.value = true
+            selectedDataType.value = byContentType
+            isSettingType.value = false
+          }
+        }
       }).catch(() => { /* ignore sniff errors */ })
     }
   }
@@ -483,11 +593,20 @@ const validateData = async (): Promise<void> => {
         const hasUserKeys = k.includes('email') || k.includes('role')
         const hasTagKeys = k.includes('color') && !k.includes('email') && !k.includes('language')
 
-        if (hasQuoteKeys) selectedDataType.value = { label: 'Quotes', value: 'quotes' }
-        else if (hasReferenceKeys) selectedDataType.value = { label: 'References', value: 'references' }
-        else if (hasAuthorKeys) selectedDataType.value = { label: 'Authors', value: 'authors' }
-        else if (hasUserKeys) selectedDataType.value = { label: 'Users', value: 'users' }
-        else if (hasTagKeys) selectedDataType.value = { label: 'Tags', value: 'tags' }
+        const detected = hasQuoteKeys ? { label: 'Quotes', value: 'quotes' as const }
+          : hasReferenceKeys ? { label: 'References', value: 'references' as const }
+          : hasAuthorKeys ? { label: 'Authors', value: 'authors' as const }
+          : hasUserKeys ? { label: 'Users', value: 'users' as const }
+          : hasTagKeys ? { label: 'Tags', value: 'tags' as const }
+          : null
+        if (detected) {
+          detectedDataType.value = detected
+          if (!userOverrodeType.value) {
+            isSettingType.value = true
+            selectedDataType.value = detected
+            isSettingType.value = false
+          }
+        }
       }
     }
 
@@ -662,6 +781,37 @@ const guessDataTypeFromName = (lowerName: string): SelectOption | null => {
   }
   return null
 }
+
+// ---------- UX helpers: detect/reset/watch overrides ----------
+const resetFormatToDetected = () => {
+  if (!detectedFormat.value) return
+  isSettingFormat.value = true
+  selectedFormat.value = detectedFormat.value
+  isSettingFormat.value = false
+  userOverrodeFormat.value = false
+}
+
+const resetTypeToDetected = () => {
+  if (!detectedDataType.value) return
+  isSettingType.value = true
+  selectedDataType.value = detectedDataType.value as SelectOption
+  isSettingType.value = false
+  userOverrodeType.value = false
+}
+
+watch(selectedFormat, (val) => {
+  if (isSettingFormat.value) return
+  if (val && detectedFormat.value && val.value !== detectedFormat.value.value) {
+    userOverrodeFormat.value = true
+  }
+})
+
+watch(selectedDataType, (val) => {
+  if (isSettingType.value) return
+  if (val && detectedDataType.value && val.value !== detectedDataType.value.value) {
+    userOverrodeType.value = true
+  }
+})
 
 const guessFormatFromContent = (text: string): 'json' | 'csv' | 'xml' | null => {
   const t = text.trim()
