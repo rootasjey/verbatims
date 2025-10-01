@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.14.10",
+  "version": "0.14.11",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,12 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "bump:version": "node ./scripts/bump-version.mjs patch",
+    "bump:fix": "node ./scripts/bump-version.mjs fix",
+    "bump:minor": "node ./scripts/bump-version.mjs minor",
+    "bump:major": "node ./scripts/bump-version.mjs major",
+    "version": "node ./scripts/tag-version.mjs"
   },
   "dependencies": {
     "@nuxt/image": "1.10.0",

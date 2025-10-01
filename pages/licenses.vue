@@ -79,6 +79,9 @@
         <li>
           <a href="https://www.flaticon.com/free-icons/letter-v" title="letter v icons">Letter v icons created by yukyik - Flaticon</a>
         </li>
+        <li>
+          <a href="https://www.flaticon.com/free-icons/3d-v" title="3d-v icons">3d-v icons created by cubydesign - Flaticon</a>
+        </li>
       </ul>
       <p class="text-sm text-gray-500">
         Icon sets are governed by their own licenses. Please consult each project's LICENSE for details.
