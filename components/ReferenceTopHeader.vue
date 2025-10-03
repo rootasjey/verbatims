@@ -94,29 +94,20 @@
 </template>
 
 <script lang="ts" setup>
+import type { QuoteReference } from '~/types'
+
 interface Props {
   headerTitle: string
-  reference: {
-    id: number
-    title: string
-    primary_type: string
-    secondary_type: string
-    release_date: string
-    views_count: number
-    shares_count: number
-    likes_count: number
-  }
+  reference: QuoteReference
   sharePending?: boolean
   likePending?: boolean
   isLiked?: boolean
   hasUser?: boolean
   copyState?: 'idle' | 'copied' | 'error'
   headerMenuItems?: Array<{
-    title: string
-    href?: string
-    to?: string | object
-    disabled?: boolean
-    onClick?: () => void
+    label?: string
+    leading?: string
+    onclick?: () => void
   }>
   // formatters passed down from parent to keep behavior identical
   formatNumber: (num: number) => string

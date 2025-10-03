@@ -16,7 +16,7 @@
     <!-- Content Container -->
     <div class="w-80% mx-auto px-6 h-full flex flex-col justify-center items-center">
       <!-- Attribution -->
-      <div class="flex justify-between items-center w-full mb-4">
+      <div class="hidden xl:flex justify-between items-center w-full mb-4">
         <!-- Reference Info (if exists) -->
         <div v-if="quote.reference" class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2 truncate">
           <div class="w-6 h-0.5 bg-black dark:bg-gray-300 rounded-2" /> {{ quote.reference.name }}
@@ -88,17 +88,15 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  quote: {
-    type: Object,
-    required: true
-  },
-  index: {
-    type: Number,
-    required: true
-  }
-})
+<script lang="ts" setup>
+import type { ApiResponse, QuoteWithMetadata } from '~/types'
+
+interface Props {
+  quote: QuoteWithMetadata
+  index: number
+}
+
+const props = defineProps<Props>()
 
 const { user } = useUserSession()
 const isHovered = ref(false)
@@ -156,15 +154,15 @@ const getTextSizeClass = () => {
   const length = props.quote.name.length
   const index = props.index
   
-  if (length <= 80) {
-    return index % 7 === 0 ? 'text-size-10 font-700' : 'text-size-8 font-300'
+  if (length <= 70) {
+    return index % 7 === 0 ? 'text-size-10 font-700' : 'text-size-6 xl:text-size-8 font-300'
   } 
   
   if (length <= 150) {
     // Medium quotes - varied sizing
-    if (index % 5 === 0) return 'text-size-9'
+    if (index % 5 === 0) return 'text-size-6 xl:text-size-9'
     if (index % 3 === 0) return 'text-size-5 font-600'
-    return 'text-size-6 font-500'
+    return 'text-size-4 xl:text-size-6 font-500'
   }
   
   if (length <= 250) {
@@ -179,7 +177,7 @@ const getTextSizeClass = () => {
   return 'text-size-4 font-500'
 }
 
-const getOpacityLevel = (index) => {
+const getOpacityLevel = (index: number) => {
   const levels = [100, 95, 90]
   return levels[index % levels.length]
 }
@@ -193,12 +191,13 @@ const toggleQuoteLike = async () => {
   
   quoteLikePending.value = true
   try {
-    const { data } = await $fetch(`/api/quotes/${props.quote.id}/like`, {
+    const { data } = await $fetch<ApiResponse<{ is_liked: boolean, likes_count: number }>>(`/api/quotes/${props.quote.id}/like`, {
       method: 'POST'
     })
-    
-    isQuoteLiked.value = data.isLiked
-    props.quote.likes_count = data.likesCount
+    if (!data) throw new Error('No response data')
+
+    isQuoteLiked.value = data.is_liked
+    props.quote.likes_count = data.likes_count
   } catch (error) {
     console.error('Failed to toggle quote like:', error)
   } finally {

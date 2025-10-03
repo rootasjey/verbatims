@@ -8,12 +8,7 @@ import { getImportStats } from '~/server/utils/onboarding-progress'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (!user || user.role !== 'admin') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin access required'
-      })
-    }
+    if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const stats = getImportStats()
 
@@ -56,10 +51,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Progress stats error:', error)
-    
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to get progress statistics'
-    })
+    if (error && error.statusCode) throw error
+    throwServer(500, 'Failed to get progress statistics')
   }
 })

@@ -1,7 +1,6 @@
 export default defineEventHandler(async (event) => {
   try {
     const db = hubDatabase()
-
     if (!db) {
       return {
         success: false,
@@ -38,10 +37,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: {
         hasDatabase: true,
-        hasAdminUser: adminUsers.length > 0,
-        adminUserCount: adminUsers.length,
+        hasAdminUser: adminUsers.results.length > 0,
+        adminUserCount: adminUsers.results.length,
         totalUserCount: userCount?.count || 0,
-        adminUsers: adminUsers.map(user => ({
+        adminUsers: adminUsers.results.map(user => ({
           id: user.id,
           name: user.name,
           email: user.email,

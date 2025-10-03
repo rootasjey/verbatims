@@ -208,8 +208,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mt-2',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path.startsWith('/admin')
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
                   ]"
                   @click="sidebarOpen = false"
                 >

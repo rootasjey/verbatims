@@ -23,10 +23,10 @@
       </div>
 
       <!-- Reference Info -->
-    <div v-if="quote.reference || quote.reference_type" class="flex items-center space-x-2">
+      <div v-if="quote.reference || quote.reference_type" class="flex items-center space-x-2">
         <UBadge
-      v-if="(quote.reference && quote.reference.type) || quote.reference_type"
-      :color="getReferenceTypeColor(quote.reference?.type || quote.reference_type as string)"
+          v-if="(quote.reference && quote.reference.type) || quote.reference_type"
+          :color="getReferenceTypeColor(quote.reference?.type || quote.reference_type as string)"
           variant="subtle"
           size="xs"
           class="text-xs"
@@ -140,7 +140,8 @@ const handleShare = () => {
     })
   } else {
     // Fallback: copy to clipboard
-  navigator.clipboard.writeText(`"${props.quote.name}" - ${props.quote.author?.name || props.quote.author_name || 'Unknown'}`)
+    const authorName = props.quote.author?.name || props.quote.author_name || 'Unknown Author'
+    navigator.clipboard.writeText(`"${props.quote.name}" - ${authorName}`)
   }
 }
 </script>

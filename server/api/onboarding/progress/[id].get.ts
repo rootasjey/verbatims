@@ -6,6 +6,19 @@
 import { getProgress, registerProgressHandler, unregisterProgressHandler } from '~/server/utils/onboarding-progress'
 
 export default defineEventHandler(async (event) => {
+  try {
+    const session = await requireUserSession(event)
+    if (!session || !session.user) {
+      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+    }
+    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
+      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator role required.' })
+    }
+  } catch (e) {
+    if (e && (e as any).statusCode) throw e
+    throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+  }
+
   const importId = getRouterParam(event, 'id')
   
   if (!importId) {
@@ -181,5 +194,3 @@ async function handleSSE(event: any, importId: string, initialProgress: any) {
 function formatSSEMessage(type: string, data: any): string {
   return `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`
 }
-
-// Handlers now managed centrally in utils/onboarding-progress.ts

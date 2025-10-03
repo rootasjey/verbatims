@@ -5,45 +5,22 @@
  * SECURITY WARNING: This is a destructive operation that will permanently delete all data
  * Only accessible to admin users with proper authentication
  */
-
-import { initializeDatabase, initializeAdminUser } from '~/server/utils/database'
-
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin permissions - require strict admin role (not moderator)
     const { user } = await requireUserSession(event)
-    if (!user || user.role !== 'admin') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin access required for database reset operations'
-      })
-    }
+    if (!user || user.role !== 'admin') throwServer(403, 'Admin access required for database reset operations')
 
     const body = await readBody(event)
     const { confirmationToken } = body
 
     // Additional security: require confirmation token
     if (!confirmationToken || confirmationToken !== 'RESET_DATABASE_CONFIRMED') {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Database reset requires explicit confirmation token'
-      })
+      throwServer(400, 'Database reset requires explicit confirmation token')
     }
 
-  const db = hubDatabase()
+    const db = hubDatabase()
     console.log(`🔥 Database reset initiated by admin user: ${user.name} (${user.email})`)
-
-    // Optional: Create automatic backup before reset (uncomment to enable)
-    // console.log('📦 Creating automatic backup before reset...')
-    // try {
-    //   const backupManager = getBackupManager()
-    //   const backup = await backupManager.createBackup(`Pre-reset backup by ${user.name}`)
-    //   console.log(`✅ Backup created: ${backup.id}`)
-    // } catch (backupError) {
-    //   console.warn('⚠️  Failed to create backup before reset:', backupError)
-    //   // Continue with reset even if backup fails
-    // }
-
+    
     // Step 1: CLEAR all tables (no DDL) — use DELETE in a safe FK order
     // Note: Some tables cascade on parent deletes; we still clear explicitly for completeness and resilience
     console.log('🧹 Clearing all tables (DELETE, no DROP)...')
@@ -84,10 +61,7 @@ export default defineEventHandler(async (event) => {
       } catch (e: any) {
         // If a table does not exist in a given environment or DELETE is not authorized, surface a clear error
         console.error(`❌ Failed to clear table '${table}':`, e?.message || e)
-        throw createError({
-          statusCode: 500,
-          statusMessage: `Failed to clear table '${table}': ${e?.message || e}`
-        })
+        throwServer(500, `Failed to clear table '${table}': ${e?.message || e}`)
       }
     }
 
@@ -181,11 +155,7 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     // Log the error for debugging
     console.error('🚨 Database reset failed:', error)
-    
     // Return appropriate error response
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Database reset operation failed'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Database reset operation failed')
   }
 })

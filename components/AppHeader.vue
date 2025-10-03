@@ -19,9 +19,11 @@
         <div v-if="shouldShowPageTitle" class="flex items-center space-x-3">
           <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
           <div class="flex items-center space-x-2">
-            <h1 class="font-title text-lg font-600 text-gray-900 dark:text-white">
-              {{ pageHeader.title }}
-            </h1>
+            <UTooltip :content="pageHeader.title.value.length > 20 ? pageHeader.title.value : ''">
+              <h1 class="header-title shrink-2 font-title text-lg font-600 text-gray-900 dark:text-white whitespace-nowrap text-ellipsis overflow-hidden">
+                {{ pageHeader.title }}
+              </h1>
+            </UTooltip>
             <UBadge
               :color="pageHeader.section.value === 'admin' ? 'red' : 'blue'"
               variant="subtle"
@@ -282,6 +284,30 @@ onMounted(() => {
     window.removeEventListener('keydown', handler)
   })
 })
-
-
 </script>
+
+<style scoped>
+.header-title {
+  @media screen and (min-width: 10px) {
+    max-width: 4rem;
+  }
+  @media screen and (min-width: 370px) {
+    max-width: 4rem;
+  }
+  @media screen and (min-width: 420px) {
+    max-width: 8rem;
+  }
+  @media screen and (min-width: 520px) {
+    max-width: 12rem;
+  }
+  @media screen and (min-width: 640px) {
+    max-width: 18rem;
+  }
+  @media screen and (min-width: 720px) {
+    max-width: 4rem;
+  }
+  @media screen and (min-width: 920px) {
+    max-width: 12rem;
+  }
+}
+</style>

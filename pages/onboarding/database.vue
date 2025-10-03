@@ -310,6 +310,10 @@ useHead({
   ]
 })
 
+definePageMeta({
+  middleware: 'admin'
+})
+
 const loading = ref(false)
 const isStarted = ref(false)
 const isCompleted = ref(false)
@@ -365,7 +369,6 @@ const progress = ref<ProgressRecord>({
   }
 })
 
-// Computed
 const totalSteps = computed(() => 5)
 const completedSteps = computed(() => {
   return (Object.values(progress.value) as StepProgress[]).filter(step => step.status === 'completed').length
@@ -694,10 +697,10 @@ const goToHome = async () => {
 // Check if we should be here
 onMounted(async () => {
   try {
-    // const status = await $fetch<StatusAPIResponse>('/api/onboarding/status')
-    // if (status.success && !status.data.needsOnboarding) {
-    //   await navigateTo('/')
-    // }
+    const status = await $fetch<StatusAPIResponse>('/api/onboarding/status')
+    if (status.success && !status.data.needsOnboarding) {
+      await navigateTo('/')
+    }
     // If admin is missing, we still allow importing users via ZIP, so no redirect here
   } catch (error) {
     console.error('Failed to check onboarding status:', error)

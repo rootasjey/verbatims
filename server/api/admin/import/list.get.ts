@@ -4,19 +4,15 @@ import { getAdminImport } from '~/server/utils/admin-import-progress'
  * Admin API: List Import History (backed by import_logs + live overlay)
  */
 export default defineEventHandler(async (event) => {
-  // Admin check
   const { user } = await requireUserSession(event)
-  if (!user || user.role !== 'admin') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
-  }
+  if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const query = getQuery(event)
   const limit = parseInt((query.limit as string) || '50')
   const offset = parseInt((query.offset as string) || '0')
   const status = (query.status as string) || ''
 
-  const db = hubDatabase()
-  if (!db) throw createError({ statusCode: 500, statusMessage: 'Database not available' })
+  const db = hubDatabase(); if (!db) throwServer(500, 'Database not available')
 
   // Base query
   const filters: string[] = []
@@ -76,6 +72,7 @@ export default defineEventHandler(async (event) => {
   const summaryRows = await db.prepare(`
     SELECT status, COUNT(*) AS c FROM import_logs GROUP BY status
   `).all<any>()
+  
   const summaryMap: Record<string, number> = {}
   for (const r of summaryRows.results || []) summaryMap[r.status] = Number(r.c)
 

@@ -7,12 +7,10 @@ import { validateTagDataZod } from '~/server/utils/validation/tag'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throw createError({ statusCode: 403, statusMessage: 'Admin access required' }) }
+    if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const body = await readBody(event)
-    const { data } = body || {}
-    if (!data) { throw createError({ statusCode: 400, statusMessage: 'No data provided for validation' }) }
-
+    const { data } = body || {}; if (!data) throwServer(400, 'No data provided for validation')
     const validationResult = validateTagDataZod(data)
 
     return {
@@ -24,7 +22,8 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    throw createError({ statusCode: error.statusCode || 500, statusMessage: error.statusMessage || 'Validation failed' })
+    if (error.statusCode) throw error
+    throwServer(500, 'Validation failed')
   }
 })
 

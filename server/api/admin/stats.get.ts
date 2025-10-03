@@ -1,19 +1,9 @@
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication and admin privileges
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
-    
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+    const { user } = await getUserSession(event)
+    if (!user) { throwServer(401, 'Authentication required') }
+    if (user?.role !== 'admin' && user?.role !== 'moderator') {
+      throwServer(403, 'Admin or moderator access required')
     }
     
     const db = hubDatabase()
@@ -192,14 +182,8 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
-    
+    if (error.statusCode) throw error
     console.error('Admin stats error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch admin statistics'
-    })
+    throwServer(500, 'Failed to fetch admin statistics')
   }
 })

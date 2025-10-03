@@ -45,7 +45,7 @@
       <div v-else>
         <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
           <ReferenceGridItem
-            v-for="reference in references"
+            v-for="reference in referencesForDisplay"
             :key="reference.id"
             :reference="reference"
             class="fade-in"
@@ -55,7 +55,7 @@
         <!-- Mobile: use ReferenceCard -->
         <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 px-2 mb-12">
           <ReferenceCard
-            v-for="reference in references"
+            v-for="reference in referencesForDisplay"
             :key="reference.id"
             :reference="reference"
             @click="navigateToReference(reference.id)"
@@ -81,11 +81,14 @@
           <span v-else>No more references</span>
         </div>
       </div>
-
-      <div v-if="loadingMore" class="text-center py-8">
-        <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin text-gray-400 mx-auto" />
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more references...</p>
-      </div>
+      
+      <LoadMoreButton 
+        class="mb-4" 
+        idleText="load more references" 
+        loadingText="loading references..." 
+        :isLoading="loadingMore" 
+        @load="loadMore"
+      />
     </div>
 
     <!-- Mobile filters drawer -->
@@ -102,7 +105,12 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
+import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+import { useDebounceFn } from '@vueuse/core'
+import type { QuoteReferenceWithMetadata } from '~/types/quote-reference'
+import type { Ref } from 'vue'
+
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
@@ -120,30 +128,31 @@ useHead({
   ]
 })
 
-const searchQuery = ref('')
-const primaryType = ref('')
-const sortBy = ref('name')
-const sortOrder = ref('ASC')
-const references = ref([])
-const allFetchedReferences = ref([]) // Store all fetched references for local search
-const loading = ref(true)
-const loadingMore = ref(false)
-const hasMore = ref(true)
-const currentPage = ref(1)
-const showSubmitModal = ref(false)
-const totalReferences = ref(0)
-const searchInput = ref(null)
-const infiniteScrollTrigger = ref(null)
-const isSearching = ref(false)
-const mobileFiltersOpen = ref(false)
+const searchQuery = ref<string>('')
+const primaryType = ref<string>('')
+const sortBy = ref<string>('name')
+const sortOrder = ref<'ASC' | 'DESC'>('ASC')
+const references = ref<QuoteReferenceWithMetadata[]>([])
+const allFetchedReferences = ref<QuoteReferenceWithMetadata[]>([]) // Store all fetched references for local search
+const loading = ref<boolean>(true)
+const loadingMore = ref<boolean>(false)
+const hasMore = ref<boolean>(true)
+const currentPage = ref<number>(1)
+const showSubmitModal = ref<boolean>(false)
+const totalReferences = ref<number>(0)
+const searchInput = ref<any>(null)
+const infiniteScrollTrigger = ref<HTMLElement | null>(null)
+const isSearching = ref<boolean>(false)
+const mobileFiltersOpen = ref<boolean>(false)
 
 // Inverted pull-to-load-more (mobile)
-const pullDistance = ref(0)
-const isPulling = ref(false)
-const startY = ref(0)
+const pullDistance = ref<number>(0)
+const isPulling = ref<boolean>(false)
+const startY = ref<number>(0)
 const pullThreshold = 80
 
-const typeOptions = [
+type Option = { label: string; value: string }
+const typeOptions: Option[] = [
   { label: 'All Types', value: '' },
   { label: 'Books', value: 'book' },
   { label: 'Films', value: 'film' },
@@ -159,7 +168,7 @@ const typeOptions = [
   { label: 'Other', value: 'other' }
 ]
 
-const sortOptions = [
+const sortOptions: Option[] = [
   { label: 'Name', value: 'name' },
   { label: 'Quote Count', value: 'quotes_count' },
   { label: 'Popularity', value: 'likes_count' },
@@ -177,7 +186,7 @@ const loadReferences = async (reset = true) => {
   }
 
   try {
-    const response = await $fetch('/api/references', {
+    const response: any = await $fetch('/api/references', {
       query: {
         page: currentPage.value,
         limit: 20,
@@ -188,7 +197,7 @@ const loadReferences = async (reset = true) => {
       }
     })
 
-    const referencesData = Array.isArray(response.data) ? response.data : []
+  const referencesData = Array.isArray(response.data) ? response.data : []
 
     if (reset) {
       references.value = referencesData
@@ -224,13 +233,24 @@ const loadMore = async () => {
   await loadReferences(false)
 }
 
+import { computed } from 'vue'
+
+// Ensure components that expect QuoteReference (which has urls: string)
+// receive the proper shape. Convert parsed urls back to JSON string when needed.
+const referencesForDisplay = computed(() => {
+  return references.value.map((r) => ({
+    ...r,
+    urls: typeof r.urls === 'string' ? r.urls : JSON.stringify(r.urls || {})
+  }))
+})
+
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'ASC' ? 'DESC' : 'ASC'
   loadReferences()
 }
 
 // Hybrid search function
-const performSearch = async (query) => {
+const performSearch = async (query: string) => {
   if (!query || query.trim().length === 0) {
     // No search query, restore from cached references or load all
     if (allFetchedReferences.value.length > 0) {
@@ -258,7 +278,7 @@ const performSearch = async (query) => {
 
   // Then search API for additional results
   try {
-    const response = await $fetch('/api/references', {
+    const response: any = await $fetch('/api/references', {
       query: {
         page: 1,
         limit: 50, // Get more results for search
@@ -269,12 +289,12 @@ const performSearch = async (query) => {
       }
     })
 
-    const apiResults = Array.isArray(response.data?.results) ? response.data.results :
-                      Array.isArray(response.data) ? response.data : []
+  const apiResults = Array.isArray(response.data?.results) ? response.data.results :
+            Array.isArray(response.data) ? response.data : []
 
     // Merge results, avoiding duplicates
-    const existingIds = new Set(localResults.map(r => r.id))
-    const newResults = apiResults.filter(reference => !existingIds.has(reference.id))
+      const existingIds = new Set(localResults.map((r) => r.id))
+      const newResults = apiResults.filter((reference: QuoteReferenceWithMetadata) => !existingIds.has(reference.id))
 
     references.value = [...localResults, ...newResults]
     totalReferences.value = response.pagination?.total || references.value.length
@@ -295,7 +315,7 @@ const openSubmitModal = () => {
   showSubmitModal.value = true
 }
 
-const navigateToReference = (referenceId) => {
+const navigateToReference = (referenceId: number | string) => {
   navigateTo(`/references/${referenceId}`)
 }
 
@@ -314,7 +334,7 @@ const setupInfiniteScroll = () => {
     }
   )
 
-  observer.observe(infiniteScrollTrigger.value)
+  observer.observe(infiniteScrollTrigger.value as Element)
 
   return () => {
     observer.disconnect()
@@ -323,25 +343,28 @@ const setupInfiniteScroll = () => {
 
 // Helpers and handlers for mobile pull-up
 const atBottom = () => {
-  const scrollEl = document.scrollingElement || document.documentElement
+  const scrollEl = (document.scrollingElement || document.documentElement) as HTMLElement
   return scrollEl.scrollHeight - (scrollEl.scrollTop + window.innerHeight) <= 2
 }
 
-const onPullStart = (e) => {
+const onPullStart = (e: TouchEvent | MouseEvent) => {
   if (!isMobile.value || loadingMore.value || !hasMore.value) return
   if (!atBottom()) return
   isPulling.value = true
-  startY.value = (e.touches ? e.touches[0]?.clientY : e.clientY) || 0
+  startY.value = ((e as TouchEvent).touches ? (e as TouchEvent).touches[0]?.clientY : (e as MouseEvent).clientY) || 0
   pullDistance.value = 0
 }
 
-const onPullMove = (e) => {
+const onPullMove = (e: TouchEvent | MouseEvent) => {
   if (!isPulling.value) return
-  const currentY = (e.touches ? e.touches[0]?.clientY : e.clientY) || 0
+  const currentY = ((e as TouchEvent).touches ? (e as TouchEvent).touches[0]?.clientY : (e as MouseEvent).clientY) || 0
   const delta = startY.value - currentY // moving up => positive
   if (delta > 0) {
     pullDistance.value = Math.min(delta, pullThreshold * 1.8)
-    if (e.cancelable) e.preventDefault()
+    if ((e as TouchEvent).cancelable || (e as MouseEvent & { cancelable?: boolean }).cancelable) {
+      // Some synthetic mouse events may not be cancelable
+      try { (e as TouchEvent).preventDefault?.() } catch {}
+    }
   } else {
     pullDistance.value = 0
   }
@@ -359,13 +382,13 @@ const onPullEnd = async () => {
 
 const focusSearchInput = () => {
   nextTick(() => {
-    if (searchInput.value?.$el?.querySelector('input')) {
-      searchInput.value.$el.querySelector('input').focus()
-    }
+    const el = searchInput.value?.$el || searchInput.value
+    const input = el?.querySelector?.('input')
+    if (input && typeof input.focus === 'function') input.focus()
   })
 }
 
-let infiniteScrollCleanup = null
+let infiniteScrollCleanup: (() => void) | null = null
 
 onMounted(() => {
   setPageLayout(currentLayout.value)
@@ -373,7 +396,7 @@ onMounted(() => {
 
   nextTick(() => {
   // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
-  infiniteScrollCleanup = !isMobile.value ? setupInfiniteScroll() : null
+  infiniteScrollCleanup = !isMobile.value ? (setupInfiniteScroll() ?? null) : null
   })
 })
 
