@@ -1,7 +1,10 @@
 <template>
   <div
-    class="author-grid-item group border relative p-6 cursor-pointer h-full flex flex-col
-    dark:hover:b-lime hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300"
+    :class="[
+      'author-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
+      borderHoverClass,
+      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300'
+    ]"
     @click="navigateToAuthor"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
@@ -126,4 +129,11 @@ const formatNumber = (num) => {
   }
   return num.toString()
 }
+
+// Compute a Tailwind-like border class for author (purple for fictional, blue for real)
+const borderHoverClass = computed(() => {
+  const color = props.author && props.author.is_fictional ? 'purple' : 'blue'
+  return `dark:hover:b-${color}`
+})
 </script>
+

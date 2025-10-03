@@ -7,14 +7,8 @@ import { cleanupOldProgress, checkForStuckImports, getImportStats } from '~/serv
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin permissions (optional - you might want to allow this for maintenance)
     const { user } = await requireUserSession(event)
-    if (!user || user.role !== 'admin') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin access required'
-      })
-    }
+    if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const query = getQuery(event)
     const maxAgeHours = Number(query.maxAge) || 24 // Default 24 hours
@@ -33,7 +27,6 @@ export default defineEventHandler(async (event) => {
 
     // Get stats after cleanup
     const statsAfter = getImportStats()
-
     const cleaned = statsBefore.total - statsAfter.total
 
     return {
@@ -52,10 +45,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Progress cleanup error:', error)
-    
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to cleanup progress records'
-    })
+    if (error && error.statusCode) throw error
+    throwServer(500, 'Failed to cleanup progress records')
   }
 })

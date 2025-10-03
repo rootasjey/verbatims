@@ -1,4 +1,4 @@
-import { transformQuotes } from '~/server/utils/transform-quotes'
+import { transformQuotes } from '~/server/utils/quote-transformer'
 import { DatabaseQuoteWithRelations, SortBy, SortOrder } from '~/types'
 import { getSortParams } from '~/server/utils/sort'
 

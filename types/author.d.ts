@@ -4,17 +4,36 @@
  */
 
 /**
- * Social media links for an author
+ * Supported social link entry for an author profile
  */
-export interface AuthorSocials {
-  twitter?: string;
-  instagram?: string;
-  facebook?: string;
-  linkedin?: string;
-  website?: string;
-  wikipedia?: string;
-  [key: string]: string | undefined;
+export interface AuthorSocialLink {
+  /** Display label/platform name (e.g. Twitter, Website) */
+  platform: string;
+
+  /** URL to the social profile */
+  url: string;
+
+  /** Optional handle or username for display purposes */
+  handle?: string | null;
+
+  /** Optional icon identifier */
+  icon?: string | null;
 }
+
+/**
+ * Collection of social links associated with an author profile
+ */
+export type AuthorSocials = AuthorSocialLink[];
+
+/**
+ * Allowed shapes when creating or updating author socials
+ * Can be an array of social links, a platform map, or serialized JSON string
+ */
+export type AuthorSocialInput =
+  | AuthorSocialLink[]
+  | Record<string, string | undefined>
+  | string
+  | null;
 
 /**
  * Author entity from the database
@@ -98,7 +117,7 @@ export interface CreateAuthorData {
   job?: string | null;
   description?: string | null;
   image_url?: string | null;
-  socials?: AuthorSocials;
+  socials?: AuthorSocialInput;
 }
 
 /**

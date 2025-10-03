@@ -19,7 +19,10 @@
     <div v-else-if="reference">
       <ReferenceTopHeader
         :header-title="headerTitle"
-        :reference="reference"
+        :reference="{
+          ...reference,
+          urls: reference.urls ? JSON.stringify(reference.urls) : '',
+        }"
         :share-pending="sharePending"
         :like-pending="likePending"
         :is-liked="isLiked"
@@ -87,28 +90,13 @@
 
           <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
             <UIcon name="i-ph-globe" class="w-4 h-4" />
-            <span>Original Language: {{ formatLanguage(reference.original_language) }}</span>
+            <span>Original Language: {{ formatLanguage(reference.original_language as langCode) }}</span>
           </div>
         </div>
       </header>
 
-      <div v-if="reference.urls && reference.urls.length > 0" class="px-8 mb-8">
-        <div class="text-center">
-          <h3 class="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-4">External Links</h3>
-          <div class="flex flex-wrap justify-center gap-3">
-            <UButton
-              v-for="(url, index) in reference.urls"
-              :key="index"
-              :to="url"
-              external
-              btn="outline"
-              size="sm"
-            >
-              <UIcon name="i-ph-link" />
-              <span>View Source</span>
-            </UButton>
-          </div>
-        </div>
+      <div v-if="reference?.urls" class="px-8 mb-16">
+        <ExternalLinksBadges :links="reference.urls" />
       </div>
       
       <!-- Quotes Section -->
@@ -175,7 +163,11 @@
             <QuoteListItem
               v-for="quote in referenceQuotes"
               :key="quote.id"
-              :quote="quote"
+              :quote="{
+                  ...quote,
+                  tags: [],
+                  result_type: 'quote',
+                }"
               class="border rounded-1 border-gray-100 dark:border-dark-400"
             />
           </div>
@@ -220,14 +212,19 @@
     <AddReferenceDialog
       v-if="isEditDialogOpen && reference"
       v-model="isEditDialogOpen"
-      :edit-reference="reference"
+      :edit-reference="{
+        ...reference,
+        urls: reference.urls ? JSON.stringify(reference.urls) : '',
+      }"
       @reference-updated="onReferenceUpdated"
     />
 
     <DeleteReferenceDialog
       v-if="isDeleteDialogOpen && reference"
       v-model="isDeleteDialogOpen"
-      :reference="reference"
+      :reference="{
+        ...reference,
+      }"
       @reference-deleted="onReferenceDeleted"
     />
 
@@ -248,19 +245,30 @@
   />
 </template>
 
-<script setup>
-const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
+<script lang="ts" setup>
 definePageMeta({ layout: false })
 
+import type { Quote, QuoteReferenceWithMetadata } from '~/types'
+
+const { isMobile } = useMobileDetection()
+const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
 const { user } = useUserSession()
-
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
+type langCode = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh'
 
-const { data: referenceData, pending } = await useLazyFetch(`/api/references/${route.params.id}`)
-const reference = computed(() => referenceData.value?.data)
+const id = String(route.params.id || '')
+const { data: referenceData, pending } = await useLazyFetch(`/api/references/${id}`)
+const reference = computed<QuoteReferenceWithMetadata | undefined>(() => {
+  const val = referenceData.value
+  if (!val || !('data' in val)) {
+    return undefined
+  }
+
+  // If data is an array, return the first item, else return as is
+  return Array.isArray(val.data) ? val.data[0] : val.data
+})
 
 useHead(() => ({
   title: reference.value ? `${reference.value.name} - References - Verbatims` : 'Reference - Verbatims',
@@ -274,13 +282,13 @@ useHead(() => ({
   ]
 }))
 
-const referenceQuotes = ref([])
-const quotesLoading = ref(false)
-const loadingMoreQuotes = ref(false)
-const hasMoreQuotes = ref(true)
-const currentQuotePage = ref(1)
-const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
-const mobileFiltersOpen = ref(false)
+const referenceQuotes = ref<Quote[]>([])
+const quotesLoading = ref<boolean>(false)
+const loadingMoreQuotes = ref<boolean>(false)
+const hasMoreQuotes = ref<boolean>(true)
+const currentQuotePage = ref<number>(1)
+const sortBy = ref<{ label: string; value: string }>({ label: 'Most Recent', value: 'created_at' })
+const mobileFiltersOpen = ref<boolean>(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'created_at' },
@@ -288,12 +296,12 @@ const sortOptions = [
   { label: 'Most Viewed', value: 'views_count' }
 ]
 
-const isLiked = ref(false)
-const likePending = ref(false)
-const sharePending = ref(false)
-const copyState = ref('idle')
-const headerIn = ref(false)
-const showTypeBadge = ref(false)
+const isLiked = ref<boolean>(false)
+const likePending = ref<boolean>(false)
+const sharePending = ref<boolean>(false)
+const copyState = ref<'idle' | 'copied'>('idle')
+const headerIn = ref<boolean>(false)
+const showTypeBadge = ref<boolean>(false)
 
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -302,7 +310,7 @@ const headerTitle = computed(() => {
 })
 
 const headerMenuItems = computed(() => {
-  const items = []
+  const items: Array<{ label: string; leading: string; onclick: () => void }> = []
 
   if (canEditReference.value) {
     items.push({
@@ -389,7 +397,7 @@ const loadQuotes = async (reset = true) => {
       reference_id: reference.value.id,
       page: currentQuotePage.value,
       limit: 12,
-      sort_by: typeof sortBy.value === 'string' ? sortBy.value : sortBy.value?.value,
+      sort_by: sortBy.value?.value,
       sort_order: 'DESC',
       ...languageStore.getLanguageQuery()
     }
@@ -402,7 +410,7 @@ const loadQuotes = async (reset = true) => {
       referenceQuotes.value.push(...(response.data || []))
     }
 
-    hasMoreQuotes.value = response.pagination?.hasMore || false
+    hasMoreQuotes.value = Boolean(response.pagination?.hasMore)
   } catch (error) {
     console.error('Failed to load quotes:', error)
     if (reset) {
@@ -510,13 +518,13 @@ const showReportDialog = ref(false)
 const reportReference = () => { showReportDialog.value = true }
 
 // Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
-const handleGlobalKeydown = (e) => {
+const handleGlobalKeydown = (e: KeyboardEvent) => {
   if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
 
   // Skip when typing in inputs/contenteditable elements
-  const target = e.target
-  const tag = target?.tagName?.toLowerCase?.()
-  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
+  const target = e.target as HTMLElement | null
+  const tag = target?.tagName?.toLowerCase?.() as string | undefined
+  const isEditable = (target as any)?.isContentEditable || ['input', 'textarea', 'select'].includes(tag || '')
   if (isEditable) return
 
   if (reference.value && canEditReference.value) {
@@ -525,13 +533,13 @@ const handleGlobalKeydown = (e) => {
   }
 }
 
-const formatReleaseDate = (dateString) => {
+const formatReleaseDate = (dateString: string) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.getFullYear()
+  return date.getFullYear().toString()
 }
 
-const formatLanguage = (langCode) => {
+const formatLanguage = (langCode: langCode) => {
   const languages = {
     'en': 'English',
     'fr': 'French',
@@ -546,7 +554,7 @@ const formatLanguage = (langCode) => {
   return languages[langCode] || langCode.toUpperCase()
 }
 
-const formatNumber = (num) => {
+const formatNumber = (num: number | null | undefined) => {
   if (!num) return '0'
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M'
@@ -556,8 +564,8 @@ const formatNumber = (num) => {
   return num.toString()
 }
 
-const getTypeColor = (type) => {
-  const colors = {
+const getTypeColor = (type: string) => {
+  const colors: Record<string, string> = {
     'film': 'red',
     'book': 'blue',
     'tv_series': 'purple',
@@ -626,7 +634,7 @@ watch(sortBy, () => {
 })
 
 // Small helper to stagger items
-const enterAnim = (i) => ({ transitionDelay: `${i * 80}ms` })
+const enterAnim = (i: number): Record<string, string> => ({ transitionDelay: `${i * 80}ms` })
 
 // Ensure animations run after initial render and when data finishes loading
 const triggerHeaderEnter = async () => {

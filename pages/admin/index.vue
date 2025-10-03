@@ -39,7 +39,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <UIcon name="i-ph-quotes" size="xl" class="text-blue-600" />
+                  <UIcon name="i-ph-quotes" size="xl" class="text-cyan-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total || 0 }}</p>
@@ -57,7 +57,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <UIcon name="i-ph-users" size="xl" class="text-green-600" />
+                  <UIcon name="i-ph-users" size="xl" class="text-gray-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.users?.total || 0 }}</p>
@@ -75,7 +75,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <UIcon name="i-ph-user" size="xl" class="text-purple-600" />
+                  <UIcon name="i-ph-user" size="xl" class="text-blue-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.authors?.total || 0 }}</p>

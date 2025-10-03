@@ -1,20 +1,10 @@
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
+    if (!session.user) throwServer(401, 'Authentication required')
 
     const quoteId = getRouterParam(event, 'id')
-    if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
-    }
+    if (!quoteId || isNaN(parseInt(quoteId))) throwServer(400, 'Invalid quote ID')
 
     const db = hubDatabase()
 
@@ -23,12 +13,7 @@ export default defineEventHandler(async (event) => {
       SELECT id, status FROM quotes WHERE id = ? AND status = 'approved'
     `).bind(quoteId).first()
 
-    if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found or not approved'
-      })
-    }
+    if (!quote) throwServer(404, 'Quote not found or not approved')
 
     // Check if user has already liked this quote
     const existingLike = await db.prepare(`
@@ -61,12 +46,7 @@ export default defineEventHandler(async (event) => {
       SELECT likes_count FROM quotes WHERE id = ?
     `).bind(quoteId).first()
     
-    if (!updatedQuote) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch updated quote'
-      })
-    }
+    if (!updatedQuote) { throwServer(500, 'Failed to retrieve updated quote'); return }
 
     return {
       success: true,
@@ -76,14 +56,8 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
-    
+    if (error.statusCode) throw error
     console.error('Error toggling like:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to toggle like'
-    })
+    throwServer(500, 'Failed to toggle like')
   }
 })

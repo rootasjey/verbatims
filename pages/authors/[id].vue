@@ -24,7 +24,7 @@
         :share-pending="sharePending"
         :like-pending="likePending"
         :is-liked="isLiked"
-        :user="user"
+        :user="headerUser"
         :copy-state="copyState"
         :format-life-dates="formatLifeDates"
         :format-number="formatNumber"
@@ -100,22 +100,7 @@
       </header>
 
       <div v-if="author.socials && author.socials.length > 0" class="px-8 mb-8">
-        <div class="text-center">
-          <h3 class="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-4">Social Links</h3>
-          <div class="flex flex-wrap justify-center gap-3">
-            <UButton
-              v-for="social in author.socials"
-              :key="social.url"
-              :to="social.url"
-              external
-              btn="outline"
-              size="sm"
-            >
-              <UIcon :name="getSocialIcon(social.platform)" />
-              <span>{{ social.platform }}</span>
-            </UButton>
-          </div>
-        </div>
+        <ExternalLinksBadges :links="author.socials" />
       </div>
 
       <!-- Quotes Section -->
@@ -182,7 +167,22 @@
             <QuoteListItem
               v-for="quote in authorQuotes"
               :key="quote.id"
-              :quote="quote"
+              :quote="{
+                ...quote,
+                tags: [],
+                result_type: 'quote',
+                author: {
+                  id: quote.author?.id ?? 0,
+                  name: quote.author?.name ?? '',
+                  image_url: quote.author?.image_url ?? '',
+                  is_fictional: quote.author?.is_fictional ?? false
+                },
+                reference: {
+                  id: quote.reference?.id ?? 0,
+                  name: quote.reference?.name ?? '',
+                  type: quote.reference?.primary_type ?? '',
+                }
+              }"
               class="border rounded-1 border-gray-100 dark:border-dark-400"
             />
           </div>
@@ -228,14 +228,14 @@
     
     <AddAuthorDialog
       v-model="showEditAuthorDialog"
-      :editAuthor="author"
+      :editAuthor="authorAsEditAuthor"
       @author-updated="onAuthorUpdated"
     />
 
     <DeleteAuthorDialog
       v-if="author"
       v-model="showDeleteAuthorDialog"
-      :author="author"
+      :author="authorAsEditAuthor"
       @author-deleted="onAuthorDeleted"
     />
 
@@ -256,7 +256,10 @@
   />
 </template>
 
-<script setup>
+<script lang="ts" setup>
+import type { ApiResponse, AuthorWithSocials, Quote, QuoteWithMetadata } from '~/types'
+import type { ComputedRef, Ref } from 'vue'
+
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 definePageMeta({ layout: false })
@@ -264,14 +267,46 @@ definePageMeta({ layout: false })
 const route = useRoute()
 const { user } = useUserSession()
 
+interface SortOption {
+  label: string
+  value: string
+}
+
+interface HeaderMenuItem {
+  label: string
+  leading: string
+  onclick: () => void
+}
+
+interface HeaderUser {
+  id: number
+  name: string
+  role: 'admin' | 'moderator' | 'user'
+}
+
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 
-const { data: authorData, pending } = await useLazyFetch(`/api/authors/${route.params.id}`)
-const author = computed(() => authorData.value?.data)
+// Lazy fetch author data; typed as any response shape from API
+const { data: authorData, pending } = await useLazyFetch<ApiResponse<AuthorWithSocials>>(`/api/authors/${route.params.id}`)
+const author: ComputedRef<AuthorWithSocials | null> = computed(() => {
+  return authorData.value?.data ?? null
+})
+
+const headerUser = computed<HeaderUser | null>(() => {
+  if (!user.value) return null
+
+  const role = user.value.role === 'admin' || user.value.role === 'moderator' ? user.value.role : 'user'
+
+  return {
+    id: user.value.id,
+    name: user.value.name,
+    role
+  }
+})
 
 useHead(() => ({
-  title: author.value ? `${author.value.name} - Authors - Verbatims` : 'Author - Verbatims',
+  title: author.value ? `${author.value.name} • Verbatims` : 'Author - Verbatims',
   meta: [
     { 
       name: 'description', 
@@ -282,38 +317,46 @@ useHead(() => ({
   ]
 }))
 
-const authorQuotes = ref([])
-const quotesLoading = ref(false)
-const loadingMoreQuotes = ref(false)
-const hasMoreQuotes = ref(true)
-const currentQuotePage = ref(1)
-const sortBy = ref({ label: 'Most Recent', value: 'created_at' })
-const mobileFiltersOpen = ref(false)
-
-const headerIn = ref(false)
-const showTypeBadge = ref(false)
-
-const sortOptions = [
+const authorQuotes: Ref<QuoteWithMetadata[]> = ref([])
+const quotesLoading = ref<boolean>(false)
+const loadingMoreQuotes = ref<boolean>(false)
+const hasMoreQuotes = ref<boolean>(true)
+const currentQuotePage = ref<number>(1)
+const sortOptions: SortOption[] = [
   { label: 'Most Recent', value: 'created_at' },
   { label: 'Most Popular', value: 'likes_count' },
   { label: 'Most Viewed', value: 'views_count' }
 ]
 
+const sortBy = ref<SortOption>(sortOptions[0])
+const mobileFiltersOpen = ref<boolean>(false)
+
+const headerIn = ref(false)
+const showTypeBadge = ref(false)
+
 const isLiked = ref(false)
 const likePending = ref(false)
 const sharePending = ref(false)
-const copyState = ref('idle')
+const copyState = ref<'idle' | 'copying' | 'copied'>('idle')
 const showEditAuthorDialog = ref(false)
 const showDeleteAuthorDialog = ref(false)
 
+// Convert AuthorWithSocials to Author for AddAuthorDialog
+const authorAsEditAuthor = computed(() => {
+  if (!author.value) return null
+  // Omit or transform socials to string or undefined as required by Author type
+  const { socials, ...rest } = author.value
+  return { ...rest, socials: Array.isArray(socials) ? '' : socials }
+})
+
 // Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
-const handleGlobalKeydown = (e) => {
+const handleGlobalKeydown = (e: KeyboardEvent) => {
   if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
 
   // Skip when typing in inputs/contenteditable elements
-  const target = e.target
+  const target = e.target as HTMLElement | null
   const tag = target?.tagName?.toLowerCase?.()
-  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
+  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag || '')
   if (isEditable) return
 
   const role = user.value?.role
@@ -329,8 +372,8 @@ const headerTitle = computed(() => {
   return text.length > 80 ? text.slice(0, 80) + '…' : text
 })
 
-const headerMenuItems = computed(() => {
-  const items = []
+const headerMenuItems = computed<HeaderMenuItem[]>(() => {
+  const items: HeaderMenuItem[] = []
 
   if (user.value && (user.value.role === 'admin' || user.value.role === 'moderator')) {
     items.push({
@@ -366,12 +409,9 @@ const headerMenuItems = computed(() => {
   return items
 })
 
-const totalQuoteLikes = computed(() => {
-  return authorQuotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
-})
-
 const loadQuotes = async (reset = true) => {
-  if (!author.value) return
+  const currentAuthor = author.value
+  if (!currentAuthor) return
 
   // Wait for language store to be ready before loading quotes
   await waitForLanguageStore()
@@ -386,11 +426,10 @@ const loadQuotes = async (reset = true) => {
 
   try {
     const query = {
-      author_id: author.value.id,
+      author_id: currentAuthor.id,
       page: currentQuotePage.value,
       limit: 12,
-      // Support both object and string for sortBy
-      sort_by: typeof sortBy.value === 'string' ? sortBy.value : sortBy.value?.value,
+      sort_by: sortBy.value.value,
       sort_order: 'DESC',
       ...languageStore.getLanguageQuery()
     }
@@ -420,7 +459,7 @@ const loadQuotes = async (reset = true) => {
 const onAuthorUpdated = async () => {
   const { toast } = useToast()
   try {
-    const fresh = await $fetch(`/api/authors/${route.params.id}`)
+    const fresh = await $fetch<ApiResponse<AuthorWithSocials>>(`/api/authors/${route.params.id}`)
     authorData.value = fresh
     toast({ title: 'Author updated' })
   } catch (error) {
@@ -442,20 +481,17 @@ const loadMoreQuotes = async () => {
 }
 
 const onLanguageChange = async () => {
-  // Reset pagination when language changes
   currentQuotePage.value = 1
   hasMoreQuotes.value = true
-
-  // Reload quotes with new language filter
   await loadQuotes(true)
 }
 
-// Like functionality
 const checkLikeStatus = async () => {
-  if (!user.value || !author.value) return
+  const currentAuthor = author.value
+  if (!user.value || !currentAuthor) return
   
   try {
-    const { data } = await $fetch(`/api/authors/${author.value.id}/like-status`)
+    const { data } = await $fetch(`/api/authors/${currentAuthor.id}/like-status`)
     isLiked.value = data?.isLiked || false
   } catch (error) {
     console.error('Failed to check like status:', error)
@@ -463,16 +499,17 @@ const checkLikeStatus = async () => {
 }
 
 const toggleLike = async () => {
-  if (!user.value || !author.value || likePending.value) return
+  const currentAuthor = author.value
+  if (!user.value || !currentAuthor || likePending.value) return
   
   likePending.value = true
   try {
-    const { data } = await $fetch(`/api/authors/${author.value.id}/like`, {
+    const { data } = await $fetch(`/api/authors/${currentAuthor.id}/like`, {
       method: 'POST'
     })
     
     isLiked.value = data.isLiked
-    author.value.likes_count = data.likesCount
+    currentAuthor.likes_count = data.likesCount
   } catch (error) {
     console.error('Failed to toggle like:', error)
   } finally {
@@ -481,15 +518,16 @@ const toggleLike = async () => {
 }
 
 const shareAuthor = async () => {
-  if (!author.value || sharePending.value) return
+  const currentAuthor = author.value
+  if (!currentAuthor || sharePending.value) return
 
   sharePending.value = true
   const { toast } = useToast()
 
   try {
     const shareData = {
-      title: `${author.value.name} on Verbatims`,
-      text: author.value.description || author.value.job || author.value.name,
+      title: `${currentAuthor.name} on Verbatims`,
+      text: currentAuthor.description || currentAuthor.job || currentAuthor.name,
       url: typeof window !== 'undefined' ? window.location.href : ''
     }
 
@@ -502,7 +540,7 @@ const shareAuthor = async () => {
     }
 
     // Optimistically increment local share count (no server endpoint yet)
-    author.value.shares_count = (author.value.shares_count || 0) + 1
+    currentAuthor.shares_count = (currentAuthor.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share author:', error)
     toast({ title: 'Failed to share', description: 'Please try again.' })
@@ -532,8 +570,7 @@ const scrollToTop = () => {
 const showReportDialog = ref(false)
 const reportAuthor = () => { showReportDialog.value = true }
 
-// Utility functions
-const formatLifeDates = (birthDate, deathDate) => {
+const formatLifeDates = (birthDate?: string | null, deathDate?: string | null): string => {
   if (!birthDate && !deathDate) return ''
   
   const birth = birthDate ? new Date(birthDate).getFullYear() : '?'
@@ -542,7 +579,7 @@ const formatLifeDates = (birthDate, deathDate) => {
   return `${birth} - ${death}`
 }
 
-const formatNumber = (num) => {
+const formatNumber = (num?: number | null): string => {
   if (!num) return '0'
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M'
@@ -552,38 +589,22 @@ const formatNumber = (num) => {
   return num.toString()
 }
 
-const getSocialIcon = (platform) => {
-  const icons = {
-    twitter: 'i-ph-twitter-logo-duotone',
-    facebook: 'i-ph-facebook-logo-duotone',
-    instagram: 'i-ph-instagram-logo-duotone',
-    linkedin: 'i-ph-linkedin-logo-duotone',
-    youtube: 'i-ph-youtube-logo-duotone',
-    website: 'i-ph-globe-duotone'
-  }
-  return icons[platform.toLowerCase()] || 'i-ph-link'
-}
-
 onMounted(async () => {
   setPageLayout(currentLayout.value)
   await waitForLanguageStore()
 
   if (author.value) {
-    // Track view
     try {
       const res = await $fetch(`/api/authors/${route.params.id}/view`, { method: 'POST' })
-      if (res?.recorded) {
-        // Optimistically reflect the incremented count immediately
-        author.value.views_count = (author.value.views_count || 0) + 1
-      }
+      if (!res.recorded) throw new Error('View not recorded')
+      const currentAuthor = author.value
+      if (currentAuthor) currentAuthor.views_count = (currentAuthor.views_count || 0) + 1
     } catch (error) {
       console.error('Failed to track author view:', error)
     }
 
     loadQuotes()
-    if (user.value) {
-      checkLikeStatus()
-    }
+    if (user.value) checkLikeStatus()
     
     // Trigger enter animation once content is available
     await triggerHeaderEnter()
@@ -610,19 +631,14 @@ watch(author, (newAuthor) => {
 })
 
 watch(user, (newUser) => {
-  if (newUser && author.value) {
-    checkLikeStatus()
-  } else {
-    isLiked.value = false
-  }
+  if (newUser && author.value) checkLikeStatus()
+  else isLiked.value = false
 })
 
-watch(sortBy, () => {
-  loadQuotes()
-})
+watch(sortBy, () => loadQuotes())
 
 // Small helper to stagger items
-const enterAnim = (i) => ({ transitionDelay: `${i * 80}ms` })
+const enterAnim = (i: number) => ({ transitionDelay: `${i * 80}ms` })
 
 // Ensure animations run after initial render and when data finishes loading
 const triggerHeaderEnter = async () => {

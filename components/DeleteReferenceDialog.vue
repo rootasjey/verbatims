@@ -58,7 +58,7 @@ import type { QuoteReferenceWithMetadata } from '~/types/quote-reference'
 
 interface Props {
   modelValue: boolean
-  reference?: QuoteReferenceWithMetadata | null
+  reference?: QuoteReferenceWithMetadata
 }
 
 interface Emits {

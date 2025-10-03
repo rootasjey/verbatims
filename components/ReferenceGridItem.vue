@@ -1,7 +1,10 @@
 <template>
   <div
-    class="reference-grid-item group border relative p-6 cursor-pointer h-full flex flex-col
-    dark:hover:b-lime hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300"
+    :class="[
+      'reference-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
+      borderHoverClass,
+      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300'
+    ]"
     @click="navigateToReference"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
@@ -159,4 +162,15 @@ const getTypeColor = (type) => {
   }
   return colorMap[type] || 'gray'
 }
+
+// Compute a Tailwind-like border class for the reference type to use on dark hover
+const borderHoverClass = computed(() => {
+  const color = getTypeColor(props.reference.primary_type)
+  // Map our color tokens to the project's border utility classes.
+  // We'll apply the color only in dark mode on hover: `dark:hover:b-{color}`
+  // For safety, default to 'lime' if mapping fails.
+  const allowed = new Set(['red','blue','purple','green','orange','pink','yellow','indigo','cyan','gray','slate','violet'])
+  const safeColor = allowed.has(color) ? color : 'lime'
+  return `dark:hover:b-${safeColor}`
+})
 </script>

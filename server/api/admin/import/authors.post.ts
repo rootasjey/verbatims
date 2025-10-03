@@ -6,12 +6,12 @@ import { scheduleBackground } from '~/server/utils/schedule'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throw createError({ statusCode: 403, statusMessage: 'Admin access required' }) }
+    if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const body = await readBody(event)
     const { data, format, options = {}, filename } = body as { data: any, format: 'json'|'csv'|'xml', options?: ImportOptions, filename?: string }
 
-    if (!data) { throw createError({ statusCode: 400, statusMessage: 'No data provided for import' }) }
+    if (!data) { throwServer(400, 'No data provided for import') }
     const importId = `import_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
     // Initialize progress
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
           } catch {}
         })
 
-  scheduleBackground(event, runJob)
+    scheduleBackground(event, runJob)
 
     return {
       success: true,
@@ -47,10 +47,8 @@ export default defineEventHandler(async (event) => {
       progressUrl: `/api/admin/import/progress/${importId}`,
     }
   } catch (error: any) {
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Import authors failed'
-    })
+    if (error.statusCode) throw error
+    throwServer(500, 'Import authors failed')
   }
 })
 

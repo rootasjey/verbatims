@@ -5,7 +5,9 @@
 
 export type {
   Author,
+  AuthorSocialLink,
   AuthorSocials,
+  AuthorSocialInput,
   AuthorWithSocials,
   CreateAuthorData,
   UpdateAuthorData,

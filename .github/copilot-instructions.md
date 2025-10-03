@@ -62,6 +62,7 @@ Strict TypeScript with comprehensive type definitions in `/types/`:
 - **Layouts**: `admin.vue`, `dashboard.vue`, `default.vue` for different user contexts
 - **Pages**: Follow `/pages` structure with dynamic routes like `[id].vue`
 - **Components**: Global auto-imported, use UnaUI primitives (`UButton`, `UCard`, etc.)
+- **Utilities**: exported functions from `~/server/utils/` are auto-imported in Nuxt server context
 
 ### 5. Admin Interface Patterns
 Admin pages use consistent structure:

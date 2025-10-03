@@ -1,3 +1,6 @@
+import type { ImportOptions } from '~/types'
+import { unzipSync, strFromU8 } from 'fflate'
+
 /**
  * Admin API: Relink Post-Quote Relations
  *
@@ -7,26 +10,9 @@
  * mid-chain and you want to link relations after quotes have been successfully imported,
  * without wiping the database.
  */
-
-import type { ImportOptions } from '~/types'
-import { unzipSync, strFromU8 } from 'fflate'
-import { parseZipImportEntries, base64ToUint8 } from '~/server/utils/import-helpers'
-import { createAdminImport, getAdminImport, updateAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
-
-import { importQuoteTagsInline } from '~/server/utils/imports/import-quote-tags'
-import { importUserLikesInline } from '~/server/utils/imports/import-user-likes'
-import { importUserCollectionsInline } from '~/server/utils/imports/import-user-collections'
-import { importCollectionQuotesInline } from '~/server/utils/imports/import-collection-quotes'
-import { importUserSessionsInline } from '~/server/utils/imports/import-user-sessions'
-import { importUserMessagesInline } from '~/server/utils/imports/import-user-messages'
-import { importQuoteReportsInline } from '~/server/utils/imports/import-quote-reports'
-import { importQuoteViewsInline } from '~/server/utils/imports/import-quote-views'
-import { importAuthorViewsInline } from '~/server/utils/imports/import-author-views'
-import { importReferenceViewsInline } from '~/server/utils/imports/import-reference-views'
-
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
-  if (user.role !== 'admin') throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+  if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const body = await readBody<{ zipBase64?: string; bundle?: Record<string, any[]>; options?: ImportOptions; filename?: string }>(event)
   const { zipBase64, bundle, options = {}, filename } = body || {}
@@ -42,7 +28,8 @@ export default defineEventHandler(async (event) => {
     parsed = out.bundle
   } else {
     if (!bundle || typeof bundle !== 'object') {
-      throw createError({ statusCode: 400, statusMessage: 'Missing or invalid bundle' })
+      throwServer(400, 'Missing or invalid bundle')
+      return
     }
     parsed = bundle
   }

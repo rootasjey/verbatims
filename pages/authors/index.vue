@@ -76,10 +76,13 @@
         </div>
       </div>
 
-      <div v-if="loadingMore" class="text-center py-8">
-        <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin text-gray-400 mx-auto" />
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading more authors...</p>
-      </div>
+      <LoadMoreButton 
+        class="mb-4" 
+        idleText="load more authors" 
+        loadingText="loading authors..." 
+        :isLoading="loadingMore" 
+        @load="loadMore"
+      />
     </div>
     
     <MobileSortAuthors
@@ -93,7 +96,10 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
+import type { Author } from '~/types/author'
+import type { Ref } from 'vue'
+
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
@@ -111,17 +117,17 @@ useHead({
   ]
 })
 
-const searchQuery = ref('')
-const sortBy = ref('name')
-const sortOrder = ref('ASC')
-const authors = ref([])
-const allFetchedAuthors = ref([]) // Store all fetched authors for local search
-const loading = ref(true)
-const loadingMore = ref(false)
-const hasMore = ref(true)
-const currentPage = ref(1)
-const totalAuthors = ref(0)
-const infiniteScrollTrigger = ref(null)
+const searchQuery = ref<string>('')
+const sortBy = ref<string>('name')
+const sortOrder = ref<'ASC' | 'DESC'>('ASC')
+const authors: Ref<Author[]> = ref([])
+const allFetchedAuthors: Ref<Author[]> = ref([]) // Store all fetched authors for local search
+const loading = ref<boolean>(true)
+const loadingMore = ref<boolean>(false)
+const hasMore = ref<boolean>(true)
+const currentPage = ref<number>(1)
+const totalAuthors = ref<number>(0)
+const infiniteScrollTrigger = ref<HTMLElement | null>(null)
 // Inverted pull-to-load-more (mobile)
 const pullDistance = ref(0)
 const isPulling = ref(false)
@@ -192,7 +198,7 @@ const toggleSortOrder = () => {
 }
 
 // Hybrid search function
-const performSearch = async (query) => {
+const performSearch = async (query: string) => {
   if (!query || query.trim().length === 0) {
     await loadAuthors()
     return
@@ -271,17 +277,23 @@ const atBottom = () => {
   return scrollEl.scrollHeight - (scrollEl.scrollTop + window.innerHeight) <= 2
 }
 
-const onPullStart = (e) => {
+const onPullStart = (e: TouchEvent | MouseEvent) => {
   if (!isMobile.value || loadingMore.value || !hasMore.value) return
   if (!atBottom()) return
   isPulling.value = true
-  startY.value = (e.touches ? e.touches[0]?.clientY : e.clientY) || 0
-  pullDistance.value = 0
+  startY.value = ((e as TouchEvent).touches 
+    ? (e as TouchEvent).touches[0]?.clientY 
+    : (e as MouseEvent).clientY) || 0
+
+    pullDistance.value = 0
 }
 
-const onPullMove = (e) => {
+const onPullMove = (e: TouchEvent | MouseEvent) => {
   if (!isPulling.value) return
-  const currentY = (e.touches ? e.touches[0]?.clientY : e.clientY) || 0
+  const currentY = ((e as TouchEvent).touches 
+    ? (e as TouchEvent).touches[0]?.clientY 
+    : (e as MouseEvent).clientY) || 0
+
   const delta = startY.value - currentY // moving up => positive
   if (delta > 0) {
     // Cap a bit above threshold for a rubber-band feel

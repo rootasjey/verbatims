@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
-    <AppHeader :left-pad-class="[(sidebarOpen ? 'pl-64' : ''), (sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')].join(' ')" />
+    <AppHeader 
+      :left-pad-class="[(sidebarOpen ? 'lg:pl-64 md:pl-12 pl-12' : ''), (sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')].join(' ')" 
+    />
     
     <!-- Admin Layout -->
     <div class="pt-16 flex min-h-screen">
@@ -17,10 +19,10 @@
         <div class="flex flex-col">
           <!-- Sidebar Header -->
           <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Admin Panel</h2>
+            <h2 class="hidden lg:inline text-lg font-semibold text-gray-900 dark:text-white">Admin Panel</h2>
             <UButton
               icon
-              btn="soft"
+              btn="soft-gray"
               size="xs"
               label="i-ph-x-bold"
               @click="sidebarOpen = false"
@@ -28,12 +30,12 @@
           </div>
 
           <!-- Desktop Collapse Toggle -->
-          <div class="hidden lg:flex items-center justify-end p-3 border-b border-gray-200 dark:border-gray-700">
+          <div class="hidden lg:flex items-center justify-end p-3 mr-1 border-b border-gray-200 dark:border-gray-700">
             <UButton
               icon
               size="xs"
               :label="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'"
-              btn="soft"
+              btn="soft-gray"
               class="transition-transform duration-200"
               :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
               :aria-expanded="!sidebarCollapsed"
@@ -52,8 +54,8 @@
                   'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                   sidebarCollapsed ? 'justify-center' : 'justify-start',
                   $route.path === '/admin' 
-                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
                 ]"
                 @click="sidebarOpen = false"
               >
@@ -76,8 +78,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/quotes/published' 
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -95,8 +97,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/quotes/pending' 
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -114,8 +116,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/quotes/drafts' 
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -140,8 +142,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/authors'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-dashed border-blue-200 dark:border-blue-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -158,8 +160,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/references'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-lime-50 dark:bg-lime-900/20 text-lime-700 dark:text-lime-300 border border-dashed border-lime-200 dark:border-lime-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-lime-50 dark:hover:bg-lime-900/20 hover:text-lime-700 dark:hover:text-lime-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -176,8 +178,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/tags'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                      ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-dashed border-purple-200 dark:border-purple-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -199,9 +201,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/messages'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                    getMangementItemColor($route.path === '/admin/messages')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -217,9 +217,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/users'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                    getMangementItemColor($route.path === '/admin/users')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -235,9 +233,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/maintenance'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                    getMangementItemColor($route.path === '/admin/maintenance')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -253,9 +249,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/import'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                    getMangementItemColor($route.path === '/admin/import')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -271,9 +265,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/export'
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-dashed border-red-200 dark:border-red-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300'
+                    getMangementItemColor($route.path === '/admin/export')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -314,11 +306,11 @@
       <!-- Main Content -->
       <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
-        <div class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div class="lg:hidden dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div class="flex items-center justify-between">
             <UButton
               icon
-              btn="soft"
+              btn="soft-gray"
               size="xs"
               label="i-ph-list-bold"
               @click="sidebarOpen = true"
@@ -363,7 +355,7 @@ watch(() => route.path, (newPath) => {
 const loadQuoteCounts = async () => {
   try {
     const stats = await $fetch('/api/admin/stats')
-    if (stats.data?.quotes) {
+    if (stats?.data?.quotes) {
       publishedCount.value = stats.data.quotes.approved || 0
       pendingCount.value = stats.data.quotes.pending || 0
       draftCount.value = stats.data.quotes.draft || 0
@@ -371,6 +363,12 @@ const loadQuoteCounts = async () => {
   } catch (error) {
     console.error('Failed to load admin quote counts:', error)
   }
+}
+
+const getMangementItemColor = (isActive: boolean) => {
+  return isActive 
+    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700'
+    : 'text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
 }
 
 // Close sidebar when route changes (mobile)

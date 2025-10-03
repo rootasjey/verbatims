@@ -10,27 +10,19 @@
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
-    }
+    if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const body = await readBody(event)
     const { backupId, confirmRollback } = body
 
-    if (!backupId || isNaN(Number(backupId))) {
-      throw createError({ statusCode: 400, statusMessage: 'Valid backup ID is required' })
-    }
-    if (!confirmRollback) {
-      throw createError({ statusCode: 400, statusMessage: 'Rollback confirmation is required' })
-    }
+    if (!backupId || isNaN(Number(backupId))) throwServer(400, 'Valid backupId is required')
+    if (!confirmRollback) throwServer(400, 'Rollback confirmation is required')
 
     const db = hubDatabase()
-    if (!db) throw createError({ statusCode: 500, statusMessage: 'Database not available' })
+    if (!db) throwServer(500, 'Database not available')
 
     const backup = await getBackupFileById(db, Number(backupId))
-    if (!backup) {
-      throw createError({ statusCode: 404, statusMessage: 'Backup file not found' })
-    }
+    if (!backup) { throwServer(404, 'Backup file not found'); return }
 
     // Download and parse snapshot (must be a full backup with all tables)
     const { content } = await downloadBackupFile(backup.file_key, backup.compression_type as any)
@@ -38,10 +30,10 @@ export default defineEventHandler(async (event) => {
     try {
       payload = JSON.parse(content)
     } catch (e: any) {
-      throw createError({ statusCode: 500, statusMessage: `Invalid backup JSON: ${e.message}` })
+      throwServer(500, `Invalid backup JSON: ${e.message}`)
     }
     if (!payload || typeof payload !== 'object') {
-      throw createError({ statusCode: 500, statusMessage: 'Backup content is not a valid object' })
+      throwServer(500, 'Backup content is not a valid object')
     }
 
     // Table order for referential integrity
@@ -112,6 +104,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Rollback error:', error)
     if (error.statusCode) throw error
-    throw createError({ statusCode: 500, statusMessage: 'Rollback failed' })
+    throwServer(500, 'Rollback failed')
   }
 })

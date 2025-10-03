@@ -21,9 +21,6 @@ export default defineEventHandler(async (event) => {
     
   } catch (error: any) {
     console.error('Admin user initialization error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: error?.message || 'Failed to initialize admin user'
-    })
+    throwServer(500, error?.message || 'Failed to initialize admin user')
   }
 })

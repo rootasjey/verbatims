@@ -1,26 +1,20 @@
-/**
- * Admin API: Import Users (JSON/CSV/XML)
- */
-
 import type { ImportOptions } from '~/types'
 import { createAdminImport, getAdminImport, updateAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
 import { processImportUsers } from '~/server/utils/imports/import-users'
 import { scheduleBackground } from '~/server/utils/schedule'
 
+/**
+ * Admin API: Import Users (JSON/CSV/XML)
+ */
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
-    }
+    if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const body = await readBody(event)
     const { data, format, options = {}, filename } = body as { data: any, format: 'json'|'csv'|'xml', options?: ImportOptions, filename?: string }
 
-    if (!data) {
-      throw createError({ statusCode: 400, statusMessage: 'No data provided for import' })
-    }
-
+    if (!data) throwServer(400, 'No data provided for import')
     const importId = `import_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
     // Initialize progress
@@ -47,11 +41,17 @@ export default defineEventHandler(async (event) => {
         } catch {}
       })
 
-  scheduleBackground(event, runJob)
+    scheduleBackground(event, runJob)
 
-    return { success: true, importId, message: 'Users import started', progressUrl: `/api/admin/import/progress/${importId}` }
+    return {
+      success: true,
+      importId,
+      message: 'Users import started',
+      progressUrl: `/api/admin/import/progress/${importId}`
+    }
   } catch (error: any) {
-    throw createError({ statusCode: error.statusCode || 500, statusMessage: error.statusMessage || 'Import users failed' })
+    if (error.statusCode) throw error
+    throwServer(500, 'Import users failed')
   }
 })
 

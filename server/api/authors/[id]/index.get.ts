@@ -1,19 +1,16 @@
-import { Author } from "~/types"
+import type { ApiResponse, Author, AuthorSocialLink, AuthorWithSocials } from "~/types"
+import { throwServer } from '~/server/utils/throw-server'
+import { parseAuthorSocials } from "~/server/utils/author-transformer"
 
 export default defineEventHandler(async (event) => {
   try {
     const authorId = getRouterParam(event, 'id')
-    if (!authorId || isNaN(parseInt(authorId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid author ID'
-      })
-    }
+    if (!authorId || isNaN(parseInt(authorId))) throwServer(400, 'Invalid author ID')
 
     const db = hubDatabase()
-
     // Fetch author with quote count and origin reference if any
-  const author: Author | null = await db.prepare(`
+
+    const author: Author | null = await db.prepare(`
       SELECT 
         a.*,
         COUNT(q.id) as quotes_count,
@@ -39,57 +36,42 @@ export default defineEventHandler(async (event) => {
       GROUP BY a.id
   `).bind(authorId).first()
 
-    if (!author) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Author not found'
-      })
-    }
+    if (!author) { throwServer(404, 'Author not found'); return }
 
     // Parse JSON fields
-    let socials = [] as any[]
-    try {
-      socials = author && author.socials ? JSON.parse(author.socials as string) : []
-    } catch (error) {
-      console.error('Failed to parse author socials:', error)
-    }
+    const socials = parseAuthorSocials(author.socials as string | null | undefined)
 
-    // Transform the result
-    const transformedAuthor = {
-      id: author.id,
+    const transformedAuthor: AuthorWithSocials = {
+      id: Number(author.id),
       name: author.name,
-      is_fictional: author.is_fictional,
-      birth_date: author.birth_date,
-      birth_location: author.birth_location,
-      death_date: author.death_date,
-      death_location: author.death_location,
-      job: author.job,
-      description: author.description,
-      image_url: author.image_url,
+      is_fictional: Boolean(author.is_fictional),
+      birth_date: author.birth_date ?? undefined,
+      birth_location: author.birth_location ?? undefined,
+      death_date: author.death_date ?? undefined,
+      death_location: author.death_location ?? undefined,
+      job: author.job ?? undefined,
+      description: author.description ?? undefined,
+      image_url: author.image_url ?? undefined,
       socials,
-      views_count: author.views_count,
-      likes_count: author.likes_count,
-      shares_count: author.shares_count,
-      quotes_count: author.quotes_count,
+      views_count: Number(author.views_count ?? 0),
+      likes_count: Number(author.likes_count ?? 0),
+      shares_count: Number(author.shares_count ?? 0),
+      quotes_count: Number(author.quotes_count ?? 0),
       created_at: author.created_at,
       updated_at: author.updated_at,
-      origin_reference_id: author.origin_reference_id,
-      origin_reference_name: author.origin_reference_name
+      origin_reference_id: author.origin_reference_id ? Number(author.origin_reference_id) : undefined,
+      origin_reference_name: author.origin_reference_name ?? undefined
     }
 
-    return {
+    const response: ApiResponse<AuthorWithSocials> = {
       success: true,
       data: transformedAuthor
     }
+
+    return response
   } catch (error: any) {
-    if (error && error.statusCode) {
-      throw error
-    }
-    
+    if (error && error.statusCode) throw error
     console.error('Error fetching author:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch author'
-    })
+    throwServer(500, 'Failed to fetch author')
   }
 })

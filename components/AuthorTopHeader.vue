@@ -92,39 +92,32 @@
 </template>
 
 <script lang="ts" setup>
+import type { AuthorWithSocials } from '~/types/author'
+
+interface HeaderMenuItem {
+  label: string
+  leading?: string
+  onclick: () => void
+}
+
+interface HeaderUser {
+  id: number
+  name: string
+  role: 'admin' | 'moderator' | 'user'
+}
+
 interface Props {
-  author: {
-    id: string
-    name: string
-    is_fictional: boolean
-    birth_date: string
-    death_date: string
-    job: string
-    description: string
-    birth_location: string
-    death_location: string
-    socials: Array<{
-      platform: string
-      url: string
-    }>
-    quotes_count: number
-    views_count: number
-    shares_count: number
-    likes_count: number
-  }
+  author: AuthorWithSocials
   headerTitle: string
-  headerMenuItems: Array<{
-    label: string
-    action: () => void
-  }>
+  headerMenuItems: HeaderMenuItem[]
   sharePending: boolean
   likePending: boolean
   isLiked: boolean
-  user: { id: string; name: string } | null
+  user: HeaderUser | null
   copyState: 'idle' | 'copying' | 'copied'
   // Functions passed from parent
-  formatLifeDates: (birthDate: string, deathDate: string) => string
-  formatNumber: (num: number) => string
+  formatLifeDates: (birthDate?: string | null, deathDate?: string | null) => string
+  formatNumber: (num?: number | null) => string
   scrollToTop: () => void
   shareAuthor: () => void
   toggleLike: () => void
