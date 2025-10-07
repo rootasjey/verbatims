@@ -11,6 +11,16 @@
 				"$tsc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Install puppeteer deps",
+			"type": "shell",
+			"command": "npx nypm i @cloudflare/puppeteer puppeteer",
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
 		}
 	]
 }

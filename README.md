@@ -53,29 +53,13 @@ Helpful references:
 ## Getting started
 
 Prerequisites: Node 18+ and your preferred package manager. The project uses Bun by default, but npm/pnpm/yarn work too.
-
-Install dependencies:
-
-```bash
-bun install
-```
-
-Start the dev server at http://localhost:3000:
+NOTE: You can use any package manager, just replace `bun` with `npm`/`pnpm`/`yarn` in the commands below.
 
 ```bash
-bun run dev
-```
-
-Build for production:
-
-```bash
-bun run build
-```
-
-Preview the production build locally:
-
-```bash
-bun run preview
+bun install        # Install dependencies
+bun run dev        # Start the dev server at http://localhost:3000
+bun run build      # Build for production
+bun run preview    # Preview the production build locally
 ```
 
 NuxtHub will provision a local D1 database automatically. The SQL schema lives in `server/database/migrations/schema.sql` and is applied through the NuxtHub integration.
@@ -83,10 +67,11 @@ NuxtHub will provision a local D1 database automatically. The SQL schema lives i
 ## Scripts
 
 The most common scripts are:
+NOTE: You can use any package manager, just replace `bun` with `npm`/`pnpm`/`yarn` in the commands below.
 
-- `bun run dev` – start development server
-- `bun run build` – production build
-- `bun run preview` – preview the production build
+- `bun run dev` - start development server
+- `bun run build` - production build
+- `bun run preview` - preview the production build
 
 Note: The legacy local CLI utilities under `scripts/` have been removed. Admin operations are now performed through the in-app Admin pages and server APIs (e.g., export, import, backup).
 
@@ -94,12 +79,12 @@ Note: The legacy local CLI utilities under `scripts/` have been removed. Admin o
 
 - Submissions are verified for wording and authorship before publishing; misattributions may be corrected or declined.
 - Community reports with citations are encouraged.
-- We store only what’s needed to run the app (account info, favorites, collections, preferences). We don’t sell personal data.
+- We store only what's needed to run the app (account info, favorites, collections, preferences). We don't sell personal data.
 - See in-app pages for details: `/privacy` and `/terms`.
 
 ## Deployment
 
-This app targets Cloudflare Pages with NuxtHub. Follow Nuxt’s deployment docs and the NuxtHub guide for Cloudflare Pages. CI typically runs `nuxt build` and deploys the output using Cloudflare tooling.
+This app targets Cloudflare Pages with NuxtHub. Follow Nuxt's deployment docs and the NuxtHub guide for Cloudflare Pages. CI typically runs `nuxt build` and deploys the output using Cloudflare tooling.
 
 ## Contributing
 
@@ -107,4 +92,35 @@ Issues and PRs are welcome. Please follow the established code style (TypeScript
 
 ## License
 
-This project is licensed under the MIT License – see `LICENSE`.
+This project is licensed under the MIT License - see `LICENSE`.
+
+## Open Graph (OG) Image Generation
+
+This project provides dynamic, high-quality OG images for quotes, optimized for social sharing and SEO. The system is fully automated and cache-aware, with admin controls for cache management.
+
+### How it works
+
+- **Endpoint:** `GET /api/og/quotes/{id}.png` generates a PNG image for a quote, suitable for Twitter, Facebook, etc.
+- **Rendering:** Uses NuxtHub's browser automation (Puppeteer) to screenshot a styled HTML template (`/api/og/templates/quote?id=...`).
+- **Caching:** Images are stored in KV (Cloudflare D1) with a hash based on quote content, author, reference, and style version. This ensures images are regenerated only when content or style changes.
+- **Fallback:** If no quote-specific image is available, the default site image (`/images/verbatims.jpeg`) is used.
+- **SVG Overlay:** Alternative SVG endpoint (`/api/og/quotes/{id}/overlay`) provides a scalable text overlay for advanced use cases.
+
+### Admin controls
+
+- **Pre-generate OG images:** `POST /api/admin/og/quotes/{id}/generate` (admin/moderator only) triggers generation and caching for a quote.
+- **Cache invalidation:** Bump the `NUXT_PUBLIC_OG_STYLE_VERSION` environment variable to force regeneration of all OG images (e.g., after style changes).
+
+### Configuration
+
+- Enable browser rendering in `nuxt.config.ts` with `hub.browser: true`.
+- Set `public.siteUrl` and `public.ogStyleVersion` in runtime config for correct URL generation and cache versioning.
+- Puppeteer dependencies are managed in `package.json` and installable via VS Code tasks.
+
+### Developer notes
+
+- All OG endpoints and logic are in `server/api/og/` and `server/utils/og.ts`.
+- The SEO composable (`composables/useSeo.ts`) automatically sets OG meta tags and image URLs for quote pages.
+- Admins can warm the cache or force regeneration as needed.
+
+For more details, see the code in `server/api/og/`, `server/utils/og.ts`, and the configuration in `nuxt.config.ts`.

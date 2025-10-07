@@ -72,6 +72,7 @@ export default defineNuxtConfig({
     cache: true,
     database: true,
     kv: true,
+    browser: true,
   },
 
   nitro: {
@@ -91,7 +92,10 @@ export default defineNuxtConfig({
     public: {
       authUrl: process.env.NUXT_AUTH_ORIGIN || 'http://localhost:3000',
       // Injected at build time; used in UI (About, header, footer)
-      appVersion: computeVersion()
+      appVersion: computeVersion(),
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc',
+      // Bump to invalidate all previously rendered OG images
+      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '1'
     }
   },
 
