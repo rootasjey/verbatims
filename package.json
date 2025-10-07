@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "version": "node ./scripts/tag-version.mjs"
   },
   "dependencies": {
+    "@cloudflare/puppeteer": "^1.0.4",
     "@nuxt/image": "1.10.0",
     "@nuxt/test-utils": "3.19.2",
     "@nuxthub/core": "0.9.0",
@@ -26,6 +27,7 @@
     "nuxt": "^3.17.7",
     "nuxt-auth-utils": "0.5.20",
     "pinia": "^3.0.3",
+    "puppeteer": "^24.23.0",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },

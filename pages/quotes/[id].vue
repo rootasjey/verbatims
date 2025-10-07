@@ -153,18 +153,43 @@ const quote = computed(() => quoteData.value?.data)
 const { data: relatedData } = await useFetch(`/api/quotes/${route.params.id}/related`)
 const relatedQuotes = computed(() => relatedData.value?.data || [])
 
-useHead(() => ({
-  title: quote.value ? `"${quote.value.name.substring(0, 60)}..." - Verbatims` : 'Quote - Verbatims',
-  meta: [
-    { 
-      name: 'description', 
-      content: quote.value ? `${quote.value.name.substring(0, 160)}...` : 'View quote details on Verbatims' 
-    },
-    { property: 'og:title', content: quote.value ? `"${quote.value.name}"` : 'Quote' },
-    { property: 'og:description', content: quote.value ? `${quote.value.author?.name ? `- ${quote.value.author.name}` : ''}` : '' },
-    { property: 'og:type', content: 'article' }
-  ]
-}))
+useVerbatimsSeo(() => {
+  const currentQuote = quote.value
+
+  if (!currentQuote) {
+    return {
+      title: 'Quote - Verbatims',
+      description: 'Explore curated quotes, authors, and references on Verbatims.',
+      type: 'article'
+    }
+  }
+
+  const trimmedQuote = currentQuote.name.length > 160
+    ? `${currentQuote.name.slice(0, 157)}…`
+    : currentQuote.name
+
+  const headerTitle = currentQuote.name.length > 70
+    ? `${currentQuote.name.slice(0, 67)}…`
+    : currentQuote.name
+
+  const metaDescriptionParts = [trimmedQuote]
+  if (currentQuote.author?.name) {
+    metaDescriptionParts.push(`— ${currentQuote.author.name}`)
+  }
+  if (currentQuote.reference?.name) {
+    metaDescriptionParts.push(`(${currentQuote.reference.name})`)
+  }
+
+  return {
+    title: `"${headerTitle}" — Verbatims`,
+    description: metaDescriptionParts.join(' '),
+    imagePath: `/api/og/quotes/${currentQuote.id}.png`,
+    imageAlt: currentQuote.author?.name
+      ? `Quote by ${currentQuote.author.name}`
+      : 'Quote shared from Verbatims',
+    type: 'article'
+  }
+})
 
 // Track view
 onMounted(async () => {
