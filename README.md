@@ -101,7 +101,7 @@ This project provides dynamic, high-quality OG images for quotes, optimized for 
 ### How it works
 
 - **Endpoint:** `GET /api/og/quotes/{id}.png` generates a PNG image for a quote, suitable for Twitter, Facebook, etc.
-- **Rendering:** Uses NuxtHub's browser automation (Puppeteer) to screenshot a styled HTML template (`/api/og/templates/quote?id=...`).
+- **Rendering:** Uses NuxtHub's browser automation (Puppeteer) to screenshot a styled HTML template (`/api/og/templates/quote?id=...`) (e.g. `http://localhost:3001/api/og/templates/quote?id=2309`).
 - **Caching:** Images are stored in KV (Cloudflare D1) with a hash based on quote content, author, reference, and style version. This ensures images are regenerated only when content or style changes.
 - **Fallback:** If no quote-specific image is available, the default site image (`/images/verbatims.jpeg`) is used.
 - **SVG Overlay:** Alternative SVG endpoint (`/api/og/quotes/{id}/overlay`) provides a scalable text overlay for advanced use cases.

@@ -1,6 +1,7 @@
 <template>
   <div>
-    <UCollapsible>
+    <ClientOnly>
+      <UCollapsible>
       <template #trigger>
         <div class="flex-col items-center mx-auto">
           <UButton btn="text-gray" class="min-w-330px md:w-600px mb-4 underline decoration-offset-8">
@@ -85,7 +86,16 @@
           </dl>
         </div>
       </template>
-    </UCollapsible>
+      </UCollapsible>
+
+      <template #fallback>
+        <div class="flex-col items-center mx-auto">
+          <div class="min-w-330px md:w-600px mb-4 underline decoration-offset-8 text-gray-600 dark:text-gray-400 text-center">
+            Show metadata
+          </div>
+        </div>
+      </template>
+    </ClientOnly>
   </div>
 </template>
 

@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
         font-family: 'Gambetta', Georgia, 'Times New Roman', serif;
         color: var(--fg);
       }
-      .meta { font-size: 28px; font-weight: 600; color: var(--fg-dim); margin-top: 8px; }
+      .meta { font-size: 28px; font-weight: 200; color: var(--fg-dim); margin-top: 8px; }
       .brand { margin-top: 20px; font-size: 18px; font-weight: 700; letter-spacing: 6px; text-transform: uppercase; color: var(--brand); }
     </style>
   </head>

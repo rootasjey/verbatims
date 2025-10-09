@@ -1,22 +1,24 @@
 <template>
   <div class="min-h-screen">
-    <!-- Desktop-only Sticky Header -->
-    <QuoteStickyHeader
-      v-if="quote"
-      class="animate-fade-in animate-duration-300 animate-ease-out"
-      :quote="quote"
-      :user="user"
-      :is-liked="isLiked"
-      :like-pending="likePending"
-      :share-pending="sharePending"
-      :saved-state="savedState"
-      :copy-state="copyState"
-      :menu-items="headerMenuItems"
-      @toggle-like="toggleLike"
-      @share="shareQuote"
-      @add-to-collection="addToCollection"
-      @copy-link="copyLink"
-    />
+    <!-- Desktop-only Sticky Header (client-only to avoid SSR hydration mismatch due to teleports/popovers) -->
+    <ClientOnly>
+      <QuoteStickyHeader
+        v-if="quote"
+        class="animate-fade-in animate-duration-300 animate-ease-out"
+        :quote="quote"
+        :user="user"
+        :is-liked="isLiked"
+        :like-pending="likePending"
+        :share-pending="sharePending"
+        :saved-state="savedState"
+        :copy-state="copyState"
+        :menu-items="headerMenuItems"
+        @toggle-like="toggleLike"
+        @share="shareQuote"
+        @add-to-collection="addToCollection"
+        @copy-link="copyLink"
+      />
+    </ClientOnly>
 
     <div v-if="pending" class="px-8 py-16">
       <div class="max-w-4xl mx-auto">
@@ -49,21 +51,23 @@
           <QuoteAuthorReference :quote="quote" v-else />
 
           <div v-if="isMobile">
-            <MobileQuoteActionBar
-              class="animate-fade-in animate-duration-500 animate-delay-150"
-              :is-liked="isLiked"
-              :like-pending="likePending"
-              :share-pending="sharePending"
-              :saved-state="savedState"
-              :likes-count="quote.likes_count || 0"
-              :can-interact="!!user"
-              @toggle-like="toggleLike"
-              @save="addToCollection"
-              @share="shareQuote"
-              @copy-link="copyLink"
-              @copy-text="copyQuoteText"
-              @download-image="downloadQuote"
-            />
+            <ClientOnly>
+              <MobileQuoteActionBar
+                class="animate-fade-in animate-duration-500 animate-delay-150"
+                :is-liked="isLiked"
+                :like-pending="likePending"
+                :share-pending="sharePending"
+                :saved-state="savedState"
+                :likes-count="quote.likes_count || 0"
+                :can-interact="!!user"
+                @toggle-like="toggleLike"
+                @save="addToCollection"
+                @share="shareQuote"
+                @copy-link="copyLink"
+                @copy-text="copyQuoteText"
+                @download-image="downloadQuote"
+              />
+            </ClientOnly>
           </div>
         </div>
 
@@ -104,38 +108,49 @@
     </div>
   </div>
 
-  <AddToCollectionModal
-    v-model="showAddToCollectionModal"
-    :quote="quote"
-    @added="onAddedToCollection"
-  />
+  <ClientOnly>
+    <AddToCollectionModal
+      v-if="quote"
+      v-model="showAddToCollectionModal"
+      :quote="quote"
+      @added="onAddedToCollection"
+    />
+  </ClientOnly>
 
-  <AddQuoteDialog
-    v-model="showEditQuoteDialog"
-    :editQuote="quote"
-    @quote-updated="onQuoteUpdated"
-  />
+  <ClientOnly>
+    <AddQuoteDialog
+      v-model="showEditQuoteDialog"
+      :editQuote="quote"
+      @quote-updated="onQuoteUpdated"
+    />
+  </ClientOnly>
 
-  <DeleteQuoteDialog
-    v-if="quote"
-    v-model="showDeleteQuoteDialog"
-    :quote="quote"
-    @quote-deleted="onQuoteDeleted"
-  />
+  <ClientOnly>
+    <DeleteQuoteDialog
+      v-if="quote"
+      v-model="showDeleteQuoteDialog"
+      :quote="quote"
+      @quote-deleted="onQuoteDeleted"
+    />
+  </ClientOnly>
 
-  <EditQuoteTagsDialog
-    v-if="quote"
-    v-model="showEditTagsDialog"
-    :quote-id="quote.id"
-    @tags-updated="onTagsUpdated"
-  />
+  <ClientOnly>
+    <EditQuoteTagsDialog
+      v-if="quote"
+      v-model="showEditTagsDialog"
+      :quote-id="quote.id"
+      @tags-updated="onTagsUpdated"
+    />
+  </ClientOnly>
 
-  <ReportDialog
-    v-if="quote"
-    v-model="showReportDialog"
-    targetType="quote"
-    :targetId="quote.id"
-  />
+  <ClientOnly>
+    <ReportDialog
+      v-if="quote"
+      v-model="showReportDialog"
+      targetType="quote"
+      :targetId="quote.id"
+    />
+  </ClientOnly>
 </template>
 
 <script setup>
@@ -145,7 +160,8 @@ const route = useRoute()
 const { user } = useUserSession()
 const copyState = ref('idle')
 
-definePageMeta({ layout: false })
+// Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
+definePageMeta({ layout: 'default' })
 
 const { data: quoteData, pending } = await useFetch(`/api/quotes/${route.params.id}`)
 const quote = computed(() => quoteData.value?.data)
@@ -356,16 +372,19 @@ const shareQuote = async () => {
     const shareData = {
       title: 'Quote from Verbatims',
       text: `"${quote.value.name}" ${quote.value.author ? `- ${quote.value.author.name}` : ''}`,
-      url: window.location.href
+      url: typeof window !== 'undefined' ? window.location.href : ''
     }
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
       toast({
         title: 'Quote shared successfully!',
         variant: 'success'
       })
     } else {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('clipboard-unavailable')
+      }
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
       toast({
         title: 'Quote link copied to clipboard!',
@@ -414,6 +433,9 @@ const copyQuoteText = async () => {
   if (!quote.value) return
   const { toast } = useToast()
   try {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      throw new Error('clipboard-unavailable')
+    }
     await navigator.clipboard.writeText(`"${quote.value.name}"${quote.value.author ? ` — ${quote.value.author.name}` : ''}${quote.value.reference ? ` (${quote.value.reference.name})` : ''}`)
   } catch (error) {
     toast({ title: 'Copy failed', description: 'Clipboard is not available.', variant: 'error' })
@@ -434,17 +456,26 @@ const copyLink = async () => {
   }
 }
 
+// Delay layout switch until Nuxt is fully hydrated to avoid hydration mismatch
+const hydrated = ref(false)
+
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   if (user.value && quote.value) {
     checkLikeStatus()
   }
 
-  window.addEventListener('keydown', handleGlobalKeydown)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleGlobalKeydown)
+  }
+})
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch(user, (newUser) => {
