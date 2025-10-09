@@ -15,12 +15,12 @@
         </div>
 
         <div v-if="!isAuthenticated">
-          <label class="block text-sm font-medium mb-1">Name (optional)</label>
+          <label class="block text-sm font-medium mb-1">Name</label>
           <UInput v-model="form.name" placeholder="Your name" />
         </div>
 
         <div v-if="!isAuthenticated">
-          <label class="block text-sm font-medium mb-1">Email (optional)</label>
+          <label class="block text-sm font-medium mb-1">Email</label>
           <UInput v-model="form.email" type="email" placeholder="you@example.com" />
         </div>
 

@@ -2,10 +2,8 @@ export default defineEventHandler(async (event) => {
   try {
     const collectionId = getRouterParam(event, 'id')
     if (!collectionId || isNaN(parseInt(collectionId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid collection ID'
-      })
+      throwServer(400, 'Invalid collection ID')
+      return
     }
     
     const session = await getUserSession(event)
@@ -34,12 +32,7 @@ export default defineEventHandler(async (event) => {
                      (session.user && session.user.id === collection.user_id) ||
                      (session.user && (session.user.role === 'admin' || session.user.role === 'moderator'))
     
-    if (!canAccess) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Access denied'
-      })
-    }
+    if (!canAccess) { throwServer(403, 'Access denied') }
     
     // Get quotes in collection with pagination
     const query = getQuery(event)
@@ -109,15 +102,9 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
-  } catch (error) {
-    if (error.statusCode) {
-      throw error
-    }
-    
+  } catch (error: any) {
+    if (error.statusCode) throw error    
     console.error('Collection fetch error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch collection'
-    })
+    throwServer(500, 'Failed to fetch collection')
   }
 })

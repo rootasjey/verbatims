@@ -1,22 +1,17 @@
 <template>
   <div class="min-h-screen">
-    <!-- Loading State for Language Store -->
-    <div v-if="!isLanguageReady" class="flex items-center justify-center py-16">
+    <!-- Initial-only loading: render identically on SSR and during hydration -->
+    <div v-if="!hydrated || !isLanguageReady || pending" class="flex items-center justify-center py-16">
       <div class="flex items-center gap-3">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-        <span class="text-gray-600 dark:text-gray-400">Loading...</span>
-      </div>
-    </div>
-
-    <div v-else-if="pending" class="p-8">
-      <div class="animate-pulse">
-        <div class="h-16 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-8"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-2"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mx-auto"></div>
+        <span class="text-gray-600 dark:text-gray-400">
+          {{ !hydrated ? 'Loading...' : (!isLanguageReady ? 'Initializing...' : 'Loading author...') }}
+        </span>
       </div>
     </div>
 
     <div v-else-if="author">
+      <ClientOnly>
       <AuthorTopHeader
         :author="author"
         :header-title="headerTitle"
@@ -33,6 +28,7 @@
         :toggle-like="toggleLike"
         :copy-link="copyLink"
       />
+      </ClientOnly>
 
       <header class="mt-12 p-8">
         <!-- Author Type (appears after header content animates) -->
@@ -226,34 +222,42 @@
       </div>
     </div>
     
-    <AddAuthorDialog
-      v-model="showEditAuthorDialog"
-      :editAuthor="authorAsEditAuthor"
-      @author-updated="onAuthorUpdated"
-    />
+    <ClientOnly>
+      <AddAuthorDialog
+        v-model="showEditAuthorDialog"
+        :editAuthor="authorAsEditAuthor"
+        @author-updated="onAuthorUpdated"
+      />
+    </ClientOnly>
 
-    <DeleteAuthorDialog
-      v-if="author"
-      v-model="showDeleteAuthorDialog"
-      :author="authorAsEditAuthor"
-      @author-deleted="onAuthorDeleted"
-    />
+    <ClientOnly>
+      <DeleteAuthorDialog
+        v-if="author"
+        v-model="showDeleteAuthorDialog"
+        :author="authorAsEditAuthor"
+        @author-deleted="onAuthorDeleted"
+      />
+    </ClientOnly>
 
-    <ReportDialog
-      v-if="author"
-      v-model="showReportDialog"
-      targetType="author"
-      :targetId="author.id"
-    />
+    <ClientOnly>
+      <ReportDialog
+        v-if="author"
+        v-model="showReportDialog"
+        targetType="author"
+        :targetId="author.id"
+      />
+    </ClientOnly>
   </div>
 
-  <MobileAuthorFiltersDrawer
-    v-if="isMobile"
-    v-model:open="mobileFiltersOpen"
-    v-model:sortBy="sortBy"
-    :sortOptions="sortOptions"
-    @language-changed="onLanguageChange"
-  />
+  <ClientOnly>
+    <MobileAuthorFiltersDrawer
+      v-if="isMobile"
+      v-model:open="mobileFiltersOpen"
+      v-model:sortBy="sortBy"
+      :sortOptions="sortOptions"
+      @language-changed="onLanguageChange"
+    />
+  </ClientOnly>
 </template>
 
 <script lang="ts" setup>
@@ -262,7 +266,8 @@ import type { ComputedRef, Ref } from 'vue'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
-definePageMeta({ layout: false })
+// Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
+definePageMeta({ layout: 'default' })
 
 const route = useRoute()
 const { user } = useUserSession()
@@ -531,10 +536,13 @@ const shareAuthor = async () => {
       url: typeof window !== 'undefined' ? window.location.href : ''
     }
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
       toast({ title: 'Author shared successfully!' })
     } else {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('clipboard-unavailable')
+      }
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
       toast({ title: 'Author link copied to clipboard!' })
     }
@@ -554,6 +562,9 @@ const copyLink = async () => {
   try {
     const url = typeof window !== 'undefined' ? window.location.href : ''
     if (!url) throw new Error('no-url')
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      throw new Error('clipboard-unavailable')
+    }
     await navigator.clipboard.writeText(url)
 
     copyState.value = 'copied'
@@ -564,7 +575,9 @@ const copyLink = async () => {
 }
 
 const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 }
 
 const showReportDialog = ref(false)
@@ -589,8 +602,9 @@ const formatNumber = (num?: number | null): string => {
   return num.toString()
 }
 
+const hydrated = ref(false)
+
 onMounted(async () => {
-  setPageLayout(currentLayout.value)
   await waitForLanguageStore()
 
   if (author.value) {
@@ -611,11 +625,18 @@ onMounted(async () => {
   }
 
   // Attach global shortcut
-  window.addEventListener('keydown', handleGlobalKeydown)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleGlobalKeydown)
+  }
+})
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch(author, (newAuthor) => {
@@ -663,7 +684,9 @@ watch(pending, (now, prev) => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleGlobalKeydown)
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleGlobalKeydown)
+  }
 })
 </script>
 

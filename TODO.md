@@ -77,3 +77,9 @@ This file tracks recommended follow-ups to harden the import system and improve 
 - [ ] Documentation
   - Document import formats, limits, and admin options in `docs/`.
   - Acceptance: Contributors can run imports locally and on Pages with minimal friction.
+
+
+- [ ] Avoid mutating computed data objects
+  - Refactor places where we directly mutate data coming from useFetch/useLazyFetch computed wrappers (e.g., likes_count, shares_count, views_count on quote/author/reference pages).
+  - Prefer local refs mirroring server data or re-fetch and replace the response (e.g., `fooData.value = await $fetch(...)`).
+  - Audit: pages/quotes/[id].vue, pages/authors/[id].vue, pages/references/[id].vue.

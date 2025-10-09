@@ -1,22 +1,17 @@
 <template>
   <div class="min-h-screen">
-    <!-- Loading State for Language Store -->
-    <div v-if="!isLanguageReady" class="flex items-center justify-center py-16">
+    <!-- Initial-only loading: render identically on SSR and during hydration -->
+    <div v-if="!hydrated || !isLanguageReady || pending" class="flex items-center justify-center py-16">
       <div class="flex items-center gap-3">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-        <span class="text-gray-600 dark:text-gray-400">Loading...</span>
-      </div>
-    </div>
-
-    <div v-else-if="pending" class="p-8">
-      <div class="animate-pulse">
-        <div class="h-16 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-8"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-2"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mx-auto"></div>
+        <span class="text-gray-600 dark:text-gray-400">
+          {{ !hydrated ? 'Loading...' : (!isLanguageReady ? 'Initializing...' : 'Loading reference...') }}
+        </span>
       </div>
     </div>
 
     <div v-else-if="reference">
+      <ClientOnly>
       <ReferenceTopHeader
         :header-title="headerTitle"
         :reference="{
@@ -37,6 +32,7 @@
         @copy-link="copyLink"
         @scroll-top="scrollToTop"
       />
+      </ClientOnly>
       
       <header class="mt-12 p-8">
         <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
@@ -209,44 +205,53 @@
       </div>
     </div>
 
-    <AddReferenceDialog
-      v-if="isEditDialogOpen && reference"
-      v-model="isEditDialogOpen"
-      :edit-reference="{
-        ...reference,
-        urls: reference.urls ? JSON.stringify(reference.urls) : '',
-      }"
-      @reference-updated="onReferenceUpdated"
-    />
+    <ClientOnly>
+      <AddReferenceDialog
+        v-if="isEditDialogOpen && reference"
+        v-model="isEditDialogOpen"
+        :edit-reference="{
+          ...reference,
+          urls: reference.urls ? JSON.stringify(reference.urls) : '',
+        }"
+        @reference-updated="onReferenceUpdated"
+      />
+    </ClientOnly>
 
-    <DeleteReferenceDialog
-      v-if="isDeleteDialogOpen && reference"
-      v-model="isDeleteDialogOpen"
-      :reference="{
-        ...reference,
-      }"
-      @reference-deleted="onReferenceDeleted"
-    />
+    <ClientOnly>
+      <DeleteReferenceDialog
+        v-if="isDeleteDialogOpen && reference"
+        v-model="isDeleteDialogOpen"
+        :reference="{
+          ...reference,
+        }"
+        @reference-deleted="onReferenceDeleted"
+      />
+    </ClientOnly>
 
-    <ReportDialog
-      v-if="reference"
-      v-model="showReportDialog"
-      targetType="reference"
-      :targetId="reference.id"
-    />
+    <ClientOnly>
+      <ReportDialog
+        v-if="reference"
+        v-model="showReportDialog"
+        targetType="reference"
+        :targetId="reference.id"
+      />
+    </ClientOnly>
   </div>
 
-  <MobileAuthorFiltersDrawer
-    v-if="isMobile"
-    v-model:open="mobileFiltersOpen"
-    v-model:sortBy="sortBy"
-    :sortOptions="sortOptions"
-    @language-changed="onLanguageChange"
-  />
+  <ClientOnly>
+    <MobileAuthorFiltersDrawer
+      v-if="isMobile"
+      v-model:open="mobileFiltersOpen"
+      v-model:sortBy="sortBy"
+      :sortOptions="sortOptions"
+      @language-changed="onLanguageChange"
+    />
+  </ClientOnly>
 </template>
 
 <script lang="ts" setup>
-definePageMeta({ layout: false })
+// Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
+definePageMeta({ layout: 'default' })
 
 import type { Quote, QuoteReferenceWithMetadata } from '~/types'
 
@@ -478,10 +483,13 @@ const shareReference = async () => {
       url: typeof window !== 'undefined' ? window.location.href : ''
     }
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
       toast({ title: 'Reference shared successfully!' })
     } else {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('clipboard-unavailable')
+      }
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
       toast({ title: 'Reference link copied to clipboard!' })
     }
@@ -501,6 +509,9 @@ const copyLink = async () => {
   try {
     const url = typeof window !== 'undefined' ? window.location.href : ''
     if (!url) throw new Error('no-url')
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      throw new Error('clipboard-unavailable')
+    }
     await navigator.clipboard.writeText(url)
 
     copyState.value = 'copied'
@@ -511,7 +522,9 @@ const copyLink = async () => {
 }
 
 const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 }
 
 const showReportDialog = ref(false)
@@ -582,12 +595,13 @@ const getTypeColor = (type: string) => {
   return colors[type] || 'gray'
 }
 
-onMounted(async () => {
-  // apply current layout per device
-  setPageLayout(currentLayout.value)
+const hydrated = ref(false)
 
+onMounted(async () => {
   // Attach global shortcut as soon as component mounts
-  window.addEventListener('keydown', handleGlobalKeydown)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleGlobalKeydown)
+  }
 
   await waitForLanguageStore()
   if (!reference.value) return
@@ -606,8 +620,13 @@ onMounted(async () => {
   await triggerHeaderEnter()
 })
 
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch(reference, (newReference) => {
@@ -657,7 +676,9 @@ watch(pending, (now, prev) => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleGlobalKeydown)
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleGlobalKeydown)
+  }
 })
 </script>
 
