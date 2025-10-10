@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
   if (cached) {
     setHeader(event, 'Content-Type', 'image/png')
     setHeader(event, 'ETag', `W/"${effectiveHash}"`)
-    setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable') // 1 year
+    setHeader(event, 'Cache-Control', 'public, max-age=2592000') // 30 days
     return base64ToUint8(cached)
   }
 
@@ -54,11 +54,17 @@ export default defineEventHandler(async (event) => {
   // Store in KV for future hits
   const b64 = uint8ToBase64(new Uint8Array(png))
   await kv.set(keyImage(hash), b64)
+  
+  // Clean up old image if hash changed
+  if (latest && latest !== hash) {
+    await kv.del(keyImage(latest))
+  }
+  
   await kv.set(keyData, hash)
 
   setHeader(event, 'Content-Type', 'image/png')
   setHeader(event, 'ETag', `W/"${hash}"`)
-  setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable') // 1 year
+  setHeader(event, 'Cache-Control', 'public, max-age=2592000') // 30 days
   return png
 })
 
