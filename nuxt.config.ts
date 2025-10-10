@@ -25,7 +25,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Verbatims - Universal Quotes Service',
+      title: 'Verbatims - Modern Quotes Service',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -34,18 +34,18 @@ export default defineNuxtConfig({
         // Open Graph / Facebook
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Verbatims' },
-        { property: 'og:title', content: 'Verbatims - Universal Quotes Service' },
+        { property: 'og:title', content: 'Verbatims - Modern Quotes Service' },
         { property: 'og:description', content: 'Discover inspiring quotes from films, books, games, and more. A comprehensive, user-generated quotes database with moderation capabilities.' },
-        { property: 'og:image', content: '/images/verbatims.jpeg' },
+        { property: 'og:image', content: '/api/og/default.png' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { property: 'og:url', content: 'https://verbatims.cc' },
         
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Verbatims - Universal Quotes Service' },
+        { name: 'twitter:title', content: 'Verbatims - Modern Quotes Service' },
         { name: 'twitter:description', content: 'Discover inspiring quotes from films, books, games, and more. A comprehensive, user-generated quotes database with moderation capabilities.' },
-        { name: 'twitter:image', content: '/images/verbatims.jpeg' },
+        { name: 'twitter:image', content: '/api/og/default.png' },
         
         // Additional meta tags
         { name: 'theme-color', content: '#0BA6DF' }

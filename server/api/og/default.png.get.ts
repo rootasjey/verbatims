@@ -1,36 +1,22 @@
-import { getApprovedQuoteForOg } from '~/server/utils/og'
-
 export default defineEventHandler(async (event) => {
-  let quoteId = getRouterParam(event, 'id')
-  if (!quoteId) { throwServer(400, 'Quote id is required'); return }
-
-  // Accept optional .png suffix for nicer URLs in social meta
-  if (quoteId.endsWith('.png')) quoteId = quoteId.slice(0, -4)
-
-  const quote = await getApprovedQuoteForOg(quoteId)
-  if (!quote) { throwServer(404, 'Quote not found'); return }
-
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
   const siteUrl = (config.public as any).siteUrl as string
   const styleVersion = (config.public as any).ogStyleVersion as string
   const origin = (siteUrl && siteUrl.length > 0 ? siteUrl : `${requestUrl.protocol}//${requestUrl.host}`).replace(/\/$/, '')
 
-  // Derive a stable hash from content + style to invalidate when needed
+  // Derive a stable hash for caching
   const basis = JSON.stringify({
-    t: quote.text,
-    a: quote.authorName || '',
-    r: quote.referenceName || '',
-    v: styleVersion || '1',
-    u: quote.updatedAt ? Date.parse(quote.updatedAt) : 0
+    t: 'default',
+    v: styleVersion || '1'
   })
+
   const hash = await sha1(basis)
-
   const kv = hubKV()
-  const keyData = `og:quote:${quoteId}:latest`
-  const keyImage = (h: string) => `og:quote:${quoteId}:${h}.png`
+  const keyData = 'og:default:latest'
+  const keyImage = (h: string) => `og:default:${h}.png`
 
-  // If latest hash matches and image exists, serve from KV
+  // Check cache first
   const latest = await kv.get<string>(keyData)
   const effectiveHash = latest && latest === hash ? latest : hash
 
@@ -45,9 +31,9 @@ export default defineEventHandler(async (event) => {
   // Render using Cloudflare Browser Rendering (Puppeteer)
   const { page } = await hubBrowser({ keepAlive: 120 })
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
-  const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`
+  const templateUrl = `${origin}/api/og/templates/default?v=${encodeURIComponent(styleVersion || '1')}`
 
-  // Navigate and wait for fonts to load (dom + network idle enough for our minimal page)
+  // Navigate and wait for fonts to load
   await page.goto(templateUrl, { waitUntil: 'domcontentloaded', timeout: 15000 })
   const png = await page.screenshot({ type: 'png' }) as Buffer
 
