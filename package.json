@@ -24,10 +24,11 @@
     "@una-ui/nuxt": "^0.61.0",
     "@vueuse/nuxt": "^13.8.0",
     "fflate": "^0.8.2",
+    "html-to-image": "^1.11.13",
     "nuxt": "^3.17.7",
     "nuxt-auth-utils": "0.5.20",
     "pinia": "^3.0.3",
-    "puppeteer": "^24.23.0",
+    "puppeteer": "^24.24.0",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },
