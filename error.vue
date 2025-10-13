@@ -60,9 +60,15 @@
 <script setup lang="ts">
 import type { QuoteWithMetadata } from './types'
 
-const error = useError()
-const statusCode = computed(() => Number((error.value as any)?.statusCode ?? (error.value as any)?.status ?? 500))
-const message = computed(() => (error.value as any)?.message || 'Something went wrong')
+// Nuxt passes an `error` prop to this special page; accept it to avoid extraneous-attrs warning
+const { error: errorProp } = defineProps<{ error?: any }>()
+const nuxtError = useError()
+const statusCode = computed(() => Number(
+  (errorProp as any)?.statusCode ?? (errorProp as any)?.status ??
+  (nuxtError.value as any)?.statusCode ?? (nuxtError.value as any)?.status ??
+  500
+))
+const message = computed(() => (errorProp as any)?.message ?? (nuxtError.value as any)?.message ?? 'Something went wrong')
 
 const quotes = ref<QuoteWithMetadata[]>([])
 const index = ref(0)

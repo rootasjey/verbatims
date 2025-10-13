@@ -1,6 +1,6 @@
 <template>
-  <div class="relative">
-    <div class="my-8">
+  <div class="relative m-24">
+    <div class="mb-8">
       <h1 class="text-4xl font-bold mb-4 text-center">Press Kit</h1>
       <!-- Toolbar -->
       <div class="flex items-center justify-center gap-3 mt-6">
@@ -16,28 +16,61 @@
           size="sm"
           btn="solid-black"
           :loading="downloading"
-          @click="downloadLogo"
+          disabled
+          title="Click a preview card below to download the corresponding PNG"
         >
-          Download
+          Click preview to download
         </UButton>
       </div>
     </div>
-    <div
-      ref="captureEl"
-      class="relative aspect-[4/3] h-90% w-90% bg-black flex flex-col m-12 rounded-1 mx-auto justify-center items-center text-white"
-      style="font-family: 'serif', 'Georgia', 'Times New Roman', Times, serif;"
-    >
-      <div>
-        <div class="absolute top-0 left-36 border-l b-dashed border-white/40 h-full w-4"></div>
-        <div class="flex flex-col items-center relative z-1 font-serif text-9xl font-600 m-12 select-none">
-          <div class="bg-white text-black my-2 px-8">verbatims</div>
-          <div class="bg-white text-black my-2 px-8">verbatims</div>
-          <div class="bg-white text-black my-2 px-8">verbatims</div>
+
+    <div class="flex flex-col gap-4">
+      <div
+          id="verbatims-bar.png"
+          @click="onAssetClick"
+          class="relative bg-black flex flex-col rounded-1 mx-auto justify-center items-center text-white cursor-pointer select-none"
+          style="font-family: 'serif', 'Georgia', 'Times New Roman', Times, serif;"
+          title="Click to download verbatims-bar.png"
+        >
+          <div class="w-[calc(100%-28px)] border b-dashed m-4">
+            <div class="px-0 flex flex-col items-center relative z-1 font-title text-size-12 sm:text-size-24 md:text-size-42 xl:text-size-54 line-height-28 font-600 m-12">
+              <div class="text-white my-2 px-8">VERBATIMS</div>
+            </div>
+          </div>
+      </div>
+    
+      <div class="flex gap-2">
+        <div
+          id="vbt.png"
+          @click="onAssetClick"
+          class="w-400px relative bg-black flex flex-col rounded-1 mx-auto justify-center items-center text-white cursor-pointer select-none"
+          style="font-family: 'serif', 'Georgia', 'Times New Roman', Times, serif;"
+          title="Click to download vbt.png"
+        >
+          <div class="w-[calc(100%-28px)] border b-dashed m-4">
+            <div class="px-0 flex flex-col items-center relative z-1 font-title text-size-24 lg:text-size-54 line-height-28 font-600 m-12">
+              <div class="text-white my-2 px-8">VBT</div>
+            </div>
+          </div>
         </div>
-        <div class="absolute top-0 right-32 border-l b-dashed border-white/40 h-full w-4"></div>
+        <div class="bg-black min-h-full w-full text-white rounded-1"></div>
       </div>
 
-      <div class="relative bottom-10 border-b b-dashed border-white/40 w-full my-4"></div>
+      <div
+        id="vbt-text.png"
+        @click="onAssetClick"
+        class="relative bg-black flex flex-col rounded-1 mx-auto justify-center items-center text-white cursor-pointer select-none"
+        style="font-family: 'serif', 'Georgia', 'Times New Roman', Times, serif;"
+        title="Click to download vbt-text.png"
+      >
+        <div class="border b-dashed m-4">
+          <div class="flex flex-col items-center relative z-1 font-serif text-md sm:text-3xl md:text-5xl lg:text-7xl m-12">
+            <div class="text-white my-2 px-8">Pour savoir qui l'on est, il faut savoir d'où l'on vient. 
+              L'histoire c'est la connaissance du passé. c'est le passé qui éclaire le présent. 
+              Et c'est en conservant la mémoire du présent qu'on peut éclairer l'avenir.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -52,7 +85,6 @@ type Format = 'png' | 'jpeg' | 'svg'
 const selectedFormat = ref<{ label: string; value: Format }>({ label: 'PNG', value: 'png' })
 const downloading = ref(false)
 const errorMsg = ref('')
-const captureEl = ref<HTMLElement | null>(null)
 
 const formatItems = [
   { label: 'PNG', value: 'png' },
@@ -60,49 +92,29 @@ const formatItems = [
   { label: 'SVG', value: 'svg' },
 ]
 
-async function downloadLogo() {
+// Click a preview block to download the matching PNG from /public/images
+function onAssetClick(event: MouseEvent) {
+  if (!import.meta.client) return
   errorMsg.value = ''
-  if (!process.client) {
-    errorMsg.value = 'Not running on client.'
+  const el = event.currentTarget as HTMLElement | null
+  const id = el?.id?.trim()
+  if (!id) {
+    errorMsg.value = 'No asset id found on the clicked element.'
     return
   }
-  const node = captureEl.value
-  if (!node) {
-    errorMsg.value = 'Logo element not found.'
+  // Only allow simple filenames ending in .png
+  if (!/^[-_.A-Za-z0-9]+\.png$/i.test(id)) {
+    errorMsg.value = 'Unsupported or invalid asset id.'
     return
   }
-  downloading.value = true
-  try {
-    // Dynamically import to keep SSR safe
-    const htmlToImage = await import('html-to-image')
-    const pixelRatio = 3 // sharper export
-    const backgroundColor = '#000000' // ensure black background like the preview
-    let dataUrl = ''
-    const fmt = selectedFormat.value?.value || 'png'
-    const commonOptions = { pixelRatio, cacheBust: true, backgroundColor, skipFonts: true }
-    if (fmt === 'png') {
-      dataUrl = await htmlToImage.toPng(node, commonOptions)
-    } else if (fmt === 'jpeg') {
-      dataUrl = await htmlToImage.toJpeg(node, { ...commonOptions, quality: 0.95 })
-    } else {
-      // SVG export serializes DOM to an SVG foreignObject snapshot
-      dataUrl = await htmlToImage.toSvg(node, { cacheBust: true, backgroundColor, skipFonts: true })
-    }
-    const link = document.createElement('a')
-    link.download = `verbatims-logo.${fmt}`
-    link.href = dataUrl
-    link.rel = 'noopener'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  } catch (err) {
-    const error = err as { message?: string }
-    errorMsg.value = 'Failed to export logo: ' + (error?.message || String(err))
-    // eslint-disable-next-line no-console
-    console.error('Failed to export logo:', err)
-  } finally {
-    downloading.value = false
-  }
+  const url = `/images/${id}`
+  const a = document.createElement('a')
+  a.href = url
+  a.download = id
+  a.rel = 'noopener'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
 }
 </script>
 
