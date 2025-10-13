@@ -6,8 +6,12 @@
     role="img"
     aria-label="Verbatims logo"
   >
-    <NuxtImg v-if="props.icon && !props.outline" src="/images/letter-v.png" :width="sizeNumber" alt="Verbatims logo" />
-    <NuxtImg v-else src="/images/letter-v-outline.png" class="outline-icon" :width="sizeNumber" alt="Verbatims logo" />
+    <div v-if="props.icon && !props.outline" :width="sizeNumber">
+      <span class="border b-dashed px-2 py-1">VBT</span>
+    </div>
+    <div v-else :width="sizeNumber">
+      <span class="border b-dashed px-2 py-1">VERBATIMS</span>
+    </div>
   </div>
 </template>
 
@@ -27,9 +31,3 @@ const containerStyle = {
 }
 
 </script>
-
-<style scoped>
-.dark .outline-icon {
-  filter: brightness(0) invert(1);
-}
-</style>

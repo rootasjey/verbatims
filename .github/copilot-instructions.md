@@ -108,10 +108,7 @@ Schema in `/server/database/migrations/schema.sql` - NuxtHub handles D1 provisio
 
 ### Error Handling
 ```typescript
-throw createError({
-  statusCode: 403,
-  statusMessage: 'Admin access required'
-})
+throwServer(403, 'Admin access required')
 ```
 
 ### API Response Format
@@ -156,3 +153,5 @@ const props = withDefaults(defineProps<Props>(), {
 - `/composables/useDataExport.ts` - Complex business logic patterns
 
 When implementing features, follow the established patterns for authentication, database queries, type safety, and UI consistency.
+You can challenge and improve these patterns and instructions if you find better approaches.
+- Don't build the app except if when you want to test production build issues or after major changes (i.e. bug fixes, new features).
