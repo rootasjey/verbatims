@@ -151,6 +151,23 @@
       :targetId="quote.id"
     />
   </ClientOnly>
+
+  <!-- Download Image Modal / Drawer -->
+  <ClientOnly>
+    <DownloadQuoteDialog
+      v-if="quote && !isMobile"
+      v-model="showDownloadDialog"
+      :quote="quote"
+      @downloaded="onDownloadedImage"
+    />
+    <DownloadQuoteDrawer
+      v-if="quote && isMobile"
+      :open="showDownloadDrawer"
+      :quote="quote"
+      @update:open="onDownloadDrawerOpenChange"
+      @downloaded="onDownloadedImage"
+    />
+  </ClientOnly>
 </template>
 
 <script setup>
@@ -422,9 +439,21 @@ const onAddedToCollection = (collection) => {
   }, 3000)
 }
 
+const showDownloadDialog = ref(false)
+const showDownloadDrawer = ref(false)
+
 const downloadQuote = () => {
-  // TODO: Generate and download quote image
+  if (!quote.value) return
+  isMobile.value 
+    ? showDownloadDrawer.value = true
+    : showDownloadDialog.value = true
 }
+
+const onDownloadedImage = () => {
+  // toast({ title: 'Image downloaded', variant: 'success' })
+}
+
+const onDownloadDrawerOpenChange = (v) => { showDownloadDrawer.value = v }
 
 const showReportDialog = ref(false)
 const reportQuote = () => { showReportDialog.value = true }
@@ -436,9 +465,15 @@ const copyQuoteText = async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
       throw new Error('clipboard-unavailable')
     }
-    await navigator.clipboard.writeText(`"${quote.value.name}"${quote.value.author ? ` — ${quote.value.author.name}` : ''}${quote.value.reference ? ` (${quote.value.reference.name})` : ''}`)
+    
+    const authorName = quote.value.author?.name ? ` — ${quote.value.author.name}` : ''
+    const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
+    await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}`)
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Clipboard is not available.', variant: 'error' })
+    toast({
+      title: 'Copy failed',
+      description: 'Clipboard is not available.', variant: 'error',
+    })
   }
 }
 
@@ -490,5 +525,4 @@ onUnmounted(() => {
   if (savedTimeoutId) clearTimeout(savedTimeoutId)
   window.removeEventListener('keydown', handleGlobalKeydown)
 })
-
 </script>
