@@ -182,6 +182,7 @@ const quoteForm = ref({
 const languageOptions = [
 	{ label: 'English', value: 'en' },
 	{ label: 'French', value: 'fr' },
+  { label: 'Latin', value: 'la' },
 	{ label: 'Spanish', value: 'es' },
 	{ label: 'German', value: 'de' },
 	{ label: 'Italian', value: 'it' },
@@ -243,13 +244,12 @@ const submitQuote = async () => {
 
 	try {
 		submittingQuote.value = true
-
 		const payload = {
-			content: quoteForm.value.content.trim(),
-			language: (quoteForm.value.language as any).value,
+			name: quoteForm.value.content.trim(),
+			language: quoteForm.value.language.value,
 			author_id: quoteForm.value.selectedAuthor?.id || null,
 			user_id: user.value?.id,
-			status: 'draft' as const
+			status: 'draft'
 		}
 
 		await $fetch('/api/quotes', {
@@ -257,29 +257,20 @@ const submitQuote = async () => {
 			body: payload
 		})
 
-		// Reset form
 		quoteForm.value.content = ''
 		quoteForm.value.selectedAuthor = null
 		authorSearchQuery.value = ''
 		authorSearchResults.value = []
 
-		// Close drawer
 		isOpen.value = false
 
-		// Show success message
-		useToast().toast({
-			toast: 'success',
-			title: 'Quote Added',
-			description: 'Your quote has been submitted successfully!'
-		})
-
 		emit('submitted')
-	} catch (error) {
+	} catch (error: any) {
 		console.error('Error submitting quote:', error)
 		useToast().toast({
-			toast: 'error',
 			title: 'Error',
-			description: 'Failed to add quote. Please try again.'
+			duration: 8000,
+			description: error?.message || 'Failed to add quote. Please try again.'
 		})
 	} finally {
 		submittingQuote.value = false
