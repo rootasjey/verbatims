@@ -6,21 +6,16 @@ import type {
 
 export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
-    }
+    const { user } = await getUserSession(event)
+    if (!user) { throwServer(401, 'Authentication required') }
 
     const body = await readBody(event)
     const db = hubDatabase()
 
-    if (!body.name || body.name.length < 10 || body.name.length > 3000) {
+    if (!body.name || body.name.length < 2 || body.name.length > 4000) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Quote text must be between 10 and 3000 characters'
+        statusMessage: 'Quote text must be between 2 and 4000 characters'
       })
     }
 
@@ -116,7 +111,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       body.language || 'en',
       authorId || null,
       referenceId || null,
-      session.user.id
+      user?.id,
     ).run()
 
     const quoteId = result.meta.last_row_id
@@ -230,10 +225,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       message: 'Quote submitted successfully and is pending moderation'
     }
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
-    
+    if (error.statusCode) throw error
     console.error('Error creating quote:', error)
     throw createError({
       statusCode: 500,

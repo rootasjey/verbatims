@@ -236,7 +236,6 @@ const isEditMode = computed(() => !!props.editQuote)
 const dialogTitle = computed(() => isEditMode.value ? 'Edit Quote' : 'Add New Quote')
 const submitButtonText = computed(() => isEditMode.value ? 'Update Quote' : 'Submit Quote')
 
-// Form state
 const form = ref({
   content: '',
   language: { label: 'English', value: 'en' },
@@ -267,13 +266,14 @@ const referenceSuggestionsRef = ref()
 const languageOptions = [
   { label: 'English', value: 'en' },
   { label: 'French', value: 'fr' },
-  // { label: 'Spanish', value: 'es' },
-  // { label: 'German', value: 'de' },
-  // { label: 'Italian', value: 'it' },
-  // { label: 'Portuguese', value: 'pt' },
-  // { label: 'Russian', value: 'ru' },
-  // { label: 'Japanese', value: 'ja' },
-  // { label: 'Chinese', value: 'zh' }
+  { label: 'Latin', value: 'la' },
+  { label: 'Spanish', value: 'es' },
+  { label: 'German', value: 'de' },
+  { label: 'Italian', value: 'it' },
+  { label: 'Portuguese', value: 'pt' },
+  { label: 'Russian', value: 'ru' },
+  { label: 'Japanese', value: 'ja' },
+  { label: 'Chinese', value: 'zh' },
 ]
 
 // Search debounced functions
