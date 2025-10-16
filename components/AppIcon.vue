@@ -1,12 +1,10 @@
 <template>
   <div
     :style="containerStyle"
-    class="app-icon font-title font-600 uppercase line-height-tight flex items-center justify-center"
-    :class="['app-icon', { ' bg-black': !props.icon }]"
-    role="img"
+    class="font-title font-600 uppercase line-height-tight flex items-center justify-center"
     aria-label="Verbatims logo"
   >
-    <div v-if="props.icon && !props.outline" :width="sizeNumber">
+    <div v-if="props.icon" :width="sizeNumber">
       <span class="border b-dashed px-2 py-1">VBT</span>
     </div>
     <div v-else :width="sizeNumber">
@@ -17,8 +15,7 @@
 
 <script setup lang="ts">
 const props = defineProps({
-  icon: { type: Boolean, default: true },
-  outline: { type: Boolean, default: false },
+  icon: { type: Boolean, default: false },
   /** size in pixels (number or numeric string) */
   size: { type: [Number, String], default: 48 },
 })

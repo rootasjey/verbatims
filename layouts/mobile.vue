@@ -27,7 +27,7 @@
               size="sm"
               class="text-gray-600 dark:text-gray-400"
             >
-              <AppIcon icon :outline="true" :size="24" />
+              <AppIcon icon :size="24" />
             </UButton>
           </div>
         </div>
