@@ -34,7 +34,7 @@
               v-model="authorQuery"
               placeholder="Search for an author or enter a new one..."
               :disabled="submitting"
-              @input="searchAuthors"
+              @input="onAuthorInput"
               @focus="handleAuthorInputFocus"
               @blur="handleAuthorInputBlur"
               @keydown="handleAuthorKeydown"
@@ -108,7 +108,7 @@
               v-model="referenceQuery"
               placeholder="Search for a reference or enter a new one..."
               :disabled="submitting"
-              @input="searchReferences"
+              @input="onReferenceInput"
               @focus="handleReferenceInputFocus"
               @blur="handleReferenceInputBlur"
               @keydown="handleReferenceKeydown"
@@ -207,8 +207,8 @@
 
 <script setup lang="ts">
 import type {
-  Author, QuoteReference, QuoteWithRelations,
-  AdminQuote, CreateQuoteData, QuoteLanguage,
+  QuoteWithRelations,
+  AdminQuote, CreateQuoteData,
 } from '~/types'
 
 interface Props {
@@ -234,365 +234,62 @@ const isOpen = computed({
 
 const isEditMode = computed(() => !!props.editQuote)
 const dialogTitle = computed(() => isEditMode.value ? 'Edit Quote' : 'Add New Quote')
-const submitButtonText = computed(() => isEditMode.value ? 'Update Quote' : 'Submit Quote')
+const submitButtonText = computed(() => isEditMode.value ? 'Update Quote' : 'Save as Draft')
 
-const form = ref({
-  content: '',
-  language: { label: 'English', value: 'en' },
-  selectedAuthor: null as Author | null,
-  selectedReference: null as QuoteReference | null
-})
-
-// Search state
-const authorQuery = ref('')
-const referenceQuery = ref('')
-const authorSuggestions = ref<Author[]>([])
-const referenceSuggestions = ref<QuoteReference[]>([])
-const showAuthorSuggestions = ref(false)
-const showReferenceSuggestions = ref(false)
-const submitting = ref(false)
-
-// Keyboard navigation state
-const selectedAuthorIndex = ref(-1)
-const selectedReferenceIndex = ref(-1)
-
-// Template refs
-const authorInputRef = ref()
-const referenceInputRef = ref()
-const authorSuggestionsRef = ref()
-const referenceSuggestionsRef = ref()
-
-// Language options
-const languageOptions = [
-  { label: 'English', value: 'en' },
-  { label: 'French', value: 'fr' },
-  { label: 'Latin', value: 'la' },
-  { label: 'Spanish', value: 'es' },
-  { label: 'German', value: 'de' },
-  { label: 'Italian', value: 'it' },
-  { label: 'Portuguese', value: 'pt' },
-  { label: 'Russian', value: 'ru' },
-  { label: 'Japanese', value: 'ja' },
-  { label: 'Chinese', value: 'zh' },
-]
-
-// Search debounced functions
-const searchAuthors = useDebounceFn(async () => {
-  if (!authorQuery.value.trim()) {
-    authorSuggestions.value = []
-    return
-  }
-
-  try {
-    const response = await $fetch('/api/authors/search', {
-      query: { q: authorQuery.value, limit: 5 }
-    })
-    authorSuggestions.value = response.data || []
-  } catch (error) {
-    console.error('Error searching authors:', error)
-    authorSuggestions.value = []
-  }
-}, 300)
-
-const searchReferences = useDebounceFn(async () => {
-  if (!referenceQuery.value.trim()) {
-    referenceSuggestions.value = []
-    return
-  }
-
-  try {
-    const response = await $fetch('/api/references/search', {
-      query: { q: referenceQuery.value, limit: 5 }
-    })
-    referenceSuggestions.value = response.data || []
-  } catch (error) {
-    console.error('Error searching references:', error)
-    referenceSuggestions.value = []
-  }
-}, 300)
-
-// Author focus and keyboard navigation functions
-const handleAuthorInputFocus = () => {
-  showAuthorSuggestions.value = true
-  selectedAuthorIndex.value = -1
-}
-
-const handleAuthorInputBlur = (event: FocusEvent) => {
-  // Don't hide suggestions if focus is moving to the suggestions dropdown
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && authorSuggestionsRef.value?.contains(relatedTarget)) {
-    return
-  }
-  setTimeout(() => {
-    showAuthorSuggestions.value = false
-    selectedAuthorIndex.value = -1
-  }, 150)
-}
-
-const handleAuthorSuggestionsBlur = (event: FocusEvent) => {
-  // Don't hide suggestions if focus is moving back to the input
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && authorInputRef.value?.$el?.contains(relatedTarget)) {
-    return
-  }
-  setTimeout(() => {
-    showAuthorSuggestions.value = false
-    selectedAuthorIndex.value = -1
-  }, 150)
-}
-
-const handleAuthorKeydown = (event: KeyboardEvent) => {
-  if (!showAuthorSuggestions.value) return
-
-  const totalItems = authorSuggestions.value.length + (authorQuery.value && !authorSuggestions.value.some(a => a.name.toLowerCase() === authorQuery.value.toLowerCase()) ? 1 : 0)
-
-  switch (event.key) {
-    case 'ArrowDown':
-      event.preventDefault()
-      selectedAuthorIndex.value = selectedAuthorIndex.value < totalItems - 1 ? selectedAuthorIndex.value + 1 : 0
-      scrollToSelectedAuthorItem()
-      break
-    case 'ArrowUp':
-      event.preventDefault()
-      selectedAuthorIndex.value = selectedAuthorIndex.value > 0 ? selectedAuthorIndex.value - 1 : totalItems - 1
-      scrollToSelectedAuthorItem()
-      break
-    case 'Enter':
-      event.preventDefault()
-      if (selectedAuthorIndex.value >= 0) {
-        if (selectedAuthorIndex.value < authorSuggestions.value.length) {
-          selectAuthor(authorSuggestions.value[selectedAuthorIndex.value])
-        } else {
-          createNewAuthor()
-        }
-      }
-      break
-    case 'Escape':
-      event.preventDefault()
-      showAuthorSuggestions.value = false
-      selectedAuthorIndex.value = -1
-      authorInputRef.value?.$el?.focus()
-      break
-  }
-}
+import { useQuoteForm } from '~/composables/useQuoteForm'
+const {
+  form,
+  languageOptions,
+  authorQuery,
+  referenceQuery,
+  authorSuggestions,
+  referenceSuggestions,
+  showAuthorSuggestions,
+  showReferenceSuggestions,
+  submitting,
+  selectedAuthorIndex,
+  selectedReferenceIndex,
+  authorInputRef,
+  referenceInputRef,
+  authorSuggestionsRef,
+  referenceSuggestionsRef,
+  searchAuthors,
+  searchReferences,
+  handleAuthorInputFocus,
+  handleAuthorInputBlur,
+  handleAuthorSuggestionsBlur,
+  handleAuthorKeydown,
+  handleReferenceInputFocus,
+  handleReferenceInputBlur,
+  handleReferenceSuggestionsBlur,
+  handleReferenceKeydown,
+  selectAuthor,
+  selectReference,
+  createNewAuthor,
+  createNewReference,
+  clearAuthor,
+  clearReference,
+  resetForm,
+  initializeFormForEdit,
+  scrollToSelectedAuthorItem,
+  scrollToSelectedReferenceItem,
+  createPayload
+} = useQuoteForm()
 
 const handleFormKeydown = (event: KeyboardEvent) => {
   // Handle Ctrl+Enter (Windows/Linux) or Cmd+Enter (Mac) to submit form
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
     event.preventDefault()
-    if (form.value.content.trim() && !submitting.value) {
-      submitQuote()
-    }
+    if (form.value.content.trim() && !submitting.value) submitQuote()
   }
 }
 
-// Auto-scroll functions for keyboard navigation
-const scrollToSelectedAuthorItem = () => {
-  nextTick(() => {
-    if (selectedAuthorIndex.value >= 0 && authorSuggestionsRef.value) {
-      const items = authorSuggestionsRef.value.children
-      const selectedItem = items[selectedAuthorIndex.value]
-      if (selectedItem) {
-        selectedItem.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest'
-        })
-      }
-    }
-  })
+const onAuthorInput = () => {
+  void searchAuthors($fetch, { limit: 5, minLength: 1 })
 }
 
-const scrollToSelectedReferenceItem = () => {
-  nextTick(() => {
-    if (selectedReferenceIndex.value >= 0 && referenceSuggestionsRef.value) {
-      const items = referenceSuggestionsRef.value.children
-      const selectedItem = items[selectedReferenceIndex.value]
-      if (selectedItem) {
-        selectedItem.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest'
-        })
-      }
-    }
-  })
-}
-
-// Selection functions
-const selectAuthor = (author: Author) => {
-  form.value.selectedAuthor = author
-  authorQuery.value = author.name
-  showAuthorSuggestions.value = false
-  selectedAuthorIndex.value = -1
-}
-
-// Reference focus and keyboard navigation functions
-const handleReferenceInputFocus = () => {
-  showReferenceSuggestions.value = true
-  selectedReferenceIndex.value = -1
-}
-
-const handleReferenceInputBlur = (event: FocusEvent) => {
-  // Don't hide suggestions if focus is moving to the suggestions dropdown
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && referenceSuggestionsRef.value?.contains(relatedTarget)) {
-    return
-  }
-  setTimeout(() => {
-    showReferenceSuggestions.value = false
-    selectedReferenceIndex.value = -1
-  }, 150)
-}
-
-const handleReferenceSuggestionsBlur = (event: FocusEvent) => {
-  // Don't hide suggestions if focus is moving back to the input
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && referenceInputRef.value?.$el?.contains(relatedTarget)) {
-    return
-  }
-  setTimeout(() => {
-    showReferenceSuggestions.value = false
-    selectedReferenceIndex.value = -1
-  }, 150)
-}
-
-const handleReferenceKeydown = (event: KeyboardEvent) => {
-  if (!showReferenceSuggestions.value) return
-
-  const totalItems = referenceSuggestions.value.length + (referenceQuery.value && !referenceSuggestions.value.some(r => r.name.toLowerCase() === referenceQuery.value.toLowerCase()) ? 1 : 0)
-
-  switch (event.key) {
-    case 'ArrowDown':
-      event.preventDefault()
-      selectedReferenceIndex.value = selectedReferenceIndex.value < totalItems - 1 ? selectedReferenceIndex.value + 1 : 0
-      scrollToSelectedReferenceItem()
-      break
-    case 'ArrowUp':
-      event.preventDefault()
-      selectedReferenceIndex.value = selectedReferenceIndex.value > 0 ? selectedReferenceIndex.value - 1 : totalItems - 1
-      scrollToSelectedReferenceItem()
-      break
-    case 'Enter':
-      event.preventDefault()
-      if (selectedReferenceIndex.value >= 0) {
-        if (selectedReferenceIndex.value < referenceSuggestions.value.length) {
-          selectReference(referenceSuggestions.value[selectedReferenceIndex.value])
-        } else {
-          createNewReference()
-        }
-      }
-      break
-    case 'Escape':
-      event.preventDefault()
-      showReferenceSuggestions.value = false
-      selectedReferenceIndex.value = -1
-      referenceInputRef.value?.$el?.focus()
-      break
-  }
-}
-
-const selectReference = (reference: QuoteReference) => {
-  form.value.selectedReference = reference
-  referenceQuery.value = reference.name
-  showReferenceSuggestions.value = false
-  selectedReferenceIndex.value = -1
-}
-
-const createNewAuthor = () => {
-  form.value.selectedAuthor = {
-    id: 0, // Will be created
-    name: authorQuery.value,
-    is_fictional: false,
-    birth_date: undefined,
-    birth_location: undefined,
-    death_date: undefined,
-    death_location: undefined,
-    job: undefined,
-    description: undefined,
-    image_url: undefined,
-    socials: '{}',
-    views_count: 0,
-    likes_count: 0,
-    shares_count: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-  showAuthorSuggestions.value = false
-  selectedAuthorIndex.value = -1
-}
-
-const createNewReference = () => {
-  form.value.selectedReference = {
-    id: 0, // Will be created
-    name: referenceQuery.value,
-    original_language: form.value.language.value,
-    release_date: null,
-    description: null,
-    primary_type: 'other',
-    secondary_type: null,
-    image_url: undefined,
-    urls: '{}',
-    views_count: 0,
-    likes_count: 0,
-    shares_count: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-  showReferenceSuggestions.value = false
-  selectedReferenceIndex.value = -1
-}
-
-const clearAuthor = () => {
-  form.value.selectedAuthor = null
-  authorQuery.value = ''
-  selectedAuthorIndex.value = -1
-}
-
-const clearReference = () => {
-  form.value.selectedReference = null
-  referenceQuery.value = ''
-  selectedReferenceIndex.value = -1
-}
-
-const resetForm = () => {
-  form.value = {
-    content: '',
-    language: { label: 'English', value: 'en' },
-    selectedAuthor: null,
-    selectedReference: null
-  }
-  authorQuery.value = ''
-  referenceQuery.value = ''
-  authorSuggestions.value = []
-  referenceSuggestions.value = []
-  selectedAuthorIndex.value = -1
-  selectedReferenceIndex.value = -1
-}
-
-const initializeFormForEdit = () => {
-  if (!props.editQuote) return
-
-  const quote = props.editQuote
-
-  // Set form content
-  form.value.content = quote.name || ''
-
-  // Set language
-  const languageOption = languageOptions.find(opt => opt.value === quote.language)
-  form.value.language = languageOption || { label: 'English', value: 'en' }
-
-  // Set author if exists
-  if (quote.author) {
-    form.value.selectedAuthor = quote.author as Author
-    authorQuery.value = quote.author.name || ''
-  }
-
-  // Set reference if exists
-  if (quote.reference) {
-    form.value.selectedReference = quote.reference as QuoteReference
-    referenceQuery.value = quote.reference.name || ''
-  }
+const onReferenceInput = () => {
+  void searchReferences($fetch, { limit: 5, minLength: 1 })
 }
 
 const closeDialog = () => {
@@ -600,9 +297,8 @@ const closeDialog = () => {
   resetForm()
 }
 
-// Watch for editQuote changes to initialize form
 watch(() => props.editQuote, (newQuote) => {
-  if (newQuote) initializeFormForEdit()
+  if (newQuote) initializeFormForEdit(newQuote)
   else resetForm()
 }, { immediate: true })
 
@@ -646,22 +342,7 @@ const submitQuote = async () => {
   submitting.value = true
 
   try {
-    const payload: CreateQuoteData = {
-      name: form.value.content.trim(),
-      language: form.value.language.value as QuoteLanguage,
-      author_id: form.value.selectedAuthor?.id,
-      reference_id: form.value.selectedReference?.id,
-      new_author: form.value.selectedAuthor?.id === 0 ? {
-        name: form.value.selectedAuthor.name,
-        is_fictional: false
-      } : undefined,
-      new_reference: form.value.selectedReference?.id === 0 ? {
-        name: form.value.selectedReference.name,
-        original_language: form.value.language.value as QuoteLanguage,
-        primary_type: 'other' as const
-      } : undefined,
-      user_id: user?.value?.id || -1,
-    }
+    const payload = createPayload(user.value)
 
     if (isEditMode.value && props.editQuote) {
       const id = props.editQuote.id
