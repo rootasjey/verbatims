@@ -10,9 +10,7 @@
       <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
-          <div class="flex items-center gap-3">
-            <AppIcon />
-          </div>
+          <AppIcon class="ml-4" />
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Discover and share memorable quotes <br /> from films, books, music, and more.
           </p>
