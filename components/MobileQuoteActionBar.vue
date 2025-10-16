@@ -15,8 +15,8 @@
         @click="emit('toggle-like')"
       >
         <div class="flex items-center gap-1">
-          <UIcon :name="props.isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" />
-          <span class="text-xs">{{ formatNumber(props.likesCount) }}</span>
+          <UIcon :name="props.isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" size="md" />
+          <span class="text-md font-500 font-subtitle">{{ formatNumber(props.likesCount) }}</span>
         </div>
       </UButton>
 
@@ -34,8 +34,8 @@
         @click="emit('save')"
       >
         <div class="flex items-center gap-1">
-          <UIcon :name="props.savedState === 'saved' ? 'i-ph-check' : 'i-ph-bookmark-simple'" />
-          <span class="text-xs">{{ props.savedState === 'saved' ? 'Saved' : 'Save' }}</span>
+          <UIcon :name="props.savedState === 'saved' ? 'i-ph-check' : 'i-ph-list-plus-duotone'" size="md" />
+          <span class="text-md font-500 font-subtitle">{{ props.savedState === 'saved' ? 'Saved' : 'Save' }}</span>
         </div>
       </UButton>
 
@@ -52,8 +52,8 @@
         @click="shareOpen = true"
       >
         <div class="flex items-center gap-1">
-          <UIcon name="i-ph-share-network" />
-          <span class="text-xs">Share</span>
+          <UIcon name="i-ph-share-fat-duotone" size="md" />
+          <span class="text-md font-500 font-subtitle">Share</span>
         </div>
       </UButton>
     </div>
