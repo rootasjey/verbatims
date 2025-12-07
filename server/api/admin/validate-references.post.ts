@@ -3,7 +3,7 @@
  * Validates reference data before import without actually importing it
  */
 
-import { validateReferenceDataZod } from '~/server/utils/validation/reference'
+import type { validateReferenceDataZod } from '~/types''~/server/utils/validation/reference'
 
 export default defineEventHandler(async (event) => {
   try {

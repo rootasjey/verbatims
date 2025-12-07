@@ -1,4 +1,4 @@
-import { unzipSync, strFromU8 } from 'fflate'
+import type { unzipSync, strFromU8 } from '~/types''fflate'
 import type { ImportOptions } from '~/types'
 
 /**

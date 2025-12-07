@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import type { z } from '~/types''zod'
 
 // Align with schema.sql primary_type and language constraints
 export const validPrimaryTypes = [

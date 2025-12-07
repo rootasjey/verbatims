@@ -1,4 +1,4 @@
-import { listBackupFiles } from '~/server/utils/backup-database'
+import type { listBackupFiles } from '~/types''~/server/utils/backup-database'
 import type { BackupStorageStatus } from '~/types/export'
 
 /**

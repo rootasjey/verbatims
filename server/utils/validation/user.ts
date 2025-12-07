@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import { validLanguages } from './reference'
+import type { z } from '~/types''zod'
+import type { validLanguages } from '~/types''./reference'
 
 export const UserSchema = z.object({
   email: z.string().email(),

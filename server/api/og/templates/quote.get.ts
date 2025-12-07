@@ -1,4 +1,4 @@
-import { getApprovedQuoteForOg } from '~/server/utils/og'
+import type { getApprovedQuoteForOg } from '~/types''~/server/utils/og'
 
 export default defineEventHandler(async (event) => {
   const id = getQuery(event).id as string | undefined

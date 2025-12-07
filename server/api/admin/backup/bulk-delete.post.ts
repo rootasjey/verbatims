@@ -1,4 +1,4 @@
-import { deleteBackup } from '~/server/utils/backup-storage'
+import type { deleteBackup } from '~/types''~/server/utils/backup-storage'
 
 /**
  * Admin API: Bulk Delete Backup Files

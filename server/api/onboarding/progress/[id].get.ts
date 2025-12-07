@@ -3,7 +3,7 @@
  * Provides real-time progress updates via Server-Sent Events
  */
 
-import { getProgress, registerProgressHandler, unregisterProgressHandler } from '~/server/utils/onboarding-progress'
+import type { getProgress, registerProgressHandler, unregisterProgressHandler } from '~/types''~/server/utils/onboarding-progress'
 
 export default defineEventHandler(async (event) => {
   try {

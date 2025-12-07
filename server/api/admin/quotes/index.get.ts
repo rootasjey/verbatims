@@ -1,4 +1,4 @@
-import { transformAdminQuotes } from '~/server/utils/quote-transformer'
+import type { transformAdminQuotes } from '~/types''~/server/utils/quote-transformer'
 
 export default defineEventHandler(async (event) => {
   try {

@@ -1,4 +1,4 @@
-import { getAdminImport } from '~/server/utils/admin-import-progress'
+import type { getAdminImport } from '~/types''~/server/utils/admin-import-progress'
 
 /**
  * Admin API: List Import History (backed by import_logs + live overlay)

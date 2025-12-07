@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import type { z } from '~/types''zod'
 
 const bodySchema = z.object({
   name: z.string().min(2).max(50),

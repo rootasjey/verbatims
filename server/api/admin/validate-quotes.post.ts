@@ -1,4 +1,4 @@
-import { validateQuoteDataZod } from '~/server/utils/validation/quote'
+import type { validateQuoteDataZod } from '~/types''~/server/utils/validation/quote'
 
 /**
  * Admin API: Validate Quote Data

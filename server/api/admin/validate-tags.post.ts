@@ -1,4 +1,4 @@
-import { validateTagDataZod } from '~/server/utils/validation/tag'
+import type { validateTagDataZod } from '~/types''~/server/utils/validation/tag'
 
 /**
  * Admin API: Validate Tag Data

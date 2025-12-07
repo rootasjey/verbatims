@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import { validLanguages } from './reference'
+import type { z } from '~/types''zod'
+import type { validLanguages } from '~/types''./reference'
 
 // Accept common boolean-ish inputs (true/false, 1/0, yes/no, y/n, strings)
 const booleanish = z.preprocess((val) => {

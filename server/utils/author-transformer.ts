@@ -1,4 +1,4 @@
-import { AuthorSocialLink } from "~/types"
+import type { AuthorSocialLink } from "~/types"
 
 export const parseAuthorSocials = (rawSocials: string | null | undefined): AuthorSocialLink[] => {
   if (!rawSocials) return []

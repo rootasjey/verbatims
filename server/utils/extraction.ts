@@ -1,4 +1,4 @@
-import { QuoteSearchResult } from "~/types"
+import type { QuoteSearchResult } from "~/types"
 
 /**
  * Extracts the author information from a given `QuoteSearchResult` object.

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import type { z } from '~/types''zod'
 
 const bodySchema = z.object({
   email: z.string().email(),

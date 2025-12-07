@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import { validLanguages } from './reference'
+import type { z } from '~/types''zod'
+import type { validLanguages } from '~/types''./reference'
 
 export const AuthorSchema = z.object({
   name: z.string().min(2).max(200),

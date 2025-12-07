@@ -3,8 +3,8 @@
  * Handles file storage and retrieval using Cloudflare R2 via NuxtHub blob storage
  */
 
-import { createHash } from 'node:crypto'
-import { gzipSync, gunzipSync, strToU8, strFromU8 } from 'fflate'
+import type { createHash } from '~/types''node:crypto'
+import type { gzipSync, gunzipSync, strToU8, strFromU8 } from '~/types''fflate'
 import type { BackupFile, BackupCompressionType } from '~/types'
 
 /**
