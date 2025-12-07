@@ -1,4 +1,5 @@
-import type { ProcessedQuoteResult } from "~/types"export default defineEventHandler(async (event) => {
+import type { ProcessedQuoteResult } from "~/types"
+export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {

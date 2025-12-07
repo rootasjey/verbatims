@@ -3,7 +3,6 @@ import type {
   QuoteWithMetadata,
   CreatedQuoteResult
 } from '~/types'
-
 export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
     const session = await requireUserSession(event)

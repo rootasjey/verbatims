@@ -1,4 +1,5 @@
-import type { QuoteReference } from "~/types"export default defineEventHandler(async (event) => {
+import type { QuoteReference } from "~/types"
+export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
     const db = hubDatabase()

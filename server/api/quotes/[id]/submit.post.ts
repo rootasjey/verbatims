@@ -1,4 +1,5 @@
-import type { Quote, CreatedQuoteResult } from "~/types"export default defineEventHandler(async (event) => {
+import type { Quote, CreatedQuoteResult } from "~/types"
+export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
