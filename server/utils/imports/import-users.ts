@@ -295,9 +295,11 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
   const fieldRegex = new RegExp('<([a-zA-Z0-9_]+)>([\\s\\S]*?)<\\/([a-zA-Z0-9_]+)>', 'g')
   let m: RegExpExecArray | null
   while ((m = itemRegex.exec(xml))) {
+    if (!m) continue
     const obj: any = {}
     let fm: RegExpExecArray | null
       while ((fm = fieldRegex.exec(m[1]))) {
+        if (!fm) continue
         if (!fm) continue
         const key = fm[1]
         const val = fm[2] ?? ''
