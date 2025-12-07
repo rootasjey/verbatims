@@ -255,7 +255,7 @@
         role="navigation"
       >
         <template v-if="isMobile">
-          <UButton 
+          <NButton 
             btn="soft-gray" 
             size="md" 
             icon 
@@ -266,12 +266,12 @@
             @click="tocOpen = !tocOpen" 
           />
 
-          <UDrawer v-model:open="tocOpen" direction="bottom">
+          <NDrawer v-model:open="tocOpen" direction="bottom">
             <template #body>
               <div class="px-4 pb-4 overflow-y-auto">
                 <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
                   <h3 class="font-serif text-4xl font-700">Contents</h3>
-                  <UButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
+                  <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
                 </div>
 
                 <ol class="toc-list-mobile">

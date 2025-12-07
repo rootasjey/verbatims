@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mb-6 space-y-4">
-      <UAlert
+      <NAlert
         v-if="dataExport.state.successMessage"
         btn="soft"
         closable
@@ -10,7 +10,7 @@
         @close="clearMessages"
       />
 
-      <UAlert
+      <NAlert
         v-if="dataExport.state.errorMessage"
         btn="soft"
         closable
@@ -20,7 +20,7 @@
       />
     </div>
 
-    <UTabs v-model="activeTab" :items="mainTabs" class="w-full">
+    <NTabs v-model="activeTab" :items="mainTabs" class="w-full">
       <template #content="{ item }">
         <div v-if="['export'].includes(item.value)">
           <ExportCreate />
@@ -49,13 +49,13 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <UButton
+            <NButton
               btn="ghost"
               :disabled="dataExport.state.isExporting"
               @click="closeProgressDialog"
             >
               Close
-            </UButton>
+            </NButton>
           </div>
         </template>
       </UCard>

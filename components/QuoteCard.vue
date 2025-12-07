@@ -1,5 +1,5 @@
 <template>
-  <UCard
+  <NCard
     :class="[
       'quote-card group transition-all duration-300 h-full',
       featured ? 'ring-2 ring-primary-500 shadow-lg bg-gradient-to-br from-primary-50/50 to-primary-100/30 dark:from-primary-900/20 dark:to-primary-800/10' : ''
@@ -27,21 +27,21 @@
 
           <!-- Language indicator -->
           <div v-if="quote.language !== 'en'" class="mt-2">
-            <UBadge variant="subtle" size="xs">
+            <NBadge variant="subtle" size="xs">
               {{ getLanguageName(quote.language) }}
-            </UBadge>
+            </NBadge>
           </div>
         </div>
 
-        <UDropdownMenu :items="dropdownItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
-          <UButton
+        <NDropdownMenu :items="dropdownItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
+          <NButton
             btn="ghost-gray"
             icon
             label="i-ph-dots-three-vertical"
             size="sm"
             class="opacity-0 group-hover:opacity-100 transition-opacity"
           />
-        </UDropdownMenu>
+        </NDropdownMenu>
       </div>
     </template>
 
@@ -112,7 +112,7 @@
               !user && 'cursor-not-allowed opacity-50'
             ]"
           >
-            <UIcon
+            <NIcon
               :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'"
               :class="['w-4 h-4', likePending && 'animate-pulse']"
             />
@@ -121,22 +121,22 @@
 
           <!-- Views -->
           <div class="flex items-center space-x-2 text-sm text-gray-500">
-            <UIcon name="i-ph-eye" class="w-4 h-4" />
+            <NIcon name="i-ph-eye" class="w-4 h-4" />
             <span>{{ formatNumber(quote.views_count) }}</span>
           </div>
 
           <!-- Shares -->
           <div v-if="quote.shares_count > 0" class="flex items-center space-x-2 text-sm text-gray-500">
-            <UIcon name="i-ph-share" class="w-4 h-4" />
+            <NIcon name="i-ph-share" class="w-4 h-4" />
             <span>{{ formatNumber(quote.shares_count) }}</span>
           </div>
         </div>
 
         <div class="flex items-center space-x-2">
           <!-- Featured badge -->
-          <UBadge v-if="featured || quote.is_featured" color="yellow" variant="subtle" size="xs">
+          <NBadge v-if="featured || quote.is_featured" color="yellow" variant="subtle" size="xs">
             Featured
-          </UBadge>
+          </NBadge>
 
           <!-- View Details -->
           <NuxtLink

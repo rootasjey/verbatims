@@ -23,8 +23,8 @@
 
       <!-- Actions Dropdown (right) -->
       <div class="flex-shrink-0 -mt-1">
-        <UDropdownMenu :items="dropdownActions">
-          <UButton
+        <NDropdownMenu :items="dropdownActions">
+          <NButton
             icon
             btn="ghost"
             size="sm"
@@ -32,7 +32,7 @@
             class="opacity-0 group-hover:opacity-100 transition-opacity"
             @click.stop
           />
-        </UDropdownMenu>
+        </NDropdownMenu>
       </div>
     </div>
 
@@ -43,7 +43,7 @@
     <div v-if="quote.author || quote.author_name" class="flex items-center justify-between gap-3 pt-3">
       <!-- Author Name with Avatar -->
       <div class="flex items-center space-x-3 flex-1 min-w-0">
-        <UAvatar
+        <NAvatar
           v-if="showAvatar"
           :src="quote.author?.image_url || quote.author_image_url || undefined"
           :alt="quote.author?.name || quote.author_name || 'Unknown Author'"
@@ -61,7 +61,7 @@
         <!-- Reference Type Badge (configurable style) -->
         <template v-if="referenceType">
           <!-- text style -->
-          <UBadge
+          <NBadge
             v-if="badge === 'text'"
             :color="getReferenceTypeColor(referenceType)"
             variant="subtle"
@@ -69,7 +69,7 @@
             class="text-xs font-500 rounded-lg"
           >
             {{ formatReferenceType(referenceType) }}
-          </UBadge>
+          </NBadge>
 
           <!-- dot style -->
           <div
@@ -82,7 +82,7 @@
 
           <!-- icon style -->
           <div v-else class="px-2 py-1 rounded-md border border-gray-200 dark:border-gray-700">
-            <UIcon :name="getReferenceTypeIcon(referenceType)" class="w-4 h-4" :style="{ color: getReferenceTypeHex(referenceType) }" />
+            <NIcon :name="getReferenceTypeIcon(referenceType)" class="w-4 h-4" :style="{ color: getReferenceTypeHex(referenceType) }" />
           </div>
         </template>
 

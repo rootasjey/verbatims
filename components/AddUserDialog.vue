@@ -1,21 +1,21 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-6">
         <h3 class="font-title uppercase text-size-4 font-600">Create User</h3>
       </div>
 
       <form @submit.prevent="submit" class="space-y-4">
-        <UFormGroup label="Name" required>
-          <UInput v-model="form.name" :disabled="submitting" placeholder="Jane Doe" />
-        </UFormGroup>
+        <NFormGroup label="Name" required>
+          <NInput v-model="form.name" :disabled="submitting" placeholder="Jane Doe" />
+        </NFormGroup>
 
-        <UFormGroup label="Email" required>
-          <UInput v-model="form.email" :disabled="submitting" type="email" placeholder="jane@example.com" />
-        </UFormGroup>
+        <NFormGroup label="Email" required>
+          <NInput v-model="form.email" :disabled="submitting" type="email" placeholder="jane@example.com" />
+        </NFormGroup>
 
-        <UFormGroup label="Password" required>
-          <UInput v-model="form.password" :disabled="submitting" type="password" placeholder="••••••••" />
+        <NFormGroup label="Password" required>
+          <NInput v-model="form.password" :disabled="submitting" type="password" placeholder="••••••••" />
           <template #help>
             <span class="text-xs text-gray-500">At least 8 characters</span>
           </template>

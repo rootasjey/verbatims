@@ -1,12 +1,12 @@
 <template>
-  <UDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
-    <UButton
+  <NDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
+    <NButton
       btn="~"
       size="sm"
       icon
       class="hover:scale-105 active:scale-95 transition-transform min-w-0 min-h-0"
     >
-      <UAvatar
+      <NAvatar
         size="2"
         :src="user.avatar_url" 
         :alt="user.name"

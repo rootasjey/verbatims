@@ -17,17 +17,17 @@
       ]"
     >
       <!-- Author Type Badge -->
-      <UBadge 
+      <NBadge 
         :badge="author.is_fictional ? 'outline-purple' : 'outline-blue'" 
         size="xs"
         class="transition-opacity duration-300"
         :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
       >
         {{ author.is_fictional ? 'Fictional' : 'Real' }}
-      </UBadge>
+      </NBadge>
       
       <!-- Quote Count Icon -->
-      <UIcon
+      <NIcon
         name="i-ph-quotes-bold"
         :class="[
           'opacity-0 group-hover:opacity-100',

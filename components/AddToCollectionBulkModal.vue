@@ -1,6 +1,6 @@
 <template>
-  <UDialog v-model:open="isOpen">
-    <UCard class="border-none shadow-none">
+  <NDialog v-model:open="isOpen">
+    <NCard class="border-none shadow-none">
       <template #header>
         <h3 class="text-lg font-semibold">Add {{ quoteIds.length }} {{ quoteIds.length === 1 ? 'Quote' : 'Quotes' }} to Collection</h3>
       </template>
@@ -126,13 +126,13 @@
             Processing {{ processedCount }} / {{ quoteIds.length }}
           </div>
           <div class="flex justify-end">
-            <UButton
+            <NButton
               btn="ghost"
               :disabled="processing"
               @click="closeModal"
             >
               Close
-            </UButton>
+            </NButton>
           </div>
         </div>
       </template>

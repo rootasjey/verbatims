@@ -260,13 +260,13 @@
           <div class="grid grid-cols-2 gap-3">
             <UButton btn="soft-gray" :loading="loading.github" @click="signInWith('github')">
               <template #leading>
-                <UIcon name="i-ph-github-logo" />
+                <NIcon name="i-ph-github-logo" />
               </template>
               GitHub
             </UButton>
             <UButton btn="soft-blue" :loading="loading.google" @click="signInWith('google')">
               <template #leading>
-                <UIcon name="i-ph-google-logo" />
+                <NIcon name="i-ph-google-logo" />
               </template>
               Google
             </UButton>

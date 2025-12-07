@@ -1,12 +1,12 @@
 <template>
   <div>
     <ClientOnly>
-      <UCollapsible>
+      <NCollapsible>
       <template #trigger>
         <div class="flex-col items-center mx-auto">
-          <UButton btn="text-gray" class="min-w-330px md:w-600px mb-4 underline decoration-offset-8">
+          <NButton btn="text-gray" class="min-w-330px md:w-600px mb-4 underline decoration-offset-8">
             Show metadata
-          </UButton>
+          </NButton>
         </div>
       </template>
 
@@ -25,7 +25,7 @@
             <!-- Language -->
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                <UIcon name="i-ph-globe-hemisphere-east-duotone" class="w-4 h-4 mr-2 text-gray-400" />
+                <NIcon name="i-ph-globe-hemisphere-east-duotone" class="w-4 h-4 mr-2 text-gray-400" />
                 Language
               </dt>
               <dd class=" text-size-3.5 ml-5.5 sm:ml-0 sm:col-span-2 text-base font-sans font-500 text-gray-900 dark:text-white">
@@ -38,7 +38,7 @@
             <!-- Submitted by -->
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                <UIcon name="i-ph-person-arms-spread" class="w-4 h-4 mr-2 text-gray-400" />
+                <NIcon name="i-ph-person-arms-spread" class="w-4 h-4 mr-2 text-gray-400" />
                 Submitted by
               </dt>
               <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user?.name }}</dd>
@@ -49,7 +49,7 @@
             <!-- Added on -->
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                <UIcon name="i-ph-calendar-dots-duotone" class="w-4 h-4 mr-2 text-gray-400" />
+                <NIcon name="i-ph-calendar-dots-duotone" class="w-4 h-4 mr-2 text-gray-400" />
                 Added on
               </dt>
               <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
@@ -60,7 +60,7 @@
               <!-- Reference type -->
               <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
                 <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon :name="getReferenceIcon(quote.reference.primary_type)" class="w-4 h-4 mr-2 text-gray-400" />
+                  <NIcon :name="getReferenceIcon(quote.reference.primary_type)" class="w-4 h-4 mr-2 text-gray-400" />
                   Reference type
                 </dt>
                 <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white capitalize">{{ quote.reference.primary_type.replace('_',' ') }}</dd>
@@ -72,14 +72,14 @@
               <!-- Status -->
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
                 <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
+                  <NIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
                   Status
                 </dt>
                 <dd class="sm:col-span-2">
-                  <UBadge color="yellow" variant="subtle" class="font-sans">
-                    <UIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
+                  <NBadge color="yellow" variant="subtle" class="font-sans">
+                    <NIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
                     Featured quote
-                  </UBadge>
+                  </NBadge>
                 </dd>
               </div>
             </div>

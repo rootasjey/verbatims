@@ -6,7 +6,7 @@
         class="bg-white dark:bg-[#0C0A09] rounded-lg border b-dashed">
         <div class="px-6 py-4 flex flex-col justify-center">
           <div class="flex flex-shrink-0 gap-2">
-            <UIcon :name="getStatsIcon(key)" />
+            <NIcon :name="getStatsIcon(key)" />
             <p class="text-sm font-600 text-gray-500 dark:text-gray-400">{{ formatStatsLabel(key) }}</p>
           </div>
           <div>
@@ -20,31 +20,31 @@
     <div class="mb-8">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
-        <UButton btn="outline-dark dark:outline-white" to="/dashboard/lists">
-          <UIcon name="i-ph-bookmark" />
+        <NButton btn="outline-dark dark:outline-white" to="/dashboard/lists">
+          <NIcon name="i-ph-bookmark" />
           Manage Lists
-        </UButton>
-        <UButton btn="outline-dark dark:outline-white" to="/dashboard/favourites">
-          <UIcon name="i-ph-heart" />
+        </NButton>
+        <NButton btn="outline-dark dark:outline-white" to="/dashboard/favourites">
+          <NIcon name="i-ph-heart" />
           View Favourites
-        </UButton>
-        <UButton btn="outline-dark dark:outline-white" to="/dashboard/my-quotes/drafts">
-          <UIcon name="i-ph-file-dashed" />
+        </NButton>
+        <NButton btn="outline-dark dark:outline-white" to="/dashboard/my-quotes/drafts">
+          <NIcon name="i-ph-file-dashed" />
           My Drafts
-        </UButton>
+        </NButton>
       </div>
     </div>
 
     <!-- Recent Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Recent Submissions -->
-      <UCard>
+      <NCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Recent Submissions</h3>
-            <UButton btn="link" size="xs" to="/dashboard/my-quotes/published">
+            <NButton btn="link" size="xs" to="/dashboard/my-quotes/published">
               View All
-            </UButton>
+            </NButton>
           </div>
         </template>
 
@@ -80,9 +80,9 @@
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">My Lists</h3>
-            <UButton btn="link" size="xs" to="/dashboard/lists">
+            <NButton btn="link" size="xs" to="/dashboard/lists">
               View All
-            </UButton>
+            </NButton>
           </div>
         </template>
 

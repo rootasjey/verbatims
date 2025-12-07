@@ -5,7 +5,7 @@
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <UInput
+          <NInput
             v-model="searchQuery"
             placeholder="Search authors by name, job, or description..."
             leading="i-ph-magnifying-glass"
@@ -19,7 +19,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <USelect
+          <NSelect
             v-model="selectedFictionalFilter"
             :items="fictionalFilterOptions"
             placeholder="All Types"
@@ -28,7 +28,7 @@
             item-key="label"
             value-key="label"
           />
-          <USelect
+          <NSelect
             v-model="selectedSort"
             :items="sortOptions"
             placeholder="Sort by"
@@ -37,14 +37,14 @@
             item-key="label"
             value-key="label"
           />
-          <UButton
+          <NButton
             btn="soft-blue"
             @click="showAddAuthorDialog = true"
             size="sm"
           >
-            <UIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
+            <NIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
             Create Author
-          </UButton>
+          </NButton>
         </div>
       </div>
 
@@ -52,7 +52,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-user" class="w-5 h-5 text-blue-600 mr-2" />
+            <NIcon name="i-ph-user" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Authors</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalAuthors }}</p>
@@ -61,7 +61,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-mask-happy" class="w-5 h-5 text-purple-600 mr-2" />
+            <NIcon name="i-ph-mask-happy" class="w-5 h-5 text-purple-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Fictional</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalFictional }}</p>
@@ -70,7 +70,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-quotes" class="w-5 h-5 text-green-600 mr-2" />
+            <NIcon name="i-ph-quotes" class="w-5 h-5 text-green-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalQuotes }}</p>
@@ -83,7 +83,7 @@
       <div class="flex items-center justify-between mt-6">
         <div class="flex items-center space-x-2">
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View:</span>
-          <UToggle
+          <NToggle
             v-model="isCardView"
             :label="isCardView ? 'i-ph-squares-four' : 'i-ph-table'"
             size="sm"
@@ -115,7 +115,7 @@
                 v-else
                 class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
               >
-                <UIcon name="i-ph-user" class="w-6 h-6 text-gray-500" />
+                <NIcon name="i-ph-user" class="w-6 h-6 text-gray-500" />
               </div>
             </div>
             <div class="flex-1 min-w-0">
@@ -136,22 +136,22 @@
             </div>
           </div>
           <div class="mt-3 flex justify-end space-x-2">
-            <UButton
+            <NButton
               size="xs"
               btn="ghost"
               @click="editAuthor(author)"
             >
-              <UIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
+              <NIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
               Edit
-            </UButton>
-            <UButton
+            </NButton>
+            <NButton
               size="xs"
               btn="ghost"
               @click="viewAuthor(author)"
             >
-              <UIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
+              <NIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
               View
-            </UButton>
+            </NButton>
           </div>
         </div>
       </div>
@@ -160,26 +160,26 @@
     <!-- Table View -->
     <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
       <!-- Bulk Actions -->
-      <UCollapsible v-model:open="bulkOpen" class="px-4 py-2">
-        <UCollapsibleContent>
+      <NCollapsible v-model:open="bulkOpen" class="px-4 py-2">
+        <NCollapsibleContent>
           <div class="flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 rounded-md px-3 py-2 border border-dashed border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-2 text-sm">
-              <UIcon name="i-ph-check-square" class="w-4 h-4" />
+              <NIcon name="i-ph-check-square" class="w-4 h-4" />
               <span>{{ selectedIds.length }} selected</span>
             </div>
             <div class="flex items-center gap-2">
-              <UButton size="xs" btn="ghost" @click="clearSelection">Clear</UButton>
-              <UButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
-                <UIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
-              </UButton>
+              <NButton size="xs" btn="ghost" @click="clearSelection">Clear</NButton>
+              <NButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
+                <NIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
+              </NButton>
             </div>
           </div>
-        </UCollapsibleContent>
-      </UCollapsible>
+        </NCollapsibleContent>
+      </NCollapsible>
 
       <!-- Scrollable Table Container -->
       <div class="authors-table-container flex-1 overflow-auto">
-        <UTable
+        <NTable
           :columns="tableColumns"
           :data="filteredAuthors"
           :loading="loading"
@@ -189,29 +189,29 @@
         >
           <template #actions-header>
             <div class="flex items-center justify-center">
-              <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                <UButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
-              </UTooltip>
-              <UTooltip class="ml-2" text="Select all on page">
-                <UCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
-              </UTooltip>
+              <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
+              </NTooltip>
+              <NTooltip class="ml-2" text="Select all on page">
+                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              </NTooltip>
             </div>
           </template>
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
             <template v-if="!selectionMode">
-              <UDropdownMenu :items="getAuthorActions(cell.row.original)">
-                <UButton
+              <NDropdownMenu :items="getAuthorActions(cell.row.original)">
+                <NButton
                   icon
                   btn="ghost"
                   size="sm"
                   label="i-ph-dots-three-vertical"
                 />
-              </UDropdownMenu>
+              </NDropdownMenu>
             </template>
             <template v-else>
               <div class="flex items-center justify-center">
-                <UCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
               </div>
             </template>
           </template>
@@ -230,7 +230,7 @@
                   v-else
                   class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
                 >
-                  <UIcon name="i-ph-user" class="w-4 h-4 text-gray-500" />
+                  <NIcon name="i-ph-user" class="w-4 h-4 text-gray-500" />
                 </div>
               </div>
               <div class="min-w-0 flex-1">
@@ -319,8 +319,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <UButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</UButton>
-          <UButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</UButton>
+          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
+          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
         </div>
       </template>
     </UCard>

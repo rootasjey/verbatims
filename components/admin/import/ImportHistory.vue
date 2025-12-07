@@ -9,35 +9,35 @@
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <UButton
+          <NButton
             btn="light:soft dark:link-gray"
             size="sm"
             @click="refresh"
             :loading="loading"
           >
-            <UIcon name="i-ph-arrow-clockwise" />
+            <NIcon name="i-ph-arrow-clockwise" />
             Refresh
-          </UButton>
-          <UButton
+          </NButton>
+          <NButton
             v-if="imports.length > 0"
             btn="light:soft-pink dark:link-pink"
             size="sm"
             :disabled="imports.length === 0"
             @click="showClearHistoryDialog = true"
           >
-            <UIcon name="i-ph-trash" />
+            <NIcon name="i-ph-trash" />
             Clear All
-          </UButton>
+          </NButton>
         </div>
       </div>
 
       <div>
         <div v-if="loading && imports.length === 0" class="flex justify-center py-8">
-          <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
+          <NIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
         </div>
 
         <div v-else-if="imports.length === 0" class="text-center py-12">
-          <UIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 class="font-body text-size-8 font-medium text-gray-900 dark:text-white">
             No Import History
           </h3>
@@ -47,7 +47,7 @@
         </div>
 
         <div v-else class="import-history-container flex flex-col">
-          <UTable
+          <NTable
             :columns="historyColumns"
             :data="imports"
             :loading="loading"
@@ -56,10 +56,10 @@
             empty-icon="i-ph-clock-countdown"
           >
             <template #status-cell="{ cell }">
-              <UBadge :color="getStatusColor(cell.row.original.status)" :label="cell.row.original.status.toUpperCase()" />
+              <NBadge :color="getStatusColor(cell.row.original.status)" :label="cell.row.original.status.toUpperCase()" />
             </template>
             <template #data_type-cell="{ cell }">
-              <UBadge color="gray" :label="(cell.row.original.data_type || 'unknown').toUpperCase()" />
+              <NBadge color="gray" :label="(cell.row.original.data_type || 'unknown').toUpperCase()" />
             </template>
             <template #record_count-cell="{ cell }">
               <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.record_count }}</span>
@@ -71,9 +71,9 @@
               <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.completed_at ? formatDate(cell.row.original.completed_at) : 'N/A' }}</span>
             </template>
             <template #actions-cell="{ cell }">
-              <UDropdown :items="getActionItems(cell.row.original)">
-                <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-              </UDropdown>
+              <NDropdown :items="getActionItems(cell.row.original)">
+                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              </NDropdown>
             </template>
           </UTable>
 
@@ -165,15 +165,15 @@
 
         <template #footer>
           <div class="flex justify-end gap-2">
-            <UButton
+            <NButton
               v-if="selectedImport.status === 'completed'"
               btn="outline"
               color="red"
               @click="rollbackImport"
             >
               Rollback
-            </UButton>
-            <UButton @click="showDetailsModal = false">Close</UButton>
+            </NButton>
+            <NButton @click="showDetailsModal = false">Close</NButton>
           </div>
         </template>
       </UCard>
@@ -196,8 +196,8 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</UButton>
-            <UButton btn="link-red" @click="handleClearAllHistory">Clear All History</UButton>
+            <NButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</NButton>
+            <NButton btn="link-red" @click="handleClearAllHistory">Clear All History</NButton>
           </div>
         </template>
       </UCard>

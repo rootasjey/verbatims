@@ -5,19 +5,19 @@
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact author title and context -->
         <div @click.stop="$emit('scroll-to-top')" class="min-w-0 flex items-center gap-3">
-          <UTooltip content="Back to authors list" :_tooltip-content="{ side: 'bottom' }">
-            <UButton
+          <NTooltip content="Back to authors list" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
               icon
               btn="ghost-gray"
               size="xs"
               class="min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
               @click.stop="$emit('navigate-back')"
             >
-              <UIcon name="i-ph-arrow-left-bold" />
-            </UButton>
-          </UTooltip>
+              <NIcon name="i-ph-arrow-left-bold" />
+            </NButton>
+          </NTooltip>
 
-          <UIcon name="i-ph-person-simple-hike-duotone" class="w-5 h-5 text-gray-400" />
+          <NIcon name="i-ph-person-simple-hike-duotone" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
             <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
             <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">

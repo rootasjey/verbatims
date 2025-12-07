@@ -13,7 +13,7 @@
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <UInput
+          <NInput
             v-model="searchQuery"
             placeholder="Search users by name or email..."
             leading="i-ph-magnifying-glass"
@@ -25,7 +25,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <USelect
+          <NSelect
             v-model="selectedRoleFilter"
             :items="roleFilterOptions"
             placeholder="All Roles"
@@ -34,7 +34,7 @@
             item-key="label"
             value-key="value"
           />
-          <USelect
+          <NSelect
             v-model="selectedStatusFilter"
             :items="statusFilterOptions"
             placeholder="All Status"
@@ -43,10 +43,10 @@
             item-key="label"
             value-key="value"
           />
-          <UButton btn="soft-blue" @click="showAddUserDialog = true" size="sm">
-            <UIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
+          <NButton btn="soft-blue" @click="showAddUserDialog = true" size="sm">
+            <NIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
             Create User
-          </UButton>
+          </NButton>
         </div>
       </div>
 
@@ -54,7 +54,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-users" class="w-5 h-5 text-blue-600 mr-2" />
+            <NIcon name="i-ph-users" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalUsers }}</p>
@@ -63,7 +63,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
+            <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active (page)</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ activeOnPage }}</p>
@@ -72,7 +72,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-shield" class="w-5 h-5 text-amber-600 mr-2" />
+            <NIcon name="i-ph-shield" class="w-5 h-5 text-amber-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Moderators</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ moderatorsOnPage }}</p>
@@ -81,7 +81,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-quotes" class="w-5 h-5 text-orange-600 mr-2" />
+            <NIcon name="i-ph-quotes" class="w-5 h-5 text-orange-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes (page)</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalQuotesOnPage }}</p>
@@ -94,7 +94,7 @@
     <!-- Table View -->
     <div class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
       <div class="users-table-container flex-1 overflow-auto">
-        <UTable
+        <NTable
           :columns="tableColumns"
           :data="users"
           :loading="loading"
@@ -104,15 +104,15 @@
         >
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
-            <UDropdownMenu :items="getUserActions(cell.row.original)">
-              <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-            </UDropdownMenu>
+            <NDropdownMenu :items="getUserActions(cell.row.original)">
+              <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+            </NDropdownMenu>
           </template>
 
           <!-- User Column -->
           <template #user-cell="{ cell }">
             <div class="flex items-center space-x-3">
-              <UAvatar :src="cell.row.original.avatar_url" :alt="cell.row.original.name" size="sm" />
+              <NAvatar :src="cell.row.original.avatar_url" :alt="cell.row.original.name" size="sm" />
               <div class="min-w-0">
                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ cell.row.original.name }}</p>
                 <p v-if="cell.row.original.email" class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ cell.row.original.email }}</p>

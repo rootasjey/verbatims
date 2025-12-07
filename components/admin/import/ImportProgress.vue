@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6">
     <!-- Progress Card -->
-    <UCard>
+    <NCard>
       <template #header>
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-semibold">Import Progress</h2>
-          <UBadge
+          <NBadge
             :color="getStatusColor(progress?.status)"
             :label="progress?.status?.toUpperCase() || 'UNKNOWN'"
           />
@@ -206,7 +206,7 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <UButton @click="showFailedRecords = false">Close</UButton>
+            <NButton @click="showFailedRecords = false">Close</NButton>
           </div>
         </template>
       </UCard>

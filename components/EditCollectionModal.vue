@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen">
+  <NDialog v-model:open="isOpen">
     <template #header>
       <div class="flex items-center gap-3">
         <h3 class="text-size-4">Edit <u class="decoration-dashed">{{ collection.name }}</u> Collection</h3>
@@ -42,20 +42,20 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <UButton
+        <NButton
           btn="text-gray"
           @click="closeModal"
           :disabled="loading"
         >
           Cancel
-        </UButton>
-        <UButton
+        </NButton>
+        <NButton
           btn="solid-black"
           type="submit"
           :loading="loading"
         >
           Update Collection
-        </UButton>
+        </NButton>
       </div>
     </template>
   </UDialog>

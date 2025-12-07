@@ -1,21 +1,21 @@
 <template>
   <div class="mb-8 space-y-6">
-    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+    <NTabs v-model="activeTab" :items="tabs" class="w-full">
       <template #content="{ item }">
         <div v-if="item.value === 'import'" class="mt-6 space-y-6">
-          <UCollapsible v-model:open="openUpload" title="Upload Data File" :ui="{ base: 'border border-dashed rounded-xl' }">
+          <NCollapsible v-model:open="openUpload" title="Upload Data File" :ui="{ base: 'border border-dashed rounded-xl' }">
             <div class="flex items-center justify-between px-4 space-x-4">
               <h2 class="text-xl font-semibold">1 • Upload Data File</h2>
-              <UCollapsibleTrigger as-child>
-                <UButton btn="ghost-gray" square>
-                  <UIcon name="i-radix-icons-caret-sort" />
-                </UButton>
-              </UCollapsibleTrigger>
+              <NCollapsibleTrigger as-child>
+                <NButton btn="ghost-gray" square>
+                  <NIcon name="i-radix-icons-caret-sort" />
+                </NButton>
+              </NCollapsibleTrigger>
             </div>
 
-            <UCollapsibleContent>
+            <NCollapsibleContent>
               <div class="space-y-6 p-4">
-                <UCard>
+                <NCard>
                   <template #header>
                     <h2 class="text-xl font-semibold">Upload Data File</h2>
                   </template>
@@ -125,7 +125,7 @@
                 <UCard v-if="validationResult">
                   <template #header>
                     <div class="flex items-center gap-2">
-                      <UIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
+                      <NIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
                       <h3 class="text-lg font-semibold">Validation {{ validationResult.isValid ? 'Passed' : 'Failed' }}</h3>
                     </div>
                   </template>
@@ -210,7 +210,7 @@
                 <UCard>
                   <template #header>
                     <div class="flex items-center gap-2">
-                      <UIcon name="i-ph-link-simple" />
+                      <NIcon name="i-ph-link-simple" />
                       <h2 class="text-xl font-semibold">Relink Post-Quote Relations</h2>
                     </div>
                   </template>

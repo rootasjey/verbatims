@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact quote title and context -->
         <div class="min-w-0 flex items-center gap-3">
-          <UIcon name="i-ph-quotes" class="w-5 h-5 text-gray-400" />
+          <NIcon name="i-ph-quotes" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
             <div class="text-sm font-serif text-gray-900 dark:text-white truncate">"{{ headerTitle }}"</div>
             <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
@@ -23,7 +23,7 @@
                   :to="`/references/${quote.reference.id}`"
                   class="inline-flex items-center truncate hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
-                  <UIcon :name="getReferenceIcon(quote.reference.primary_type)" class="w-3 h-3 mr-1 text-gray-400" />
+                  <NIcon :name="getReferenceIcon(quote.reference.primary_type)" class="w-3 h-3 mr-1 text-gray-400" />
                   <span class="truncate">{{ quote.reference.name }}</span>
                 </NuxtLink>
               </template>

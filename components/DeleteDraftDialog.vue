@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen">
+  <NDialog v-model:open="isOpen">
     <div>
       <h3 class="text-lg font-semibold">Delete Draft</h3>
       <p class="text-gray-600 dark:text-gray-400 mb-4">
@@ -8,17 +8,17 @@
     </div>
     <template #footer>
       <div class="flex justify-end space-x-3">
-        <UButton btn="link" @click="closeDialog">
+        <NButton btn="link" @click="closeDialog">
           Cancel
-        </UButton>
-        <UButton
+        </NButton>
+        <NButton
           btn="solid-red"
           :loading="deleting"
           class="px-8"
           @click="emit('delete-draft')"
         >
           Delete
-        </UButton>
+        </NButton>
       </div>
     </template>
   </UDialog>

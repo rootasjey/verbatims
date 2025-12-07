@@ -6,7 +6,7 @@
           {{ displayValue }}
         </span>
         <div class="flex items-center space-x-2 mt-2">
-          <UBadge
+          <NBadge
             v-for="stat in statOptions"
             :key="stat.key"
             :badge="stat.key === 'views' ? 'soft-blue' : (stat.key === 'likes' ? 'soft-pink' : 'soft-indigo')"
@@ -15,9 +15,9 @@
             :style="stat.label === statLabel ? 'max-width: 200px;' : 'max-width: 40px;'"
             @click="statIndex = statOptions.indexOf(stat)"
           >
-            <UIcon :name="stat.icon" />
+            <NIcon :name="stat.icon" />
             <span v-if="stat.label === statLabel" class="whitespace-nowrap text-ellipsis transition animate-fadeIn">{{ stat.label }}</span>
-          </UBadge>
+          </NBadge>
         </div>
       </div>
 

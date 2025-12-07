@@ -12,7 +12,7 @@
 
     <!-- Success/Error Alerts -->
     <div class="mb-6 space-y-4">
-      <UAlert
+      <NAlert
         v-if="successMessage"
         alert="green"
         variant="soft"
@@ -21,7 +21,7 @@
         @close="successMessage = ''"
       />
 
-      <UAlert
+      <NAlert
         v-if="errorMessage"
         alert="red"
         variant="soft"
@@ -32,10 +32,10 @@
     </div>
 
     <!-- Database Reset Section -->
-    <UCard class="mb-8">
+    <NCard class="mb-8">
       <template #header>
         <div class="flex items-center space-x-3">
-          <UIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
+          <NIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Database Reset
           </h2>
@@ -73,7 +73,7 @@
             @click="showResetConfirmation = true"
           >
             <template #leading>
-              <UIcon name="i-ph-trash" />
+              <NIcon name="i-ph-trash" />
             </template>
             Reset Entire Database
           </UButton>
@@ -86,7 +86,7 @@
       <UCard class="border-none">
         <template #header>
           <div class="flex items-center space-x-3">
-            <UIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
+            <NIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
               Confirm Database Reset
             </h3>
@@ -137,21 +137,21 @@
 
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <UButton
+            <NButton
               btn="ghost"
               :disabled="isResetting"
               @click="cancelReset"
             >
               Cancel
-            </UButton>
-            <UButton
+            </NButton>
+            <NButton
               btn="solid-black"
               :loading="isResetting"
               :disabled="!canConfirmReset"
               @click="confirmReset"
             >
               <template #leading>
-                <UIcon name="i-ph-trash" />
+                <NIcon name="i-ph-trash" />
               </template>
               Reset Database
             </UButton>

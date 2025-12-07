@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen" :ui="{ width: 'max-w-2xl' }">
+  <NDialog v-model:open="isOpen" :ui="{ width: 'max-w-2xl' }">
     <div v-if="quote" class="p-6">
       <blockquote class="font-body text-size-8 font-300 line-height-tight text-gray-900 dark:text-white leading-relaxed">
         {{ quote.name }}
@@ -8,26 +8,26 @@
       <!-- Author & Reference -->
       <div class="mt-6 flex flex-col gap-1 mb-6 border-t b-dashed border-gray-200 dark:border-gray-700 pt-6">
         <div v-if="quote.author" class="flex items-center gap-4">
-          <UIcon name="i-ph-person-simple-walk" class="w-4 h-4 text-gray-500" />
+          <NIcon name="i-ph-person-simple-walk" class="w-4 h-4 text-gray-500" />
           <span class="text-sm text-gray-900 dark:text-white">{{ quote.author.name }}</span>
-          <UBadge v-if="quote.author.is_fictional" color="purple" variant="subtle" size="xs">
+          <NBadge v-if="quote.author.is_fictional" color="purple" variant="subtle" size="xs">
             Fictional
-          </UBadge>
+          </NBadge>
         </div>
 
         <div v-if="quote.reference" class="flex items-center gap-4">
-          <UIcon name="i-ph-book-open-text-duotone" class="w-4 h-4 text-gray-500" />
+          <NIcon name="i-ph-book-open-text-duotone" class="w-4 h-4 text-gray-500" />
           <span class="text-sm text-gray-900 dark:text-white">{{ quote.reference.name }}</span>
         </div>
 
         <div v-if="quote.language" class="flex items-center gap-4">
-          <UIcon name="i-ph-globe" class="w-4 h-4 text-gray-500" />
+          <NIcon name="i-ph-globe" class="w-4 h-4 text-gray-500" />
           <span class="text-sm text-gray-900 dark:text-white">{{ quote.language }}</span>
         </div>
       </div>
 
       <!-- Metadata Accordion -->
-      <UAccordion :items="accordionItems" class="mb-6">
+      <NAccordion :items="accordionItems" class="mb-6">
         <template #content="{ item }">
           <div class="space-y-3 text-sm p-4">
             <div class="grid grid-cols-2 gap-4">
@@ -43,9 +43,9 @@
               <div>
                 <span class="font-medium text-gray-700 dark:text-gray-500">Status</span>
                 <div class="mt-1">
-                  <UBadge color="gray" variant="subtle" size="xs">
+                  <NBadge color="gray" variant="subtle" size="xs">
                     {{ quote.status || 'Draft' }}
-                  </UBadge>
+                  </NBadge>
                 </div>
               </div>
             </div>

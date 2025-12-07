@@ -1,6 +1,6 @@
 <template>
-  <UDialog v-model:open="isOpen">
-    <UCard>
+  <NDialog v-model:open="isOpen">
+    <NCard>
       <template #header>
         <h3 class="text-lg font-semibold">Delete {{ selectedCount }} {{ selectedCount === 1 ? 'Draft' : 'Drafts' }}</h3>
       </template>
@@ -29,8 +29,8 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <UButton btn="ghost" @click="closeDialog" :disabled="deleting">Cancel</UButton>
-          <UButton color="red" :loading="deleting" @click="confirmDeletion">Delete All</UButton>
+          <NButton btn="ghost" @click="closeDialog" :disabled="deleting">Cancel</NButton>
+          <NButton color="red" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
         </div>
       </template>
     </UCard>

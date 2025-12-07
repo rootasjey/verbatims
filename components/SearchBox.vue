@@ -1,5 +1,5 @@
 <template>
-  <UDialog 
+  <NDialog 
     v-if="isOpen" 
     v-model:open="isOpen" 
     :una="{ dialogContent: 'sm:max-w-md md:max-w-lg lg:max-w-xl' }"
@@ -11,7 +11,7 @@
       btn: 'ghost-gray',
     }"
   >
-    <UCard class="border-none m-0 p-0 shadow-none">
+    <NCard class="border-none m-0 p-0 shadow-none">
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">Search Quotes</h3>
@@ -190,7 +190,7 @@
                     <UAvatar :src="author.image_url" :alt="author.name" size="md">
                       <template #fallback>
                         <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                          <UIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <NIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         </div>
                       </template>
                     </UAvatar>
@@ -223,7 +223,7 @@
                     <UAvatar :src="reference.image_url" :alt="reference.name" size="md">
                       <template #fallback>
                         <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                          <UIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <NIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         </div>
                       </template>
                     </UAvatar>

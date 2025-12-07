@@ -1,15 +1,15 @@
 <template>
-  <UDrawer v-model:open="internalOpen" direction="bottom">
+  <NDrawer v-model:open="internalOpen" direction="bottom">
     <template #body>
       <div class="p-4 space-y-5">
         <div class="flex items-center justify-between">
           <h3 class="font-serif text-lg font-600">Sort</h3>
-          <UButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
+          <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
         </div>
 
         <div class="space-y-3">
           <label class="block text-sm text-gray-600 dark:text-gray-300">Sort by</label>
-          <USelect
+          <NSelect
             v-model="internalSortBy"
             :items="sortOptions"
             placeholder="Sort by"
@@ -21,7 +21,7 @@
         <div class="space-y-3">
           <label class="block text-sm text-gray-600 dark:text-gray-300">Order</label>
           <div class="flex items-center gap-2">
-            <UButton
+            <NButton
               icon
               :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
               btn="soft-gray"
@@ -34,9 +34,9 @@
         </div>
 
         <div class="pt-1">
-          <UButton btn="solid-black" class="w-full rounded-3" size="sm" @click="internalOpen = false">
+          <NButton btn="solid-black" class="w-full rounded-3" size="sm" @click="internalOpen = false">
             Done
-          </UButton>
+          </NButton>
         </div>
       </div>
     </template>

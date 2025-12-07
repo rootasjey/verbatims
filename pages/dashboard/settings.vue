@@ -10,7 +10,7 @@
         </div>
 
         <div class="flex gap-3">
-          <USelect
+          <NSelect
             v-model="selectedTab"
             :items="tabs"
             placeholder="Section"
@@ -26,7 +26,7 @@
       <div class="px-4 pb-6 space-y-6">
         <!-- Profile Tab: Profile Info + Language + Privacy -->
         <div v-if="selectedTab.value === 'profile'" class="space-y-6">
-          <UCard class="shadow-none">
+          <NCard class="shadow-none">
             <template #header>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Profile Information
@@ -290,7 +290,7 @@
         <template #content="{ item }">
         <!-- Profile Tab: Profile Info + Language + Privacy -->
         <div v-if="item.value === 'profile'" class="space-y-8">
-          <UCard class="shadow-none">
+          <NCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 Profile Information
@@ -570,16 +570,16 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <UButton btn="outline" @click="showDeleteModal = false">
+            <NButton btn="outline" @click="showDeleteModal = false">
               Cancel
-            </UButton>
-            <UButton
+            </NButton>
+            <NButton
               color="red"
               :loading="deleting"
               @click="deleteAccount"
             >
               Delete My Account
-            </UButton>
+            </NButton>
           </div>
         </template>
       </UCard>

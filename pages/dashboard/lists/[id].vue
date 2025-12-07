@@ -28,9 +28,9 @@
             <div class="flex items-center gap-2 py-1 text-xs text-gray-500 dark:text-gray-400">
               <span>{{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
               <span>·</span>
-              <UBadge :badge="collection?.is_public ? 'outline-green' : 'outline-red'" size="xs" rounded="full">
+              <NBadge :badge="collection?.is_public ? 'outline-green' : 'outline-red'" size="xs" rounded="full">
                 {{ collection?.is_public ? 'Public' : 'Private' }}
-              </UBadge>
+              </NBadge>
             </div>
           </div>
         </div>
@@ -46,7 +46,7 @@
 
       <!-- Empty -->
       <div v-else-if="(collection?.quotes?.length || 0) === 0" class="text-center py-16 px-4">
-        <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No quotes yet</h3>
         <p class="text-gray-600 dark:text-gray-400">Add quotes to this collection from any quote page.</p>
       </div>
@@ -63,7 +63,7 @@
         />
         
         <div v-if="hasMore" class="pt-3">
-          <UButton
+          <NButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -71,7 +71,7 @@
             @click="loadMoreQuotes"
           >
             Load More
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
@@ -94,43 +94,43 @@
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
                   {{ collection.name }}
                 </h1>
-                <UBadge v-if="collection.is_public" color="green" variant="subtle">Public</UBadge>
+                <NBadge v-if="collection.is_public" color="green" variant="subtle">Public</NBadge>
               </div>
               <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                 {{ collection.description }}
               </p>
               <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <UIcon name="i-ph-quotes" class="w-4 h-4" />
+                  <NIcon name="i-ph-quotes" class="w-4 h-4" />
                   {{ collection.quotes_count }} quotes
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <UIcon name="i-ph-calendar-plus" class="w-4 h-4" />
+                  <NIcon name="i-ph-calendar-plus" class="w-4 h-4" />
                   Created {{ formatDate(collection.created_at) }}
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <UIcon name="i-ph-clock" class="w-4 h-4" />
+                  <NIcon name="i-ph-clock" class="w-4 h-4" />
                   Updated {{ formatDate(collection.updated_at) }}
                 </span>
               </div>
             </div>
 
             <div class="flex items-center gap-2">
-              <UButton btn="outline" @click="shareCollection">
-                <UIcon name="i-ph-share" />
+              <NButton btn="outline" @click="shareCollection">
+                <NIcon name="i-ph-share" />
                 Share
-              </UButton>
-              <UDropdownMenu :items="collectionActions">
-                <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-              </UDropdownMenu>
+              </NButton>
+              <NDropdownMenu :items="collectionActions">
+                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              </NDropdownMenu>
             </div>
           </div>
 
           <!-- Back Button -->
-          <UButton btn="ghost" size="sm" to="/dashboard/lists">
-            <UIcon name="i-ph-arrow-left" />
+          <NButton btn="ghost" size="sm" to="/dashboard/lists">
+            <NIcon name="i-ph-arrow-left" />
             Back to Lists
-          </UButton>
+          </NButton>
         </div>
 
         <!-- Quotes Grid -->
@@ -145,15 +145,15 @@
 
           <!-- Load More -->
           <div v-if="hasMore" class="text-center mt-8">
-            <UButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
+            <NButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
               Load More Quotes
-            </UButton>
+            </NButton>
           </div>
         </div>
 
         <!-- Empty State -->
         <div v-else class="text-center py-12">
-          <UIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
             No quotes in this collection
           </h3>
@@ -165,14 +165,14 @@
 
       <!-- Error State -->
       <div v-else class="text-center py-12">
-        <UIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
+        <NIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Collection not found
         </h3>
         <p class="text-gray-500 dark:text-gray-400 mb-6">
           The collection you're looking for doesn't exist or is not public.
         </p>
-        <UButton to="/dashboard/lists">Back to Lists</UButton>
+        <NButton to="/dashboard/lists">Back to Lists</NButton>
       </div>
     </div>
   </div>

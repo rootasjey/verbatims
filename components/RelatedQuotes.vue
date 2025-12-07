@@ -16,11 +16,11 @@
           <span v-if="relatedQuote.author" class="font-sans">{{ relatedQuote.author.name }}</span>
           <div class="flex items-center space-x-4">
             <span class="flex items-center space-x-1">
-              <UIcon name="i-ph-heart" class="w-4 h-4" />
+              <NIcon name="i-ph-heart" class="w-4 h-4" />
               <span>{{ relatedQuote.likes_count }}</span>
             </span>
             <span class="flex items-center space-x-1">
-              <UIcon name="i-ph-eye" class="w-4 h-4" />
+              <NIcon name="i-ph-eye" class="w-4 h-4" />
               <span>{{ formatNumber(relatedQuote.views_count) }}</span>
             </span>
           </div>

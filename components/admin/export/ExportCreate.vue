@@ -3,7 +3,7 @@
     <div class="space-y-7">
       <div class="flex md:grid-cols-2 gap-6">
         <!-- Export -->
-        <UCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
+        <NCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
           <template #header>
             <div class="flex items-center gap-3">
               <div>
@@ -219,8 +219,8 @@
         <!-- Filters -->
         <UCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
           <template #header>
-            <UCollapsible>
-              <UCollapsibleTrigger class="w-full border-b b-dashed border-gray-200 dark:border-gray-700 pb-3">
+            <NCollapsible>
+              <NCollapsibleTrigger class="w-full border-b b-dashed border-gray-200 dark:border-gray-700 pb-3">
                 <div class="flex items-center justify-between w-full p-0">
                   <div class="flex items-center gap-3">
                     <div class="text-left">
@@ -228,11 +228,11 @@
                       <p class="text-sm text-gray-600 dark:text-gray-400">Optional filtering criteria (click to expand)</p>
                     </div>
                   </div>
-                  <UIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
+                  <NIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
                 </div>
-              </UCollapsibleTrigger>
+              </NCollapsibleTrigger>
 
-              <UCollapsibleContent>
+              <NCollapsibleContent>
                 <div class="pt-4 space-y-6">
                   <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 text-sm">
                     Using the last saved filters of each data type (Quotes, Authors, References, Users, Tags). To change them, switch to a specific data type and adjust its filters.
@@ -271,8 +271,8 @@
 	                    />
 	                  </div>
                 </div>
-              </UCollapsibleContent>
-            </UCollapsible>
+              </NCollapsibleContent>
+            </NCollapsible>
           </template>
         </UCard>
       </div>

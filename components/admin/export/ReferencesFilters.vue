@@ -6,7 +6,7 @@
         Primary Type
       </label>
       <div>
-        <USelect
+        <NSelect
           :model-value="modelValue.primary_type"
           @update:model-value="updateFilter('primary_type', $event)"
           :items="primaryTypeOptions"
@@ -23,7 +23,7 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Reference Name (search)
       </label>
-      <UInput
+      <NInput
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
         placeholder="Search by reference name"
@@ -36,13 +36,13 @@
         Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <UInput
+        <NInput
           :model-value="modelValue.date_range?.start || ''"
           @update:model-value="updateDateRange('start', $event)"
           type="date"
           placeholder="Start date"
         />
-        <UInput
+        <NInput
           :model-value="modelValue.date_range?.end || ''"
           @update:model-value="updateDateRange('end', $event)"
           type="date"
@@ -57,7 +57,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Min Views
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.min_views"
           @update:model-value="updateFilter('min_views', Number($event))"
           type="number"
@@ -69,7 +69,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Min Quotes
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.min_quotes"
           @update:model-value="updateFilter('min_quotes', Number($event))"
           type="number"

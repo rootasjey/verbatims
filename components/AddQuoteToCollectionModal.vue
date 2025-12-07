@@ -1,6 +1,6 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'sm:max-w-2xl' }">
-    <UCard>
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'sm:max-w-2xl' }">
+    <NCard>
       <template #header>
         <h3 class="text-lg font-semibold">Add Quote to Collection</h3>
       </template>
@@ -85,12 +85,12 @@
 
       <template #footer>
         <div class="flex justify-end">
-          <UButton
+          <NButton
             variant="ghost"
             @click="closeModal"
           >
             Close
-          </UButton>
+          </NButton>
         </div>
       </template>
     </UCard>

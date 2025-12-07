@@ -1,6 +1,6 @@
 <template>
-  <UDialog v-model:open="isOpen">
-    <UCard class="border-none shadow-none">
+  <NDialog v-model:open="isOpen">
+    <NCard class="border-none shadow-none">
       <template #header>
         <h3 class="text-lg font-semibold">Add to Collection</h3>
       </template>
@@ -121,12 +121,12 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <UButton
+        <NButton
           btn="ghost"
           @click="closeModal"
         >
           Close
-        </UButton>
+        </NButton>
       </div>
     </template>
   </UDialog>

@@ -39,14 +39,14 @@
         <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
         <div class="flex items-center justify-center gap-4 min-h-8">
           <Transition name="fade-up" appear>
-            <UBadge
+            <NBadge
               v-if="showTypeBadge"
               :badge="`outline-${getTypeColor(reference.primary_type)}`"
               :style="{ 'border-width': '0.2px' }"
               size="sm"
             >
               {{ formatReferenceType(reference.primary_type) }}
-            </UBadge>
+            </NBadge>
           </Transition>
         </div>
 
@@ -87,7 +87,7 @@
           </p>
 
           <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-            <UIcon name="i-ph-globe" class="w-4 h-4" />
+            <NIcon name="i-ph-globe" class="w-4 h-4" />
             <span>Original Language: {{ formatLanguage(reference.original_language as langCode) }}</span>
           </div>
         </div>
@@ -108,7 +108,7 @@
             <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
               sorted by
             </span>
-            <USelect
+            <NSelect
               v-model="sortBy"
               :items="sortOptions"
               placeholder="Sort by"
@@ -122,10 +122,10 @@
           <!-- Mobile controls: filter button opens drawer -->
           <div class="md:hidden flex items-center justify-between max-w-xl mx-auto">
             <p class="font-600 text-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
-            <UButton size="sm" btn="outline-gray" class="rounded-full" @click="mobileFiltersOpen = true">
-              <UIcon name="i-ph-faders" class="w-4 h-4 mr-1" />
+            <NButton size="sm" btn="outline-gray" class="rounded-full" @click="mobileFiltersOpen = true">
+              <NIcon name="i-ph-faders" class="w-4 h-4 mr-1" />
               Filters
-            </UButton>
+            </NButton>
           </div>
         </div>
 
@@ -172,7 +172,7 @@
         </div>
 
         <div v-else class="text-center py-16">
-          <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No quotes yet</h3>
           <p class="text-gray-500 dark:text-gray-400 mb-6">
             Be the first to submit a quote from {{ reference.name }}!
@@ -180,7 +180,7 @@
         </div>
 
         <div v-if="hasMoreQuotes && !quotesLoading" class="text-center">
-          <UButton
+          <NButton
             @click="loadMoreQuotes"
             :loading="loadingMoreQuotes"
             :disabled="loadingMoreQuotes"
@@ -189,21 +189,21 @@
             class="px-8 py-6 w-full rounded-3 hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
           >
             {{ loadingMoreQuotes ? 'Loading...' : 'Load More Quotes' }}
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
 
     <div v-else class="p-8">
       <div class="text-center py-16">
-        <UIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">Reference Not Found</h2>
         <p class="font-serif text-gray-600 dark:text-gray-400 mb-6">
           The reference you're looking for doesn't exist or has been removed.
         </p>
-        <UButton to="/references" size="sm" btn="solid-black" class="px-8 py-3 rounded-3">
+        <NButton to="/references" size="sm" btn="solid-black" class="px-8 py-3 rounded-3">
           Browse References
-        </UButton>
+        </NButton>
       </div>
     </div>
 
