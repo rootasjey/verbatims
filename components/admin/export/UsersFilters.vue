@@ -5,7 +5,7 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         User Search (name or email)
       </label>
-      <NInput
+      <UInput
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
         placeholder="Search by name or email"
@@ -18,7 +18,7 @@
         User Role
       </label>
       <div>
-        <NSelect
+        <USelect
           :model-value="modelValue.role"
           @update:model-value="updateFilter('role', $event)"
           :items="roleOptions"
@@ -37,7 +37,7 @@
           Account Status
         </label>
         <div>
-          <NSelect
+          <USelect
             :model-value="modelValue.is_active"
             @update:model-value="updateFilter('is_active', $event)"
             :items="activeStatusOptions"
@@ -53,7 +53,7 @@
           Email Verification
         </label>
         <div>
-          <NSelect
+          <USelect
             :model-value="modelValue.email_verified"
             @update:model-value="updateFilter('email_verified', $event)"
             :items="verificationOptions"
@@ -72,7 +72,7 @@
           Language Preference
         </label>
         <div>
-          <NSelect
+          <USelect
             :model-value="modelValue.language"
             @update:model-value="updateFilter('language', $event)"
             :items="languageOptions"
@@ -88,7 +88,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Location (search)
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.location"
           @update:model-value="updateFilter('location', $event)"
           placeholder="Search by location"
@@ -101,7 +101,7 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Job/Profession (search)
       </label>
-      <NInput
+      <UInput
         :model-value="modelValue.job"
         @update:model-value="updateFilter('job', $event)"
         placeholder="Search by job or profession"
@@ -114,13 +114,13 @@
         Registration Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <NInput
+        <UInput
           :model-value="modelValue.date_range?.start"
           @update:model-value="updateDateRange('date_range', 'start', $event)"
           type="date"
           placeholder="Start date"
         />
-        <NInput
+        <UInput
           :model-value="modelValue.date_range?.end"
           @update:model-value="updateDateRange('date_range', 'end', $event)"
           type="date"
@@ -135,13 +135,13 @@
         Last Login Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <NInput
+        <UInput
           :model-value="modelValue.last_login_range?.start"
           @update:model-value="updateDateRange('last_login_range', 'start', $event)"
           type="date"
           placeholder="Start date"
         />
-        <NInput
+        <UInput
           :model-value="modelValue.last_login_range?.end"
           @update:model-value="updateDateRange('last_login_range', 'end', $event)"
           type="date"
@@ -156,7 +156,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Minimum Quotes Created
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.min_quotes"
           @update:model-value="updateFilter('min_quotes', $event ? parseInt($event) : 0)"
           type="number"
@@ -169,7 +169,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Minimum Collections Created
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.min_collections"
           @update:model-value="updateFilter('min_collections', $event ? parseInt($event) : 0)"
           type="number"

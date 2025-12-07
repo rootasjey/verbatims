@@ -1,13 +1,13 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <NCard>
+  <UDialog v-model:open="isOpen">
+    <UCard>
       <template #header>
         <h3 class="text-lg font-semibold">Delete {{ selectedCount }} {{ selectedCount === 1 ? 'Draft' : 'Drafts' }}</h3>
       </template>
 
       <div class="space-y-4">
         <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-          <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
+          <UIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
           <div class="text-sm text-red-800 dark:text-red-300">
             <p class="font-medium">This action is permanent.</p>
             <p class="mt-1">You are about to delete {{ selectedCount }} {{ selectedCount === 1 ? 'draft' : 'drafts' }}. This action cannot be undone.</p>
@@ -29,13 +29,15 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <NButton btn="ghost" @click="closeDialog" :disabled="deleting">Cancel</NButton>
-          <NButton color="red" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
+          <UButton btn="ghost" @click="closeDialog" :disabled="deleting">Cancel</UButton>
+          <UButton color="red" :loading="deleting" @click="confirmDeletion">Delete All</UButton>
         </div>
       </template>
-    </NCard>
-  </NDialog>
-</template><script setup lang="ts">
+    </UCard>
+  </UDialog>
+</template>
+
+<script setup lang="ts">
 import type { AdminQuote, QuoteWithRelations } from '~/types/quote'
 
 interface Props {

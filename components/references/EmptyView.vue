@@ -3,7 +3,7 @@
     <!-- Empty State (when no references) -->
     <div class="text-center py-16 mb-16">
       <div class="max-w-2xl mx-auto">
-        <NIcon name="i-ph-books" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
+        <UIcon name="i-ph-books" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
         <h2 class="text-3xl font-600 line-height-none mb-4">
           {{ searchQuery ? 'No references found' : 'No references yet' }}
         </h2>
@@ -13,7 +13,7 @@
             : 'Start building your references collection by submitting quotes with source attribution.'
           }}
         </p>
-        <NButton
+        <UButton
           @click="$emit('openSubmitModal')"
           size="lg"
           icon
@@ -21,7 +21,7 @@
           class="px-8 py-4"
         >
           Submit Your First Quote
-        </NButton>
+        </UButton>
       </div>
     </div>
 
@@ -33,7 +33,7 @@
     <!-- References Information Section -->
     <div class="max-w-3xl mx-auto mt-42 mb-16">
       <div class="text-center mb-8 border-b b-dashed pb-8">
-        <NIcon name="i-ph-book-open-text" class="w-12 h-12 text-blue-500 mx-auto mb-4" />
+        <UIcon name="i-ph-book-open-text" class="w-12 h-12 text-blue-500 mx-auto mb-4" />
         <h2 class="font-subtitle text-3xl font-600 line-height-none mb-2">Explore Quote Sources</h2>
         <p class="font-sans text-gray-600 dark:text-gray-400 text-lg">
           From classic literature to modern media, discover the sources behind the most memorable quotes.

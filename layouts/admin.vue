@@ -20,7 +20,7 @@
           <!-- Sidebar Header -->
           <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
             <h2 class="hidden lg:inline text-lg font-semibold text-gray-900 dark:text-white">Admin Panel</h2>
-            <NButton
+            <UButton
               icon
               btn="soft-gray"
               size="xs"
@@ -31,7 +31,7 @@
 
           <!-- Desktop Collapse Toggle -->
           <div class="hidden lg:flex items-center justify-end p-3 mr-1 border-b border-gray-200 dark:border-gray-700">
-            <NButton
+            <UButton
               icon
               size="xs"
               :label="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'"
@@ -47,7 +47,7 @@
           <!-- Navigation Menu -->
           <nav :class="['flex-1 py-6 space-y-2', sidebarCollapsed ? 'px-2' : 'px-4']">
             <!-- Admin Overview -->
-            <NTooltip :content="sidebarCollapsed ? 'Overview' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+            <UTooltip :content="sidebarCollapsed ? 'Overview' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
               <NuxtLink
                 to="/admin"
                 :class="[
@@ -59,10 +59,10 @@
                 ]"
                 @click="sidebarOpen = false"
               >
-                <NIcon name="i-ph-shield-check" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                <UIcon name="i-ph-shield-check" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                 <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Overview</span>
               </NuxtLink>
-            </NTooltip>
+            </UTooltip>
 
             <!-- Quotes Section -->
             <div class="pt-4">
@@ -71,7 +71,7 @@
               </h3>
               
               <!-- Published Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Published' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Published' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/quotes/published"
                   :class="[
@@ -83,14 +83,14 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-check-circle" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-check-circle" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
-                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" color="green" variant="subtle" size="xs" class="ml-auto" />
+                  <UBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" color="green" variant="subtle" size="xs" class="ml-auto" />
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- Pending Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Pending' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Pending' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/quotes/pending"
                   :class="[
@@ -102,14 +102,14 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-clock" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-clock" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
-                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" color="yellow" variant="subtle" size="xs" class="ml-auto" />
+                  <UBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" color="yellow" variant="subtle" size="xs" class="ml-auto" />
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- Draft Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Drafts' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Drafts' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/quotes/drafts"
                   :class="[
@@ -121,11 +121,11 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-file-dashed" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-file-dashed" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
-                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" color="gray" variant="subtle" size="xs" class="ml-auto" />
+                  <UBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" color="gray" variant="subtle" size="xs" class="ml-auto" />
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
             </div>
 
             <!-- Content Management Section -->
@@ -135,7 +135,7 @@
               </h3>
 
               <!-- Authors -->
-              <NTooltip :content="sidebarCollapsed ? 'Authors' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Authors' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/authors"
                   :class="[
@@ -147,13 +147,13 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-user" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-user" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Authors</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- References -->
-              <NTooltip :content="sidebarCollapsed ? 'References' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'References' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/references"
                   :class="[
@@ -165,13 +165,13 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-book" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-book" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">References</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- Tags -->
-              <NTooltip :content="sidebarCollapsed ? 'Tags' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Tags' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/tags"
                   :class="[
@@ -183,10 +183,10 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-hash" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-hash" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Tags</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
             </div>
 
             <div class="pt-4">
@@ -195,7 +195,7 @@
               </h3>
               
               <!-- Messages Inbox -->
-              <NTooltip :content="sidebarCollapsed ? 'Messages' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Messages' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/messages"
                   :class="[
@@ -205,13 +205,13 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-envelope" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-envelope" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Messages</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
               
               <!-- Users -->
-              <NTooltip :content="sidebarCollapsed ? 'Users' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Users' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/users"
                   :class="[
@@ -221,13 +221,13 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-users" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-users" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Users</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- Database Maintenance -->
-              <NTooltip :content="sidebarCollapsed ? 'Database Maintenance' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Database Maintenance' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/maintenance"
                   :class="[
@@ -237,13 +237,13 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-wrench" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-wrench" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Database Maintenance</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- Import -->
-              <NTooltip :content="sidebarCollapsed ? 'Import Data' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Import Data' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/import"
                   :class="[
@@ -253,13 +253,13 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-upload" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-upload" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Import Data</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
 
               <!-- Export -->
-              <NTooltip :content="sidebarCollapsed ? 'Export Data' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Export Data' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/export"
                   :class="[
@@ -269,15 +269,15 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-download" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-download" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Export Data</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
             </div>
 
             <!-- Back to Dashboard -->
             <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <NTooltip :content="sidebarCollapsed ? 'Back to Dashboard' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <UTooltip :content="sidebarCollapsed ? 'Back to Dashboard' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/dashboard"
                   :class="[
@@ -287,10 +287,10 @@
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-house" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <UIcon name="i-ph-house" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Back to Dashboard</span>
                 </NuxtLink>
-              </NTooltip>
+              </UTooltip>
             </div>
           </nav>
         </div>
@@ -308,7 +308,7 @@
         <!-- Mobile Header -->
         <div class="lg:hidden dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div class="flex items-center justify-between">
-            <NButton
+            <UButton
               icon
               btn="soft-gray"
               size="xs"

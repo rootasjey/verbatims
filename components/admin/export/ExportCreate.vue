@@ -3,7 +3,7 @@
     <div class="space-y-7">
       <div class="flex md:grid-cols-2 gap-6">
         <!-- Export -->
-        <NCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
+        <UCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
           <template #header>
             <div class="flex items-center gap-3">
               <div>
@@ -15,14 +15,14 @@
 
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row gap-4">
-              <NButton
+              <UButton
                 btn="solid-black"
                 :loading="dataExport.state.isExporting"
                 :disabled="!dataExport.exportOptions.value.format.value || dataExport.state.isExporting"
                 @click="dataExport.startExport"
                 class="flex-1"
               >
-                <NIcon :name="dataExport.exportOptions.value.download_after_export ? 'i-ph-download' : 'i-ph-export-duotone'" />
+                <UIcon :name="dataExport.exportOptions.value.download_after_export ? 'i-ph-download' : 'i-ph-export-duotone'" />
                 {{
                   dataExport.state.isExporting
                     ? 'Exporting...'
@@ -30,29 +30,29 @@
                         ? 'Generate & Download Export'
                         : 'Generate Export')
                 }}
-              </NButton>
+              </UButton>
 
-              <NButton
+              <UButton
                 btn="ghost"
                 :disabled="dataExport.state.isExporting"
                 @click="() => dataExport.resetFilters({ clearStorage: true })"
               >
-                <NIcon name="i-ph-arrow-clockwise" />
+                <UIcon name="i-ph-arrow-clockwise" />
                 Reset All
-              </NButton>
+              </UButton>
             </div>
 
             <div class="flex items-center gap-3">
-              <NCheckbox
+              <UCheckbox
                 v-model="dataExport.exportOptions.value.download_after_export"
                 label="Download after export"
               />
             </div>
           </div>
-        </NCard>
+        </UCard>
 
         <!-- Preview Export -->
-        <NCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
+        <UCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
           <template #header>
             <div class="flex items-center gap-3">
               <div>
@@ -64,14 +64,14 @@
 
           <div class="space-y-4">
             <div class="flex justify-start">
-              <NButton
+              <UButton
                 btn="outline-blue"
                 :disabled="dataExport.state.isExporting || !dataExport.exportOptions.value.format.value"
                 @click="dataExport.validateExport"
               >
-                <NIcon name="i-ph-magnifying-glass" />
+                <UIcon name="i-ph-magnifying-glass" />
                 Generate Preview
-              </NButton>
+              </UButton>
             </div>
 
             <!-- Export Preview Results -->
@@ -114,12 +114,12 @@
               </div>
             </div>
           </div>
-        </NCard>
+        </UCard>
       </div>
 
       <div class="flex md:grid-cols-2 gap-6">
         <!-- Export Configuration -->
-        <NCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
+        <UCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
           <template #header>
             <div class="flex items-center gap-3">
               <div>
@@ -135,7 +135,7 @@
                 Data Type
               </label>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <NButton
+                <UButton
                   v-for="dataType in dataTypeOptions"
                   :key="dataType.value"
                   :btn="dataExport.exportOptions.value.data_type.value === dataType.value ? 'light:solid-blue dark:solid-green' : 'light:outline-gray dark:outline-green'"
@@ -145,12 +145,12 @@
                 >
                   <div class="flex flex-col items-start gap-1 min-w-0 overflow-hidden">
                     <div class="flex items-center gap-2">
-                      <NIcon :name="dataType.icon" class="w-4 h-4" />
+                      <UIcon :name="dataType.icon" class="w-4 h-4" />
                       <span class="font-medium">{{ dataType.label }}</span>
                     </div>
                     <span class="text-xs opacity-75 w-full truncate">{{ dataType.description }}</span>
                   </div>
-                </NButton>
+                </UButton>
               </div>
             </div>
 
@@ -160,7 +160,7 @@
                   Export Format
                 </label>
                 <div>
-                  <NSelect
+                  <USelect
                     v-model="dataExport.exportOptions.value.format"
                     :items="dataExport.formatOptions"
                     item-key="label"
@@ -177,7 +177,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Record Limit (0 = no limit)
                 </label>
-                <NInput
+                <UInput
                   v-model.number="dataExport.exportOptions.value.limit"
                   type="number"
                   min="0"
@@ -191,36 +191,36 @@
                 Include Data
               </label>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <NCheckbox
+                <UCheckbox
                   v-model="dataExport.exportOptions.value.include_relations"
                   :label="dataExport.getIncludeRelationsLabel()"
                 />
-                <NCheckbox
+                <UCheckbox
                   v-model="dataExport.exportOptions.value.include_user_data"
                   label="Include user information"
                 />
-                <NCheckbox
+                <UCheckbox
                   v-model="dataExport.exportOptions.value.include_moderation_data"
                   label="Include moderation history"
                 />
-                <NCheckbox
+                <UCheckbox
                   v-model="dataExport.exportOptions.value.include_analytics"
                   label="Include analytics (views, likes, shares)"
                 />
-                <NCheckbox
+                <UCheckbox
                   v-model="dataExport.exportOptions.value.include_metadata"
                   label="Include export metadata"
                 />
               </div>
             </div>
           </div>
-        </NCard>
+        </UCard>
 
         <!-- Filters -->
-        <NCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
+        <UCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
           <template #header>
-            <NCollapsible>
-              <NCollapsibleTrigger class="w-full border-b b-dashed border-gray-200 dark:border-gray-700 pb-3">
+            <UCollapsible>
+              <UCollapsibleTrigger class="w-full border-b b-dashed border-gray-200 dark:border-gray-700 pb-3">
                 <div class="flex items-center justify-between w-full p-0">
                   <div class="flex items-center gap-3">
                     <div class="text-left">
@@ -228,11 +228,11 @@
                       <p class="text-sm text-gray-600 dark:text-gray-400">Optional filtering criteria (click to expand)</p>
                     </div>
                   </div>
-                  <NIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
+                  <UIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
                 </div>
-              </NCollapsibleTrigger>
+              </UCollapsibleTrigger>
 
-              <NCollapsibleContent>
+              <UCollapsibleContent>
                 <div class="pt-4 space-y-6">
                   <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 text-sm">
                     Using the last saved filters of each data type (Quotes, Authors, References, Users, Tags). To change them, switch to a specific data type and adjust its filters.
@@ -271,14 +271,16 @@
 	                    />
 	                  </div>
                 </div>
-              </NCollapsibleContent>
-            </NCollapsible>
+              </UCollapsibleContent>
+            </UCollapsible>
           </template>
-        </NCard>
+        </UCard>
       </div>
     </div>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import QuotesFilters from '~/components/admin/export/QuotesFilters.vue'
 import ReferencesFilters from '~/components/admin/export/ReferencesFilters.vue'
 import AuthorsFilters from '~/components/admin/export/AuthorsFilters.vue'

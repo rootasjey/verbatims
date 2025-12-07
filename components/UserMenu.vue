@@ -1,12 +1,12 @@
 <template>
-  <NDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
-    <NButton
+  <UDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
+    <UButton
       btn="~"
       size="sm"
       icon
       class="hover:scale-105 active:scale-95 transition-transform min-w-0 min-h-0"
     >
-      <NAvatar
+      <UAvatar
         size="2"
         :src="user.avatar_url" 
         :alt="user.name"
@@ -29,10 +29,12 @@
             </svg>
           </div>
         </template>
-      </NAvatar>
-    </NButton>
-  </NDropdownMenu>
-</template><script setup>
+      </UAvatar>
+    </UButton>
+  </UDropdownMenu>
+</template>
+
+<script setup>
 const props = defineProps({
   user: {
     type: Object,

@@ -1,10 +1,10 @@
 <template>
-  <NDrawer v-model:open="isOpen" direction="bottom">
+  <UDrawer v-model:open="isOpen" direction="bottom">
     <template #body>
       <div class="p-4 overflow-y-auto">
         <div class="relative flex items-center justify-center mb-3">
           <h3 class="font-title uppercase text-size-4 font-600 text-gray-500 black:text-gray-400">Download as image</h3>
-          <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="isOpen = false" class="absolute top-0 right-0" />
+          <UButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="isOpen = false" class="absolute top-0 right-0" />
         </div>
 
         <!-- Preview -->
@@ -25,26 +25,28 @@
         <div class="grid grid-cols-1 gap-3 border-t b-dashed mt-8 pt-4 mb-8">
           <div>
             <label class="block text-sm font-medium mb-1">Theme</label>
-            <NSelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
+            <USelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">Size</label>
-            <NSelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
+            <USelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">Background</label>
-            <NSelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
+            <USelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
           </div>
         </div>
 
         <div class="mt-4 flex gap-2">
-          <NButton btn="light:soft dark:soft-white" label="i-ph-x-bold" icon @click="isOpen = false"></NButton>
-          <NButton btn="soft-blue" :loading="downloading" class="flex-1" @click="download">Download</NButton>
+          <UButton btn="light:soft dark:soft-white" label="i-ph-x-bold" icon @click="isOpen = false"></UButton>
+          <UButton btn="soft-blue" :loading="downloading" class="flex-1" @click="download">Download</UButton>
         </div>
       </div>
     </template>
-  </NDrawer>
-</template><script setup lang="ts">
+  </UDrawer>
+</template>
+
+<script setup lang="ts">
 import type { QuoteWithRelations } from '~/types/quote'
 import QuoteImageCard from './QuoteImageCard.vue'
 import { toPng } from 'html-to-image'

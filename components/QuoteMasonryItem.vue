@@ -32,8 +32,8 @@
         <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div class="flex items-center space-x-3">
             <!-- Like Button -->
-             <NTooltip content="Like this quote" :_tooltip-content="{ side: 'bottom' }">
-              <NButton
+             <UTooltip content="Like this quote" :_tooltip-content="{ side: 'bottom' }">
+              <UButton
                 icon
                 btn="~"
                 @click.stop="toggleQuoteLike"
@@ -41,21 +41,21 @@
                 class="p-0 min-w-0 min-h-0 h-auto w-auto transition-all duration-300 hover:scale-105"
                 :class="isQuoteLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'"
               >
-                <NIcon
+                <UIcon
                   :name="isQuoteLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'"
                   :class="[quoteLikePending && 'animate-pulse']"
                 />
                 <span>{{ formatNumber(quote.likes_count) }}</span>
-              </NButton>
-            </NTooltip>
+              </UButton>
+            </UTooltip>
 
             <!-- View Count -->
-            <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
+            <UTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
               <div class="flex items-center space-x-1 text-size-4">
-                <NIcon name="i-ph-eyes" />
+                <UIcon name="i-ph-eyes" />
                 <span>{{ formatNumber(quote.views_count) }}</span>
               </div>
-            </NTooltip>
+            </UTooltip>
           </div>
         </div>
       </div>
@@ -70,7 +70,7 @@
     </div>
 
     <!-- Featured Badge -->
-    <NBadge
+    <UBadge
       v-if="quote.is_featured"
       color="yellow"
       variant="subtle"
@@ -78,7 +78,7 @@
       class="absolute top-2 right-2"
     >
       Featured
-    </NBadge>
+    </UBadge>
 
     <!-- Hover Glow Effect -->
     <div 

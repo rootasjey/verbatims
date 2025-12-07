@@ -1,5 +1,5 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-sm' }">
+  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-sm' }">
     <div>
       <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">Delete Tag</h3>
       <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -10,14 +10,14 @@
         Usage: <span class="font-medium">{{ usageCount }}</span> quote<span v-if="usageCount !== 1">s</span>.
       </p>
       <div v-if="usageCount >= highUsageThreshold" class="mb-4">
-        <NCheckbox v-model="confirmHighUsage" label="I understand this will remove the tag from many quotes" />
+        <UCheckbox v-model="confirmHighUsage" label="I understand this will remove the tag from many quotes" />
       </div>
       <div class="flex justify-end gap-3">
-        <NButton btn="light:soft dark:soft-white" :disabled="submitting" @click="close">Cancel</NButton>
-        <NButton btn="soft-red" :loading="submitting" :disabled="usageCount >= highUsageThreshold && !confirmHighUsage" @click="confirmDelete">Delete</NButton>
+        <UButton btn="light:soft dark:soft-white" :disabled="submitting" @click="close">Cancel</UButton>
+        <UButton btn="soft-red" :loading="submitting" :disabled="usageCount >= highUsageThreshold && !confirmHighUsage" @click="confirmDelete">Delete</UButton>
       </div>
     </div>
-  </NDialog>
+  </UDialog>
 </template>
 
 <script setup lang="ts">

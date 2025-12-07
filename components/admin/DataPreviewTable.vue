@@ -1,5 +1,5 @@
 <template>
-  <NCard v-if="data && data.length > 0">
+  <UCard v-if="data && data.length > 0">
     <template #header>
       <h3 class="text-lg font-semibold">Data Preview (First {{ maxRows }} Records)</h3>
     </template>
@@ -22,8 +22,10 @@
         </tbody>
       </table>
     </div>
-  </NCard>
-</template><script setup lang="ts">
+  </UCard>
+</template>
+
+<script setup lang="ts">
 type ColumnType = 'text' | 'date' | 'list'
 
 interface Column {

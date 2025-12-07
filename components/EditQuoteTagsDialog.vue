@@ -1,5 +1,5 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
         <h3 class="font-title uppercase text-size-4 font-600 ml-4">Edit Tags</h3>
@@ -19,8 +19,8 @@
                 :key="t.id"
                 class="inline-flex items-center gap-1"
               >
-                <NBadge variant="soft" size="sm" :style="{ backgroundColor: t.color + '22', color: t.color }">#{{ t.name }}</NBadge>
-                <NButton size="xs" btn="ghost" icon label="i-ph-x" :aria-label="`Remove ${t.name}`" @click="removeTag(t)" />
+                <UBadge variant="soft" size="sm" :style="{ backgroundColor: t.color + '22', color: t.color }">#{{ t.name }}</UBadge>
+                <UButton size="xs" btn="ghost" icon label="i-ph-x" :aria-label="`Remove ${t.name}`" @click="removeTag(t)" />
               </div>
             </div>
             <div v-else class="text-sm text-gray-500">No tags yet.</div>
@@ -33,7 +33,7 @@
             Add Tag
           </label>
           <div class="relative">
-            <NInput
+            <UInput
               ref="tagInputRef"
               v-model="tagQuery"
               placeholder="Type to search or create a tag…"
@@ -84,19 +84,19 @@
             </div>
           </div>
           <div class="mt-2 flex items-center gap-2">
-            <NButton btn="soft-blue" size="sm" :disabled="!tagQuery.trim() || submitting" @click="quickAddOrCreate">
+            <UButton btn="soft-blue" size="sm" :disabled="!tagQuery.trim() || submitting" @click="quickAddOrCreate">
               Add
-            </NButton>
+            </UButton>
             <span v-if="error" class="text-xs text-red-500">{{ error }}</span>
           </div>
         </div>
 
         <div class="mt-2 flex justify-end gap-3">
-          <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">Close</NButton>
+          <UButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">Close</UButton>
         </div>
       </div>
     </div>
-  </NDialog>
+  </UDialog>
   </template>
 
 <script setup lang="ts">

@@ -22,7 +22,7 @@
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
           >
-            <NInput
+            <UInput
               v-model="searchQuery"
               :placeholder="`Search among ${filteredCollections.length} ${filteredCollections.length === 1 ? 'list' : 'lists'}...`"
               leading="i-ph-magnifying-glass"
@@ -41,30 +41,30 @@
             :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
           >
             <div class="flex items-center gap-2 overflow-x-auto py-2 px-1 scrollbar-hide">
-              <NBadge
+              <UBadge
                 :badge="visibilityFilter.value === 'all' ? 'solid-blue' : 'outline-gray'"
                 class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
                 @click="visibilityFilter = { label: 'All Lists', value: 'all' }"
               >
-                <NIcon name="i-ph-list" class="w-3 h-3 mr-1.5" />
+                <UIcon name="i-ph-list" class="w-3 h-3 mr-1.5" />
                 All
-              </NBadge>
-              <NBadge
+              </UBadge>
+              <UBadge
                 :badge="visibilityFilter.value === 'public' ? 'soft-green' : 'outline-gray'"
                 class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
                 @click="visibilityFilter = { label: 'Public Only', value: 'public' }"
               >
-                <NIcon name="i-ph-globe" class="w-3 h-3 mr-1.5" />
+                <UIcon name="i-ph-globe" class="w-3 h-3 mr-1.5" />
                 Public
-              </NBadge>
-              <NBadge
+              </UBadge>
+              <UBadge
                 :badge="visibilityFilter.value === 'private' ? 'soft-pink' : 'outline-gray'"
                 class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
                 @click="visibilityFilter = { label: 'Private Only', value: 'private' }"
               >
-                <NIcon name="i-ph-lock" class="w-3 h-3 mr-1.5" />
+                <UIcon name="i-ph-lock" class="w-3 h-3 mr-1.5" />
                 Private
-              </NBadge>
+              </UBadge>
             </div>
           </div>
         </div>
@@ -80,17 +80,17 @@
 
       <!-- Empty -->
       <div v-else-if="filteredCollections.length === 0" class="text-center py-16 px-4">
-        <NIcon name="i-ph-bookmark" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <UIcon name="i-ph-bookmark" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching lists' : 'No lists yet' }}
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Create a list from any quote by tapping \'Add to collection\'.' }}
         </p>
-        <NButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
-          <NIcon name="i-ph-plus" />
+        <UButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
+          <UIcon name="i-ph-plus" />
           Create List
-        </NButton>
+        </UButton>
       </div>
 
       <!-- Results -->
@@ -117,9 +117,9 @@
                   {{ collection.description }}
                 </p>
                 <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                  <NBadge :badge="collection.is_public ? 'outline-green' : 'outline-red'" size="xs">
-                    <NIcon :name="collection.is_public ? 'i-ph-eye-duotone' : 'i-ph-lock-duotone'" />
-                  </NBadge>
+                  <UBadge :badge="collection.is_public ? 'outline-green' : 'outline-red'" size="xs">
+                    <UIcon :name="collection.is_public ? 'i-ph-eye-duotone' : 'i-ph-lock-duotone'" />
+                  </UBadge>
                   <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
                   <span>·</span>
                   <span>Updated {{ formatDate(collection.updated_at) }}</span>
@@ -127,8 +127,8 @@
               </div>
               
               <div class="flex items-center gap-2 flex-shrink-0 -mt-1">
-                <NDropdownMenu :items="getMobileCollectionActions(collection)">
-                  <NButton
+                <UDropdownMenu :items="getMobileCollectionActions(collection)">
+                  <UButton
                     icon
                     btn="ghost"
                     size="sm"
@@ -136,14 +136,14 @@
                     class="opacity-0 group-hover:opacity-100 transition-opacity"
                     @click.stop
                   />
-                </NDropdownMenu>
+                </UDropdownMenu>
               </div>
             </div>
           </div>
         </div>
 
         <div v-if="hasMore" class="px-4 pt-6">
-          <NButton
+          <UButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -151,7 +151,7 @@
             @click="loadMore"
           >
             Load More
-          </NButton>
+          </UButton>
         </div>
       </div>
     </div>
@@ -161,7 +161,7 @@
       <!-- Search and Filters -->
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <NInput
+          <UInput
             v-model="searchQuery"
             placeholder="Search your lists..."
             leading="i-ph-magnifying-glass"
@@ -169,7 +169,7 @@
           />
         </div>
         <div class="w-full sm:w-48">
-          <NSelect
+          <USelect
             v-model="visibilityFilter"
             :items="visibilityOptions"
             placeholder="Filter by visibility"
@@ -180,35 +180,35 @@
         </div>
 
         <div class="flex items-center justify-end">
-          <NButton
+          <UButton
             size="sm"
             btn="solid-dark dark:solid-white"
             @click="showCreateModal = true"
           >
-            <NIcon name="i-ph-plus" />
+            <UIcon name="i-ph-plus" />
             Create List
-          </NButton>
+          </UButton>
         </div>
       </div>
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center py-12">
-        <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
+        <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
       </div>
 
       <!-- Empty State -->
       <div v-else-if="filteredCollections.length === 0 && !loading" class="text-center py-16">
-        <NIcon name="i-ph-bookmark" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <UIcon name="i-ph-bookmark" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching lists' : 'No lists yet' }}
         </h3>
         <p class="text-gray-500 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Create your first list to organize your favorite quotes.' }}
         </p>
-        <NButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
-          <NIcon name="i-ph-plus" />
+        <UButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
+          <UIcon name="i-ph-plus" />
           <span>Create Your First List</span>
-        </NButton>
+        </UButton>
       </div>
 
       <!-- Collections Grid -->
@@ -220,7 +220,7 @@
 
         <!-- Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <NCard
+          <UCard
             v-for="collection in filteredCollections"
             :key="collection.id"
             class="hover:shadow-lg transition-shadow cursor-pointer border-dashed"
@@ -237,21 +237,21 @@
                   </p>
                 </div>
                 <div class="flex items-center space-x-2">
-                  <NBadge
+                  <UBadge
                     :badge="collection.is_public ? 'outline-green' : 'outline-red'"
                     size="xs"
                   >
                     {{ collection.is_public ? 'Public' : 'Private' }}
-                  </NBadge>
-                  <NDropdownMenu :items="getCollectionActions(collection)">
-                    <NButton
+                  </UBadge>
+                  <UDropdownMenu :items="getCollectionActions(collection)">
+                    <UButton
                       icon
                       btn="ghost"
                       size="xs"
                       label="i-ph-dots-three-vertical"
                       @click.stop
                     />
-                  </NDropdownMenu>
+                  </UDropdownMenu>
                 </div>
               </div>
             </template>
@@ -279,12 +279,12 @@
                 </span>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <!-- Load More -->
         <div v-if="hasMore" class="text-center pt-8">
-          <NButton
+          <UButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -292,7 +292,7 @@
             @click="loadMore"
           >
             Load More
-          </NButton>
+          </UButton>
         </div>
       </div>
     </div>
@@ -312,8 +312,8 @@
     />
 
     <!-- Delete Confirmation -->
-    <NDialog v-model="showDeleteModal">
-      <NCard>
+    <UDialog v-model="showDeleteModal">
+      <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Delete List</h3>
         </template>
@@ -324,20 +324,20 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <NButton btn="outline" @click="showDeleteModal = false">
+            <UButton btn="outline" @click="showDeleteModal = false">
               Cancel
-            </NButton>
-            <NButton
+            </UButton>
+            <UButton
               color="red"
               :loading="deleting"
               @click="deleteCollection"
             >
               Delete
-            </NButton>
+            </UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
 
     <!-- Collection Actions Drawer (Mobile) -->
     <CollectionActionsDrawer
@@ -348,7 +348,9 @@
       @delete="handleDeleteFromDrawer"
     />
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import type { CollectionWithStats } from '~/types/user-interactions'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()

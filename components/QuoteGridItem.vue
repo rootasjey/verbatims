@@ -13,14 +13,14 @@
         isHovered ? 'opacity-100' : 'opacity-50'
       ]"
     >
-      <NLink
+      <ULink
         v-if="quote.author"
         :to="`/authors/${quote.author.id}`"
         class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300"
         :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
       >
         {{ quote.author.name }}
-      </NLink>
+      </ULink>
       <span
         v-else
         class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
@@ -29,8 +29,8 @@
         Unknown Author
       </span>
       
-      <NDropdownMenu :items="menuItems">
-        <NButton
+      <UDropdownMenu :items="menuItems">
+        <UButton
           icon
           btn="ghost"
           size="xs"
@@ -39,7 +39,7 @@
           @click.stop
           :title="'Quote actions'"
         />
-      </NDropdownMenu>
+      </UDropdownMenu>
     </div>
 
     <!-- Quote Content (Main) -->
@@ -73,7 +73,7 @@
       </ClientOnly>
     </div>
 
-    <NBadge
+    <UBadge
       v-if="quote.is_featured"
       color="yellow"
       variant="subtle"
@@ -81,9 +81,11 @@
       class="absolute top-2 right-2"
     >
       Featured
-    </NBadge>
+    </UBadge>
   </div>
-</template><script lang="ts" setup>
+</template>
+
+<script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~/types';
 
 interface Props {

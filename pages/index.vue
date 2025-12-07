@@ -11,11 +11,11 @@
             This is an early version. Please report any issues you find.
           </p>
 
-          <NTooltip content="Hide title" :_tooltip-content="{ side: 'bottom', sideOffset: 4 }">
-            <NButton class="absolute right-8 top-8 hover:animate-pulse"
+          <UTooltip content="Hide title" :_tooltip-content="{ side: 'bottom', sideOffset: 4 }">
+            <UButton class="absolute right-8 top-8 hover:animate-pulse"
               :btn="['text-lime', 'text-blue', 'text-red', 'text-yellow'][Math.floor(Math.random() * 4)]" size="sm" icon
               label="i-ph-asterisk-bold" @click="showHomeTitle = false" />
-          </NTooltip>
+          </UTooltip>
         </div>
       </Transition>
     </header>

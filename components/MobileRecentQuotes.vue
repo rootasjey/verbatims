@@ -4,14 +4,14 @@
       <h2 class="text-lg font-body font-200 text-gray-900 dark:text-white">
         recent quotes
       </h2>
-      <NButton
+      <UButton
         btn="ghost-gray"
         size="sm"
         @click="navigateTo('/search')"
       >
-        <NIcon name="i-ph-magnifying-glass-bold" class="w-4 h-4 mr-1" />
+        <UIcon name="i-ph-magnifying-glass-bold" class="w-4 h-4 mr-1" />
         <span class="text-sm">Search</span>
-      </NButton>
+      </UButton>
     </div>
 
     <div v-if="feed?.quotes?.value && feed.quotes.value.length > 0" class="space-y-4">
@@ -38,13 +38,13 @@
     >
       <div class="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
         <template v-if="!feed.loadingMore?.value">
-          <NButton v-if="pullDistance < pullThreshold && feed.hasMore?.value" btn="text" @click="feed.loadMore">Pull up to load more</NButton>
+          <UButton v-if="pullDistance < pullThreshold && feed.hasMore?.value" btn="text" @click="feed.loadMore">Pull up to load more</UButton>
           <span v-else-if="feed.hasMore?.value">Release to load more</span>
           <span v-else>No more quotes</span>
         </template>
         <template v-else>
           <div class="flex items-center gap-2">
-            <NIcon name="i-ph-spinner" class="w-5 h-5 animate-spin" />
+            <UIcon name="i-ph-spinner" class="w-5 h-5 animate-spin" />
             <span>Loading more quotes...</span>
           </div>
         </template>

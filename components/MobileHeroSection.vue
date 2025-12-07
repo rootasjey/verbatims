@@ -21,7 +21,7 @@
           <span class="text-gray-500 dark:text-gray-400 text-sm">
             Share my quotes...
           </span>
-          <NIcon 
+          <UIcon 
             name="i-ph-arrow-right-bold" 
             class="w-5 h-5 text-gray-400 dark:text-gray-500"
           />

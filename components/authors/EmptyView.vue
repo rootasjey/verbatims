@@ -3,7 +3,7 @@
     <!-- Empty State (when no authors) -->
     <div class="text-center py-16 mb-16">
       <div class="max-w-2xl mx-auto">
-        <NIcon name="i-ph-users" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
+        <UIcon name="i-ph-users" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
         <h2 class="text-3xl font-600 line-height-none mb-4">
           {{ searchQuery ? 'No authors found' : 'No authors yet' }}
         </h2>
@@ -13,14 +13,14 @@
             : 'Start building your authors collection by submitting quotes with author attribution.'
           }}
         </p>
-        <NButton
+        <UButton
           @click="$emit('openSubmitModal')"
           size="lg"
           class="px-8 py-4"
         >
-          <NIcon name="i-ph-plus" />
+          <UIcon name="i-ph-plus" />
           <span>Submit Your First Quote</span>
-        </NButton>
+        </UButton>
       </div>
     </div>
 
@@ -32,7 +32,7 @@
     <!-- Authors Information Section -->
     <div class="max-w-3xl mx-auto mt-42 mb-16">
       <div class="text-center mb-8 border-b b-dashed pb-8">
-        <NIcon name="i-ph-user-circle" class="w-12 h-12 text-blue-500 mx-auto mb-4" />
+        <UIcon name="i-ph-user-circle" class="w-12 h-12 text-blue-500 mx-auto mb-4" />
         <h2 class="font-subtitle text-3xl font-600 line-height-none mb-2">Discover Inspiring Authors</h2>
         <p class="font-sans text-gray-600 dark:text-gray-400 text-lg">
           From historical figures to fictional characters, explore the minds behind the most memorable quotes.

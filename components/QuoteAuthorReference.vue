@@ -3,7 +3,7 @@
     <!-- Author -->
     <div v-if="quote.author" class="flex flex-col items-center justify-center">
       <NuxtLink :to="`/authors/${quote.author.id}`">
-        <NAvatar
+        <UAvatar
           :src="quote.author.image_url"
           :alt="quote.author.name"
           size="xl"
@@ -17,7 +17,7 @@
         >
           {{ quote.author.name }}
         </NuxtLink>
-        <NBadge
+        <UBadge
           v-if="quote.author.is_fictional"
           class="mt-1"
           badge="solid-blue"
@@ -28,7 +28,7 @@
 
     <!-- Reference -->
     <div v-if="quote.reference" class="flex items-center justify-center space-x-3 text-gray-600 dark:text-gray-400">
-      <NIcon :name="getReferenceIcon(quote.reference.primary_type)" />
+      <UIcon :name="getReferenceIcon(quote.reference.primary_type)" />
       <NuxtLink
         :to="`/references/${quote.reference.id}`"
         class="font-subtitle font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors"

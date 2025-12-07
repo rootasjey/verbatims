@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mb-6 space-y-4">
-      <NAlert
+      <UAlert
         v-if="dataExport.state.successMessage"
         btn="soft"
         closable
@@ -10,7 +10,7 @@
         @close="clearMessages"
       />
 
-      <NAlert
+      <UAlert
         v-if="dataExport.state.errorMessage"
         btn="soft"
         closable
@@ -20,7 +20,7 @@
       />
     </div>
 
-    <NTabs v-model="activeTab" :items="mainTabs" class="w-full">
+    <UTabs v-model="activeTab" :items="mainTabs" class="w-full">
       <template #content="{ item }">
         <div v-if="['export'].includes(item.value)">
           <ExportCreate />
@@ -30,17 +30,17 @@
           <ExportHistory @go-to-export="activeTab = 'export'" />
         </div>
       </template>
-    </NTabs>
+    </UTabs>
 
-    <NDialog v-model:open="dataExport.state.showProgressDialog">
-      <NCard>
+    <UDialog v-model:open="dataExport.state.showProgressDialog">
+      <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Export in Progress</h3>
         </template>
 
         <div class="space-y-4">
           <div class="text-center py-8">
-            <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
+            <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
             <p class="text-gray-600 dark:text-gray-400">
               Processing export... This may take a few moments.
             </p>
@@ -49,19 +49,21 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <NButton
+            <UButton
               btn="ghost"
               :disabled="dataExport.state.isExporting"
               @click="closeProgressDialog"
             >
               Close
-            </NButton>
+            </UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import ExportCreate from '~/components/admin/export/ExportCreate.vue'
 import ExportHistory from '~/components/admin/export/ExportHistory.vue'
 import { useLocalStorage } from '@vueuse/core'

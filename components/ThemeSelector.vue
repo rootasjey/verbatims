@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NSelect
+    <USelect
       v-model="selectedTheme"
       :items="themeOptions"
       value-key="label"
@@ -12,19 +12,21 @@
     >
       <template #value="{ modelValue }">
         <span class="flex items-center gap-2">
-          <NIcon :name="(modelValue as ThemeOption)?.icon" class="w-4 h-4" />
+          <UIcon :name="(modelValue as ThemeOption)?.icon" class="w-4 h-4" />
           {{ (modelValue as ThemeOption)?.label }}
         </span>
       </template>
       <template #item="{ item }">
         <span class="flex items-center gap-2">
-          <NIcon :name="item.icon" class="w-4 h-4" />
+          <UIcon :name="item.icon" class="w-4 h-4" />
           {{ item.label }}
         </span>
       </template>
-    </NSelect>
+    </USelect>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 interface ThemeOption {
   label: string;
   value: string;

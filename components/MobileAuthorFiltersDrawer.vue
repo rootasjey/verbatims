@@ -1,15 +1,15 @@
 <template>
-  <NDrawer v-model:open="openModel" direction="bottom">
+  <UDrawer v-model:open="openModel" direction="bottom">
     <template #body>
       <div class="p-4 space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="font-serif text-lg font-600">Filters</h3>
-          <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="openModel = false" />
+          <UButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="openModel = false" />
         </div>
 
         <div class="space-y-3">
           <label class="block text-sm text-gray-600 dark:text-gray-300">Sort by</label>
-          <NSelect
+          <USelect
             v-model="sortByModel"
             :items="sortOptions"
             placeholder="Sort by"
@@ -24,14 +24,16 @@
         </div>
 
         <div class="pt-2">
-          <NButton btn="solid-black" class="w-full rounded-3" size="sm" @click="openModel = false">
+          <UButton btn="solid-black" class="w-full rounded-3" size="sm" @click="openModel = false">
             Apply
-          </NButton>
+          </UButton>
         </div>
       </div>
     </template>
-  </NDrawer>
-</template><script setup lang="ts">
+  </UDrawer>
+</template>
+
+<script setup lang="ts">
 interface SortOption { label: string; value: string }
 
 const props = defineProps<{

@@ -3,7 +3,7 @@
     <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <NInput
+          <UInput
             v-model="searchQuery"
             placeholder="Search tags by name, description, or category..."
             leading="i-ph-magnifying-glass"
@@ -15,7 +15,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <NSelect
+          <USelect
             v-model="selectedSort"
             :items="sortOptions"
             placeholder="Sort by"
@@ -24,17 +24,17 @@
             item-key="label"
             value-key="label"
           />
-          <NButton btn="soft-blue" size="sm" @click="openCreate"> 
-            <NIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
+          <UButton btn="soft-blue" size="sm" @click="openCreate"> 
+            <UIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
             Create Tag
-          </NButton>
+          </UButton>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-hash" class="w-5 h-5 text-blue-600 mr-2" />
+            <UIcon name="i-ph-hash" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Tags</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalTags }}</p>
@@ -46,25 +46,25 @@
 
     <div class="flex-1 flex flex-col">
       <!-- Bulk Actions -->
-      <NCollapsible v-model:open="bulkOpen" class="px-4 py-2">
-        <NCollapsibleContent>
+      <UCollapsible v-model:open="bulkOpen" class="px-4 py-2">
+        <UCollapsibleContent>
           <div class="flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 rounded-md px-3 py-2 border border-dashed border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-2 text-sm">
-              <NIcon name="i-ph-check-square" class="w-4 h-4" />
+              <UIcon name="i-ph-check-square" class="w-4 h-4" />
               <span>{{ selectedIds.length }} selected</span>
             </div>
             <div class="flex items-center gap-2">
-              <NButton size="xs" btn="ghost" @click="clearSelection">Clear</NButton>
-              <NButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
-                <NIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
-              </NButton>
+              <UButton size="xs" btn="ghost" @click="clearSelection">Clear</UButton>
+              <UButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
+                <UIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
+              </UButton>
             </div>
           </div>
-        </NCollapsibleContent>
-      </NCollapsible>
+        </UCollapsibleContent>
+      </UCollapsible>
 
       <div class="flex-1 overflow-auto">
-        <NTable
+        <UTable
           :columns="tableColumns"
           :data="tags"
           :loading="loading"
@@ -74,23 +74,23 @@
         >
           <template #actions-header>
             <div class="flex items-center justify-center">
-              <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
-              </NTooltip>
-              <NTooltip class="ml-2" text="Select all on page">
-                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
-              </NTooltip>
+              <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <UButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
+              </UTooltip>
+              <UTooltip class="ml-2" text="Select all on page">
+                <UCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              </UTooltip>
             </div>
           </template>
           <template #actions-cell="{ cell }">
             <template v-if="!selectionMode">
-              <NDropdownMenu :items="getTagActions(cell.row.original)">
-                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-              </NDropdownMenu>
+              <UDropdownMenu :items="getTagActions(cell.row.original)">
+                <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              </UDropdownMenu>
             </template>
             <template v-else>
               <div class="flex items-center justify-center">
-                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+                <UCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
               </div>
             </template>
           </template>
@@ -113,14 +113,14 @@
           <template #created-cell="{ cell }">
             <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(cell.row.original.created_at) }}</span>
           </template>
-        </NTable>
+        </UTable>
       </div>
 
       <div class="flex-shrink-0 flex items-center justify-between p-4">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           Page {{ currentPage }} of {{ totalPages }} • {{ totalTags }} total tags
         </div>
-        <NPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
+        <UPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
       </div>
     </div>
   </div>
@@ -129,8 +129,8 @@
   <DeleteTagDialog v-model="showDeleteDialog" :tag="tagToDelete" @tag-deleted="reloadAfterDelete" />
 
   <!-- Bulk Delete Confirmation -->
-  <NDialog v-model:open="showBulkDeleteDialog">
-    <NCard>
+  <UDialog v-model:open="showBulkDeleteDialog">
+    <UCard>
       <template #header>
         <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Tag' : 'Tags' }}</h3>
       </template>
@@ -139,13 +139,15 @@
       </p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
+          <UButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</UButton>
+          <UButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</UButton>
         </div>
       </template>
-    </NCard>
-  </NDialog>
-</template><script setup lang="ts">
+    </UCard>
+  </UDialog>
+</template>
+
+<script setup lang="ts">
 import type { Tag } from '~/types/tag'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })

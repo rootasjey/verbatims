@@ -6,7 +6,7 @@
 
     <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
       <div class="flex-1">
-        <NInput
+        <UInput
           v-model="searchModel"
           placeholder="Search references..."
           leading="i-ph-magnifying-glass"
@@ -15,21 +15,21 @@
         />
       </div>
       <div class="hidden md:flex gap-2">
-        <NSelect
+        <USelect
           v-model="primaryTypeModel"
           :items="typeOptions"
           placeholder="All Types"
           item-key="label"
           value-key="value"
         />
-        <NSelect
+        <USelect
           v-model="sortByModel"
           :items="sortOptions"
           placeholder="Sort by"
           item-key="label"
           value-key="value"
         />
-        <NButton
+        <UButton
           icon
           :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
           btn="soft-gray"
@@ -37,7 +37,7 @@
         />
       </div>
       <div class="block md:hidden">
-        <NButton btn="soft-gray" icon label="i-ph-funnel-simple" @click="$emit('open-mobile-filters')" />
+        <UButton btn="soft-gray" icon label="i-ph-funnel-simple" @click="$emit('open-mobile-filters')" />
       </div>
     </div>
   </div>

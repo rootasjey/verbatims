@@ -1,5 +1,5 @@
 <template>
-  <NCard
+  <UCard
     :class="[
       'quote-card group transition-all duration-300 h-full',
       featured ? 'ring-2 ring-primary-500 shadow-lg bg-gradient-to-br from-primary-50/50 to-primary-100/30 dark:from-primary-900/20 dark:to-primary-800/10' : ''
@@ -27,28 +27,28 @@
 
           <!-- Language indicator -->
           <div v-if="quote.language !== 'en'" class="mt-2">
-            <NBadge variant="subtle" size="xs">
+            <UBadge variant="subtle" size="xs">
               {{ getLanguageName(quote.language) }}
-            </NBadge>
+            </UBadge>
           </div>
         </div>
 
-        <NDropdownMenu :items="dropdownItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
-          <NButton
+        <UDropdownMenu :items="dropdownItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
+          <UButton
             btn="ghost-gray"
             icon
             label="i-ph-dots-three-vertical"
             size="sm"
             class="opacity-0 group-hover:opacity-100 transition-opacity"
           />
-        </NDropdownMenu>
+        </UDropdownMenu>
       </div>
     </template>
 
     <div class="space-y-4">
       <!-- Author -->
       <div v-if="quote.author" class="flex items-center space-x-3 mb-3">
-        <NAvatar
+        <UAvatar
           :src="quote.author.image_url"
           :alt="quote.author.name"
           :size="featured ? 'md' : 'sm'"
@@ -69,7 +69,7 @@
 
       <!-- Reference -->
       <div v-if="quote.reference" class="flex items-center space-x-2 quote-reference mb-4">
-        <NIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 flex-shrink-0" />
+        <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 flex-shrink-0" />
         <span>From:</span>
         <NuxtLink
           :to="`/references/${quote.reference.id}`"
@@ -112,7 +112,7 @@
               !user && 'cursor-not-allowed opacity-50'
             ]"
           >
-            <NIcon
+            <UIcon
               :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'"
               :class="['w-4 h-4', likePending && 'animate-pulse']"
             />
@@ -121,22 +121,22 @@
 
           <!-- Views -->
           <div class="flex items-center space-x-2 text-sm text-gray-500">
-            <NIcon name="i-ph-eye" class="w-4 h-4" />
+            <UIcon name="i-ph-eye" class="w-4 h-4" />
             <span>{{ formatNumber(quote.views_count) }}</span>
           </div>
 
           <!-- Shares -->
           <div v-if="quote.shares_count > 0" class="flex items-center space-x-2 text-sm text-gray-500">
-            <NIcon name="i-ph-share" class="w-4 h-4" />
+            <UIcon name="i-ph-share" class="w-4 h-4" />
             <span>{{ formatNumber(quote.shares_count) }}</span>
           </div>
         </div>
 
         <div class="flex items-center space-x-2">
           <!-- Featured badge -->
-          <NBadge v-if="featured || quote.is_featured" color="yellow" variant="subtle" size="xs">
+          <UBadge v-if="featured || quote.is_featured" color="yellow" variant="subtle" size="xs">
             Featured
-          </NBadge>
+          </UBadge>
 
           <!-- View Details -->
           <NuxtLink
@@ -148,7 +148,7 @@
         </div>
       </div>
     </template>
-  </NCard>
+  </UCard>
 
   <!-- Add to Collection Modal -->
   <AddToCollectionModal
@@ -156,7 +156,9 @@
     :quote="quote"
     @added="onAddedToCollection"
   />
-</template><script setup>
+</template>
+
+<script setup>
 const props = defineProps({
   quote: {
     type: Object,

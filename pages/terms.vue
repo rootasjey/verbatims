@@ -255,7 +255,7 @@
         role="navigation"
       >
         <template v-if="isMobile">
-          <NButton 
+          <UButton 
             btn="soft-gray" 
             size="md" 
             icon 
@@ -266,12 +266,12 @@
             @click="tocOpen = !tocOpen" 
           />
 
-          <NDrawer v-model:open="tocOpen" direction="bottom">
+          <UDrawer v-model:open="tocOpen" direction="bottom">
             <template #body>
               <div class="px-4 pb-4 overflow-y-auto">
                 <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
                   <h3 class="font-serif text-4xl font-700">Contents</h3>
-                  <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
+                  <UButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
                 </div>
 
                 <ol class="toc-list-mobile">
@@ -283,7 +283,7 @@
                 </ol>
               </div>
             </template>
-          </NDrawer>
+          </UDrawer>
         </template>
 
         <template v-else>
@@ -304,7 +304,9 @@
       </nav>
     </div>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 const isDark = usePreferredDark()
 const tocOpen = ref(false)
 

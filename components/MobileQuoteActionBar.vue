@@ -5,7 +5,7 @@
         class="inline-flex items-center gap-1 rounded-full border border-dashed border-gray-200/80 dark:border-gray-700/80 bg-white/70 dark:bg-[#0C0A09]/60 backdrop-blur px-2 py-1 font-sans shadow-sm"
       >
         <!-- Like -->
-        <NButton
+        <UButton
           data-testid="mobile-actions-like"
           size="xs"
           rounded="full"
@@ -16,16 +16,16 @@
           @click="emit('toggle-like')"
         >
           <div class="flex items-center gap-1">
-            <NIcon :name="props.isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" size="md" />
+            <UIcon :name="props.isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" size="md" />
             <span class="text-md font-500 font-subtitle">{{ formatNumber(props.likesCount) }}</span>
           </div>
-        </NButton>
+        </UButton>
 
         <!-- Divider -->
         <span class="mx-1 h-4 w-px bg-gray-200 dark:bg-gray-800" aria-hidden="true"></span>
 
         <!-- Save -->
-        <NButton
+        <UButton
           data-testid="mobile-actions-save"
           size="xs"
           rounded="full"
@@ -35,16 +35,16 @@
           @click="emit('save')"
         >
           <div class="flex items-center gap-1">
-            <NIcon :name="props.savedState === 'saved' ? 'i-ph-check' : 'i-ph-list-plus-duotone'" size="md" />
+            <UIcon :name="props.savedState === 'saved' ? 'i-ph-check' : 'i-ph-list-plus-duotone'" size="md" />
             <span class="text-md font-500 font-subtitle">{{ props.savedState === 'saved' ? 'Saved' : 'Save' }}</span>
           </div>
-        </NButton>
+        </UButton>
 
         <!-- Divider -->
         <span class="mx-1 h-4 w-px bg-gray-200 dark:bg-gray-800" aria-hidden="true"></span>
 
         <!-- Share -->
-        <NButton
+        <UButton
           data-testid="mobile-actions-share"
           size="xs"
           rounded="full"
@@ -53,41 +53,43 @@
           @click="shareOpen = true"
         >
           <div class="flex items-center gap-1">
-            <NIcon name="i-ph-share-fat-duotone" size="md" />
+            <UIcon name="i-ph-share-fat-duotone" size="md" />
             <span class="text-md font-500 font-subtitle">Share</span>
           </div>
-        </NButton>
+        </UButton>
       </div>
     </div>
     
     <!-- Share Drawer -->
-    <NDrawer v-model:open="shareOpen" direction="bottom">
+    <UDrawer v-model:open="shareOpen" direction="bottom">
       <template #body>
         <div class="p-4">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">Share this quote</h2>
-            <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="shareOpen = false" />
+            <UButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="shareOpen = false" />
           </div>
 
           <div class="grid grid-cols-1 gap-2">
-            <NButton btn="soft-gray" size="sm" class="justify-start" @click="onCopyLink">
-              <NIcon name="i-ph-link" class="mr-2" /> Copy link
-            </NButton>
-            <NButton btn="soft-gray" size="sm" class="justify-start" @click="onCopyText">
-              <NIcon name="i-ph-quotes" class="mr-2" /> Copy text
-            </NButton>
-            <NButton btn="soft-blue" size="sm" class="justify-start" :loading="props.sharePending" @click="onShare">
-              <NIcon name="i-ph-share-network" class="mr-2" /> Share
-            </NButton>
-            <NButton btn="soft-green" size="sm" class="justify-start" @click="onDownloadImage">
-              <NIcon name="i-ph-download-simple" class="mr-2" /> Download image
-            </NButton>
+            <UButton btn="soft-gray" size="sm" class="justify-start" @click="onCopyLink">
+              <UIcon name="i-ph-link" class="mr-2" /> Copy link
+            </UButton>
+            <UButton btn="soft-gray" size="sm" class="justify-start" @click="onCopyText">
+              <UIcon name="i-ph-quotes" class="mr-2" /> Copy text
+            </UButton>
+            <UButton btn="soft-blue" size="sm" class="justify-start" :loading="props.sharePending" @click="onShare">
+              <UIcon name="i-ph-share-network" class="mr-2" /> Share
+            </UButton>
+            <UButton btn="soft-green" size="sm" class="justify-start" @click="onDownloadImage">
+              <UIcon name="i-ph-download-simple" class="mr-2" /> Download image
+            </UButton>
           </div>
         </div>
       </template>
-    </NDrawer>
+    </UDrawer>
   </div>
-</template><script setup>
+</template>
+
+<script setup>
 const props = defineProps({
   isLiked: { type: Boolean, default: false },
   likePending: { type: Boolean, default: false },

@@ -1,16 +1,16 @@
 <template>
-  <NDrawer v-model:open="isOpen" direction="bottom">
+  <UDrawer v-model:open="isOpen" direction="bottom">
     <template #body>
       <div class="p-5 pb-6">
         <div class="flex items-center justify-between mb-5">
           <h3 class="text-lg font-600 text-gray-900 dark:text-white">Collection actions</h3>
-          <NBadge 
+          <UBadge 
             :badge="collection?.is_public ? 'outline-green' : 'outline-red'" 
             size="xs"
             rounded="full"
           >
             {{ collection?.is_public ? 'Public' : 'Private' }}
-          </NBadge>
+          </UBadge>
         </div>
 
         <!-- Collection Name -->
@@ -33,7 +33,7 @@
             @click="handleView"
           >
             <div class="flex items-center justify-center w-12 h-12 rounded-xl">
-              <NIcon name="i-ph-eye" class="w-6 h-6 text-blue-600" />
+              <UIcon name="i-ph-eye" class="w-6 h-6 text-blue-600" />
             </div>
             <span class="text-xs font-600 text-blue-900 dark:text-blue-100 text-center">View</span>
           </div>
@@ -43,7 +43,7 @@
             @click="handleEdit"
           >
             <div class="flex items-center justify-center w-12 h-12 rounded-xl">
-              <NIcon name="i-ph-pencil" class="w-6 h-6 text-yellow-600" />
+              <UIcon name="i-ph-pencil" class="w-6 h-6 text-yellow-600" />
             </div>
             <span class="text-xs font-600 text-yellow-900 dark:text-yellow-100 text-center">Edit</span>
           </div>
@@ -53,20 +53,22 @@
             @click="handleDelete"
           >
             <div class="flex items-center justify-center w-12 h-12 rounded-xl">
-              <NIcon name="i-ph-trash" class="w-6 h-6 text-pink-600" />
+              <UIcon name="i-ph-trash" class="w-6 h-6 text-pink-600" />
             </div>
             <span class="text-xs font-600 text-pink-900 dark:text-pink-100 text-center">Delete</span>
           </div>
         </div>
 
         <!-- Cancel Button -->
-        <NButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
+        <UButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
           Cancel
-        </NButton>
+        </UButton>
       </div>
     </template>
-  </NDrawer>
-</template><script lang="ts" setup>
+  </UDrawer>
+</template>
+
+<script lang="ts" setup>
 import type { CollectionWithStats } from '~/types/user-interactions'
 
 interface Props {

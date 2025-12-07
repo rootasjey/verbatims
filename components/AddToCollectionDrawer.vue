@@ -1,31 +1,31 @@
 <template>
-  <NDrawer v-model:open="isOpen" direction="bottom">
+  <UDrawer v-model:open="isOpen" direction="bottom">
     <template #body>
       <div class="p-5 pb-6">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-600 text-gray-900 dark:text-white">Add to Collection</h3>
-          <NButton icon btn="ghost-gray" size="sm" label="i-ph-x-bold" @click="close" />
+          <UButton icon btn="ghost-gray" size="sm" label="i-ph-x-bold" @click="close" />
         </div>
 
         <div class="space-y-4">
           <!-- Create New Collection -->
           <div class="p-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-            <NCollapsible v-model:open="createOpen">
-              <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
-                <NButton btn="ghost" size="xs">
+            <UCollapsible v-model:open="createOpen">
+              <UCollapsibleTrigger as-child class="flex items-center justify-between w-full">
+                <UButton btn="ghost" size="xs">
                   <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
-                  <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
-                </NButton>
-              </NCollapsibleTrigger>
-              <NCollapsibleContent>
+                  <UIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
+                </UButton>
+              </UCollapsibleTrigger>
+              <UCollapsibleContent>
                 <div class="m-2 mt-3 space-y-3">
-                  <NInput
+                  <UInput
                     v-model="newCollectionName"
                     placeholder="Collection name"
                     :disabled="creating"
                   />
-                  <NInput
+                  <UInput
                     type="textarea"
                     v-model="newCollectionDescription"
                     placeholder="Optional description"
@@ -33,13 +33,13 @@
                     :disabled="creating"
                   />
                   <div class="flex items-center justify-between">
-                    <NCheckbox
+                    <UCheckbox
                       v-model="newCollectionPublic"
                       checkbox="blue"
                       label="Make public"
                       :disabled="creating"
                     />
-                    <NButton
+                    <UButton
                       size="xs"
                       btn="soft-blue"
                       :loading="creating"
@@ -47,11 +47,11 @@
                       @click="createAndAddToCollection"
                     >
                       Create & Add
-                    </NButton>
+                    </UButton>
                   </div>
                 </div>
-              </NCollapsibleContent>
-            </NCollapsible>
+              </UCollapsibleContent>
+            </UCollapsible>
           </div>
 
           <!-- Existing Collections -->
@@ -78,40 +78,42 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                    <NBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">Public</NBadge>
+                    <UBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">Public</UBadge>
                   </div>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{ collection.quotes_count }} {{ collection.quotes_count === 1 ? 'quote' : 'quotes' }}
                   </p>
                 </div>
                 <div class="mr-2">
-                  <NIcon v-if="!addingToCollections.has(collection.id)" name="i-ph-plus-bold" class="w-4 h-4 text-gray-400" />
-                  <NIcon v-else name="i-ph-spinner" class="w-4 h-4 animate-spin text-primary-500" />
+                  <UIcon v-if="!addingToCollections.has(collection.id)" name="i-ph-plus-bold" class="w-4 h-4 text-gray-400" />
+                  <UIcon v-else name="i-ph-spinner" class="w-4 h-4 animate-spin text-primary-500" />
                 </div>
               </button>
             </div>
 
             <!-- Empty State -->
             <div v-else class="text-center py-8">
-              <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <UIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p class="text-gray-500 dark:text-gray-400 mb-4">
                 You don't have any collections yet
               </p>
-              <NButton size="sm" btn="soft-blue" @click="createOpen = true">
+              <UButton size="sm" btn="soft-blue" @click="createOpen = true">
                 Create Your First Collection
-              </NButton>
+              </UButton>
             </div>
           </div>
 
           <div class="pt-1">
-            <NButton block btn="ghost" @click="close">Close</NButton>
+            <UButton block btn="ghost" @click="close">Close</UButton>
           </div>
         </div>
       </div>
     </template>
-  </NDrawer>
+  </UDrawer>
   
-</template><script lang="ts" setup>
+</template>
+
+<script lang="ts" setup>
 import type { CollectionWithStats } from '~/types'
 
 interface Props {

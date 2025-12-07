@@ -6,7 +6,7 @@
 
     <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
       <div class="flex-1">
-        <NInput
+        <UInput
           autofocus
           ref="searchInput"
           v-model="searchQueryModel"
@@ -18,7 +18,7 @@
         />
       </div>
       <div class="hidden md:flex gap-2">
-        <NSelect
+        <USelect
           v-model="sortByModel"
           :items="sortOptions"
           placeholder="Sort by"
@@ -26,7 +26,7 @@
           value-key="label"
           @change="$emit('change-sort')"
         />
-        <NButton
+        <UButton
           icon
           :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
           btn="soft-gray"
@@ -34,7 +34,7 @@
         />
       </div>
       <div class="block md:hidden">
-        <NButton 
+        <UButton 
           icon 
           label="i-ph-faders" 
           size="sm" 

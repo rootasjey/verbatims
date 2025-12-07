@@ -5,7 +5,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Quote Status
         </label>
-        <NSelect
+        <USelect
           :model-value="modelValue.status"
           @update:model-value="updateFilter('status', $event)"
           :items="statusOptions"
@@ -20,7 +20,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Language
         </label>
-        <NSelect
+        <USelect
           :model-value="modelValue.language"
           @update:model-value="updateFilter('language', $event)"
           :items="languageOptions"
@@ -37,7 +37,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Author Name
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.author_name"
           @update:model-value="updateFilter('author_name', $event)"
           placeholder="Search by author name"
@@ -48,7 +48,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Quote Content
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.search"
           @update:model-value="updateFilter('search', $event)"
           placeholder="Search in quote content"
@@ -62,13 +62,13 @@
         Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <NInput
+        <UInput
           :model-value="modelValue.date_range.start"
           @update:model-value="updateDateRange('start', $event)"
           type="date"
           placeholder="Start date"
         />
-        <NInput
+        <UInput
           :model-value="modelValue.date_range.end"
           @update:model-value="updateDateRange('end', $event)"
           type="date"
@@ -78,7 +78,7 @@
     </div>
 
     <div>
-      <NCheckbox
+      <UCheckbox
         :model-value="modelValue.featured_only"
         @update:model-value="updateFilter('featured_only', $event)"
         label="Featured quotes only"
@@ -91,7 +91,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Min Views
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.min_views"
           @update:model-value="updateFilter('min_views', Number($event))"
           type="number"
@@ -103,7 +103,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Min Likes
         </label>
-        <NInput
+        <UInput
           :model-value="modelValue.min_likes"
           @update:model-value="updateFilter('min_likes', Number($event))"
           type="number"

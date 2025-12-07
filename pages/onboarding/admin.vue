@@ -11,12 +11,12 @@
       </div>
 
       <!-- Form -->
-      <NCard class="p-6 max-w-md mx-auto">
+      <UCard class="p-6 max-w-md mx-auto">
         <form @submit.prevent="createAdminUser" class="space-y-6">
           <!-- Username -->
           <div>
             <label class="block text-sm font-medium mb-2">Username</label>
-            <NInput
+            <UInput
               v-model="form.username"
               placeholder="Enter username"
               :disabled="loading"
@@ -27,7 +27,7 @@
           <!-- Email -->
           <div>
             <label class="block text-sm font-medium mb-2">Email</label>
-            <NInput
+            <UInput
               v-model="form.email"
               type="email"
               placeholder="Enter email address"
@@ -39,7 +39,7 @@
           <!-- Password -->
           <div>
             <label class="block text-sm font-medium mb-2">Password</label>
-            <NInput
+            <UInput
               v-model="form.password"
               type="password"
               placeholder="Enter password"
@@ -51,7 +51,7 @@
           <!-- Confirm Password -->
           <div>
             <label class="block text-sm font-medium mb-2">Confirm Password</label>
-            <NInput
+            <UInput
               v-model="form.confirmPassword"
               type="password"
               placeholder="Confirm password"
@@ -63,7 +63,7 @@
           <!-- Admin Authorization Password -->
           <div>
             <label class="block text-sm font-medium mb-2">Admin Authorization Password</label>
-            <NInput
+            <UInput
               v-model="form.adminPassword"
               type="password"
               placeholder="Enter admin authorization password"
@@ -86,7 +86,7 @@
           </div>
 
           <!-- Submit Button -->
-          <NButton
+          <UButton
             type="submit"
             :loading="loading"
             :disabled="!isFormValid"
@@ -94,19 +94,19 @@
             size="sm"
           >
             Create Admin User
-          </NButton>
+          </UButton>
         </form>
 
         <!-- Navigation -->
         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div class="flex justify-between items-center text-sm">
-            <NButton btn="link" to="/" class="p-0">
+            <UButton btn="link" to="/" class="p-0">
               ← Back to Home
-            </NButton>
+            </UButton>
             <span class="text-gray-500">Step 1 of 2</span>
           </div>
         </div>
-      </NCard>
+      </UCard>
     </div>
   </div>
 </template>

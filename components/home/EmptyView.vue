@@ -3,40 +3,40 @@
     <!-- Onboarding Section (Centered when database is empty) -->
     <div v-if="needsOnboarding" class="text-center py-16 mb-16">
       <div class="max-w-2xl mx-auto">
-        <NIcon name="i-ph-rocket-launch" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
+        <UIcon name="i-ph-rocket-launch" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
         <h2 class="text-3xl font-600 line-height-none mb-4">Welcome to Verbatims!</h2>
         <p class="text-gray-600 dark:text-gray-400 text-lg mb-8">
           Get started by setting up your universal quotes service:
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <NButton
+          <UButton
             v-if="onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser"
             size="lg"
             to="/onboarding/admin"
             class="px-8 py-4"
           >
-            <NIcon name="i-ph-user-plus" />
+            <UIcon name="i-ph-user-plus" />
             <span>1. Create Admin User</span>
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             v-else-if="onboardingStatus?.step === 'database_data' || !onboardingStatus?.hasData"
             size="lg"
             to="/onboarding/database"
             class="px-8 py-4"
           >
-            <NIcon name="i-ph-database" />
+            <UIcon name="i-ph-database" />
             <span>2. Initialize Database</span>
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             v-if="onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser"
             size="lg"
             to="/onboarding/database"
             class="px-8 py-4"
             btn="outline"
           >
-            <NIcon name="i-ph-skip-forward" />
+            <UIcon name="i-ph-skip-forward" />
             <span>Skip • Import Backup</span>
-          </NButton>
+          </UButton>
         </div>
       </div>
     </div>
@@ -44,19 +44,19 @@
     <!-- Empty State (when onboarding is complete but no quotes) -->
     <div v-else-if="stats.quotes === 0" class="text-center py-16 mb-16">
       <div class="max-w-2xl mx-auto">
-        <NIcon name="i-ph-quotes" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
+        <UIcon name="i-ph-quotes" class="w-16 h-16 text-primary-500 mx-auto mb-6" />
         <h2 class="text-3xl font-600 line-height-none mb-4">Ready to start collecting quotes!</h2>
         <p class="text-gray-600 dark:text-gray-400 text-lg mb-8">
           Your database is set up. Start by submitting your first quote and begin building your universal quotes collection.
         </p>
-        <NButton
+        <UButton
           @click="$emit('openSubmitModal')"
           size="lg"
           class="px-8 py-4"
         >
-          <NIcon name="i-ph-plus" />
+          <UIcon name="i-ph-plus" />
           <span>Submit Your First Quote</span>
-        </NButton>
+        </UButton>
       </div>
     </div>
 
@@ -68,7 +68,7 @@
     <!-- Personal Manifesto Section -->
     <div class="max-w-3xl mx-auto mt-42 mb-16">
       <div class="text-center mb-8 border-b b-dashed pb-8">
-        <NIcon name="i-ph-heart" class="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <UIcon name="i-ph-heart" class="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h2 class="font-subtitle text-3xl font-600 line-height-none mb-2">The Journey Behind Verbatims</h2>
         <p class="font-sans text-gray-600 dark:text-gray-400 text-lg">
           This is my 8th attempt at building something meaningful. Here's why it matters.

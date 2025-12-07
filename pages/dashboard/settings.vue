@@ -10,7 +10,7 @@
         </div>
 
         <div class="flex gap-3">
-          <NSelect
+          <USelect
             v-model="selectedTab"
             :items="tabs"
             placeholder="Section"
@@ -26,7 +26,7 @@
       <div class="px-4 pb-6 space-y-6">
         <!-- Profile Tab: Profile Info + Language + Privacy -->
         <div v-if="selectedTab.value === 'profile'" class="space-y-6">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Profile Information
@@ -39,7 +39,7 @@
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Display Name
                   </label>
-                  <NInput
+                  <UInput
                     v-model="profileForm.name"
                     placeholder="Your display name"
                     size="md"
@@ -49,7 +49,7 @@
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email Address
                   </label>
-                  <NInput
+                  <UInput
                     v-model="profileForm.email"
                     type="email"
                     placeholder="your@email.com"
@@ -66,7 +66,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Bio
                 </label>
-                <NInput
+                <UInput
                   v-model="profileForm.bio"
                   type="textarea"
                   placeholder="Tell us about yourself..."
@@ -76,19 +76,19 @@
               </div>
 
               <div class="flex">
-                <NButton
+                <UButton
                   btn="solid-black"
                   class="w-full"
                   :loading="savingProfile"
                   @click="saveProfile"
                 >
                   Save Profile
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
 
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Language Preferences
@@ -106,9 +106,9 @@
                 </p>
               </div>
             </div>
-          </NCard>
+          </UCard>
 
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Privacy & Visibility
@@ -126,7 +126,7 @@
                       Allow others to see your profile and public collections.
                     </p>
                   </div>
-                  <NSwitch v-model="privacySettings.public_profile" />
+                  <USwitch v-model="privacySettings.public_profile" />
                 </div>
 
                 <div class="flex items-center justify-between gap-4">
@@ -138,26 +138,26 @@
                       Display your name as the submitter on approved quotes.
                     </p>
                   </div>
-                  <NSwitch v-model="privacySettings.show_attribution" />
+                  <USwitch v-model="privacySettings.show_attribution" />
                 </div>
               </div>
 
               <div class="flex">
-                <NButton
+                <UButton
                   btn="solid-black"
                   class="w-full"
                   :loading="savingPrivacy"
                   @click="savePrivacy"
                 >
                   Save Settings
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <div v-else-if="selectedTab.value === 'ui'" class="space-y-6">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 User Interface
@@ -183,15 +183,15 @@
                     Show the big "VERBATIMS" title on the home page.
                   </p>
                 </div>
-                <NSwitch v-model="showHomeTitle" />
+                <USwitch v-model="showHomeTitle" />
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <!-- Notifications Tab -->
         <div v-else-if="selectedTab.value === 'notifications'" class="space-y-6">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                 Notifications
@@ -209,7 +209,7 @@
                       Get notified when your submitted quotes are approved or rejected.
                     </p>
                   </div>
-                  <NSwitch v-model="notificationSettings.quote_approval" />
+                  <USwitch v-model="notificationSettings.quote_approval" />
                 </div>
 
                 <div class="flex items-center justify-between gap-4">
@@ -221,7 +221,7 @@
                       Get notified when someone adds quotes to your public collections.
                     </p>
                   </div>
-                  <NSwitch v-model="notificationSettings.collection_updates" />
+                  <USwitch v-model="notificationSettings.collection_updates" />
                 </div>
 
                 <div class="flex items-center justify-between gap-4">
@@ -233,27 +233,27 @@
                       Receive a weekly summary of new quotes and activity.
                     </p>
                   </div>
-                  <NSwitch v-model="notificationSettings.weekly_digest" />
+                  <USwitch v-model="notificationSettings.weekly_digest" />
                 </div>
               </div>
 
               <div class="flex">
-                <NButton
+                <UButton
                   btn="solid-black"
                   class="w-full"
                   :loading="savingNotifications"
                   @click="saveNotifications"
                 >
                   Save Preferences
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <!-- Data Tab: Danger Zone -->
         <div v-else-if="selectedTab.value === 'data'" class="space-y-6">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-lg font-semibold">
                 Danger Zone
@@ -268,17 +268,17 @@
                 <p class="text-sm mb-4">
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
-                <NButton
+                <UButton
                   btn="solid-red"
                   variant="outline"
                   class="w-full"
                   @click="showDeleteModal = true"
                 >
                   Delete Account
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
       </div>
     </div>
@@ -286,11 +286,11 @@
     <!-- Desktop layout -->
     <div v-else>
       <!-- Tabs wrapper -->
-      <NTabs v-model="activeTab" :items="tabs" class="w-full">
+      <UTabs v-model="activeTab" :items="tabs" class="w-full">
         <template #content="{ item }">
         <!-- Profile Tab: Profile Info + Language + Privacy -->
         <div v-if="item.value === 'profile'" class="space-y-8">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 Profile Information
@@ -303,7 +303,7 @@
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Display Name
                   </label>
-                  <NInput
+                  <UInput
                     v-model="profileForm.name"
                     placeholder="Your display name"
                     size="lg"
@@ -313,7 +313,7 @@
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email Address
                   </label>
-                  <NInput
+                  <UInput
                     v-model="profileForm.email"
                     type="email"
                     placeholder="your@email.com"
@@ -330,7 +330,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Bio
                 </label>
-                <NInput
+                <UInput
                   v-model="profileForm.bio"
                   type="textarea"
                   placeholder="Tell us about yourself..."
@@ -340,18 +340,18 @@
               </div>
 
               <div class="flex justify-end">
-                <NButton
+                <UButton
                   btn="solid-black"
                   :loading="savingProfile"
                   @click="saveProfile"
                 >
                   Save Profile
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
 
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 Language Preferences
@@ -369,9 +369,9 @@
                 </p>
               </div>
             </div>
-          </NCard>
+          </UCard>
 
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 Privacy & Visibility
@@ -389,7 +389,7 @@
                       Allow others to see your profile and public collections.
                     </p>
                   </div>
-                  <NSwitch v-model="privacySettings.public_profile" />
+                  <USwitch v-model="privacySettings.public_profile" />
                 </div>
 
                 <div class="flex items-center justify-between">
@@ -401,26 +401,26 @@
                       Display your name as the submitter on approved quotes.
                     </p>
                   </div>
-                  <NSwitch v-model="privacySettings.show_attribution" />
+                  <USwitch v-model="privacySettings.show_attribution" />
                 </div>
               </div>
 
               <div class="flex justify-end">
-                <NButton
+                <UButton
                   btn="solid-black"
                   :loading="savingPrivacy"
                   @click="savePrivacy"
                 >
                   Save Settings
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <!-- User Interface Tab -->
         <div v-else-if="item.value === 'ui'" class="space-y-8">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 User Interface
@@ -446,15 +446,15 @@
                     Show the big "VERBATIMS" title on the home page.
                   </p>
                 </div>
-                <NSwitch v-model="showHomeTitle" />
+                <USwitch v-model="showHomeTitle" />
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <!-- Notifications Tab -->
         <div v-else-if="item.value === 'notifications'" class="space-y-8">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 Notifications
@@ -472,7 +472,7 @@
                       Get notified when your submitted quotes are approved or rejected.
                     </p>
                   </div>
-                  <NSwitch v-model="notificationSettings.quote_approval" />
+                  <USwitch v-model="notificationSettings.quote_approval" />
                 </div>
 
                 <div class="flex items-center justify-between">
@@ -484,7 +484,7 @@
                       Get notified when someone adds quotes to your public collections.
                     </p>
                   </div>
-                  <NSwitch v-model="notificationSettings.collection_updates" />
+                  <USwitch v-model="notificationSettings.collection_updates" />
                 </div>
 
                 <div class="flex items-center justify-between">
@@ -496,26 +496,26 @@
                       Receive a weekly summary of new quotes and activity.
                     </p>
                   </div>
-                  <NSwitch v-model="notificationSettings.weekly_digest" />
+                  <USwitch v-model="notificationSettings.weekly_digest" />
                 </div>
               </div>
 
               <div class="flex justify-end">
-                <NButton
+                <UButton
                   btn="solid-black"
                   :loading="savingNotifications"
                   @click="saveNotifications"
                 >
                   Save Preferences
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
 
         <!-- Data Tab: Danger Zone -->
         <div v-else-if="item.value === 'data'" class="space-y-8">
-          <NCard class="shadow-none">
+          <UCard class="shadow-none">
             <template #header>
               <h2 class="text-xl font-semibold">
                 Danger Zone
@@ -530,24 +530,24 @@
                 <p class="text-sm mb-4">
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
-                <NButton
+                <UButton
                   btn="solid-red"
                   variant="outline"
                   @click="showDeleteModal = true"
                 >
                   Delete Account
-                </NButton>
+                </UButton>
               </div>
             </div>
-          </NCard>
+          </UCard>
         </div>
       </template>
-    </NTabs>
+    </UTabs>
     </div>
 
     <!-- Delete Account Confirmation -->
-    <NDialog v-model="showDeleteModal">
-      <NCard>
+    <UDialog v-model="showDeleteModal">
+      <UCard>
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Delete Account</h3>
         </template>
@@ -570,22 +570,24 @@
         
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <NButton btn="outline" @click="showDeleteModal = false">
+            <UButton btn="outline" @click="showDeleteModal = false">
               Cancel
-            </NButton>
-            <NButton
+            </UButton>
+            <UButton
               color="red"
               :loading="deleting"
               @click="deleteAccount"
             >
               Delete My Account
-            </NButton>
+            </UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import { useStorage } from '@vueuse/core'
 
 interface ProfileForm {

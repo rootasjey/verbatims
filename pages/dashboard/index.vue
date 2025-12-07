@@ -6,7 +6,7 @@
         class="bg-white dark:bg-[#0C0A09] rounded-lg border b-dashed">
         <div class="px-6 py-4 flex flex-col justify-center">
           <div class="flex flex-shrink-0 gap-2">
-            <NIcon :name="getStatsIcon(key)" />
+            <UIcon :name="getStatsIcon(key)" />
             <p class="text-sm font-600 text-gray-500 dark:text-gray-400">{{ formatStatsLabel(key) }}</p>
           </div>
           <div>
@@ -20,31 +20,31 @@
     <div class="mb-8">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
-        <NButton btn="outline-dark dark:outline-white" to="/dashboard/lists">
-          <NIcon name="i-ph-bookmark" />
+        <UButton btn="outline-dark dark:outline-white" to="/dashboard/lists">
+          <UIcon name="i-ph-bookmark" />
           Manage Lists
-        </NButton>
-        <NButton btn="outline-dark dark:outline-white" to="/dashboard/favourites">
-          <NIcon name="i-ph-heart" />
+        </UButton>
+        <UButton btn="outline-dark dark:outline-white" to="/dashboard/favourites">
+          <UIcon name="i-ph-heart" />
           View Favourites
-        </NButton>
-        <NButton btn="outline-dark dark:outline-white" to="/dashboard/my-quotes/drafts">
-          <NIcon name="i-ph-file-dashed" />
+        </UButton>
+        <UButton btn="outline-dark dark:outline-white" to="/dashboard/my-quotes/drafts">
+          <UIcon name="i-ph-file-dashed" />
           My Drafts
-        </NButton>
+        </UButton>
       </div>
     </div>
 
     <!-- Recent Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Recent Submissions -->
-      <NCard>
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Recent Submissions</h3>
-            <NButton btn="link" size="xs" to="/dashboard/my-quotes/published">
+            <UButton btn="link" size="xs" to="/dashboard/my-quotes/published">
               View All
-            </NButton>
+            </UButton>
           </div>
         </template>
 
@@ -63,35 +63,35 @@
                   {{ formatDate(quote.created_at) }}
                 </p>
               </div>
-              <NBadge 
+              <UBadge 
                 :color="getStatusColor(quote.status)" 
                 variant="subtle"
                 size="xs"
               >
                 {{ quote.status }}
-              </NBadge>
+              </UBadge>
             </div>
           </div>
         </div>
-      </NCard>
+      </UCard>
 
       <!-- Recent Collections -->
-      <NCard>
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">My Lists</h3>
-            <NButton btn="link" size="xs" to="/dashboard/lists">
+            <UButton btn="link" size="xs" to="/dashboard/lists">
               View All
-            </NButton>
+            </UButton>
           </div>
         </template>
 
         <div class="space-y-4">
           <div v-if="recentCollections.length === 0">
             <p class="text-gray-500 dark:text-gray-400">No collections yet</p>
-            <NButton btn="solid-dark dark:solid-white" class="mt-4" to="/dashboard/lists">
+            <UButton btn="solid-dark dark:solid-white" class="mt-4" to="/dashboard/lists">
               Create List
-            </NButton>
+            </UButton>
           </div>
 
           <div v-for="collection in recentCollections" :key="collection.id" class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -102,16 +102,18 @@
                   {{ collection.quotes_count }} quotes
                 </p>
               </div>
-              <NBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">
+              <UBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">
                 Public
-              </NBadge>
+              </UBadge>
             </div>
           </div>
         </div>
-      </NCard>
+      </UCard>
     </div>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'

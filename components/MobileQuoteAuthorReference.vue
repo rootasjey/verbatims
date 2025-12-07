@@ -32,16 +32,16 @@
         >
           {{ quote.author.name }}
         </NuxtLink>
-        <NTooltip v-if="quote.author.is_fictional">
+        <UTooltip v-if="quote.author.is_fictional">
           <template #default>
-            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
+            <UIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
           </template>
           <template #content>
             <div class="text-sm">
               This author is fictional
             </div>
           </template>
-        </NTooltip>
+        </UTooltip>
       </div>
     </div>
 
@@ -55,7 +55,9 @@
       </NuxtLink>
     </div>
   </div>
-</template><script lang="ts" setup>
+</template>
+
+<script lang="ts" setup>
 import type { QuoteWithRelations } from '~/types';
 
 interface Props {

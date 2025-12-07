@@ -1,5 +1,5 @@
 <template>
-  <NCombobox
+  <UCombobox
     v-model="selectedLanguage"
     :items="availableLanguages"
     by="value"
@@ -12,7 +12,7 @@
     <template #trigger="{ modelValue }">
       <template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
         <div class="flex items-center gap-2">
-          <NIcon :name="modelValue.icon" />
+          <UIcon :name="modelValue.icon" />
           {{ modelValue.display }}
         </div>
       </template>
@@ -23,12 +23,14 @@
 
     <template #label="{ item }">
       <div class="flex items-center gap-2">
-        <NIcon :name="item.icon"  />
+        <UIcon :name="item.icon"  />
         {{ item.display }}
       </div>
     </template>
-  </NCombobox>
-</template><script setup lang="ts">
+  </UCombobox>
+</template>
+
+<script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
 
 // Props

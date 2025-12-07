@@ -6,13 +6,13 @@
   >
     <!-- Hero Badge -->
     <div class="flex items-center justify-between mb-4">
-      <NBadge color="primary" variant="subtle" size="sm">
-        <NIcon name="i-ph-star-bold" class="w-3 h-3 mr-1" />
+      <UBadge color="primary" variant="subtle" size="sm">
+        <UIcon name="i-ph-star-bold" class="w-3 h-3 mr-1" />
         Featured Quote
-      </NBadge>
+      </UBadge>
       
       <!-- Share Button -->
-      <NButton
+      <UButton
         icon
         btn="ghost-gray"
         label="i-ph-share"
@@ -43,20 +43,20 @@
           <span class="text-sm text-gray-600 dark:text-gray-400">
             from {{ quote.reference.name }}
           </span>
-          <NBadge
+          <UBadge
             v-if="quote.reference.primary_type"
             :color="getReferenceTypeColor(quote.reference.primary_type)"
             variant="subtle"
             size="xs"
           >
             {{ quote.reference.primary_type }}
-          </NBadge>
+          </UBadge>
         </div>
       </div>
 
       <!-- Action Buttons -->
       <div class="flex items-center space-x-2">
-        <NButton
+        <UButton
           icon
           btn="ghost-gray"
           label="i-ph-heart"
@@ -65,7 +65,7 @@
           class="hover:text-red-500"
         />
         
-        <NButton
+        <UButton
           icon
           btn="ghost-gray"
           label="i-ph-arrow-right"

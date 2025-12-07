@@ -7,7 +7,7 @@
       >
         recent authors
       </h2>
-      <NButton
+      <UButton
         icon
         btn="ghost-gray"
         label="i-ph-dots-three-bold"
@@ -70,7 +70,7 @@
 
     <!-- Empty State -->
     <div v-else-if="!recentAuthors.length" class="text-center py-8">
-      <NIcon name="i-ph-users" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+      <UIcon name="i-ph-users" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
         No recent authors yet
       </p>

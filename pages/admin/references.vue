@@ -5,7 +5,7 @@
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <NInput
+          <UInput
             v-model="searchQuery"
             placeholder="Search references by title, description, or genre..."
             leading="i-ph-magnifying-glass"
@@ -19,7 +19,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <NSelect
+          <USelect
             v-model="selectedTypeFilter"
             :items="typeFilterOptions"
             placeholder="All Types"
@@ -28,7 +28,7 @@
             item-key="label"
             value-key="label"
           />
-          <NSelect
+          <USelect
             v-model="selectedSort"
             :items="sortOptions"
             placeholder="Sort by"
@@ -37,14 +37,14 @@
             item-key="label"
             value-key="label"
           />
-          <NButton
+          <UButton
             btn="soft-blue"
             @click="showAddReferenceDialog = true"
             size="sm"
           >
-            <NIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
+            <UIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
             Create Reference
-          </NButton>
+          </UButton>
         </div>
       </div>
 
@@ -52,7 +52,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-book" class="w-5 h-5 text-blue-600 mr-2" />
+            <UIcon name="i-ph-book" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total References</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalReferences }}</p>
@@ -61,7 +61,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-film-strip" class="w-5 h-5 text-purple-600 mr-2" />
+            <UIcon name="i-ph-film-strip" class="w-5 h-5 text-purple-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Films & TV</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalFilmsAndTV }}</p>
@@ -70,7 +70,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-book-open" class="w-5 h-5 text-green-600 mr-2" />
+            <UIcon name="i-ph-book-open" class="w-5 h-5 text-green-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Books</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalBooks }}</p>
@@ -79,7 +79,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-quotes" class="w-5 h-5 text-orange-600 mr-2" />
+            <UIcon name="i-ph-quotes" class="w-5 h-5 text-orange-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalQuotes }}</p>
@@ -92,7 +92,7 @@
       <div class="flex items-center justify-between mt-6">
         <div class="flex items-center space-x-2">
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View:</span>
-          <NToggle
+          <UToggle
             v-model="isCardView"
             :label="isCardView ? 'i-ph-squares-four' : 'i-ph-table'"
             size="sm"
@@ -124,7 +124,7 @@
                 v-else
                 class="w-12 h-16 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
               >
-                <NIcon :name="getTypeIcon(reference.primary_type)" class="w-6 h-6 text-gray-500" />
+                <UIcon :name="getTypeIcon(reference.primary_type)" class="w-6 h-6 text-gray-500" />
               </div>
             </div>
             <div class="flex-1 min-w-0">
@@ -148,22 +148,22 @@
             </div>
           </div>
           <div class="mt-3 flex justify-end space-x-2">
-            <NButton
+            <UButton
               size="xs"
               btn="ghost"
               @click="editReference(reference)"
             >
-              <NIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
+              <UIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
               Edit
-            </NButton>
-            <NButton
+            </UButton>
+            <UButton
               size="xs"
               btn="ghost"
               @click="viewReference(reference)"
             >
-              <NIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
+              <UIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
               View
-            </NButton>
+            </UButton>
           </div>
         </div>
       </div>
@@ -172,26 +172,26 @@
     <!-- Table View -->
     <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
       <!-- Bulk Actions -->
-      <NCollapsible v-model:open="bulkOpen" class="px-4 py-2">
-        <NCollapsibleContent>
+      <UCollapsible v-model:open="bulkOpen" class="px-4 py-2">
+        <UCollapsibleContent>
           <div class="flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 rounded-md px-3 py-2 border border-dashed border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-2 text-sm">
-              <NIcon name="i-ph-check-square" class="w-4 h-4" />
+              <UIcon name="i-ph-check-square" class="w-4 h-4" />
               <span>{{ selectedIds.length }} selected</span>
             </div>
             <div class="flex items-center gap-2">
-              <NButton size="xs" btn="ghost" @click="clearSelection">Clear</NButton>
-              <NButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
-                <NIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
-              </NButton>
+              <UButton size="xs" btn="ghost" @click="clearSelection">Clear</UButton>
+              <UButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
+                <UIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
+              </UButton>
             </div>
           </div>
-        </NCollapsibleContent>
-      </NCollapsible>
+        </UCollapsibleContent>
+      </UCollapsible>
 
       <!-- Scrollable Table Container -->
       <div class="references-table-container flex-1 overflow-auto">
-        <NTable
+        <UTable
           :columns="tableColumns"
           :data="filteredReferences"
           :loading="loading"
@@ -201,29 +201,29 @@
         >
           <template #actions-header>
             <div class="flex items-center justify-center">
-              <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
-              </NTooltip>
-              <NTooltip class="ml-2" text="Select all on page">
-                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
-              </NTooltip>
+              <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <UButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
+              </UTooltip>
+              <UTooltip class="ml-2" text="Select all on page">
+                <UCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              </UTooltip>
             </div>
           </template>
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
             <template v-if="!selectionMode">
-              <NDropdownMenu :items="getReferenceActions(cell.row.original)">
-                <NButton
+              <UDropdownMenu :items="getReferenceActions(cell.row.original)">
+                <UButton
                   icon
                   btn="ghost"
                   size="sm"
                   label="i-ph-dots-three-vertical"
                 />
-              </NDropdownMenu>
+              </UDropdownMenu>
             </template>
             <template v-else>
               <div class="flex items-center justify-center">
-                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+                <UCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
               </div>
             </template>
           </template>
@@ -242,7 +242,7 @@
                   v-else
                   class="w-8 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
                 >
-                  <NIcon :name="getTypeIcon(cell.row.original.primary_type)" class="w-4 h-4 text-gray-500" />
+                  <UIcon :name="getTypeIcon(cell.row.original.primary_type)" class="w-4 h-4 text-gray-500" />
                 </div>
               </div>
               <div class="min-w-0 flex-1">
@@ -284,14 +284,14 @@
               {{ formatRelativeTime(cell.row.original.created_at) }}
             </span>
           </template>
-        </NTable>
+        </UTable>
       </div>
 
       <div class="flex-shrink-0 flex items-center justify-between p-4">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           Page {{ currentPage }} of {{ totalPages }} • {{ totalReferences }} total references
         </div>
-        <NPagination
+        <UPagination
           v-model:page="currentPage"
           :total="totalReferences"
           :items-per-page="pageSize"
@@ -317,8 +317,8 @@
   />
 
   <!-- Bulk Delete Confirmation -->
-  <NDialog v-model:open="showBulkDeleteDialog">
-    <NCard>
+  <UDialog v-model:open="showBulkDeleteDialog">
+    <UCard>
       <template #header>
         <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3>
       </template>
@@ -327,13 +327,15 @@
       </p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
+          <UButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</UButton>
+          <UButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</UButton>
         </div>
       </template>
-    </NCard>
-  </NDialog>
-</template><script setup lang="ts">
+    </UCard>
+  </UDialog>
+</template>
+
+<script setup lang="ts">
 import type { QuoteReference, QuoteReferenceWithMetadata, QuoteReferencePrimaryType } from '~/types/quote-reference'
 
 definePageMeta({

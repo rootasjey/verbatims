@@ -1,16 +1,16 @@
 <template>
-  <NDrawer v-model:open="isOpen" direction="bottom">
+  <UDrawer v-model:open="isOpen" direction="bottom">
     <template #body>
       <div class="p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title uppercase text-size-4 font-600">{{ title }}</h3>
-          <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="sm" @click="close" />
+          <UButton icon btn="ghost-gray" label="i-ph-x-bold" size="sm" @click="close" />
         </div>
 
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div>
             <label class="block text-sm font-medium mb-1">Category</label>
-            <NSelect
+            <USelect
               v-model="form.category"
               :items="categories"
               item-key="label"
@@ -20,17 +20,17 @@
 
           <div v-if="!isAuthenticated">
             <label class="block text-sm font-medium mb-1">Name</label>
-            <NInput v-model="form.name" placeholder="Your name" />
+            <UInput v-model="form.name" placeholder="Your name" />
           </div>
 
           <div v-if="!isAuthenticated">
             <label class="block text-sm font-medium mb-1">Email</label>
-            <NInput v-model="form.email" type="email" placeholder="you@example.com" />
+            <UInput v-model="form.email" type="email" placeholder="you@example.com" />
           </div>
 
           <div>
             <label class="block text-sm font-medium mb-1">Message</label>
-            <NInput
+            <UInput
               type="textarea"
               v-model="form.message"
               :rows="5"
@@ -42,18 +42,20 @@
 
           <div>
             <label class="block text-sm font-medium mb-1">Tags (optional)</label>
-            <NInput v-model="tagsInput" placeholder="Comma-separated (e.g. UI, accessibility)" />
+            <UInput v-model="tagsInput" placeholder="Comma-separated (e.g. UI, accessibility)" />
           </div>
         </form>
 
         <div class="mt-5 flex gap-2">
-          <NButton btn="light:soft dark:soft-white" class="flex-1" @click="close" :disabled="pending">Cancel</NButton>
-          <NButton btn="soft-blue" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</NButton>
+          <UButton btn="light:soft dark:soft-white" class="flex-1" @click="close" :disabled="pending">Cancel</UButton>
+          <UButton btn="soft-blue" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</UButton>
         </div>
       </div>
     </template>
-  </NDrawer>
-</template><script setup lang="ts">
+  </UDrawer>
+</template>
+
+<script setup lang="ts">
 import type { ReportTargetType, ReportCategory } from '~/types/report'
 import { useReportForm } from '~/composables/useReportForm'
 

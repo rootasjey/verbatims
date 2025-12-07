@@ -23,8 +23,8 @@
 
       <!-- Actions Dropdown (right) -->
       <div class="flex-shrink-0 -mt-1">
-        <NDropdownMenu :items="dropdownActions">
-          <NButton
+        <UDropdownMenu :items="dropdownActions">
+          <UButton
             icon
             btn="ghost"
             size="sm"
@@ -32,7 +32,7 @@
             class="opacity-0 group-hover:opacity-100 transition-opacity"
             @click.stop
           />
-        </NDropdownMenu>
+        </UDropdownMenu>
       </div>
     </div>
 
@@ -43,7 +43,7 @@
     <div v-if="quote.author || quote.author_name" class="flex items-center justify-between gap-3 pt-3">
       <!-- Author Name with Avatar -->
       <div class="flex items-center space-x-3 flex-1 min-w-0">
-        <NAvatar
+        <UAvatar
           v-if="showAvatar"
           :src="quote.author?.image_url || quote.author_image_url || undefined"
           :alt="quote.author?.name || quote.author_name || 'Unknown Author'"
@@ -61,7 +61,7 @@
         <!-- Reference Type Badge (configurable style) -->
         <template v-if="referenceType">
           <!-- text style -->
-          <NBadge
+          <UBadge
             v-if="badge === 'text'"
             :color="getReferenceTypeColor(referenceType)"
             variant="subtle"
@@ -69,7 +69,7 @@
             class="text-xs font-500 rounded-lg"
           >
             {{ formatReferenceType(referenceType) }}
-          </NBadge>
+          </UBadge>
 
           <!-- dot style -->
           <div
@@ -82,12 +82,12 @@
 
           <!-- icon style -->
           <div v-else class="px-2 py-1 rounded-md border border-gray-200 dark:border-gray-700">
-            <NIcon :name="getReferenceTypeIcon(referenceType)" class="w-4 h-4" :style="{ color: getReferenceTypeHex(referenceType) }" />
+            <UIcon :name="getReferenceTypeIcon(referenceType)" class="w-4 h-4" :style="{ color: getReferenceTypeHex(referenceType) }" />
           </div>
         </template>
 
         <!-- Featured Badge (if any) -->
-        <NBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</NBadge>
+        <UBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</UBadge>
       </div>
     </div>
 
@@ -108,7 +108,9 @@
       @add-to-collection="emitAddToCollection"
     />
   </div>
-</template><script lang="ts" setup>
+</template>
+
+<script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~/types'
 
 interface DropdownAction {

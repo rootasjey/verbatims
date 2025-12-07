@@ -4,7 +4,7 @@
       <h1 class="text-4xl font-bold mb-4 text-center">Press Kit</h1>
       <!-- Toolbar -->
       <div class="flex items-center justify-center gap-3 mt-6">
-        <NSelect
+        <USelect
           class="min-w-36"
           v-model="selectedFormat"
           :items="formatItems"
@@ -12,7 +12,7 @@
           value-key="label"
           size="sm"
         />
-        <NButton
+        <UButton
           size="sm"
           btn="solid-black"
           :loading="downloading"
@@ -20,7 +20,7 @@
           title="Click a preview card below to download the corresponding PNG"
         >
           Click preview to download
-        </NButton>
+        </UButton>
       </div>
     </div>
 

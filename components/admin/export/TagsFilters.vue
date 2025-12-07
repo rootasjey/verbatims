@@ -2,14 +2,14 @@
   <div class="space-y-4">
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
-      <NInput v-model="model.search" placeholder="Search tags by name or description" />
+      <UInput v-model="model.search" placeholder="Search tags by name or description" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
         <div>
-          <NSelect
+          <USelect
             v-model="categoryModel"
             :items="categoryOptions"
             item-key="label"
@@ -22,7 +22,7 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label>
         <div>
-          <NSelect
+          <USelect
             v-model="colorModel"
             :items="colorOptions"
             item-key="label"
@@ -37,20 +37,20 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created from</label>
-        <NInput v-model="dateStart" type="date" />
+        <UInput v-model="dateStart" type="date" />
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created to</label>
-        <NInput v-model="dateEnd" type="date" />
+        <UInput v-model="dateEnd" type="date" />
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum usage</label>
-        <NInput v-model.number="model.min_usage" type="number" min="0" placeholder="0" />
+        <UInput v-model.number="model.min_usage" type="number" min="0" placeholder="0" />
       </div>
     </div>
 
     <div class="flex items-center gap-4">
-      <NCheckbox v-model="model.unused_only" label="Only tags with no usage" />
+      <UCheckbox v-model="model.unused_only" label="Only tags with no usage" />
     </div>
   </div>
 </template>

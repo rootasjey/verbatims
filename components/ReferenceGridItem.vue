@@ -17,7 +17,7 @@
       ]"
     >
       <!-- Reference Type Badge -->
-      <NBadge 
+      <UBadge 
         :color="getTypeColor(reference.primary_type)" 
         badge="~"
         size="xs"
@@ -30,10 +30,10 @@
         }"
       >
         {{ formatType(reference.primary_type) }}
-      </NBadge>
+      </UBadge>
       
       <!-- Quote Count Icon -->
-      <NIcon
+      <UIcon
         name="i-ph-book-open-text-bold"
         :class="[
           'opacity-0 group-hover:opacity-100',

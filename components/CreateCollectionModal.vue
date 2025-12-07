@@ -1,27 +1,27 @@
 <template>
-  <NDialog v-model:open="isOpen">
+  <UDialog v-model:open="isOpen">
     <div>
       <div class="mb-6">
         <h3 class="text-lg font-semibold">Create New Collection</h3>
       </div>
 
-      <NForm
+      <UForm
         :schema="schema"
         :state="state"
         @submit="createCollection"
         class="space-y-4"
       >
-        <NFormGroup label="Collection Name" name="name" required>
-          <NInput
+        <UFormGroup label="Collection Name" name="name" required>
+          <UInput
             class="mt-2"
             v-model="state.name"
             placeholder="Enter collection name"
             :disabled="loading"
           />
-        </NFormGroup>
+        </UFormGroup>
 
-        <NFormGroup label="Description" name="description">
-          <NInput
+        <UFormGroup label="Description" name="description">
+          <UInput
             class="mt-2"
             type="textarea"
             v-model="state.description"
@@ -29,38 +29,38 @@
             :rows="3"
             :disabled="loading"
           />
-        </NFormGroup>
+        </UFormGroup>
 
-        <NFormGroup name="is_public">
-          <NCheckbox
+        <UFormGroup name="is_public">
+          <UCheckbox
             v-model="state.is_public"
             label="Make this collection public"
             help="Public collections can be viewed by anyone"
             :disabled="loading"
           />
-        </NFormGroup>
+        </UFormGroup>
 
         <div>
           <div class="flex justify-end gap-3">
-            <NButton
+            <UButton
               btn="ghost"
               @click="closeModal"
               :disabled="loading"
             >
               Cancel
-            </NButton>
-            <NButton
+            </UButton>
+            <UButton
               btn="soft-blue"
               type="submit"
               :loading="loading"
             >
               Create Collection
-            </NButton>
+            </UButton>
           </div>
         </div>
-      </NForm>
+      </UForm>
     </div>
-  </NDialog>
+  </UDialog>
 </template>
 
 <script lang="ts" setup>

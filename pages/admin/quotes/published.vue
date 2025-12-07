@@ -5,7 +5,7 @@
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <NInput
+          <UInput
             v-model="searchQuery"
             placeholder="Search quotes, authors, or references..."
             leading="i-ph-magnifying-glass"
@@ -19,7 +19,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <NSelect
+          <USelect
             v-model="selectedLanguage"
             :items="languageOptions"
             placeholder="All Languages"
@@ -28,7 +28,7 @@
             item-key="label"
             value-key="label"
           />
-          <NSelect
+          <USelect
             v-model="selectedSort"
             :items="sortOptions"
             placeholder="Sort by"
@@ -43,7 +43,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
+            <UIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Published</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalQuotes }}</p>
@@ -52,7 +52,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-eye" class="w-5 h-5 text-blue-600 mr-2" />
+            <UIcon name="i-ph-eye" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalViews }}</p>
@@ -61,7 +61,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <NIcon name="i-ph-heart" class="w-5 h-5 text-red-600 mr-2" />
+            <UIcon name="i-ph-heart" class="w-5 h-5 text-red-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Likes</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalLikes }}</p>
@@ -93,7 +93,7 @@
 
       <!-- Empty State -->
       <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
-        <NIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
         </h3>
@@ -105,8 +105,8 @@
       <!-- Quotes Table -->
       <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
         <!-- Bulk Actions (animated) -->
-        <NCollapsible v-model:open="bulkOpen">
-          <NCollapsibleContent>
+        <UCollapsible v-model:open="bulkOpen">
+          <UCollapsibleContent>
             <div class="flex-shrink-0 mb-4">
               <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between">
@@ -114,27 +114,27 @@
                     {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
                   </span>
                   <div class="flex items-center gap-3">
-                    <NButton size="sm" btn="ghost-blue" @click="showBulkAddToCollection = true">
-                      <NIcon name="i-ph-bookmark" />
+                    <UButton size="sm" btn="ghost-blue" @click="showBulkAddToCollection = true">
+                      <UIcon name="i-ph-bookmark" />
                       Add to Collection
-                    </NButton>
-                    <NButton size="sm" btn="ghost-pink" @click="bulkUnpublish">
-                      <NIcon name="i-ph-eye-slash" />
+                    </UButton>
+                    <UButton size="sm" btn="ghost-pink" @click="bulkUnpublish">
+                      <UIcon name="i-ph-eye-slash" />
                       Unpublish
-                    </NButton>
-                    <NButton size="sm" btn="ghost-gray" @click="clearSelection">
+                    </UButton>
+                    <UButton size="sm" btn="ghost-gray" @click="clearSelection">
                       Clear Selection
-                    </NButton>
+                    </UButton>
                   </div>
                 </div>
               </div>
             </div>
-          </NCollapsibleContent>
-        </NCollapsible>
+          </UCollapsibleContent>
+        </UCollapsible>
 
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
-          <NTable
+          <UTable
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
@@ -146,8 +146,8 @@
             <template #actions-header>
               <div class="flex items-center justify-center gap-1">
                 <template v-if="selectionMode">
-                  <NTooltip text="Select all on page">
-                    <NButton
+                  <UTooltip text="Select all on page">
+                    <UButton
                       icon
                       btn="ghost"
                       size="2xs"
@@ -155,34 +155,34 @@
                       :disabled="allSelectedOnPage"
                       @click="selectAllOnPage"
                     />
-                  </NTooltip>
+                  </UTooltip>
                 </template>
-                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                  <NButton
+                <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <UButton
                     icon
                     btn="ghost-gray"
                     size="2xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
-                </NTooltip>
+                </UTooltip>
               </div>
             </template>
             <!-- Actions Column -->
             <template #actions-cell="{ cell }">
               <template v-if="!selectionMode">
-                <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                  <NButton
+                <UDropdownMenu :items="getQuoteActions(cell.row.original)">
+                  <UButton
                     icon
                     btn="ghost"
                     size="sm"
                     label="i-ph-dots-three-vertical"
                   />
-                </NDropdownMenu>
+                </UDropdownMenu>
               </template>
               <template v-else>
                 <div class="flex items-center justify-center">
-                  <NCheckbox
+                  <UCheckbox
                     :model-value="!!rowSelection[cell.row.original.id]"
                     @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                   />
@@ -242,11 +242,11 @@
             <template #stats-cell="{ cell }">
               <div class="text-xs space-y-1">
                 <div class="flex items-center text-gray-500 dark:text-gray-400">
-                  <NIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
+                  <UIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
                   {{ cell.row.original.views_count || 0 }}
                 </div>
                 <div class="flex items-center text-gray-500 dark:text-gray-400">
-                  <NIcon name="i-ph-heart" class="w-3 h-3 mr-1" />
+                  <UIcon name="i-ph-heart" class="w-3 h-3 mr-1" />
                   {{ cell.row.original.likes_count || 0 }}
                 </div>
               </div>
@@ -254,9 +254,9 @@
 
             <!-- Status Column -->
             <template #status-cell>
-              <NBadge color="green" variant="subtle" size="xs">
+              <UBadge color="green" variant="subtle" size="xs">
                 Published
-              </NBadge>
+              </UBadge>
             </template>
 
             <!-- Published Date Column -->
@@ -265,14 +265,14 @@
                 {{ formatRelativeTime(cell.row.original.moderated_at || cell.row.original.created_at) }}
               </span>
             </template>
-          </NTable>
+          </UTable>
         </div>
 
         <div class="flex-shrink-0 flex items-center justify-between p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
-          <NPagination
+          <UPagination
             v-model:page="currentPage"
             :total="totalQuotes"
             :items-per-page="pageSize"
@@ -298,7 +298,9 @@
     :quote-ids="selectedQuotes"
     @added="handleBulkAddedToCollection"
   />
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
 import type { AdminQuote } from '~/types'
 import { formatRelativeTime } from '~/utils/time-formatter'

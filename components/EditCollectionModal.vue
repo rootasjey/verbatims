@@ -1,65 +1,67 @@
 <template>
-  <NDialog v-model:open="isOpen">
+  <UDialog v-model:open="isOpen">
     <template #header>
       <div class="flex items-center gap-3">
         <h3 class="text-size-4">Edit <u class="decoration-dashed">{{ collection.name }}</u> Collection</h3>
       </div>
     </template>
 
-    <NForm
+    <UForm
       :schema="schema"
       :state="state"
       @submit="updateCollection"
       class="space-y-4 mb-8"
     >
-      <NFormGroup label="Collection Name" name="name" required>
-        <NInput
+      <UFormGroup label="Collection Name" name="name" required>
+        <UInput
           v-model="state.name"
           placeholder="Enter collection name"
           :disabled="loading"
         />
-      </NFormGroup>
+      </UFormGroup>
 
-      <NFormGroup label="Description" name="description">
-        <NInput
+      <UFormGroup label="Description" name="description">
+        <UInput
           type="textarea"
           v-model="state.description"
           placeholder="Optional description for your collection"
           :rows="3"
           :disabled="loading"
         />
-      </NFormGroup>
+      </UFormGroup>
 
-      <NFormGroup name="is_public">
-        <NCheckbox
+      <UFormGroup name="is_public">
+        <UCheckbox
           v-model="state.is_public"
           label="Make this collection public"
           help="Public collections can be viewed by anyone"
           :disabled="loading"
         />
-      </NFormGroup>
-    </NForm>
+      </UFormGroup>
+    </UForm>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <NButton
+        <UButton
           btn="text-gray"
           @click="closeModal"
           :disabled="loading"
         >
           Cancel
-        </NButton>
-        <NButton
+        </UButton>
+        <UButton
           btn="solid-black"
           type="submit"
           :loading="loading"
         >
           Update Collection
-        </NButton>
+        </UButton>
       </div>
     </template>
-  </NDialog>
-</template><script setup>
+  </UDialog>
+</template>
+
+<script setup>
 import { z } from 'zod'
 
 const props = defineProps({

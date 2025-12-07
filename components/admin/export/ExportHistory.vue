@@ -9,51 +9,51 @@
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <NButton
+          <UButton
             btn="light:soft dark:link-gray"
             size="sm"
             @click="refresh"
           >
-            <NIcon name="i-ph-arrow-clockwise" />
+            <UIcon name="i-ph-arrow-clockwise" />
             Refresh
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="light:soft-pink dark:link-pink"
             size="sm"
             :disabled="dataExport.state.exportHistory.length === 0"
             @click="showClearHistoryDialog = true"
           >
-            <NIcon name="i-ph-trash" />
+            <UIcon name="i-ph-trash" />
             Clear All
-          </NButton>
+          </UButton>
         </div>
       </div>
 
       <div>
         <div v-if="dataExport.state.isLoadingHistory" class="flex justify-center py-8">
-          <NIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
+          <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
         </div>
 
         <div v-else-if="dataExport.state.exportHistory.length === 0" class="text-center py-12">
-          <NIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <UIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 class="font-body text-size-8 font-medium text-gray-900 dark:text-white">
             No Export History
           </h3>
           <p class="font-body text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             Your export history will appear here once you start creating exports.
           </p>
-          <NButton
+          <UButton
             btn="soft-blue"
             @click="emit('go-to-export')"
           >
-            <NIcon name="i-ph-download" />
+            <UIcon name="i-ph-download" />
             Create Your First Export
-          </NButton>
+          </UButton>
         </div>
 
         <div v-else class="export-history-container flex flex-col">
-          <NCollapsible v-model:open="bulkOpen">
-            <NCollapsibleContent>
+          <UCollapsible v-model:open="bulkOpen">
+            <UCollapsibleContent>
               <div class="flex-shrink-0 mb-4">
                 <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
                   <div class="flex items-center justify-between">
@@ -61,26 +61,26 @@
                       {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'entry' : 'entries' }} selected
                     </span>
                     <div class="flex items-center gap-3">
-                      <NButton size="sm" btn="light:ghost-blue dark:link-blue" :loading="bulkDownloading" @click="bulkDownload">
-                        <NIcon name="i-ph-download" />
+                      <UButton size="sm" btn="light:ghost-blue dark:link-blue" :loading="bulkDownloading" @click="bulkDownload">
+                        <UIcon name="i-ph-download" />
                         Download Selected
-                      </NButton>
-                      <NButton size="sm" btn="light:ghost-pink dark:link-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
-                        <NIcon name="i-ph-trash" />
+                      </UButton>
+                      <UButton size="sm" btn="light:ghost-pink dark:link-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
+                        <UIcon name="i-ph-trash" />
                         Delete Selected
-                      </NButton>
-                      <NButton size="sm" btn="light:ghost dark:link-ghost" @click="clearSelection">
+                      </UButton>
+                      <UButton size="sm" btn="light:ghost dark:link-ghost" @click="clearSelection">
                         Clear Selection
-                      </NButton>
+                      </UButton>
                     </div>
                   </div>
                 </div>
               </div>
-            </NCollapsibleContent>
-          </NCollapsible>
+            </UCollapsibleContent>
+          </UCollapsible>
 
           <div class="flex-1 overflow-auto">
-            <NTable
+            <UTable
               :columns="historyColumns"
               :data="dataExport.state.exportHistory"
               :loading="dataExport.state.isLoadingHistory"
@@ -91,8 +91,8 @@
               <template #actions-header>
                 <div class="flex items-center justify-center gap-1">
                   <template v-if="selectionMode">
-                    <NTooltip text="Select all on page">
-                      <NButton
+                    <UTooltip text="Select all on page">
+                      <UButton
                         icon
                         btn="ghost"
                         size="2xs"
@@ -100,17 +100,17 @@
                         :disabled="allSelectedOnPage"
                         @click="selectAllOnPage"
                       />
-                    </NTooltip>
+                    </UTooltip>
                   </template>
-                  <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                    <NButton
+                  <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                    <UButton
                       icon
                       btn="ghost-gray"
                       size="2xs"
                       :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                       @click="toggleSelectionMode"
                     />
-                  </NTooltip>
+                  </UTooltip>
                 </div>
               </template>
 
@@ -124,7 +124,7 @@
               </template>
 
               <template #format-cell="{ cell }">
-                <NBadge
+                <UBadge
                   :label="cell.row.original.format.toUpperCase()"
                   :color="dataExport.getFormatColor(cell.row.original.format)"
                   badge="subtle"
@@ -142,21 +142,21 @@
 
               <template #storage-cell="{ cell }">
                 <div class="flex items-center gap-2">
-                  <NBadge
+                  <UBadge
                     v-if="cell.row.original.backup_file"
                     :label="dataExport.getBackupStatusLabel(cell.row.original.backup_file.storage_status)"
                     :color="dataExport.getBackupStatusColor(cell.row.original.backup_file.storage_status)"
                     badge="subtle"
                     size="xs"
                   />
-                  <NBadge
+                  <UBadge
                     v-else
                     label="Legacy"
                     color="gray"
                     badge="subtle"
                     size="xs"
                   />
-                  <NIcon
+                  <UIcon
                     v-if="cell.row.original.backup_file && cell.row.original.backup_file.storage_status === 'stored'"
                     name="i-ph-cloud-check"
                     class="w-4 h-4 text-green-500"
@@ -179,32 +179,32 @@
 
               <template #actions-cell="{ cell }">
                 <template v-if="!selectionMode">
-                  <NDropdownMenu :items="getEntryActions(cell.row.original)">
-                    <NButton
+                  <UDropdownMenu :items="getEntryActions(cell.row.original)">
+                    <UButton
                       icon
                       btn="ghost"
                       size="sm"
                       label="i-ph-dots-three-vertical"
                     />
-                  </NDropdownMenu>
+                  </UDropdownMenu>
                 </template>
                 <template v-else>
                   <div class="flex items-center justify-center">
-                    <NCheckbox
+                    <UCheckbox
                       :model-value="!!rowSelection[cell.row.original.id]"
                       @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                     />
                   </div>
                 </template>
               </template>
-            </NTable>
+            </UTable>
           </div>
 
           <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 rounded-2 border">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               Page {{ dataExport.state.historyPagination.page }} of {{ dataExport.state.historyPagination.totalPages }} • {{ dataExport.state.historyPagination.total }} total exports
             </div>
-            <NPagination
+            <UPagination
               v-model:page="dataExport.state.historyPagination.page"
               :total="dataExport.state.historyPagination.total"
               :items-per-page="dataExport.state.historyPagination.limit"
@@ -217,8 +217,8 @@
       </div>
     </div>
 
-    <NDialog v-model:open="showBulkDeleteModal">
-      <NCard>
+    <UDialog v-model:open="showBulkDeleteModal">
+      <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Delete {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'Entry' : 'Entries' }}</h3>
         </template>
@@ -229,15 +229,15 @@
 
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <NButton btn="ghost" @click="showBulkDeleteModal = false">Cancel</NButton>
-            <NButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</NButton>
+            <UButton btn="ghost" @click="showBulkDeleteModal = false">Cancel</UButton>
+            <UButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
 
-    <NDialog v-model:open="showClearHistoryDialog">
-      <NCard class="shadow-none border-none">
+    <UDialog v-model:open="showClearHistoryDialog">
+      <UCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Clear All Export History</h3>
         </template>
@@ -253,15 +253,15 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <NButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</NButton>
-            <NButton btn="link-red" @click="handleClearAllHistory">Clear All History</NButton>
+            <UButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</UButton>
+            <UButton btn="link-red" @click="handleClearAllHistory">Clear All History</UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
 
-    <NDialog v-model:open="showDeleteEntryDialog">
-      <NCard class="shadow-none border-none">
+    <UDialog v-model:open="showDeleteEntryDialog">
+      <UCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Delete Export Entry</h3>
         </template>
@@ -277,14 +277,16 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <NButton btn="ghost" @click="showDeleteEntryDialog = false">Cancel</NButton>
-            <NButton btn="solid" @click="handleDeleteEntry">Delete Entry</NButton>
+            <UButton btn="ghost" @click="showDeleteEntryDialog = false">Cancel</UButton>
+            <UButton btn="solid" @click="handleDeleteEntry">Delete Entry</UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import { useDataExport } from '~/composables/useDataExport'
 
 const emit = defineEmits<{ (e: 'go-to-export'): void }>()

@@ -1,5 +1,5 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
         <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
@@ -12,7 +12,7 @@
             Author Name *
           </label>
           <div class="relative">
-            <NInput
+            <UInput
               ref="nameInputRef"
               v-model="nameQuery"
               placeholder="Enter author name..."
@@ -74,7 +74,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Job/Title
           </label>
-          <NInput
+          <UInput
             v-model="form.job"
             placeholder="e.g., Writer, Philosopher, Actor..."
             :disabled="submitting"
@@ -86,7 +86,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Birth Date
           </label>
-          <NInput
+          <UInput
             v-model="form.birth_date"
             type="date"
             :disabled="submitting"
@@ -98,7 +98,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Death Date
           </label>
-          <NInput
+          <UInput
             v-model="form.death_date"
             type="date"
             :disabled="submitting"
@@ -113,7 +113,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Avatar/Image URL
           </label>
-          <NInput
+          <UInput
             v-model="form.image_url"
             type="url"
             placeholder="https://example.com/image.jpg"
@@ -124,7 +124,7 @@
         <!-- Is Fictional -->
         <div>
           <label class="flex items-center space-x-2">
-            <NToggle
+            <UToggle
               v-model="form.is_fictional"
               :disabled="submitting"
             />
@@ -139,7 +139,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Description
           </label>
-          <NInput
+          <UInput
             type="textarea"
             v-model="form.description"
             placeholder="Brief biographical description..."
@@ -150,20 +150,20 @@
       </form>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
+        <UButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
           Cancel
-        </NButton>
-        <NButton
+        </UButton>
+        <UButton
           btn="soft-blue"
           :loading="submitting"
           @click="submitAuthor"
           :disabled="!nameQuery.trim()"
         >
           {{ submitButtonText }}
-        </NButton>
+        </UButton>
       </div>
     </div>
-  </NDialog>
+  </UDialog>
 </template>
 
 <script setup lang="ts">

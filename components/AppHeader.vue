@@ -11,32 +11,32 @@
     <!-- Main Navigation Bar -->
     <div class="flex justify-between items-center p-4">
       <div class="flex items-center space-x-4">
-        <NButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
+        <UButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
           <AppIcon />
-        </NButton>
+        </UButton>
 
         <!-- Page Title for Admin/Dashboard -->
         <div v-if="shouldShowPageTitle" class="flex items-center space-x-3">
           <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
           <div class="flex items-center space-x-2">
-            <NTooltip :content="pageHeader.title.value.length > 20 ? pageHeader.title.value : ''">
+            <UTooltip :content="pageHeader.title.value.length > 20 ? pageHeader.title.value : ''">
               <h1 class="header-title shrink-2 font-title text-lg font-600 text-gray-900 dark:text-white whitespace-nowrap text-ellipsis overflow-hidden">
                 {{ pageHeader.title }}
               </h1>
-            </NTooltip>
-            <NBadge
+            </UTooltip>
+            <UBadge
               :color="pageHeader.section.value === 'admin' ? 'red' : 'blue'"
               variant="subtle"
               size="xs"
               class="uppercase"
             >
               {{ pageHeader.section.value }}
-            </NBadge>
+            </UBadge>
           </div>
         </div>
       </div>
 
-      <NNavigationMenu
+      <UNavigationMenu
         v-if="!isMobile"
         :items="navMenuItems"
         indicator
@@ -45,28 +45,28 @@
 
       <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
         <div class="flex">
-          <NTooltip content="Add Quote (Ctrl/Cmd+N)" placement="bottom">
-            <NButton
+          <UTooltip content="Add Quote (Ctrl/Cmd+N)" placement="bottom">
+            <UButton
             icon
             btn="ghost-gray"
             label="i-ph-quotes-duotone"
             @click="showAddQuote = true"
             />
-          </NTooltip>
+          </UTooltip>
 
-          <NTooltip content="Search (Ctrl/Cmd+K)" placement="bottom">
-            <NButton
+          <UTooltip content="Search (Ctrl/Cmd+K)" placement="bottom">
+            <UButton
               icon
               btn="ghost-gray"
               label="i-ph-magnifying-glass-duotone"
               @click="showSearch = true"
             />
-          </NTooltip>
+          </UTooltip>
 
           <UserMenu v-if="user" :user="user" />
-          <NButton v-else btn="light:soft dark:soft-blue" to="/login" class="font-800 relative left-2">
+          <UButton v-else btn="light:soft dark:soft-blue" to="/login" class="font-800 relative left-2">
             Sign in
-          </NButton>
+          </UButton>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
           >
-            <NInput
+            <UInput
               v-model="searchQuery"
               :placeholder="`Search among ${filteredQuotes.length} ${filteredQuotes.length === 1 ? 'favourite' : 'favourites'}...`"
               leading="i-ph-magnifying-glass"
@@ -41,30 +41,30 @@
             :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
           >
             <div class="flex items-center gap-2 overflow-x-auto py-2 -mx-1 px-1 scrollbar-hide">
-              <NBadge
+              <UBadge
                 :badge="sortBy.value === 'recent' ? 'soft-blue' : 'soft-gray'"
                 class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Most Recent', value: 'recent' }"
               >
-                <NIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
+                <UIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
                 Recent
-              </NBadge>
-              <NBadge
+              </UBadge>
+              <UBadge
                 :badge="sortBy.value === 'oldest' ? 'soft-pink' : 'soft-gray'"
                 class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Oldest First', value: 'oldest' }"
               >
-                <NIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
+                <UIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
                 Oldest
-              </NBadge>
-              <NBadge
+              </UBadge>
+              <UBadge
                 :badge="sortBy.value === 'author' ? 'soft-blue' : 'soft-gray'"
                 class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Author A-Z', value: 'author' }"
               >
-                <NIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
+                <UIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
                 Author
-              </NBadge>
+              </UBadge>
             </div>
           </div>
         </div>
@@ -80,17 +80,17 @@
 
       <!-- Empty -->
       <div v-else-if="filteredQuotes.length === 0" class="text-center py-16 px-4">
-        <NIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <UIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching favourites' : 'No favourites yet' }}
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Start exploring quotes and like the ones you love.' }}
         </p>
-        <NButton v-if="!searchQuery" btn="solid-black" to="/">
-          <NIcon name="i-ph-magnifying-glass" />
+        <UButton v-if="!searchQuery" btn="solid-black" to="/">
+          <UIcon name="i-ph-magnifying-glass" />
           Discover Quotes
-        </NButton>
+        </UButton>
       </div>
 
       <!-- Results -->
@@ -106,7 +106,7 @@
           />
 
         <div v-if="hasMore" class="px-4 pt-6">
-          <NButton
+          <UButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -114,7 +114,7 @@
             @click="loadMore"
           >
             Load More
-          </NButton>
+          </UButton>
         </div>
       </div>
     </div>
@@ -124,7 +124,7 @@
       <!-- Search and Filters -->
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <NInput
+          <UInput
             v-model="searchQuery"
             placeholder="Search your favourites..."
             leading="i-ph-magnifying-glass"
@@ -132,7 +132,7 @@
           />
         </div>
         <div class="w-full sm:w-48">
-          <NSelect
+          <USelect
             v-model="sortBy"
             :items="sortOptions"
             placeholder="Sort by"
@@ -145,22 +145,22 @@
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center py-12">
-        <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
+        <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
       </div>
 
       <!-- Empty State -->
       <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
-        <NIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <UIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching favourites' : 'No favourites yet' }}
         </h3>
         <p class="text-gray-500 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Start exploring quotes and like the ones you love.' }}
         </p>
-        <NButton v-if="!searchQuery" btn="solid-black" to="/">
-          <NIcon name="i-ph-magnifying-glass" />
+        <UButton v-if="!searchQuery" btn="solid-black" to="/">
+          <UIcon name="i-ph-magnifying-glass" />
           Discover Quotes
-        </NButton>
+        </UButton>
       </div>
 
       <!-- Quotes Grid -->
@@ -185,7 +185,7 @@
 
         <!-- Load More -->
         <div v-if="hasMore" class="text-center pt-8">
-          <NButton
+          <UButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -193,7 +193,7 @@
             @click="loadMore"
           >
             Load More
-          </NButton>
+          </UButton>
         </div>
       </div>
     </div>

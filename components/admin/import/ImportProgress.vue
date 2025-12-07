@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6">
     <!-- Progress Card -->
-    <NCard>
+    <UCard>
       <template #header>
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-semibold">Import Progress</h2>
-          <NBadge
+          <UBadge
             :color="getStatusColor(progress?.status)"
             :label="progress?.status?.toUpperCase() || 'UNKNOWN'"
           />
@@ -84,35 +84,35 @@
 
         <!-- Action Buttons -->
   <div class="flex flex-wrap items-center gap-3">
-          <NButton
+          <UButton
             v-if="progress.status === 'processing'"
             btn="outline"
             color="red"
             @click="cancelImport"
           >
             Cancel Import
-          </NButton>
+          </UButton>
 
-          <NButton
+          <UButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
             btn="outline"
             color="yellow"
             @click="showFailedRecords = true"
           >
             View Failed Records
-          </NButton>
+          </UButton>
 
-          <NButton
+          <UButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
             btn="soft-blue"
             @click="downloadUnresolved"
           >
             Download Unresolved Rows
-          </NButton>
+          </UButton>
 
           <div v-if="progress.status === 'completed' && progress.failedRecords > 0" class="flex items-center gap-2">
             <span class="text-xs text-gray-500">Format</span>
-            <NRadio
+            <URadio
               v-model="reportFormat"
               :items="[
                 { label: 'NDJSON', value: 'ndjson' },
@@ -122,33 +122,33 @@
             />
           </div>
 
-          <NButton
+          <UButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
             btn="soft-indigo"
             @click="downloadReport"
           >
             Download Report
-          </NButton>
+          </UButton>
 
-          <NButton
+          <UButton
             v-if="progress.status === 'failed'"
             btn="outline"
             color="blue"
             @click="retryImport"
           >
             Retry Import
-          </NButton>
+          </UButton>
         </div>
       </div>
 
       <div v-else class="text-center py-8">
-        <NIcon name="i-ph-spinner" class="animate-spin text-2xl mb-2" />
+        <UIcon name="i-ph-spinner" class="animate-spin text-2xl mb-2" />
         <p>Loading import progress...</p>
       </div>
-    </NCard>
+    </UCard>
 
     <!-- Recent Errors -->
-  <NCard v-if="recentErrors.length > 0">
+  <UCard v-if="recentErrors.length > 0">
       <template #header>
         <h3 class="text-lg font-semibold text-red-600">Recent Errors</h3>
       </template>
@@ -165,10 +165,10 @@
           ... and {{ errorCount - recentErrors.length }} more errors
         </div>
       </div>
-    </NCard>
+    </UCard>
 
     <!-- Recent Warnings -->
-  <NCard v-if="recentWarnings.length > 0">
+  <UCard v-if="recentWarnings.length > 0">
       <template #header>
         <h3 class="text-lg font-semibold text-yellow-600">Recent Warnings</h3>
       </template>
@@ -185,11 +185,11 @@
           ... and {{ warningCount - recentWarnings.length }} more warnings
         </div>
       </div>
-    </NCard>
+    </UCard>
 
     <!-- Failed Records Dialog -->
-    <NDialog v-model:open="showFailedRecords">
-      <NCard>
+    <UDialog v-model:open="showFailedRecords">
+      <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Failed Records</h3>
         </template>
@@ -206,13 +206,15 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <NButton @click="showFailedRecords = false">Close</NButton>
+            <UButton @click="showFailedRecords = false">Close</UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
   </div>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import type { ImportProgress as BaseImportProgress } from '~/types'
 
 // Extend server ImportProgress with optional UI-only fields we render

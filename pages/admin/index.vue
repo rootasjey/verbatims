@@ -39,7 +39,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-quotes" size="xl" class="text-cyan-600" />
+                  <UIcon name="i-ph-quotes" size="xl" class="text-cyan-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total || 0 }}</p>
@@ -57,7 +57,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-users" size="xl" class="text-gray-600" />
+                  <UIcon name="i-ph-users" size="xl" class="text-gray-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.users?.total || 0 }}</p>
@@ -75,7 +75,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-user" size="xl" class="text-blue-600" />
+                  <UIcon name="i-ph-user" size="xl" class="text-blue-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.authors?.total || 0 }}</p>
@@ -93,7 +93,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-bookmark" size="xl" class="text-orange-600" />
+                  <UIcon name="i-ph-bookmark" size="xl" class="text-orange-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.collections?.total || 0 }}</p>
@@ -119,7 +119,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-heart" size="xl" class="text-red-600" />
+                  <UIcon name="i-ph-heart" size="xl" class="text-red-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.likes?.total || 0 }}</p>
@@ -137,7 +137,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-eye" size="xl" class="text-indigo-600" />
+                  <UIcon name="i-ph-eye" size="xl" class="text-indigo-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.views?.total || 0 }}</p>
@@ -152,7 +152,7 @@
                   <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Shares</p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-share" size="xl" class="text-teal-600" />
+                  <UIcon name="i-ph-share" size="xl" class="text-teal-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total_shares || 0 }}</p>
@@ -167,7 +167,7 @@
                   <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Featured</p>
                 </div>
                 <div class="flex-shrink-0">
-                  <NIcon name="i-ph-star" size="xl" class="text-yellow-600" />
+                  <UIcon name="i-ph-star" size="xl" class="text-yellow-600" />
                 </div>
               </div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.featured || 0 }}</p>
@@ -180,63 +180,63 @@
       <div>
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
         <div class="flex gap-4 flex-wrap">
-          <NButton
+          <UButton
             btn="soft-yellow"
             to="/admin/quotes/pending"
             :badge="stats.quotes?.pending || 0"
           >
-            <NIcon name="i-ph-clock" />
+            <UIcon name="i-ph-clock" />
             Review Pending Quotes
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="outline"
             to="/admin/quotes/published"
           >
-            <NIcon name="i-ph-check-circle" />
+            <UIcon name="i-ph-check-circle" />
             Published Quotes
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="outline"
             to="/admin/quotes/drafts"
           >
-            <NIcon name="i-ph-file-dashed" />
+            <UIcon name="i-ph-file-dashed" />
             Draft Quotes
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="outline"
             to="/admin/import"
           >
-            <NIcon name="i-ph-upload" />
+            <UIcon name="i-ph-upload" />
             Import Data
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="outline"
             to="/admin/export"
           >
-            <NIcon name="i-ph-download" />
+            <UIcon name="i-ph-download" />
             Export Data
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="outline"
             to="/admin/maintenance"
           >
-            <NIcon name="i-ph-wrench" />
+            <UIcon name="i-ph-wrench" />
             Database Maintenance
-          </NButton>
-          <NButton
+          </UButton>
+          <UButton
             btn="outline"
             disabled
           >
-            <NIcon name="i-ph-chart-bar" />
+            <UIcon name="i-ph-chart-bar" />
             Analytics (Soon)
-          </NButton>
+          </UButton>
         </div>
       </div>
 
       <!-- Recent Activity & Top Contributors -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Recent Activity -->
-        <NCard>
+        <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Recent Activity (30 days)</h3>
           </template>
@@ -258,10 +258,10 @@
           <div v-else class="text-center py-8">
             <p class="text-gray-500 dark:text-gray-400">No recent activity</p>
           </div>
-        </NCard>
+        </UCard>
 
         <!-- Top Contributors -->
-        <NCard>
+        <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Top Contributors</h3>
           </template>
@@ -275,7 +275,7 @@
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-4">
                 {{ index + 1 }}
               </span>
-              <NAvatar
+              <UAvatar
                 :src="contributor.avatar_url"
                 :alt="contributor.name"
                 size="xs"
@@ -294,11 +294,13 @@
           <div v-else class="text-center py-8">
             <p class="text-gray-500 dark:text-gray-400">No contributors yet</p>
           </div>
-        </NCard>
+        </UCard>
       </div>
     </div>
   </div>
-</template><script setup>
+</template>
+
+<script setup>
 // Use admin layout
 definePageMeta({
   layout: 'admin',

@@ -1,5 +1,5 @@
 <template>
-  <NDialog 
+  <UDialog 
     v-if="isOpen" 
     v-model:open="isOpen" 
     :una="{ dialogContent: 'sm:max-w-md md:max-w-lg lg:max-w-xl' }"
@@ -11,7 +11,7 @@
       btn: 'ghost-gray',
     }"
   >
-    <NCard class="border-none m-0 p-0 shadow-none">
+    <UCard class="border-none m-0 p-0 shadow-none">
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">Search Quotes</h3>
@@ -19,7 +19,7 @@
       </template>
 
       <div class="space-y-4">
-        <NInput
+        <UInput
           v-model="storeQuery"
           placeholder="Search quotes, authors, or references..."
           leading="i-ph-magnifying-glass"
@@ -38,7 +38,7 @@
             v-if="selectedLanguageLabel"
             class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 border border-primary-200 dark:border-primary-800"
           >
-            <NIcon name="i-ph-translate" class="w-3.5 h-3.5" />
+            <UIcon name="i-ph-translate" class="w-3.5 h-3.5" />
             <span>{{ selectedLanguageLabel }}</span>
             <button
               class="ml-1 text-primary-700/70 hover:text-primary-900 dark:text-primary-300/80 dark:hover:text-primary-200"
@@ -46,7 +46,7 @@
               @click="removeLanguageFilter"
               type="button"
             >
-              <NIcon name="i-ph-x" class="w-3.5 h-3.5" />
+              <UIcon name="i-ph-x" class="w-3.5 h-3.5" />
             </button>
           </span>
 
@@ -55,7 +55,7 @@
             v-if="selectedAuthorLabel"
             class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
           >
-            <NIcon name="i-ph-user" class="w-3.5 h-3.5" />
+            <UIcon name="i-ph-user" class="w-3.5 h-3.5" />
             <span>{{ selectedAuthorLabel }}</span>
             <button
               class="ml-1 text-emerald-700/70 hover:text-emerald-900 dark:text-emerald-300/80 dark:hover:text-emerald-200"
@@ -63,7 +63,7 @@
               @click="removeAuthorFilter"
               type="button"
             >
-              <NIcon name="i-ph-x" class="w-3.5 h-3.5" />
+              <UIcon name="i-ph-x" class="w-3.5 h-3.5" />
             </button>
           </span>
 
@@ -72,7 +72,7 @@
             v-if="selectedReferenceLabel"
             class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
           >
-            <NIcon name="i-ph-book" class="w-3.5 h-3.5" />
+            <UIcon name="i-ph-book" class="w-3.5 h-3.5" />
             <span>{{ selectedReferenceLabel }}</span>
             <button
               class="ml-1 text-blue-700/70 hover:text-blue-900 dark:text-blue-300/80 dark:hover:text-blue-200"
@@ -80,11 +80,11 @@
               @click="removeReferenceFilter"
               type="button"
             >
-              <NIcon name="i-ph-x" class="w-3.5 h-3.5" />
+              <UIcon name="i-ph-x" class="w-3.5 h-3.5" />
             </button>
           </span>
 
-          <NButton
+          <UButton
             btn="ghost-gray"
             size="xs"
             class="ml-1"
@@ -92,11 +92,11 @@
             @click="clearFilters"
           >
             Clear all
-          </NButton>
+          </UButton>
         </div>
 
         <div class="flex gap-2">
-          <NSelect
+          <USelect
             v-model="selectedLanguage"
             :items="languageOptions"
             placeholder="Language"
@@ -104,7 +104,7 @@
             value-key="label"
             size="sm"
           />
-          <NSelect
+          <USelect
             v-model="selectedAuthor"
             :items="authorOptions"
             placeholder="Author"
@@ -113,7 +113,7 @@
             size="sm"
             searchable
           />
-          <NSelect
+          <USelect
             v-model="selectedReference"
             :items="referenceOptions"
             placeholder="Reference"
@@ -134,7 +134,7 @@
           </div>
 
           <div v-else-if="totalResults === 0 && storeQuery" class="text-center py-8">
-            <NIcon name="i-ph-magnifying-glass" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <UIcon name="i-ph-magnifying-glass" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p class="text-gray-500 dark:text-gray-400">No results found for "{{ storeQuery }}"</p>
           </div>
 
@@ -142,7 +142,7 @@
             <!-- Quotes Section -->
             <div v-if="searchResults.quotes?.length > 0">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                <NIcon name="i-ph-quotes" class="w-4 h-4 mr-2" />
+                <UIcon name="i-ph-quotes" class="w-4 h-4 mr-2" />
                 Quotes ({{ searchResults.quotes.length }})
               </h4>
               <div class="space-y-2">
@@ -161,9 +161,9 @@
                       <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
                     </div>
                     <div class="flex items-center space-x-2">
-                      <NIcon name="i-ph-heart" class="w-3 h-3" />
+                      <UIcon name="i-ph-heart" class="w-3 h-3" />
                       <span>{{ quote.likes_count }}</span>
-                      <NIcon name="i-ph-eye" class="w-3 h-3" />
+                      <UIcon name="i-ph-eye" class="w-3 h-3" />
                       <span>{{ quote.views_count }}</span>
                     </div>
                   </div>
@@ -174,7 +174,7 @@
             <!-- Authors Section -->
             <div v-if="searchResults.authors?.length > 0">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                <NIcon name="i-ph-user" class="w-4 h-4 mr-2" />
+                <UIcon name="i-ph-user" class="w-4 h-4 mr-2" />
                 Authors ({{ searchResults.authors.length }})
               </h4>
               <div class="space-y-2">
@@ -187,13 +187,13 @@
                   @click="selectResult(author, 'author')"
                 >
                   <div class="flex items-center space-x-3">
-                    <NAvatar :src="author.image_url" :alt="author.name" size="md">
+                    <UAvatar :src="author.image_url" :alt="author.name" size="md">
                       <template #fallback>
                         <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                          <NIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <UIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         </div>
                       </template>
-                    </NAvatar>
+                    </UAvatar>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 dark:text-white" v-html="highlightText(author.name)"></p>
                       <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</p>
@@ -207,7 +207,7 @@
             <!-- References Section -->
             <div v-if="searchResults.references?.length > 0">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                <NIcon name="i-ph-book" class="w-4 h-4 mr-2" />
+                <UIcon name="i-ph-book" class="w-4 h-4 mr-2" />
                 References ({{ searchResults.references.length }})
               </h4>
               <div class="space-y-2">
@@ -220,13 +220,13 @@
                   @click="selectResult(reference, 'reference')"
                 >
                   <div class="flex items-center space-x-3">
-                    <NAvatar :src="reference.image_url" :alt="reference.name" size="md">
+                    <UAvatar :src="reference.image_url" :alt="reference.name" size="md">
                       <template #fallback>
                         <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                          <NIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <UIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         </div>
                       </template>
-                    </NAvatar>
+                    </UAvatar>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 dark:text-white" v-html="highlightText(reference.name)"></p>
                       <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ reference.primary_type.replace('_', ' ') }}</p>
@@ -239,7 +239,7 @@
           </div>
 
           <div v-else class="text-center py-8">
-            <NIcon name="i-ph-quotes" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <UIcon name="i-ph-quotes" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p class="text-gray-500 dark:text-gray-400">Start typing to search quotes, authors, and references...</p>
           </div>
         </div>
@@ -255,9 +255,11 @@
           </div>
         </div>
       </template>
-    </NCard>
-  </NDialog>
-</template><script lang="ts" setup>
+    </UCard>
+  </UDialog>
+</template>
+
+<script lang="ts" setup>
 import type {
   AuthorSearchResult,
   ProcessedQuoteResult,

@@ -21,7 +21,7 @@
             {{ formatReferenceType(reference.primary_type) }}
           </span>
           <div class="shrink-0 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <NIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-white" />
+            <UIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-white" />
           </div>
         </div>
       </div>

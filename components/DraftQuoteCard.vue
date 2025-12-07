@@ -23,8 +23,8 @@
 
         <!-- Actions Dropdown -->
         <div class="flex-shrink-0 -mt-1">
-          <NDropdownMenu :items="dropdownActions">
-            <NButton
+          <UDropdownMenu :items="dropdownActions">
+            <UButton
               icon
               btn="ghost"
               size="sm"
@@ -32,7 +32,7 @@
               class="opacity-0 group-hover:opacity-100 transition-opacity"
               @click.stop
             />
-          </NDropdownMenu>
+          </UDropdownMenu>
         </div>
       </div>
 
@@ -43,7 +43,7 @@
       <div v-if="quote.author || quote.author_name" class="flex items-center justify-between gap-3 pt-1">
         <!-- Author Name with Avatar -->
         <div class="flex items-center space-x-3 flex-1 min-w-0">
-          <NAvatar
+          <UAvatar
             v-if="showAvatar"
             :src="quote.author?.image_url || quote.author_image_url || undefined"
             :alt="quote.author?.name || quote.author_name || 'Unknown Author'"
@@ -63,14 +63,14 @@
 
         <!-- Reference Type Badge -->
         <div v-if="quote.reference || quote.reference_type" class="flex-shrink-0">
-          <NBadge
+          <UBadge
             :color="getReferenceTypeColor(quote.reference?.type || quote.reference_type as string)"
             variant="subtle"
             size="xs"
             class="text-xs font-500 rounded-lg"
           >
             {{ formatReferenceType((quote.reference?.type || quote.reference_type) as string) }}
-          </NBadge>
+          </UBadge>
         </div>
       </div>
 

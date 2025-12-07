@@ -1,16 +1,16 @@
 <template>
-  <NDrawer v-model:open="isOpen" direction="bottom">
+  <UDrawer v-model:open="isOpen" direction="bottom">
     <template #body>
       <div class="p-5 pb-6">
         <div class="flex items-center justify-between mb-5">
           <h3 class="text-lg font-600 text-gray-900 dark:text-white">Quick actions</h3>
-          <NBadge 
+          <UBadge 
             :color="statusColor" 
             variant="subtle" 
             size="xs"
           >
             {{ statusLabel }}
-          </NBadge>
+          </UBadge>
         </div>
 
         <!-- Action Cards in Grid -->
@@ -24,7 +24,7 @@
               @click="handleCustomAction(action)"
             >
               <div :class="`flex items-center justify-center w-12 h-12 rounded-xl`">
-                <NIcon 
+                <UIcon 
                   :name="action.leading || getActionIcon(action.label)" 
                   :class="`w-6 h-6 text-${getActionColor(action.label)}-600`"
                 />
@@ -42,7 +42,7 @@
               @click="handleEdit"
             >
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-800">
-                <NIcon name="i-ph-pencil" class="w-6 h-6 text-blue-600 dark:text-blue-300" />
+                <UIcon name="i-ph-pencil" class="w-6 h-6 text-blue-600 dark:text-blue-300" />
               </div>
               <span class="text-xs font-600 text-blue-900 dark:text-blue-100 text-center">Edit</span>
             </div>
@@ -55,7 +55,7 @@
               @click="handleSubmit"
             >
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-green-100 dark:bg-green-800">
-                <NIcon 
+                <UIcon 
                   :name="submitting ? 'i-ph-circle-notch' : 'i-ph-paper-plane-tilt'" 
                   class="w-6 h-6 text-green-600 dark:text-green-300"
                   :class="{ 'animate-spin': submitting }"
@@ -71,7 +71,7 @@
               @click="handleDelete"
             >
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-800">
-                <NIcon :name="deleteIcon" class="w-6 h-6 text-pink-600 dark:text-pink-300" />
+                <UIcon :name="deleteIcon" class="w-6 h-6 text-pink-600 dark:text-pink-300" />
               </div>
               <span class="text-xs font-600 text-pink-900 dark:text-pink-100 text-center">{{ deleteLabel }}</span>
             </div>
@@ -83,7 +83,7 @@
               @click="handleShare"
             >
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-800">
-                <NIcon name="i-ph-share-network" class="w-6 h-6 text-purple-600 dark:text-purple-300" />
+                <UIcon name="i-ph-share-network" class="w-6 h-6 text-purple-600 dark:text-purple-300" />
               </div>
               <span class="text-xs font-600 text-purple-900 dark:text-purple-100 text-center">Share</span>
             </div>
@@ -95,7 +95,7 @@
               @click="handleDownload"
             >
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-800">
-                <NIcon name="i-ph-download-simple" class="w-6 h-6 text-amber-600 dark:text-amber-300" />
+                <UIcon name="i-ph-download-simple" class="w-6 h-6 text-amber-600 dark:text-amber-300" />
               </div>
               <span class="text-xs font-600 text-amber-900 dark:text-amber-100 text-center">Download</span>
             </div>
@@ -107,7 +107,7 @@
               @click="handleReport"
             >
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-red-100 dark:bg-red-800">
-                <NIcon name="i-ph-flag" class="w-6 h-6 text-red-600 dark:text-red-300" />
+                <UIcon name="i-ph-flag" class="w-6 h-6 text-red-600 dark:text-red-300" />
               </div>
               <span class="text-xs font-600 text-red-900 dark:text-red-100 text-center">Report</span>
             </div>
@@ -115,13 +115,15 @@
         </div>
 
         <!-- Cancel Button -->
-        <NButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
+        <UButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
           Cancel
-        </NButton>
+        </UButton>
       </div>
     </template>
-  </NDrawer>
-</template><script lang="ts" setup>
+  </UDrawer>
+</template>
+
+<script lang="ts" setup>
 interface CustomAction {
   label: string
   leading?: string

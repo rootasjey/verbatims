@@ -8,16 +8,16 @@
         <span class="truncate text-sm font-600 text-gray-900 dark:text-white">
           {{ author.name }}
         </span>
-        <NTooltip v-if="author.is_fictional">
+        <UTooltip v-if="author.is_fictional">
           <template #default>
-            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
+            <UIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
           </template>
           <template #content>
             <div class="text-sm">
               This author is fictional
             </div>
           </template>
-        </NTooltip>
+        </UTooltip>
       </div>
       <p
         v-if="author.is_fictional && author.origin_reference_name"
@@ -29,9 +29,11 @@
         {{ author.job }}
       </p>
     </div>
-    <NIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+    <UIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
   </NuxtLink>
-</template><script setup lang="ts">
+</template>
+
+<script setup lang="ts">
 import type { Author } from '~/types'
 
 interface Props {

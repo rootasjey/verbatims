@@ -12,7 +12,7 @@
 
     <!-- Success/Error Alerts -->
     <div class="mb-6 space-y-4">
-      <NAlert
+      <UAlert
         v-if="successMessage"
         alert="green"
         variant="soft"
@@ -21,7 +21,7 @@
         @close="successMessage = ''"
       />
 
-      <NAlert
+      <UAlert
         v-if="errorMessage"
         alert="red"
         variant="soft"
@@ -32,10 +32,10 @@
     </div>
 
     <!-- Database Reset Section -->
-    <NCard class="mb-8">
+    <UCard class="mb-8">
       <template #header>
         <div class="flex items-center space-x-3">
-          <NIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
+          <UIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Database Reset
           </h2>
@@ -66,27 +66,27 @@
         </div>
 
         <div class="flex justify-end">
-          <NButton
+          <UButton
             btn="solid-black"
             :loading="isResetting"
             :disabled="isResetting"
             @click="showResetConfirmation = true"
           >
             <template #leading>
-              <NIcon name="i-ph-trash" />
+              <UIcon name="i-ph-trash" />
             </template>
             Reset Entire Database
-          </NButton>
+          </UButton>
         </div>
       </div>
-    </NCard>
+    </UCard>
 
     <!-- Reset Confirmation Dialog -->
-    <NDialog v-model:open="showResetConfirmation">
-      <NCard class="border-none">
+    <UDialog v-model:open="showResetConfirmation">
+      <UCard class="border-none">
         <template #header>
           <div class="flex items-center space-x-3">
-            <NIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
+            <UIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
               Confirm Database Reset
             </h3>
@@ -115,7 +115,7 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Type "RESET DATABASE" to confirm:
               </label>
-              <NInput
+              <UInput
                 v-model="confirmationText"
                 placeholder="RESET DATABASE"
                 :disabled="isResetting"
@@ -124,7 +124,7 @@
             </div>
 
             <div class="flex items-center space-x-2">
-              <NCheckbox
+              <UCheckbox
                 v-model="acknowledgeDataLoss"
                 :disabled="isResetting"
               />
@@ -137,30 +137,32 @@
 
         <template #footer>
           <div class="flex justify-end space-x-3">
-            <NButton
+            <UButton
               btn="ghost"
               :disabled="isResetting"
               @click="cancelReset"
             >
               Cancel
-            </NButton>
-            <NButton
+            </UButton>
+            <UButton
               btn="solid-black"
               :loading="isResetting"
               :disabled="!canConfirmReset"
               @click="confirmReset"
             >
               <template #leading>
-                <NIcon name="i-ph-trash" />
+                <UIcon name="i-ph-trash" />
               </template>
               Reset Database
-            </NButton>
+            </UButton>
           </div>
         </template>
-      </NCard>
-    </NDialog>
+      </UCard>
+    </UDialog>
   </div>
-</template><script setup>
+</template>
+
+<script setup>
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'

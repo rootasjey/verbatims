@@ -76,7 +76,7 @@
         @touchend="onPullEnd"
       >
         <div class="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
-          <NButton v-if="pullDistance < pullThreshold && hasMore" btn="text" @click="loadMore">Pull up to load more</NButton>
+          <UButton v-if="pullDistance < pullThreshold && hasMore" btn="text" @click="loadMore">Pull up to load more</UButton>
           <span v-else-if="hasMore">Release to load more</span>
           <span v-else>No more references</span>
         </div>
