@@ -224,7 +224,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       message: 'Quote submitted successfully and is pending moderation'
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error creating quote:', error)
     throw createError({
       statusCode: 500,

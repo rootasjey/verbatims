@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
       message: 'Quote submitted successfully and is now pending moderation'
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     console.error('Admin submit quote error:', error)

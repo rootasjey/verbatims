@@ -103,7 +103,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Rollback error:', error)
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throwServer(500, 'Rollback failed')
   }
 })

@@ -101,7 +101,7 @@ export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> 
       }
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

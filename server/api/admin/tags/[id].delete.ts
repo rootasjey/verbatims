@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, data: { deleted: true, usage } }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error deleting tag:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to delete tag' })
   }

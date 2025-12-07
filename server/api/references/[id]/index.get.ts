@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error fetching reference:', error)
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throwServer(500, 'Failed to fetch reference')
   }
 })

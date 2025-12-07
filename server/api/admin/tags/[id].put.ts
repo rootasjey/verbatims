@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
       .first()
     return { success: true, data: updated }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error updating tag:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to update tag' })
   }

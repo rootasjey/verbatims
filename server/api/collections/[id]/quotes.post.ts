@@ -122,7 +122,7 @@ export default defineEventHandler(async (event) => {
       message: 'Quote added to collection successfully'
     }
   } catch (error) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

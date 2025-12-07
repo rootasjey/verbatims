@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     await db.prepare('DELETE FROM quote_tags WHERE quote_id = ? AND tag_id = ?').bind(quoteId, tagId).run()
     return { success: true }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error removing tag from quote:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to remove tag from quote' })
   }

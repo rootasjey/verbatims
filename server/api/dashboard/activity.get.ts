@@ -126,7 +126,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

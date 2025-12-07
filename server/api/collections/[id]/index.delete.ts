@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
       message: 'Collection deleted successfully'
     }
   } catch (error) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

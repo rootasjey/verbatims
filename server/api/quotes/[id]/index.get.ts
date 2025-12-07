@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
       data: transformedQuote as unknown as ProcessedQuoteResult
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     
     console.error('Error fetching quote:', error)
     throw createError({

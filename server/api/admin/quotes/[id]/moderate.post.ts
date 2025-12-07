@@ -123,7 +123,7 @@ export default defineEventHandler(async (event) => {
       message: `Quote ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

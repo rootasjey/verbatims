@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, message: 'User deleted successfully' }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Admin delete user error:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to delete user' })
   }

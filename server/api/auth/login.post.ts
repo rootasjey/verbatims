@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
 
     return { user }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     console.error('Login error:', error)
