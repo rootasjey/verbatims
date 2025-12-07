@@ -33,13 +33,12 @@ export default defineEventHandler(async (event) => {
       const backups = await getBackupFilesForExport(db, Number(exportLog.id ?? -1))
       const latest = backups.find(b => b.file_path?.endsWith('.zip')) || backups[0]
 
-      if (latest && latest.file_key) {
-        // Fallback if no backup found: return 404 instead of trying to rebuild zip
+      // If we couldn't find any backup or the backup lacks a file key, return 404.
+      if (!latest || !latest.file_key) {
         throw createError({ statusCode: 404, statusMessage: 'Export file not found in storage' })
       }
-
       const blob = hubBlob()
-      const file = await blob.get(latest.file_key)
+      const file = await blob.get(latest.file_key as string)
       if (!file) { throw createError({ statusCode: 404, statusMessage: 'Archive not found in storage' }) }
 
       const ab = await file.arrayBuffer()
