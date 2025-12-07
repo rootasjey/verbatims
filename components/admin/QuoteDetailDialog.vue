@@ -70,19 +70,7 @@
       </div>
     </div>
   </NDialog>
-</template>
-      </NAccordion>
-
-      <!-- Actions -->
-      <div class="mt-6 flex justify-end gap-2">
-        <NButton btn="soft-blue" @click="$emit('edit', quote)">Edit</NButton>
-        <NButton btn="ghost" @click="closeDialog">Close</NButton>
-      </div>
-    </div>
-  </NDialog>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 import type { AdminQuote } from '~/types'
 import { formatRelativeTime } from '~/utils/time-formatter'
 

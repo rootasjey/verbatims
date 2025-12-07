@@ -228,11 +228,7 @@
 			</div>
 		</template>
 	</NDrawer>
-</template>
-	</NDrawer>
-</template>
-
-<script lang="ts" setup>
+</template><script lang="ts" setup>
 interface Emits {
 	(e: 'update:open', value: boolean): void
 	(e: 'submitted'): void

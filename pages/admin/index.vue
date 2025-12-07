@@ -298,68 +298,7 @@
       </div>
     </div>
   </div>
-</template>
-
-          <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="space-y-3">
-            <div
-              v-for="activity in stats.recent_activity.slice(0, 10)"
-              :key="activity.date"
-              class="flex items-center justify-between py-2"
-            >
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ formatDate(activity.date) }}
-              </span>
-              <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ activity.count }} submissions
-              </span>
-            </div>
-          </div>
-          <div v-else class="text-center py-8">
-            <p class="text-gray-500 dark:text-gray-400">No recent activity</p>
-          </div>
-        </NCard>
-
-        <!-- Top Contributors -->
-        <NCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Top Contributors</h3>
-          </template>
-
-          <div v-if="stats.top_contributors && stats.top_contributors.length > 0" class="space-y-3">
-            <div
-              v-for="(contributor, index) in stats.top_contributors"
-              :key="contributor.id"
-              class="flex items-center space-x-3"
-            >
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-4">
-                {{ index + 1 }}
-              </span>
-              <NAvatar
-                :src="contributor.avatar_url"
-                :alt="contributor.name"
-                size="xs"
-                :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
-              />
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ contributor.name }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ contributor.quote_count }} quotes, {{ contributor.total_likes }} likes
-                </p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="text-center py-8">
-            <p class="text-gray-500 dark:text-gray-400">No contributors yet</p>
-          </div>
-        </NCard>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup>
+</template><script setup>
 // Use admin layout
 definePageMeta({
   layout: 'admin',

@@ -66,11 +66,7 @@
       </div>
     </template>
   </NDrawer>
-</template>
-  </NDrawer>
-</template>
-
-<script lang="ts" setup>
+</template><script lang="ts" setup>
 import type { CollectionWithStats } from '~/types/user-interactions'
 
 interface Props {

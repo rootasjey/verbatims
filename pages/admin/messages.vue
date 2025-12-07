@@ -138,66 +138,7 @@
       </div>
     </div>
   </div>
-</template>
-
-            <template #from-cell="{ cell }">
-              <div class="flex items-center gap-2">
-                <NAvatar size="xs" :src="cell.row.original.user_id ? undefined : undefined" />
-                <div>
-                  <div class="text-sm font-medium">{{ cell.row.original.user_name || cell.row.original.name || 'Anonymous' }}</div>
-                  <div class="text-xs text-gray-500">{{ cell.row.original.user_email || cell.row.original.email || '' }}</div>
-                </div>
-              </div>
-            </template>
-
-            <template #message-cell="{ cell }">
-              <div class="max-w-xl">
-                <div class="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">{{ truncate(cell.row.original.message, 280) }}</div>
-                <div class="text-xs text-gray-500 mt-1">
-                  <span class="capitalize">{{ cell.row.original.category }}</span>
-                  <span v-if="cell.row.original.target_type !== 'general'"> • {{ formatTarget(cell.row.original) }}</span>
-                </div>
-              </div>
-            </template>
-
-            <template #tags-cell="{ cell }">
-              <div class="flex flex-wrap gap-1">
-                <NBadge v-for="t in (cell.row.original.tags || []).slice(0,3)" :key="t" size="xs" variant="soft">{{ t }}</NBadge>
-                <NBadge v-if="(cell.row.original.tags||[]).length>3" size="xs" variant="soft">+{{ (cell.row.original.tags||[]).length-3 }}</NBadge>
-              </div>
-            </template>
-
-            <template #status-cell="{ cell }">
-              <div class="flex items-center gap-2">
-                <NBadge :color="statusColor(cell.row.original.status)" variant="subtle" size="xs">{{ cell.row.original.status }}</NBadge>
-                <NDropdownMenu :items="statusItems(cell.row.original)">
-                  <NButton size="2xs" btn="ghost" icon label="i-ph-caret-down" />
-                </NDropdownMenu>
-              </div>
-            </template>
-
-            <template #date-cell="{ cell }">
-              <span class="text-xs text-gray-500">{{ formatRelativeTime(cell.row.original.created_at) }}</span>
-            </template>
-
-            <template #actions-cell="{ cell }">
-              <NDropdownMenu :items="rowActions(cell.row.original)">
-                <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
-              </NDropdownMenu>
-            </template>
-          </NTable>
-        </div>
-
-        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-          <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }} • {{ totalMessages }} total</div>
-          <NPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
+</template><script lang="ts" setup>
 import { formatRelativeTime } from '~/utils/time-formatter'
 import type { AdminUserMessage } from '~/types'
 type MessageStatus = AdminUserMessage['status']

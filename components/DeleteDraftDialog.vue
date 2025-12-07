@@ -22,11 +22,7 @@
       </div>
     </template>
   </NDialog>
-</template>
-  </NDialog>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 interface Props {
   open: boolean
   deleting: boolean

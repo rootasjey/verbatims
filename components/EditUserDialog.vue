@@ -40,30 +40,7 @@
       </div>
     </div>
   </NDialog>
-</template>
-          </NFormGroup>
-          <NFormGroup label="Active">
-            <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />
-            <template #help>
-              <span v-if="isSelf" class="text-amber-600 text-xs">You cannot deactivate your own account.</span>
-            </template>
-          </NFormGroup>
-        </div>
-
-        <NFormGroup label="Email Verified">
-          <NSwitch v-model="form.email_verified" :disabled="submitting" />
-        </NFormGroup>
-      </div>
-
-      <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!user">Update</NButton>
-      </div>
-    </div>
-  </NDialog>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 interface AdminUser { id: number; name: string; email?: string; avatar_url?: string; role: 'user'|'moderator'|'admin'; is_active: boolean|0|1; email_verified: boolean|0|1 }
 interface Props { modelValue: boolean; user: AdminUser | null }
 interface Emits { (e: 'update:modelValue', v: boolean): void; (e: 'user-updated'): void }

@@ -83,23 +83,7 @@
       Featured
     </NBadge>
   </div>
-</template>
-      </ClientOnly>
-    </div>
-
-    <NBadge
-      v-if="quote.is_featured"
-      color="yellow"
-      variant="subtle"
-      size="xs"
-      class="absolute top-2 right-2"
-    >
-      Featured
-    </NBadge>
-  </div>
-</template>
-
-<script lang="ts" setup>
+</template><script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~/types';
 
 interface Props {

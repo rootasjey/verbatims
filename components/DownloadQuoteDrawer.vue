@@ -44,11 +44,7 @@
       </div>
     </template>
   </NDrawer>
-</template>
-  </NDrawer>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 import type { QuoteWithRelations } from '~/types/quote'
 import QuoteImageCard from './QuoteImageCard.vue'
 import { toPng } from 'html-to-image'

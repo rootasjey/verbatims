@@ -24,18 +24,7 @@
       </template>
     </NSelect>
   </div>
-</template>
-      <template #item="{ item }">
-        <span class="flex items-center gap-2">
-          <NIcon :name="item.icon" class="w-4 h-4" />
-          {{ item.label }}
-        </span>
-      </template>
-    </NSelect>
-  </div>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 interface ThemeOption {
   label: string;
   value: string;

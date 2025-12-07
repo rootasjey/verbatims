@@ -87,12 +87,7 @@
       </template>
     </NDrawer>
   </div>
-</template>
-    </NDrawer>
-  </div>
-</template>
-
-<script setup>
+</template><script setup>
 const props = defineProps({
   isLiked: { type: Boolean, default: false },
   likePending: { type: Boolean, default: false },

@@ -31,11 +31,7 @@
       </div>
     </template>
   </NDrawer>
-</template>
-  </NDrawer>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 interface SortOption { label: string; value: string }
 
 const props = defineProps<{

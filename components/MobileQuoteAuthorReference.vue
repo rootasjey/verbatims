@@ -55,29 +55,7 @@
       </NuxtLink>
     </div>
   </div>
-</template>
-          <template #content>
-            <div class="text-sm">
-              This author is fictional
-            </div>
-          </template>
-        </NTooltip>
-      </div>
-    </div>
-
-    <div v-if="quote.reference" class="flex items-center justify-center space-x-3 text-gray-600 dark:text-gray-400"
-      :class="{'-ml-4': quote.author?.is_fictional}">
-      <NuxtLink
-        :to="`/references/${quote.reference.id}`"
-        class="font-serif font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-      >
-        {{ quote.reference.name }}
-      </NuxtLink>
-    </div>
-  </div>
-</template>
-
-<script lang="ts" setup>
+</template><script lang="ts" setup>
 import type { QuoteWithRelations } from '~/types';
 
 interface Props {

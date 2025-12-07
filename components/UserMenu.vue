@@ -32,13 +32,7 @@
       </NAvatar>
     </NButton>
   </NDropdownMenu>
-</template>
-      </NAvatar>
-    </NButton>
-  </NDropdownMenu>
-</template>
-
-<script setup>
+</template><script setup>
 const props = defineProps({
   user: {
     type: Object,

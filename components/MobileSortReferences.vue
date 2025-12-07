@@ -55,11 +55,7 @@
       </div>
     </template>
   </NDrawer>
-</template>
-  </NDrawer>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 interface Option {
   label: string
   value?: string

@@ -108,33 +108,7 @@
       @add-to-collection="emitAddToCollection"
     />
   </div>
-</template>
-
-        <!-- Featured Badge (if any) -->
-        <NBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</NBadge>
-      </div>
-    </div>
-
-    <!-- Bottom alternative: show date when no author/reference -->
-    <div v-else class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-3">
-      <span>{{ formatDate(quote.created_at) }}</span>
-    </div>
-    
-    <!-- Mobile quick actions drawer triggered by long-press -->
-    <QuoteActionsDrawer
-      v-model:open="actionsOpen"
-      status="approved"
-      :actions="drawerActions"
-      @edit="emitEdit"
-      @delete="emitDelete"
-      @share="emitShare"
-      @unlike="emitUnlike"
-      @add-to-collection="emitAddToCollection"
-    />
-  </div>
-</template>
-
-<script lang="ts" setup>
+</template><script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~/types'
 
 interface DropdownAction {

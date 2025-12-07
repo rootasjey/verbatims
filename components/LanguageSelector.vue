@@ -28,27 +28,7 @@
       </div>
     </template>
   </NCombobox>
-</template><template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
-        <div class="flex items-center gap-2">
-          <NIcon :name="modelValue.icon" />
-          {{ modelValue.display }}
-        </div>
-      </template>
-      <template v-else>
-        Select language...
-      </template>
-    </template>
-
-    <template #label="{ item }">
-      <div class="flex items-center gap-2">
-        <NIcon :name="item.icon"  />
-        {{ item.display }}
-      </div>
-    </template>
-  </NCombobox>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
 
 // Props
