@@ -1,11 +1,11 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
 
       <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="mt-6 space-y-6">
         <div>
-          <UInput
+          <NInput
             type="textarea"
             autofocus
             v-model="form.content"
@@ -29,7 +29,7 @@
             Author
           </label>
           <div class="relative">
-            <UInput
+            <NInput
               ref="authorInputRef"
               v-model="authorQuery"
               placeholder="Search for an author or enter a new one..."
@@ -88,7 +88,7 @@
               <span class="text-sm font-medium">{{ form.selectedAuthor.name }}</span>
               <span v-if="form.selectedAuthor.job" class="text-xs text-gray-500 ml-2">{{ form.selectedAuthor.job }}</span>
             </div>
-            <UButton
+            <NButton
               size="xs"
               btn="ghost"
               icon
@@ -103,7 +103,7 @@
             Reference
           </label>
           <div class="relative">
-            <UInput
+            <NInput
               ref="referenceInputRef"
               v-model="referenceQuery"
               placeholder="Search for a reference or enter a new one..."
@@ -162,7 +162,7 @@
               <span class="text-sm font-medium">{{ form.selectedReference.name }}</span>
               <span v-if="form.selectedReference.primary_type" class="text-xs text-gray-500 ml-2 capitalize">{{ form.selectedReference.primary_type.replace('_', ' ') }}</span>
             </div>
-            <UButton
+            <NButton
               size="xs"
               btn="ghost"
               icon
@@ -177,7 +177,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Language
           </label>
-          <USelect
+          <NSelect
             v-model="form.language"
             :items="languageOptions"
             placeholder="Select language"
@@ -189,20 +189,20 @@
       </form>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <UButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
+        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
           Cancel
-        </UButton>
-        <UButton
+        </NButton>
+        <NButton
           btn="soft-blue"
           :loading="submitting"
           @click="submitQuote"
           :disabled="!form.content.trim()"
         >
           {{ submitButtonText }}
-        </UButton>
+        </NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

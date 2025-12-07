@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
         <h3 class="font-title uppercase text-size-4 font-600">Edit User</h3>
@@ -7,7 +7,7 @@
 
       <div v-if="user" class="space-y-4">
         <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-          <UAvatar :src="user.avatar_url" :alt="user.name" size="sm" />
+          <NAvatar :src="user.avatar_url" :alt="user.name" size="sm" />
           <div>
             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ user.name }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email || '—' }}</div>
@@ -15,31 +15,31 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormGroup label="Role" required>
-            <USelect v-model="form.role" :items="roleOptions" :disabled="submitting || isSelf" />
+          <NFormGroup label="Role" required>
+            <NSelect v-model="form.role" :items="roleOptions" :disabled="submitting || isSelf" />
             <template #help>
               <span v-if="isSelf" class="text-amber-600 text-xs">You cannot change your own role.</span>
             </template>
-          </UFormGroup>
-          <UFormGroup label="Active">
-            <USwitch v-model="form.is_active" :disabled="submitting || isSelf" />
+          </NFormGroup>
+          <NFormGroup label="Active">
+            <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />
             <template #help>
               <span v-if="isSelf" class="text-amber-600 text-xs">You cannot deactivate your own account.</span>
             </template>
-          </UFormGroup>
+          </NFormGroup>
         </div>
 
-        <UFormGroup label="Email Verified">
-          <USwitch v-model="form.email_verified" :disabled="submitting" />
-        </UFormGroup>
+        <NFormGroup label="Email Verified">
+          <NSwitch v-model="form.email_verified" :disabled="submitting" />
+        </NFormGroup>
       </div>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <UButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</UButton>
-        <UButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!user">Update</UButton>
+        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!user">Update</NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

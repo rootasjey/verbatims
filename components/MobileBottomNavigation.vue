@@ -19,7 +19,7 @@
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
             ]"
           >
-            <UIcon
+            <NIcon
               name="i-ph-house-bold"
               class="w-5 h-5"
             />
@@ -39,7 +39,7 @@
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
             ]"
           >
-            <UIcon
+            <NIcon
               name="i-ph-magnifying-glass-bold"
               class="w-5 h-5"
             />
@@ -59,7 +59,7 @@
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
             ]"
           >
-            <UIcon
+            <NIcon
               name="i-ph-book-open-bold"
               class="w-5 h-5"
             />

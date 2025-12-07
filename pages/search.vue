@@ -4,7 +4,7 @@
     <div v-if="isMobile" class="mobile-search-page">
       <!-- Search Header -->
       <div class="sticky top-14 bg-white dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
-        <UInput
+        <NInput
           v-model="searchQuery"
           placeholder="Search quotes, authors, references..."
           leading="i-ph-magnifying-glass"
@@ -27,49 +27,49 @@
           <div v-if="recentSearches.length > 0">
             <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white mt-3 mb-3">Recent searches</h3>
             <div class="flex flex-wrap gap-2">
-              <UBadge 
+              <NBadge 
                 v-for="search in recentSearches" 
                 :key="search"
                 rounded="full"
                 badge="solid-gray"
                 class="cursor-pointer hover:scale-102 active:scale-99 transition-transform"
               >
-              <UIcon name="i-ph-magnifying-glass-bold" @click="searchQuery = search" />
+              <NIcon name="i-ph-magnifying-glass-bold" @click="searchQuery = search" />
               <span class="font-400 font-size-3.5" @click="searchQuery = search">{{ search }}</span>
-              <UTooltip :content="`Remove ${search} from recent searches`">
-                <UIcon 
+              <NTooltip :content="`Remove ${search} from recent searches`">
+                <NIcon 
                   name="i-ph-x-circle-duotone" 
                   @click="searchStore.removeRecent(search)" 
                   class="ml-1"
                 />
-              </UTooltip>
-            </UBadge>
+              </NTooltip>
+            </NBadge>
             </div>
           </div>
 
           <div>
             <div class="flex justify-between items-center">
               <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white mb-3">Suggested searches</h3>
-              <UTooltip content="Refresh suggestions">
-                <UButton 
+              <NTooltip content="Refresh suggestions">
+                <NButton 
                   @click="refreshSuggestions()"
                   icon
                   label="i-ph-arrows-clockwise"
                   btn="ghost-gray"
                 />
-              </UTooltip>
+              </NTooltip>
             </div>
             <div class="flex flex-wrap gap-3">
-              <UBadge v-for="s in suggestions" 
+              <NBadge v-for="s in suggestions" 
                 :key="s.text"
                 rounded="full"
                 badge="soft-gray"
                 class="cursor-pointer hover:scale-102 active:scale-99 transition-transform animate-bounce-in"
                 @click="searchQuery = s.text"
               >
-                <UIcon :name="s.icon" size="4" />
+                <NIcon :name="s.icon" size="4" />
                 <span class="ml-1 text-sm text-gray-700 dark:text-gray-300">{{ s.text }}</span>
-              </UBadge>
+              </NBadge>
             </div>
           </div>
 
@@ -79,14 +79,14 @@
                 Random authors
               </h3>
 
-              <UTooltip content="Fetch new random authors">
-                <UButton 
+              <NTooltip content="Fetch new random authors">
+                <NButton 
                   @click="fetchRandomAuthors()"
                   icon
                   label="i-ph-arrows-clockwise"
                   btn="ghost-gray"
                 />
-              </UTooltip>
+              </NTooltip>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <NuxtLink
@@ -97,17 +97,17 @@
                 bg-white dark:bg-gray-800 rounded-lg 
                 hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
               >
-                <UAvatar :src="author.image_url">
+                <NAvatar :src="author.image_url">
                   <template #fallback>
                     <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400">
-                      <UIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
+                      <NIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
                     </div>
                   </template>
-                </UAvatar>
+                </NAvatar>
                 <div>
-                  <UTooltip :content="author.name">
+                  <NTooltip :content="author.name">
                     <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ author.name }}</div>
-                  </UTooltip>
+                  </NTooltip>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count }} quotes</div>
                 </div>
               </NuxtLink>
@@ -121,14 +121,14 @@
                 Random references
               </h3>
 
-              <UTooltip content="Fetch new random references">
-                <UButton 
+              <NTooltip content="Fetch new random references">
+                <NButton 
                   @click="fetchRandomReferences()"
                   icon
                   label="i-ph-arrows-clockwise"
                   btn="ghost-gray"
                 />
-              </UTooltip>
+              </NTooltip>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <NuxtLink
@@ -139,22 +139,22 @@
                 bg-white dark:bg-gray-800 rounded-lg 
                 hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
               >
-                <UAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
+                <NAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
                   <template #fallback>
                     <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
-                      <UIcon name="i-ph-book-duotone" class="w-6 h-6" />
+                      <NIcon name="i-ph-book-duotone" class="w-6 h-6" />
                     </div>
                   </template>
-                </UAvatar>
+                </NAvatar>
                 <div>
-                  <UTooltip :content="reference.name">
+                  <NTooltip :content="reference.name">
                     <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ reference.name }}</div>
-                  </UTooltip>
+                  </NTooltip>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatReferenceType(reference.primary_type) }} • 
-                    <UTooltip :content="`${reference.quotes_count} quotes`">
-                      <span>{{ reference.quotes_count }} <UIcon name="i-ph-quotes-duotone" /></span>
-                    </UTooltip>
+                    <NTooltip :content="`${reference.quotes_count} quotes`">
+                      <span>{{ reference.quotes_count }} <NIcon name="i-ph-quotes-duotone" /></span>
+                    </NTooltip>
                   </div>
                 </div>
               </NuxtLink>
@@ -212,7 +212,7 @@
                       <p class="text-sm text-gray-600 dark:text-gray-400">{{ author.quotes_count }} quotes</p>
                     </div>
                   </div>
-                  <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+                  <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
                 </NuxtLink>
               </div>
             </div>
@@ -227,7 +227,7 @@
                   class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div class="bg-gray-100 dark:bg-gray-700 rounded-2 w-10 h-10 flex items-center justify-center shrink-0">
-                    <UIcon :name="getReferenceIcon(reference.primary_type)" />
+                    <NIcon :name="getReferenceIcon(reference.primary_type)" />
                   </div>
                   <div>
                     <h4 class="font-600 text-gray-900 dark:text-white">{{ reference.name }}</h4>
@@ -235,7 +235,7 @@
                       {{ reference.primary_type }} • {{ reference.quotes_count }} quotes
                     </p>
                   </div>
-                  <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+                  <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
                 </NuxtLink>
               </div>
             </div>
@@ -243,7 +243,7 @@
 
           <!-- No Results -->
           <div v-else-if="!loading" class="text-center py-8">
-            <UIcon name="i-ph-magnifying-glass-minus" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <NIcon name="i-ph-magnifying-glass-minus" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No results found</h3>
             <p class="text-gray-600 dark:text-gray-400">Try adjusting your search terms</p>
           </div>
@@ -254,12 +254,12 @@
     <!-- Desktop: Redirect to home with search modal -->
     <div v-else class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <UIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">Desktop Search</h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">Use the search button in the header or press Ctrl/Cmd+K</p>
-        <UButton btn="solid-black" @click="navigateTo('/')">
+        <NButton btn="solid-black" @click="navigateTo('/')">
           Go to Home
-        </UButton>
+        </NButton>
       </div>
     </div>
   </div>

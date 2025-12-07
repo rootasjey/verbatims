@@ -1,12 +1,12 @@
 <template>
-	<UDrawer v-model:open="isOpen" direction="bottom">
+	<NDrawer v-model:open="isOpen" direction="bottom">
 		<template #body>
 			<div class="p-6 overflow-y-auto">
 				<div class="flex items-center justify-between mb-6">
 					<h2 class="text-xl font-bold text-gray-900 dark:text-white">
 						Add New Quote
 					</h2>
-					<UButton
+					<NButton
 						icon
 						btn="ghost-gray"
 						label="i-ph-x-bold"
@@ -17,7 +17,7 @@
 
 				<form @submit.prevent="submitQuote" class="space-y-6">
 					<div>
-						<UInput
+						<NInput
 							type="textarea"
 							autofocus
 							v-model="form.content"
@@ -43,7 +43,7 @@
 								Language
 							</label>
 							<div>
-								<USelect
+								<NSelect
 										v-model="form.language"
 										:items="languageOptions"
 										placeholder="Select language"
@@ -60,7 +60,7 @@
 								Author (Optional)
 							</label>
 							<div class="relative">
-								<UInput
+								<NInput
 									ref="authorInputRef"
 									v-model="authorQuery"
 									placeholder="Search for an author or enter a new one..."
@@ -118,7 +118,7 @@
 										<span class="text-sm font-medium">{{ form.selectedAuthor.name }}</span>
 										<span v-if="form.selectedAuthor.job" class="text-xs text-gray-500 ml-2">{{ form.selectedAuthor.job }}</span>
 									</div>
-									<UButton
+									<NButton
 										size="xs"
 										btn="ghost"
 										icon
@@ -135,7 +135,7 @@
 								Reference (Optional)
 							</label>
 							<div class="relative">
-								<UInput
+								<NInput
 									ref="referenceInputRef"
 									v-model="referenceQuery"
 									placeholder="Search for a reference or enter a new one..."
@@ -193,7 +193,7 @@
 										<span class="text-sm font-medium">{{ form.selectedReference.name }}</span>
 										<span v-if="form.selectedReference.primary_type" class="text-xs text-gray-500 ml-2 capitalize">{{ form.selectedReference.primary_type.replace('_', ' ') }}</span>
 									</div>
-									<UButton
+									<NButton
 										size="xs"
 										btn="ghost"
 										icon
@@ -206,15 +206,15 @@
 					</div>
 
 					<div class="flex space-x-3 pt-4">
-						<UButton
+						<NButton
 							btn="light:soft dark:soft-white"
 							@click="isOpen = false"
 							:disabled="submitting"
 							class="flex-1"
 						>
 							Cancel
-						</UButton>
-						<UButton
+						</NButton>
+						<NButton
 							btn="soft-blue"
 							:loading="submitting"
 							type="submit"
@@ -222,12 +222,12 @@
 							class="flex-1"
 						>
 							Save as Draft
-						</UButton>
+						</NButton>
 					</div>
 				</form>
 			</div>
 		</template>
-	</UDrawer>
+	</NDrawer>
 </template>
 
 <script lang="ts" setup>

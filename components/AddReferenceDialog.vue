@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
         <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
@@ -12,7 +12,7 @@
             Title *
           </label>
           <div class="relative">
-            <UInput
+            <NInput
               ref="titleInputRef"
               v-model="titleQuery"
               placeholder="Enter reference title..."
@@ -75,7 +75,7 @@
             Type *
           </label>
           <div>
-            <USelect
+            <NSelect
               v-model="form.primary_type"
               :items="primaryTypeOptions"
               placeholder="Select type"
@@ -92,7 +92,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Genre/Category
           </label>
-          <UInput
+          <NInput
             v-model="form.secondary_type"
             placeholder="e.g., Horror, Comedy, Biography..."
             :disabled="submitting"
@@ -104,7 +104,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Publication/Release Date
           </label>
-          <UInput
+          <NInput
             v-model="form.release_date"
             type="date"
             :disabled="submitting"
@@ -116,7 +116,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Original Language
           </label>
-          <USelect
+          <NSelect
             v-model="form.original_language"
             :items="languageOptions"
             placeholder="Select language"
@@ -131,7 +131,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Cover/Poster Image URL
           </label>
-          <UInput
+          <NInput
             v-model="form.image_url"
             type="url"
             placeholder="https://example.com/cover.jpg"
@@ -144,7 +144,7 @@
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Description
           </label>
-          <UInput
+          <NInput
             type="textarea"
             v-model="form.description"
             placeholder="Brief description or synopsis..."
@@ -155,20 +155,20 @@
       </form>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <UButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
+        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
           Cancel
-        </UButton>
-        <UButton
+        </NButton>
+        <NButton
           btn="soft-blue"
           :loading="submitting"
           @click="submitReference"
           :disabled="!titleQuery.trim() || !form.primary_type.value"
         >
           {{ submitButtonText }}
-        </UButton>
+        </NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

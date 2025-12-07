@@ -1,6 +1,6 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'sm:max-w-2xl' }">
-    <UCard>
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'sm:max-w-2xl' }">
+    <NCard>
       <template #header>
         <h3 class="text-lg font-semibold">Add Quote to Collection</h3>
       </template>
@@ -8,7 +8,7 @@
       <div class="space-y-6">
         <!-- Search Quotes -->
         <div>
-          <UInput
+          <NInput
             v-model="searchQuery"
             placeholder="Search quotes..."
             leading="i-ph-magnifying-glass"
@@ -43,7 +43,7 @@
                 </div>
               </div>
               <div class="ml-4">
-                <UButton
+                <NButton
                   v-if="!addingQuotes.has(quote.id)"
                   size="xs"
                   icon
@@ -51,8 +51,8 @@
                   @click.stop="addQuoteToCollection(quote)"
                 >
                   Add
-                </UButton>
-                <UIcon
+                </NButton>
+                <NIcon
                   v-else
                   name="i-ph-spinner"
                   class="w-4 h-4 animate-spin text-primary-500"
@@ -64,7 +64,7 @@
 
         <!-- Empty State -->
         <div v-else class="text-center py-8">
-          <UIcon name="i-ph-magnifying-glass" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-magnifying-glass" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p class="text-gray-500 dark:text-gray-400">
             {{ searchQuery ? 'No quotes found matching your search' : 'Start typing to search for quotes' }}
           </p>
@@ -72,29 +72,29 @@
 
         <!-- Load More -->
         <div v-if="hasMore && !loading" class="text-center">
-          <UButton
+          <NButton
             variant="ghost"
             size="sm"
             :loading="loadingMore"
             @click="loadMore"
           >
             Load More
-          </UButton>
+          </NButton>
         </div>
       </div>
 
       <template #footer>
         <div class="flex justify-end">
-          <UButton
+          <NButton
             variant="ghost"
             @click="closeModal"
           >
             Close
-          </UButton>
+          </NButton>
         </div>
       </template>
-    </UCard>
-  </UDialog>
+    </NCard>
+  </NDialog>
 </template>
 
 <script setup>

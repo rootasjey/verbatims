@@ -98,12 +98,12 @@
     <!-- Error State -->
     <div v-else class="px-8 py-16 animate-fade-in animate-duration-500">
       <div class="max-w-4xl mx-auto text-center">
-        <UIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="text-3xl font-serif font-semibold text-gray-900 dark:text-white mb-4">Quote Not Found</h2>
         <p class="text-lg font-sans text-gray-600 dark:text-gray-400 mb-8">
           The quote you're looking for doesn't exist or has been removed.
         </p>
-        <UButton to="/" size="lg" class="font-sans">Browse Quotes</UButton>
+        <NButton to="/" size="lg" class="font-sans">Browse Quotes</NButton>
       </div>
     </div>
   </div>

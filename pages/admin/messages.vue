@@ -4,20 +4,20 @@
     <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
       <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
-          <UInput v-model="searchQuery" placeholder="Search name, email, or message..." leading="i-ph-magnifying-glass" :loading="loading" />
+          <NInput v-model="searchQuery" placeholder="Search name, email, or message..." leading="i-ph-magnifying-glass" :loading="loading" />
         </div>
         <div class="flex gap-2">
-          <USelect v-model="statusFilter" :items="statusOptions" item-key="label" value-key="label" class="w-40" />
-          <USelect v-model="categoryFilter" :items="categoryOptions" item-key="label" value-key="label" class="w-40" />
-          <USelect v-model="targetFilter" :items="targetOptions" item-key="label" value-key="label" class="w-40" />
-          <UButton btn="outline-gray" @click="resetFilters"><UIcon name="i-ph-x" />Reset</UButton>
+          <NSelect v-model="statusFilter" :items="statusOptions" item-key="label" value-key="label" class="w-40" />
+          <NSelect v-model="categoryFilter" :items="categoryOptions" item-key="label" value-key="label" class="w-40" />
+          <NSelect v-model="targetFilter" :items="targetOptions" item-key="label" value-key="label" class="w-40" />
+          <NButton btn="outline-gray" @click="resetFilters"><NIcon name="i-ph-x" />Reset</NButton>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-envelope" class="w-5 h-5 text-blue-600 mr-2" />
+            <NIcon name="i-ph-envelope" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm text-gray-500">Total</p>
               <p class="text-2xl font-semibold">{{ totalMessages }}</p>
@@ -26,7 +26,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-clock" class="w-5 h-5 text-yellow-600 mr-2" />
+            <NIcon name="i-ph-clock" class="w-5 h-5 text-yellow-600 mr-2" />
             <div>
               <p class="text-sm text-gray-500">New</p>
               <p class="text-2xl font-semibold">{{ newCount }}</p>
@@ -35,7 +35,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-users" class="w-5 h-5 text-green-600 mr-2" />
+            <NIcon name="i-ph-users" class="w-5 h-5 text-green-600 mr-2" />
             <div>
               <p class="text-sm text-gray-500">Authenticated</p>
               <p class="text-2xl font-semibold">{{ authenticatedCount }}</p>
@@ -46,46 +46,46 @@
     </div>
 
     <!-- Bulk Actions (animated) -->
-    <UCollapsible v-model:open="bulkOpen">
-      <UCollapsibleContent>
+    <NCollapsible v-model:open="bulkOpen">
+      <NCollapsibleContent>
         <div class="flex-shrink-0 mb-6">
           <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
             <div class="flex items-center justify-between">
               <span class="text-sm">{{ selectedIds.length }} selected</span>
               <div class="flex gap-2">
-                <UButton size="sm" btn="ghost-blue" :loading="bulkLoading" @click="bulkSetStatus('triaged')"><UIcon name="i-ph-play-duotone"/>Triage</UButton>
-                <UButton size="sm" btn="ghost-green" :loading="bulkLoading" @click="bulkSetStatus('resolved')"><UIcon name="i-ph-check" />Resolve</UButton>
-                <UButton size="sm" btn="ghost-pink" :loading="bulkLoading" @click="bulkSetStatus('spam')"><UIcon name="i-ph-warning" />Spam</UButton>
-                <UButton size="sm" btn="ghost-gray" @click="clearSelection">Clear</UButton>
+                <NButton size="sm" btn="ghost-blue" :loading="bulkLoading" @click="bulkSetStatus('triaged')"><NIcon name="i-ph-play-duotone"/>Triage</NButton>
+                <NButton size="sm" btn="ghost-green" :loading="bulkLoading" @click="bulkSetStatus('resolved')"><NIcon name="i-ph-check" />Resolve</NButton>
+                <NButton size="sm" btn="ghost-pink" :loading="bulkLoading" @click="bulkSetStatus('spam')"><NIcon name="i-ph-warning" />Spam</NButton>
+                <NButton size="sm" btn="ghost-gray" @click="clearSelection">Clear</NButton>
               </div>
             </div>
           </div>
         </div>
-      </UCollapsibleContent>
-    </UCollapsible>
+      </NCollapsibleContent>
+    </NCollapsible>
 
     <!-- Table -->
     <div class="flex-1 flex flex-col min-h-0">
       <TableFirstLoadSkeleton v-if="!hasLoadedOnce && loading" :rows="pageSize" :col-classes="['w-6','w-48','min-w-80','w-24','w-24','w-28','w-6']" :layout="['dot','multi','multi','pill','pill','date','dot']" :show-footer="true" />
 
       <div v-else-if="hasLoadedOnce && messages.length === 0" class="text-center py-16">
-        <UIcon name="i-ph-inbox" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-inbox" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium">No messages</h3>
         <p class="text-gray-500">Try adjusting your filters.</p>
       </div>
 
       <div v-else class="flex-1 flex flex-col rounded-2 border border-gray-200 dark:border-gray-700">
         <div class="flex-1 overflow-auto">
-          <UTable :columns="columns" :data="messages" :loading="loading" manual-pagination>
+          <NTable :columns="columns" :data="messages" :loading="loading" manual-pagination>
             <template #select-cell="{ cell }">
               <div class="flex items-center justify-center">
-                <UCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, v)" />
+                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, v)" />
               </div>
             </template>
 
             <template #from-cell="{ cell }">
               <div class="flex items-center gap-2">
-                <UAvatar size="xs" :src="cell.row.original.user_id ? undefined : undefined" />
+                <NAvatar size="xs" :src="cell.row.original.user_id ? undefined : undefined" />
                 <div>
                   <div class="text-sm font-medium">{{ cell.row.original.user_name || cell.row.original.name || 'Anonymous' }}</div>
                   <div class="text-xs text-gray-500">{{ cell.row.original.user_email || cell.row.original.email || '' }}</div>
@@ -105,17 +105,17 @@
 
             <template #tags-cell="{ cell }">
               <div class="flex flex-wrap gap-1">
-                <UBadge v-for="t in (cell.row.original.tags || []).slice(0,3)" :key="t" size="xs" variant="soft">{{ t }}</UBadge>
-                <UBadge v-if="(cell.row.original.tags||[]).length>3" size="xs" variant="soft">+{{ (cell.row.original.tags||[]).length-3 }}</UBadge>
+                <NBadge v-for="t in (cell.row.original.tags || []).slice(0,3)" :key="t" size="xs" variant="soft">{{ t }}</NBadge>
+                <NBadge v-if="(cell.row.original.tags||[]).length>3" size="xs" variant="soft">+{{ (cell.row.original.tags||[]).length-3 }}</NBadge>
               </div>
             </template>
 
             <template #status-cell="{ cell }">
               <div class="flex items-center gap-2">
-                <UBadge :color="statusColor(cell.row.original.status)" variant="subtle" size="xs">{{ cell.row.original.status }}</UBadge>
-                <UDropdownMenu :items="statusItems(cell.row.original)">
-                  <UButton size="2xs" btn="ghost" icon label="i-ph-caret-down" />
-                </UDropdownMenu>
+                <NBadge :color="statusColor(cell.row.original.status)" variant="subtle" size="xs">{{ cell.row.original.status }}</NBadge>
+                <NDropdownMenu :items="statusItems(cell.row.original)">
+                  <NButton size="2xs" btn="ghost" icon label="i-ph-caret-down" />
+                </NDropdownMenu>
               </div>
             </template>
 
@@ -124,16 +124,16 @@
             </template>
 
             <template #actions-cell="{ cell }">
-              <UDropdownMenu :items="rowActions(cell.row.original)">
-                <UButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
-              </UDropdownMenu>
+              <NDropdownMenu :items="rowActions(cell.row.original)">
+                <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
+              </NDropdownMenu>
             </template>
-          </UTable>
+          </NTable>
         </div>
 
         <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
           <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }} • {{ totalMessages }} total</div>
-          <UPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
+          <NPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
         </div>
       </div>
     </div>

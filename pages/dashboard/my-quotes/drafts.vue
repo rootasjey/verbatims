@@ -22,7 +22,7 @@
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
           >
-            <UInput
+            <NInput
               v-model="searchQuery"
               :placeholder="`Search among ${filteredQuotes.length} ${filteredQuotes.length === 1 ? 'draft' : 'drafts'}...`"
               leading="i-ph-magnifying-glass"
@@ -41,33 +41,33 @@
             :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
           >
             <div class="flex items-center gap-2 overflow-x-auto py-2 px-1 scrollbar-hide">
-              <UBadge
+              <NBadge
                 :badge="sortBy.value === 'recent' ? 'soft-blue' : 'soft-gray'"
                 rounded="full"
                 class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Most Recent', value: 'recent' }"
               >
-                <UIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
+                <NIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
                 Recent
-              </UBadge>
-              <UBadge
+              </NBadge>
+              <NBadge
                 :badge="sortBy.value === 'oldest' ? 'soft-orange' : 'soft-gray'"
                 rounded="full"
                 class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Oldest First', value: 'oldest' }"
               >
-                <UIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
+                <NIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
                 Oldest
-              </UBadge>
-              <UBadge
+              </NBadge>
+              <NBadge
                 :badge="sortBy.value === 'author' ? 'soft-green' : 'soft-gray'"
                 rounded="full"
                 class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Author A-Z', value: 'author' }"
               >
-                <UIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
+                <NIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
                 Author
-              </UBadge>
+              </NBadge>
             </div>
           </div>
         </div>
@@ -85,7 +85,7 @@
       <div v-else-if="filteredQuotes.length === 0" class="flex items-center justify-center py-20 px-4">
         <div class="text-center max-w-xs">
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 mb-4">
-            <UIcon name="i-ph-file-dashed" class="w-8 h-8 text-gray-400" />
+            <NIcon name="i-ph-file-dashed" class="w-8 h-8 text-gray-400" />
           </div>
           <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">
             {{ searchQuery ? 'No matching drafts' : 'No drafts yet' }}
@@ -93,7 +93,7 @@
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
             {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
           </p>
-          <UButton
+          <NButton
             icon
             leading="i-ph-arrow-left"
             to="/dashboard/my-quotes"
@@ -101,7 +101,7 @@
             variant="soft"
           >
             Back
-          </UButton>
+          </NButton>
         </div>
       </div>
 
@@ -117,7 +117,7 @@
         />
 
         <div v-if="hasMore" class="pt-4">
-          <UButton
+          <NButton
             :loading="loadingMore"
             block
             size="lg"
@@ -126,9 +126,9 @@
             class="rounded-xl font-500 text-sm"
             @click="loadMore"
           >
-            <UIcon v-if="!loadingMore" name="i-ph-arrow-down" class="w-4 h-4 mr-2" />
+            <NIcon v-if="!loadingMore" name="i-ph-arrow-down" class="w-4 h-4 mr-2" />
             {{ loadingMore ? 'Loading...' : 'Load More' }}
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
@@ -141,7 +141,7 @@
         <!-- Search and Filters -->
         <div class="flex flex-col sm:flex-row gap-4">
           <div class="flex-1">
-            <UInput
+            <NInput
               v-model="searchQuery"
               placeholder="Search your drafts..."
               leading="i-ph-magnifying-glass"
@@ -156,7 +156,7 @@
             <LanguageSelector :on-language-changed="onLanguageChanged" />
           </div>
           <div class="sm:w-48">
-            <USelect
+            <NSelect
               v-model="sortBy"
               :items="sortOptions"
               placeholder="Sort by"
@@ -176,17 +176,17 @@
               {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} selected
             </span>
             <div class="flex items-center gap-3">
-              <UButton size="sm" btn="soft-blue" :loading="bulkProcessing" @click="bulkSubmit">
-                <UIcon name="i-ph-paper-plane-tilt" />
+              <NButton size="sm" btn="soft-blue" :loading="bulkProcessing" @click="bulkSubmit">
+                <NIcon name="i-ph-paper-plane-tilt" />
                 Submit Selected
-              </UButton>
-              <UButton size="sm" btn="soft-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
-                <UIcon name="i-ph-trash" />
+              </NButton>
+              <NButton size="sm" btn="soft-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
+                <NIcon name="i-ph-trash" />
                 Delete Selected
-              </UButton>
-              <UButton size="sm" btn="ghost" @click="clearSelection">
+              </NButton>
+              <NButton size="sm" btn="ghost" @click="clearSelection">
                 Clear Selection
-              </UButton>
+              </NButton>
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@
 
         <!-- Empty State -->
         <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
-          <UIcon name="i-ph-file-dashed" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-file-dashed" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
             {{ searchQuery ? 'No matching drafts' : 'No drafts yet' }}
           </h3>
@@ -224,7 +224,7 @@
         <!-- Quotes Table -->
         <div v-else class="flex-1 flex flex-col dark:bg-[#0C0A09]">
           <div class="quotes-table-container flex-1 overflow-auto">
-            <UTable
+            <NTable
               :columns="tableColumns"
               :data="filteredQuotes"
               :loading="loading"
@@ -236,8 +236,8 @@
               <template #actions-header>
                 <div class="flex items-center justify-center gap-1">
                   <template v-if="selectionMode">
-                    <UTooltip text="Select all on page">
-                      <UButton
+                    <NTooltip text="Select all on page">
+                      <NButton
                         icon
                         btn="ghost"
                         size="2xs"
@@ -245,30 +245,30 @@
                         :disabled="allSelectedOnPage"
                         @click="selectAllOnPage"
                       />
-                    </UTooltip>
+                    </NTooltip>
                   </template>
-                  <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                    <UButton
+                  <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                    <NButton
                       icon
                       btn="ghost-gray"
                       size="2xs"
                       :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                       @click="toggleSelectionMode"
                     />
-                  </UTooltip>
+                  </NTooltip>
                 </div>
               </template>
 
               <!-- Actions Column -->
               <template #actions-cell="{ cell }">
                 <template v-if="!selectionMode">
-                  <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                    <UButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
-                  </UDropdownMenu>
+                  <NDropdownMenu :items="getQuoteActions(cell.row.original)">
+                    <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
+                  </NDropdownMenu>
                 </template>
                 <template v-else>
                   <div class="flex items-center justify-center">
-                    <UCheckbox
+                    <NCheckbox
                       :model-value="!!rowSelection[cell.row.original.id]"
                       @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                     />
@@ -296,7 +296,7 @@
               <!-- Author Column -->
               <template #author-cell="{ cell }">
                 <div v-if="cell.row.original.author" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <UIcon name="i-ph-user" class="w-4 h-4 mr-1 flex-shrink-0" />
+                  <NIcon name="i-ph-user" class="w-4 h-4 mr-1 flex-shrink-0" />
                   <span class="truncate">{{ cell.row.original.author.name }}</span>
                 </div>
                 <span v-else class="text-sm text-gray-400">—</span>
@@ -305,7 +305,7 @@
               <!-- Reference Column -->
               <template #reference-cell="{ cell }">
                 <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400 max-w-32">
-                  <UIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
+                  <NIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
                   <span class="truncate">{{ cell.row.original.reference.name }}</span>
                 </div>
                 <span v-else class="text-sm text-gray-400">—</span>
@@ -314,15 +314,15 @@
               <!-- Tags Column -->
               <template #tags-cell="{ cell }">
                 <div v-if="cell.row.original.tags?.length" class="flex flex-wrap gap-1">
-                  <UBadge
+                  <NBadge
                     v-for="tag in cell.row.original.tags.slice(0, 2)"
                     :key="tag.id"
                     variant="subtle"
                     size="xs"
                   >
                     {{ tag.name }}
-                  </UBadge>
-                  <UBadge
+                  </NBadge>
+                  <NBadge
                     v-if="cell.row.original.tags.length > 2"
                     variant="subtle"
                     size="xs"
@@ -330,16 +330,16 @@
                     :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
                   >
                     +{{ cell.row.original.tags.length - 2 }}
-                  </UBadge>
+                  </NBadge>
                 </div>
                 <span v-else class="text-sm text-gray-400">—</span>
               </template>
 
               <!-- Status Column -->
               <template #status-cell>
-                <UBadge color="gray" variant="subtle" size="xs">
+                <NBadge color="gray" variant="subtle" size="xs">
                   Draft
-                </UBadge>
+                </NBadge>
               </template>
 
               <!-- Date Column -->
@@ -348,7 +348,7 @@
                   {{ formatDate(cell.row.original.created_at) }}
                 </span>
               </template>
-            </UTable>
+            </NTable>
           </div>
           <!-- Pagination -->
           <div class="flex-shrink-0 flex items-center justify-between pt-4">
@@ -356,7 +356,7 @@
               <span>Page {{ currentPage }} of {{ totalPages }}</span>
             </div>
 
-            <UPagination
+            <NPagination
               v-model:page="currentPage"
               :total="totalDrafts"
               :items-per-page="pageSize"
