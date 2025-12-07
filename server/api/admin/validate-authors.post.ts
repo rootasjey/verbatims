@@ -1,4 +1,4 @@
-import type { validateAuthorDataZod } from '~/types''~/server/utils/validation/author'
+import { validateAuthorDataZod } from '~/server/utils/validation/author'
 
 /**
  * Admin API: Validate Author Data

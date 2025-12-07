@@ -1,4 +1,4 @@
-import type { Author } from "~/types"
+import { Author } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {

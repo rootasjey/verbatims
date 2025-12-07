@@ -3,7 +3,7 @@
  * Monitor the health and status of import progress tracking
  */
 
-import type { getImportStats } from '~/types''~/server/utils/onboarding-progress'
+import { getImportStats } from '~/server/utils/onboarding-progress'
 
 export default defineEventHandler(async (event) => {
   try {

@@ -1,4 +1,4 @@
-import type { zipSync } from '~/types''fflate'
+import { zipSync } from 'fflate'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)

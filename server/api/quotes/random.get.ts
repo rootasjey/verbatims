@@ -1,4 +1,4 @@
-import type { transformQuotes } from '~/types''~/server/utils/quote-transformer'
+import { transformQuotes } from '~/server/utils/quote-transformer'
 import type { DatabaseQuoteWithRelations } from '~/types'
 
 export default defineEventHandler(async (event) => {

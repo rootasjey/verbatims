@@ -3,7 +3,7 @@
  * Manually trigger cleanup of old import progress records
  */
 
-import type { cleanupOldProgress, checkForStuckImports, getImportStats } from '~/types''~/server/utils/onboarding-progress'
+import { cleanupOldProgress, checkForStuckImports, getImportStats } from '~/server/utils/onboarding-progress'
 
 export default defineEventHandler(async (event) => {
   try {

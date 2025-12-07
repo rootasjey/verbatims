@@ -1,4 +1,4 @@
-import type { CreatedQuoteResult } from "~/types"
+import { CreatedQuoteResult } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {

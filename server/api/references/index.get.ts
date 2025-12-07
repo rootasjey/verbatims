@@ -1,4 +1,4 @@
-import type { QuoteReference } from "~/types"
+import { QuoteReference } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {

@@ -1,4 +1,4 @@
-import type { parseJSONSafely } from '~/types''~/server/utils/extraction'
+import { parseJSONSafely } from '~/server/utils/extraction'
 import type { ReportCategory, ReportStatus, ReportTargetType, AdminUserMessage, AdminMessagesListResponse } from '~/types/report'
 
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {

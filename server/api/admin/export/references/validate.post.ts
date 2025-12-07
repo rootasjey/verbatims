@@ -4,7 +4,7 @@
  */
 
 import type { ExportOptions, ReferenceExportFilters, ExportValidation } from '~/types/export'
-import type { validateFiltersForReferencesExport } from '~/types''~/server/utils/export-filters'
+import { validateFiltersForReferencesExport } from '~/server/utils/export-filters'
 
 export default defineEventHandler(async (event) => {
   try {

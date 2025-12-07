@@ -1,4 +1,4 @@
-import type { getUnresolved } from '~/types''~/server/utils/admin-import-unresolved'
+import { getUnresolved } from '~/server/utils/admin-import-unresolved'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)

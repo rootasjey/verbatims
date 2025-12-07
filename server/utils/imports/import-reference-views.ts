@@ -1,6 +1,6 @@
 import type { ImportOptions } from '~/types'
 
-import type { getAdminImport, updateAdminImport } from '~/types''~/server/utils/admin-import-progress'
+import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
 
 export async function importReferenceViewsInline(importId: string, data: any[], options?: ImportOptions): Promise<void> {
   if (!Array.isArray(data) || !data.length) return

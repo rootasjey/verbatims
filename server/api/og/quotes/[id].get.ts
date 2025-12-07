@@ -1,4 +1,4 @@
-import type { getApprovedQuoteForOg } from '~/types''~/server/utils/og'
+import { getApprovedQuoteForOg } from '~/server/utils/og'
 
 export default defineEventHandler(async (event) => {
   let quoteId = getRouterParam(event, 'id')

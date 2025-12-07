@@ -1,5 +1,5 @@
-import type { getQuery } from '~/types''h3'
-import type { downloadBackupFile } from '~/types''~/server/utils/backup-storage'
+import { getQuery } from 'h3'
+import { downloadBackupFile } from '~/server/utils/backup-storage'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)

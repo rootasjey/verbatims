@@ -1,5 +1,5 @@
-import type { getBackup } from '~/types''~/server/utils/backup-storage'
-import type { getBackupFileById, trackBackupFileAccess } from '~/types''~/server/utils/backup-database'
+import { getBackup } from '~/server/utils/backup-storage'
+import { getBackupFileById, trackBackupFileAccess } from '~/server/utils/backup-database'
 
 /**
  * Admin API: Download Backup File

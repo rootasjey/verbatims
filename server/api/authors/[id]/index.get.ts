@@ -1,6 +1,6 @@
 import type { ApiResponse, Author, AuthorSocialLink, AuthorWithSocials } from "~/types"
-import type { throwServer } from '~/types''~/server/utils/throw-server'
-import type { parseAuthorSocials } from '~/types'"~/server/utils/author-transformer"
+import { throwServer } from '~/server/utils/throw-server'
+import { parseAuthorSocials } from "~/server/utils/author-transformer"
 
 export default defineEventHandler(async (event) => {
   try {

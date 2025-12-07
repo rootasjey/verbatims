@@ -1,4 +1,4 @@
-import type { SortBy, SortOrder, SortQuery } from "~/types";
+import { SortBy, SortOrder, SortQuery } from "~/types";
 
 /**
  * Validate a provided column against allowed set. Falls back to default if invalid.

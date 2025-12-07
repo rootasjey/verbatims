@@ -1,4 +1,4 @@
-import type { User } from '~/types''#auth-utils'
+import { User } from '#auth-utils'
 
 export default defineEventHandler(async (event) => {
   try {

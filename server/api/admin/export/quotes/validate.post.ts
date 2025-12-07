@@ -4,7 +4,7 @@
  */
 
 import type { ExportOptions, ExportValidation } from '~/types/export'
-import type { validateFiltersForExport, buildFilterConditions } from '~/types''~/server/utils/export-filters'
+import { validateFiltersForExport, buildFilterConditions } from '~/server/utils/export-filters'
 
 export default defineEventHandler(async (event) => {
   try {

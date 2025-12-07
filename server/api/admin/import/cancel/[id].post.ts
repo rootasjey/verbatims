@@ -2,7 +2,7 @@
  * Admin API: Cancel Import
  */
 
-import type { getAdminImport, requestCancel } from '~/types''~/server/utils/admin-import-progress'
+import { getAdminImport, requestCancel } from '~/server/utils/admin-import-progress'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)

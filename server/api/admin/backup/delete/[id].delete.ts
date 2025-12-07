@@ -3,7 +3,7 @@
  * Deletes backup file from both R2 storage and database
  */
 
-import type { deleteBackup } from '~/types''~/server/utils/backup-storage'
+import { deleteBackup } from '~/server/utils/backup-storage'
 
 export default defineEventHandler(async (event) => {
   try {

@@ -1,5 +1,5 @@
 import type { ImportOptions } from '~/types'
-import type { unzipSync, strFromU8 } from '~/types''fflate'
+import { unzipSync, strFromU8 } from 'fflate'
 
 /**
  * Admin API: Relink Post-Quote Relations
