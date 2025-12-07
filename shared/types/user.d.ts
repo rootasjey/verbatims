@@ -1,6 +1,5 @@
-// Additional user type definitions
-// See authenticated user types at types/user.d.ts
-// It's defined there for nuxt-auth-utils.
+// Shared user types (moved from types/user.d.ts)
+// These types are intended to be shared between frontend and backend code.
 
 type UserRole = 'user' | 'moderator' | 'admin'
 interface AdminUser {

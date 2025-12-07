@@ -1,4 +1,9 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": "./.nuxt/tsconfig.json"
+  "extends": "./.nuxt/tsconfig.json",
+  // Make sure TypeScript picks up the shared type declaration files.
+  "include": [
+    "shared/types/**/*.d.ts",
+    "types/**/*.d.ts"
+  ]
 }
