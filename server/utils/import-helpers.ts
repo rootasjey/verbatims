@@ -69,7 +69,7 @@ export function parseZipImportEntries(entries: Record<string, Uint8Array>, strFr
     const ext = m[2] as 'json' | 'csv' | 'xml'
 
     // Normalize stem: keep hyphen and underscore variants supported via nameMap
-    const canonical = nameMap[rawStem]
+    const canonical = nameMap[rawStem] as (keyof typeof result) | undefined
     if (!canonical) { warnings.push(`Skipped unknown file: ${name}`); continue }
 
     const text = strFromU8(data as Uint8Array)
@@ -149,8 +149,9 @@ export function parseXMLFlat(text: string, itemTag: string): any[] {
     const fieldRegex = /<([A-Za-z0-9_:-]+)>([\s\S]*?)<\/\1>/g
     let f: RegExpExecArray | null
     while ((f = fieldRegex.exec(block)) !== null) {
+      if (!f) continue
       const key = f[1]
-      const val = f[2].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      const val = (f[2] ?? '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
       obj[key] = val
     }
     items.push(obj)
