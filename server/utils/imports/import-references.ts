@@ -356,13 +356,15 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
   while ((m = itemRegex.exec(xml))) {
     const obj: any = {}
     let fm: RegExpExecArray | null
-    while ((fm = fieldRegex.exec(m[1]))) {
-      obj[fm[1]] = fm[2]
-        .replace(/&lt;/g,'<')
-        .replace(/&gt;/g,'>')
-        .replace(/&amp;/g,'&')
-        .replace(/&quot;/g,'"')
-        .replace(/&apos;/g,"'")
+      while ((fm = fieldRegex.exec(m[1]))) {
+        if (!fm) continue
+        const objKey = fm[1]
+        obj[objKey] = fm[2]
+          .replace(/&lt;/g,'<')
+          .replace(/&gt;/g,'>')
+          .replace(/&amp;/g,'&')
+          .replace(/&quot;/g,'"')
+          .replace(/&apos;/g,"'")
     }
     items.push(obj)
   }

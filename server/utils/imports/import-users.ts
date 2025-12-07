@@ -297,14 +297,12 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
   while ((m = itemRegex.exec(xml))) {
     const obj: any = {}
     let fm: RegExpExecArray | null
-    while ((fm = fieldRegex.exec(m[1]))) {
-      if (fm[1] !== fm[3]) continue
-      obj[fm[1]] = fm[2]
-        .replace(/&lt;/g,'<')
-        .replace(/&gt;/g,'>')
-        .replace(/&amp;/g,'&')
-        .replace(/&quot;/g,'"')
-        .replace(/&apos;/g,"'")
+      while ((fm = fieldRegex.exec(m[1]))) {
+        if (!fm) continue
+        const key = fm[1]
+        const val = fm[2]
+        if (key !== fm[3]) continue
+        obj[key] = val.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&apos;/g,"'")
     }
     items.push(obj)
   }

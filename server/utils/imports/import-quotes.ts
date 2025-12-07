@@ -146,12 +146,13 @@ export async function importQuotesInline(
             if (!allowed) return
             if (quoteStrategy === 'overwrite') {
               sets.push(`${column} = ?`)
-              binds.push(value)
-            } else {
-              sets.push(`${column} = COALESCE(?, ${column})`)
-              binds.push(value)
-            }
-          }
+              let fm: RegExpExecArray | null
+              while ((fm = fieldRegex.exec(m[1]))) {
+                if (!fm) continue
+                const objKey = fm[1]
+                if (objKey !== fm[3]) continue
+                obj[objKey] = fm[2]
+              }
 
           addField('name', q.name, allowedFields.has('name'))
           addField('status', status, allowedFields.has('status'))
