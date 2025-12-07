@@ -39,32 +39,57 @@ async function run() {
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8')
 
-    const templateRegex = /<template(\s[^>]*)?>([\s\S]*?)<\/template>/g
-    let match
+    // Find template blocks safely (handles nested <template> ... </template> blocks)
     let newContent = content
     let fileChanged = false
+    const openRe = /<template(\s[^>]*)?>/g
 
-    let lastIndex = 0
-    const pieces = []
+    let match
+    const blocks = []
+    while ((match = openRe.exec(content)) !== null) {
+      const attrs = match[1] || ''
+      const startOpen = match.index
+      let cursor = openRe.lastIndex
+      let depth = 1
 
-    while ((match = templateRegex.exec(content)) !== null) {
-      const [fullMatch, attrs = '', inner] = match
-      const start = match.index
-      const end = templateRegex.lastIndex
+      while (depth > 0) {
+        const nextOpen = content.indexOf('<template', cursor)
+        const nextClose = content.indexOf('</template>', cursor)
+        if (nextClose === -1) {
+          // malformed file, abort
+          break
+        }
 
-      pieces.push(content.slice(lastIndex, start))
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+          depth++
+          cursor = nextOpen + 1
+        } else {
+          depth--
+          cursor = nextClose + '</template>'.length
+        }
+      }
 
-      const { out, changed } = transformTemplate(inner)
-      fileChanged = fileChanged || changed
-
-      pieces.push(`<template${attrs}>${out}</template>`)
-
-      lastIndex = end
+      const endClose = cursor
+      if (endClose > startOpen) {
+        const innerStart = match.index + match[0].length
+        const inner = content.slice(innerStart, endClose - '</template>'.length)
+        blocks.push({ startOpen, attrs, innerStart, inner, endClose })
+      }
     }
 
-    if (lastIndex > 0) {
-      pieces.push(content.slice(lastIndex))
-      newContent = pieces.join('')
+    if (blocks.length > 0) {
+      // reconstruct content replacing the transformed template blocks
+      let outPieces = []
+      let last = 0
+      for (const b of blocks) {
+        outPieces.push(content.slice(last, b.startOpen))
+        const { out, changed } = transformTemplate(b.inner)
+        fileChanged = fileChanged || changed
+        outPieces.push(`<template${b.attrs}>${out}</template>`)
+        last = b.endClose
+      }
+      outPieces.push(content.slice(last))
+      newContent = outPieces.join('')
     }
 
     if (fileChanged) {
