@@ -262,7 +262,7 @@ export async function processImportUsers(
 export async function parseUsersCsv(csvData: string): Promise<any[]> {
   const lines = String(csvData || '').trim().split('\n')
   if (lines.length < 2) return []
-  const headers = parseCSVLine(lines[0])
+  const headers = parseCSVLine(lines[0] ?? '')
   return lines.slice(1).map(line => {
     const values = parseCSVLine(line)
     const obj: any = {}
