@@ -1,6 +1,4 @@
-import { CreatedQuoteResult } from "~/types"
-
-export default defineEventHandler(async (event) => {
+import type { CreatedQuoteResult } from "~/types"export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
     const session = await getUserSession(event)
