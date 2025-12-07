@@ -87,6 +87,55 @@
         </template>
 
         <!-- Featured Badge (if any) -->
+        <NBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</NBadge>
+      </div>
+    </div>
+
+    <!-- Bottom alternative: show date when no author/reference -->
+    <div v-else class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-3">
+      <span>{{ formatDate(quote.created_at) }}</span>
+    </div>
+    
+    <!-- Mobile quick actions drawer triggered by long-press -->
+    <QuoteActionsDrawer
+      v-model:open="actionsOpen"
+      status="approved"
+      :actions="drawerActions"
+      @edit="emitEdit"
+      @delete="emitDelete"
+      @share="emitShare"
+      @unlike="emitUnlike"
+      @add-to-collection="emitAddToCollection"
+    />
+  </div>
+</template><template v-if="referenceType">
+          <!-- text style -->
+          <NBadge
+            v-if="badge === 'text'"
+            :color="getReferenceTypeColor(referenceType)"
+            variant="subtle"
+            size="xs"
+            class="text-xs font-500 rounded-lg"
+          >
+            {{ formatReferenceType(referenceType) }}
+          </NBadge>
+
+          <!-- dot style -->
+          <div
+            v-else-if="badge === 'dot'"
+            class="w-2.5 h-2.5 rounded-full"
+            :style="{ backgroundColor: getReferenceTypeHex(referenceType) }"
+            :title="formatReferenceType(referenceType)"
+            aria-hidden="true"
+          />
+
+          <!-- icon style -->
+          <div v-else class="px-2 py-1 rounded-md border border-gray-200 dark:border-gray-700">
+            <NIcon :name="getReferenceTypeIcon(referenceType)" class="w-4 h-4" :style="{ color: getReferenceTypeHex(referenceType) }" />
+          </div>
+        </template>
+
+        <!-- Featured Badge (if any) -->
         <UBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</UBadge>
       </div>
     </div>

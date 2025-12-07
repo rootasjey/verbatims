@@ -61,6 +61,48 @@
             </div>
           </div>
         </template>
+      </NAccordion>
+
+      <!-- Actions -->
+      <div class="mt-6 flex justify-end gap-2">
+        <NButton btn="soft-blue" @click="$emit('edit', quote)">Edit</NButton>
+        <NButton btn="ghost" @click="closeDialog">Close</NButton>
+      </div>
+    </div>
+  </NDialog>
+</template><template #content="{ item }">
+          <div class="space-y-3 text-sm p-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Created by</span>
+                <div class="mt-1">
+                  <div class="text-xs text-gray-500 dark:text-blue" title="Email">{{ quote.user?.email }}</div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-900 dark:text-white" title="Username">{{ quote.user?.name }}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Status</span>
+                <div class="mt-1">
+                  <NBadge color="gray" variant="subtle" size="xs">
+                    {{ quote.status || 'Draft' }}
+                  </NBadge>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Created at:</span>
+                <div class="text-gray-900 dark:text-white mt-1">{{ formatRelativeTime(quote.created_at) }}</div>
+              </div>
+              <div>
+                <span class="font-medium text-gray-700 dark:text-gray-500">Updated at:</span>
+                <div class="text-gray-900 dark:text-white mt-1">{{ formatRelativeTime(quote.updated_at) }}</div>
+              </div>
+            </div>
+          </div>
+        </template>
       </UAccordion>
 
       <!-- Actions -->

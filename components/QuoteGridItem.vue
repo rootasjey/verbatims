@@ -73,6 +73,31 @@
       </ClientOnly>
     </div>
 
+    <NBadge
+      v-if="quote.is_featured"
+      color="yellow"
+      variant="subtle"
+      size="xs"
+      class="absolute top-2 right-2"
+    >
+      Featured
+    </NBadge>
+  </div>
+</template><template #fallback>
+          <blockquote
+            class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+            :class="{
+              'text-sm': (quote.name || '').length > 200,
+              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-lg': (quote.name || '').length <= 100
+            }"
+          >
+            {{ quote.name }}
+          </blockquote>
+        </template>
+      </ClientOnly>
+    </div>
+
     <UBadge
       v-if="quote.is_featured"
       color="yellow"

@@ -283,6 +283,296 @@
                 </ol>
               </div>
             </template>
+          </NDrawer>
+        </template>
+
+        <template v-else>
+          <details :open="tocOpen" @toggle="onDetailsToggle">
+            <summary class="toc-summary" :aria-expanded="tocOpen">
+              <span class="toc-icon" aria-hidden="true">☰</span>
+              Contents
+            </summary>
+            <ol class="toc-list">
+              <li v-for="item in toc" :key="item.id">
+                <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
+                  {{ item.title }}
+                </a>
+              </li>
+            </ol>
+          </details>
+        </template>
+      </nav>
+    </div>
+  </div>
+</template><template v-if="item.id === 'introduction-and-acceptance'">
+              <p>
+                These Terms of Service (“Terms”) govern your access to and use of our quotes platform, including websites, apps, and related services (collectively, the “Service”). By accessing or using the Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, do not use the Service.
+              </p>
+              <p>
+                We aim for clarity and fairness. If anything is unclear, please contact us before continuing to use the Service.
+              </p>
+            </template>
+
+            <!-- 2) Eligibility -->
+            <template v-else-if="item.id === 'eligibility'">
+              <p>
+                You may use the Service only if you:
+              </p>
+              <ul>
+                <li>Are at least the age of majority in your jurisdiction or have verifiable parental consent;</li>
+                <li>Can form a binding contract with us; and</li>
+                <li>Comply with these Terms and all applicable laws.</li>
+              </ul>
+              <p>
+                If you access the Service on behalf of an organization, you represent that you are authorized to bind that organization to these Terms.
+              </p>
+            </template>
+
+            <!-- 3) Account Registration and Security -->
+            <template v-else-if="item.id === 'account-registration-and-security'">
+              <p>
+                When creating an account, provide accurate information and keep it updated. You are responsible for maintaining the confidentiality of your credentials and for activity under your account. Notify us promptly of any unauthorized use or security incident.
+              </p>
+              <ul>
+                <li>Use a strong, unique password and update it periodically.</li>
+                <li>Limit access to your device and log out after use.</li>
+                <li>We may suspend or terminate accounts for violations of these Terms.</li>
+              </ul>
+            </template>
+
+            <!-- 4) User-Generated Content -->
+            <template v-else-if="item.id === 'user-generated-content'">
+              <p>
+                You may submit quotes, commentary, attribution details, source references, images, and related materials (“User Content”). You are solely responsible for your User Content, including ensuring accuracy of attributions and sources.
+              </p>
+              <h3>Source Accuracy</h3>
+              <ul>
+                <li>Provide best-effort verification of author identity and original source.</li>
+                <li>Include citations (e.g., book title, publication, date) when available.</li>
+                <li>Do not knowingly misattribute or fabricate quotations.</li>
+              </ul>
+              <p>
+                We do not endorse User Content and are not obligated to monitor it, but we may review, flag, or remove content that violates these Terms or applicable law.
+              </p>
+            </template>
+
+            <!-- 5) Intellectual Property -->
+            <template v-else-if="item.id === 'intellectual-property'">
+              <p>
+                The Service, including text, UI design, logos, trademarks, trade dress, code, and other proprietary material (“Platform Content”), is owned by us or our licensors and is protected by intellectual property laws.
+              </p>
+              <ul>
+                <li>You may not use our trademarks or branding without express written permission.</li>
+                <li>Except as permitted by these Terms, you may not copy, modify, distribute, or create derivative works of the Platform Content.</li>
+              </ul>
+              <p>
+                Quotes themselves may be in the public domain or subject to rights. You are responsible for ensuring your use complies with applicable law.
+              </p>
+            </template>
+
+            <!-- 6) License to Your Content and Content Moderation -->
+            <template v-else-if="item.id === 'license-and-moderation'">
+              <p>
+                By posting User Content, you grant us a worldwide, non-exclusive, royalty-free license to use, host, store, reproduce, modify (e.g., for formatting), publish, display, and distribute your User Content for operating, promoting, and improving the Service.
+              </p>
+              <p>
+                We may moderate or remove User Content that we reasonably believe violates these Terms, infringes rights, or risks harm. We may also suspend features or impose limits to protect Service integrity.
+              </p>
+            </template>
+
+            <!-- 7) Prohibited Uses -->
+            <template v-else-if="item.id === 'prohibited-uses'">
+              <p>Do not misuse the Service. Prohibited activities include:</p>
+              <ul>
+                <li>Scraping, crawling, or harvesting data without permission;</li>
+                <li>Spam, fraud, impersonation, harassment, or abusive conduct;</li>
+                <li>Misattributing quotes or fabricating sources;</li>
+                <li>Bypassing access controls or rate limits;</li>
+                <li>Uploading malware or interfering with Service functionality;</li>
+                <li>Automating submissions to manipulate rankings or attribution;</li>
+                <li>Using outputs in ways that violate third-party rights or applicable law;</li>
+                <li>Improper AI use, including training models on non-permitted data from the Service or reproducing substantial portions without permission or a license.</li>
+              </ul>
+            </template>
+
+            <!-- 8) Community Guidelines -->
+            <template v-else-if="item.id === 'community-guidelines'">
+              <p>We encourage a calm, literary, respectful culture. Please:</p>
+              <ul>
+                <li>Attribute quotations accurately and add sources when possible;</li>
+                <li>Use inclusive language and avoid personal attacks;</li>
+                <li>Report inaccuracies or policy violations via in-app tools;</li>
+                <li>Celebrate diverse voices and contexts around quotations.</li>
+              </ul>
+            </template>
+
+            <!-- 9) Attribution and Fair Use of Quotes -->
+            <template v-else-if="item.id === 'attribution-and-fair-use'">
+              <p>
+                Many quotations are short and may qualify as fair use or be in the public domain. However, longer excerpts, images, or context may be protected. When sharing or embedding quotes from the Service:
+              </p>
+              <ul>
+                <li>Include author name and source reference when available;</li>
+                <li>Avoid reproducing substantial portions from protected works;</li>
+                <li>Provide a link back to the quote page when feasible;</li>
+                <li>Respect any applicable licenses or restrictions indicated in the Service.</li>
+              </ul>
+            </template>
+
+            <!-- 10) DMCA/Copyright and Takedown Policy -->
+            <template v-else-if="item.id === 'dmca'">
+              <p>
+                We respect intellectual property rights. If you believe content infringes your copyright, send a notice with sufficient detail (identification of the work, the infringing material, your contact info, a statement of good faith, and your signature) to our designated agent at the contact below. We may remove or disable content and, where appropriate, terminate repeat infringers.
+              </p>
+              <p>
+                Counter-notices should follow applicable law and include required statements under penalty of perjury. We may restore content upon receipt of a valid counter-notice unless we receive notice of legal action.
+              </p>
+            </template>
+
+            <!-- 11) Privacy and Data Processing -->
+            <template v-else-if="item.id === 'privacy'">
+              <p>
+                Your use of the Service is subject to our Privacy Policy, which explains how we collect, use, and share information. Please review it to understand our practices and your choices.
+              </p>
+              <p>
+                See: <NuxtLink to="/privacy" class="inline-link">Privacy Policy</NuxtLink>.
+              </p>
+            </template>
+
+            <!-- 12) Third-Party Services and Links -->
+            <template v-else-if="item.id === 'third-party'">
+              <p>
+                The Service may link to or integrate with third-party services. We are not responsible for their content, policies, or practices. Your use of third-party services is governed by their terms and policies.
+              </p>
+            </template>
+
+            <!-- 13) Subscriptions, Billing, and Refunds -->
+            <template v-else-if="item.id === 'billing'">
+              <p>
+                If we offer paid features, the following may apply: pricing, billing cycle, renewal, taxes, and refund eligibility. You authorize us or our payment processor to charge your payment method for applicable fees. Unless stated otherwise, subscriptions renew automatically until canceled.
+              </p>
+              <ul>
+                <li>We may update prices with reasonable notice;</li>
+                <li>Refunds are granted where required by law or our posted policy;</li>
+                <li>Chargebacks or unpaid fees may result in suspension.</li>
+              </ul>
+            </template>
+
+            <!-- 14) Disclaimers and Limitation of Liability -->
+            <template v-else-if="item.id === 'disclaimers'">
+              <p>
+                The Service is provided “as is” and “as available.” We make no warranties of accuracy, reliability, or fitness for a particular purpose. Quotes and attributions can be incomplete or contested; use your judgment and verify sources.
+              </p>
+              <p>
+                To the maximum extent permitted by law, we are not liable for indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service.
+              </p>
+            </template>
+
+            <!-- 15) Indemnification -->
+            <template v-else-if="item.id === 'indemnification'">
+              <p>
+                You will indemnify and hold us harmless from claims, damages, and expenses (including reasonable legal fees) arising from your use of the Service, your User Content, or your violation of these Terms or applicable law.
+              </p>
+            </template>
+
+            <!-- 16) Termination -->
+            <template v-else-if="item.id === 'termination'">
+              <p>
+                You may stop using the Service at any time. We may suspend or terminate your access if we reasonably believe you violated these Terms, created risk, or caused harm. Upon termination, certain sections survive, including intellectual property, disclaimers, limitation of liability, and indemnification.
+              </p>
+            </template>
+
+            <!-- 17) Governing Law and Dispute Resolution -->
+            <template v-else-if="item.id === 'governing-law'">
+              <p>
+                These Terms are governed by the laws of the jurisdiction specified by our principal place of business, without regard to conflict-of-law principles. Disputes will be resolved in the courts located there, unless otherwise required by applicable law.
+              </p>
+              <p>
+                Where permitted, you agree to resolve disputes on an individual basis and waive participation in class actions.
+              </p>
+            </template>
+
+            <!-- 18) Changes to These Terms -->
+            <template v-else-if="item.id === 'changes'">
+              <p>
+                We may update these Terms from time to time. We will post the updated Terms and revise the “Last updated” date. Material changes will be notified through the Service or by other reasonable means. Your continued use after changes become effective constitutes acceptance of the revised Terms.
+              </p>
+            </template>
+
+            <!-- 19) Contact Information -->
+            <template v-else-if="item.id === 'contact'">
+              <p>
+                Questions or notices can be sent to:
+              </p>
+              <address class="contact" aria-label="Contact information">
+                Jérémie CORPINOT<br />
+                123 Literary Lane, Suite 4<br />
+                Yvelines, France<br />
+                legal@example.com
+              </address>
+            </template>
+          </div>
+          <hr class="divider" aria-hidden="true" />
+        </section>
+
+        <footer class="doc-end" aria-label="Document end">
+          <p>
+            This document contains sample, non-binding legal copy for placeholder purposes only. Replace with counsel-reviewed language before production use.
+          </p>
+        </footer>
+      </main>
+
+      <nav
+        class="toc"
+        aria-label="In-page navigation"
+        role="navigation"
+      >
+        <template v-if="isMobile">
+          <NButton 
+            btn="soft-gray" 
+            size="md" 
+            icon 
+            label="i-ph-list-bold" 
+            rounded="2xl"
+            class="toc-fab fixed right-4 bottom-10 border border-gray-100 p-6 shadow-lg" 
+            aria-label="Open contents" 
+            @click="tocOpen = !tocOpen" 
+          />
+
+          <NDrawer v-model:open="tocOpen" direction="bottom">
+            <template #body>
+              <div class="px-4 pb-4 overflow-y-auto">
+                <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
+                  <h3 class="font-serif text-4xl font-700">Contents</h3>
+                  <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
+                </div>
+
+                <ol class="toc-list-mobile">
+                  <li v-for="item in toc" :key="item.id">
+                    <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
+                      {{ item.num }}. {{ item.title }}
+                    </a>
+                  </li>
+                </ol>
+              </div>
+            </template>
+          </NDrawer>
+        </template><template #body>
+              <div class="px-4 pb-4 overflow-y-auto">
+                <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
+                  <h3 class="font-serif text-4xl font-700">Contents</h3>
+                  <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
+                </div>
+
+                <ol class="toc-list-mobile">
+                  <li v-for="item in toc" :key="item.id">
+                    <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
+                      {{ item.num }}. {{ item.title }}
+                    </a>
+                  </li>
+                </ol>
+              </div>
+            </template>
           </UDrawer>
         </template>
 

@@ -22,6 +22,20 @@
           {{ item.label }}
         </span>
       </template>
+    </NSelect>
+  </div>
+</template><template #value="{ modelValue }">
+        <span class="flex items-center gap-2">
+          <NIcon :name="(modelValue as ThemeOption)?.icon" class="w-4 h-4" />
+          {{ (modelValue as ThemeOption)?.label }}
+        </span>
+      </template>
+      <template #item="{ item }">
+        <span class="flex items-center gap-2">
+          <NIcon :name="item.icon" class="w-4 h-4" />
+          {{ item.label }}
+        </span>
+      </template>
     </USelect>
   </div>
 </template>

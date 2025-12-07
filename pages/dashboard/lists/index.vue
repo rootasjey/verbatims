@@ -279,6 +279,128 @@
                 </span>
               </div>
             </div>
+          </NCard>
+        </div>
+
+        <!-- Load More -->
+        <div v-if="hasMore" class="text-center pt-8">
+          <NButton
+            :loading="loadingMore"
+            btn="dark:solid-black"
+            size="md"
+            class="w-full hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
+            @click="loadMore"
+          >
+            Load More
+          </NButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Collection Modal -->
+    <CreateCollectionModal
+      v-model="showCreateModal"
+      @created="handleCollectionCreated"
+    />
+
+    <!-- Edit Collection Modal -->
+    <EditCollectionModal
+      v-if="selectedCollection"
+      v-model="showEditModal"
+      :collection="selectedCollection"
+      @updated="handleCollectionUpdated"
+    />
+
+    <!-- Delete Confirmation -->
+    <NDialog v-model="showDeleteModal">
+      <NCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Delete List</h3>
+        </template>
+        
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          Are you sure you want to delete "{{ selectedCollection?.name }}"? This action cannot be undone.
+        </p>
+        
+        <template #footer>
+          <div class="flex justify-end space-x-3">
+            <NButton btn="outline" @click="showDeleteModal = false">
+              Cancel
+            </NButton>
+            <NButton
+              color="red"
+              :loading="deleting"
+              @click="deleteCollection"
+            >
+              Delete
+            </NButton>
+          </div>
+        </template>
+      </NCard>
+    </NDialog>
+
+    <!-- Collection Actions Drawer (Mobile) -->
+    <CollectionActionsDrawer
+      v-model:open="showActionsDrawer"
+      :collection="selectedCollection"
+      @view="handleViewFromDrawer"
+      @edit="handleEditFromDrawer"
+      @delete="handleDeleteFromDrawer"
+    />
+  </div>
+</template><template #header>
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900 dark:text-white line-clamp-1">
+                    {{ collection.name }}
+                  </h3>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {{ collection.quotes_count }} {{ collection.quotes_count === 1 ? 'quote' : 'quotes' }}
+                  </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <NBadge
+                    :badge="collection.is_public ? 'outline-green' : 'outline-red'"
+                    size="xs"
+                  >
+                    {{ collection.is_public ? 'Public' : 'Private' }}
+                  </NBadge>
+                  <NDropdownMenu :items="getCollectionActions(collection)">
+                    <NButton
+                      icon
+                      btn="ghost"
+                      size="xs"
+                      label="i-ph-dots-three-vertical"
+                      @click.stop
+                    />
+                  </NDropdownMenu>
+                </div>
+              </div>
+            </template>
+
+            <div class="space-y-3">
+              <p v-if="collection.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                {{ collection.description }}
+              </p>
+              
+              <!-- Preview quotes -->
+              <div v-if="collection.preview_quotes?.length" class="space-y-2">
+                <div
+                  v-for="quote in collection.preview_quotes.slice(0, 2)"
+                  :key="quote.id"
+                  class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 italic"
+                >
+                  "{{ quote.name }}"
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>Updated {{ formatDate(collection.updated_at) }}</span>
+                <span v-if="collection.is_public">
+                  {{ collection.views_count || 0 }} views
+                </span>
+              </div>
+            </div>
           </UCard>
         </div>
 

@@ -284,6 +284,155 @@
               {{ formatRelativeTime(cell.row.original.created_at) }}
             </span>
           </template>
+        </NTable>
+      </div>
+
+      <div class="flex-shrink-0 flex items-center justify-between p-4">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          Page {{ currentPage }} of {{ totalPages }} • {{ totalReferences }} total references
+        </div>
+        <NPagination
+          v-model:page="currentPage"
+          :total="totalReferences"
+          :items-per-page="pageSize"
+          :sibling-count="2"
+          show-edges
+          size="sm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <AddReferenceDialog
+    v-model="showAddReferenceDialog"
+    :edit-reference="convertToQuoteReference(selectedReference)"
+    @reference-added="onReferenceAdded"
+    @reference-updated="onReferenceUpdated"
+  />
+  
+  <DeleteReferenceDialog
+    v-model="showDeleteReferenceDialog"
+    :reference="referenceToDelete"
+    @reference-deleted="onReferenceDeleted"
+  />
+
+  <!-- Bulk Delete Confirmation -->
+  <NDialog v-model:open="showBulkDeleteDialog">
+    <NCard>
+      <template #header>
+        <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3>
+      </template>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.
+      </p>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
+          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
+        </div>
+      </template>
+    </NCard>
+  </NDialog>
+</template><template #actions-header>
+            <div class="flex items-center justify-center">
+              <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
+              </NTooltip>
+              <NTooltip class="ml-2" text="Select all on page">
+                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              </NTooltip>
+            </div>
+          </template>
+          <!-- Actions Column -->
+          <template #actions-cell="{ cell }">
+            <template v-if="!selectionMode">
+              <NDropdownMenu :items="getReferenceActions(cell.row.original)">
+                <NButton
+                  icon
+                  btn="ghost"
+                  size="sm"
+                  label="i-ph-dots-three-vertical"
+                />
+              </NDropdownMenu>
+            </template>
+            <template v-else>
+              <div class="flex items-center justify-center">
+                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+              </div>
+            </template>
+          </template><template v-if="!selectionMode">
+              <NDropdownMenu :items="getReferenceActions(cell.row.original)">
+                <NButton
+                  icon
+                  btn="ghost"
+                  size="sm"
+                  label="i-ph-dots-three-vertical"
+                />
+              </NDropdownMenu>
+            </template>
+            <template v-else>
+              <div class="flex items-center justify-center">
+                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+              </div>
+            </template>
+          </template>
+
+          <!-- Reference Column -->
+          <template #reference-cell="{ cell }">
+            <div class="flex items-center space-x-3">
+              <div class="flex-shrink-0">
+                <img
+                  v-if="cell.row.original.image_url"
+                  :src="cell.row.original.image_url"
+                  :alt="cell.row.original.name"
+                  class="w-8 h-10 rounded object-cover"
+                />
+                <div
+                  v-else
+                  class="w-8 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                >
+                  <NIcon :name="getTypeIcon(cell.row.original.primary_type)" class="w-4 h-4 text-gray-500" />
+                </div>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {{ cell.row.original.name }}
+                </p>
+                <p v-if="cell.row.original.secondary_type" class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {{ cell.row.original.secondary_type }}
+                </p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Type Column -->
+          <template #type-cell="{ cell }">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 capitalize">
+              {{ cell.row.original.primary_type.replace('_', ' ') }}
+            </span>
+          </template>
+
+          <!-- Release Date Column -->
+          <template #release_date-cell="{ cell }">
+            <span v-if="cell.row.original.release_date" class="text-sm text-gray-900 dark:text-white">
+              {{ new Date(cell.row.original.release_date).getFullYear() }}
+            </span>
+            <span v-else class="text-sm text-gray-500 dark:text-gray-400">—</span>
+          </template>
+
+          <!-- Quotes Column -->
+          <template #quotes-cell="{ cell }">
+            <span class="text-sm text-gray-900 dark:text-white">
+              {{ cell.row.original.quotes_count || 0 }}
+            </span>
+          </template>
+
+          <!-- Created Column -->
+          <template #created-cell="{ cell }">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatRelativeTime(cell.row.original.created_at) }}
+            </span>
+          </template>
         </UTable>
       </div>
 

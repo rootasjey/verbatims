@@ -19,6 +19,38 @@
           <template #help>
             <span class="text-xs text-gray-500">At least 8 characters</span>
           </template>
+        </NFormGroup>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+          <NFormGroup label="Role" required>
+            <NSelect v-model="form.role" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
+          </NFormGroup>
+          <div class="flex gap-4 justify-around items-center">
+            <NFormGroup :label="form.is_active ? 'Active' : 'Inactive'">
+              <NSwitch v-model="form.is_active" :disabled="submitting" />
+            </NFormGroup>
+            <NFormGroup :label="form.email_verified ? 'Verified' : 'Unverified'">
+              <NSwitch v-model="form.email_verified" :disabled="submitting" />
+            </NFormGroup>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NFormGroup label="Avatar URL">
+            <NInput v-model="form.avatar_url" :disabled="submitting" type="url" placeholder="https://…" />
+          </NFormGroup>
+        </div>
+      </form>
+
+      <div class="mt-6 flex justify-end space-x-3">
+        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!canSubmit">Create User</NButton>
+      </div>
+    </div>
+  </NDialog>
+</template><template #help>
+            <span class="text-xs text-gray-500">At least 8 characters</span>
+          </template>
         </UFormGroup>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">

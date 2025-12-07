@@ -103,6 +103,171 @@
                       <NIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
                     </div>
                   </template>
+                </NAvatar>
+                <div>
+                  <NTooltip :content="author.name">
+                    <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ author.name }}</div>
+                  </NTooltip>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count }} quotes</div>
+                </div>
+              </NuxtLink>
+              <div v-if="randomAuthors.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">No authors yet</div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <div class="flex justify-between items-center">
+              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white" @click="goToReferences()">
+                Random references
+              </h3>
+
+              <NTooltip content="Fetch new random references">
+                <NButton 
+                  @click="fetchRandomReferences()"
+                  icon
+                  label="i-ph-arrows-clockwise"
+                  btn="ghost-gray"
+                />
+              </NTooltip>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <NuxtLink
+                v-for="reference in randomReferences"
+                :key="reference.id"
+                :to="`/references/${reference.id}`"
+                class="flex items-center gap-3 p-3 
+                bg-white dark:bg-gray-800 rounded-lg 
+                hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
+              >
+                <NAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
+                  <template #fallback>
+                    <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
+                      <NIcon name="i-ph-book-duotone" class="w-6 h-6" />
+                    </div>
+                  </template>
+                </NAvatar>
+                <div>
+                  <NTooltip :content="reference.name">
+                    <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ reference.name }}</div>
+                  </NTooltip>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ formatReferenceType(reference.primary_type) }} • 
+                    <NTooltip :content="`${reference.quotes_count} quotes`">
+                      <span>{{ reference.quotes_count }} <NIcon name="i-ph-quotes-duotone" /></span>
+                    </NTooltip>
+                  </div>
+                </div>
+              </NuxtLink>
+              <div v-if="randomReferences.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">No references yet</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Results -->
+        <div v-else class="space-y-6">
+          <div v-if="loading" class="flex items-center justify-center py-8">
+            <div class="flex items-center gap-3">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+              <span class="text-gray-600 dark:text-gray-400">Searching...</span>
+            </div>
+          </div>
+
+          <div v-else-if="searchResults.total > 0" class="space-y-6">
+            <div class="text-center py-4">
+              <p class="text-gray-600 dark:text-gray-400">
+                Found <b>{{ searchResults.total }}</b> results for "<b>{{ searchQuery }}</b>"
+              </p>
+            </div>
+
+            <div v-if="searchResults.quotes.length > 0" class="space-y-4">
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">Quotes</h3>
+              <div class="space-y-0">
+                <QuoteListItem
+                  v-for="quote in searchResults.quotes"
+                  :key="quote.id"
+                  :quote="quote"
+                />
+              </div>
+            </div>
+
+            <div v-if="searchResults.authors.length > 0" class="space-y-4">
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">Authors</h3>
+              <div class="grid gap-3">
+                <NuxtLink
+                  v-for="author in searchResults.authors"
+                  :key="author.id"
+                  :to="`/authors/${author.id}`"
+                  class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div class="flex space-x-3">
+                    <NuxtImg
+                      :src="author.image_url"
+                      alt="Author Avatar"
+                      class="w-10 h-10 rounded-full object-cover"
+                      width="40"
+                      height="40"
+                    />
+                    <div>
+                      <h4 class="font-600 text-gray-900 dark:text-white">{{ author.name }}</h4>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ author.quotes_count }} quotes</p>
+                    </div>
+                  </div>
+                  <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+                </NuxtLink>
+              </div>
+            </div>
+
+            <div v-if="searchResults.references.length > 0" class="space-y-4">
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">References</h3>
+              <div class="grid gap-3">
+                <NuxtLink
+                  v-for="reference in searchResults.references"
+                  :key="reference.id"
+                  :to="`/references/${reference.id}`"
+                  class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div class="bg-gray-100 dark:bg-gray-700 rounded-2 w-10 h-10 flex items-center justify-center shrink-0">
+                    <NIcon :name="getReferenceIcon(reference.primary_type)" />
+                  </div>
+                  <div>
+                    <h4 class="font-600 text-gray-900 dark:text-white">{{ reference.name }}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      {{ reference.primary_type }} • {{ reference.quotes_count }} quotes
+                    </p>
+                  </div>
+                  <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Results -->
+          <div v-else-if="!loading" class="text-center py-8">
+            <NIcon name="i-ph-magnifying-glass-minus" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No results found</h3>
+            <p class="text-gray-600 dark:text-gray-400">Try adjusting your search terms</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop: Redirect to home with search modal -->
+    <div v-else class="flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <NIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">Desktop Search</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Use the search button in the header or press Ctrl/Cmd+K</p>
+        <NButton btn="solid-black" @click="navigateTo('/')">
+          Go to Home
+        </NButton>
+      </div>
+    </div>
+  </div>
+</template><template #fallback>
+                    <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400">
+                      <NIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
+                    </div>
+                  </template>
                 </UAvatar>
                 <div>
                   <UTooltip :content="author.name">

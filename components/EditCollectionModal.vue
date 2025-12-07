@@ -6,6 +6,65 @@
       </div>
     </template>
 
+    <NForm
+      :schema="schema"
+      :state="state"
+      @submit="updateCollection"
+      class="space-y-4 mb-8"
+    >
+      <NFormGroup label="Collection Name" name="name" required>
+        <NInput
+          v-model="state.name"
+          placeholder="Enter collection name"
+          :disabled="loading"
+        />
+      </NFormGroup>
+
+      <NFormGroup label="Description" name="description">
+        <NInput
+          type="textarea"
+          v-model="state.description"
+          placeholder="Optional description for your collection"
+          :rows="3"
+          :disabled="loading"
+        />
+      </NFormGroup>
+
+      <NFormGroup name="is_public">
+        <NCheckbox
+          v-model="state.is_public"
+          label="Make this collection public"
+          help="Public collections can be viewed by anyone"
+          :disabled="loading"
+        />
+      </NFormGroup>
+    </NForm>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <NButton
+          btn="text-gray"
+          @click="closeModal"
+          :disabled="loading"
+        >
+          Cancel
+        </NButton>
+        <NButton
+          btn="solid-black"
+          type="submit"
+          :loading="loading"
+        >
+          Update Collection
+        </NButton>
+      </div>
+    </template>
+  </NDialog>
+</template><template #header>
+      <div class="flex items-center gap-3">
+        <h3 class="text-size-4">Edit <u class="decoration-dashed">{{ collection.name }}</u> Collection</h3>
+      </div>
+    </template>
+
     <UForm
       :schema="schema"
       :state="state"

@@ -63,6 +63,78 @@
                   {{ formatDate(quote.created_at) }}
                 </p>
               </div>
+              <NBadge 
+                :color="getStatusColor(quote.status)" 
+                variant="subtle"
+                size="xs"
+              >
+                {{ quote.status }}
+              </NBadge>
+            </div>
+          </div>
+        </div>
+      </NCard>
+
+      <!-- Recent Collections -->
+      <NCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">My Lists</h3>
+            <NButton btn="link" size="xs" to="/dashboard/lists">
+              View All
+            </NButton>
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <div v-if="recentCollections.length === 0">
+            <p class="text-gray-500 dark:text-gray-400">No collections yet</p>
+            <NButton btn="solid-dark dark:solid-white" class="mt-4" to="/dashboard/lists">
+              Create List
+            </NButton>
+          </div>
+
+          <div v-for="collection in recentCollections" :key="collection.id" class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ collection.quotes_count }} quotes
+                </p>
+              </div>
+              <NBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">
+                Public
+              </NBadge>
+            </div>
+          </div>
+        </div>
+      </NCard>
+    </div>
+  </div>
+</template><template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Recent Submissions</h3>
+            <NButton btn="link" size="xs" to="/dashboard/my-quotes/published">
+              View All
+            </NButton>
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <div v-if="recentSubmissions.length === 0">
+            <p class="text-gray-500 dark:text-gray-400">No submissions yet</p>
+          </div>
+
+          <div v-for="quote in recentSubmissions" :key="quote.id" class="border-l-4 border-gray-200 dark:border-gray-700 pl-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+                  "{{ quote.name }}"
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {{ formatDate(quote.created_at) }}
+                </p>
+              </div>
               <UBadge 
                 :color="getStatusColor(quote.status)" 
                 variant="subtle"

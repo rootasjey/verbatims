@@ -85,6 +85,31 @@
           </div>
         </div>
       </template>
+    </NDrawer>
+  </div>
+</template><template #body>
+        <div class="p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Share this quote</h2>
+            <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="shareOpen = false" />
+          </div>
+
+          <div class="grid grid-cols-1 gap-2">
+            <NButton btn="soft-gray" size="sm" class="justify-start" @click="onCopyLink">
+              <NIcon name="i-ph-link" class="mr-2" /> Copy link
+            </NButton>
+            <NButton btn="soft-gray" size="sm" class="justify-start" @click="onCopyText">
+              <NIcon name="i-ph-quotes" class="mr-2" /> Copy text
+            </NButton>
+            <NButton btn="soft-blue" size="sm" class="justify-start" :loading="props.sharePending" @click="onShare">
+              <NIcon name="i-ph-share-network" class="mr-2" /> Share
+            </NButton>
+            <NButton btn="soft-green" size="sm" class="justify-start" @click="onDownloadImage">
+              <NIcon name="i-ph-download-simple" class="mr-2" /> Download image
+            </NButton>
+          </div>
+        </div>
+      </template>
     </UDrawer>
   </div>
 </template>

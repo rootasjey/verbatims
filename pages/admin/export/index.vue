@@ -30,6 +30,46 @@
           <ExportHistory @go-to-export="activeTab = 'export'" />
         </div>
       </template>
+    </NTabs>
+
+    <NDialog v-model:open="dataExport.state.showProgressDialog">
+      <NCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Export in Progress</h3>
+        </template>
+
+        <div class="space-y-4">
+          <div class="text-center py-8">
+            <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
+            <p class="text-gray-600 dark:text-gray-400">
+              Processing export... This may take a few moments.
+            </p>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end">
+            <NButton
+              btn="ghost"
+              :disabled="dataExport.state.isExporting"
+              @click="closeProgressDialog"
+            >
+              Close
+            </NButton>
+          </div>
+        </template>
+      </NCard>
+    </NDialog>
+  </div>
+</template><template #content="{ item }">
+        <div v-if="['export'].includes(item.value)">
+          <ExportCreate />
+        </div>
+
+        <div v-else-if="item.value === 'history'">
+          <ExportHistory @go-to-export="activeTab = 'export'" />
+        </div>
+      </template>
     </UTabs>
 
     <UDialog v-model:open="dataExport.state.showProgressDialog">

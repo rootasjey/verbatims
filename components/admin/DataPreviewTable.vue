@@ -22,6 +22,29 @@
         </tbody>
       </table>
     </div>
+  </NCard>
+</template><template #header>
+      <h3 class="text-lg font-semibold">Data Preview (First {{ maxRows }} Records)</h3>
+    </template>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th v-for="col in columns" :key="col.label" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ col.label }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr v-for="(item, index) in data.slice(0, maxRows)" :key="index">
+            <td v-for="col in columns" :key="col.label" class="px-3 py-2 text-sm max-w-xs truncate">
+              <template v-if="col.type === 'date'">{{ formatDate(getField(item, col.keys)) || '-' }}</template>
+              <template v-else-if="col.type === 'list'">{{ formatList(getField(item, col.keys)) || '-' }}</template>
+              <template v-else>{{ getField(item, col.keys) || '-' }}</template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </UCard>
 </template>
 

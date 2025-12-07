@@ -41,6 +41,28 @@
               This author is fictional
             </div>
           </template>
+        </NTooltip>
+      </div>
+    </div>
+
+    <div v-if="quote.reference" class="flex items-center justify-center space-x-3 text-gray-600 dark:text-gray-400"
+      :class="{'-ml-4': quote.author?.is_fictional}">
+      <NuxtLink
+        :to="`/references/${quote.reference.id}`"
+        class="font-serif font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+      >
+        {{ quote.reference.name }}
+      </NuxtLink>
+    </div>
+  </div>
+</template><template #default>
+            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
+          </template>
+          <template #content>
+            <div class="text-sm">
+              This author is fictional
+            </div>
+          </template>
         </UTooltip>
       </div>
     </div>

@@ -164,6 +164,102 @@
               {{ cell.row.original.last_login_at ? formatRelativeTime(cell.row.original.last_login_at) : '—' }}
             </span>
           </template>
+        </NTable>
+      </div>
+
+      <div class="flex-shrink-0 flex items-center justify-between p-4">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          Page {{ currentPage }} of {{ totalPages }} • {{ totalUsers }} total users
+        </div>
+        <NPagination
+          v-model:page="currentPage"
+          :total="totalUsers"
+          :items-per-page="pageSize"
+          :sibling-count="2"
+          show-edges
+          size="sm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <AddUserDialog
+    v-model="showAddUserDialog"
+    @user-added="onUserAdded"
+  />
+
+  <EditUserDialog
+    v-model="showEditUserDialog"
+    :user="selectedUser"
+    @user-updated="onUserUpdated"
+  />
+
+  <DeleteUserDialog
+    v-model="showDeleteUserDialog"
+    :user="userToDelete"
+    @user-deleted="onUserDeleted"
+  />
+</template><template #actions-cell="{ cell }">
+            <NDropdownMenu :items="getUserActions(cell.row.original)">
+              <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+            </NDropdownMenu>
+          </template>
+
+          <!-- User Column -->
+          <template #user-cell="{ cell }">
+            <div class="flex items-center space-x-3">
+              <NAvatar :src="cell.row.original.avatar_url" :alt="cell.row.original.name" size="sm" />
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ cell.row.original.name }}</p>
+                <p v-if="cell.row.original.email" class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ cell.row.original.email }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Role Column -->
+          <template #role-cell="{ cell }">
+            <span :class="['inline-flex items-center px-2 py-1 rounded-full text-xs font-medium', rolePillClass(cell.row.original.role)]">
+              {{ cell.row.original.role }}
+            </span>
+          </template>
+
+          <!-- Status Column -->
+          <template #status-cell="{ cell }">
+            <div class="flex items-center gap-2">
+              <span :class="['inline-flex items-center px-2 py-1 rounded-full text-xs font-medium', cell.row.original.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300']">
+                {{ cell.row.original.is_active ? 'Active' : 'Inactive' }}
+              </span>
+              <span v-if="cell.row.original.email_verified" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">Verified</span>
+            </div>
+          </template>
+
+          <!-- Quotes Column -->
+          <template #quotes-cell="{ cell }">
+            <span class="text-sm text-gray-900 dark:text-white">
+              {{ cell.row.original.approved_quotes }}/{{ cell.row.original.quote_count }}
+            </span>
+          </template>
+
+          <!-- Collections Column -->
+          <template #collections-cell="{ cell }">
+            <span class="text-sm text-gray-900 dark:text-white">
+              {{ cell.row.original.collection_count || 0 }}
+            </span>
+          </template>
+
+          <!-- Joined Column -->
+          <template #created-cell="{ cell }">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatRelativeTime(cell.row.original.created_at) }}
+            </span>
+          </template>
+
+          <!-- Last Login Column -->
+          <template #last_login-cell="{ cell }">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ cell.row.original.last_login_at ? formatRelativeTime(cell.row.original.last_login_at) : '—' }}
+            </span>
+          </template>
         </UTable>
       </div>
 

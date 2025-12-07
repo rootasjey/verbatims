@@ -17,6 +17,28 @@
               This author is fictional
             </div>
           </template>
+        </NTooltip>
+      </div>
+      <p
+        v-if="author.is_fictional && author.origin_reference_name"
+        class="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5"
+      >
+        from {{ author.origin_reference_name }}
+      </p>
+      <p v-else-if="author.job" class="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        {{ author.job }}
+      </p>
+    </div>
+    <NIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+  </NuxtLink>
+</template><template #default>
+            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
+          </template>
+          <template #content>
+            <div class="text-sm">
+              This author is fictional
+            </div>
+          </template>
         </UTooltip>
       </div>
       <p

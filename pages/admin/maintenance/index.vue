@@ -66,6 +66,133 @@
         </div>
 
         <div class="flex justify-end">
+          <NButton
+            btn="solid-black"
+            :loading="isResetting"
+            :disabled="isResetting"
+            @click="showResetConfirmation = true"
+          >
+            <template #leading>
+              <NIcon name="i-ph-trash" />
+            </template>
+            Reset Entire Database
+          </NButton>
+        </div>
+      </div>
+    </NCard>
+
+    <!-- Reset Confirmation Dialog -->
+    <NDialog v-model:open="showResetConfirmation">
+      <NCard class="border-none">
+        <template #header>
+          <div class="flex items-center space-x-3">
+            <NIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Confirm Database Reset
+            </h3>
+          </div>
+        </template>
+
+        <div class="space-y-4">
+          <p class="text-gray-700 dark:text-gray-300">
+            You are about to permanently delete all data in the database. This action cannot be undone.
+          </p>
+
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+              What will happen:
+            </h4>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• All data rows in every table will be permanently deleted</li>
+              <li>• The database schema (tables, indexes, triggers) will remain intact</li>
+              <li>• A new admin user will be initialized</li>
+              <li>• You will need to log in again after the reset</li>
+            </ul>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Type "RESET DATABASE" to confirm:
+              </label>
+              <NInput
+                v-model="confirmationText"
+                placeholder="RESET DATABASE"
+                :disabled="isResetting"
+                class="w-full"
+              />
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <NCheckbox
+                v-model="acknowledgeDataLoss"
+                :disabled="isResetting"
+              />
+              <label class="text-sm text-gray-700 dark:text-gray-300">
+                I understand that all data will be permanently deleted
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end space-x-3">
+            <NButton
+              btn="ghost"
+              :disabled="isResetting"
+              @click="cancelReset"
+            >
+              Cancel
+            </NButton>
+            <NButton
+              btn="solid-black"
+              :loading="isResetting"
+              :disabled="!canConfirmReset"
+              @click="confirmReset"
+            >
+              <template #leading>
+                <NIcon name="i-ph-trash" />
+              </template>
+              Reset Database
+            </NButton>
+          </div>
+        </template>
+      </NCard>
+    </NDialog>
+  </div>
+</template><template #header>
+        <div class="flex items-center space-x-3">
+          <NIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Database Reset
+          </h2>
+        </div>
+      </template>
+
+      <div class="space-y-4">
+        <div class="rounded-lg p-2">
+          <div class="flex items-start space-x-3">
+            <div>
+              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                Destructive Operation Warning
+              </h3>
+              <p class="mt-1 mb-6 text-sm text-red-700 dark:text-red-300">
+                This operation will permanently delete ALL data in the database including:
+              </p>
+              <ul class="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside space-y-1">
+                <li>All quotes, authors, and references</li>
+                <li>All user accounts and collections</li>
+                <li>All tags, likes, and interaction data</li>
+                <li>All moderation history and reports</li>
+              </ul>
+              <p class="mt-4 text-sm font-medium text-red-800 dark:text-red-200">
+                This action cannot be undone. Make sure you have a backup if needed.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
           <UButton
             btn="solid-black"
             :loading="isResetting"
@@ -151,6 +278,12 @@
               @click="confirmReset"
             >
               <template #leading>
+                <NIcon name="i-ph-trash" />
+              </template>
+              Reset Database
+            </NButton>
+          </div>
+        </template><template #leading>
                 <NIcon name="i-ph-trash" />
               </template>
               Reset Database
