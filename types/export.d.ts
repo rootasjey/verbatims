@@ -38,7 +38,7 @@ export interface QuoteExportFilters {
   /** Filter by quote language */
   language?: QuoteLanguage | QuoteLanguage[]
   /** Filter by date range */
-  date_range: ExportDateRange
+  date_range?: ExportDateRange
   /** Filter by specific user ID who created the quote */
   user_id?: number
   /** Filter by moderator ID */
