@@ -134,10 +134,10 @@
       <h2>Contact & support</h2>
       <p>
         Questions, ideas, or found a hiccup? We'd love to hear from you.
-        Open a GitHub issue or use the feedback form in the header <UIcon name="i-ph-flag" class="mb-1" /> .
+        Open a GitHub issue or use the feedback form in the header <NIcon name="i-ph-flag" class="mb-1" /> .
       </p>
       <div>
-        <UButton 
+        <NButton 
           leading="i-ph-bug" label="Open a GitHub issue" 
           btn="soft" size="sm" 
           to="https://github.com/rootasjey/verbatims/issues" target="_blank" 

@@ -7,8 +7,8 @@
         @click.self="scrollToTop"
         class="flex items-center justify-between">
         <div class="flex items-center">
-          <UTooltip v-if="canGoBack" content="Go back">
-            <UButton
+          <NTooltip v-if="canGoBack" content="Go back">
+            <NButton
               v-if="canGoBack"
               icon
               btn="ghost-gray"
@@ -17,10 +17,10 @@
               class="mr-3"
               size="sm"
             />
-          </UTooltip>
+          </NTooltip>
 
           <div class="flex items-center space-x-2">
-            <UButton
+            <NButton
               icon
               btn="~"
               @click="handleAppIconClick"
@@ -28,13 +28,13 @@
               class="text-gray-600 dark:text-gray-400"
             >
               <AppIcon icon :size="24" />
-            </UButton>
+            </NButton>
           </div>
         </div>
 
         <div class="flex items-center space-x-2">
-          <UTooltip content="Add a quote">
-            <UButton
+          <NTooltip content="Add a quote">
+            <NButton
               icon
               btn="ghost-gray"
               label="i-ph-quotes-duotone"
@@ -42,10 +42,10 @@
               class="text-gray-600 dark:text-gray-400"
               @click="showAddQuote = true"
             />
-          </UTooltip>
+          </NTooltip>
 
-          <UTooltip content="Report an issue">
-            <UButton
+          <NTooltip content="Report an issue">
+            <NButton
               icon
               btn="ghost-gray"
               label="i-ph-flag-duotone"
@@ -53,7 +53,7 @@
               class="text-gray-600 dark:text-gray-400"
               @click="showReportDrawer = true"
             />
-          </UTooltip>
+          </NTooltip>
         </div>
       </div>
     </header>

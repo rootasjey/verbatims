@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
       progressUrl: `/api/admin/import/progress/${importId}`,
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throwServer(500, 'Import authors failed')
   }
 })

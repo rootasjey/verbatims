@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mb-6 space-y-4">
-      <UAlert
+      <NAlert
         v-if="dataExport.state.successMessage"
         btn="soft"
         closable
@@ -10,7 +10,7 @@
         @close="clearMessages"
       />
 
-      <UAlert
+      <NAlert
         v-if="dataExport.state.errorMessage"
         btn="soft"
         closable
@@ -20,7 +20,7 @@
       />
     </div>
 
-    <UTabs v-model="activeTab" :items="mainTabs" class="w-full">
+    <NTabs v-model="activeTab" :items="mainTabs" class="w-full">
       <template #content="{ item }">
         <div v-if="['export'].includes(item.value)">
           <ExportCreate />
@@ -30,17 +30,17 @@
           <ExportHistory @go-to-export="activeTab = 'export'" />
         </div>
       </template>
-    </UTabs>
+    </NTabs>
 
-    <UDialog v-model:open="dataExport.state.showProgressDialog">
-      <UCard>
+    <NDialog v-model:open="dataExport.state.showProgressDialog">
+      <NCard>
         <template #header>
           <h3 class="text-lg font-semibold">Export in Progress</h3>
         </template>
 
         <div class="space-y-4">
           <div class="text-center py-8">
-            <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
+            <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
             <p class="text-gray-600 dark:text-gray-400">
               Processing export... This may take a few moments.
             </p>
@@ -49,17 +49,17 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <UButton
+            <NButton
               btn="ghost"
               :disabled="dataExport.state.isExporting"
               @click="closeProgressDialog"
             >
               Close
-            </UButton>
+            </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
   </div>
 </template>
 

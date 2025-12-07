@@ -9,35 +9,35 @@
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <UButton
+          <NButton
             btn="light:soft dark:link-gray"
             size="sm"
             @click="refresh"
             :loading="loading"
           >
-            <UIcon name="i-ph-arrow-clockwise" />
+            <NIcon name="i-ph-arrow-clockwise" />
             Refresh
-          </UButton>
-          <UButton
+          </NButton>
+          <NButton
             v-if="imports.length > 0"
             btn="light:soft-pink dark:link-pink"
             size="sm"
             :disabled="imports.length === 0"
             @click="showClearHistoryDialog = true"
           >
-            <UIcon name="i-ph-trash" />
+            <NIcon name="i-ph-trash" />
             Clear All
-          </UButton>
+          </NButton>
         </div>
       </div>
 
       <div>
         <div v-if="loading && imports.length === 0" class="flex justify-center py-8">
-          <UIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
+          <NIcon name="i-ph-spinner" class="w-6 h-6 animate-spin" />
         </div>
 
         <div v-else-if="imports.length === 0" class="text-center py-12">
-          <UIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 class="font-body text-size-8 font-medium text-gray-900 dark:text-white">
             No Import History
           </h3>
@@ -47,7 +47,7 @@
         </div>
 
         <div v-else class="import-history-container flex flex-col">
-          <UTable
+          <NTable
             :columns="historyColumns"
             :data="imports"
             :loading="loading"
@@ -56,10 +56,10 @@
             empty-icon="i-ph-clock-countdown"
           >
             <template #status-cell="{ cell }">
-              <UBadge :color="getStatusColor(cell.row.original.status)" :label="cell.row.original.status.toUpperCase()" />
+              <NBadge :color="getStatusColor(cell.row.original.status)" :label="cell.row.original.status.toUpperCase()" />
             </template>
             <template #data_type-cell="{ cell }">
-              <UBadge color="gray" :label="(cell.row.original.data_type || 'unknown').toUpperCase()" />
+              <NBadge color="gray" :label="(cell.row.original.data_type || 'unknown').toUpperCase()" />
             </template>
             <template #record_count-cell="{ cell }">
               <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.record_count }}</span>
@@ -71,17 +71,17 @@
               <span class="text-gray-600 dark:text-gray-400">{{ cell.row.original.completed_at ? formatDate(cell.row.original.completed_at) : 'N/A' }}</span>
             </template>
             <template #actions-cell="{ cell }">
-              <UDropdown :items="getActionItems(cell.row.original)">
-                <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-              </UDropdown>
+              <NDropdown :items="getActionItems(cell.row.original)">
+                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              </NDropdown>
             </template>
-          </UTable>
+          </NTable>
 
           <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 rounded-2 border">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               Page {{ currentPage }} of {{ totalPages }} • {{ pagination?.total || 0 }} total imports
             </div>
-            <UPagination
+            <NPagination
               v-model:page="currentPage"
               :total="pagination?.total || 0"
               :items-per-page="pageSize"
@@ -96,8 +96,8 @@
     </div>
 
     <!-- Details Modal -->
-    <UModal v-model="showDetailsModal">
-      <UCard v-if="selectedImport">
+    <NModal v-model="showDetailsModal">
+      <NCard v-if="selectedImport">
         <template #header>
           <h3 class="text-lg font-semibold">
             Import Details - {{ selectedImport.id }}
@@ -148,15 +148,15 @@
             <ul v-else class="space-y-2">
               <li v-for="file in importBackups" :key="file.id" class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-2">
-                  <UBadge color="gray" :label="(file.metadata?.export_config?.data_type || 'unknown').toUpperCase()" />
+                  <NBadge color="gray" :label="(file.metadata?.export_config?.data_type || 'unknown').toUpperCase()" />
                   <span class="truncate max-w-[50ch]" :title="file.file_path">{{ file.filename }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs text-gray-500">{{ new Date(file.created_at).toLocaleString() }}</span>
-                  <UButton size="xs" btn="ghost" :to="file.file_path" target="_blank">
-                    <UIcon name="i-ph-download" />
+                  <NButton size="xs" btn="ghost" :to="file.file_path" target="_blank">
+                    <NIcon name="i-ph-download" />
                     Download
-                  </UButton>
+                  </NButton>
                 </div>
               </li>
             </ul>
@@ -165,22 +165,22 @@
 
         <template #footer>
           <div class="flex justify-end gap-2">
-            <UButton
+            <NButton
               v-if="selectedImport.status === 'completed'"
               btn="outline"
               color="red"
               @click="rollbackImport"
             >
               Rollback
-            </UButton>
-            <UButton @click="showDetailsModal = false">Close</UButton>
+            </NButton>
+            <NButton @click="showDetailsModal = false">Close</NButton>
           </div>
         </template>
-      </UCard>
-    </UModal>
+      </NCard>
+    </NModal>
 
-    <UDialog v-model:open="showClearHistoryDialog">
-      <UCard class="shadow-none border-none">
+    <NDialog v-model:open="showClearHistoryDialog">
+      <NCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Clear All Import History</h3>
         </template>
@@ -196,12 +196,12 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</UButton>
-            <UButton btn="link-red" @click="handleClearAllHistory">Clear All History</UButton>
+            <NButton btn="text-gray-600" @click="showClearHistoryDialog = false">Cancel</NButton>
+            <NButton btn="link-red" @click="handleClearAllHistory">Clear All History</NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
   </div>
 </template>
 

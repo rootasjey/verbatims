@@ -76,7 +76,8 @@ export default defineEventHandler(async (event) => {
           } catch (e: any) {
             // Fallback to per-row insert to salvage partial restores
             for (let idx = 0; idx < stmts.length; idx++) {
-              try { await stmts[idx].run(); restored += 1 } catch {}
+              const s = stmts[idx]
+              try { if (s) { await s.run(); restored += 1 } } catch {}
             }
           }
         }
@@ -103,7 +104,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Rollback error:', error)
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throwServer(500, 'Rollback failed')
   }
 })

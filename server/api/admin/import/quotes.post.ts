@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, importId, message: 'Quotes import started', progressUrl: `/api/admin/import/progress/${importId}` }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throwServer(500, 'Import quotes failed')
   }
 })

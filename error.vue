@@ -21,18 +21,18 @@
         
         <!-- Quick actions -->
         <div class="flex justify-center items-center gap-2">
-          <UButton btn="link-gray" @click="goHome">
+          <NButton btn="link-gray" @click="goHome">
             Go home
-          </UButton>
+          </NButton>
           <span>•</span>
-          <UButton btn="link-gray" @click="exploreQuotes">
+          <NButton btn="link-gray" @click="exploreQuotes">
             Explore quotes
-          </UButton>
+          </NButton>
         </div>
       </div>
 
       <div class="mt-12 mx-6 flex flex-col gap-4">
-        <UButton btn="link" @click="shuffleQuote" class="text-center mt-2 text-xs text-gray-500 dark:text-gray-500">Press Space to shuffle</UButton>
+        <NButton btn="link" @click="shuffleQuote" class="text-center mt-2 text-xs text-gray-500 dark:text-gray-500">Press Space to shuffle</NButton>
         <blockquote class="text-center text-xl sm:text-2xl md:text-6xl font-serif font-100 leading-relaxed text-gray-900 dark:text-gray-100">
           <span v-if="currentQuote" class="whitespace-pre-line">“{{ currentQuote.name }}”</span>
           <span v-else class="text-gray-500 dark:text-gray-400">Loading a quote…</span>
@@ -43,18 +43,18 @@
             <span v-if="currentQuote?.reference_id" class="opacity-70">· {{ currentQuote.reference?.name }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <UTooltip content="Copy quote">
-              <UButton size="xs" btn="ghost-gray" icon label="i-ph-copy" @click="copyQuote" />
-            </UTooltip>
-            <UTooltip content="Open this quote">
-              <UButton size="xs" btn="soft-gray" icon label="i-ph-arrow-square-out" :disabled="!currentQuote?.id" @click="openQuote" />
-            </UTooltip>
+            <NTooltip content="Copy quote">
+              <NButton size="xs" btn="ghost-gray" icon label="i-ph-copy" @click="copyQuote" />
+            </NTooltip>
+            <NTooltip content="Open this quote">
+              <NButton size="xs" btn="soft-gray" icon label="i-ph-arrow-square-out" :disabled="!currentQuote?.id" @click="openQuote" />
+            </NTooltip>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <UToaster />
+  <NToaster />
 </template>
 
 <script setup lang="ts">

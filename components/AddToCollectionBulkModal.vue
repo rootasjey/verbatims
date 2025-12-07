@@ -1,6 +1,6 @@
 <template>
-  <UDialog v-model:open="isOpen">
-    <UCard class="border-none shadow-none">
+  <NDialog v-model:open="isOpen">
+    <NCard class="border-none shadow-none">
       <template #header>
         <h3 class="text-lg font-semibold">Add {{ quoteIds.length }} {{ quoteIds.length === 1 ? 'Quote' : 'Quotes' }} to Collection</h3>
       </template>
@@ -8,21 +8,21 @@
       <div class="space-y-4">
         <!-- Create New Collection -->
         <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <UCollapsible>
-            <UCollapsibleTrigger as-child class="flex items-center justify-between w-full">
-              <UButton btn="ghost">
+          <NCollapsible>
+            <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
+              <NButton btn="ghost">
                 <span class="font-medium text-gray-900 dark:text-white">Create New Collection</span>
-                <UIcon name="i-ph-caret-down" class="w-4 h-4" />
-              </UButton>
-            </UCollapsibleTrigger>
-            <UCollapsibleContent>
+                <NIcon name="i-ph-caret-down" class="w-4 h-4" />
+              </NButton>
+            </NCollapsibleTrigger>
+            <NCollapsibleContent>
               <div class="m-2 mt-3 space-y-3">
-                <UInput
+                <NInput
                   v-model="newCollectionName"
                   placeholder="Collection name"
                   :disabled="creating || processing"
                 />
-                <UInput
+                <NInput
                   type="textarea"
                   v-model="newCollectionDescription"
                   placeholder="Optional description"
@@ -30,24 +30,24 @@
                   :disabled="creating || processing"
                 />
                 <div class="flex items-center justify-between">
-                  <UCheckbox
+                  <NCheckbox
                     v-model="newCollectionPublic"
                     label="Make public"
                     :disabled="creating || processing"
                   />
-                  <UButton
+                  <NButton
                     size="xs"
                     :loading="creating || processing"
                     :disabled="!newCollectionName.trim() || creating || processing"
                     @click="createAndAddToCollection"
                   >
                     Create & Add All
-                  </UButton>
+                  </NButton>
                 </div>
               </div>
 
-            </UCollapsibleContent>
-          </UCollapsible>
+            </NCollapsibleContent>
+          </NCollapsible>
         </div>
 
         <!-- Existing Collections -->
@@ -72,29 +72,29 @@
               <div class="flex-1">
                 <div class="flex items-center gap-2">
                   <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                  <UBadge
+                  <NBadge
                     v-if="collection.is_public"
                     color="green"
                     variant="subtle"
                     size="xs"
                   >
                     Public
-                  </UBadge>
+                  </NBadge>
                 </div>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                   {{ collection.quotes_count }} quotes
                 </p>
               </div>
               
-              <UButton
+              <NButton
                 v-if="!addingToCollections.has(collection.id)"
                 size="xs"
                 :disabled="processing"
                 @click="addAllToCollection(collection)"
               >
                 Add All
-              </UButton>
-              <UIcon
+              </NButton>
+              <NIcon
                 v-else
                 name="i-ph-spinner"
                 class="w-4 h-4 animate-spin text-primary-500"
@@ -104,18 +104,18 @@
 
           <!-- Empty State -->
           <div v-else class="text-center py-8">
-            <UIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p class="text-gray-500 dark:text-gray-400 mb-4">
               You don't have any collections yet
             </p>
-            <UButton
+            <NButton
               size="sm"
               btn="soft"
               :disabled="processing"
               @click="showCreateForm = true"
             >
               Create Your First Collection
-            </UButton>
+            </NButton>
           </div>
         </div>
       </div>
@@ -126,18 +126,18 @@
             Processing {{ processedCount }} / {{ quoteIds.length }}
           </div>
           <div class="flex justify-end">
-            <UButton
+            <NButton
               btn="ghost"
               :disabled="processing"
               @click="closeModal"
             >
               Close
-            </UButton>
+            </NButton>
           </div>
         </div>
       </template>
-    </UCard>
-  </UDialog>
+    </NCard>
+  </NDialog>
   
 </template>
 

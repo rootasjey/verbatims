@@ -1,12 +1,12 @@
 <template>
   <div class="px-6 py-6">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="bg-white dark:bg-black rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
       <div class="flex flex-col items-center mb-4">
         <span class="text-6xl font-bold text-gray-900 dark:text-white">
           {{ displayValue }}
         </span>
         <div class="flex items-center space-x-2 mt-2">
-          <UBadge
+          <NBadge
             v-for="stat in statOptions"
             :key="stat.key"
             :badge="stat.key === 'views' ? 'soft-blue' : (stat.key === 'likes' ? 'soft-pink' : 'soft-indigo')"
@@ -15,13 +15,13 @@
             :style="stat.label === statLabel ? 'max-width: 200px;' : 'max-width: 40px;'"
             @click="statIndex = statOptions.indexOf(stat)"
           >
-            <UIcon :name="stat.icon" />
+            <NIcon :name="stat.icon" />
             <span v-if="stat.label === statLabel" class="whitespace-nowrap text-ellipsis transition animate-fadeIn">{{ stat.label }}</span>
-          </UBadge>
+          </NBadge>
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+      <div class="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
         <div class="text-center">
           <p class="text-2xl font-bold text-gray-900 dark:text-white">
             {{ published }}

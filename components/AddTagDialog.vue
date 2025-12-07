@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
         <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
@@ -8,31 +8,31 @@
       <form @submit.prevent="submitTag" @keydown.ctrl.enter.prevent="submitTag" @keydown.meta.enter.prevent="submitTag" class="space-y-6">
         <div>
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Name *</label>
-          <UInput v-model="form.name" placeholder="e.g., inspiration" :disabled="submitting" required autofocus />
+          <NInput v-model="form.name" placeholder="e.g., inspiration" :disabled="submitting" required autofocus />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Category</label>
-          <UInput v-model="form.category" placeholder="e.g., emotion, philosophy" :disabled="submitting" />
+          <NInput v-model="form.category" placeholder="e.g., emotion, philosophy" :disabled="submitting" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Description</label>
-          <UInput type="textarea" v-model="form.description" :rows="3" placeholder="Short description" :disabled="submitting" />
+          <NInput type="textarea" v-model="form.description" :rows="3" placeholder="Short description" :disabled="submitting" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Color</label>
           <div class="flex items-center gap-2">
-            <UInput v-model="form.color" placeholder="#687FE5" :disabled="submitting" class="flex-1" />
+            <NInput v-model="form.color" placeholder="#687FE5" :disabled="submitting" class="flex-1" />
             <span class="w-6 h-6 rounded border border-gray-200 dark:border-gray-700" :style="{ backgroundColor: form.color || '#687FE5' }" />
           </div>
         </div>
       </form>
 
       <div class="mt-6 flex justify-end gap-3">
-        <UButton btn="light:soft dark:soft-white" :disabled="submitting" @click="closeDialog">Cancel</UButton>
-        <UButton btn="soft-blue" :loading="submitting" :disabled="!form.name.trim()" @click="submitTag">{{ submitButtonText }}</UButton>
+        <NButton btn="light:soft dark:soft-white" :disabled="submitting" @click="closeDialog">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="submitting" :disabled="!form.name.trim()" @click="submitTag">{{ submitButtonText }}</NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

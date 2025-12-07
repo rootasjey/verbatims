@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     const db = hubDatabase()
     
     // Get user's recent activity (likes, collections, submissions)
-    const activities = []
+    const activities: Array<Record<string, any>> = []
     
     // Recent likes
     const recentLikes = await db.prepare(`
@@ -45,7 +45,8 @@ export default defineEventHandler(async (event) => {
       LIMIT 10
     `).bind(session.user.id).all()
     
-    recentLikes.forEach(like => {
+    const recentLikesRows = (recentLikes as any).results ?? []
+    recentLikesRows.forEach((like: any) => {
       activities.push({
         type: 'like',
         action: `Liked ${like.likeable_type}`,
@@ -71,7 +72,8 @@ export default defineEventHandler(async (event) => {
       LIMIT 10
     `).bind(session.user.id).all()
     
-    recentCollections.forEach(collection => {
+    const recentCollectionsRows = (recentCollections as any).results ?? []
+    recentCollectionsRows.forEach((collection: any) => {
       activities.push({
         type: 'collection',
         action: 'Created collection',
@@ -97,7 +99,8 @@ export default defineEventHandler(async (event) => {
       LIMIT 10
     `).bind(session.user.id).all()
     
-    recentSubmissions.forEach(submission => {
+    const recentSubmissionsRows = (recentSubmissions as any).results ?? []
+    recentSubmissionsRows.forEach((submission: any) => {
       activities.push({
         type: 'submission',
         action: `Submitted quote (${submission.status})`,
@@ -126,7 +129,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

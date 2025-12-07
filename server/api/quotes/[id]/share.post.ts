@@ -32,14 +32,18 @@ export default defineEventHandler(async (event) => {
       SELECT shares_count FROM quotes WHERE id = ?
     `).bind(quoteId).first()
 
+    if (!updatedQuote) {
+      throw createError({ statusCode: 500, statusMessage: 'Failed to update quote share count' })
+    }
+
     return {
       success: true,
       data: {
-        sharesCount: updatedQuote.shares_count
+        sharesCount: (updatedQuote as any).shares_count
       }
     }
   } catch (error) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

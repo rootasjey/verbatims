@@ -131,7 +131,8 @@ export function useQuoteForm() {
         event.preventDefault()
         if (selectedAuthorIndex.value >= 0) {
           if (selectedAuthorIndex.value < authorSuggestions.value.length) {
-            selectAuthor(authorSuggestions.value[selectedAuthorIndex.value])
+            const candidate = authorSuggestions.value[selectedAuthorIndex.value]
+            if (candidate) selectAuthor(candidate)
           } else {
             createNewAuthor()
           }
@@ -190,7 +191,8 @@ export function useQuoteForm() {
         event.preventDefault()
         if (selectedReferenceIndex.value >= 0) {
           if (selectedReferenceIndex.value < referenceSuggestions.value.length) {
-            selectReference(referenceSuggestions.value[selectedReferenceIndex.value])
+            const candidate = referenceSuggestions.value[selectedReferenceIndex.value]
+            if (candidate) selectReference(candidate)
           } else {
             createNewReference()
           }

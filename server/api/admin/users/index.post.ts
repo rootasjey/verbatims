@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, data: created, message: 'User created successfully' }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Admin create user error:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to create user' })
   }

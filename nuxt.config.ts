@@ -147,7 +147,9 @@ export default defineNuxtConfig({
     },
   },
   una: {
-    prefix: "U",
+    // switched prefix from U -> N so Una UI components become <N...>
+    // (we also remove the explicit NIcon alias later to avoid a naming collision)
+    prefix: "N",
     themeable: true,
   },
 
@@ -162,7 +164,9 @@ export default defineNuxtConfig({
   },
 
   // Component aliases for automatic resolution
+  // NOTE: removed the explicit `NIcon` alias because Una UI will supply `NIcon`
+  // after switching the prefix to `N`. If you need a local app-specific icon
+  // component, create a different name (e.g. `AppIcon`) to avoid collision.
   alias: {
-    'NIcon': '~/components/NIcon.vue'
   },
 })

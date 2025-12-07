@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Bulk delete backup error:', error)
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
   }
 })
