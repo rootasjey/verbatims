@@ -1,23 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-
-function computeVersion(): string {
-  // Prefer latest git tag like v1.2.3; fallback to package.json version
-  try {
-    const tag = execSync("git describe --tags --match 'v[0-9]*.[0-9]*.[0-9]*' --abbrev=0", {
-      stdio: ['ignore', 'pipe', 'ignore']
-    }).toString().trim()
-    return tag.replace(/^v/, '')
-  } catch {}
-
-  try {
-    const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8') as unknown as string)
-    return pkg.version || '0.0.0'
-  } catch {}
-
-  return '0.0.0'
-}
+import { fileURLToPath } from 'node:url'
+import { resolve, dirname } from 'node:path'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
@@ -79,7 +64,11 @@ export default defineNuxtConfig({
     experimental: {
       wasm: true
     },
-    ignore: ['scripts/**']
+    ignore: ['scripts/**'],
+    alias: {
+      '~/server': resolve(dirname(fileURLToPath(import.meta.url)), 'server'),
+      '~/shared': resolve(dirname(fileURLToPath(import.meta.url)), 'shared')
+    }
   },
 
   // css: ['~/assets/css/main.css'],
@@ -170,3 +159,20 @@ export default defineNuxtConfig({
   alias: {
   },
 })
+
+function computeVersion(): string {
+  // Prefer latest git tag like v1.2.3; fallback to package.json version
+  try {
+    const tag = execSync("git describe --tags --match 'v[0-9]*.[0-9]*.[0-9]*' --abbrev=0", {
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).toString().trim()
+    return tag.replace(/^v/, '')
+  } catch {}
+
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8') as unknown as string)
+    return pkg.version || '0.0.0'
+  } catch {}
+
+  return '0.0.0'
+}

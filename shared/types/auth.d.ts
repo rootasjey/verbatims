@@ -1,4 +1,4 @@
-// auth.d.ts
+// Shared auth types (moved from types/auth.d.ts)
 declare module '#auth-utils' {
   interface User {
     avatar_url?: string
