@@ -4,7 +4,7 @@
  */
 
 import type { ExportOptions, ExportValidation } from '~/types/export'
-import { validateFiltersForExport, buildFilterConditions } from '~/server/utils/export-filters'
+import { validateFiltersForExport, buildFilterConditions, sanitizeFiltersForQuery } from '~/server/utils/export-filters'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -35,7 +35,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Validate filters using type-safe validation
-    const filterValidation = validateFiltersForExport(filters)
+    // The incoming `filters` may be a union (UI can send different shapes). Convert/sanitize
+    // to the quote-specific structure we expect for validation and queries.
+    const quoteFilters = sanitizeFiltersForQuery(filters as any)
+    const filterValidation = validateFiltersForExport(quoteFilters)
     if (!filterValidation.valid) {
       validation.errors.push(...filterValidation.errors)
       validation.valid = false
@@ -66,7 +69,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Build count query to estimate records using type-safe filter conditions
-    const { conditions, bindings } = buildFilterConditions(filters)
+    const { conditions, bindings } = buildFilterConditions(quoteFilters)
 
     let countQuery = `
       SELECT COUNT(DISTINCT q.id) as total

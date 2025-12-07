@@ -20,9 +20,9 @@ export type ExportDataType = 'all' | 'authors' | 'quotes' | 'references' | 'tags
  */
 export interface ExportDateRange {
   /** Start date in YYYY-MM-DD format */
-  start: string
+  start?: string
   /** End date in YYYY-MM-DD format */
-  end: string
+  end?: string
 }
 
 /**
