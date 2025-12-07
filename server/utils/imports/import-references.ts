@@ -359,7 +359,8 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
       while ((fm = fieldRegex.exec(m[1]))) {
         if (!fm) continue
         const objKey = fm[1]
-        obj[objKey] = fm[2]
+        const val = fm[2] ?? ''
+        obj[objKey] = val
           .replace(/&lt;/g,'<')
           .replace(/&gt;/g,'>')
           .replace(/&amp;/g,'&')

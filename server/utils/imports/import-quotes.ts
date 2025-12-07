@@ -146,13 +146,14 @@ export async function importQuotesInline(
             if (!allowed) return
             if (quoteStrategy === 'overwrite') {
               sets.push(`${column} = ?`)
-              let fm: RegExpExecArray | null
-              while ((fm = fieldRegex.exec(m[1]))) {
-                if (!fm) continue
-                const objKey = fm[1]
-                if (objKey !== fm[3]) continue
-                obj[objKey] = fm[2]
-              }
+              binds.push(value)
+            } else if (quoteStrategy === 'fill-missing') {
+              // keep existing value when incoming is null/undefined
+              sets.push(`${column} = COALESCE(?, ${column})`)
+              binds.push(value)
+            }
+
+          }
 
           addField('name', q.name, allowedFields.has('name'))
           addField('status', status, allowedFields.has('status'))
@@ -383,8 +384,11 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
     const obj: any = {}
     let fm: RegExpExecArray | null
     while ((fm = fieldRegex.exec(m[1]))) {
-      if (fm[1] !== fm[3]) continue
-      obj[fm[1]] = fm[2]
+      if (!fm) continue
+      const key = fm[1]
+      const val = fm[2] ?? ''
+      if (key !== fm[3]) continue
+      obj[key] = val
         .replace(/&lt;/g,'<')
         .replace(/&gt;/g,'>')
         .replace(/&amp;/g,'&')
