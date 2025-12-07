@@ -107,13 +107,24 @@ export default defineEventHandler(async (event) => {
       GROUP BY q.id
     `).bind(body.quote_id).first()
     
-    // Process tags
+    // Ensure we have an added quote result
+    if (!addedQuote) {
+      throw createError({ statusCode: 404, statusMessage: 'Failed to load added quote' })
+    }
+
+    // Process tags safely (DB result shapes can be loose)
+    const tagNames = (addedQuote as any).tag_names ?? ''
+    const tagColors = (addedQuote as any).tag_colors ?? ''
+    const parsedTags = tagNames
+      ? tagNames.split(',').map((name: string, index: number) => ({
+          name,
+          color: tagColors.split(',')[index] || 'gray'
+        }))
+      : []
+
     const processedQuote = {
-      ...addedQuote,
-      tags: addedQuote.tag_names ? addedQuote.tag_names.split(',').map((name, index) => ({
-        name,
-        color: addedQuote.tag_colors?.split(',')[index] || 'gray'
-      })) : []
+      ...(addedQuote as any),
+      tags: parsedTags
     }
     
     return {

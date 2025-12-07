@@ -77,7 +77,7 @@ async function sha1(input: string): Promise<string> {
 function uint8ToBase64(u8: Uint8Array): string {
   let binary = ''
   const len = u8.byteLength
-  for (let i = 0; i < len; i++) binary += String.fromCharCode(u8[i])
+  for (let i = 0; i < len; i++) binary += String.fromCharCode(u8[i] ?? 0)
   return btoa(binary)
 }
 

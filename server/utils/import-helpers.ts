@@ -65,7 +65,7 @@ export function parseZipImportEntries(entries: Record<string, Uint8Array>, strFr
     const lower = base.toLowerCase()
     const m = lower.match(/^(.*)\.(json|csv|xml)$/)
     if (!m) { warnings.push(`Skipped unknown file: ${name}`); continue }
-    const rawStem = m[1]
+    const rawStem = String(m[1] ?? '')
     const ext = m[2] as 'json' | 'csv' | 'xml'
 
     // Normalize stem: keep hyphen and underscore variants supported via nameMap
@@ -86,7 +86,9 @@ export function parseZipImportEntries(entries: Record<string, Uint8Array>, strFr
       }
 
       if (Array.isArray(rows)) {
-        result[canonical] = rows
+        // canonical is guaranteed to be present because we checked above, but narrow its type for TS
+        const canonicalKey = canonical as keyof typeof result
+        result[canonicalKey] = rows
       } else {
         warnings.push(`File did not parse to array: ${name}`)
       }
@@ -144,14 +146,14 @@ export function parseXMLFlat(text: string, itemTag: string): any[] {
   const itemRegex = new RegExp(`<${itemTag}>([\s\S]*?)<\/${itemTag}>`, 'g')
   let m: RegExpExecArray | null
   while ((m = itemRegex.exec(text)) !== null) {
-    const block = m[1]
+    const block = String(m[1] ?? '')
     const obj: any = {}
     const fieldRegex = /<([A-Za-z0-9_:-]+)>([\s\S]*?)<\/\1>/g
     let f: RegExpExecArray | null
     while ((f = fieldRegex.exec(block)) !== null) {
-      if (!f) continue
-      const key = f[1]
-      const val = (f[2] ?? '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      // coerce groups to strings to avoid undefined index types
+      const key = String(f[1] ?? '')
+      const val = String(f[2] ?? '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
       obj[key] = val
     }
     items.push(obj)

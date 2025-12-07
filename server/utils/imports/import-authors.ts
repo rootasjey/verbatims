@@ -223,7 +223,9 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
           try {
-            await stmts[idx].run()
+            const s = stmts[idx]
+            if (!s) continue
+            await s.run()
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -340,12 +342,12 @@ export function minimalXmlParse(xml: string, itemTag: string): any[] {
     if (!m) continue
     const obj: any = {}
     let fm: RegExpExecArray | null
-    while ((fm = fieldRegex.exec(m[1]))) {
+    const xmlBlock = String(m[1] ?? '')
+    while ((fm = fieldRegex.exec(xmlBlock))) {
       if (!fm) continue
-      if (!fm) continue
-      const key = fm[1]
-      const val = fm[2] ?? ''
-      if (key !== fm[3]) continue
+      const key = String(fm[1] ?? '')
+      const val = String(fm[2] ?? '')
+      if (key !== String(fm[3] ?? '')) continue
       obj[key] = val.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&apos;/g,"'")
     }
     items.push(obj)

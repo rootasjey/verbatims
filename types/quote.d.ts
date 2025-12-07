@@ -94,6 +94,18 @@ export interface AdminQuote extends QuoteWithRelations {
     name: string;
   } | undefined;
   tags?: Array<{ id: number; name: string; color: string }>;
+  // Flattened joined fields (available from admin DB queries)
+  author_name?: string | null;
+  author_is_fictional?: boolean | null;
+  author_image_url?: string | null;
+  reference_name?: string | null;
+  reference_type?: QuoteReferencePrimaryType | null;
+  reference_secondary_type?: string | null;
+  user_name?: string | null;
+  user_email?: string | null;
+  user_avatar?: string | null;
+  user_avatar_url?: string | null;
+  moderator_name?: string | null;
 }
 
 /**

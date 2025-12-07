@@ -96,6 +96,23 @@ bun run dev        # Start dev server (localhost:3000)
 bun run build      # Production build
 ```
 
+Note: the dev server (e.g. `npm run dev`, `bun run dev` or `nuxt dev`) is a long-running process and will occupy the current terminal session. If you need to run other commands while the server is running, either:
+
+- Open a second terminal/tab and run the additional commands there (recommended), or
+- Background the process and detach it (example in fish/bash):
+
+```fish
+# start the dev server in background
+npm run dev &
+# detach it from the session (optional)
+disown
+
+# or use nohup to keep it running after logout
+nohup npm run dev >/dev/null 2>&1 &
+```
+
+You can also use a terminal multiplexer (tmux/screen) to keep the dev server running in its own pane/window.
+
 ### Database Migrations
 Schema in `/server/database/migrations/schema.sql` - NuxtHub handles D1 provisioning automatically.
 
