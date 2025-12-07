@@ -65,39 +65,39 @@
       </div>
     </template>
 
-    <UForm
+    <NForm
       :schema="schema"
       :state="state"
       @submit="updateCollection"
       class="space-y-4 mb-8"
     >
-      <UFormGroup label="Collection Name" name="name" required>
-        <UInput
+      <NFormGroup label="Collection Name" name="name" required>
+        <NInput
           v-model="state.name"
           placeholder="Enter collection name"
           :disabled="loading"
         />
-      </UFormGroup>
+      </NFormGroup>
 
-      <UFormGroup label="Description" name="description">
-        <UInput
+      <NFormGroup label="Description" name="description">
+        <NInput
           type="textarea"
           v-model="state.description"
           placeholder="Optional description for your collection"
           :rows="3"
           :disabled="loading"
         />
-      </UFormGroup>
+      </NFormGroup>
 
-      <UFormGroup name="is_public">
-        <UCheckbox
+      <NFormGroup name="is_public">
+        <NCheckbox
           v-model="state.is_public"
           label="Make this collection public"
           help="Public collections can be viewed by anyone"
           :disabled="loading"
         />
-      </UFormGroup>
-    </UForm>
+      </NFormGroup>
+    </NForm>
 
     <template #footer>
       <div class="flex justify-end gap-3">
@@ -117,7 +117,7 @@
         </NButton>
       </div>
     </template>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup>

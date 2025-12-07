@@ -433,14 +433,14 @@
               {{ formatRelativeTime(cell.row.original.created_at) }}
             </span>
           </template>
-        </UTable>
+        </NTable>
       </div>
 
       <div class="flex-shrink-0 flex items-center justify-between p-4">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           Page {{ currentPage }} of {{ totalPages }} • {{ totalReferences }} total references
         </div>
-        <UPagination
+        <NPagination
           v-model:page="currentPage"
           :total="totalReferences"
           :items-per-page="pageSize"
@@ -466,8 +466,8 @@
   />
 
   <!-- Bulk Delete Confirmation -->
-  <UDialog v-model:open="showBulkDeleteDialog">
-    <UCard>
+  <NDialog v-model:open="showBulkDeleteDialog">
+    <NCard>
       <template #header>
         <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3>
       </template>
@@ -480,8 +480,8 @@
           <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
         </div>
       </template>
-    </UCard>
-  </UDialog>
+    </NCard>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

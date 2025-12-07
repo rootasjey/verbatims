@@ -37,7 +37,7 @@
         </NButton>
       </div>
     </template>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

@@ -223,13 +223,13 @@
                 <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
               </NDropdown>
             </template>
-          </UTable>
+          </NTable>
 
           <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 rounded-2 border">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               Page {{ currentPage }} of {{ totalPages }} • {{ pagination?.total || 0 }} total imports
             </div>
-            <UPagination
+            <NPagination
               v-model:page="currentPage"
               :total="pagination?.total || 0"
               :items-per-page="pageSize"
@@ -244,8 +244,8 @@
     </div>
 
     <!-- Details Modal -->
-    <UModal v-model="showDetailsModal">
-      <UCard v-if="selectedImport">
+    <NModal v-model="showDetailsModal">
+      <NCard v-if="selectedImport">
         <template #header>
           <h3 class="text-lg font-semibold">
             Import Details - {{ selectedImport.id }}
@@ -296,15 +296,15 @@
             <ul v-else class="space-y-2">
               <li v-for="file in importBackups" :key="file.id" class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-2">
-                  <UBadge color="gray" :label="(file.metadata?.export_config?.data_type || 'unknown').toUpperCase()" />
+                  <NBadge color="gray" :label="(file.metadata?.export_config?.data_type || 'unknown').toUpperCase()" />
                   <span class="truncate max-w-[50ch]" :title="file.file_path">{{ file.filename }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs text-gray-500">{{ new Date(file.created_at).toLocaleString() }}</span>
-                  <UButton size="xs" btn="ghost" :to="file.file_path" target="_blank">
-                    <UIcon name="i-ph-download" />
+                  <NButton size="xs" btn="ghost" :to="file.file_path" target="_blank">
+                    <NIcon name="i-ph-download" />
                     Download
-                  </UButton>
+                  </NButton>
                 </div>
               </li>
             </ul>
@@ -324,11 +324,11 @@
             <NButton @click="showDetailsModal = false">Close</NButton>
           </div>
         </template>
-      </UCard>
-    </UModal>
+      </NCard>
+    </NModal>
 
-    <UDialog v-model:open="showClearHistoryDialog">
-      <UCard class="shadow-none border-none">
+    <NDialog v-model:open="showClearHistoryDialog">
+      <NCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Clear All Import History</h3>
         </template>
@@ -348,8 +348,8 @@
             <NButton btn="link-red" @click="handleClearAllHistory">Clear All History</NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
   </div>
 </template>
 

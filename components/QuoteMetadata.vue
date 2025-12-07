@@ -181,7 +181,7 @@
           </dl>
         </div>
       </template>
-      </UCollapsible>
+      </NCollapsible>
 
       <template #fallback>
         <div class="flex-col items-center mx-auto">

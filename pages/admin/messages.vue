@@ -189,12 +189,12 @@
                 <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
               </NDropdownMenu>
             </template>
-          </UTable>
+          </NTable>
         </div>
 
         <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
           <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }} • {{ totalMessages }} total</div>
-          <UPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
+          <NPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
         </div>
       </div>
     </div>

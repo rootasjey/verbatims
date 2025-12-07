@@ -140,28 +140,28 @@
 
         <!-- Middle: stats chips -->
         <div class="hidden md:flex items-center gap-2">
-          <UTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
             <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
-              <UIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
+              <NIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
               <span class="font-medium">{{ formatNumber(quote.views_count || 0) }}</span>
             </div>
-          </UTooltip>
+          </NTooltip>
 
-          <UTooltip content="Share count" :_tooltip-content="{ side: 'bottom' }">
-            <UButton
+          <NTooltip content="Share count" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
               btn="~"
               size="xs"
               :disabled="sharePending"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
               @click="$emit('share')"
             >
-              <UIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
+              <NIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
               <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(quote.shares_count || 0) }}</span>
-            </UButton>
-          </UTooltip>
+            </NButton>
+          </NTooltip>
 
-          <UTooltip content="Like count" :_tooltip-content="{ side: 'bottom' }">
-            <UButton
+          <NTooltip content="Like count" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
               btn="~"
               size="xs"
               :disabled="!user || likePending"
@@ -174,41 +174,41 @@
               ]"
               @click="$emit('toggle-like')"
             >
-              <UIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
+              <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
               <span>{{ formatNumber(quote.likes_count || 0) }}</span>
-            </UButton>
-          </UTooltip>
+            </NButton>
+          </NTooltip>
         </div>
 
         <!-- Right: quick actions -->
         <div class="flex items-center gap-2">
-          <UTooltip content="Copy link to quote" :_tooltip-content="{ side: 'bottom' }">
-            <UButton
+          <NTooltip content="Copy link to quote" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
               :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
               size="xs"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
               @click="$emit('copy-link')"
             >
-              <UIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
+              <NIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
               <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
-            </UButton>
-          </UTooltip>
+            </NButton>
+          </NTooltip>
 
-          <UTooltip content="Save quote to collection" :_tooltip-content="{ side: 'bottom' }">
-            <UButton
+          <NTooltip content="Save quote to collection" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
               :btn="savedState === 'saved' ? 'soft-green' : 'soft-blue'"
               size="xs"
               :disabled="!user"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
               @click="$emit('add-to-collection')"
             >
-              <UIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-bookmark-simple'" class="w-3.5 h-3.5 mr-1" />
+              <NIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-bookmark-simple'" class="w-3.5 h-3.5 mr-1" />
               <span class="hidden sm:inline">{{ savedState === 'saved' ? 'Saved' : 'Save' }}</span>
-            </UButton>
-          </UTooltip>
+            </NButton>
+          </NTooltip>
 
-          <UDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
-            <UButton
+          <NDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
+            <NButton
               icon
               btn="ghost-gray"
               label="i-ph-dots-three-vertical-bold"
@@ -216,7 +216,7 @@
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
               title="More actions"
             />
-          </UDropdownMenu>
+          </NDropdownMenu>
         </div>
       </div>
     </div>

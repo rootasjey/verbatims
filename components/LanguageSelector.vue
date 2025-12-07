@@ -55,7 +55,7 @@
         {{ item.display }}
       </div>
     </template>
-  </UCombobox>
+  </NCombobox>
 </template>
 
 <script setup lang="ts">

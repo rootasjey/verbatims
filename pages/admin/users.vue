@@ -260,14 +260,14 @@
               {{ cell.row.original.last_login_at ? formatRelativeTime(cell.row.original.last_login_at) : '—' }}
             </span>
           </template>
-        </UTable>
+        </NTable>
       </div>
 
       <div class="flex-shrink-0 flex items-center justify-between p-4">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           Page {{ currentPage }} of {{ totalPages }} • {{ totalUsers }} total users
         </div>
-        <UPagination
+        <NPagination
           v-model:page="currentPage"
           :total="totalUsers"
           :items-per-page="pageSize"

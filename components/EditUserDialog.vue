@@ -43,26 +43,26 @@
 </template><template #help>
               <span v-if="isSelf" class="text-amber-600 text-xs">You cannot change your own role.</span>
             </template>
-          </UFormGroup>
-          <UFormGroup label="Active">
-            <USwitch v-model="form.is_active" :disabled="submitting || isSelf" />
+          </NFormGroup>
+          <NFormGroup label="Active">
+            <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />
             <template #help>
               <span v-if="isSelf" class="text-amber-600 text-xs">You cannot deactivate your own account.</span>
             </template>
-          </UFormGroup>
+          </NFormGroup>
         </div>
 
-        <UFormGroup label="Email Verified">
-          <USwitch v-model="form.email_verified" :disabled="submitting" />
-        </UFormGroup>
+        <NFormGroup label="Email Verified">
+          <NSwitch v-model="form.email_verified" :disabled="submitting" />
+        </NFormGroup>
       </div>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <UButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</UButton>
-        <UButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!user">Update</UButton>
+        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!user">Update</NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

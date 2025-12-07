@@ -268,11 +268,11 @@
                       <NIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
                     </div>
                   </template>
-                </UAvatar>
+                </NAvatar>
                 <div>
-                  <UTooltip :content="author.name">
+                  <NTooltip :content="author.name">
                     <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ author.name }}</div>
-                  </UTooltip>
+                  </NTooltip>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count }} quotes</div>
                 </div>
               </NuxtLink>
@@ -286,14 +286,14 @@
                 Random references
               </h3>
 
-              <UTooltip content="Fetch new random references">
-                <UButton 
+              <NTooltip content="Fetch new random references">
+                <NButton 
                   @click="fetchRandomReferences()"
                   icon
                   label="i-ph-arrows-clockwise"
                   btn="ghost-gray"
                 />
-              </UTooltip>
+              </NTooltip>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <NuxtLink
@@ -304,22 +304,22 @@
                 bg-white dark:bg-gray-800 rounded-lg 
                 hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
               >
-                <UAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
+                <NAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
                   <template #fallback>
                     <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
                       <NIcon name="i-ph-book-duotone" class="w-6 h-6" />
                     </div>
                   </template>
-                </UAvatar>
+                </NAvatar>
                 <div>
-                  <UTooltip :content="reference.name">
+                  <NTooltip :content="reference.name">
                     <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ reference.name }}</div>
-                  </UTooltip>
+                  </NTooltip>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatReferenceType(reference.primary_type) }} • 
-                    <UTooltip :content="`${reference.quotes_count} quotes`">
-                      <span>{{ reference.quotes_count }} <UIcon name="i-ph-quotes-duotone" /></span>
-                    </UTooltip>
+                    <NTooltip :content="`${reference.quotes_count} quotes`">
+                      <span>{{ reference.quotes_count }} <NIcon name="i-ph-quotes-duotone" /></span>
+                    </NTooltip>
                   </div>
                 </div>
               </NuxtLink>
@@ -377,7 +377,7 @@
                       <p class="text-sm text-gray-600 dark:text-gray-400">{{ author.quotes_count }} quotes</p>
                     </div>
                   </div>
-                  <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+                  <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
                 </NuxtLink>
               </div>
             </div>
@@ -392,7 +392,7 @@
                   class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div class="bg-gray-100 dark:bg-gray-700 rounded-2 w-10 h-10 flex items-center justify-center shrink-0">
-                    <UIcon :name="getReferenceIcon(reference.primary_type)" />
+                    <NIcon :name="getReferenceIcon(reference.primary_type)" />
                   </div>
                   <div>
                     <h4 class="font-600 text-gray-900 dark:text-white">{{ reference.name }}</h4>
@@ -400,7 +400,7 @@
                       {{ reference.primary_type }} • {{ reference.quotes_count }} quotes
                     </p>
                   </div>
-                  <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+                  <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
                 </NuxtLink>
               </div>
             </div>
@@ -408,7 +408,7 @@
 
           <!-- No Results -->
           <div v-else-if="!loading" class="text-center py-8">
-            <UIcon name="i-ph-magnifying-glass-minus" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <NIcon name="i-ph-magnifying-glass-minus" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No results found</h3>
             <p class="text-gray-600 dark:text-gray-400">Try adjusting your search terms</p>
           </div>
@@ -419,12 +419,12 @@
     <!-- Desktop: Redirect to home with search modal -->
     <div v-else class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <UIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">Desktop Search</h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">Use the search button in the header or press Ctrl/Cmd+K</p>
-        <UButton btn="solid-black" @click="navigateTo('/')">
+        <NButton btn="solid-black" @click="navigateTo('/')">
           Go to Home
-        </UButton>
+        </NButton>
       </div>
     </div>
   </div>

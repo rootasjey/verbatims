@@ -41,7 +41,7 @@
 
       <div class="space-y-4">
         <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-          <UIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
+          <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
           <div class="text-sm text-red-800 dark:text-red-300">
             <p class="font-medium">This action is permanent.</p>
             <p class="mt-1">You are about to delete {{ selectedCount }} {{ selectedCount === 1 ? 'draft' : 'drafts' }}. This action cannot be undone.</p>
@@ -67,8 +67,8 @@
           <NButton color="red" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
         </div>
       </template>
-    </UCard>
-  </UDialog>
+    </NCard>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

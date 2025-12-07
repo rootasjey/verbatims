@@ -36,7 +36,7 @@
           {{ item.label }}
         </span>
       </template>
-    </USelect>
+    </NSelect>
   </div>
 </template>
 

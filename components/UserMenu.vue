@@ -50,9 +50,9 @@
             </svg>
           </div>
         </template>
-      </UAvatar>
-    </UButton>
-  </UDropdownMenu>
+      </NAvatar>
+    </NButton>
+  </NDropdownMenu>
 </template>
 
 <script setup>

@@ -573,7 +573,7 @@
                 </ol>
               </div>
             </template>
-          </UDrawer>
+          </NDrawer>
         </template>
 
         <template v-else>

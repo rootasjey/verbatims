@@ -136,7 +136,7 @@
         </template>
 
         <!-- Featured Badge (if any) -->
-        <UBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</UBadge>
+        <NBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</NBadge>
       </div>
     </div>
 

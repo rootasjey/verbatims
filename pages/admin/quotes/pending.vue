@@ -427,15 +427,15 @@
                     />
                   </NTooltip>
                 </template>
-                <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                  <UButton
+                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <NButton
                     icon
                     btn="ghost-gray"
                     size="2xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
-                </UTooltip>
+                </NTooltip>
               </div>
             </template>
 
@@ -560,7 +560,7 @@
                 </div>
               </template>
             </template>
-          </UTable>
+          </NTable>
         </div>
 
         <!-- Pagination -->
@@ -568,7 +568,7 @@
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
-          <UPagination
+          <NPagination
             v-model:page="currentPage"
             :total="totalQuotes"
             :items-per-page="pageSize"
@@ -588,8 +588,8 @@
   </div>
 
     <!-- Reject Quote Modal -->
-    <UDialog v-model:open="showRejectModal">
-      <UCard class="border-none shadow-none">
+    <NDialog v-model:open="showRejectModal">
+      <NCard class="border-none shadow-none">
         <template #header>
           <h3 class="text-lg font-semibold">Reject Quote</h3>
         </template>
@@ -604,15 +604,15 @@
             </p>
           </div>
 
-          <UFormGroup label="Rejection Reason" required>
-            <UInput
+          <NFormGroup label="Rejection Reason" required>
+            <NInput
               type="textarea"
               v-model="rejectionReason"
               placeholder="Please provide a reason for rejecting this quote..."
               :rows="3"
               :disabled="processing.has(selectedQuote?.id)"
             />
-          </UFormGroup>
+          </NFormGroup>
         </div>
 
         <template #footer>
@@ -633,12 +633,12 @@
             </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
     <!-- Bulk Reject Modal -->
-    <UDialog v-model:open="showBulkRejectModal">
-      <UCard>
+    <NDialog v-model:open="showBulkRejectModal">
+      <NCard>
         <template #header>
           <h3 class="text-lg font-semibold">Reject {{ selectedQuotes.length }} Quotes</h3>
         </template>
@@ -648,15 +648,15 @@
             You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.
           </p>
 
-          <UFormGroup label="Rejection Reason" required>
-            <UInput
+          <NFormGroup label="Rejection Reason" required>
+            <NInput
               type="textarea"
               v-model="bulkRejectionReason"
               placeholder="Please provide a reason for rejecting these quotes..."
               :rows="3"
               :disabled="bulkProcessing"
             />
-          </UFormGroup>
+          </NFormGroup>
         </div>
 
         <template #footer>
@@ -677,8 +677,8 @@
             </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
     <AddQuoteDialog
       v-model="showEditQuoteDialog"

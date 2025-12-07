@@ -196,14 +196,14 @@
           <template #created-cell="{ cell }">
             <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(cell.row.original.created_at) }}</span>
           </template>
-        </UTable>
+        </NTable>
       </div>
 
       <div class="flex-shrink-0 flex items-center justify-between p-4">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           Page {{ currentPage }} of {{ totalPages }} • {{ totalTags }} total tags
         </div>
-        <UPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
+        <NPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
       </div>
     </div>
   </div>
@@ -212,8 +212,8 @@
   <DeleteTagDialog v-model="showDeleteDialog" :tag="tagToDelete" @tag-deleted="reloadAfterDelete" />
 
   <!-- Bulk Delete Confirmation -->
-  <UDialog v-model:open="showBulkDeleteDialog">
-    <UCard>
+  <NDialog v-model:open="showBulkDeleteDialog">
+    <NCard>
       <template #header>
         <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Tag' : 'Tags' }}</h3>
       </template>
@@ -226,8 +226,8 @@
           <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
         </div>
       </template>
-    </UCard>
-  </UDialog>
+    </NCard>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

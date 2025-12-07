@@ -135,20 +135,20 @@
                   {{ formatDate(quote.created_at) }}
                 </p>
               </div>
-              <UBadge 
+              <NBadge 
                 :color="getStatusColor(quote.status)" 
                 variant="subtle"
                 size="xs"
               >
                 {{ quote.status }}
-              </UBadge>
+              </NBadge>
             </div>
           </div>
         </div>
-      </UCard>
+      </NCard>
 
       <!-- Recent Collections -->
-      <UCard>
+      <NCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">My Lists</h3>
@@ -161,9 +161,9 @@
         <div class="space-y-4">
           <div v-if="recentCollections.length === 0">
             <p class="text-gray-500 dark:text-gray-400">No collections yet</p>
-            <UButton btn="solid-dark dark:solid-white" class="mt-4" to="/dashboard/lists">
+            <NButton btn="solid-dark dark:solid-white" class="mt-4" to="/dashboard/lists">
               Create List
-            </UButton>
+            </NButton>
           </div>
 
           <div v-for="collection in recentCollections" :key="collection.id" class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -174,13 +174,13 @@
                   {{ collection.quotes_count }} quotes
                 </p>
               </div>
-              <UBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">
+              <NBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">
                 Public
-              </UBadge>
+              </NBadge>
             </div>
           </div>
         </div>
-      </UCard>
+      </NCard>
     </div>
   </div>
 </template>

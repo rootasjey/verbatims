@@ -320,15 +320,15 @@
                       />
                     </NTooltip>
                   </template>
-                  <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                    <UButton
+                  <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                    <NButton
                       icon
                       btn="ghost-gray"
                       size="2xs"
                       :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                       @click="toggleSelectionMode"
                     />
-                  </UTooltip>
+                  </NTooltip>
                 </div>
               </template>
 
@@ -433,14 +433,14 @@
                   </div>
                 </template>
               </template>
-            </UTable>
+            </NTable>
           </div>
 
           <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 rounded-2 border">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               Page {{ dataExport.state.historyPagination.page }} of {{ dataExport.state.historyPagination.totalPages }} • {{ dataExport.state.historyPagination.total }} total exports
             </div>
-            <UPagination
+            <NPagination
               v-model:page="dataExport.state.historyPagination.page"
               :total="dataExport.state.historyPagination.total"
               :items-per-page="dataExport.state.historyPagination.limit"
@@ -453,8 +453,8 @@
       </div>
     </div>
 
-    <UDialog v-model:open="showBulkDeleteModal">
-      <UCard>
+    <NDialog v-model:open="showBulkDeleteModal">
+      <NCard>
         <template #header>
           <h3 class="text-lg font-semibold">Delete {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'Entry' : 'Entries' }}</h3>
         </template>
@@ -469,11 +469,11 @@
             <NButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
-    <UDialog v-model:open="showClearHistoryDialog">
-      <UCard class="shadow-none border-none">
+    <NDialog v-model:open="showClearHistoryDialog">
+      <NCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Clear All Export History</h3>
         </template>
@@ -493,11 +493,11 @@
             <NButton btn="link-red" @click="handleClearAllHistory">Clear All History</NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
-    <UDialog v-model:open="showDeleteEntryDialog">
-      <UCard class="shadow-none border-none">
+    <NDialog v-model:open="showDeleteEntryDialog">
+      <NCard class="shadow-none border-none">
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Delete Export Entry</h3>
         </template>
@@ -517,8 +517,8 @@
             <NButton btn="solid" @click="handleDeleteEntry">Delete Entry</NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
   </div>
 </template>
 

@@ -193,7 +193,7 @@
         </div>
 
         <div class="flex justify-end">
-          <UButton
+          <NButton
             btn="solid-black"
             :loading="isResetting"
             :disabled="isResetting"
@@ -203,14 +203,14 @@
               <NIcon name="i-ph-trash" />
             </template>
             Reset Entire Database
-          </UButton>
+          </NButton>
         </div>
       </div>
-    </UCard>
+    </NCard>
 
     <!-- Reset Confirmation Dialog -->
-    <UDialog v-model:open="showResetConfirmation">
-      <UCard class="border-none">
+    <NDialog v-model:open="showResetConfirmation">
+      <NCard class="border-none">
         <template #header>
           <div class="flex items-center space-x-3">
             <NIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
@@ -242,7 +242,7 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Type "RESET DATABASE" to confirm:
               </label>
-              <UInput
+              <NInput
                 v-model="confirmationText"
                 placeholder="RESET DATABASE"
                 :disabled="isResetting"
@@ -251,7 +251,7 @@
             </div>
 
             <div class="flex items-center space-x-2">
-              <UCheckbox
+              <NCheckbox
                 v-model="acknowledgeDataLoss"
                 :disabled="isResetting"
               />
@@ -287,11 +287,11 @@
                 <NIcon name="i-ph-trash" />
               </template>
               Reset Database
-            </UButton>
+            </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
   </div>
 </template>
 

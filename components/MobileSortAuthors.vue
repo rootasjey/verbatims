@@ -82,7 +82,7 @@
         </div>
       </div>
     </template>
-  </UDrawer>
+  </NDrawer>
   
 </template>
 

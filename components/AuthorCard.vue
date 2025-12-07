@@ -39,7 +39,7 @@
               This author is fictional
             </div>
           </template>
-        </UTooltip>
+        </NTooltip>
       </div>
       <p
         v-if="author.is_fictional && author.origin_reference_name"
@@ -51,7 +51,7 @@
         {{ author.job }}
       </p>
     </div>
-    <UIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+    <NIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
   </NuxtLink>
 </template>
 

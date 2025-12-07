@@ -103,15 +103,15 @@
             </div>
           </div>
         </template>
-      </UAccordion>
+      </NAccordion>
 
       <!-- Actions -->
       <div class="mt-6 flex justify-end gap-2">
-        <UButton btn="soft-blue" @click="$emit('edit', quote)">Edit</UButton>
-        <UButton btn="ghost" @click="closeDialog">Close</UButton>
+        <NButton btn="soft-blue" @click="$emit('edit', quote)">Edit</NButton>
+        <NButton btn="ghost" @click="closeDialog">Close</NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

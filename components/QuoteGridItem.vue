@@ -98,7 +98,7 @@
       </ClientOnly>
     </div>
 
-    <UBadge
+    <NBadge
       v-if="quote.is_featured"
       color="yellow"
       variant="subtle"
@@ -106,7 +106,7 @@
       class="absolute top-2 right-2"
     >
       Featured
-    </UBadge>
+    </NBadge>
   </div>
 </template>
 

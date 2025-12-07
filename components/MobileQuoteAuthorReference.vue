@@ -63,7 +63,7 @@
               This author is fictional
             </div>
           </template>
-        </UTooltip>
+        </NTooltip>
       </div>
     </div>
 

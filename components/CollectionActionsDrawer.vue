@@ -131,7 +131,7 @@
         </NButton>
       </div>
     </template>
-  </UDrawer>
+  </NDrawer>
 </template>
 
 <script lang="ts" setup>

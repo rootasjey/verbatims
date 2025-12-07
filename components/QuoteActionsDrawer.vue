@@ -339,12 +339,12 @@
         </div>
 
         <!-- Cancel Button -->
-        <UButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
+        <NButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
           Cancel
-        </UButton>
+        </NButton>
       </div>
     </template>
-  </UDrawer>
+  </NDrawer>
 </template>
 
 <script lang="ts" setup>

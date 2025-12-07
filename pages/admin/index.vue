@@ -319,10 +319,10 @@
           <div v-else class="text-center py-8">
             <p class="text-gray-500 dark:text-gray-400">No recent activity</p>
           </div>
-        </UCard>
+        </NCard>
 
         <!-- Top Contributors -->
-        <UCard>
+        <NCard>
           <template #header>
             <h3 class="text-lg font-semibold">Top Contributors</h3>
           </template>
@@ -336,7 +336,7 @@
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-4">
                 {{ index + 1 }}
               </span>
-              <UAvatar
+              <NAvatar
                 :src="contributor.avatar_url"
                 :alt="contributor.name"
                 size="xs"
@@ -355,7 +355,7 @@
           <div v-else class="text-center py-8">
             <p class="text-gray-500 dark:text-gray-400">No contributors yet</p>
           </div>
-        </UCard>
+        </NCard>
       </div>
     </div>
   </div>

@@ -226,7 +226,7 @@
       <div>
         <div class="space-y-6">
           <!-- Error Alert -->
-          <UAlert
+          <NAlert
             v-if="error"
             color="red"
             variant="soft"
@@ -237,8 +237,8 @@
           <!-- Email/Password Sign In Form -->
           <form @submit.prevent="signInWithEmail" class="space-y-3">
             <div>
-              <UFormGroup label="" name="email" required>
-                <UInput
+              <NFormGroup label="" name="email" required>
+                <NInput
                   v-model="form.email"
                   type="email"
                   placeholder="Enter your email"
@@ -247,11 +247,11 @@
                   :disabled="loading.email"
                   @focus="handleInputFocus('email')"
                 />
-              </UFormGroup>
+              </NFormGroup>
             </div>
             <div>
-              <UFormGroup label="" name="password" required>
-                <UInput
+              <NFormGroup label="" name="password" required>
+                <NInput
                   v-model="form.password"
                   required
                   placeholder="Enter your password"
@@ -263,9 +263,9 @@
                   :disabled="loading.email"
                   @focus="handleInputFocus('password')"
                 />
-              </UFormGroup>
+              </NFormGroup>
             </div>
-            <UButton
+            <NButton
               type="submit"
               block
               size="sm"
@@ -275,7 +275,7 @@
               :loading="loading.email"
             >
               Sign In
-            </UButton>
+            </NButton>
           </form>
           
           <!-- Divider -->
@@ -290,16 +290,16 @@
             </div>
           </div>
           <div class="space-y-3">
-            <ULink to="/forgot-password" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400">
+            <NLink to="/forgot-password" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400">
               Forgot password?
-            </ULink>
+            </NLink>
             <p>
               <span class="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?
               </span>
-              <ULink to="/signup" class="text-sm text-primary-600 dark:text-lime hover:underline font-400">
+              <NLink to="/signup" class="text-sm text-primary-600 dark:text-lime hover:underline font-400">
                 Sign Up
-              </ULink>
+              </NLink>
             </p>
           </div>
         </div>
@@ -318,7 +318,7 @@
       <div class="relative z-1">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 flex items-center justify-center">
-            <UIcon name="i-ph-quotes" class="w-6 h-6 text-#687FE5" />
+            <NIcon name="i-ph-quotes" class="w-6 h-6 text-#687FE5" />
           </div>
           <div>
             <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Welcome back</p>
@@ -332,7 +332,7 @@
 
         <div class="mt-6 bg-white/85 dark:bg-gray-900/80 backdrop-blur-md rounded-4 p-4 border border-gray-200/60 dark:border-gray-800/60 shadow-lg/30">
           <!-- Error Alert -->
-          <UAlert
+          <NAlert
             v-if="error"
             color="red"
             variant="soft"
@@ -344,8 +344,8 @@
 
           <!-- Email/Password Sign In Form -->
           <form @submit.prevent="signInWithEmail" class="space-y-3">
-            <UFormGroup label="" name="email" required>
-              <UInput
+            <NFormGroup label="" name="email" required>
+              <NInput
                 v-model="form.email"
                 type="email"
                 placeholder="Enter your email"
@@ -353,10 +353,10 @@
                 class="rounded-3"
                 :disabled="loading.email"
               />
-            </UFormGroup>
+            </NFormGroup>
 
-            <UFormGroup label="" name="password" required>
-              <UInput
+            <NFormGroup label="" name="password" required>
+              <NInput
                 v-model="form.password"
                 required
                 placeholder="Enter your password"
@@ -367,9 +367,9 @@
                 @trailing="isPasswordVisible = !isPasswordVisible"
                 :disabled="loading.email"
               />
-            </UFormGroup>
+            </NFormGroup>
 
-            <UButton
+            <NButton
               type="submit"
               block
               size="sm"
@@ -379,7 +379,7 @@
               :loading="loading.email"
             >
               Sign In
-            </UButton>
+            </NButton>
           </form>
         </div>
       </div>
@@ -392,7 +392,7 @@
           <p class="text-sm text-gray-700 dark:text-gray-300">New to Verbatims?</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">Join and share your favorite lines.</p>
         </div>
-        <UButton size="sm" btn="light:soft dark:soft-blue" to="/signup" class="font-600">Sign up</UButton>
+        <NButton size="sm" btn="light:soft dark:soft-blue" to="/signup" class="font-600">Sign up</NButton>
       </div>
     </div>
   </div>

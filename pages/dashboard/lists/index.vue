@@ -401,12 +401,12 @@
                 </span>
               </div>
             </div>
-          </UCard>
+          </NCard>
         </div>
 
         <!-- Load More -->
         <div v-if="hasMore" class="text-center pt-8">
-          <UButton
+          <NButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -414,7 +414,7 @@
             @click="loadMore"
           >
             Load More
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
@@ -434,8 +434,8 @@
     />
 
     <!-- Delete Confirmation -->
-    <UDialog v-model="showDeleteModal">
-      <UCard>
+    <NDialog v-model="showDeleteModal">
+      <NCard>
         <template #header>
           <h3 class="text-lg font-semibold">Delete List</h3>
         </template>
@@ -458,8 +458,8 @@
             </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
     <!-- Collection Actions Drawer (Mobile) -->
     <CollectionActionsDrawer

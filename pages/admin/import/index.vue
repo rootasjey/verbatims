@@ -567,23 +567,23 @@
                       <div class="flex items-center justify-between gap-2 mb-2">
                         <label class="block text-sm font-medium">Data Format</label>
                         <div class="flex items-center gap-2">
-                          <UBadge
+                          <NBadge
                             v-if="detectedFormat && selectedFormat?.value === detectedFormat?.value"
                             color="blue"
                             variant="subtle"
                             size="xs"
-                          >Auto-detected</UBadge>
+                          >Auto-detected</NBadge>
                           <div v-if="detectedFormat && selectedFormat?.value !== detectedFormat?.value">
-                            <UTooltip :text="`Reset to detected (${detectedFormat.label})`">
-                              <UButton btn="ghost-gray" square size="xs" @click="resetFormatToDetected" aria-label="Reset format to detected">
-                                <UIcon name="i-ph-arrow-counter-clockwise" />
-                              </UButton>
-                            </UTooltip>
+                            <NTooltip :text="`Reset to detected (${detectedFormat.label})`">
+                              <NButton btn="ghost-gray" square size="xs" @click="resetFormatToDetected" aria-label="Reset format to detected">
+                                <NIcon name="i-ph-arrow-counter-clockwise" />
+                              </NButton>
+                            </NTooltip>
                           </div>
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <USelect
+                        <NSelect
                           v-model="selectedFormat"
                           :items="formatOptions"
                           placeholder="Select data format"
@@ -601,23 +601,23 @@
                       <div class="flex items-center justify-between gap-2 mb-2">
                         <label class="block text-sm font-medium">Data Type</label>
                         <div class="flex items-center gap-2">
-                          <UBadge
+                          <NBadge
                             v-if="detectedDataType && selectedDataType?.value === detectedDataType?.value"
                             color="blue"
                             variant="subtle"
                             size="xs"
-                          >Auto-detected</UBadge>
+                          >Auto-detected</NBadge>
                           <div v-if="detectedDataType && selectedDataType?.value !== detectedDataType?.value">
-                            <UTooltip :text="`Reset to detected (${detectedDataType.label})`">
-                              <UButton btn="ghost-gray" square size="xs" @click="resetTypeToDetected" aria-label="Reset data type to detected">
-                                <UIcon name="i-ph-arrow-counter-clockwise" />
-                              </UButton>
-                            </UTooltip>
+                            <NTooltip :text="`Reset to detected (${detectedDataType.label})`">
+                              <NButton btn="ghost-gray" square size="xs" @click="resetTypeToDetected" aria-label="Reset data type to detected">
+                                <NIcon name="i-ph-arrow-counter-clockwise" />
+                              </NButton>
+                            </NTooltip>
                           </div>
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <USelect
+                        <NSelect
                           v-model="selectedDataType"
                           :items="dataTypeOptions"
                           placeholder="Select data type"
@@ -630,25 +630,25 @@
                     <!-- Import Options -->
                     <div class="space-y-3">
                       <h3 class="text-sm font-medium">Import Options</h3>
-                      <UCheckbox v-model="importOptions.createBackup" label="Create backup before import" help="Recommended for production imports" />
-                      <UCheckbox v-model="importOptions.ignoreValidationErrors" label="Ignore validation errors" help="Import data even if validation fails (not recommended)" />
-                      <UCheckbox v-model="importOptions.preserveIds" label="Preserve explicit IDs when present" help="Insert records using provided id fields and realign sequences. Use with caution." />
+                      <NCheckbox v-model="importOptions.createBackup" label="Create backup before import" help="Recommended for production imports" />
+                      <NCheckbox v-model="importOptions.ignoreValidationErrors" label="Ignore validation errors" help="Import data even if validation fails (not recommended)" />
+                      <NCheckbox v-model="importOptions.preserveIds" label="Preserve explicit IDs when present" help="Insert records using provided id fields and realign sequences. Use with caution." />
                       <div>
                         <label class="block text-sm font-medium mb-1">Batch Size</label>
-                        <UInput v-model.number="importOptions.batchSize" type="number" min="1" max="1000" placeholder="50" />
+                        <NInput v-model.number="importOptions.batchSize" type="number" min="1" max="1000" placeholder="50" />
                         <p class="mt-1 text-xs text-gray-500">Number of records to process at once (1-1000)</p>
                       </div>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex gap-3 pt-4">
-                      <UButton :disabled="!selectedFile || !selectedFormat" :loading="isValidating" btn="soft-blue" @click="validateData">Validate Data</UButton>
-                      <UButton v-if="validationResult" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" btn="soft-green" @click="startImport">Start Import</UButton>
+                      <NButton :disabled="!selectedFile || !selectedFormat" :loading="isValidating" btn="soft-blue" @click="validateData">Validate Data</NButton>
+                      <NButton v-if="validationResult" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" btn="soft-green" @click="startImport">Start Import</NButton>
                     </div>
                   </div>
-                </UCard>
+                </NCard>
 
-                <UCard v-if="validationResult">
+                <NCard v-if="validationResult">
                   <template #header>
                     <div class="flex items-center gap-2">
                       <NIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
@@ -691,24 +691,24 @@
                       </div>
                     </div>
                   </div>
-                </UCard>
+                </NCard>
 
                 <DataPreviewTable :data="previewData" :type="selectedDataType?.value || 'references'" :max-rows="5" />
               </div>
-            </UCollapsibleContent>
-          </UCollapsible>
+            </NCollapsibleContent>
+          </NCollapsible>
 
           <!-- Import Progress -->
-          <UCollapsible v-model:open="openProgress" title="Import Progress" :ui="{ base: 'border border-dashed rounded-xl' }">
+          <NCollapsible v-model:open="openProgress" title="Import Progress" :ui="{ base: 'border border-dashed rounded-xl' }">
             <div class="flex items-center justify-between px-4 space-x-4">
               <h2 class="text-xl font-semibold">2 • Import Progress</h2>
-              <UCollapsibleTrigger as-child>
-                <UButton btn="ghost-gray" square>
-                  <UIcon name="i-radix-icons-caret-sort" />
-                </UButton>
-              </UCollapsibleTrigger>
+              <NCollapsibleTrigger as-child>
+                <NButton btn="ghost-gray" square>
+                  <NIcon name="i-radix-icons-caret-sort" />
+                </NButton>
+              </NCollapsibleTrigger>
             </div>
-            <UCollapsibleContent>
+            <NCollapsibleContent>
               <div class="p-4">
                 <ImportProgress
                   v-if="currentImportId"
@@ -718,22 +718,22 @@
                 />
                 <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">No active import. Start an import from the Upload section.</div>
               </div>
-            </UCollapsibleContent>
-          </UCollapsible>
+            </NCollapsibleContent>
+          </NCollapsible>
 
           <!-- Relink Relations -->
-          <UCollapsible v-model:open="openRelink" title="Relink Relations" :ui="{ base: 'border border-dashed rounded-xl' }">
+          <NCollapsible v-model:open="openRelink" title="Relink Relations" :ui="{ base: 'border border-dashed rounded-xl' }">
             <div class="flex items-center justify-between px-4 space-x-4">
               <h2 class="text-xl font-semibold">3 • Relink Post-Quote Relations</h2>
-              <UCollapsibleTrigger as-child>
-                <UButton btn="ghost-gray" square>
-                  <UIcon name="i-radix-icons-caret-sort" />
-                </UButton>
-              </UCollapsibleTrigger>
+              <NCollapsibleTrigger as-child>
+                <NButton btn="ghost-gray" square>
+                  <NIcon name="i-radix-icons-caret-sort" />
+                </NButton>
+              </NCollapsibleTrigger>
             </div>
-            <UCollapsibleContent>
+            <NCollapsibleContent>
               <div class="space-y-6 p-4">
-                <UCard>
+                <NCard>
                   <template #header>
                     <div class="flex items-center gap-2">
                       <NIcon name="i-ph-link-simple" />
@@ -776,19 +776,19 @@
 
                     <!-- Actions -->
                     <div class="flex gap-3 pt-2">
-                      <UButton :disabled="!selectedRelinkFile" :loading="isRelinking" btn="soft-indigo" @click="startRelink">
+                      <NButton :disabled="!selectedRelinkFile" :loading="isRelinking" btn="soft-indigo" @click="startRelink">
                         Start Relink
-                      </UButton>
+                      </NButton>
                     </div>
 
                     <p class="mt-2 text-xs text-gray-500">
                       Tip: If collection/quote IDs are missing, include <code>collection_name</code> and/or <code>quote_name</code> (and optional <code>language</code> or <code>user_id</code>) to resolve links.
                     </p>
                   </div>
-                </UCard>
+                </NCard>
               </div>
-            </UCollapsibleContent>
-          </UCollapsible>
+            </NCollapsibleContent>
+          </NCollapsible>
         </div>
 
         <div v-else-if="item.value === 'history'">
@@ -797,7 +797,7 @@
           </div>
         </div>
       </template>
-    </UTabs>
+    </NTabs>
   </div>
 </template>
 

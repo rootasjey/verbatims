@@ -45,7 +45,7 @@
         </tbody>
       </table>
     </div>
-  </UCard>
+  </NCard>
 </template>
 
 <script setup lang="ts">

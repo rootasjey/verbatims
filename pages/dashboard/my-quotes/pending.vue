@@ -407,15 +407,15 @@
                       />
                     </NTooltip>
                   </template>
-                  <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                    <UButton
+                  <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                    <NButton
                       icon
                       btn="ghost-gray"
                       size="2xs"
                       :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                       @click="toggleSelectionMode"
                     />
-                  </UTooltip>
+                  </NTooltip>
                 </div>
               </template>
 
@@ -535,7 +535,7 @@
                   {{ formatDate(cell.row.original.created_at) }}
                 </span>
               </template>
-            </UTable>
+            </NTable>
           </div>
 
           <!-- Pagination -->
@@ -544,7 +544,7 @@
               <span>Page {{ currentPage }} of {{ totalPages }}</span>
             </div>
 
-            <UPagination
+            <NPagination
               v-model:page="currentPage"
               :total="totalQuotes"
               :items-per-page="pageSize"

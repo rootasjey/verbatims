@@ -191,7 +191,7 @@
     <div class="space-y-4">
       <!-- Author -->
       <div v-if="quote.author" class="flex items-center space-x-3 mb-3">
-        <UAvatar
+        <NAvatar
           :src="quote.author.image_url"
           :alt="quote.author.name"
           :size="featured ? 'md' : 'sm'"
@@ -212,7 +212,7 @@
 
       <!-- Reference -->
       <div v-if="quote.reference" class="flex items-center space-x-2 quote-reference mb-4">
-        <UIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 flex-shrink-0" />
+        <NIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 flex-shrink-0" />
         <span>From:</span>
         <NuxtLink
           :to="`/references/${quote.reference.id}`"
@@ -291,7 +291,7 @@
         </div>
       </div>
     </template>
-  </UCard>
+  </NCard>
 
   <!-- Add to Collection Modal -->
   <AddToCollectionModal

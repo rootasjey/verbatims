@@ -105,7 +105,7 @@
         </div>
       </div>
     </template>
-  </UDrawer>
+  </NDrawer>
 </template>
 
 <script setup lang="ts">
