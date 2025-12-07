@@ -257,11 +257,7 @@
       </template>
     </NCard>
   </NDialog>
-</template><template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Search Quotes</h3>
-        </div>
-      </template>
+</template>
 
       <div class="space-y-4">
         <NInput

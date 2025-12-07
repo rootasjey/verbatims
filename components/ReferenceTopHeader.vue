@@ -103,9 +103,7 @@
       </div>
     </div>
   </div>
-</template><template v-if="reference.secondary_type">
-                <span class="truncate">{{ reference.secondary_type }}</span>
-              </template>
+</template>
               <template v-else-if="reference.primary_type || reference.release_date">
                 <span class="truncate">
                   {{ formatType(reference.primary_type) }}

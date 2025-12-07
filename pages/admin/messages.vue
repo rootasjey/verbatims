@@ -138,11 +138,7 @@
       </div>
     </div>
   </div>
-</template><template #select-cell="{ cell }">
-              <div class="flex items-center justify-center">
-                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, v)" />
-              </div>
-            </template>
+</template>
 
             <template #from-cell="{ cell }">
               <div class="flex items-center gap-2">

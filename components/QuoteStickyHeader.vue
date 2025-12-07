@@ -115,24 +115,7 @@
       </div>
     </div>
   </div>
-</template><template v-if="quote.author || quote.reference">
-                <NuxtLink
-                  v-if="quote.author"
-                  :to="`/authors/${quote.author.id}`"
-                  class="truncate hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  {{ quote.author.name }}
-                </NuxtLink>
-                <span v-if="quote.author && quote.reference" aria-hidden="true" class="mx-1">•</span>
-                <NuxtLink
-                  v-if="quote.reference"
-                  :to="`/references/${quote.reference.id}`"
-                  class="inline-flex items-center truncate hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  <NIcon :name="getReferenceIcon(quote.reference.primary_type)" class="w-3 h-3 mr-1 text-gray-400" />
-                  <span class="truncate">{{ quote.reference.name }}</span>
-                </NuxtLink>
-              </template>
+</template>
               <span v-else>{{ getLanguageName(quote.language) }}</span>
             </div>
           </div>

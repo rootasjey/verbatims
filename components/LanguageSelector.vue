@@ -28,17 +28,7 @@
       </div>
     </template>
   </NCombobox>
-</template><template #trigger="{ modelValue }">
-      <template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
-        <div class="flex items-center gap-2">
-          <NIcon :name="modelValue.icon" />
-          {{ modelValue.display }}
-        </div>
-      </template>
-      <template v-else>
-        Select language...
-      </template>
-    </template><template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
+</template><template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
         <div class="flex items-center gap-2">
           <NIcon :name="modelValue.icon" />
           {{ modelValue.display }}

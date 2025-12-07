@@ -55,9 +55,7 @@
       </NuxtLink>
     </div>
   </div>
-</template><template #default>
-            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
-          </template>
+</template>
           <template #content>
             <div class="text-sm">
               This author is fictional

@@ -23,9 +23,7 @@
       </table>
     </div>
   </NCard>
-</template><template #header>
-      <h3 class="text-lg font-semibold">Data Preview (First {{ maxRows }} Records)</h3>
-    </template>
+</template>
 
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

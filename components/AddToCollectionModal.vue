@@ -130,9 +130,7 @@
       </div>
     </template>
   </NDialog>
-</template><template #header>
-        <h3 class="text-lg font-semibold">Add to Collection</h3>
-      </template>
+</template>
 
       <div class="space-y-4">
         <!-- Create New Collection -->

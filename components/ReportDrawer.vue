@@ -53,58 +53,7 @@
       </div>
     </template>
   </NDrawer>
-</template><template #body>
-      <div class="p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-title uppercase text-size-4 font-600">{{ title }}</h3>
-          <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="sm" @click="close" />
-        </div>
-
-        <form class="space-y-4" @submit.prevent="onSubmit">
-          <div>
-            <label class="block text-sm font-medium mb-1">Category</label>
-            <NSelect
-              v-model="form.category"
-              :items="categories"
-              item-key="label"
-              value-key="label"
-            />
-          </div>
-
-          <div v-if="!isAuthenticated">
-            <label class="block text-sm font-medium mb-1">Name</label>
-            <NInput v-model="form.name" placeholder="Your name" />
-          </div>
-
-          <div v-if="!isAuthenticated">
-            <label class="block text-sm font-medium mb-1">Email</label>
-            <NInput v-model="form.email" type="email" placeholder="you@example.com" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-1">Message</label>
-            <NInput
-              type="textarea"
-              v-model="form.message"
-              :rows="5"
-              placeholder="Tell us what you found, what to improve, or your suggestion..."
-              required
-            />
-            <div class="mt-1 text-right text-xs text-gray-500">{{ form.message.length }}/4000</div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-1">Tags (optional)</label>
-            <NInput v-model="tagsInput" placeholder="Comma-separated (e.g. UI, accessibility)" />
-          </div>
-        </form>
-
-        <div class="mt-5 flex gap-2">
-          <NButton btn="light:soft dark:soft-white" class="flex-1" @click="close" :disabled="pending">Cancel</NButton>
-          <NButton btn="soft-blue" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</NButton>
-        </div>
-      </div>
-    </template>
+</template>
   </NDrawer>
 </template>
 

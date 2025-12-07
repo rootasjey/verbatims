@@ -203,9 +203,7 @@
       </NCard>
     </NDialog>
   </div>
-</template><template #status-cell="{ cell }">
-              <NBadge :color="getStatusColor(cell.row.original.status)" :label="cell.row.original.status.toUpperCase()" />
-            </template>
+</template>
             <template #data_type-cell="{ cell }">
               <NBadge color="gray" :label="(cell.row.original.data_type || 'unknown').toUpperCase()" />
             </template>

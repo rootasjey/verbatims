@@ -95,9 +95,7 @@
       </template>
     </NCard>
   </NDialog>
-</template><template #header>
-        <h3 class="text-lg font-semibold">Add Quote to Collection</h3>
-      </template>
+</template>
 
       <div class="space-y-6">
         <!-- Search Quotes -->

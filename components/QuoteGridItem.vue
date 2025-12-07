@@ -83,18 +83,7 @@
       Featured
     </NBadge>
   </div>
-</template><template #fallback>
-          <blockquote
-            class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
-            :class="{
-              'text-sm': (quote.name || '').length > 200,
-              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-              'text-lg': (quote.name || '').length <= 100
-            }"
-          >
-            {{ quote.name }}
-          </blockquote>
-        </template>
+</template>
       </ClientOnly>
     </div>
 

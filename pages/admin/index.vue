@@ -298,9 +298,7 @@
       </div>
     </div>
   </div>
-</template><template #header>
-            <h3 class="text-lg font-semibold">Recent Activity (30 days)</h3>
-          </template>
+</template>
 
           <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="space-y-3">
             <div

@@ -160,14 +160,7 @@
       </NCard>
     </NDialog>
   </div>
-</template><template #header>
-        <div class="flex items-center space-x-3">
-          <NIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Database Reset
-          </h2>
-        </div>
-      </template>
+</template>
 
       <div class="space-y-4">
         <div class="rounded-lg p-2">

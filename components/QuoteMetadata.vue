@@ -97,13 +97,7 @@
       </template>
     </ClientOnly>
   </div>
-</template><template #trigger>
-        <div class="flex-col items-center mx-auto">
-          <NButton btn="text-gray" class="min-w-330px md:w-600px mb-4 underline decoration-offset-8">
-            Show metadata
-          </NButton>
-        </div>
-      </template>
+</template>
 
       <template #content>
         <div class="md:w-600px rounded-xl border-0.5px border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-[#0C0A09]/50">

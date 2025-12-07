@@ -156,37 +156,7 @@
     :quote="quote"
     @added="onAddedToCollection"
   />
-</template><template #header>
-      <div class="flex items-start justify-between gap-4 mb-4">
-        <div class="flex-1 min-w-0">
-          <blockquote
-            :class="[
-              'quote-text quote-content text-balance mb-4',
-              featured ? 'text-xl sm:text-2xl lg:text-3xl font-semibold' : ''
-            ]"
-          >
-            "{{ quote.name }}"
-          </blockquote>
-
-          <!-- Language indicator -->
-          <div v-if="quote.language !== 'en'" class="mt-2">
-            <NBadge variant="subtle" size="xs">
-              {{ getLanguageName(quote.language) }}
-            </NBadge>
-          </div>
-        </div>
-
-        <NDropdownMenu :items="dropdownItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
-          <NButton
-            btn="ghost-gray"
-            icon
-            label="i-ph-dots-three-vertical"
-            size="sm"
-            class="opacity-0 group-hover:opacity-100 transition-opacity"
-          />
-        </NDropdownMenu>
-      </div>
-    </template>
+</template>
 
     <div class="space-y-4">
       <!-- Author -->

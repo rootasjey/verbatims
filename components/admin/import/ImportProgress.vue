@@ -212,15 +212,7 @@
       </NCard>
     </NDialog>
   </div>
-</template><template #header>
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold">Import Progress</h2>
-          <NBadge
-            :color="getStatusColor(progress?.status)"
-            :label="progress?.status?.toUpperCase() || 'UNKNOWN'"
-          />
-        </div>
-      </template>
+</template>
 
       <div v-if="progress" class="space-y-6">
         <!-- Progress Bar -->

@@ -263,11 +263,7 @@
       </div>
     </div>
   </div>
-</template><template #fallback>
-                    <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400">
-                      <NIcon name="i-ph-user-circle-duotone" class="w-6 h-6" />
-                    </div>
-                  </template>
+</template>
                 </NAvatar>
                 <div>
                   <NTooltip :content="author.name">

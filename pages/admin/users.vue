@@ -199,11 +199,7 @@
     :user="userToDelete"
     @user-deleted="onUserDeleted"
   />
-</template><template #actions-cell="{ cell }">
-            <NDropdownMenu :items="getUserActions(cell.row.original)">
-              <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-            </NDropdownMenu>
-          </template>
+</template>
 
           <!-- User Column -->
           <template #user-cell="{ cell }">

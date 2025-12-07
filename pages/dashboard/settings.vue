@@ -585,11 +585,7 @@
       </NCard>
     </NDialog>
   </div>
-</template><template #header>
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Profile Information
-              </h2>
-            </template>
+</template>
 
             <div class="space-y-6">
               <div class="grid grid-cols-1 gap-4">

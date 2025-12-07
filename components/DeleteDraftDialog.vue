@@ -22,21 +22,7 @@
       </div>
     </template>
   </NDialog>
-</template><template #footer>
-      <div class="flex justify-end space-x-3">
-        <NButton btn="link" @click="closeDialog">
-          Cancel
-        </NButton>
-        <NButton
-          btn="solid-red"
-          :loading="deleting"
-          class="px-8"
-          @click="emit('delete-draft')"
-        >
-          Delete
-        </NButton>
-      </div>
-    </template>
+</template>
   </NDialog>
 </template>
 

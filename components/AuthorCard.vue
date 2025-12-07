@@ -31,9 +31,7 @@
     </div>
     <NIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
   </NuxtLink>
-</template><template #default>
-            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
-          </template>
+</template>
           <template #content>
             <div class="text-sm">
               This author is fictional

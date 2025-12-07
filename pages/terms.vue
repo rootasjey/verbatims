@@ -304,14 +304,7 @@
       </nav>
     </div>
   </div>
-</template><template v-if="item.id === 'introduction-and-acceptance'">
-              <p>
-                These Terms of Service (“Terms”) govern your access to and use of our quotes platform, including websites, apps, and related services (collectively, the “Service”). By accessing or using the Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, do not use the Service.
-              </p>
-              <p>
-                We aim for clarity and fairness. If anything is unclear, please contact us before continuing to use the Service.
-              </p>
-            </template>
+</template>
 
             <!-- 2) Eligibility -->
             <template v-else-if="item.id === 'eligibility'">

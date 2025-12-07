@@ -111,14 +111,7 @@
       </NCard>
     </div>
   </div>
-</template><template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Recent Submissions</h3>
-            <NButton btn="link" size="xs" to="/dashboard/my-quotes/published">
-              View All
-            </NButton>
-          </div>
-        </template>
+</template>
 
         <div class="space-y-4">
           <div v-if="recentSubmissions.length === 0">

@@ -325,16 +325,7 @@
       </template>
     </NCard>
   </NDialog>
-</template><template #actions-header>
-            <div class="flex items-center justify-center">
-              <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
-              </NTooltip>
-              <NTooltip class="ml-2" text="Select all on page">
-                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
-              </NTooltip>
-            </div>
-          </template>
+</template>
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
             <template v-if="!selectionMode">

@@ -139,9 +139,7 @@
     </NCard>
   </NDialog>
   
-</template><template #header>
-        <h3 class="text-lg font-semibold">Add {{ quoteIds.length }} {{ quoteIds.length === 1 ? 'Quote' : 'Quotes' }} to Collection</h3>
-      </template>
+</template>
 
       <div class="space-y-4">
         <!-- Create New Collection -->

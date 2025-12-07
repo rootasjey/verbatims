@@ -59,11 +59,7 @@
       </div>
     </template>
   </NDialog>
-</template><template #header>
-      <div class="flex items-center gap-3">
-        <h3 class="text-size-4">Edit <u class="decoration-dashed">{{ collection.name }}</u> Collection</h3>
-      </div>
-    </template>
+</template>
 
     <NForm
       :schema="schema"

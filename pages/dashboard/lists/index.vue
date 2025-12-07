@@ -348,35 +348,7 @@
       @delete="handleDeleteFromDrawer"
     />
   </div>
-</template><template #header>
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <h3 class="font-semibold text-gray-900 dark:text-white line-clamp-1">
-                    {{ collection.name }}
-                  </h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {{ collection.quotes_count }} {{ collection.quotes_count === 1 ? 'quote' : 'quotes' }}
-                  </p>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <NBadge
-                    :badge="collection.is_public ? 'outline-green' : 'outline-red'"
-                    size="xs"
-                  >
-                    {{ collection.is_public ? 'Public' : 'Private' }}
-                  </NBadge>
-                  <NDropdownMenu :items="getCollectionActions(collection)">
-                    <NButton
-                      icon
-                      btn="ghost"
-                      size="xs"
-                      label="i-ph-dots-three-vertical"
-                      @click.stop
-                    />
-                  </NDropdownMenu>
-                </div>
-              </div>
-            </template>
+</template>
 
             <div class="space-y-3">
               <p v-if="collection.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">

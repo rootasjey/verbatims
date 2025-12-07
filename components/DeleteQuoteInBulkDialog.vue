@@ -35,9 +35,7 @@
       </template>
     </NCard>
   </NDialog>
-</template><template #header>
-        <h3 class="text-lg font-semibold">Delete {{ selectedCount }} {{ selectedCount === 1 ? 'Draft' : 'Drafts' }}</h3>
-      </template>
+</template>
 
       <div class="space-y-4">
         <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">

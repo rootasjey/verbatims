@@ -200,16 +200,7 @@
       </div>
     </div>
   </div>
-</template><template v-for="i in 90" :key="i">
-          <span class="mx-2 my-1">
-            <span
-              class="text-[10vw] font-extrabold text-gray-200 dark:text-gray-800 opacity-35 leading-none transition-all duration-300 cursor-pointer hover:text-white hover:opacity-80 hover:drop-shadow-[0_0_16px_#687FE5] dark:hover:text-primary-400 dark:hover:drop-shadow-[0_0_16px_#687FE5]"
-              @click="appendLetterToInput(String.fromCharCode(65 + ((i - 1) % 26)))"
-            >
-              {{ String.fromCharCode(65 + ((i - 1) % 26)) }}
-            </span>
-          </span>
-        </template>
+</template>
       </div>
     </div>
     

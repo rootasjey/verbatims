@@ -40,9 +40,7 @@
       </div>
     </div>
   </NDialog>
-</template><template #help>
-              <span v-if="isSelf" class="text-amber-600 text-xs">You cannot change your own role.</span>
-            </template>
+</template>
           </NFormGroup>
           <NFormGroup label="Active">
             <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />

@@ -48,9 +48,7 @@
       </div>
     </div>
   </NDialog>
-</template><template #help>
-            <span class="text-xs text-gray-500">At least 8 characters</span>
-          </template>
+</template>
         </NFormGroup>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">

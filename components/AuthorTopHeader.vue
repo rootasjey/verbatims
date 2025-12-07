@@ -101,9 +101,7 @@
       </div>
     </div>
   </div>
-</template><template v-if="author.job">
-                <span class="truncate">{{ author.job }}</span>
-              </template>
+</template>
               <template v-else-if="author.birth_date || author.death_date">
                 <span class="truncate">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
               </template>

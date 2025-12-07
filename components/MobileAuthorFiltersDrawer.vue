@@ -31,36 +31,7 @@
       </div>
     </template>
   </NDrawer>
-</template><template #body>
-      <div class="p-4 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-serif text-lg font-600">Filters</h3>
-          <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="openModel = false" />
-        </div>
-
-        <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Sort by</label>
-          <NSelect
-            v-model="sortByModel"
-            :items="sortOptions"
-            placeholder="Sort by"
-            item-key="label"
-            value-key="label"
-          />
-        </div>
-
-        <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Language</label>
-          <LanguageSelector @language-changed="$emit('language-changed')" />
-        </div>
-
-        <div class="pt-2">
-          <NButton btn="solid-black" class="w-full rounded-3" size="sm" @click="openModel = false">
-            Apply
-          </NButton>
-        </div>
-      </div>
-    </template>
+</template>
   </NDrawer>
 </template>
 

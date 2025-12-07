@@ -61,15 +61,7 @@
       </NCard>
     </NDialog>
   </div>
-</template><template #content="{ item }">
-        <div v-if="['export'].includes(item.value)">
-          <ExportCreate />
-        </div>
-
-        <div v-else-if="item.value === 'history'">
-          <ExportHistory @go-to-export="activeTab = 'export'" />
-        </div>
-      </template>
+</template>
     </NTabs>
 
     <NDialog v-model:open="dataExport.state.showProgressDialog">
