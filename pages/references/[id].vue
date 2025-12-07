@@ -12,26 +12,27 @@
 
     <div v-else-if="reference">
       <ClientOnly>
-      <ReferenceTopHeader
-        :header-title="headerTitle"
-        :reference="{
-          ...reference,
-          urls: reference.urls ? JSON.stringify(reference.urls) : '',
-        }"
-        :share-pending="sharePending"
-        :like-pending="likePending"
-        :is-liked="isLiked"
-        :has-user="!!user"
-        :copy-state="copyState"
-        :header-menu-items="headerMenuItems"
-        :format-number="formatNumber"
-        :format-type="formatReferenceType"
-        :format-release-date="formatReleaseDate"
-        @share="shareReference"
-        @toggle-like="toggleLike"
-        @copy-link="copyLink"
-        @scroll-top="scrollToTop"
-      />
+        <ReferenceTopHeader
+          :header-title="headerTitle"
+          :reference="{
+            ...reference,
+            urls: reference.urls ? JSON.stringify(reference.urls) : '',
+          }"
+          :share-pending="sharePending"
+          :like-pending="likePending"
+          :is-liked="isLiked"
+          :has-user="!!user"
+          :copy-state="copyState"
+          :header-menu-items="headerMenuItems"
+          :format-number="formatNumber"
+          :format-type="formatReferenceType"
+          :format-release-date="formatReleaseDate"
+          @share="shareReference"
+          @toggle-like="toggleLike"
+          @copy-link="copyLink"
+          @scroll-top="scrollToTop"
+          @navigate-back="navigateToReferencesList"
+        />
       </ClientOnly>
       
       <header class="mt-12 p-8">
@@ -40,7 +41,8 @@
           <Transition name="fade-up" appear>
             <UBadge
               v-if="showTypeBadge"
-              :color="getTypeColor(reference.primary_type)"
+              :badge="`outline-${getTypeColor(reference.primary_type)}`"
+              :style="{ 'border-width': '0.2px' }"
               size="sm"
             >
               {{ formatReferenceType(reference.primary_type) }}
@@ -525,6 +527,10 @@ const scrollToTop = () => {
   if (typeof window !== 'undefined') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+}
+
+const navigateToReferencesList = async () => {
+  await navigateTo('/references')
 }
 
 const showReportDialog = ref(false)

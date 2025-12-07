@@ -1,23 +1,38 @@
 <template>
   <div class="min-h-screen">
     <!-- Mobile: Collection Detail -->
-    <div v-if="isMobile" class="mobile-collection-detail">
-      <div class="p-4 pt-6">
-        <div class="mb-3 flex items-center gap-2">
-          <UButton icon btn="ghost" size="sm" aria-label="Back" to="/dashboard/lists">
-            <UIcon name="i-ph-caret-left" />
-          </UButton>
-          <h1 class="text-xl font-600 text-gray-900 dark:text-white truncate">{{ collection?.name || 'Collection' }}</h1>
-        </div>
-        <p v-if="collection?.description" class="text-sm text-gray-600 dark:text-gray-400">
-          {{ collection.description }}
-        </p>
-        <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}
-          <span class="mx-1">·</span>
-          <UBadge :color="collection?.is_public ? 'green' : 'gray'" variant="subtle" size="xs">
-            {{ collection?.is_public ? 'Public' : 'Private' }}
-          </UBadge>
+    <div v-if="isMobile" class="mobile-collection-detail bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
+      <!-- Header with collapse on scroll -->
+      <div 
+        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
+        :class="{ 'shadow-sm': !showHeaderElements }"
+      >
+        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
+          <div class="mt-3 flex items-center gap-2">
+            <h1 
+              class="overflow-x-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out truncate flex-1"
+              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
+            >
+              {{ collection?.name || 'Collection' }}
+            </h1>
+          </div>
+
+          <!-- Description and metadata with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'"
+          >
+            <p v-if="collection?.description" class="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+              {{ collection.description }}
+            </p>
+            <div class="flex items-center gap-2 py-1 text-xs text-gray-500 dark:text-gray-400">
+              <span>{{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+              <span>·</span>
+              <UBadge :badge="collection?.is_public ? 'outline-green' : 'outline-red'" size="xs" rounded="full">
+                {{ collection?.is_public ? 'Public' : 'Private' }}
+              </UBadge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -37,15 +52,17 @@
       </div>
 
       <!-- Quotes List -->
-      <div v-else class="px-0 pb-6">
-        <div class="divide-y divide-dashed divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-          <QuoteListItem
-            v-for="quote in processedMobileQuotes"
-            :key="quote.id"
-            :quote="quote"
-          />
-        </div>
-        <div v-if="hasMore" class="px-4 pt-6">
+      <div v-else class="px-3 pt-3 pb-6 space-y-3">
+        <QuoteListItem
+          v-for="quote in processedMobileQuotes"
+          :key="quote.id"
+          :quote="quote"
+          :actions="collectionQuoteActions"
+          @share="handleShareQuote"
+          @remove-from-collection="handleRemoveFromCollection"
+        />
+        
+        <div v-if="hasMore" class="pt-3">
           <UButton
             :loading="loadingMore"
             btn="dark:solid-black"
@@ -192,6 +209,26 @@ const loadingMore = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
 
+// Scroll header state (mobile)
+const scrollY = ref(0)
+const lastScrollY = ref(0)
+const isScrollingDown = ref(false)
+const showHeaderElements = ref(true)
+
+const handleScroll = () => {
+  if (!isMobile.value) return
+  scrollY.value = window.scrollY
+  const scrollThreshold = 50
+  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
+    isScrollingDown.value = true
+    showHeaderElements.value = false
+  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
+    isScrollingDown.value = false
+    showHeaderElements.value = true
+  }
+  lastScrollY.value = scrollY.value
+}
+
 const loadCollection = async (reset = true) => {
   try {
     if (reset) {
@@ -283,6 +320,60 @@ const collectionActions = computed(() => ([
   }
 ]))
 
+const collectionQuoteActions = [
+  {
+    label: 'Share',
+    leading: 'i-ph-share'
+  },
+  { divider: true } as any,
+  {
+    label: 'Remove from Collection',
+    leading: 'i-ph-trash'
+  }
+]
+
+const handleShareQuote = (quote: any) => {
+  if (navigator.share) {
+    navigator.share({ 
+      title: 'Quote from Verbatims', 
+      text: quote.name, 
+      url: `${window.location.origin}/quotes/${quote.id}` 
+    })
+  } else {
+    navigator.clipboard.writeText(`"${quote.name}" - ${quote.author?.name || ''}`)
+    useToast().toast({ title: 'Copied to clipboard' })
+  }
+}
+
+const handleRemoveFromCollection = async (quote: any) => {
+  if (!confirm('Remove this quote from the collection?')) return
+  
+  try {
+    await $fetch(`/api/collections/${collectionId.value}/quotes/${quote.id}`, {
+      method: 'DELETE'
+    })
+    
+    // Remove from local state
+    if (collection.value) {
+      collection.value.quotes = collection.value.quotes?.filter((q: any) => q.id !== quote.id) || []
+      if (collection.value.quotes_count) {
+        collection.value.quotes_count--
+      }
+    }
+    
+    useToast().toast({ 
+      title: 'Quote removed',
+      description: 'Quote removed from collection'
+    })
+  } catch (error) {
+    console.error('Failed to remove quote:', error)
+    useToast().toast({ 
+      title: 'Failed to remove quote',
+      description: 'Please try again'
+    })
+  }
+}
+
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
@@ -290,9 +381,19 @@ const formatDate = (dateString: string) => {
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadCollection()
+  // Add mobile scroll listener
+  if (isMobile.value) {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
 watch(currentLayout, (newLayout) => setPageLayout(newLayout))
+
+onBeforeUnmount(() => {
+  if (isMobile.value) {
+    window.removeEventListener('scroll', handleScroll)
+  }
+})
 </script>
 
 <style scoped>

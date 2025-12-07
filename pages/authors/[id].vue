@@ -23,10 +23,11 @@
         :copy-state="copyState"
         :format-life-dates="formatLifeDates"
         :format-number="formatNumber"
-        :scroll-to-top="scrollToTop"
-        :share-author="shareAuthor"
-        :toggle-like="toggleLike"
-        :copy-link="copyLink"
+        @scroll-to-top="scrollToTop"
+        @share-author="shareAuthor"
+        @toggle-like="toggleLike"
+        @copy-link="copyLink"
+        @navigate-back="navigateToAuthorsList"
       />
       </ClientOnly>
 
@@ -558,7 +559,6 @@ const shareAuthor = async () => {
 }
 
 const copyLink = async () => {
-  const { toast } = useToast()
   try {
     const url = typeof window !== 'undefined' ? window.location.href : ''
     if (!url) throw new Error('no-url')
@@ -570,7 +570,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.' })
+    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.' })
   }
 }
 
@@ -578,6 +578,10 @@ const scrollToTop = () => {
   if (typeof window !== 'undefined') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+}
+
+const navigateToAuthorsList = async () => {
+  await navigateTo('/authors')
 }
 
 const showReportDialog = ref(false)

@@ -19,10 +19,15 @@
       <!-- Reference Type Badge -->
       <UBadge 
         :color="getTypeColor(reference.primary_type)" 
-        variant="subtle" 
+        badge="~"
         size="xs"
         class="transition-opacity duration-300"
-        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+        :class="{ 
+          'group-hover:opacity-100': true, 
+          'opacity-100': !isHovered, 
+          'opacity-0': isHovered,
+          'border b-${getTypeColor(reference.primary_type)}-500': isHovered
+        }"
       >
         {{ formatType(reference.primary_type) }}
       </UBadge>

@@ -154,4 +154,3 @@ const props = withDefaults(defineProps<Props>(), {
 
 When implementing features, follow the established patterns for authentication, database queries, type safety, and UI consistency.
 You can challenge and improve these patterns and instructions if you find better approaches.
-- Don't build the app except if explicitly asked to do so.

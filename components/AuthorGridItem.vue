@@ -18,8 +18,7 @@
     >
       <!-- Author Type Badge -->
       <UBadge 
-        :color="author.is_fictional ? 'purple' : 'blue'" 
-        variant="subtle" 
+        :badge="author.is_fictional ? 'outline-purple' : 'outline-blue'" 
         size="xs"
         class="transition-opacity duration-300"
         :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"

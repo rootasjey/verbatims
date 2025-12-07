@@ -1,31 +1,88 @@
 <template>
   <div class="min-h-screen">
     <!-- Mobile: Published List -->
-    <div v-if="isMobile" class="mobile-published-page">
-      <!-- Header & Controls -->
-      <div class="p-4 pt-6">
-        <div class="text-center mb-4">
-          <h1 class="text-2xl font-600 text-gray-900 dark:text-white">Published</h1>
-          <p class="text-gray-600 dark:text-gray-400">Your approved quotes</p>
-        </div>
+    <div v-if="isMobile" class="mobile-published-page bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
+      <!-- Header -->
+      <div 
+        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
+        :class="{ 'shadow-sm': !showHeaderElements }"
+      >
+        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
+          <div class="mt-4 transition-all duration-300 ease-in-out" :class="{ 'mb-4': showHeaderElements }">
+            <h1 
+              class="overflow-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out"
+              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
+            >
+              Published
+            </h1>
+          </div>
 
-        <div class="flex gap-3">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search your published quotes..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-            class="flex-1"
-          />
-          <USelect
-            v-model="sortBy"
-            :items="sortOptions"
-            placeholder="Sort"
-            size="sm"
-            item-key="label"
-            value-key="label"
-            class="w-40"
-          />
+          <!-- Search Bar with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
+          >
+            <UInput
+              v-model="searchQuery"
+              :placeholder="`Search among ${filteredQuotes.length} published ${filteredQuotes.length === 1 ? 'quote' : 'quotes'}...`"
+              leading="i-ph-magnifying-glass"
+              size="lg"
+              class="w-full"
+              rounded="4"
+              :trailing="searchQuery ? 'i-ph-x' : undefined"
+              :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+              @trailing="searchQuery = ''"
+            />
+          </div>
+
+          <!-- Filter Chips with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
+          >
+            <div class="flex items-center gap-2 overflow-x-auto py-2 px-1 scrollbar-hide">
+              <UBadge
+                :badge="sortBy.value === 'recent' ? 'solid-blue' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Most Recent', value: 'recent' }"
+              >
+                <UIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
+                Recent
+              </UBadge>
+              <UBadge
+                :badge="sortBy.value === 'oldest' ? 'soft-pink' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Oldest First', value: 'oldest' }"
+              >
+                <UIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
+                Oldest
+              </UBadge>
+              <UBadge
+                :badge="sortBy.value === 'popular' ? 'soft-blue' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Most Popular', value: 'popular' }"
+              >
+                <UIcon name="i-ph-heart" class="w-3 h-3 mr-1.5" />
+                Popular
+              </UBadge>
+              <UBadge
+                :badge="sortBy.value === 'views' ? 'soft-blue' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Most Viewed', value: 'views' }"
+              >
+                <UIcon name="i-ph-eye" class="w-3 h-3 mr-1.5" />
+                Views
+              </UBadge>
+              <UBadge
+                :badge="sortBy.value === 'author' ? 'soft-blue' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Author A-Z', value: 'author' }"
+              >
+                <UIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
+                Author
+              </UBadge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -53,16 +110,19 @@
       </div>
 
       <!-- Results -->
-      <div v-else class="px-0 pb-6">
-        <div class="px-4 pb-2 text-sm text-gray-500 dark:text-gray-400">
+      <div v-else class="px-3 pt-3 pb-6 space-y-3">
+        <div class="px-1 pb-2 text-sm text-gray-500 dark:text-gray-400">
           {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'quote' : 'quotes' }}
         </div>
 
-        <div class="divide-y divide-dashed divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+        <div class="space-y-3">
           <QuoteListItem
             v-for="quote in processedMobileQuotes"
             :key="quote.id"
             :quote="quote"
+            :actions="publishedQuoteActions"
+            @share="shareQuote"
+            @add-to-collection="addToCollection"
           />
         </div>
 
@@ -78,6 +138,14 @@
           </UButton>
         </div>
       </div>
+
+      <AddToCollectionDrawer
+        v-if="selectedQuote && isMobile"
+        :open="showAddToCollectionDrawer"
+        :quote="selectedQuote"
+        @update:open="val => (showAddToCollectionDrawer = val)"
+        @added="handleAddedToCollection"
+      />
     </div>
 
     <!-- Desktop: existing table UI -->
@@ -340,24 +408,22 @@
         </div>
       </div>
 
+      <AddToCollectionModal
+        v-if="selectedQuote && !isMobile"
+        v-model="showAddToCollectionModal"
+        :quote="selectedQuote"
+        @added="handleAddedToCollection"
+      />
+
+      <AddToCollectionBulkModal
+        v-if="selectedQuotes.length > 0"
+        v-model="showBulkAddToCollection"
+        :quote-ids="selectedQuotes"
+        @added="handleBulkAddedToCollection"
+      />
     </div>
   </div>
 </template>
-
-<!-- Modals (available for both mobile and desktop) -->
-<AddToCollectionModal
-  v-if="selectedQuote"
-  v-model="showAddToCollectionModal"
-  :quote="selectedQuote"
-  @added="handleAddedToCollection"
-/>
-
-<AddToCollectionBulkModal
-  v-if="selectedQuotes.length > 0"
-  v-model="showBulkAddToCollection"
-  :quote-ids="selectedQuotes"
-  @added="handleBulkAddedToCollection"
-/>
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~/types'
@@ -396,6 +462,26 @@ const totalPages = ref(0) // Total pages from API
 const hasMore = ref(false)
 const loadingMore = ref(false)
 
+// Scroll header state (mobile)
+const scrollY = ref(0)
+const lastScrollY = ref(0)
+const isScrollingDown = ref(false)
+const showHeaderElements = ref(true)
+
+const handleScroll = () => {
+  if (!isMobile.value) return
+  scrollY.value = window.scrollY
+  const scrollThreshold = 50
+  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
+    isScrollingDown.value = true
+    showHeaderElements.value = false
+  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
+    isScrollingDown.value = false
+    showHeaderElements.value = true
+  }
+  lastScrollY.value = scrollY.value
+}
+
 const selectionMode = ref(false)
 const rowSelection = ref<Record<string, boolean>>({})
 const selectedQuotes = computed<number[]>(() => Object
@@ -403,6 +489,7 @@ const selectedQuotes = computed<number[]>(() => Object
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
 
+const showAddToCollectionDrawer = ref(false)
 const showAddToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 const showBulkAddToCollection = ref(false)
@@ -413,6 +500,18 @@ const sortOptions = [
   { label: 'Most Popular', value: 'popular' },
   { label: 'Most Viewed', value: 'views' },
   { label: 'Author A-Z', value: 'author' }
+]
+
+const publishedQuoteActions = [
+  {
+    label: 'Share',
+    leading: 'i-ph-share'
+  },
+  { divider: true } as any,
+  {
+    label: 'Add to Collection',
+    leading: 'i-ph-folder-plus'
+  }
 ]
 
 const tableColumns = [
@@ -669,10 +768,6 @@ const onLanguageChanged = async () => {
 
 const getQuoteActions = (quote: DashboardQuote) => [
   {
-    label: 'View Public Page',
-    leading: 'i-ph-eye',
-    onclick: () => viewQuote(quote)
-  }, {
     label: 'Add to Collection',
     leading: 'i-ph-bookmark',
     onclick: () => addToCollection(quote)
@@ -685,13 +780,10 @@ const getQuoteActions = (quote: DashboardQuote) => [
   }
 ]
 
-const viewQuote = (quote: DashboardQuote) => {
-  navigateTo(`/quotes/${quote.id}`)
-}
-
 const addToCollection = (quote: DashboardQuote) => {
   selectedQuote.value = quote
-  showAddToCollectionModal.value = true
+  if (isMobile.value) showAddToCollectionDrawer.value = true
+  else showAddToCollectionModal.value = true
 }
 
 const shareQuote = (quote: DashboardQuote) => {
@@ -722,6 +814,7 @@ const handleBulkAddedToCollection = () => {
 }
 
 const handleAddedToCollection = () => {
+  showAddToCollectionDrawer.value = false
   showAddToCollectionModal.value = false
   selectedQuote.value = null
 }
@@ -735,6 +828,10 @@ onMounted(() => {
   if (isMobile.value) loadPublishedMobile(1)
   else loadPublishedQuotes()
   window.addEventListener('keydown', onKeydown)
+  // Add mobile scroll listener
+  if (isMobile.value) {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
 watch(currentLayout, (newLayout) => {
@@ -754,6 +851,9 @@ const onKeydown = (e: KeyboardEvent) => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
+  if (isMobile.value) {
+    window.removeEventListener('scroll', handleScroll)
+  }
 })
 </script>
 

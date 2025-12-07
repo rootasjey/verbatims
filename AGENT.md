@@ -24,4 +24,6 @@ Note: Legacy CLI scripts under `scripts/` were removed. Use the in-app Admin pag
 - **Styling**: UnaUI over custom CSS, dark mode with `dark:` prefixes
 - **Props**: TypeScript interfaces with `defineProps<Props>()` and `withDefaults()`
 
-Follow existing patterns in `.github/copilot-instructions.md` for detailed architecture guidance.
+## Additional Guidance
+- Don't build the app except if explicitly asked to do so.
+- Follow existing patterns in `.github/copilot-instructions.md` for detailed architecture guidance.

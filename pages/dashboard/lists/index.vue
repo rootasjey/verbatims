@@ -1,31 +1,72 @@
 <template>
   <div class="min-h-screen">
     <!-- Mobile: Collections List -->
-    <div v-if="isMobile" class="mobile-collections-page">
-      <!-- Header & Controls -->
-      <div class="p-4 pt-6">
-        <div class="text-center mb-4">
-          <h1 class="text-2xl font-600 text-gray-900 dark:text-white">Your Collections</h1>
-          <p class="text-gray-600 dark:text-gray-400">Lists you created to organize quotes</p>
-        </div>
+    <div v-if="isMobile" class="mobile-collections-page bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
+      <!-- Header with collapse on scroll -->
+      <div 
+        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
+        :class="{ 'shadow-sm': !showHeaderElements }"
+      >
+        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
+          <div class="mt-4 transition-all duration-300 ease-in-out" :class="{ 'mb-2': showHeaderElements }">
+            <h1 
+              class="overflow-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out"
+              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
+            >
+              Collections
+            </h1>
+          </div>
 
-        <div class="flex gap-3">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search your lists..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-            class="flex-1"
-          />
-          <USelect
-            v-model="visibilityFilter"
-            :items="visibilityOptions"
-            placeholder="Visibility"
-            size="sm"
-            item-key="label"
-            value-key="label"
-            class="w-40"
-          />
+          <!-- Search Bar with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
+          >
+            <UInput
+              v-model="searchQuery"
+              :placeholder="`Search among ${filteredCollections.length} ${filteredCollections.length === 1 ? 'list' : 'lists'}...`"
+              leading="i-ph-magnifying-glass"
+              size="lg"
+              class="w-full"
+              rounded="4"
+              :trailing="searchQuery ? 'i-ph-x' : undefined"
+              :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+              @trailing="searchQuery = ''"
+            />
+          </div>
+
+          <!-- Filter Chips with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
+          >
+            <div class="flex items-center gap-2 overflow-x-auto py-2 px-1 scrollbar-hide">
+              <UBadge
+                :badge="visibilityFilter.value === 'all' ? 'solid-blue' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="visibilityFilter = { label: 'All Lists', value: 'all' }"
+              >
+                <UIcon name="i-ph-list" class="w-3 h-3 mr-1.5" />
+                All
+              </UBadge>
+              <UBadge
+                :badge="visibilityFilter.value === 'public' ? 'soft-green' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="visibilityFilter = { label: 'Public Only', value: 'public' }"
+              >
+                <UIcon name="i-ph-globe" class="w-3 h-3 mr-1.5" />
+                Public
+              </UBadge>
+              <UBadge
+                :badge="visibilityFilter.value === 'private' ? 'soft-pink' : 'outline-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="visibilityFilter = { label: 'Private Only', value: 'private' }"
+              >
+                <UIcon name="i-ph-lock" class="w-3 h-3 mr-1.5" />
+                Private
+              </UBadge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -53,39 +94,52 @@
       </div>
 
       <!-- Results -->
-      <div v-else class="px-0 pb-6">
-        <div class="px-4 pb-2 text-sm text-gray-500 dark:text-gray-400">
+      <div v-else class="px-3 pt-3 pb-6 space-y-3">
+        <div class="px-1 pb-2 text-sm text-gray-500 dark:text-gray-400">
           {{ filteredCollections.length }} {{ filteredCollections.length === 1 ? 'list' : 'lists' }}
         </div>
 
-        <div class="divide-y divide-dashed divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-          <button
+        <div class="space-y-3">
+          <div
             v-for="collection in filteredCollections"
             :key="collection.id"
-            class="w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            class="group dark:bg-[#0F0D0B] rounded-2
+              border border-gray-200 b-dashed dark:border-gray-800 p-4 transition-all duration-200 hover:shadow-md select-none cursor-pointer"
             @click="navigateToCollection(collection)"
+            @contextmenu.prevent="handleCollectionLongPress(collection)"
           >
-            <div class="flex items-start justify-between">
+            <div class="flex items-start gap-3">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
-                  <UIcon name="i-ph-bookmark-simple" class="w-5 h-5 text-blue-500" />
-                  <h3 class="font-600 text-gray-900 dark:text-white truncate">{{ collection.name }}</h3>
+                  <h3 class="font-sans text-size-5 font-400 text-gray-900 dark:text-white truncate line-height-tight">{{ collection.name }}</h3>
                 </div>
-                <p v-if="collection.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
+                <p v-if="collection.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
                   {{ collection.description }}
                 </p>
-                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }} · Updated {{ formatDate(collection.updated_at) }}
+                <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                  <UBadge :badge="collection.is_public ? 'outline-green' : 'outline-red'" size="xs">
+                    <UIcon :name="collection.is_public ? 'i-ph-eye-duotone' : 'i-ph-lock-duotone'" />
+                  </UBadge>
+                  <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+                  <span>·</span>
+                  <span>Updated {{ formatDate(collection.updated_at) }}</span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 pl-3">
-                <UBadge :color="collection.is_public ? 'green' : 'gray'" variant="subtle" size="xs">
-                  {{ collection.is_public ? 'Public' : 'Private' }}
-                </UBadge>
-                <UIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400" />
+              
+              <div class="flex items-center gap-2 flex-shrink-0 -mt-1">
+                <UDropdownMenu :items="getMobileCollectionActions(collection)">
+                  <UButton
+                    icon
+                    btn="ghost"
+                    size="sm"
+                    label="i-ph-dots-three-vertical"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity"
+                    @click.stop
+                  />
+                </UDropdownMenu>
               </div>
             </div>
-          </button>
+          </div>
         </div>
 
         <div v-if="hasMore" class="px-4 pt-6">
@@ -184,8 +238,7 @@
                 </div>
                 <div class="flex items-center space-x-2">
                   <UBadge
-                    :color="collection.is_public ? 'green' : 'gray'"
-                    variant="subtle"
+                    :badge="collection.is_public ? 'outline-green' : 'outline-red'"
                     size="xs"
                   >
                     {{ collection.is_public ? 'Public' : 'Private' }}
@@ -285,6 +338,15 @@
         </template>
       </UCard>
     </UDialog>
+
+    <!-- Collection Actions Drawer (Mobile) -->
+    <CollectionActionsDrawer
+      v-model:open="showActionsDrawer"
+      :collection="selectedCollection"
+      @view="handleViewFromDrawer"
+      @edit="handleEditFromDrawer"
+      @delete="handleDeleteFromDrawer"
+    />
   </div>
 </template>
 
@@ -320,7 +382,28 @@ const currentPage = ref(1)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const showActionsDrawer = ref(false)
 const selectedCollection = ref<DashboardCollection | null>(null)
+
+// Scroll header state (mobile)
+const scrollY = ref(0)
+const lastScrollY = ref(0)
+const isScrollingDown = ref(false)
+const showHeaderElements = ref(true)
+
+const handleScroll = () => {
+  if (!isMobile.value) return
+  scrollY.value = window.scrollY
+  const scrollThreshold = 50
+  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
+    isScrollingDown.value = true
+    showHeaderElements.value = false
+  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
+    isScrollingDown.value = false
+    showHeaderElements.value = true
+  }
+  lastScrollY.value = scrollY.value
+}
 
 const visibilityOptions = [
   { label: 'All Lists', value: 'all' },
@@ -392,6 +475,25 @@ const getCollectionActions = (collection: DashboardCollection) => [
   },
 ]
 
+const getMobileCollectionActions = (collection: DashboardCollection) => [
+  {
+    label: 'View',
+    leading: 'i-ph-eye',
+    onclick: () => navigateToCollection(collection)
+  },
+  {
+    label: 'Edit',
+    leading: 'i-ph-pencil',
+    onclick: () => editCollection(collection)
+  },
+  {}, // divider
+  {
+    label: 'Delete',
+    leading: 'i-ph-trash',
+    onclick: () => confirmDelete(collection)
+  },
+]
+
 const editCollection = (collection: DashboardCollection) => {
   selectedCollection.value = collection
   showEditModal.value = true
@@ -439,12 +541,42 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
+// Context menu handler
+const handleCollectionLongPress = (collection: DashboardCollection) => {
+  selectedCollection.value = collection
+  showActionsDrawer.value = true
+}
+
+// Drawer action handlers
+const handleViewFromDrawer = () => {
+  if (selectedCollection.value) {
+    navigateToCollection(selectedCollection.value)
+  }
+}
+
+const handleEditFromDrawer = () => {
+  showEditModal.value = true
+}
+
+const handleDeleteFromDrawer = () => {
+  showDeleteModal.value = true
+}
+
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadCollections()
+  if (isMobile.value) {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
 watch(currentLayout, (newLayout) => setPageLayout(newLayout))
+
+onBeforeUnmount(() => {
+  if (isMobile.value) {
+    window.removeEventListener('scroll', handleScroll)
+  }
+})
 </script>
 
 <style scoped>

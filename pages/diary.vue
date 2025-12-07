@@ -57,7 +57,7 @@
           <NuxtLink
             to="/dashboard/favourites"
             class="flex items-center justify-between w-full px-4 py-2
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
@@ -75,7 +75,7 @@
           <NuxtLink
             to="/dashboard/lists"
             class="flex items-center justify-between w-full  px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
@@ -93,7 +93,7 @@
           <NuxtLink
             to="/dashboard/my-quotes/drafts"
             class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
@@ -116,7 +116,7 @@
           <NuxtLink
             to="/dashboard/my-quotes/pending"
             class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
@@ -139,7 +139,7 @@
           <NuxtLink
             to="/dashboard/my-quotes/published"
             class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">

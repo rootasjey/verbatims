@@ -4,7 +4,19 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact author title and context -->
-        <div @click.stop="scrollToTop" class="min-w-0 flex items-center gap-3">
+        <div @click.stop="$emit('scroll-to-top')" class="min-w-0 flex items-center gap-3">
+          <UTooltip content="Back to authors list" :_tooltip-content="{ side: 'bottom' }">
+            <UButton
+              icon
+              btn="ghost-gray"
+              size="xs"
+              class="min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
+              @click.stop="$emit('navigate-back')"
+            >
+              <UIcon name="i-ph-arrow-left-bold" />
+            </UButton>
+          </UTooltip>
+
           <UIcon name="i-ph-person-simple-hike-duotone" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
             <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
@@ -34,7 +46,7 @@
               size="xs"
               :disabled="sharePending"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
-              @click="shareAuthor"
+              @click="$emit('share-author')"
             >
               <UIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
               <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(author.shares_count || 0) }}</span>
@@ -53,7 +65,7 @@
                   : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
                 !user && 'cursor-not-allowed opacity-50'
               ]"
-              @click="toggleLike"
+              @click="$emit('toggle-like')"
             >
               <UIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
               <span>{{ formatNumber(author.likes_count || 0) }}</span>
@@ -68,7 +80,7 @@
               :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
               size="xs"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
-              @click="copyLink"
+              @click="$emit('copy-link')"
             >
               <UIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
               <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
@@ -118,11 +130,16 @@ interface Props {
   // Functions passed from parent
   formatLifeDates: (birthDate?: string | null, deathDate?: string | null) => string
   formatNumber: (num?: number | null) => string
-  scrollToTop: () => void
-  shareAuthor: () => void
-  toggleLike: () => void
-  copyLink: () => void
+}
+
+interface Emits {
+  (e: 'navigate-back'): void
+  (e: 'scroll-to-top'): void
+  (e: 'share-author'): void
+  (e: 'toggle-like'): void
+  (e: 'copy-link'): void
 }
 
 defineProps<Props>()
+defineEmits<Emits>()
 </script>

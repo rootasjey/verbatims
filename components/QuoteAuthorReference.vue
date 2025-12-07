@@ -20,6 +20,7 @@
         <UBadge
           v-if="quote.author.is_fictional"
           class="mt-1"
+          badge="solid-blue"
           label="Fictional Character"
         />
       </div>
