@@ -5,7 +5,7 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Author Name (search)
       </label>
-      <UInput
+      <NInput
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
         placeholder="Search by author name"
@@ -18,7 +18,7 @@
         Author Type
       </label>
       <div>
-        <USelect
+        <NSelect
           :model-value="modelValue.is_fictional"
           @update:model-value="updateFilter('is_fictional', $event)"
           :items="fictionalOptions"
@@ -34,7 +34,7 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Job/Profession (search)
       </label>
-      <UInput
+      <NInput
         :model-value="modelValue.job"
         @update:model-value="updateFilter('job', $event)"
         placeholder="Search by job or profession"
@@ -47,13 +47,13 @@
         Creation Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <UInput
+        <NInput
           :model-value="modelValue.date_range?.start"
           @update:model-value="updateDateRange('date_range', 'start', $event)"
           type="date"
           placeholder="Start date"
         />
-        <UInput
+        <NInput
           :model-value="modelValue.date_range?.end"
           @update:model-value="updateDateRange('date_range', 'end', $event)"
           type="date"
@@ -68,13 +68,13 @@
         Birth Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <UInput
+        <NInput
           :model-value="modelValue.birth_date_range?.start"
           @update:model-value="updateDateRange('birth_date_range', 'start', $event)"
           type="date"
           placeholder="Birth start date"
         />
-        <UInput
+        <NInput
           :model-value="modelValue.birth_date_range?.end"
           @update:model-value="updateDateRange('birth_date_range', 'end', $event)"
           type="date"
@@ -89,13 +89,13 @@
         Death Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <UInput
+        <NInput
           :model-value="modelValue.death_date_range?.start"
           @update:model-value="updateDateRange('death_date_range', 'start', $event)"
           type="date"
           placeholder="Death start date"
         />
-        <UInput
+        <NInput
           :model-value="modelValue.death_date_range?.end"
           @update:model-value="updateDateRange('death_date_range', 'end', $event)"
           type="date"
@@ -110,7 +110,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Birth Location (search)
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.birth_location"
           @update:model-value="updateFilter('birth_location', $event)"
           placeholder="Search by birth location"
@@ -121,7 +121,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Death Location (search)
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.death_location"
           @update:model-value="updateFilter('death_location', $event)"
           placeholder="Search by death location"
@@ -135,7 +135,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Minimum Views
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.min_views"
           @update:model-value="updateFilter('min_views', $event ? parseInt($event) : 0)"
           type="number"
@@ -148,7 +148,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Minimum Likes
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.min_likes"
           @update:model-value="updateFilter('min_likes', $event ? parseInt($event) : 0)"
           type="number"
@@ -161,7 +161,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Minimum Quotes
         </label>
-        <UInput
+        <NInput
           :model-value="modelValue.min_quotes"
           @update:model-value="updateFilter('min_quotes', $event ? parseInt($event) : 0)"
           type="number"

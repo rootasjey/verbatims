@@ -20,9 +20,9 @@ export type ExportDataType = 'all' | 'authors' | 'quotes' | 'references' | 'tags
  */
 export interface ExportDateRange {
   /** Start date in YYYY-MM-DD format */
-  start: string
+  start?: string
   /** End date in YYYY-MM-DD format */
-  end: string
+  end?: string
 }
 
 /**
@@ -38,7 +38,7 @@ export interface QuoteExportFilters {
   /** Filter by quote language */
   language?: QuoteLanguage | QuoteLanguage[]
   /** Filter by date range */
-  date_range: ExportDateRange
+  date_range?: ExportDateRange
   /** Filter by specific user ID who created the quote */
   user_id?: number
   /** Filter by moderator ID */

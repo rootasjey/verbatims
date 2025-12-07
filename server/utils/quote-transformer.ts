@@ -1,12 +1,10 @@
-import { 
+import type { 
   AdminQuote, 
   DatabaseAdminQuote, 
   DatabaseQuoteWithRelations, 
   QuoteReferencePrimaryType, 
   QuoteWithMetadata, 
-} from "~/types"
-
-/**
+} from "~/types"/**
  * Transform basic database quote results into frontend-ready format
  */
 export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWithMetadata[] {
@@ -51,7 +49,7 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
  */
 export function transformAdminQuotes(quotes: DatabaseAdminQuote[]): AdminQuote[] {
   return quotes.map((quote): AdminQuote => {
-    const baseQuote = transformQuotes([quote])[0]
+    const baseQuote = transformQuotes([quote])[0]!
 
     return {
       ...baseQuote,

@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
       message: 'View tracked'
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

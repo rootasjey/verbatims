@@ -8,16 +8,16 @@
         <span class="truncate text-sm font-600 text-gray-900 dark:text-white">
           {{ author.name }}
         </span>
-        <UTooltip v-if="author.is_fictional">
+        <NTooltip v-if="author.is_fictional">
           <template #default>
-            <UIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
+            <NIcon name="i-ph-asterisk-bold" size="xs" class="text-primary hover:animate-spin" />
           </template>
           <template #content>
             <div class="text-sm">
               This author is fictional
             </div>
           </template>
-        </UTooltip>
+        </NTooltip>
       </div>
       <p
         v-if="author.is_fictional && author.origin_reference_name"
@@ -29,7 +29,7 @@
         {{ author.job }}
       </p>
     </div>
-    <UIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+    <NIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
   </NuxtLink>
 </template>
 

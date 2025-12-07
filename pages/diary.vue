@@ -33,7 +33,7 @@
           >
             <div class="flex items-center space-x-3">
               <div class="text-left">
-                <UIcon name="i-ph-megaphone-simple-duotone" class="w-6 h-6 text-amber dark:text-amber-400" />
+                <NIcon name="i-ph-megaphone-simple-duotone" class="w-6 h-6 text-amber dark:text-amber-400" />
                 <h3 class="font-600 text-gray-900 dark:text-white">Share Feedback</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Provide your thoughts on the app</p>
               </div>
@@ -45,7 +45,7 @@
           >
             <div class="flex items-center space-x-3">
               <div class="text-left">
-                <UIcon name="i-ph-quotes" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <NIcon name="i-ph-quotes" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 <h3 class="font-600 text-gray-900 dark:text-white">Add a Quote</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">Share an inspiring quote</p>
               </div>
@@ -57,48 +57,48 @@
           <NuxtLink
             to="/dashboard/favourites"
             class="flex items-center justify-between w-full px-4 py-2
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-heart-duotone" class="group-hover:text-red-500" />
+                <NIcon name="i-ph-heart-duotone" class="group-hover:text-red-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">Favourites</h3>
                 <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Your liked quotes</p>
               </div>
             </div>
-            <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
           </NuxtLink>
 
           <NuxtLink
             to="/dashboard/lists"
             class="flex items-center justify-between w-full  px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-bookmark-duotone" class="group-hover:text-blue-500" />
+                <NIcon name="i-ph-bookmark-duotone" class="group-hover:text-blue-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">Collections</h3>
                 <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Organize your quotes</p>
               </div>
             </div>
-            <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
           </NuxtLink>
 
           <NuxtLink
             to="/dashboard/my-quotes/drafts"
             class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-pencil-duotone" class="text-gray-500" />
+                <NIcon name="i-ph-pencil-duotone" class="text-gray-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">Drafts</h3>
@@ -106,22 +106,22 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <UBadge v-if="userStats.draft > 0" color="gray" variant="subtle" size="xs">
+              <NBadge v-if="userStats.draft > 0" color="gray" variant="subtle" size="xs">
                 {{ userStats.draft }}
-              </UBadge>
-              <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+              </NBadge>
+              <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
             </div>
           </NuxtLink>
 
           <NuxtLink
             to="/dashboard/my-quotes/pending"
             class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-clock-duotone" class="group-hover:text-yellow-500" />
+                <NIcon name="i-ph-clock-duotone" class="group-hover:text-yellow-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">Pending</h3>
@@ -129,22 +129,22 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <UBadge v-if="userStats.pending > 0" color="yellow" variant="subtle" size="xs">
+              <NBadge v-if="userStats.pending > 0" color="yellow" variant="subtle" size="xs">
                 {{ userStats.pending }}
-              </UBadge>
-              <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+              </NBadge>
+              <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
             </div>
           </NuxtLink>
 
           <NuxtLink
             to="/dashboard/my-quotes/published"
             class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
+            bg-[#F5F5F4] dark:bg-gray-900
             rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-check-circle-duotone" class="group-hover:text-green-500" />
+                <NIcon name="i-ph-check-circle-duotone" class="group-hover:text-green-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">Published</h3>
@@ -152,10 +152,10 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <UBadge v-if="userStats.approved > 0" color="green" variant="subtle" size="xs">
+              <NBadge v-if="userStats.approved > 0" color="green" variant="subtle" size="xs">
                 {{ userStats.approved }}
-              </UBadge>
-              <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+              </NBadge>
+              <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
             </div>
           </NuxtLink>
 
@@ -167,14 +167,14 @@
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-gear-duotone" class="text-gray-500" />
+                <NIcon name="i-ph-gear-duotone" class="text-gray-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">Settings</h3>
                 <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Account preferences</p>
               </div>
             </div>
-            <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
           </NuxtLink>
 
           <NuxtLink
@@ -185,14 +185,14 @@
           >
             <div class="flex items-center space-x-5">
               <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <UIcon name="i-ph-info-duotone" class="group-hover:text-blue-500" />
+                <NIcon name="i-ph-info-duotone" class="group-hover:text-blue-500" />
               </div>
               <div class="text-left">
                 <h3 class="font-600 text-gray-900 dark:text-white">About</h3>
                 <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Learn more about Verbatims</p>
               </div>
             </div>
-            <UIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
           </NuxtLink>
         </div>
       </div>
@@ -201,12 +201,12 @@
     <!-- Desktop: Redirect to dashboard -->
     <div v-else class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <UIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">Desktop Dashboard</h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">Access your full dashboard on desktop</p>
-        <UButton btn="solid-black" @click="navigateTo('/dashboard')">
+        <NButton btn="solid-black" @click="navigateTo('/dashboard')">
           Go to Dashboard
-        </UButton>
+        </NButton>
       </div>
     </div>
 

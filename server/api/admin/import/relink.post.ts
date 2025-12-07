@@ -55,16 +55,16 @@ export default defineEventHandler(async (event) => {
   updateAdminImport(importId, { status: 'processing', totalRecords: total })
 
   // Run only linking/imports that are safe idempotent and do not require wiping core tables
-  try { if (counts.quote_tags) await importQuoteTagsInline(importId, parsed!.quote_tags, options) } catch (e: any) { addAdminImportError(importId, `quote_tags failed: ${e.message}`) }
-  try { if (counts.user_likes) await importUserLikesInline(importId, parsed!.user_likes, options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_likes failed: ${e.message}`) }
-  try { if (counts.user_collections) await importUserCollectionsInline(importId, parsed!.user_collections, options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_collections failed: ${e.message}`) }
-  try { if (counts.collection_quotes) await importCollectionQuotesInline(importId, parsed!.collection_quotes, options) } catch (e: any) { addAdminImportError(importId, `collection_quotes failed: ${e.message}`) }
-  try { if (counts.user_sessions) await importUserSessionsInline(importId, parsed!.user_sessions, options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_sessions failed: ${e.message}`) }
-  try { if (counts.user_messages) await importUserMessagesInline(importId, parsed!.user_messages, options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_messages failed: ${e.message}`) }
-  try { if (counts.quote_reports) await importQuoteReportsInline(importId, parsed!.quote_reports, options) } catch (e: any) { addAdminImportError(importId, `quote_reports failed: ${e.message}`) }
-  try { if (counts.quote_views) await importQuoteViewsInline(importId, parsed!.quote_views, options) } catch (e: any) { addAdminImportError(importId, `quote_views failed: ${e.message}`) }
-  try { if (counts.author_views) await importAuthorViewsInline(importId, parsed!.author_views, options) } catch (e: any) { addAdminImportError(importId, `author_views failed: ${e.message}`) }
-  try { if (counts.reference_views) await importReferenceViewsInline(importId, parsed!.reference_views, options) } catch (e: any) { addAdminImportError(importId, `reference_views failed: ${e.message}`) }
+  try { if (counts.quote_tags) await importQuoteTagsInline(importId, parsed?.quote_tags ?? [], options) } catch (e: any) { addAdminImportError(importId, `quote_tags failed: ${e.message}`) }
+  try { if (counts.user_likes) await importUserLikesInline(importId, parsed?.user_likes ?? [], options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_likes failed: ${e.message}`) }
+  try { if (counts.user_collections) await importUserCollectionsInline(importId, parsed?.user_collections ?? [], options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_collections failed: ${e.message}`) }
+  try { if (counts.collection_quotes) await importCollectionQuotesInline(importId, parsed?.collection_quotes ?? [], options) } catch (e: any) { addAdminImportError(importId, `collection_quotes failed: ${e.message}`) }
+  try { if (counts.user_sessions) await importUserSessionsInline(importId, parsed?.user_sessions ?? [], options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_sessions failed: ${e.message}`) }
+  try { if (counts.user_messages) await importUserMessagesInline(importId, parsed?.user_messages ?? [], options, String(user.id)) } catch (e: any) { addAdminImportError(importId, `user_messages failed: ${e.message}`) }
+  try { if (counts.quote_reports) await importQuoteReportsInline(importId, parsed?.quote_reports ?? [], options) } catch (e: any) { addAdminImportError(importId, `quote_reports failed: ${e.message}`) }
+  try { if (counts.quote_views) await importQuoteViewsInline(importId, parsed?.quote_views ?? [], options) } catch (e: any) { addAdminImportError(importId, `quote_views failed: ${e.message}`) }
+  try { if (counts.author_views) await importAuthorViewsInline(importId, parsed?.author_views ?? [], options) } catch (e: any) { addAdminImportError(importId, `author_views failed: ${e.message}`) }
+  try { if (counts.reference_views) await importReferenceViewsInline(importId, parsed?.reference_views ?? [], options) } catch (e: any) { addAdminImportError(importId, `reference_views failed: ${e.message}`) }
 
   updateAdminImport(importId, { status: 'completed', completedAt: new Date() })
 

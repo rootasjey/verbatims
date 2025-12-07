@@ -130,7 +130,7 @@ export default defineEventHandler(async (event) => {
     console.error('Admin user creation error:', error)
     
     // If it's already a createError, re-throw it
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
 

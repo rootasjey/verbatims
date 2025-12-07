@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
       message: 'Quote deleted successfully'
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

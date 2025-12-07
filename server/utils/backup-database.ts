@@ -4,7 +4,6 @@ import type {
   CreateBackupFileData,
   BackupStorageStatus
 } from '~/types'
-
 export async function createBackupFile(db: any, data: CreateBackupFileData): Promise<number> {
   try {
     await ensureBackupFilesTable(db)

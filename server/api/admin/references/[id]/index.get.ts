@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, data: transformed }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error fetching admin reference details:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to fetch reference' })
   }

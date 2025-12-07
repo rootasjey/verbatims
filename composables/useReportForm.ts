@@ -49,7 +49,7 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     const targetId = (unref(options.targetId) ?? null) as number | null
 
     const payload: any = {
-      category: form.value.category.value as ReportCategory,
+      category: (form.value.category?.value ?? categories[0]!.value) as ReportCategory,
       message: form.value.message.trim(),
       tags: tagsInput.value
         .split(',')

@@ -1,5 +1,4 @@
-import { User } from '#auth-utils'
-
+import type { User } from '#auth-utils'
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)

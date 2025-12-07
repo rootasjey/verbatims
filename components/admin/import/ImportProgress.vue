@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6">
     <!-- Progress Card -->
-    <UCard>
+    <NCard>
       <template #header>
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-semibold">Import Progress</h2>
-          <UBadge
+          <NBadge
             :color="getStatusColor(progress?.status)"
             :label="progress?.status?.toUpperCase() || 'UNKNOWN'"
           />
@@ -84,35 +84,35 @@
 
         <!-- Action Buttons -->
   <div class="flex flex-wrap items-center gap-3">
-          <UButton
+          <NButton
             v-if="progress.status === 'processing'"
             btn="outline"
             color="red"
             @click="cancelImport"
           >
             Cancel Import
-          </UButton>
+          </NButton>
 
-          <UButton
+          <NButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
             btn="outline"
             color="yellow"
             @click="showFailedRecords = true"
           >
             View Failed Records
-          </UButton>
+          </NButton>
 
-          <UButton
+          <NButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
             btn="soft-blue"
             @click="downloadUnresolved"
           >
             Download Unresolved Rows
-          </UButton>
+          </NButton>
 
           <div v-if="progress.status === 'completed' && progress.failedRecords > 0" class="flex items-center gap-2">
             <span class="text-xs text-gray-500">Format</span>
-            <URadio
+            <NRadio
               v-model="reportFormat"
               :items="[
                 { label: 'NDJSON', value: 'ndjson' },
@@ -122,33 +122,33 @@
             />
           </div>
 
-          <UButton
+          <NButton
             v-if="progress.status === 'completed' && progress.failedRecords > 0"
             btn="soft-indigo"
             @click="downloadReport"
           >
             Download Report
-          </UButton>
+          </NButton>
 
-          <UButton
+          <NButton
             v-if="progress.status === 'failed'"
             btn="outline"
             color="blue"
             @click="retryImport"
           >
             Retry Import
-          </UButton>
+          </NButton>
         </div>
       </div>
 
       <div v-else class="text-center py-8">
-        <UIcon name="i-ph-spinner" class="animate-spin text-2xl mb-2" />
+        <NIcon name="i-ph-spinner" class="animate-spin text-2xl mb-2" />
         <p>Loading import progress...</p>
       </div>
-    </UCard>
+    </NCard>
 
     <!-- Recent Errors -->
-  <UCard v-if="recentErrors.length > 0">
+  <NCard v-if="recentErrors.length > 0">
       <template #header>
         <h3 class="text-lg font-semibold text-red-600">Recent Errors</h3>
       </template>
@@ -165,10 +165,10 @@
           ... and {{ errorCount - recentErrors.length }} more errors
         </div>
       </div>
-    </UCard>
+    </NCard>
 
     <!-- Recent Warnings -->
-  <UCard v-if="recentWarnings.length > 0">
+  <NCard v-if="recentWarnings.length > 0">
       <template #header>
         <h3 class="text-lg font-semibold text-yellow-600">Recent Warnings</h3>
       </template>
@@ -185,11 +185,11 @@
           ... and {{ warningCount - recentWarnings.length }} more warnings
         </div>
       </div>
-    </UCard>
+    </NCard>
 
     <!-- Failed Records Dialog -->
-    <UDialog v-model:open="showFailedRecords">
-      <UCard>
+    <NDialog v-model:open="showFailedRecords">
+      <NCard>
         <template #header>
           <h3 class="text-lg font-semibold">Failed Records</h3>
         </template>
@@ -206,11 +206,11 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <UButton @click="showFailedRecords = false">Close</UButton>
+            <NButton @click="showFailedRecords = false">Close</NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
   </div>
 </template>
 

@@ -125,9 +125,11 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
           processedRecords: Math.min((p.processedRecords + sub.length), p.totalRecords)
         })
       } catch (e: any) {
-        for (let idx = 0; idx < stmts.length; idx++) {
+          for (let idx = 0; idx < stmts.length; idx++) {
           try {
-            await stmts[idx].run()
+            const s = stmts[idx]
+            if (!s) continue
+            await s.run()
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -218,7 +220,7 @@ export async function processImportTags(
 export async function parseTagsCsv(csvData: string): Promise<any[]> {
   const lines = String(csvData || '').trim().split('\n')
   if (lines.length < 2) return []
-  const headers = parseCSVLine(lines[0])
+  const headers = parseCSVLine(lines[0] ?? '')
   return lines.slice(1).map(line => {
     const values = parseCSVLine(line)
     const obj: any = {}
@@ -250,11 +252,16 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
   const fieldRegex = new RegExp('<([a-zA-Z0-9_]+)>([\\s\\S]*?)<\\/([a-zA-Z0-9_]+)>', 'g')
   let m: RegExpExecArray | null
   while ((m = itemRegex.exec(xml))) {
+    if (!m) continue
     const obj: any = {}
     let fm: RegExpExecArray | null
-    while ((fm = fieldRegex.exec(m[1]))) {
-      if (fm[1] !== fm[3]) continue
-      obj[fm[1]] = fm[2]
+    const xmlBlock = String(m[1] ?? '')
+    while ((fm = fieldRegex.exec(xmlBlock))) {
+      if (!fm) continue
+      const key = String(fm[1] ?? '')
+      const val = String(fm[2] ?? '')
+      if (key !== String(fm[3] ?? '')) continue
+      obj[key] = val
         .replace(/&lt;/g,'<')
         .replace(/&gt;/g,'>')
         .replace(/&amp;/g,'&')

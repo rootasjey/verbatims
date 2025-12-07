@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
       message: `Unpublished ${updatedCount} quote(s)`
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Admin unpublish quotes error:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to unpublish quotes' })
   }

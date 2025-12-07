@@ -1,23 +1,38 @@
 <template>
   <div class="min-h-screen">
     <!-- Mobile: Collection Detail -->
-    <div v-if="isMobile" class="mobile-collection-detail">
-      <div class="p-4 pt-6">
-        <div class="mb-3 flex items-center gap-2">
-          <UButton icon btn="ghost" size="sm" aria-label="Back" to="/dashboard/lists">
-            <UIcon name="i-ph-caret-left" />
-          </UButton>
-          <h1 class="text-xl font-600 text-gray-900 dark:text-white truncate">{{ collection?.name || 'Collection' }}</h1>
-        </div>
-        <p v-if="collection?.description" class="text-sm text-gray-600 dark:text-gray-400">
-          {{ collection.description }}
-        </p>
-        <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          {{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}
-          <span class="mx-1">·</span>
-          <UBadge :color="collection?.is_public ? 'green' : 'gray'" variant="subtle" size="xs">
-            {{ collection?.is_public ? 'Public' : 'Private' }}
-          </UBadge>
+    <div v-if="isMobile" class="mobile-collection-detail bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
+      <!-- Header with collapse on scroll -->
+      <div 
+        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
+        :class="{ 'shadow-sm': !showHeaderElements }"
+      >
+        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
+          <div class="mt-3 flex items-center gap-2">
+            <h1 
+              class="overflow-x-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out truncate flex-1"
+              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
+            >
+              {{ collection?.name || 'Collection' }}
+            </h1>
+          </div>
+
+          <!-- Description and metadata with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'"
+          >
+            <p v-if="collection?.description" class="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+              {{ collection.description }}
+            </p>
+            <div class="flex items-center gap-2 py-1 text-xs text-gray-500 dark:text-gray-400">
+              <span>{{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+              <span>·</span>
+              <NBadge :badge="collection?.is_public ? 'outline-green' : 'outline-red'" size="xs" rounded="full">
+                {{ collection?.is_public ? 'Public' : 'Private' }}
+              </NBadge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -31,22 +46,24 @@
 
       <!-- Empty -->
       <div v-else-if="(collection?.quotes?.length || 0) === 0" class="text-center py-16 px-4">
-        <UIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No quotes yet</h3>
         <p class="text-gray-600 dark:text-gray-400">Add quotes to this collection from any quote page.</p>
       </div>
 
       <!-- Quotes List -->
-      <div v-else class="px-0 pb-6">
-        <div class="divide-y divide-dashed divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-          <QuoteListItem
-            v-for="quote in processedMobileQuotes"
-            :key="quote.id"
-            :quote="quote"
-          />
-        </div>
-        <div v-if="hasMore" class="px-4 pt-6">
-          <UButton
+      <div v-else class="px-3 pt-3 pb-6 space-y-3">
+        <QuoteListItem
+          v-for="quote in processedMobileQuotes"
+          :key="quote.id"
+          :quote="quote"
+          :actions="collectionQuoteActions"
+          @share="handleShareQuote"
+          @remove-from-collection="handleRemoveFromCollection"
+        />
+        
+        <div v-if="hasMore" class="pt-3">
+          <NButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -54,7 +71,7 @@
             @click="loadMoreQuotes"
           >
             Load More
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
@@ -77,43 +94,43 @@
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
                   {{ collection.name }}
                 </h1>
-                <UBadge v-if="collection.is_public" color="green" variant="subtle">Public</UBadge>
+                <NBadge v-if="collection.is_public" color="green" variant="subtle">Public</NBadge>
               </div>
               <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                 {{ collection.description }}
               </p>
               <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <UIcon name="i-ph-quotes" class="w-4 h-4" />
+                  <NIcon name="i-ph-quotes" class="w-4 h-4" />
                   {{ collection.quotes_count }} quotes
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <UIcon name="i-ph-calendar-plus" class="w-4 h-4" />
+                  <NIcon name="i-ph-calendar-plus" class="w-4 h-4" />
                   Created {{ formatDate(collection.created_at) }}
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <UIcon name="i-ph-clock" class="w-4 h-4" />
+                  <NIcon name="i-ph-clock" class="w-4 h-4" />
                   Updated {{ formatDate(collection.updated_at) }}
                 </span>
               </div>
             </div>
 
             <div class="flex items-center gap-2">
-              <UButton btn="outline" @click="shareCollection">
-                <UIcon name="i-ph-share" />
+              <NButton btn="outline" @click="shareCollection">
+                <NIcon name="i-ph-share" />
                 Share
-              </UButton>
-              <UDropdownMenu :items="collectionActions">
-                <UButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-              </UDropdownMenu>
+              </NButton>
+              <NDropdownMenu :items="collectionActions">
+                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              </NDropdownMenu>
             </div>
           </div>
 
           <!-- Back Button -->
-          <UButton btn="ghost" size="sm" to="/dashboard/lists">
-            <UIcon name="i-ph-arrow-left" />
+          <NButton btn="ghost" size="sm" to="/dashboard/lists">
+            <NIcon name="i-ph-arrow-left" />
             Back to Lists
-          </UButton>
+          </NButton>
         </div>
 
         <!-- Quotes Grid -->
@@ -128,15 +145,15 @@
 
           <!-- Load More -->
           <div v-if="hasMore" class="text-center mt-8">
-            <UButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
+            <NButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
               Load More Quotes
-            </UButton>
+            </NButton>
           </div>
         </div>
 
         <!-- Empty State -->
         <div v-else class="text-center py-12">
-          <UIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <NIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
             No quotes in this collection
           </h3>
@@ -148,14 +165,14 @@
 
       <!-- Error State -->
       <div v-else class="text-center py-12">
-        <UIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
+        <NIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Collection not found
         </h3>
         <p class="text-gray-500 dark:text-gray-400 mb-6">
           The collection you're looking for doesn't exist or is not public.
         </p>
-        <UButton to="/dashboard/lists">Back to Lists</UButton>
+        <NButton to="/dashboard/lists">Back to Lists</NButton>
       </div>
     </div>
   </div>
@@ -191,6 +208,26 @@ const loading = ref(true)
 const loadingMore = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
+
+// Scroll header state (mobile)
+const scrollY = ref(0)
+const lastScrollY = ref(0)
+const isScrollingDown = ref(false)
+const showHeaderElements = ref(true)
+
+const handleScroll = () => {
+  if (!isMobile.value) return
+  scrollY.value = window.scrollY
+  const scrollThreshold = 50
+  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
+    isScrollingDown.value = true
+    showHeaderElements.value = false
+  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
+    isScrollingDown.value = false
+    showHeaderElements.value = true
+  }
+  lastScrollY.value = scrollY.value
+}
 
 const loadCollection = async (reset = true) => {
   try {
@@ -283,6 +320,60 @@ const collectionActions = computed(() => ([
   }
 ]))
 
+const collectionQuoteActions = [
+  {
+    label: 'Share',
+    leading: 'i-ph-share'
+  },
+  { divider: true } as any,
+  {
+    label: 'Remove from Collection',
+    leading: 'i-ph-trash'
+  }
+]
+
+const handleShareQuote = (quote: any) => {
+  if (navigator.share) {
+    navigator.share({ 
+      title: 'Quote from Verbatims', 
+      text: quote.name, 
+      url: `${window.location.origin}/quotes/${quote.id}` 
+    })
+  } else {
+    navigator.clipboard.writeText(`"${quote.name}" - ${quote.author?.name || ''}`)
+    useToast().toast({ title: 'Copied to clipboard' })
+  }
+}
+
+const handleRemoveFromCollection = async (quote: any) => {
+  if (!confirm('Remove this quote from the collection?')) return
+  
+  try {
+    await $fetch(`/api/collections/${collectionId.value}/quotes/${quote.id}`, {
+      method: 'DELETE'
+    })
+    
+    // Remove from local state
+    if (collection.value) {
+      collection.value.quotes = collection.value.quotes?.filter((q: any) => q.id !== quote.id) || []
+      if (collection.value.quotes_count) {
+        collection.value.quotes_count--
+      }
+    }
+    
+    useToast().toast({ 
+      title: 'Quote removed',
+      description: 'Quote removed from collection'
+    })
+  } catch (error) {
+    console.error('Failed to remove quote:', error)
+    useToast().toast({ 
+      title: 'Failed to remove quote',
+      description: 'Please try again'
+    })
+  }
+}
+
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
@@ -290,9 +381,19 @@ const formatDate = (dateString: string) => {
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadCollection()
+  // Add mobile scroll listener
+  if (isMobile.value) {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
 watch(currentLayout, (newLayout) => setPageLayout(newLayout))
+
+onBeforeUnmount(() => {
+  if (isMobile.value) {
+    window.removeEventListener('scroll', handleScroll)
+  }
+})
 </script>
 
 <style scoped>

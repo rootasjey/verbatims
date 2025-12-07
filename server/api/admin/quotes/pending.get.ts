@@ -1,5 +1,4 @@
-import { CreatedQuoteResult } from "~/types"
-
+import type { CreatedQuoteResult } from "~/types"
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
@@ -102,7 +101,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

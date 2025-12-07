@@ -6,7 +6,7 @@
       <!-- Search and Filters -->
       <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
-          <UInput
+          <NInput
             v-model="searchQuery"
             placeholder="Search quotes, authors, or users..."
             leading="i-ph-magnifying-glass"
@@ -15,7 +15,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <USelect
+          <NSelect
             v-model="statusFilter"
             :items="statusOptions"
             placeholder="Filter by status"
@@ -24,14 +24,14 @@
             item-key="label"
             value-key="label"
           />
-          <UButton
+          <NButton
             btn="outline-gray"
             size="sm"
             @click="resetFilters"
           >
-            <UIcon name="i-ph-x" />
+            <NIcon name="i-ph-x" />
             Reset
-          </UButton>
+          </NButton>
         </div>
       </div>
 
@@ -39,7 +39,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-clock" class="w-5 h-5 text-yellow-600 mr-2" />
+            <NIcon name="i-ph-clock" class="w-5 h-5 text-yellow-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Review</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ pendingCount }}</p>
@@ -48,7 +48,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
+            <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Selected</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ selectedQuotes.length }}</p>
@@ -57,7 +57,7 @@
         </div>
         <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center">
-            <UIcon name="i-ph-users" class="w-5 h-5 text-blue-600 mr-2" />
+            <NIcon name="i-ph-users" class="w-5 h-5 text-blue-600 mr-2" />
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Contributors</p>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ uniqueContributors }}</p>
@@ -68,8 +68,8 @@
     </div>
 
     <!-- Bulk Actions (animated) -->
-    <UCollapsible v-model:open="bulkOpen">
-      <UCollapsibleContent>
+    <NCollapsible v-model:open="bulkOpen">
+      <NCollapsibleContent>
         <div class="flex-shrink-0 mb-6">
           <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
             <div class="flex items-center justify-between">
@@ -77,23 +77,23 @@
                 {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
               </span>
               <div class="flex items-center gap-3">
-                <UButton size="sm" btn="ghost-blue" :loading="bulkProcessing" @click="bulkApprove">
-                  <UIcon name="i-ph-check" />
+                <NButton size="sm" btn="ghost-blue" :loading="bulkProcessing" @click="bulkApprove">
+                  <NIcon name="i-ph-check" />
                   Approve Selected
-                </UButton>
-                <UButton size="sm" btn="ghost-pink" :loading="bulkProcessing" @click="showBulkRejectModal = true">
-                  <UIcon name="i-ph-x" />
+                </NButton>
+                <NButton size="sm" btn="ghost-pink" :loading="bulkProcessing" @click="showBulkRejectModal = true">
+                  <NIcon name="i-ph-x" />
                   Reject Selected
-                </UButton>
-                <UButton size="sm" btn="ghost-gray" @click="clearSelection">
+                </NButton>
+                <NButton size="sm" btn="ghost-gray" @click="clearSelection">
                   Clear Selection
-                </UButton>
+                </NButton>
               </div>
             </div>
           </div>
         </div>
-      </UCollapsibleContent>
-    </UCollapsible>
+      </NCollapsibleContent>
+    </NCollapsible>
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
@@ -115,7 +115,7 @@
 
       <!-- Empty State -->
       <div v-else-if="hasLoadedOnce && quotes.length === 0" class="text-center py-16">
-        <UIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching quotes found' : 'All caught up!' }}
         </h3>
@@ -128,7 +128,7 @@
       <div v-else class="flex-1 flex flex-col rounded-2 border border-gray-200 dark:border-gray-700">
         <!-- Scrollable Table Container -->
         <div class="quotes-table-container flex-1 overflow-auto">
-          <UTable
+          <NTable
             :columns="tableColumns"
             :data="quotes"
             :loading="loading"
@@ -140,8 +140,8 @@
             <template #actions-header>
               <div class="flex items-center justify-center gap-1">
                 <template v-if="selectionMode">
-                  <UTooltip text="Select all on page">
-                    <UButton
+                  <NTooltip text="Select all on page">
+                    <NButton
                       icon
                       btn="ghost"
                       size="2xs"
@@ -149,17 +149,17 @@
                       :disabled="allSelectedOnPage"
                       @click="selectAllOnPage"
                     />
-                  </UTooltip>
+                  </NTooltip>
                 </template>
-                <UTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                  <UButton
+                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <NButton
                     icon
                     btn="ghost-gray"
                     size="2xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
-                </UTooltip>
+                </NTooltip>
               </div>
             </template>
 
@@ -183,7 +183,7 @@
             <!-- User Column -->
             <template #user-cell="{ cell }">
               <div class="flex items-center space-x-2">
-                <UAvatar
+                <NAvatar
                   :src="cell.row.original.user_avatar"
                   :alt="cell.row.original.user_name"
                   size="xs"
@@ -203,7 +203,7 @@
             <!-- Tags Column -->
             <template #tags-cell="{ cell }">
               <div v-if="cell.row.original.tags && cell.row.original.tags.length > 0" class="flex flex-wrap gap-1">
-                <UBadge
+                <NBadge
                   v-for="tag in cell.row.original.tags.slice(0, 2)"
                   :key="tag.name"
                   :style="{ backgroundColor: tag.color }"
@@ -211,15 +211,15 @@
                   size="xs"
                 >
                   {{ tag.name }}
-                </UBadge>
-                <UBadge
+                </NBadge>
+                <NBadge
                   v-if="cell.row.original.tags.length > 2"
                   variant="soft"
                   size="xs"
                   color="gray"
                 >
                   +{{ cell.row.original.tags.length - 2 }}
-                </UBadge>
+                </NBadge>
               </div>
               <span v-else class="text-xs text-gray-400 dark:text-gray-600 italic">
                 No tags
@@ -229,9 +229,9 @@
             <!-- Status Column -->
             <template #status-cell="{ cell }">
               <div class="space-y-1">
-                <UBadge :color="getStatusColor(cell.row.original.status)" variant="subtle" size="xs">
+                <NBadge :color="getStatusColor(cell.row.original.status)" variant="subtle" size="xs">
                   {{ cell.row.original.status }}
-                </UBadge>
+                </NBadge>
                 <div v-if="cell.row.original.status === 'rejected' && cell.row.original.rejection_reason" class="text-xs text-red-600 dark:text-red-400">
                   {{ cell.row.original.rejection_reason.substring(0, 30) }}{{ cell.row.original.rejection_reason.length > 30 ? '...' : '' }}
                 </div>
@@ -248,25 +248,25 @@
             <!-- Actions Column -->
             <template #actions-cell="{ cell }">
               <template v-if="!selectionMode">
-                <UDropdownMenu :items="getQuoteActions(cell.row.original)">
-                  <UButton
+                <NDropdownMenu :items="getQuoteActions(cell.row.original)">
+                  <NButton
                     icon
                     btn="ghost"
                     size="xs"
                     label="i-ph-dots-three-vertical"
                   />
-                </UDropdownMenu>
+                </NDropdownMenu>
               </template>
               <template v-else>
                 <div class="flex items-center justify-center">
-                  <UCheckbox
+                  <NCheckbox
                     :model-value="!!rowSelection[cell.row.original.id]"
                     @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                   />
                 </div>
               </template>
             </template>
-          </UTable>
+          </NTable>
         </div>
 
         <!-- Pagination -->
@@ -274,7 +274,7 @@
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
-          <UPagination
+          <NPagination
             v-model:page="currentPage"
             :total="totalQuotes"
             :items-per-page="pageSize"
@@ -294,8 +294,8 @@
   </div>
 
     <!-- Reject Quote Modal -->
-    <UDialog v-model:open="showRejectModal">
-      <UCard class="border-none shadow-none">
+    <NDialog v-model:open="showRejectModal">
+      <NCard class="border-none shadow-none">
         <template #header>
           <h3 class="text-lg font-semibold">Reject Quote</h3>
         </template>
@@ -310,41 +310,41 @@
             </p>
           </div>
 
-          <UFormGroup label="Rejection Reason" required>
-            <UInput
+          <NFormGroup label="Rejection Reason" required>
+            <NInput
               type="textarea"
               v-model="rejectionReason"
               placeholder="Please provide a reason for rejecting this quote..."
               :rows="3"
               :disabled="processing.has(selectedQuote?.id)"
             />
-          </UFormGroup>
+          </NFormGroup>
         </div>
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton
+            <NButton
               btn="ghost"
               @click="showRejectModal = false"
               :disabled="processing.has(selectedQuote?.id)"
             >
               Cancel
-            </UButton>
-            <UButton
+            </NButton>
+            <NButton
               btn="soft-red"
               :loading="processing.has(selectedQuote?.id)"
               @click="confirmRejectQuote"
             >
               Reject Quote
-            </UButton>
+            </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
     <!-- Bulk Reject Modal -->
-    <UDialog v-model:open="showBulkRejectModal">
-      <UCard>
+    <NDialog v-model:open="showBulkRejectModal">
+      <NCard>
         <template #header>
           <h3 class="text-lg font-semibold">Reject {{ selectedQuotes.length }} Quotes</h3>
         </template>
@@ -354,37 +354,37 @@
             You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.
           </p>
 
-          <UFormGroup label="Rejection Reason" required>
-            <UInput
+          <NFormGroup label="Rejection Reason" required>
+            <NInput
               type="textarea"
               v-model="bulkRejectionReason"
               placeholder="Please provide a reason for rejecting these quotes..."
               :rows="3"
               :disabled="bulkProcessing"
             />
-          </UFormGroup>
+          </NFormGroup>
         </div>
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton
+            <NButton
               btn="ghost"
               @click="showBulkRejectModal = false"
               :disabled="bulkProcessing"
             >
               Cancel
-            </UButton>
-            <UButton
+            </NButton>
+            <NButton
               color="red"
               :loading="bulkProcessing"
               @click="confirmBulkReject"
             >
               Reject All
-            </UButton>
+            </NButton>
           </div>
         </template>
-      </UCard>
-    </UDialog>
+      </NCard>
+    </NDialog>
 
     <AddQuoteDialog
       v-model="showEditQuoteDialog"

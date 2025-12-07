@@ -30,7 +30,7 @@
       <div>
         <div class="space-y-6">
           <!-- Error Alert -->
-          <UAlert
+          <NAlert
             v-if="error"
             color="red"
             variant="soft"
@@ -41,8 +41,8 @@
           <!-- Email/Password Sign Up Form -->
           <form @submit.prevent="signUpWithEmail" class="space-y-3">
             <div>
-              <UFormGroup label="" name="name" required>
-                <UInput
+              <NFormGroup label="" name="name" required>
+                <NInput
                   v-model="form.name"
                   type="text"
                   placeholder="Enter your full name"
@@ -51,11 +51,11 @@
                   :disabled="loading.email"
                   @focus="handleInputFocus('name')"
                 />
-              </UFormGroup>
+              </NFormGroup>
             </div>
             <div>
-              <UFormGroup label="" name="email" required>
-                <UInput
+              <NFormGroup label="" name="email" required>
+                <NInput
                   v-model="form.email"
                   type="email"
                   placeholder="Enter your email"
@@ -64,11 +64,11 @@
                   :disabled="loading.email"
                   @focus="handleInputFocus('email')"
                 />
-              </UFormGroup>
+              </NFormGroup>
             </div>
             <div>
-              <UFormGroup label="" name="password" required>
-                <UInput
+              <NFormGroup label="" name="password" required>
+                <NInput
                   v-model="form.password"
                   required
                   placeholder="Enter your password (min. 8 characters)"
@@ -80,11 +80,11 @@
                   :disabled="loading.email"
                   @focus="handleInputFocus('password')"
                 />
-              </UFormGroup>
+              </NFormGroup>
             </div>
             <div>
-              <UFormGroup label="" name="confirmPassword" required>
-                <UInput
+              <NFormGroup label="" name="confirmPassword" required>
+                <NInput
                   v-model="form.confirmPassword"
                   required
                   placeholder="Confirm your password"
@@ -96,9 +96,9 @@
                   :disabled="loading.email"
                   @focus="handleInputFocus('confirmPassword')"
                 />
-              </UFormGroup>
+              </NFormGroup>
             </div>
-            <UButton
+            <NButton
               type="submit"
               block
               size="sm"
@@ -108,7 +108,7 @@
               :loading="loading.email"
             >
               Create Account
-            </UButton>
+            </NButton>
           </form>
           <!-- Divider -->
           <div class="relative">
@@ -126,19 +126,19 @@
               <span class="text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?
               </span>
-              <ULink to="/login" class="text-sm text-primary-600 dark:text-lime hover:underline font-400">
+              <NLink to="/login" class="text-sm text-primary-600 dark:text-lime hover:underline font-400">
                 Sign In
-              </ULink>
+              </NLink>
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
               By creating an account, you agree to our
-              <ULink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">
+              <NLink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">
                 Terms of Service
-              </ULink>
+              </NLink>
               and
-              <ULink to="/privacy" class="text-primary-600 dark:text-primary-400 hover:underline">
+              <NLink to="/privacy" class="text-primary-600 dark:text-primary-400 hover:underline">
                 Privacy Policy
-              </ULink>
+              </NLink>
             </p>
           </div>
         </div>
@@ -157,7 +157,7 @@
       <div class="relative z-1">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 flex items-center justify-center">
-            <UIcon name="i-ph-quotes" class="w-6 h-6 text-#687FE5" />
+            <NIcon name="i-ph-quotes" class="w-6 h-6 text-#687FE5" />
           </div>
           <div>
             <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Get started</p>
@@ -171,7 +171,7 @@
 
         <div class="mt-6 bg-white/85 dark:bg-gray-900/80 backdrop-blur-md rounded-4 p-4 border border-gray-200/60 dark:border-gray-800/60 shadow-lg/30">
           <!-- Error Alert -->
-          <UAlert
+          <NAlert
             v-if="error"
             color="red"
             variant="soft"
@@ -183,8 +183,8 @@
 
           <!-- Email/Password Sign Up Form -->
           <form @submit.prevent="signUpWithEmail" class="space-y-3">
-            <UFormGroup label="" name="name" required>
-              <UInput
+            <NFormGroup label="" name="name" required>
+              <NInput
                 v-model="form.name"
                 type="text"
                 placeholder="Enter your full name"
@@ -192,10 +192,10 @@
                 class="rounded-3"
                 :disabled="loading.email"
               />
-            </UFormGroup>
+            </NFormGroup>
 
-            <UFormGroup label="" name="email" required>
-              <UInput
+            <NFormGroup label="" name="email" required>
+              <NInput
                 v-model="form.email"
                 type="email"
                 placeholder="Enter your email"
@@ -203,10 +203,10 @@
                 class="rounded-3"
                 :disabled="loading.email"
               />
-            </UFormGroup>
+            </NFormGroup>
 
-            <UFormGroup label="" name="password" required>
-              <UInput
+            <NFormGroup label="" name="password" required>
+              <NInput
                 v-model="form.password"
                 required
                 placeholder="Enter your password (min. 8 characters)"
@@ -217,10 +217,10 @@
                 @trailing="isPasswordVisible = !isPasswordVisible"
                 :disabled="loading.email"
               />
-            </UFormGroup>
+            </NFormGroup>
 
-            <UFormGroup label="" name="confirmPassword" required>
-              <UInput
+            <NFormGroup label="" name="confirmPassword" required>
+              <NInput
                 v-model="form.confirmPassword"
                 required
                 placeholder="Confirm your password"
@@ -231,9 +231,9 @@
                 @trailing="isConfirmPasswordVisible = !isConfirmPasswordVisible"
                 :disabled="loading.email"
               />
-            </UFormGroup>
+            </NFormGroup>
 
-            <UButton
+            <NButton
               type="submit"
               block
               size="sm"
@@ -243,7 +243,7 @@
               :loading="loading.email"
             >
               Create Account
-            </UButton>
+            </NButton>
           </form>
 
           <!-- Divider -->
@@ -258,25 +258,25 @@
 
           <!-- Social providers -->
           <div class="grid grid-cols-2 gap-3">
-            <UButton btn="soft-gray" :loading="loading.github" @click="signInWith('github')">
+            <NButton btn="soft-gray" :loading="loading.github" @click="signInWith('github')">
               <template #leading>
-                <UIcon name="i-ph-github-logo" />
+                <NIcon name="i-ph-github-logo" />
               </template>
               GitHub
-            </UButton>
-            <UButton btn="soft-blue" :loading="loading.google" @click="signInWith('google')">
+            </NButton>
+            <NButton btn="soft-blue" :loading="loading.google" @click="signInWith('google')">
               <template #leading>
-                <UIcon name="i-ph-google-logo" />
+                <NIcon name="i-ph-google-logo" />
               </template>
               Google
-            </UButton>
+            </NButton>
           </div>
 
           <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
             By creating an account, you agree to our
-            <ULink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">Terms of Service</ULink>
+            <NLink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">Terms of Service</NLink>
             and
-            <ULink to="/privacy" class="text-primary-600 dark:text-primary-400 hover:underline">Privacy Policy</ULink>.
+            <NLink to="/privacy" class="text-primary-600 dark:text-primary-400 hover:underline">Privacy Policy</NLink>.
           </p>
         </div>
       </div>
@@ -289,7 +289,7 @@
           <p class="text-sm text-gray-700 dark:text-gray-300">Already joined?</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">Sign in and start saving quotes.</p>
         </div>
-        <UButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">Sign in</UButton>
+        <NButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">Sign in</NButton>
       </div>
     </div>
   </div>

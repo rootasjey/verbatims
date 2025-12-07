@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throwServer(500, 'Validation failed')
   }
 })

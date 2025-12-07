@@ -1,7 +1,6 @@
 import { extractAuthor, extractReference, extractTags, parseIntSafe } from '~/server/utils/extraction'
 import { parseSort, parseSortOrder } from '~/server/utils/sort'
 import type { QuoteLanguage, ApiResponse, ProcessedQuoteResult, QuoteSearchResult } from '~/types'
-
 export default defineEventHandler(async (event): Promise<ApiResponse<{
   quotes: ProcessedQuoteResult[]
   total: number

@@ -11,7 +11,7 @@
       </div>
 
       <!-- Progress Card -->
-      <UCard class="p-6 max-w-2xl mx-auto">
+      <NCard class="p-6 max-w-2xl mx-auto">
         <!-- Overall Progress -->
         <div class="mb-6">
           <div class="flex justify-between items-center mb-2">
@@ -31,7 +31,7 @@
           <!-- Users -->
           <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div class="flex items-center space-x-3">
-              <UIcon 
+              <NIcon 
                 :name="getStepIcon('users')" 
                 :class="getStepIconClass('users')"
                 class="w-5 h-5"
@@ -43,7 +43,7 @@
             </div>
             <div class="text-right">
               <div v-if="progress.users.status === 'loading' || progress.users.status === 'processing'" class="flex items-center space-x-2">
-                <UIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
+                <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
                 <span class="text-sm">{{ progress.users.current }}/{{ progress.users.total }}</span>
               </div>
               <div v-else-if="progress.users.status === 'completed'" class="text-sm text-green-600">
@@ -57,7 +57,7 @@
           <!-- Authors -->
           <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div class="flex items-center space-x-3">
-              <UIcon 
+              <NIcon 
                 :name="getStepIcon('authors')" 
                 :class="getStepIconClass('authors')"
                 class="w-5 h-5"
@@ -69,7 +69,7 @@
             </div>
             <div class="text-right">
               <div v-if="progress.authors.status === 'loading'" class="flex items-center space-x-2">
-                <UIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
+                <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
                 <span class="text-sm">{{ progress.authors.current }}/{{ progress.authors.total }}</span>
               </div>
               <div v-else-if="progress.authors.status === 'completed'" class="text-sm text-green-600">
@@ -84,7 +84,7 @@
           <!-- References -->
           <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div class="flex items-center space-x-3">
-              <UIcon 
+              <NIcon 
                 :name="getStepIcon('references')" 
                 :class="getStepIconClass('references')"
                 class="w-5 h-5"
@@ -96,7 +96,7 @@
             </div>
             <div class="text-right">
               <div v-if="progress.references.status === 'loading'" class="flex items-center space-x-2">
-                <UIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
+                <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
                 <span class="text-sm">{{ progress.references.current }}/{{ progress.references.total }}</span>
               </div>
               <div v-else-if="progress.references.status === 'completed'" class="text-sm text-green-600">
@@ -111,7 +111,7 @@
           <!-- Tags -->
           <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div class="flex items-center space-x-3">
-              <UIcon 
+              <NIcon 
                 :name="getStepIcon('tags')" 
                 :class="getStepIconClass('tags')"
                 class="w-5 h-5"
@@ -123,7 +123,7 @@
             </div>
             <div class="text-right">
               <div v-if="progress.tags.status === 'loading' || progress.tags.status === 'processing'" class="flex items-center space-x-2">
-                <UIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
+                <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
                 <span class="text-sm">{{ progress.tags.current }}/{{ progress.tags.total }}</span>
               </div>
               <div v-else-if="progress.tags.status === 'completed'" class="text-sm text-green-600">
@@ -138,7 +138,7 @@
           <!-- Quotes -->
           <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div class="flex items-center space-x-3">
-              <UIcon 
+              <NIcon 
                 :name="getStepIcon('quotes')" 
                 :class="getStepIconClass('quotes')"
                 class="w-5 h-5"
@@ -150,7 +150,7 @@
             </div>
             <div class="text-right">
               <div v-if="progress.quotes.status === 'loading' || progress.quotes.status === 'processing'" class="flex items-center space-x-2">
-                <UIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
+                <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
                 <span class="text-sm">{{ progress.quotes.current }}/{{ progress.quotes.total }}</span>
               </div>
               <div v-else-if="progress.quotes.status === 'completed'" class="text-sm text-green-600">
@@ -165,7 +165,7 @@
           <!-- Related Data (Extras) -->
           <div v-if="hasExtras" class="p-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
             <div class="flex items-center gap-2 mb-2">
-              <UIcon name="i-ph-database" class="w-5 h-5 text-primary-500" />
+              <NIcon name="i-ph-database" class="w-5 h-5 text-primary-500" />
               <h4 class="font-medium">Related Data</h4>
             </div>
             <ul class="mt-1 grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -188,7 +188,7 @@
         <!-- Success Message -->
         <div v-if="isCompleted && errors.length === 0" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
           <div class="flex items-center space-x-2">
-            <UIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600" />
+            <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600" />
             <p class="text-sm text-green-600 font-medium">
               Database initialization completed successfully! 
               {{ totalImported }} items imported.
@@ -204,12 +204,12 @@
         </div>
 
         <div class="mt-2 flex justify-between items-center">
-          <UButton btn="link" to="/onboarding/admin" class="p-0">
+          <NButton btn="link" to="/onboarding/admin" class="p-0">
             ← Back to Admin Setup
-          </UButton>
+          </NButton>
           
           <div class="flex space-x-3">
-            <UButton
+            <NButton
               v-if="!isStarted && !isCompleted"
               @click="startImport"
               :disabled="loading"
@@ -217,15 +217,15 @@
               size="sm"
             >
               Start Import
-            </UButton>
+            </NButton>
             
-            <UButton
+            <NButton
               v-if="isCompleted"
               @click="goToHome"
               size="sm"
             >
               Go to Application
-            </UButton>
+            </NButton>
           </div>
         </div>
       </div>
@@ -237,7 +237,7 @@
             <span class="text-gray-500">Onboarding Complete</span>
           </div>
         </div>
-      </UCard>
+      </NCard>
     </div>
   </div>
 </template>

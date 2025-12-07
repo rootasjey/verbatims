@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
       message: 'Collection created successfully'
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

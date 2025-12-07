@@ -1,5 +1,4 @@
 import type { ImportOptions } from '~/types'
-
 import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
 
 export async function importAuthorViewsInline(importId: string, data: any[], options?: ImportOptions): Promise<void> {

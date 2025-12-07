@@ -1,5 +1,4 @@
-import { Author } from "~/types"
-
+import type { Author } from "~/types"
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)

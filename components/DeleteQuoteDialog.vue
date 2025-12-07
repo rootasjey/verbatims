@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-2">
         <h3 class="font-title uppercase text-size-4 font-600 ml-4">Delete Quote</h3>
@@ -7,7 +7,7 @@
 
       <div class="px-1 space-y-4">
         <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-          <UIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
+          <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
           <div class="text-sm text-red-800 dark:text-red-300">
             <p class="font-medium">This action is permanent.</p>
             <p class="mt-1">You're about to delete this quote.</p>
@@ -28,13 +28,13 @@
       </div>
 
       <div class="mt-6 flex justify-end gap-3">
-        <UButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">Cancel</UButton>
-        <UButton btn="soft-red" :loading="submitting" :disabled="!canDelete || submitting" @click="confirmDeletion">
+        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">Cancel</NButton>
+        <NButton btn="soft-red" :loading="submitting" :disabled="!canDelete || submitting" @click="confirmDeletion">
           Delete Quote
-        </UButton>
+        </NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

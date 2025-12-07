@@ -98,12 +98,12 @@
     <!-- Error State -->
     <div v-else class="px-8 py-16 animate-fade-in animate-duration-500">
       <div class="max-w-4xl mx-auto text-center">
-        <UIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h2 class="text-3xl font-serif font-semibold text-gray-900 dark:text-white mb-4">Quote Not Found</h2>
         <p class="text-lg font-sans text-gray-600 dark:text-gray-400 mb-8">
           The quote you're looking for doesn't exist or has been removed.
         </p>
-        <UButton to="/" size="lg" class="font-sans">Browse Quotes</UButton>
+        <NButton to="/" size="lg" class="font-sans">Browse Quotes</NButton>
       </div>
     </div>
   </div>
@@ -267,7 +267,6 @@ const handleGlobalKeydown = (e) => {
 }
 
 const onQuoteUpdated = async () => {
-  const { toast } = useToast()
   try {
     // Refresh main quote and related quotes after edit
     const fresh = await $fetch(`/api/quotes/${route.params.id}`)
@@ -275,9 +274,9 @@ const onQuoteUpdated = async () => {
     const freshRelated = await $fetch(`/api/quotes/${route.params.id}/related`)
     relatedData.value = freshRelated
 
-    toast({ title: 'Quote updated', variant: 'success' })
   } catch (error) {
     console.error('Failed to refresh quote after update:', error)
+    useToast().toast({ title: 'Update failed', description: 'Could not refresh quote.' })
   } finally {
     showEditQuoteDialog.value = false
   }
@@ -381,9 +380,7 @@ const toggleLike = async () => {
 
 const shareQuote = async () => {
   if (!quote.value || sharePending.value) return
-
   sharePending.value = true
-  const { toast } = useToast()
 
   try {
     const shareData = {
@@ -394,19 +391,11 @@ const shareQuote = async () => {
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
-      toast({
-        title: 'Quote shared successfully!',
-        variant: 'success'
-      })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
-      toast({
-        title: 'Quote link copied to clipboard!',
-        variant: 'success'
-      })
     }
 
     // Track share
@@ -414,10 +403,9 @@ const shareQuote = async () => {
     quote.value.shares_count++
   } catch (error) {
     console.error('Failed to share quote:', error)
-    toast({
+    useToast().toast({
       title: 'Failed to share quote',
       description: 'Please try again.',
-      variant: 'error'
     })
   } finally {
     sharePending.value = false
@@ -460,7 +448,6 @@ const reportQuote = () => { showReportDialog.value = true }
 
 const copyQuoteText = async () => {
   if (!quote.value) return
-  const { toast } = useToast()
   try {
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
       throw new Error('clipboard-unavailable')
@@ -470,7 +457,7 @@ const copyQuoteText = async () => {
     const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
     await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}`)
   } catch (error) {
-    toast({
+    useToast().toast({
       title: 'Copy failed',
       description: 'Clipboard is not available.', variant: 'error',
     })
@@ -478,7 +465,6 @@ const copyQuoteText = async () => {
 }
 
 const copyLink = async () => {
-  const { toast } = useToast()
   try {
     const url = typeof window !== 'undefined' ? window.location.href : ''
     if (!url) throw new Error('no-url')
@@ -487,7 +473,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.', variant: 'error' })
+    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.' })
   }
 }
 

@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, message: 'View tracked', recorded }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error tracking reference view:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to track reference view' })
   }

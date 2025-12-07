@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Error deleting author:', error)
     
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

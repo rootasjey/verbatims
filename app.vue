@@ -5,7 +5,7 @@
     </NuxtLayout>
     <MobileBottomNavigation />
     <NuxtRouteAnnouncer />
-    <UToaster />
+    <NToaster />
   </div>
 </template>
 

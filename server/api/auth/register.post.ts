@@ -78,7 +78,7 @@ export default defineEventHandler(async (event) => {
       user,
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     console.error('Registration error:', error)

@@ -167,7 +167,7 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
       // For unknown routes, try to extract a reasonable title
       const segments = route.split('/').filter(Boolean)
       if (segments.length > 0) {
-        const lastSegment = segments[segments.length - 1]
+        const lastSegment = segments[segments.length - 1] ?? ''
         const title = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ')
         const section = segments[0] as 'admin' | 'dashboard' | 'public'
         setPageHeader({

@@ -8,7 +8,6 @@ import type {
   ProcessedQuoteResult,
   SearchResults
 } from '~/types'
-
 export default defineEventHandler(async (event): Promise<ApiResponse<SearchResults>> => {
   try {
     const query = getQuery(event)

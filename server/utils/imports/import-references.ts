@@ -212,7 +212,9 @@ export async function importReferencesInline(parentImportId: string, references:
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
           try {
-            await stmts[idx].run()
+            const s = stmts[idx]
+            if (!s) continue
+            await s.run()
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -308,7 +310,7 @@ export async function processImportReferences(
 export async function parseReferencesCsv(csvData: string): Promise<any[]> {
   const lines = String(csvData || '').trim().split('\n')
   if (lines.length < 2) return []
-  const headers = parseCSVLine(lines[0])
+  const headers = parseCSVLine(lines[0] ?? '')
   return lines.slice(1).map(line => {
     const values = parseCSVLine(line)
     const obj: any = {}
@@ -354,15 +356,20 @@ function minimalXmlParse(xml: string, itemTag: string): any[] {
   const fieldRegex = /<([a-zA-Z0-9_]+)>([\s\S]*?)<\/\1>/g
   let m: RegExpExecArray | null
   while ((m = itemRegex.exec(xml))) {
+    if (!m) continue
     const obj: any = {}
     let fm: RegExpExecArray | null
-    while ((fm = fieldRegex.exec(m[1]))) {
-      obj[fm[1]] = fm[2]
-        .replace(/&lt;/g,'<')
-        .replace(/&gt;/g,'>')
-        .replace(/&amp;/g,'&')
-        .replace(/&quot;/g,'"')
-        .replace(/&apos;/g,"'")
+    const xmlBlock = String(m[1] ?? '')
+    while ((fm = fieldRegex.exec(xmlBlock))) {
+      if (!fm) continue
+      const objKey = String(fm[1] ?? '')
+      const val = String(fm[2] ?? '')
+      obj[objKey] = val
+          .replace(/&lt;/g,'<')
+          .replace(/&gt;/g,'>')
+          .replace(/&amp;/g,'&')
+          .replace(/&quot;/g,'"')
+          .replace(/&apos;/g,"'")
     }
     items.push(obj)
   }

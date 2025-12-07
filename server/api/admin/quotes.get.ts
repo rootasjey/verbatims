@@ -1,4 +1,4 @@
-import { DatabaseAdminQuote } from "~/types"
+import type { DatabaseAdminQuote } from "~/types"
 import { transformAdminQuotes } from '~/server/utils/quote-transformer'
 
 export default defineEventHandler(async (event) => {
@@ -88,7 +88,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Admin quotes error:', error)
     throwServer(500, 'Failed to fetch quotes')
   }

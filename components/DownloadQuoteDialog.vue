@@ -1,5 +1,5 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-3xl' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-3xl' }">
     <div class="flex flex-col gap-5">
       <div class="flex items-start gap-5">
         <!-- Live Preview -->
@@ -43,29 +43,29 @@
           <div class="mt-4 space-y-4">
             <div>
               <label class="block text-sm font-medium mb-1">Theme</label>
-              <USelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
+              <NSelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
             </div>
 
             <div>
               <label class="block text-sm font-medium mb-1">Size</label>
-              <USelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
+              <NSelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
               <p class="mt-1 text-xs text-gray-500">Export is always square; 1080px is good for most socials.</p>
             </div>
 
             <div>
               <label class="block text-sm font-medium mb-1">Background</label>
-              <USelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
+              <NSelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
             </div>
           </div>
         </div>
       </div>
 
       <div class="flex justify-end gap-2">
-        <UButton btn="light:soft dark:soft-white" @click="close" :disabled="downloading">Cancel</UButton>
-        <UButton btn="soft-blue" :loading="downloading" @click="download">Download</UButton>
+        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="downloading">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="downloading" @click="download">Download</NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

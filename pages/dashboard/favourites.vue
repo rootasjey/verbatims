@@ -1,31 +1,72 @@
 <template>
   <div class="min-h-screen">
     <!-- Mobile: Favourites List -->
-    <div v-if="isMobile" class="mobile-favourites-page">
-      <!-- Header & Controls -->
-      <div class="p-4 pt-6">
-        <div class="text-center mb-4">
-          <h1 class="text-2xl font-600 text-gray-900 dark:text-white">Favourites</h1>
-          <p class="text-gray-600 dark:text-gray-400">Your liked quotes</p>
-        </div>
+    <div v-if="isMobile" class="mobile-favourites-page bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
+      <!-- Header -->
+      <div 
+        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
+        :class="{ 'shadow-sm': !showHeaderElements }"
+      >
+        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
+          <div class="mt-4 transition-all duration-300 ease-in-out" :class="{ 'mb-2': showHeaderElements }">
+            <h1 
+              class="overflow-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out"
+              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
+            >
+              Favourites
+            </h1>
+          </div>
 
-        <div class="flex gap-3">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search your favourites..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-            class="flex-1"
-          />
-          <USelect
-            v-model="sortBy"
-            :items="sortOptions"
-            placeholder="Sort"
-            size="sm"
-            item-key="label"
-            value-key="label"
-            class="w-40"
-          />
+          <!-- Search Bar with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
+          >
+            <NInput
+              v-model="searchQuery"
+              :placeholder="`Search among ${filteredQuotes.length} ${filteredQuotes.length === 1 ? 'favourite' : 'favourites'}...`"
+              leading="i-ph-magnifying-glass"
+              size="lg"
+              class="w-full"
+              rounded="4"
+              :trailing="searchQuery ? 'i-ph-x' : undefined"
+              :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+              @trailing="searchQuery = ''"
+            />
+          </div>
+
+          <!-- Filter Chips with collapse animation -->
+          <div 
+            class="transition-all duration-300 ease-in-out overflow-hidden"
+            :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
+          >
+            <div class="flex items-center gap-2 overflow-x-auto py-2 -mx-1 px-1 scrollbar-hide">
+              <NBadge
+                :badge="sortBy.value === 'recent' ? 'soft-blue' : 'soft-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Most Recent', value: 'recent' }"
+              >
+                <NIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
+                Recent
+              </NBadge>
+              <NBadge
+                :badge="sortBy.value === 'oldest' ? 'soft-pink' : 'soft-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Oldest First', value: 'oldest' }"
+              >
+                <NIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
+                Oldest
+              </NBadge>
+              <NBadge
+                :badge="sortBy.value === 'author' ? 'soft-blue' : 'soft-gray'"
+                class="cursor-pointer whitespace-nowrap px-3 py-1.5 text-xs font-500 rounded-full transition-all hover:shadow-sm active:scale-95"
+                @click="sortBy = { label: 'Author A-Z', value: 'author' }"
+              >
+                <NIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
+                Author
+              </NBadge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -39,35 +80,33 @@
 
       <!-- Empty -->
       <div v-else-if="filteredQuotes.length === 0" class="text-center py-16 px-4">
-        <UIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching favourites' : 'No favourites yet' }}
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Start exploring quotes and like the ones you love.' }}
         </p>
-        <UButton v-if="!searchQuery" btn="solid-black" to="/">
-          <UIcon name="i-ph-magnifying-glass" />
+        <NButton v-if="!searchQuery" btn="solid-black" to="/">
+          <NIcon name="i-ph-magnifying-glass" />
           Discover Quotes
-        </UButton>
+        </NButton>
       </div>
 
       <!-- Results -->
-      <div v-else class="px-0 pb-6">
-        <div class="px-4 pb-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'favourite' : 'favourites' }}
-        </div>
-
-        <div class="divide-y divide-dashed divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-          <QuoteListItem
+      <div v-else class="px-3 pt-3 pb-6 space-y-3">
+        <QuoteListItem
             v-for="quote in processedMobileQuotes"
             :key="quote.id"
             :quote="quote"
+            :actions="favouriteActions"
+            @share="handleShareQuote"
+            @unlike="handleUnlike"
+            @add-to-collection="handleAddToCollection"
           />
-        </div>
 
         <div v-if="hasMore" class="px-4 pt-6">
-          <UButton
+          <NButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -75,7 +114,7 @@
             @click="loadMore"
           >
             Load More
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
@@ -85,7 +124,7 @@
       <!-- Search and Filters -->
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
-          <UInput
+          <NInput
             v-model="searchQuery"
             placeholder="Search your favourites..."
             leading="i-ph-magnifying-glass"
@@ -93,7 +132,7 @@
           />
         </div>
         <div class="w-full sm:w-48">
-          <USelect
+          <NSelect
             v-model="sortBy"
             :items="sortOptions"
             placeholder="Sort by"
@@ -106,22 +145,22 @@
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center py-12">
-        <UIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
+        <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-gray-400" />
       </div>
 
       <!-- Empty State -->
       <div v-else-if="filteredQuotes.length === 0 && !loading" class="text-center py-16">
-        <UIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <NIcon name="i-ph-heart" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching favourites' : 'No favourites yet' }}
         </h3>
         <p class="text-gray-500 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Start exploring quotes and like the ones you love.' }}
         </p>
-        <UButton v-if="!searchQuery" btn="solid-black" to="/">
-          <UIcon name="i-ph-magnifying-glass" />
+        <NButton v-if="!searchQuery" btn="solid-black" to="/">
+          <NIcon name="i-ph-magnifying-glass" />
           Discover Quotes
-        </UButton>
+        </NButton>
       </div>
 
       <!-- Quotes Grid -->
@@ -135,6 +174,7 @@
         <MasonryGrid>
           <QuoteMasonryItem
             v-for="quote in filteredQuotes"
+            :index="quote.id"
             :key="quote.id"
             :quote="quote"
             :show-actions="true"
@@ -145,7 +185,7 @@
 
         <!-- Load More -->
         <div v-if="hasMore" class="text-center pt-8">
-          <UButton
+          <NButton
             :loading="loadingMore"
             btn="dark:solid-black"
             size="md"
@@ -153,7 +193,7 @@
             @click="loadMore"
           >
             Load More
-          </UButton>
+          </NButton>
         </div>
       </div>
     </div>
@@ -184,7 +224,7 @@ interface LikedQuote extends Omit<QuoteWithRelations, 'likes_count'> {
   author_image_url?: string
   reference_name?: string
   reference_type?: string
-  tags?: Array<{ name: string; color: string }>
+  tags?: Array<{ id: number; name: string; color: string }>
 }
 
 definePageMeta({
@@ -204,8 +244,85 @@ const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const hasMore = ref(false)
 const currentPage = ref(1)
 
+// Scroll header state (mobile)
+const scrollY = ref(0)
+const lastScrollY = ref(0)
+const isScrollingDown = ref(false)
+const showHeaderElements = ref(true)
+
+const handleScroll = () => {
+  if (!isMobile.value) return
+  scrollY.value = window.scrollY
+  const scrollThreshold = 50
+  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
+    isScrollingDown.value = true
+    showHeaderElements.value = false
+  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
+    isScrollingDown.value = false
+    showHeaderElements.value = true
+  }
+  lastScrollY.value = scrollY.value
+}
+
 const showAddToCollectionModal = ref(false)
 const selectedQuote = ref<LikedQuote | null>(null)
+const editQuoteDrawerOpen = ref(false)
+const actionsOpen = ref(false)
+
+const favouriteActions = [
+  {
+    label: 'Share',
+    leading: 'i-ph-share'
+  },
+  {
+    label: 'Unlike',
+    leading: 'i-ph-heart-break'
+  },
+  { divider: true, label: '' },
+  {
+    label: 'Add to Collection',
+    leading: 'i-ph-folder-plus'
+  }
+]
+
+const openEditQuote = (quote: LikedQuote) => {
+  selectedQuote.value = quote
+  // open the edit drawer (reuse EditQuoteDrawer if desired)
+  editQuoteDrawerOpen.value = true
+}
+
+const confirmDeleteQuote = (quote: LikedQuote) => {
+  // simple confirmation — you can replace with a modal
+  if (!confirm('Remove this favourite?')) return
+  // Call API to remove like
+  try {
+    void (fetch as any)(`/api/quotes/${quote.id}/unlike`, { method: 'POST' })
+  } catch (e) {
+    console.error('Failed to unlike:', e)
+  }
+  quotes.value = quotes.value.filter(q => q.id !== quote.id)
+}
+
+const handleUnlike = async (quote: LikedQuote) => {
+  try {
+    await $fetch(`/api/quotes/${quote.id}/like`, { method: 'POST' })
+    quotes.value = quotes.value.filter(q => q.id !== quote.id)
+  } catch (e) {
+    console.error('Failed to unlike:', e)
+    useToast().toast({ 
+      title: 'Failed to remove from favourites',
+    })
+  }
+}
+
+const handleShareQuote = (quote: LikedQuote) => {
+  if (navigator.share) {
+    navigator.share({ title: 'Quote from Verbatims', text: quote.name, url: `${window.location.origin}/quotes/${quote.id}` })
+  } else {
+    navigator.clipboard.writeText(`"${quote.name}" - ${quote.author?.name || ''}`)
+    useToast().toast({ title: 'Copied to clipboard' })
+  }
+}
 
 const sortOptions = [
   { label: 'Most Recent', value: 'recent' },
@@ -305,10 +422,20 @@ const handleAddedToCollection = () => {
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadFavourites()
+  // Add mobile scroll listener
+  if (isMobile.value) {
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
 watch(currentLayout, (newLayout) => {
   setPageLayout(newLayout)
+})
+
+onBeforeUnmount(() => {
+  if (isMobile.value) {
+    window.removeEventListener('scroll', handleScroll)
+  }
 })
 
 watch([searchQuery, sortBy], () => {

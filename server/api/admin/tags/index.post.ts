@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, data: created }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error creating tag:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to create tag' })
   }

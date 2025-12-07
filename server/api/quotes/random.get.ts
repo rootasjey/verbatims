@@ -1,6 +1,5 @@
 import { transformQuotes } from '~/server/utils/quote-transformer'
 import type { DatabaseQuoteWithRelations } from '~/types'
-
 export default defineEventHandler(async (event) => {
   try {
     const db = hubDatabase()

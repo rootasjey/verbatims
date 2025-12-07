@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
       message: `${quoteIds.length} draft${quoteIds.length > 1 ? 's' : ''} submitted for review`
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     console.error('Bulk submit drafts error:', error)

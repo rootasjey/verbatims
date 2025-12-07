@@ -1,5 +1,4 @@
-import { CreatedQuoteResult } from "~/types"
-
+import type { CreatedQuoteResult } from "~/types"
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -124,7 +123,7 @@ export default defineEventHandler(async (event) => {
       message: `Quote ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
     }
   } catch (error: any) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

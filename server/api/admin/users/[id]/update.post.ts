@@ -115,7 +115,7 @@ export default defineEventHandler(async (event) => {
       message: 'User updated successfully'
     }
   } catch (error) {
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

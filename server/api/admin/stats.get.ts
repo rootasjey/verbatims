@@ -182,7 +182,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Admin stats error:', error)
     throwServer(500, 'Failed to fetch admin statistics')
   }

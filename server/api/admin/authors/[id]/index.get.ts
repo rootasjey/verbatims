@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, data: author }
   } catch (error: any) {
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     console.error('Error fetching admin author details:', error)
     throw createError({ statusCode: 500, statusMessage: 'Failed to fetch author' })
   }

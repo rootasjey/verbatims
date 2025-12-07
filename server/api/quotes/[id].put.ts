@@ -3,7 +3,6 @@ import type {
   QuoteWithMetadata,
   CreatedQuoteResult
 } from '~/types'
-
 export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
     const session = await requireUserSession(event)
@@ -203,7 +202,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
   } catch (error: any) {
     console.error('Error updating quote:', error)
     
-    if (error.statusCode) {
+    if ((error as any).statusCode) {
       throw error
     }
     

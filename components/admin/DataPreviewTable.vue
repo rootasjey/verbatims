@@ -1,5 +1,5 @@
 <template>
-  <UCard v-if="data && data.length > 0">
+  <NCard v-if="data && data.length > 0">
     <template #header>
       <h3 class="text-lg font-semibold">Data Preview (First {{ maxRows }} Records)</h3>
     </template>
@@ -22,7 +22,7 @@
         </tbody>
       </table>
     </div>
-  </UCard>
+  </NCard>
 </template>
 
 <script setup lang="ts">

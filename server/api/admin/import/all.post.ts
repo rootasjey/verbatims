@@ -95,49 +95,49 @@ export default defineEventHandler(async (event) => {
     try {
       // Process in dependency-friendly order
       if (parsedBundle) {
-        try { if (counts.users) { await importUsersInline(importId, parsedBundle.users, options) } } catch (e: any) {
+        try { if (counts.users) { await importUsersInline(importId, parsedBundle.users ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `Users import failed: ${e.message}`] })
         }
-        try { if (counts.authors) { await importAuthorsInline(importId, parsedBundle.authors, options) } } catch (e: any) {
+        try { if (counts.authors) { await importAuthorsInline(importId, parsedBundle.authors ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `Authors import failed: ${e.message}`] })
         }
-        try { if (counts.references) { await importReferencesInline(importId, parsedBundle.references, options) } } catch (e: any) {
+        try { if (counts.references) { await importReferencesInline(importId, parsedBundle.references ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `References import failed: ${e.message}`] })
         }
-        try { if (counts.tags) { await importTagsInline(importId, parsedBundle.tags, options) } } catch (e: any) {
+        try { if (counts.tags) { await importTagsInline(importId, parsedBundle.tags ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `Tags import failed: ${e.message}`] })
         }
-        try { if (counts.quotes) { await importQuotesInline(importId, parsedBundle.quotes, options, user.id) } } catch (e: any) {
+        try { if (counts.quotes) { await importQuotesInline(importId, parsedBundle.quotes ?? [], options, user.id) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `Quotes import failed: ${e.message}`] })
         }
-        try { if (counts.quote_tags) { await importQuoteTagsInline(importId, parsedBundle.quote_tags, options) } } catch (e: any) {
+        try { if (counts.quote_tags) { await importQuoteTagsInline(importId, parsedBundle.quote_tags ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `QuoteTags import failed: ${e.message}`] })
         }
-        try { if (counts.user_likes) { await importUserLikesInline(importId, parsedBundle.user_likes, options, String(user.id)) } } catch (e: any) {
+        try { if (counts.user_likes) { await importUserLikesInline(importId, parsedBundle.user_likes ?? [], options, String(user.id)) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `UserLikes import failed: ${e.message}`] })
         }
-        try { if (counts.user_collections) { await importUserCollectionsInline(importId, parsedBundle.user_collections, options, String(user.id)) } } catch (e: any) {
+        try { if (counts.user_collections) { await importUserCollectionsInline(importId, parsedBundle.user_collections ?? [], options, String(user.id)) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `UserCollections import failed: ${e.message}`] })
         }
-        try { if (counts.collection_quotes) { await importCollectionQuotesInline(importId, parsedBundle.collection_quotes, options) } } catch (e: any) {
+        try { if (counts.collection_quotes) { await importCollectionQuotesInline(importId, parsedBundle.collection_quotes ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `CollectionQuotes import failed: ${e.message}`] })
         }
-        try { if (counts.user_sessions) { await importUserSessionsInline(importId, parsedBundle.user_sessions, options, String(user.id)) } } catch (e: any) {
+        try { if (counts.user_sessions) { await importUserSessionsInline(importId, parsedBundle.user_sessions ?? [], options, String(user.id)) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `UserSessions import failed: ${e.message}`] })
         }
-        try { if (counts.user_messages) { await importUserMessagesInline(importId, parsedBundle.user_messages, options, String(user.id)) } } catch (e: any) {
+        try { if (counts.user_messages) { await importUserMessagesInline(importId, parsedBundle.user_messages ?? [], options, String(user.id)) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `UserMessages import failed: ${e.message}`] })
         }
-        try { if (counts.quote_reports) { await importQuoteReportsInline(importId, parsedBundle.quote_reports, options) } } catch (e: any) {
+        try { if (counts.quote_reports) { await importQuoteReportsInline(importId, parsedBundle.quote_reports ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `QuoteReports import failed: ${e.message}`] })
         }
-        try { if (counts.quote_views) { await importQuoteViewsInline(importId, parsedBundle.quote_views, options) } } catch (e: any) {
+        try { if (counts.quote_views) { await importQuoteViewsInline(importId, parsedBundle.quote_views ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `QuoteViews import failed: ${e.message}`] })
         }
-        try { if (counts.author_views) { await importAuthorViewsInline(importId, parsedBundle.author_views, options) } } catch (e: any) {
+        try { if (counts.author_views) { await importAuthorViewsInline(importId, parsedBundle.author_views ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `AuthorViews import failed: ${e.message}`] })
         }
-        try { if (counts.reference_views) { await importReferenceViewsInline(importId, parsedBundle.reference_views, options) } } catch (e: any) {
+        try { if (counts.reference_views) { await importReferenceViewsInline(importId, parsedBundle.reference_views ?? [], options) } } catch (e: any) {
           const p = getAdminImport(importId); if (p) updateAdminImport(importId, { errors: [...p.errors, `ReferenceViews import failed: ${e.message}`] })
         }
       }

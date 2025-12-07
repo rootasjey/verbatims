@@ -1,64 +1,64 @@
 <template>
-  <UDialog v-model:open="isOpen">
-    <UCard class="border-none">
-      <template #header>
-        <h3 class="text-lg font-semibold">Edit Collection</h3>
-      </template>
+  <NDialog v-model:open="isOpen">
+    <template #header>
+      <div class="flex items-center gap-3">
+        <h3 class="text-size-4">Edit <u class="decoration-dashed">{{ collection.name }}</u> Collection</h3>
+      </div>
+    </template>
 
-      <UForm
-        :schema="schema"
-        :state="state"
-        @submit="updateCollection"
-        class="space-y-4"
-      >
-        <UFormGroup label="Collection Name" name="name" required>
-          <UInput
-            v-model="state.name"
-            placeholder="Enter collection name"
-            :disabled="loading"
-          />
-        </UFormGroup>
+    <NForm
+      :schema="schema"
+      :state="state"
+      @submit="updateCollection"
+      class="space-y-4 mb-8"
+    >
+      <NFormGroup label="Collection Name" name="name" required>
+        <NInput
+          v-model="state.name"
+          placeholder="Enter collection name"
+          :disabled="loading"
+        />
+      </NFormGroup>
 
-        <UFormGroup label="Description" name="description">
-          <UInput
-            type="textarea"
-            v-model="state.description"
-            placeholder="Optional description for your collection"
-            :rows="3"
-            :disabled="loading"
-          />
-        </UFormGroup>
+      <NFormGroup label="Description" name="description">
+        <NInput
+          type="textarea"
+          v-model="state.description"
+          placeholder="Optional description for your collection"
+          :rows="3"
+          :disabled="loading"
+        />
+      </NFormGroup>
 
-        <UFormGroup name="is_public">
-          <UCheckbox
-            v-model="state.is_public"
-            label="Make this collection public"
-            help="Public collections can be viewed by anyone"
-            :disabled="loading"
-          />
-        </UFormGroup>
-      </UForm>
-    </UCard>
+      <NFormGroup name="is_public">
+        <NCheckbox
+          v-model="state.is_public"
+          label="Make this collection public"
+          help="Public collections can be viewed by anyone"
+          :disabled="loading"
+        />
+      </NFormGroup>
+    </NForm>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <UButton
-          btn="text-pink"
+        <NButton
+          btn="text-gray"
           @click="closeModal"
           :disabled="loading"
         >
           Cancel
-        </UButton>
-        <UButton
+        </NButton>
+        <NButton
           btn="solid-black"
           type="submit"
           :loading="loading"
         >
           Update Collection
-        </UButton>
+        </NButton>
       </div>
     </template>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup>

@@ -1,53 +1,53 @@
 <template>
-  <UDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-6">
         <h3 class="font-title uppercase text-size-4 font-600">Create User</h3>
       </div>
 
       <form @submit.prevent="submit" class="space-y-4">
-        <UFormGroup label="Name" required>
-          <UInput v-model="form.name" :disabled="submitting" placeholder="Jane Doe" />
-        </UFormGroup>
+        <NFormGroup label="Name" required>
+          <NInput v-model="form.name" :disabled="submitting" placeholder="Jane Doe" />
+        </NFormGroup>
 
-        <UFormGroup label="Email" required>
-          <UInput v-model="form.email" :disabled="submitting" type="email" placeholder="jane@example.com" />
-        </UFormGroup>
+        <NFormGroup label="Email" required>
+          <NInput v-model="form.email" :disabled="submitting" type="email" placeholder="jane@example.com" />
+        </NFormGroup>
 
-        <UFormGroup label="Password" required>
-          <UInput v-model="form.password" :disabled="submitting" type="password" placeholder="••••••••" />
+        <NFormGroup label="Password" required>
+          <NInput v-model="form.password" :disabled="submitting" type="password" placeholder="••••••••" />
           <template #help>
             <span class="text-xs text-gray-500">At least 8 characters</span>
           </template>
-        </UFormGroup>
+        </NFormGroup>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-          <UFormGroup label="Role" required>
-            <USelect v-model="form.role" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
-          </UFormGroup>
+          <NFormGroup label="Role" required>
+            <NSelect v-model="form.role" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
+          </NFormGroup>
           <div class="flex gap-4 justify-around items-center">
-            <UFormGroup :label="form.is_active ? 'Active' : 'Inactive'">
-              <USwitch v-model="form.is_active" :disabled="submitting" />
-            </UFormGroup>
-            <UFormGroup :label="form.email_verified ? 'Verified' : 'Unverified'">
-              <USwitch v-model="form.email_verified" :disabled="submitting" />
-            </UFormGroup>
+            <NFormGroup :label="form.is_active ? 'Active' : 'Inactive'">
+              <NSwitch v-model="form.is_active" :disabled="submitting" />
+            </NFormGroup>
+            <NFormGroup :label="form.email_verified ? 'Verified' : 'Unverified'">
+              <NSwitch v-model="form.email_verified" :disabled="submitting" />
+            </NFormGroup>
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormGroup label="Avatar URL">
-            <UInput v-model="form.avatar_url" :disabled="submitting" type="url" placeholder="https://…" />
-          </UFormGroup>
+          <NFormGroup label="Avatar URL">
+            <NInput v-model="form.avatar_url" :disabled="submitting" type="url" placeholder="https://…" />
+          </NFormGroup>
         </div>
       </form>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <UButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</UButton>
-        <UButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!canSubmit">Create User</UButton>
+        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!canSubmit">Create User</NButton>
       </div>
     </div>
-  </UDialog>
+  </NDialog>
 </template>
 
 <script setup lang="ts">

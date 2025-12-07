@@ -76,12 +76,14 @@ export default defineEventHandler(async (event) => {
       ${whereClause}
     `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset from bindings
     
-    const total = totalResult?.total || 0
-    const hasMore = offset + collections.length < total
+    const total = Number(totalResult?.total) || 0
+    // D1 `.all()` returns an object with a `results` array, so normalize to rows
+    const rows = (collections as any).results ?? []
+    const hasMore = offset + rows.length < total
     
     return {
       success: true,
-      data: collections,
+      data: rows,
       pagination: {
         page,
         limit,

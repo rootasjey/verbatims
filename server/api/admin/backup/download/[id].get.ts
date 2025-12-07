@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 410, statusMessage: 'Backup file is not available' })
     }
 
-    if (error.statusCode) throw error
+    if ((error as any).statusCode) throw error
     throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
   }
 })

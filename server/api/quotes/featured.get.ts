@@ -2,7 +2,6 @@ import type {
   ApiResponse,
   FeaturedQuoteResult
 } from '~/types'
-
 export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
   try {
     const db = hubDatabase()
