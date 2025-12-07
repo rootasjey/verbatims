@@ -42,59 +42,28 @@ async function run() {
     // Find template blocks safely (handles nested <template> ... </template> blocks)
     let newContent = content
     let fileChanged = false
-    // Find top-level (non-overlapping) template blocks by scanning
-    const blocks = []
-    let pos = 0
-    while (true) {
-      const startOpen = content.indexOf('<template', pos)
-      if (startOpen === -1) break
+    // Safer approach: exclude <script> and <style> blocks from modifications,
+    // process the rest of the file and replace U-prefixed tags across the markup
+    // (handles cases with complicated nesting or duplicated blocks safely).
+    const placeholderBlocks = []
+    let working = content
 
-      // find end of opening tag
-      const openEnd = content.indexOf('>', startOpen)
-      if (openEnd === -1) break
-      const attrs = content.slice(startOpen + '<template'.length, openEnd)
+    // Extract script and style blocks so we don't accidentally change code or css
+    const blockRe = /<(script|style)([\s\S]*?)>([\s\S]*?)<\/\1>/gi
+    working = working.replace(blockRe, (m) => {
+      const key = `__BLOCK_PLACEHOLDER_${placeholderBlocks.length}__`
+      placeholderBlocks.push(m)
+      return key
+    })
 
-      // find matching closing tag, tracking nested templates
-      let depth = 1
-      let cursor = openEnd + 1
-      while (depth > 0) {
-        const nextOpen = content.indexOf('<template', cursor)
-        const nextClose = content.indexOf('</template>', cursor)
-        if (nextClose === -1) {
-          // malformed
-          break
-        }
-        if (nextOpen !== -1 && nextOpen < nextClose) {
-          depth++
-          cursor = nextOpen + 1
-        } else {
-          depth--
-          cursor = nextClose + '</template>'.length
-        }
-      }
+    // Run replacements on the rest of the file
+    const { out, changed } = transformTemplate(working)
+    fileChanged = fileChanged || changed
+    newContent = out
 
-      const endClose = cursor
-      if (endClose <= startOpen) break
-
-      const innerStart = openEnd + 1
-      const inner = content.slice(innerStart, endClose - '</template>'.length)
-      blocks.push({ startOpen, attrs, innerStart, inner, endClose })
-
-      pos = endClose
-    }
-
-    if (blocks.length > 0) {
-      let outPieces = []
-      let last = 0
-      for (const b of blocks) {
-        outPieces.push(content.slice(last, b.startOpen))
-        const { out, changed } = transformTemplate(b.inner)
-        fileChanged = fileChanged || changed
-        outPieces.push(`<template${b.attrs}>${out}</template>`)
-        last = b.endClose
-      }
-      outPieces.push(content.slice(last))
-      newContent = outPieces.join('')
+    // Restore script/style blocks
+    for (let i = 0; i < placeholderBlocks.length; i++) {
+      newContent = newContent.replace(`__BLOCK_PLACEHOLDER_${i}__`, placeholderBlocks[i])
     }
 
     if (fileChanged) {
