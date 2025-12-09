@@ -1,19 +1,55 @@
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import type {
   Author, QuoteReference, CreateQuoteData, QuoteLanguage,
   QuoteWithRelations, AdminQuote
 } from '~/types'
 
+type LanguageOption = {
+  label: string
+  value: QuoteLanguage
+  autoDetected?: boolean
+  confidence?: number
+  lowConfidence?: boolean
+}
+
+type LanguageDetectionState = {
+  code: QuoteLanguage | null
+  label: string | null
+  confidence: number
+  source: 'auto' | 'manual' | null
+  lowConfidence: boolean
+}
+
+const DEFAULT_LANGUAGE: LanguageOption = { label: 'English', value: 'en' }
+const ISO3_TO_LANGUAGE: Record<string, QuoteLanguage> = {
+  eng: 'en',
+  fra: 'fr',
+  lat: 'la',
+  spa: 'es',
+  deu: 'de',
+  ita: 'it',
+  por: 'pt',
+  rus: 'ru',
+  jpn: 'ja',
+  cmn: 'zh',
+  zho: 'zh'
+}
+
+const SUPPORTED_ISO3_CODES = Object.keys(ISO3_TO_LANGUAGE)
+const MIN_CONTENT_LENGTH_FOR_DETECTION = 12
+const APPLY_CONFIDENCE_THRESHOLD = 0.35
+const LOW_CONFIDENCE_THRESHOLD = 0.55
+
 export function useQuoteForm() {
   const form = ref({
     content: '',
-    language: { label: 'English', value: 'en' },
+    language: { ...DEFAULT_LANGUAGE },
     selectedAuthor: null as Author | null,
     selectedReference: null as QuoteReference | null
   })
 
-  const languageOptions = [
+  const languageOptions: LanguageOption[] = [
     { label: 'English', value: 'en' },
     { label: 'French', value: 'fr' },
     { label: 'Latin', value: 'la' },
@@ -25,6 +61,129 @@ export function useQuoteForm() {
     { label: 'Japanese', value: 'ja' },
     { label: 'Chinese', value: 'zh' }
   ]
+
+  const languageDetection = ref<LanguageDetectionState>({
+    code: null,
+    label: null,
+    confidence: 0,
+    source: null,
+    lowConfidence: false
+  })
+
+  const languageManuallySelected = ref(false)
+
+  const getLanguageOption = (value: QuoteLanguage) => languageOptions.find(opt => opt.value === value) || { ...DEFAULT_LANGUAGE, value }
+
+  const mapIso3ToLanguageOption = (iso3: string): LanguageOption | null => {
+    const iso2 = ISO3_TO_LANGUAGE[iso3]
+    if (!iso2) return null
+    return getLanguageOption(iso2)
+  }
+
+  const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
+
+  const computeConfidence = (bestDistance: number, nextDistance?: number, textLength = 0) => {
+    const normalizedBest = clamp01(1 - (Math.min(bestDistance, 1000) / 1000))
+    const gap = nextDistance !== undefined ? clamp01((nextDistance - bestDistance) / 1000) : 0.5
+    const lengthBoost = clamp01(Math.min(textLength, 140) / 140)
+    return clamp01((normalizedBest * 0.55) + (gap * 0.25) + (lengthBoost * 0.2))
+  }
+
+  const clearLanguageDetection = () => {
+    languageDetection.value = {
+      code: null,
+      label: null,
+      confidence: 0,
+      source: null,
+      lowConfidence: false
+    }
+  }
+
+  const onLanguageSelected = (option: LanguageOption) => {
+    if (!option) return
+    languageManuallySelected.value = true
+    languageDetection.value = {
+      code: option.value,
+      label: option.label,
+      confidence: 1,
+      source: 'manual',
+      lowConfidence: false
+    }
+    form.value.language = {
+      ...option,
+      autoDetected: false,
+      confidence: 1,
+      lowConfidence: false
+    }
+  }
+
+  const applyDetectedLanguage = (option: LanguageOption, confidence: number) => {
+    const lowConfidence = confidence < LOW_CONFIDENCE_THRESHOLD
+    form.value.language = {
+      ...option,
+      autoDetected: true,
+      confidence,
+      lowConfidence
+    }
+    languageDetection.value = {
+      code: option.value,
+      label: option.label,
+      confidence,
+      source: 'auto',
+      lowConfidence
+    }
+  }
+
+  const detectLanguage = useDebounceFn(async (text: string) => {
+    const content = text.trim()
+
+    if (languageManuallySelected.value) return
+    if (content.length < MIN_CONTENT_LENGTH_FOR_DETECTION) {
+      clearLanguageDetection()
+      return
+    }
+
+    try {
+      const { francAll } = await import('franc-min')
+      const results = francAll(content, {
+        minLength: MIN_CONTENT_LENGTH_FOR_DETECTION,
+        whitelist: SUPPORTED_ISO3_CODES
+      })
+
+      if (!results.length || results[0][0] === 'und') {
+        clearLanguageDetection()
+        return
+      }
+
+      const [bestCode, bestDistance] = results[0]
+      const nextDistance = results[1]?.[1]
+      const option = mapIso3ToLanguageOption(bestCode)
+      if (!option) {
+        clearLanguageDetection()
+        return
+      }
+
+      const confidence = computeConfidence(bestDistance, nextDistance, content.length)
+      languageDetection.value = {
+        code: option.value,
+        label: option.label,
+        confidence,
+        source: 'auto',
+        lowConfidence: confidence < LOW_CONFIDENCE_THRESHOLD
+      }
+
+      if (confidence >= APPLY_CONFIDENCE_THRESHOLD) {
+        applyDetectedLanguage(option, confidence)
+      }
+    } catch (error) {
+      console.error('Language auto-detect failed:', error)
+      clearLanguageDetection()
+    }
+  }, 450)
+
+  watch(() => form.value.content, (text) => {
+    void detectLanguage(text || '')
+  })
 
   // Search state
   const authorQuery = ref('')
@@ -281,10 +440,12 @@ export function useQuoteForm() {
   const resetForm = () => {
     form.value = {
       content: '',
-      language: { label: 'English', value: 'en' },
+      language: { ...DEFAULT_LANGUAGE },
       selectedAuthor: null,
       selectedReference: null
     }
+    languageManuallySelected.value = false
+    clearLanguageDetection()
     authorQuery.value = ''
     referenceQuery.value = ''
     authorSuggestions.value = []
@@ -298,7 +459,15 @@ export function useQuoteForm() {
     const quote: any = editQuote
     form.value.content = quote.name || ''
     const languageOption = languageOptions.find(opt => opt.value === quote.language)
-    form.value.language = languageOption || { label: 'English', value: 'en' }
+    form.value.language = languageOption || { ...DEFAULT_LANGUAGE }
+    languageManuallySelected.value = true
+    languageDetection.value = {
+      code: form.value.language.value as QuoteLanguage,
+      label: form.value.language.label,
+      confidence: 1,
+      source: 'manual',
+      lowConfidence: false
+    }
 
     if (quote.author) {
       form.value.selectedAuthor = quote.author as Author
@@ -347,6 +516,8 @@ export function useQuoteForm() {
     // state
     form,
     languageOptions,
+    languageDetection,
+    languageManuallySelected,
     authorQuery,
     referenceQuery,
     authorSuggestions,
@@ -366,6 +537,7 @@ export function useQuoteForm() {
     // search (network)
     searchAuthors,
     searchReferences,
+    onLanguageSelected,
 
     // focus / blur / keyboard handlers (authors)
     handleAuthorInputFocus,

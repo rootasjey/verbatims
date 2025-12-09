@@ -106,7 +106,7 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <NBadge v-if="userStats.draft > 0" color="gray" variant="subtle" size="xs">
+              <NBadge v-if="userStats.draft > 0" color="gray" badge="soft" size="xs">
                 {{ userStats.draft }}
               </NBadge>
               <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
@@ -129,7 +129,7 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <NBadge v-if="userStats.pending > 0" color="yellow" variant="subtle" size="xs">
+              <NBadge v-if="userStats.pending > 0" color="yellow" badge="soft" size="xs">
                 {{ userStats.pending }}
               </NBadge>
               <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
@@ -152,7 +152,7 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <NBadge v-if="userStats.approved > 0" color="green" variant="subtle" size="xs">
+              <NBadge v-if="userStats.approved > 0" color="green" badge="soft" size="xs">
                 {{ userStats.approved }}
               </NBadge>
               <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />

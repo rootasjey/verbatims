@@ -26,7 +26,7 @@
             </NTooltip>
             <NBadge
               :color="pageHeader.section.value === 'admin' ? 'red' : 'blue'"
-              variant="subtle"
+              badge="soft"
               size="xs"
               class="uppercase"
             >

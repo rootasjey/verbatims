@@ -138,7 +138,7 @@
                 >
                   <NIcon name="i-ph-file-dashed" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
-                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" color="yellow" variant="subtle" size="xs" class="ml-auto" />
+                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" color="yellow" badge="soft" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -157,7 +157,7 @@
                 >
                   <NIcon name="i-ph-clock" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
-                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" color="orange" variant="subtle" size="xs" class="ml-auto" />
+                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" color="orange" badge="soft" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -176,7 +176,7 @@
                 >
                   <NIcon name="i-ph-check-circle" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
-                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" color="green" variant="subtle" size="xs" class="ml-auto" />
+                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" color="green" badge="soft" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
             </div>

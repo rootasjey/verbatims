@@ -72,20 +72,20 @@
         </div>
 
         <!-- Tags -->
-        <div v-if="quote.tags?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 animate-fade-in animate-duration-500 animate-delay-200">
+        <div v-if="quote.tags?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-8 mb-8 animate-fade-in animate-duration-500 animate-delay-200">
           <div class="flex flex-wrap justify-center gap-3">
             <NuxtLink
               v-for="tag in quote.tags"
               :key="tag.name"
               :to="`/tags/${encodeURIComponent(tag.name)}`"
-              class="inline-flex items-center px-4 py-2 border border-dashed rounded-lg text-sm font-medium font-sans transition-all hover:scale-105 hover:shadow-sm"
+              class="inline-flex items-center px-4 py-1 border rounded-full text-sm font-medium font-sans transition-all hover:scale-105 hover:shadow-sm"
               :style="{
                 backgroundColor: tag.color + '10',
                 color: tag.color,
                 borderColor: tag.color + '40'
               }"
             >
-              #{{ tag.name }}
+              {{ tag.name }}
             </NuxtLink>
           </div>
         </div>

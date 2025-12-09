@@ -65,7 +65,7 @@
               </div>
               <NBadge 
                 :color="getStatusColor(quote.status)" 
-                variant="subtle"
+                badge="soft"
                 size="xs"
               >
                 {{ quote.status }}
@@ -102,7 +102,7 @@
                   {{ collection.quotes_count }} quotes
                 </p>
               </div>
-              <NBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">
+              <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">
                 Public
               </NBadge>
             </div>

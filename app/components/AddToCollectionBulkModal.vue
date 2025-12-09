@@ -75,7 +75,7 @@
                   <NBadge
                     v-if="collection.is_public"
                     color="green"
-                    variant="subtle"
+                    badge="soft"
                     size="xs"
                   >
                     Public

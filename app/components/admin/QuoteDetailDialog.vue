@@ -10,7 +10,7 @@
         <div v-if="quote.author" class="flex items-center gap-4">
           <NIcon name="i-ph-person-simple-walk" class="w-4 h-4 text-gray-500" />
           <span class="text-sm text-gray-900 dark:text-white">{{ quote.author.name }}</span>
-          <NBadge v-if="quote.author.is_fictional" color="purple" variant="subtle" size="xs">
+          <NBadge v-if="quote.author.is_fictional" badge="soft-purple" size="xs">
             Fictional
           </NBadge>
         </div>
@@ -43,7 +43,7 @@
               <div>
                 <span class="font-medium text-gray-700 dark:text-gray-500">Status</span>
                 <div class="mt-1">
-                  <NBadge color="gray" variant="subtle" size="xs">
+                  <NBadge badge="soft-gray" size="xs">
                     {{ quote.status || 'Draft' }}
                   </NBadge>
                 </div>

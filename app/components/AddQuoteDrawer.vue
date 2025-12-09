@@ -50,7 +50,25 @@
 										item-key="label"
 										value-key="label"
 										:disabled="submitting"
+										@update:model-value="onLanguageSelected"
 									/>
+								<div
+									v-if="languageDetection.label"
+									class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+								>
+									<span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
+										{{ languageDetection.source === 'manual'
+											? `Language set to ${languageDetection.label}`
+											: `Auto-detected: ${languageDetection.label}`
+										}}
+									</span>
+									<span
+										v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'"
+										class="text-amber-700 dark:text-amber-300"
+									>
+										Low confidence — please confirm.
+									</span>
+								</div>
 							</div>
 						</div>
 
@@ -97,7 +115,7 @@
 										</div>
 									</div>
 									<div
-										v-if="authorQuery && !authorSuggestions.some(a => a.name.toLowerCase() === authorQuery.toLowerCase())"
+										v-if="authorQuery && !authorSuggestions.some((a: Author) => a.name.toLowerCase() === authorQuery.toLowerCase())"
 										:class="[
 											'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
 											selectedAuthorIndex === authorSuggestions.length
@@ -172,7 +190,7 @@
 										</div>
 									</div>
 									<div
-										v-if="referenceQuery && !referenceSuggestions.some(r => r.name.toLowerCase() === referenceQuery.toLowerCase())"
+										v-if="referenceQuery && !referenceSuggestions.some((r: QuoteReference) => r.name.toLowerCase() === referenceQuery.toLowerCase())"
 										:class="[
 											'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
 											selectedReferenceIndex === referenceSuggestions.length
@@ -231,6 +249,10 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue'
+import { useQuoteForm } from '~/composables/useQuoteForm'
+import type { Author, QuoteReference } from '~/types'
+
 interface Emits {
 	(e: 'update:open', value: boolean): void
 	(e: 'submitted'): void
@@ -239,17 +261,16 @@ interface Emits {
 const props = defineProps<{ open?: boolean }>()
 const emit = defineEmits<Emits>()
 
+const { user } = useUserSession()
+
 const isOpen = computed({
 	get: () => !!props.open,
 	set: (val: boolean) => emit('update:open', val)
 })
-
-const { user } = useUserSession()
-
-import { useQuoteForm } from '~/composables/useQuoteForm'
 const {
 	form,
 	languageOptions,
+	languageDetection,
 	authorQuery,
 	referenceQuery,
 	authorSuggestions,
@@ -279,6 +300,8 @@ const {
 	createNewReference,
 	clearAuthor,
 	clearReference,
+	resetForm,
+	onLanguageSelected,
 } = useQuoteForm()
 
 const onAuthorInput = () => {
@@ -310,14 +333,7 @@ const submitQuote = async () => {
 			body: payload
 		})
 
-		form.value.content = ''
-		form.value.selectedAuthor = null
-		form.value.selectedReference = null
-		authorQuery.value = ''
-		referenceQuery.value = ''
-		authorSuggestions.value = []
-		referenceSuggestions.value = []
-
+		resetForm()
 		isOpen.value = false
 
 		emit('submitted')

@@ -50,7 +50,25 @@
 									item-key="label"
 									value-key="label"
 									:disabled="submitting"
+									@update:model-value="onLanguageSelected"
 								/>
+								<div
+									v-if="languageDetection.label"
+									class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+								>
+									<span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
+										{{ languageDetection.source === 'manual'
+											? `Language set to ${languageDetection.label}`
+											: `Auto-detected: ${languageDetection.label}`
+										}}
+									</span>
+									<span
+										v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'"
+										class="text-amber-700 dark:text-amber-300"
+									>
+										Low confidence — please confirm.
+									</span>
+								</div>
 							</div>
 						</div>
 
@@ -231,7 +249,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { QuoteWithRelations } from '~/types'
+// import type { QuoteWithRelations } from '~/shared/types'
+import { computed } from 'vue';
+import { useQuoteForm } from '~/composables/useQuoteForm'
 
 interface Props {
 	open?: boolean
@@ -255,10 +275,10 @@ const editMode = computed(() => !!props.editQuote)
 
 const { user } = useUserSession()
 
-import { useQuoteForm } from '~/composables/useQuoteForm'
 const {
 	form,
 	languageOptions,
+	languageDetection,
 	authorQuery,
 	referenceQuery,
 	authorSuggestions,
@@ -288,6 +308,9 @@ const {
 	createNewReference,
 	clearAuthor,
 	clearReference,
+	onLanguageSelected,
+	resetForm,
+	initializeFormForEdit,
 } = useQuoteForm()
 
 const onAuthorInput = () => {
@@ -299,41 +322,16 @@ const onReferenceInput = () => {
 }
 
 const handleClose = () => {
-	// Reset form when closing
-	form.value.content = ''
-	form.value.selectedAuthor = null
-	form.value.selectedReference = null
-	authorQuery.value = ''
-	referenceQuery.value = ''
-	authorSuggestions.value = []
-	referenceSuggestions.value = []
-	
+	resetForm()
 	isOpen.value = false
 }
 
 // Watch for editQuote changes to populate form
 watch(() => props.editQuote, (quote) => {
 	if (quote && isOpen.value) {
-		// Populate form with quote data
-		form.value.content = quote.name || ''
-		
-		// Set language
-		const lang = languageOptions.find((l: { label: string; value: string }) => l.value === quote.language)
-		if (lang) {
-			form.value.language = lang
-		}
-		
-		// Set author
-		if (quote.author) {
-			form.value.selectedAuthor = quote.author
-			authorQuery.value = quote.author.name
-		}
-		
-		// Set reference
-		if (quote.reference) {
-			form.value.selectedReference = quote.reference
-			referenceQuery.value = quote.reference.name
-		}
+		initializeFormForEdit(quote)
+	} else if (!quote) {
+		resetForm()
 	}
 }, { immediate: true })
 
@@ -377,15 +375,7 @@ const submitQuote = async () => {
 			})
 		}
 
-		// Reset form
-		form.value.content = ''
-		form.value.selectedAuthor = null
-		form.value.selectedReference = null
-		authorQuery.value = ''
-		referenceQuery.value = ''
-		authorSuggestions.value = []
-		referenceSuggestions.value = []
-
+		resetForm()
 		isOpen.value = false
 
 		emit('submitted')

@@ -124,11 +124,11 @@
               </template>
 
               <template #format-cell="{ cell }">
-                <NBadge
-                  :label="cell.row.original.format.toUpperCase()"
-                  :color="dataExport.getFormatColor(cell.row.original.format)"
-                  badge="subtle"
-                  size="xs"
+                  <NBadge
+                    :label="cell.row.original.format.toUpperCase()"
+                    :color="dataExport.getFormatColor(cell.row.original.format)"
+                    badge="soft"
+                    size="xs"
                 />
               </template>
 
@@ -146,14 +146,14 @@
                     v-if="cell.row.original.backup_file"
                     :label="dataExport.getBackupStatusLabel(cell.row.original.backup_file.storage_status)"
                     :color="dataExport.getBackupStatusColor(cell.row.original.backup_file.storage_status)"
-                    badge="subtle"
+                    badge="soft"
                     size="xs"
                   />
                   <NBadge
                     v-else
                     label="Legacy"
                     color="gray"
-                    badge="subtle"
+                    badge="soft"
                     size="xs"
                   />
                   <NIcon
@@ -230,7 +230,7 @@
         <template #footer>
           <div class="flex justify-end space-x-3">
             <NButton btn="ghost" @click="showBulkDeleteModal = false">Cancel</NButton>
-            <NButton color="red" :loading="bulkProcessing" @click="bulkDelete">Delete All</NButton>
+            <NButton btn="solid-red" :loading="bulkProcessing" @click="bulkDelete">Delete All</NButton>
           </div>
         </template>
       </NCard>

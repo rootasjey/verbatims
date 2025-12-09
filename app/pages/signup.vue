@@ -32,10 +32,9 @@
           <!-- Error Alert -->
           <NAlert
             v-if="error"
-            color="red"
-            variant="soft"
+            alert="soft-red"
             :title="error"
-            :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+            :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
             @close="error = ''"
           />
           <!-- Email/Password Sign Up Form -->
@@ -173,10 +172,9 @@
           <!-- Error Alert -->
           <NAlert
             v-if="error"
-            color="red"
-            variant="soft"
+            alert="soft-red"
             :title="error"
-            :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+            :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
             class="mb-3"
             @close="error = ''"
           />

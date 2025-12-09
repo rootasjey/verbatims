@@ -312,14 +312,14 @@
                   <NBadge
                     v-for="tag in cell.row.original.tags.slice(0, 2)"
                     :key="tag.id"
-                    variant="subtle"
+                    badge="soft"
                     size="xs"
                   >
                     {{ tag.name }}
                   </NBadge>
                   <NBadge
                     v-if="cell.row.original.tags.length > 2"
-                    variant="subtle"
+                    badge="soft"
                     size="xs"
                     color="gray"
                     :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
@@ -332,7 +332,7 @@
 
               <!-- Status Column -->
               <template #status-cell>
-                <NBadge color="orange" variant="subtle" size="xs">
+                <NBadge color="orange" badge="soft" size="xs">
                   Pending
                 </NBadge>
               </template>

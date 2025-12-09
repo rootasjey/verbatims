@@ -65,7 +65,7 @@
         <div v-if="quote.reference || quote.reference_type" class="flex-shrink-0">
           <NBadge
             :color="getReferenceTypeColor(quote.reference?.type || quote.reference_type as string)"
-            variant="subtle"
+            badge="soft"
             size="xs"
             class="text-xs font-500 rounded-lg"
           >

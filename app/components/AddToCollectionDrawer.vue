@@ -78,7 +78,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                    <NBadge v-if="collection.is_public" color="green" variant="subtle" size="xs">Public</NBadge>
+                    <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">Public</NBadge>
                   </div>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{ collection.quotes_count }} {{ collection.quotes_count === 1 ? 'quote' : 'quotes' }}

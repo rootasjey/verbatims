@@ -254,7 +254,7 @@
 
             <!-- Status Column -->
             <template #status-cell>
-              <NBadge color="green" variant="subtle" size="xs">
+              <NBadge color="green" badge="soft" size="xs">
                 Published
               </NBadge>
             </template>

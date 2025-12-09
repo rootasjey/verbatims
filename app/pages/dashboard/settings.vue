@@ -269,8 +269,7 @@
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
                 <NButton
-                  btn="solid-red"
-                  variant="outline"
+                  btn="outline-red"
                   class="w-full"
                   @click="showDeleteModal = true"
                 >
@@ -531,8 +530,7 @@
                   Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
                 <NButton
-                  btn="solid-red"
-                  variant="outline"
+                  btn="outline-red"
                   @click="showDeleteModal = true"
                 >
                   Delete Account

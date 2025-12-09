@@ -94,7 +94,7 @@
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
                   {{ collection.name }}
                 </h1>
-                <NBadge v-if="collection.is_public" color="green" variant="subtle">Public</NBadge>
+                <NBadge v-if="collection.is_public" color="green" badge="soft">Public</NBadge>
               </div>
               <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                 {{ collection.description }}

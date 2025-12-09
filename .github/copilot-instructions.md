@@ -160,6 +160,17 @@ const props = withDefaults(defineProps<Props>(), {
 - In UDropdownMenu component: Use `onclick` event for item actions
 - In UButton component: Use `btn` prop for styling variations
 
+### UnaUI / Component style props
+
+When customizing UnaUI/Naive-style components in this project, do not rely on a generic `variant` prop — that prop doesn't exist on these primitives. Instead the component-specific styling prop usually matches the component name. For example:
+
+- `NBadge` → `badge`
+- `NButton` → `btn`
+- `NInput` → `input`
+- `NAvatar` → `avatar`
+
+Use these props to control style variants consistently across components instead of looking for `variant`.
+
 ## Key Files to Reference
 - `/nuxt.config.ts` - Core configuration and modules
 - `/types/quote.d.ts` - Main data model types

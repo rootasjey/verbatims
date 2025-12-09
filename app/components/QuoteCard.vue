@@ -27,7 +27,7 @@
 
           <!-- Language indicator -->
           <div v-if="quote.language !== 'en'" class="mt-2">
-            <NBadge variant="subtle" size="xs">
+            <NBadge badge="soft" size="xs">
               {{ getLanguageName(quote.language) }}
             </NBadge>
           </div>
@@ -134,7 +134,7 @@
 
         <div class="flex items-center space-x-2">
           <!-- Featured badge -->
-          <NBadge v-if="featured || quote.is_featured" color="yellow" variant="subtle" size="xs">
+          <NBadge v-if="featured || quote.is_featured" color="yellow" badge="soft" size="xs">
             Featured
           </NBadge>
 
