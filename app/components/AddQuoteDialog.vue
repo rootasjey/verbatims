@@ -184,7 +184,25 @@
             :disabled="submitting"
             item-key="label"
             value-key="label"
+            @update:model-value="onLanguageSelected"
           />
+          <div
+            v-if="languageDetection.label"
+            class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+          >
+            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
+              {{ languageDetection.source === 'manual'
+                ? `Language set to ${languageDetection.label}`
+                : `Auto-detected: ${languageDetection.label}`
+              }}
+            </span>
+            <span
+              v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'"
+              class="text-amber-700 dark:text-amber-300"
+            >
+              Low confidence — please confirm.
+            </span>
+          </div>
         </div>
       </form>
 
@@ -209,7 +227,7 @@
 import type {
   QuoteWithRelations,
   AdminQuote, CreateQuoteData,
-} from '~/types'
+} from '~~/types'
 
 interface Props {
   modelValue: boolean
@@ -240,6 +258,7 @@ import { useQuoteForm } from '~/composables/useQuoteForm'
 const {
   form,
   languageOptions,
+  languageDetection,
   authorQuery,
   referenceQuery,
   authorSuggestions,
@@ -249,12 +268,9 @@ const {
   submitting,
   selectedAuthorIndex,
   selectedReferenceIndex,
-  authorInputRef,
-  referenceInputRef,
-  authorSuggestionsRef,
-  referenceSuggestionsRef,
   searchAuthors,
   searchReferences,
+  onLanguageSelected,
   handleAuthorInputFocus,
   handleAuthorInputBlur,
   handleAuthorSuggestionsBlur,
@@ -271,8 +287,6 @@ const {
   clearReference,
   resetForm,
   initializeFormForEdit,
-  scrollToSelectedAuthorItem,
-  scrollToSelectedReferenceItem,
   createPayload
 } = useQuoteForm()
 

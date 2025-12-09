@@ -76,7 +76,7 @@
                   Status
                 </dt>
                 <dd class="sm:col-span-2">
-                  <NBadge color="yellow" variant="subtle" class="font-sans">
+                  <NBadge color="yellow" badge="soft" class="font-sans">
                     <NIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
                     Featured quote
                   </NBadge>

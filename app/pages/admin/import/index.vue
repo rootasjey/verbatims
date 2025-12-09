@@ -44,7 +44,7 @@
                           <NBadge
                             v-if="detectedFormat && selectedFormat?.value === detectedFormat?.value"
                             color="blue"
-                            variant="subtle"
+                            badge="soft"
                             size="xs"
                           >Auto-detected</NBadge>
                           <div v-if="detectedFormat && selectedFormat?.value !== detectedFormat?.value">
@@ -78,7 +78,7 @@
                           <NBadge
                             v-if="detectedDataType && selectedDataType?.value === detectedDataType?.value"
                             color="blue"
-                            variant="subtle"
+                            badge="soft"
                             size="xs"
                           >Auto-detected</NBadge>
                           <div v-if="detectedDataType && selectedDataType?.value !== detectedDataType?.value">

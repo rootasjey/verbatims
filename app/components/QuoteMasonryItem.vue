@@ -73,7 +73,7 @@
     <NBadge
       v-if="quote.is_featured"
       color="yellow"
-      variant="subtle"
+      badge="soft"
       size="xs"
       class="absolute top-2 right-2"
     >

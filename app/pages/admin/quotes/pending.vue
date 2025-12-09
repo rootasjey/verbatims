@@ -207,14 +207,14 @@
                   v-for="tag in cell.row.original.tags.slice(0, 2)"
                   :key="tag.name"
                   :style="{ backgroundColor: tag.color }"
-                  variant="soft"
+                  badge="soft"
                   size="xs"
                 >
                   {{ tag.name }}
                 </NBadge>
                 <NBadge
                   v-if="cell.row.original.tags.length > 2"
-                  variant="soft"
+                  badge="soft"
                   size="xs"
                   color="gray"
                 >
@@ -229,7 +229,7 @@
             <!-- Status Column -->
             <template #status-cell="{ cell }">
               <div class="space-y-1">
-                <NBadge :color="getStatusColor(cell.row.original.status)" variant="subtle" size="xs">
+                <NBadge :badge="`soft-${getStatusColor(cell.row.original.status)}`" size="xs">
                   {{ cell.row.original.status }}
                 </NBadge>
                 <div v-if="cell.row.original.status === 'rejected' && cell.row.original.rejection_reason" class="text-xs text-red-600 dark:text-red-400">

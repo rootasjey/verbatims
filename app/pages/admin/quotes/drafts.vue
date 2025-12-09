@@ -230,7 +230,7 @@
 
             <!-- Status Column -->
             <template #status-cell>
-              <NBadge color="gray" variant="subtle" size="xs">
+              <NBadge color="gray" badge="soft" size="xs">
                 Draft
               </NBadge>
             </template>

@@ -6,7 +6,7 @@
           <h3 class="text-lg font-600 text-gray-900 dark:text-white">Quick actions</h3>
           <NBadge 
             :color="statusColor" 
-            variant="subtle" 
+            badge="soft" 
             size="xs"
           >
             {{ statusLabel }}

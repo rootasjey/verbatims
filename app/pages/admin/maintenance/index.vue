@@ -14,19 +14,17 @@
     <div class="mb-6 space-y-4">
       <NAlert
         v-if="successMessage"
-        alert="green"
-        variant="soft"
+        alert="soft-green"
         :title="successMessage"
-        :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+        :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
         @close="successMessage = ''"
       />
 
       <NAlert
         v-if="errorMessage"
-        alert="red"
-        variant="soft"
+        alert="soft-red"
         :title="errorMessage"
-        :close-button="{ icon: 'i-ph-x', color: 'gray', variant: 'link', padded: false }"
+        :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
         @close="errorMessage = ''"
       />
     </div>

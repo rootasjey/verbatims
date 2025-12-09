@@ -73,7 +73,7 @@
         <!-- Load More -->
         <div v-if="hasMore && !loading" class="text-center">
           <NButton
-            variant="ghost"
+            btn="ghost"
             size="sm"
             :loading="loadingMore"
             @click="loadMore"
@@ -86,7 +86,7 @@
       <template #footer>
         <div class="flex justify-end">
           <NButton
-            variant="ghost"
+            btn="ghost"
             @click="closeModal"
           >
             Close

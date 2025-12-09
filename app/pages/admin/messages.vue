@@ -105,14 +105,14 @@
 
             <template #tags-cell="{ cell }">
               <div class="flex flex-wrap gap-1">
-                <NBadge v-for="t in (cell.row.original.tags || []).slice(0,3)" :key="t" size="xs" variant="soft">{{ t }}</NBadge>
-                <NBadge v-if="(cell.row.original.tags||[]).length>3" size="xs" variant="soft">+{{ (cell.row.original.tags||[]).length-3 }}</NBadge>
+                <NBadge v-for="t in (cell.row.original.tags || []).slice(0,3)" :key="t" size="xs" badge="soft">{{ t }}</NBadge>
+                <NBadge v-if="(cell.row.original.tags||[]).length>3" size="xs" badge="soft">+{{ (cell.row.original.tags||[]).length-3 }}</NBadge>
               </div>
             </template>
 
             <template #status-cell="{ cell }">
               <div class="flex items-center gap-2">
-                <NBadge :color="statusColor(cell.row.original.status)" variant="subtle" size="xs">{{ cell.row.original.status }}</NBadge>
+                <NBadge :color="statusColor(cell.row.original.status)" badge="soft" size="xs">{{ cell.row.original.status }}</NBadge>
                 <NDropdownMenu :items="statusItems(cell.row.original)">
                   <NButton size="2xs" btn="ghost" icon label="i-ph-caret-down" />
                 </NDropdownMenu>

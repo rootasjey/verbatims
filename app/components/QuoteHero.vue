@@ -6,7 +6,7 @@
   >
     <!-- Hero Badge -->
     <div class="flex items-center justify-between mb-4">
-      <NBadge color="primary" variant="subtle" size="sm">
+      <NBadge color="primary" badge="soft" size="sm">
         <NIcon name="i-ph-star-bold" class="w-3 h-3 mr-1" />
         Featured Quote
       </NBadge>
@@ -46,7 +46,7 @@
           <NBadge
             v-if="quote.reference.primary_type"
             :color="getReferenceTypeColor(quote.reference.primary_type)"
-            variant="subtle"
+            badge="soft"
             size="xs"
           >
             {{ quote.reference.primary_type }}

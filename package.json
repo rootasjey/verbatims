@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.23.1",
+  "version": "0.24.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -24,6 +24,7 @@
     "@una-ui/nuxt": "^0.66.0",
     "@vueuse/nuxt": "^14.1.0",
     "fflate": "^0.8.2",
+    "franc-min": "^6.2.0",
     "html-to-image": "^1.11.13",
     "nuxt": "^4.2.1",
     "nuxt-auth-utils": "0.5.25",

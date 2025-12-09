@@ -64,7 +64,7 @@
           <NBadge
             v-if="badge === 'text'"
             :color="getReferenceTypeColor(referenceType)"
-            variant="subtle"
+            badge="soft"
             size="xs"
             class="text-xs font-500 rounded-lg"
           >
@@ -87,7 +87,7 @@
         </template>
 
         <!-- Featured Badge (if any) -->
-        <NBadge v-if="quote.is_featured" color="yellow" variant="subtle" size="xs">Featured</NBadge>
+        <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs">Featured</NBadge>
       </div>
     </div>
 

@@ -30,7 +30,7 @@
       <template #footer>
         <div class="flex justify-end space-x-3">
           <NButton btn="ghost" @click="closeDialog" :disabled="deleting">Cancel</NButton>
-          <NButton color="red" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
+          <NButton btn="solid-red" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
         </div>
       </template>
     </NCard>

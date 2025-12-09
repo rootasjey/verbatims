@@ -42,8 +42,7 @@
           >
             <div class="flex items-center gap-2 overflow-x-auto py-2 px-1 scrollbar-hide">
               <NBadge
-                :badge="sortBy.value === 'recent' ? 'soft-blue' : 'soft-gray'"
-                rounded="full"
+                  badge="soft-gray"
                 class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Most Recent', value: 'recent' }"
               >
@@ -51,8 +50,7 @@
                 Recent
               </NBadge>
               <NBadge
-                :badge="sortBy.value === 'oldest' ? 'soft-orange' : 'soft-gray'"
-                rounded="full"
+                  badge="soft-gray"
                 class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
                 @click="sortBy = { label: 'Oldest First', value: 'oldest' }"
               >
@@ -97,8 +95,7 @@
             icon
             leading="i-ph-arrow-left"
             to="/dashboard/my-quotes"
-            color="gray"
-            variant="soft"
+            btn="soft-gray"
           >
             Back
           </NButton>
@@ -121,8 +118,7 @@
             :loading="loadingMore"
             block
             size="lg"
-            variant="soft"
-            color="gray"
+            btn="soft-gray"
             class="rounded-xl font-500 text-sm"
             @click="loadMore"
           >
@@ -317,14 +313,14 @@
                   <NBadge
                     v-for="tag in cell.row.original.tags.slice(0, 2)"
                     :key="tag.id"
-                    variant="subtle"
+                    badge="soft-gray"
                     size="xs"
                   >
                     {{ tag.name }}
                   </NBadge>
                   <NBadge
                     v-if="cell.row.original.tags.length > 2"
-                    variant="subtle"
+                    badge="soft-gray"
                     size="xs"
                     color="gray"
                     :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
@@ -337,7 +333,7 @@
 
               <!-- Status Column -->
               <template #status-cell>
-                <NBadge color="gray" variant="subtle" size="xs">
+                <NBadge color="gray" badge="soft-gray" size="xs">
                   Draft
                 </NBadge>
               </template>
