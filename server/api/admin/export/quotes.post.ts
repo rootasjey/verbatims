@@ -4,7 +4,11 @@ import type {
   QuoteExportFilters,
   ExportedQuote,
   ExportResultWithBackup,
-} from '~/types'/**
+} from '~/types'
+import { db, schema } from 'hub:db'
+import { eq, inArray, sql } from 'drizzle-orm'
+
+/**
  * Admin API: Export Quotes Data
  * Comprehensive quotes export with filtering, multiple formats, and progress tracking
  */
@@ -47,11 +51,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
     const uniqueExportId = `quotes_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildQuotesQuery(quotesFilters, include_relations, limit)
-    const quotesResult = await db.prepare(query).bind(...bindings).all()
-    const quotes = (quotesResult?.results || []) as unknown as DatabaseAdminQuote[]
+    const quotesResult = await db.$client.execute({
+      sql: query,
+      args: bindings
+    })
+    const quotes = (quotesResult.rows ?? []) as any[]
 
     const processedQuotes: ExportedQuote[] = quotes.map((quote) => {
       const processed: ExportedQuote = {
@@ -174,7 +180,6 @@ export default defineEventHandler(async (event) => {
     })
 
     const backupResult = await createBackup(
-      db,
       contentData,
       filename,
       'quotes',
@@ -462,33 +467,22 @@ async function logQuotesExport(db: any, exportInfo: {
   includeMetadata?: boolean
 }): Promise<{ exportLogId: number }> {
   try {
-    const result = await db.prepare(`
-      INSERT INTO export_logs (
-        export_id, 
-        filename, 
-        format, 
-        data_type, 
-        filters_applied, 
-        record_count, 
-        file_size, 
-        user_id, 
-        include_relations, 
-        include_metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      exportInfo.exportId,
-      exportInfo.filename,
-      exportInfo.format,
-      'quotes',
-      serializeFiltersForStorage(exportInfo.filters),
-      exportInfo.recordCount,
-      exportInfo.fileSize,
-      exportInfo.userId,
-      exportInfo.includeRelations || false,
-      exportInfo.includeMetadata || false
-    ).run()
+    const [row] = await db.insert(schema.exportLogs)
+      .values({
+        exportId: exportInfo.exportId,
+        filename: exportInfo.filename,
+        format: exportInfo.format,
+        dataType: 'quotes',
+        filtersApplied: serializeFiltersForStorage(exportInfo.filters),
+        recordCount: exportInfo.recordCount,
+        fileSize: exportInfo.fileSize,
+        userId: exportInfo.userId,
+        includeRelations: exportInfo.includeRelations || false,
+        includeMetadata: exportInfo.includeMetadata || false,
+      })
+      .returning({ exportLogId: schema.exportLogs.id })
 
-    return { exportLogId: result.meta.last_row_id }
+    return { exportLogId: row?.exportLogId ?? 0 }
 
   } catch (error) {
     console.error('Failed to log quotes export:', error)

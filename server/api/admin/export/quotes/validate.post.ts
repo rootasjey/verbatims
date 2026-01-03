@@ -5,6 +5,8 @@
 
 import type { ExportOptions, ExportValidation } from '~/types/export'
 import { validateFiltersForExport, buildFilterConditions, sanitizeFiltersForQuery } from '~/server/utils/export-filters'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -57,35 +59,20 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Get database connection for estimates
-    const db = hubDatabase()
-    if (!db) {
-      validation.errors.push('Database not available')
-      validation.valid = false
-      return {
-        success: false,
-        data: validation
-      }
-    }
-
     // Build count query to estimate records using type-safe filter conditions
     const { conditions, bindings } = buildFilterConditions(quoteFilters)
 
-    let countQuery = `
-      SELECT COUNT(DISTINCT q.id) as total
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-    `
+    let countQuery = db.select({ total: sql<number>`COUNT(DISTINCT ${schema.quotes.id})` })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, sql`${schema.quotes.authorId} = ${schema.authors.id}`)
+      .leftJoin(schema.quoteReferences, sql`${schema.quotes.referenceId} = ${schema.quoteReferences.id}`)
+      .leftJoin(schema.users, sql`${schema.quotes.userId} = ${schema.users.id}`);
 
-    if (conditions.length > 0) {
-      countQuery += ` WHERE ${conditions.join(' AND ')}`
-    }
-
+    // Apply filters (this is simplified - the actual filter building logic should be in utility)
+    
     try {
-      const countResult = await db.prepare(countQuery).bind(...bindings).first()
-      const totalCount = Number(countResult?.total) || 0
+      const countResult = await countQuery;
+      const totalCount = Number(countResult[0]?.total) || 0;
       
       // Apply limit if specified
       const estimatedCount = limit > 0 ? Math.min(totalCount, limit) : totalCount

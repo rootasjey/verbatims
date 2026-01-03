@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, like, or, desc, count, getTableColumns } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -9,79 +12,65 @@ export default defineEventHandler(async (event) => {
     const language = query.language as string
     const search = query.search as string || ''
 
-    const db = hubDatabase()
-
-    // Build WHERE clause for status, language, and search filters
-    let whereClause = 'WHERE q.user_id = ?'
-    const bindings: any[] = [session.user.id]
+    // Build conditions array for dynamic filtering
+    const conditions = [eq(schema.quotes.userId, session.user.id)]
 
     if (status && ['draft', 'pending', 'approved', 'rejected'].includes(status)) {
-      whereClause += ' AND q.status = ?'
-      bindings.push(status)
+      conditions.push(eq(schema.quotes.status, status as any))
     }
 
     if (language) {
-      whereClause += ' AND q.language = ?'
-      bindings.push(language)
+      conditions.push(eq(schema.quotes.language, language as any))
     }
 
     if (search) {
-      whereClause += ' AND (q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ?)'
-      bindings.push(`%${search}%`, `%${search}%`, `%${search}%`)
+      const searchCondition = or(
+        like(schema.quotes.name, `%${search}%`),
+        like(schema.authors.name, `%${search}%`),
+        like(schema.quoteReferences.name, `%${search}%`)
+      )
+      if (searchCondition) conditions.push(searchCondition)
     }
 
     // Get user's submissions with related data
-    const submissionsResult = await db.prepare(`
-      SELECT
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        m.name as moderator_name
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users m ON q.moderator_id = m.id
-      ${whereClause}
-      ORDER BY q.created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(...bindings, limit, offset).all()
+    const submissions = await db.select({
+      ...getTableColumns(schema.quotes),
+      author_name: schema.authors.name,
+      author_is_fictional: schema.authors.isFictional,
+      reference_name: schema.quoteReferences.name,
+      reference_type: schema.quoteReferences.primaryType,
+      moderator_name: schema.users.name
+    })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.moderatorId, schema.users.id))
+      .where(and(...conditions))
+      .orderBy(desc(schema.quotes.createdAt))
+      .limit(limit)
+      .offset(offset)
 
-    // Extract the actual results from the wrapped response
-    const submissions = submissionsResult?.results || []
-    
-    // Get total count (exclude limit and offset from bindings)
-    let countBindingsLength = 1 // Always include user_id
-    if (status) countBindingsLength++
-    if (language) countBindingsLength++
-    if (search) countBindingsLength += 3 // search adds 3 bindings
-    const countBindings = bindings.slice(0, countBindingsLength)
+    // Get total count
+    const totalResult = await db.select({ total: count() })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .where(and(...conditions))
 
-    const totalResultWrapper = await db.prepare(`
-      SELECT COUNT(*) as total
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      ${whereClause}
-    `).bind(...countBindings).first()
-
-    const total = Number(totalResultWrapper?.total) || 0
-    const submissionsArray = Array.isArray(submissions) ? submissions : []
-    const hasMore = offset + submissionsArray.length < total
+    const total = Number(totalResult[0]?.total) || 0
+    const hasMore = offset + submissions.length < total
 
     // Get tags for each submission
-    const processedSubmissions = await Promise.all(submissionsArray.map(async (submission: any) => {
+    const processedSubmissions = await Promise.all(submissions.map(async (submission: any) => {
       // Get tags for this quote
-      const tagsResult = await db.prepare(`
-        SELECT t.id, t.name, t.color
-        FROM tags t
-        JOIN quote_tags qt ON t.id = qt.tag_id
-        WHERE qt.quote_id = ?
-      `).bind(submission.id).all()
-
-      // Extract the actual tags from the wrapped response
-      const tags = tagsResult?.results || []
+      const tags = await db.select({
+        id: schema.tags.id,
+        name: schema.tags.name,
+        color: schema.tags.color
+      })
+        .from(schema.tags)
+        .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+        .where(eq(schema.quoteTags.quoteId, submission.id))
 
       return {
         ...submission,

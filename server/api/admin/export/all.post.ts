@@ -1,4 +1,7 @@
 import { zipSync } from 'fflate'
+import { db, schema } from 'hub:db'
+import { blob } from 'hub:blob'
+import { eq, inArray, sql, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
@@ -25,188 +28,170 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = hubDatabase()
-
   // Lightweight fetchers; rely on per-route builders if needed later
 
   // Place fetchQuoteTags after db is defined
   async function fetchQuoteTags() {
-    const query = 'SELECT * FROM quote_tags';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.quoteTags);
   }
   async function fetchQuotes() {
-    let query = `
-      SELECT q.*,
-             a.name as author_name,
-             r.name as reference_name,
-             u.name as user_name,
-             u.email as user_email
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-    `
-
-    const bindings: any[] = []
-    const where: string[] = []
     const qf = all_filters.quotes || {}
+    let query = db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      language: schema.quotes.language,
+      status: schema.quotes.status,
+      authorId: schema.quotes.authorId,
+      referenceId: schema.quotes.referenceId,
+      userId: schema.quotes.userId,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      moderatedAt: schema.quotes.moderatedAt,
+      rejectionReason: schema.quotes.rejectionReason,
+      author_name: schema.authors.name,
+      reference_name: schema.quoteReferences.name,
+      user_name: schema.users.name,
+      user_email: schema.users.email,
+    })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .$dynamic()
 
     if (qf.language && Array.isArray(qf.language) && qf.language.length) {
-      where.push(`q.language IN (${qf.language.map(() => '?').join(',')})`)
-      bindings.push(...qf.language)
+      query = query.where(inArray(schema.quotes.language, qf.language))
     }
 
     if (qf.status && Array.isArray(qf.status) && qf.status.length) {
-      where.push(`q.status IN (${qf.status.map(() => '?').join(',')})`)
-      bindings.push(...qf.status)
+      query = query.where(inArray(schema.quotes.status, qf.status))
     }
 
-    if (where.length) query += ` WHERE ${where.join(' AND ')}`
-    query += ' ORDER BY q.created_at DESC'
+    if (limit > 0) {
+      query = query.limit(limit)
+    }
 
-    if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
+    query = query.orderBy(desc(schema.quotes.createdAt))
 
-    const queryResponse = await db.prepare(query).bind(...bindings).all()
-    return queryResponse.results || []
+    return await query
   }
 
   async function fetchAuthors() {
-    let query = 'SELECT a.* FROM authors a'
-    const bindings: any[] = []
-    const where: string[] = []
     const af = all_filters.authors || {}
+    let query = db.select().from(schema.authors).$dynamic()
 
-    if (af.is_fictional !== undefined) { where.push('a.is_fictional = ?'); bindings.push(!!af.is_fictional) }
-    if (where.length) query += ` WHERE ${where.join(' AND ')}`
+    if (af.is_fictional !== undefined) {
+      query = query.where(eq(schema.authors.isFictional, !!af.is_fictional))
+    }
 
-    query += ' ORDER BY a.created_at DESC'
+    if (limit > 0) {
+      query = query.limit(limit)
+    }
 
-    if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
+    query = query.orderBy(desc(schema.authors.createdAt))
 
-    const queryResponse = await db.prepare(query).bind(...bindings).all()
-    return queryResponse.results || []
+    return await query
   }
 
   async function fetchReferences() {
-    let query = 'SELECT r.* FROM quote_references r'
-    const bindings: any[] = []
-    const where: string[] = []
     const rf = all_filters.references || {}
+    let query = db.select().from(schema.quoteReferences).$dynamic()
 
     if (rf.primary_type && Array.isArray(rf.primary_type) && rf.primary_type.length) {
-      where.push(`r.primary_type IN (${rf.primary_type.map(() => '?').join(',')})`)
-      bindings.push(...rf.primary_type)
+      query = query.where(inArray(schema.quoteReferences.primaryType, rf.primary_type))
     }
 
-    if (where.length) query += ` WHERE ${where.join(' AND ')}`
-    query += ' ORDER BY r.created_at DESC'
+    if (limit > 0) {
+      query = query.limit(limit)
+    }
 
-    if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
-    const queryResponse = await db.prepare(query).bind(...bindings).all()
-    return queryResponse.results || []
+    query = query.orderBy(desc(schema.quoteReferences.createdAt))
+
+    return await query
   }
 
   async function fetchTags() {
-    let query = 'SELECT t.* FROM tags t'
-    const bindings: any[] = []
-    const where: string[] = []
     const tf = all_filters.tags || {}
+    let query = db.select().from(schema.tags).$dynamic()
 
     if (tf.category && Array.isArray(tf.category) && tf.category.length) {
-      where.push(`t.category IN (${tf.category.map(() => '?').join(',')})`)
-      bindings.push(...tf.category)
+      query = query.where(inArray(schema.tags.category, tf.category))
     }
 
     if (tf.search && tf.search.trim()) {
-      where.push('(t.name LIKE ? OR t.description LIKE ?)')
-      bindings.push(`%${tf.search.trim()}%`, `%${tf.search.trim()}%`)
+      const searchTerm = `%${tf.search.trim()}%`;
+      query = query.where(
+        sql`${schema.tags.name} LIKE ${searchTerm} OR ${schema.tags.description} LIKE ${searchTerm}`
+      )
     }
 
-    if (where.length) query += ` WHERE ${where.join(' AND ')}`
-    query += ' ORDER BY t.created_at DESC'
+    if (limit > 0) {
+      query = query.limit(limit)
+    }
 
-    if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
+    query = query.orderBy(desc(schema.tags.createdAt))
 
-    const queryResponse = await db.prepare(query).bind(...bindings).all()
-    return queryResponse.results || []
+    return await query
   }
 
   async function fetchUsers() {
-    let query = 'SELECT u.* FROM users u'
-    const bindings: any[] = []
-    const where: string[] = []
     const uf = all_filters.users || {}
+    let query = db.select().from(schema.users).$dynamic()
 
     if (uf.role && Array.isArray(uf.role) && uf.role.length) {
-      where.push(`u.role IN (${uf.role.map(() => '?').join(',')})`)
-      bindings.push(...uf.role)
+      query = query.where(inArray(schema.users.role, uf.role))
     }
 
-    if (where.length) query += ` WHERE ${where.join(' AND ')}`
-    query += ' ORDER BY u.created_at DESC'
+    if (limit > 0) {
+      query = query.limit(limit)
+    }
 
-    if (limit > 0) { query += ' LIMIT ?'; bindings.push(limit) }
+    query = query.orderBy(desc(schema.users.createdAt))
 
-    const queryResponse = await db.prepare(query).bind(...bindings).all()
-    return queryResponse.results || []
+    return await query
   }
 
   // User-related fetchers
   async function fetchUserLikes() {
-    const query = 'SELECT * FROM user_likes';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.userLikes);
   }
 
   async function fetchUserCollections() {
-    const query = 'SELECT * FROM user_collections';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.userCollections);
   }
 
   async function fetchCollectionQuotes() {
-    const query = 'SELECT * FROM collection_quotes';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.collectionQuotes);
   }
 
   async function fetchUserSessions() {
-    const query = 'SELECT * FROM user_sessions';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.userSessions);
   }
 
   async function fetchUserMessages() {
-    const query = 'SELECT * FROM user_messages';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.userMessages);
   }
 
   // Moderation-related fetchers
   async function fetchQuoteReports() {
-    const query = 'SELECT * FROM quote_reports';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.quoteReports);
   }
 
   // Analytics-related fetchers
   async function fetchQuoteViews() {
-    const query = 'SELECT * FROM quote_views';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.quoteViews);
   }
 
   async function fetchAuthorViews() {
-    const query = 'SELECT * FROM author_views';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.authorViews);
   }
 
   async function fetchReferenceViews() {
-    const query = 'SELECT * FROM reference_views';
-    const queryResponse = await db.prepare(query).all();
-    return queryResponse.results || [];
+    return await db.select().from(schema.referenceViews);
   }
 
   const [quotes, authors, references, users, tags] = await Promise.all([
@@ -350,45 +335,35 @@ export default defineEventHandler(async (event) => {
     limit,
   })
 
-  const insertRes = await db.prepare(`
-    INSERT INTO export_logs (
-      export_id,
+  const inserted = await db
+    .insert(schema.exportLogs)
+    .values({
+      exportId,
       filename,
-      format,
-      data_type,
-      filters_applied,
-      record_count,
-      file_size,
-      user_id,
-      include_relations,
-      include_metadata
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    exportId,
-    filename,
-    'zip',
-    'all',
-    filtersApplied,
-    totalRecords,
-    fileSize,
-    user.id,
-    include_relations,
-    include_metadata
-  ).run()
+      format: 'zip',
+      dataType: 'all',
+      filtersApplied,
+      recordCount: totalRecords,
+      fileSize,
+      userId: user.id,
+      includeRelations: include_relations,
+      includeMetadata: include_metadata,
+    })
+    .returning({ id: schema.exportLogs.id })
+    .get()
 
   const fileKey = generateBackupFilePath(filename)
   const filePath = fileKey
   const contentHash = calculateContentHash(Buffer.from(new Uint8Array(ab)))
 
-  const blob = hubBlob()
   const uploadData = new Blob([ab], { type: 'application/zip' })
 
   await blob.put(fileKey, uploadData, {
     addRandomSuffix: false,
   })
 
-  const exportLogId = insertRes.meta.last_row_id as number
-  const backupId = await createBackupFile(db, {
+  const exportLogId = inserted.id
+  const backupId = await createBackupFile({
     file_key: fileKey,
     export_log_id: exportLogId,
     filename,
@@ -407,6 +382,6 @@ export default defineEventHandler(async (event) => {
     })
   })
 
-  await updateBackupFileStatus(db, backupId, 'stored', new Date())
+  await updateBackupFileStatus(backupId, 'stored', new Date())
   return new Blob([ab], { type: 'application/zip' })
 })

@@ -2,6 +2,9 @@
  * Admin API: Delete Export History Entry
  * Deletes a specific export history entry by ID
  */
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -12,31 +15,30 @@ export default defineEventHandler(async (event) => {
 
     if (!exportId) { throw createError({ statusCode: 400, statusMessage: 'Export ID is required' }) }
 
-    const db = hubDatabase()
-    const exportLog = await db.prepare(`
-      SELECT id FROM export_logs WHERE export_id = ?
-    `).bind(exportId).first()
+    const exportLog = await db.select({ id: schema.exportLogs.id })
+      .from(schema.exportLogs)
+      .where(eq(schema.exportLogs.exportId, exportId))
+      .limit(1);
 
-    if (!exportLog) { throw createError({ statusCode: 404, statusMessage: 'Export history entry not found' }) }
+    if (!exportLog || exportLog.length === 0) {
+      throw createError({ statusCode: 404, statusMessage: 'Export history entry not found' })
+    }
 
     // Find associated backup file (if any)
-    const backupFile = await db.prepare(`
-      SELECT file_key FROM backup_files WHERE export_log_id = ?
-    `).bind(exportLog.id).first()
+    const backupFile = await db.select({ fileKey: schema.backupFiles.fileKey })
+      .from(schema.backupFiles)
+      .where(eq(schema.backupFiles.exportLogId, exportLog[0].id))
+      .limit(1);
 
     // Delete backup file from blob storage if exists
-    if (backupFile && typeof backupFile.file_key === 'string') {
-      try { await deleteBackupFile(String(backupFile.file_key)) } 
+    if (backupFile && backupFile.length > 0 && backupFile[0].fileKey) {
+      try { await deleteBackupFile(String(backupFile[0].fileKey)) } 
       catch (err: any) { console.error('Failed to delete backup file from blob storage:', err) }
     }
 
     // Delete the export history entry (will also delete backup_files row via FK cascade)
-    const result = await db.prepare(`
-      DELETE FROM export_logs 
-      WHERE export_id = ?
-    `).bind(exportId).run()
-
-    if (!result.success) { throw createError({ statusCode: 500, statusMessage: 'Failed to delete export history entry' }) }
+    await db.delete(schema.exportLogs)
+      .where(eq(schema.exportLogs.exportId, exportId));
 
     return {
       success: true,

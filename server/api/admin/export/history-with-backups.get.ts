@@ -1,4 +1,6 @@
 import type { ExportHistoryEntryWithBackup } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { eq, sql, desc } from 'drizzle-orm'
 
 /**
  * Admin API: Export History with Backup Information
@@ -16,44 +18,42 @@ export default defineEventHandler(async (event) => {
     const limit = parseInt(query.limit as string) || 20
     const offset = (page - 1) * limit
 
-    const db = hubDatabase()
-    const countResult = await db.prepare(`
-      SELECT COUNT(*) as total FROM export_logs
-    `).first()
+    const countResult = await db.select({ total: sql<number>`COUNT(*)`.as('total') })
+      .from(schema.exportLogs)
 
-    const total = Number(countResult?.total ?? 0)
+    const total = Number(countResult[0]?.total ?? 0)
 
-    const historyResult = await db.prepare(`
-      SELECT 
-        el.id,
-        el.export_id,
-        el.filename,
-        el.format,
-        el.user_id,
-        el.data_type,
-        el.filters_applied,
-        el.record_count,
-        el.file_size,
-        el.download_count,
-        el.created_at,
-        el.expires_at,
-        u.name as user_name,
-        bf.id as backup_id,
-        bf.storage_status as backup_storage_status,
-        bf.file_path as backup_file_path,
-        bf.file_size as backup_file_size,
-        bf.compressed_size as backup_compressed_size,
-        bf.uploaded_at as backup_uploaded_at,
-        bf.expires_at as backup_expires_at,
-        bf.access_count as backup_access_count
-      FROM export_logs el
-      LEFT JOIN users u ON el.user_id = u.id
-      LEFT JOIN backup_files bf ON el.id = bf.export_log_id
-      ORDER BY el.created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(limit, offset).all()
+    const historyResult = await db.select({
+      id: schema.exportLogs.id,
+      export_id: schema.exportLogs.exportId,
+      filename: schema.exportLogs.filename,
+      format: schema.exportLogs.format,
+      user_id: schema.exportLogs.userId,
+      data_type: schema.exportLogs.dataType,
+      filters_applied: schema.exportLogs.filtersApplied,
+      record_count: schema.exportLogs.recordCount,
+      file_size: schema.exportLogs.fileSize,
+      download_count: schema.exportLogs.downloadCount,
+      created_at: schema.exportLogs.createdAt,
+      expires_at: schema.exportLogs.expiresAt,
+      user_name: schema.users.name,
+      backup_id: schema.backupFiles.id,
+      backup_storage_status: schema.backupFiles.storageStatus,
+      backup_file_path: schema.backupFiles.filePath,
+      backup_file_size: schema.backupFiles.fileSize,
+      backup_compressed_size: schema.backupFiles.compressedSize,
+      backup_uploaded_at: schema.backupFiles.uploadedAt,
+      backup_expires_at: schema.backupFiles.expiresAt,
+      backup_access_count: schema.backupFiles.accessCount
+    })
+    .from(schema.exportLogs)
+    .leftJoin(schema.users, eq(schema.exportLogs.userId, schema.users.id))
+    .leftJoin(schema.backupFiles, eq(schema.exportLogs.id, schema.backupFiles.exportLogId))
+    .orderBy(desc(schema.exportLogs.createdAt))
+    .limit(limit)
+    .offset(offset)
 
-    const entries: ExportHistoryEntryWithBackup[] = (historyResult?.results || []).map((row: any) => ({
+    const entries: ExportHistoryEntryWithBackup[] = (historyResult || []).map((row: any) => ({
       id: row.export_id,
       filename: row.filename,
       format: row.format,

@@ -1,53 +1,59 @@
+import { db, schema } from 'hub:db'
+import { eq, and, desc, count, sql, getTableColumns } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
-    const db = hubDatabase()
     const session = await requireUserSession(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     
-    const likedQuotes = await db.prepare(`
-      SELECT 
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        a.image_url as author_image_url,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        ul.created_at as liked_at,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM user_likes ul
-      JOIN quotes q ON ul.likeable_id = q.id
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE ul.user_id = ? 
-        AND ul.likeable_type = 'quote' 
-        AND q.status = 'approved'
-      GROUP BY q.id
-      ORDER BY ul.created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(session.user.id, limit, offset).all()
+    // Get liked quotes with full data and tags
+    const likedQuotes = await db.select({
+      ...getTableColumns(schema.quotes),
+      author_name: schema.authors.name,
+      author_is_fictional: schema.authors.isFictional,
+      author_image_url: schema.authors.imageUrl,
+      reference_name: schema.quoteReferences.name,
+      reference_type: schema.quoteReferences.primaryType,
+      user_name: schema.users.name,
+      liked_at: schema.userLikes.createdAt,
+      tag_names: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
+      tag_colors: sql<string>`GROUP_CONCAT(${schema.tags.color})`
+    })
+      .from(schema.userLikes)
+      .innerJoin(schema.quotes, eq(schema.userLikes.likeableId, schema.quotes.id))
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
+      .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+      .where(and(
+        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.likeableType, 'quote'),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .groupBy(schema.quotes.id)
+      .orderBy(desc(schema.userLikes.createdAt))
+      .limit(limit)
+      .offset(offset)
 
-    const totalResult = await db.prepare(`
-      SELECT COUNT(*) as total
-      FROM user_likes ul
-      JOIN quotes q ON ul.likeable_id = q.id
-      WHERE ul.user_id = ? 
-        AND ul.likeable_type = 'quote' 
-        AND q.status = 'approved'
-    `).bind(session.user.id).first()
+    // Get total count
+    const totalResult = await db.select({ total: count() })
+      .from(schema.userLikes)
+      .innerJoin(schema.quotes, eq(schema.userLikes.likeableId, schema.quotes.id))
+      .where(and(
+        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.likeableType, 'quote'),
+        eq(schema.quotes.status, 'approved')
+      ))
 
-    const total = Number(totalResult?.total) || 0
-    const quotesArray = Array.isArray(likedQuotes.results) ? likedQuotes.results : []
-    const hasMore = offset + quotesArray.length < total
+    const total = Number(totalResult[0]?.total) || 0
+    const hasMore = offset + likedQuotes.length < total
 
-    const processedQuotes = quotesArray.map((quote: any) => ({
+    // Process tags from GROUP_CONCAT results
+    const processedQuotes = likedQuotes.map((quote: any) => ({
       ...quote,
       tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
         name,

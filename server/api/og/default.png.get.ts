@@ -1,3 +1,6 @@
+import { kv } from 'hub:kv'
+import puppeteer from '@cloudflare/puppeteer'
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
@@ -12,7 +15,6 @@ export default defineEventHandler(async (event) => {
   })
 
   const hash = await sha1(basis)
-  const kv = hubKV()
   const keyData = 'og:default:latest'
   const keyImage = (h: string) => `og:default:${h}.png`
 
@@ -29,13 +31,16 @@ export default defineEventHandler(async (event) => {
   }
 
   // Render using Cloudflare Browser Rendering (Puppeteer)
-  const { page } = await hubBrowser({ keepAlive: 120 })
+  const browser = await puppeteer.launch(process.env.BROWSER as any)
+  const page = await browser.newPage()
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/default?v=${encodeURIComponent(styleVersion || '1')}`
 
   // Navigate and wait for fonts to load
   await page.goto(templateUrl, { waitUntil: 'domcontentloaded', timeout: 15000 })
   const png = await page.screenshot({ type: 'png' }) as Buffer
+
+  await browser.close()
 
   // Store in KV for future hits
   const b64 = uint8ToBase64(new Uint8Array(png))

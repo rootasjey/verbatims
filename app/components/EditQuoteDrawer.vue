@@ -249,7 +249,7 @@
 </template>
 
 <script lang="ts" setup>
-// import type { QuoteWithRelations } from '~/shared/types'
+import type { QuoteWithRelations } from '~/types'
 import { computed } from 'vue';
 import { useQuoteForm } from '~/composables/useQuoteForm'
 

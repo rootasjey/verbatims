@@ -4,6 +4,8 @@ import type {
   ExportResultWithBackup,
   ExportedUser,
 } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { eq, inArray, sql } from 'drizzle-orm'
 
 /**
  * Admin API: Export Users Data
@@ -37,12 +39,14 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
     }
 
-    const db = hubDatabase()
     const uniqueExportId = `users_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildUsersQuery(usersFilters, include_relations, limit)
 
-    const usersResult = await db.prepare(query).bind(...bindings).all()
-    const users = (usersResult?.results || []) as any[]
+    const usersResult = await db.$client.execute({
+      sql: query,
+      args: bindings
+    })
+    const users = (usersResult.rows ?? []) as any[]
 
     const processedUsers: ExportedUser[] = users.map((userRecord: any) => {
       const processed: ExportedUser = {
@@ -124,7 +128,6 @@ export default defineEventHandler(async (event) => {
     })
 
     const backupResult = await createBackup(
-      db,
       contentData,
       filename,
       'users',
@@ -428,30 +431,25 @@ async function logUsersExport(db: any, exportInfo: {
   includeMetadata?: boolean
 }): Promise<{ exportLogId: number }> {
   try {
-    const result = await db.prepare(`
-      INSERT INTO export_logs (
-        export_id, filename, format, data_type, 
-        filters_applied, record_count, file_size, 
-        user_id, include_relations, include_metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      exportInfo.exportId,
-      exportInfo.filename,
-      exportInfo.format,
-      'users',
-      JSON.stringify(exportInfo.filters),
-      exportInfo.recordCount,
-      exportInfo.fileSize,
-      exportInfo.userId,
-      exportInfo.includeRelations || false,
-      exportInfo.includeMetadata || false
-  ).run()
+    const [row] = await db.insert(schema.exportLogs)
+      .values({
+        exportId: exportInfo.exportId,
+        filename: exportInfo.filename,
+        format: exportInfo.format,
+        dataType: 'users',
+        filtersApplied: JSON.stringify(exportInfo.filters),
+        recordCount: exportInfo.recordCount,
+        fileSize: exportInfo.fileSize,
+        userId: exportInfo.userId,
+        includeRelations: exportInfo.includeRelations || false,
+        includeMetadata: exportInfo.includeMetadata || false,
+      })
+      .returning({ exportLogId: schema.exportLogs.id })
 
-  return { exportLogId: result.meta.last_row_id }
-
+    return { exportLogId: row?.exportLogId ?? 0 }
   } catch (error) {
     console.error('Failed to log users export:', error)
-    return { exportLogId: 0 } // Return a fallback ID if logging fails
+    return { exportLogId: 0 }
   }
 }
 

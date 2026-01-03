@@ -3,6 +3,9 @@
  * Deletes an author with admin authentication and proper validation
  */
 
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -21,12 +24,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-
     // Check if author exists
-    const existingAuthor = await db.prepare(`
-      SELECT * FROM authors WHERE id = ?
-    `).bind(authorId).first()
+    const existingAuthor = await db.select()
+      .from(schema.authors)
+      .where(eq(schema.authors.id, parseInt(authorId)))
+      .get()
 
     if (!existingAuthor) {
       throw createError({
@@ -39,10 +41,10 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event).catch(() => ({})) as { strategy?: 'delete' | 'anonymize' }
 
     // Count associated quotes
-    const quoteCountResult = await db.prepare(`
-      SELECT COUNT(*) as count FROM quotes WHERE author_id = ?
-    `).bind(authorId).first()
-    const quoteCount = Number(quoteCountResult?.count) || 0
+    const quoteCountResult = await db.get<{ count: number }>(sql`
+      SELECT COUNT(*) as count FROM ${schema.quotes} WHERE author_id = ${parseInt(authorId)}
+    `)
+    const quoteCount = quoteCountResult?.count || 0
 
     // If there are related quotes, require a valid strategy
     if (quoteCount > 0) {
@@ -55,25 +57,29 @@ export default defineEventHandler(async (event) => {
       }
 
       // Run within a transaction for consistency
-      await db.prepare('BEGIN TRANSACTION').run()
+      await db.run(sql`BEGIN TRANSACTION`)
       try {
         if (strategy === 'delete') {
           // Delete quote-related rows (quote_tags etc. are ON DELETE CASCADE)
-          await db.prepare(`DELETE FROM quotes WHERE author_id = ?`).bind(authorId).run()
+          await db.delete(schema.quotes)
+            .where(eq(schema.quotes.authorId, parseInt(authorId)))
+            .run()
         } else {
           // Anonymize: set author_id to NULL
-          await db.prepare(`UPDATE quotes SET author_id = NULL WHERE author_id = ?`).bind(authorId).run()
+          await db.update(schema.quotes)
+            .set({ authorId: null })
+            .where(eq(schema.quotes.authorId, parseInt(authorId)))
+            .run()
         }
 
         // Delete the author
-        const del = await db.prepare(`DELETE FROM authors WHERE id = ?`).bind(authorId).run()
-        if (!del.success) {
-          throw new Error('Failed to delete author')
-        }
+        await db.delete(schema.authors)
+          .where(eq(schema.authors.id, parseInt(authorId)))
+          .run()
 
-        await db.prepare('COMMIT').run()
+        await db.run(sql`COMMIT`)
       } catch (txErr) {
-        await db.prepare('ROLLBACK').run()
+        await db.run(sql`ROLLBACK`)
         throw createError({ statusCode: 500, statusMessage: 'Failed to process deletion transaction' })
       }
 
@@ -86,10 +92,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // No related quotes: simple delete
-    const del = await db.prepare(`DELETE FROM authors WHERE id = ?`).bind(authorId).run()
-    if (!del.success) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to delete author' })
-    }
+    await db.delete(schema.authors)
+      .where(eq(schema.authors.id, parseInt(authorId)))
+      .run()
 
     return { success: true, message: 'Author deleted successfully', quotesAffected: 0 }
 

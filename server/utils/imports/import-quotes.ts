@@ -5,6 +5,8 @@ import { createBackupFile } from '~/server/utils/backup-database'
 import { findOrCreateAuthor, findOrCreateReference } from '~/server/utils/import-helpers'
 import { createImportReport } from '~/server/utils/import-report'
 import { validateQuoteDataZod } from '~/server/utils/validation/quote'
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
 
 export async function importQuotesInline(
   parentImportId: string,
@@ -12,9 +14,6 @@ export async function importQuotesInline(
   options: ImportOptions,
   fallbackUserId: number
 ) {
-  const db = hubDatabase()
-  if (!db) throw new Error('Database not available')
-
   const validation = validateQuoteDataZod(quotes)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`Quotes validation failed: ${validation.errors.length} errors`)
@@ -32,11 +31,15 @@ export async function importQuotesInline(
 
       let importLogId: number | undefined = undefined
       try {
-        const row = await db.prepare('SELECT id FROM import_logs WHERE import_id = ? LIMIT 1').bind(parentImportId).first()
-        importLogId = Number(row?.id) ?? undefined
+        const row = await db.select({ id: schema.importLogs.id })
+          .from(schema.importLogs)
+          .where(eq(schema.importLogs.importId, parentImportId))
+          .limit(1)
+          .get()
+        importLogId = row?.id
       } catch {}
 
-      await createBackupFile(db, {
+      await createBackupFile({
         file_key: up.fileKey,
         export_log_id: undefined,
         import_log_id: importLogId,
@@ -57,20 +60,6 @@ export async function importQuotesInline(
       updateAdminImport(parentImportId, { warnings: [...p.warnings, `Backup skipped (quotes): ${e.message}`] })
     }
   }
-
-  const insert = db.prepare(`
-    INSERT INTO quotes (
-      name, language, author_id, reference_id, user_id, status, moderator_id, moderated_at,
-      rejection_reason, views_count, likes_count, shares_count, is_featured, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  // Optional explicit ID insert when preserveIds is enabled
-  const insertWithId = db.prepare(`
-    INSERT INTO quotes (
-      id, name, language, author_id, reference_id, user_id, status, moderator_id, moderated_at,
-      rejection_reason, views_count, likes_count, shares_count, is_featured, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
 
   const batchSize = options.batchSize || 25
   const subSize = 10
@@ -94,20 +83,24 @@ export async function importQuotesInline(
         // Resolve author_id
         let authorId = q.author_id as number | undefined
         if (!authorId && q.author_name) {
-          const res = await findOrCreateAuthor(db, { name: String(q.author_name) })
+          const res = await findOrCreateAuthor({ name: String(q.author_name) })
           authorId = res.id
         }
         // Resolve reference_id
         let referenceId = q.reference_id as number | undefined
         if (!referenceId && q.reference_name) {
-          const res = await findOrCreateReference(db, { name: String(q.reference_name) })
+          const res = await findOrCreateReference({ name: String(q.reference_name) })
           referenceId = res.id
         }
         // Resolve user_id
         let userId = q.user_id as number | undefined
         if (!userId && q.user_email) {
-          const row = await db.prepare('SELECT id FROM users WHERE email = ? LIMIT 1').bind(String(q.user_email)).first()
-          if (row?.id) userId = Number(row.id)
+          const row = await db.select({ id: schema.users.id })
+            .from(schema.users)
+            .where(eq(schema.users.email, String(q.user_email)))
+            .limit(1)
+            .get()
+          if (row?.id) userId = row.id
         }
         if (!userId) userId = fallbackUserId
 
@@ -121,15 +114,18 @@ export async function importQuotesInline(
         // Conflict handling
         let matchedId: number | undefined
         if (quotePolicy !== 'insert') {
-          const existing = await db.prepare('SELECT id, author_id, reference_id FROM quotes WHERE name = ? AND language = ? LIMIT 1')
-            .bind(q.name, lang)
-            .first()
+          const existing = await db.select({ id: schema.quotes.id, authorId: schema.quotes.authorId, referenceId: schema.quotes.referenceId })
+            .from(schema.quotes)
+            .where(and(eq(schema.quotes.name, q.name), eq(schema.quotes.language, lang)))
+            .limit(1)
+            .get()
+            
           if (existing?.id) {
-            const ea = existing.author_id != null ? Number(existing.author_id) : null
-            const er = existing.reference_id != null ? Number(existing.reference_id) : null
+            const ea = existing.authorId != null ? Number(existing.authorId) : null
+            const er = existing.referenceId != null ? Number(existing.referenceId) : null
             const ca = authorId ?? null
             const cr = referenceId ?? null
-            if (ea === ca && er === cr) matchedId = Number(existing.id)
+            if (ea === ca && er === cr) matchedId = existing.id
           }
         }
 
@@ -139,79 +135,55 @@ export async function importQuotesInline(
         }
 
         if (matchedId && quotePolicy === 'upsert') {
-          const sets: string[] = []
-          const binds: any[] = []
-
-          const addField = (column: string, value: any, allowed: boolean) => {
-            if (!allowed) return
-            if (quoteStrategy === 'overwrite') {
-              sets.push(`${column} = ?`)
-              binds.push(value)
-            } else if (quoteStrategy === 'fill-missing') {
-              // keep existing value when incoming is null/undefined
-              sets.push(`${column} = COALESCE(?, ${column})`)
-              binds.push(value)
-            }
-
+          const updateData: any = {}
+          
+          const addFieldFill = (key: keyof typeof schema.quotes, value: any, allowed: boolean) => {
+             if (!allowed) return
+             if (quoteStrategy === 'overwrite') {
+               updateData[key] = value
+             } else {
+               // fill-missing: update only if current is null
+               // col = COALESCE(col, new_val)
+               updateData[key] = sql`COALESCE(${schema.quotes[key]}, ${value})`
+             }
           }
 
-          addField('name', q.name, allowedFields.has('name'))
-          addField('status', status, allowedFields.has('status'))
-          addField('is_featured', isFeatured ? 1 : 0, allowedFields.has('is_featured'))
-          addField('rejection_reason', q.rejection_reason || null, allowedFields.has('rejection_reason'))
-          addField('moderator_id', q.moderator_id || null, allowedFields.has('moderator_id'))
-          addField('moderated_at', q.moderated_at || null, allowedFields.has('moderated_at'))
+          if (allowedFields.has('name')) addFieldFill('name', q.name, true)
+          if (allowedFields.has('status')) addFieldFill('status', status, true)
+          if (allowedFields.has('is_featured')) addFieldFill('isFeatured', isFeatured ? 1 : 0, true)
+          if (allowedFields.has('rejection_reason')) addFieldFill('rejectionReason', q.rejection_reason || null, true)
+          if (allowedFields.has('moderator_id')) addFieldFill('moderatorId', q.moderator_id || null, true)
+          if (allowedFields.has('moderated_at')) addFieldFill('moderatedAt', q.moderated_at ? new Date(q.moderated_at) : null, true)
 
-          // Only proceed if there is something to update
-          if (sets.length > 0) {
-            sets.push('updated_at = CURRENT_TIMESTAMP')
-            const sql = `UPDATE quotes SET ${sets.join(', ')} WHERE id = ?`
-            binds.push(matchedId)
-            stmts.push(db.prepare(sql).bind(...binds))
+          if (Object.keys(updateData).length > 0) {
+             updateData.updatedAt = new Date()
+             stmts.push(db.update(schema.quotes).set(updateData).where(eq(schema.quotes.id, matchedId)))
           }
           continue
         }
 
-        // Default: insert; optionally preserve explicit id
+        // Insert
         const explicitId = options.preserveIds && Number.isFinite(Number(q.id)) ? Number(q.id) : undefined
-        if (explicitId != null) {
-          stmts.push(insertWithId.bind(
-            explicitId,
-            q.name,
-            lang,
-            authorId || null,
-            referenceId || null,
-            userId,
-            status,
-            q.moderator_id || null,
-            q.moderated_at || null,
-            q.rejection_reason || null,
-            views,
-            likes,
-            shares,
-            isFeatured ? 1 : 0,
-            q.created_at || new Date().toISOString(),
-            q.updated_at || new Date().toISOString(),
-          ))
-        } else {
-          stmts.push(insert.bind(
-            q.name,
-            lang,
-            authorId || null,
-            referenceId || null,
-            userId,
-            status,
-            q.moderator_id || null,
-            q.moderated_at || null,
-            q.rejection_reason || null,
-            views,
-            likes,
-            shares,
-            isFeatured ? 1 : 0,
-            q.created_at || new Date().toISOString(),
-            q.updated_at || new Date().toISOString(),
-          ))
+        const values = {
+            id: explicitId,
+            name: q.name,
+            language: lang,
+            authorId: authorId || null,
+            referenceId: referenceId || null,
+            userId: userId,
+            status: status,
+            moderatorId: q.moderator_id || null,
+            moderatedAt: q.moderated_at ? new Date(q.moderated_at) : null,
+            rejectionReason: q.rejection_reason || null,
+            viewsCount: views,
+            likesCount: likes,
+            sharesCount: shares,
+            isFeatured: isFeatured,
+            createdAt: q.created_at ? new Date(q.created_at) : new Date(),
+            updatedAt: q.updated_at ? new Date(q.updated_at) : new Date(),
         }
+        
+        stmts.push(db.insert(schema.quotes).values(values))
       }
 
       if (skipped > 0) {
@@ -223,18 +195,21 @@ export async function importQuotesInline(
       }
 
       try {
-        await db.batch(stmts)
-        const p = getAdminImport(parentImportId)!
-        updateAdminImport(parentImportId, {
-          successfulRecords: p.successfulRecords + stmts.length,
-          processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
-        })
+        if (stmts.length > 0) {
+            await db.batch(stmts as any)
+            const p = getAdminImport(parentImportId)!
+            updateAdminImport(parentImportId, {
+            successfulRecords: p.successfulRecords + stmts.length,
+            processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
+            })
+        }
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
           try {
             const s = stmts[idx]
             if (!s) continue
-            await s.run()
+            // Drizzle query execution
+            await s
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -247,7 +222,6 @@ export async function importQuotesInline(
               processedRecords: Math.min((p.processedRecords + 1), p.totalRecords),
               errors: [...p.errors, `Failed to import quote: ${ie.message}`]
             })
-            // record failure details for report
             report.addFailure({ index: i + j + (idx + 1), reason: ie.message })
           }
         }
@@ -259,19 +233,19 @@ export async function importQuotesInline(
   // If IDs were preserved, align sqlite_sequence to MAX(id) to keep AUTOINCREMENT consistent
   if (options.preserveIds) {
     try {
-      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quotes').first()
+      const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.quotes).get()
       const maxId = Number(row?.mx || 0)
       if (maxId > 0) {
         // Try to update; if no row exists, insert
-        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quotes'`).bind(maxId).run()
-        const changes = Number(upd?.meta?.changes || 0)
+        const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'quotes'`)
+        const changes = Number(upd?.rowsAffected || 0)
         if (changes === 0) {
           try {
-            await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ?)`).bind(maxId).run()
+            await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ${maxId})`)
           } catch (insErr) {
             // Fallback: delete and reinsert
-            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quotes'`).run() } catch {}
-            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ?)`).bind(maxId).run() } catch {}
+            try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'quotes'`) } catch {}
+            try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ${maxId})`) } catch {}
           }
         }
       }
@@ -315,17 +289,22 @@ export async function processImportQuotes(
 
     updateAdminImport(importId, { totalRecords: quotes.length })
 
-    const db = hubDatabase()
-    if (!db) throw new Error('Database not available')
-
     await importQuotesInline(importId, quotes, options, userId)
 
     // Persist completion
     try {
-      const db2 = hubDatabase()
       const pp = getAdminImport(importId)!
-      await db2.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-        .bind('completed', pp.totalRecords, pp.successfulRecords, pp.failedRecords, pp.warnings.length, importId).run()
+      await db.update(schema.importLogs)
+        .set({
+            status: 'completed',
+            recordCount: pp.totalRecords,
+            successfulCount: pp.successfulRecords,
+            failedCount: pp.failedRecords,
+            warningsCount: pp.warnings.length,
+            completedAt: new Date()
+        })
+        .where(eq(schema.importLogs.importId, importId))
+      
       updateAdminImport(importId, { status: 'completed', completedAt: new Date() as any })
     } catch {}
 

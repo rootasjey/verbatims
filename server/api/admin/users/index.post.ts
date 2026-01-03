@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
@@ -32,36 +35,41 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid role' })
     }
 
-    const db = hubDatabase()
-
     // Check existing by email
-    const existing = await db.prepare('SELECT id FROM users WHERE email = ? LIMIT 1').bind(email).first()
-    if (existing) {
+    const existing = await db.select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.email, email))
+      .limit(1)
+    
+    if (existing.length > 0) {
       throw createError({ statusCode: 409, statusMessage: 'Email already in use' })
     }
 
     // Hash password (nuxt-auth-utils)
     const hashedPassword = await hashPassword(password)
 
-    const result = await db.prepare(`
-      INSERT INTO users (name, email, password, avatar_url, role, is_active, email_verified, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `).bind(name, email, hashedPassword, avatar_url, role, is_active ? 1 : 0, email_verified ? 1 : 0).run()
+    const result = await db.insert(schema.users).values({
+      name,
+      email,
+      password: hashedPassword,
+      avatarUrl: avatar_url,
+      role: role as any,
+      isActive: is_active,
+      emailVerified: email_verified
+    }).returning()
 
-    if (!result.success) {
+    if (!result || result.length === 0) {
       throw createError({ statusCode: 500, statusMessage: 'Failed to create user' })
     }
 
-    const created = await db.prepare(`
-      SELECT 
-        u.*,
-        0 as quote_count,
-        0 as approved_quotes,
-        0 as collection_count,
-        0 as likes_given,
-        0 as total_likes_received
-      FROM users u WHERE u.id = ?
-    `).bind(result.meta.last_row_id).first()
+    const created = {
+      ...result[0],
+      quote_count: 0,
+      approved_quotes: 0,
+      collection_count: 0,
+      likes_given: 0,
+      total_likes_received: 0
+    }
 
     return { success: true, data: created, message: 'User created successfully' }
   } catch (error: any) {

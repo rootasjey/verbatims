@@ -103,6 +103,7 @@ const accordionItems = computed(() => {
   
   return [
     {
+      value: 'metadata',
       label: 'Metadata',
       defaultOpen: false,
       slot: 'metadata',

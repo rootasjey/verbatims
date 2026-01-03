@@ -1,11 +1,75 @@
+// Wrangler configuration for Workers/Pages Functions
+// Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
 {
-  // Wrangler configuration for Workers/Pages Functions
-  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "verbatims",
+  "main": "./.output/server/index.mjs",
+  "compatibility_date": "2025-12-31",
   "limits": {
     // Opt-in to higher CPU time for long-running import jobs.
     // Default is 30000 ms. You can increase up to 300000 (5 minutes).
     // Choose a conservative value first; adjust as needed.
     "cpu_ms": 300000
+  },
+  "assets": {
+    "directory": "./.output/public/",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "r2_buckets": [
+    {
+      "binding": "BLOB",
+      "bucket_name": "verbatims"
+    }
+  ],
+  "browser": {
+    "binding": "BROWSER"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "763c86bff4eb4b8387a4957cfdd6f8e9"
+    },
+    {
+      "binding": "KV",
+      "id": "2130b0d077d8469bbcdfcb69faf2c45f"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "330aad35-518b-437c-bbf4-5b7ea006eb3f"
+    }
+  ],
+  "env": {
+    "preview": {
+      "r2_buckets": [
+        {
+          "binding": "BLOB",
+          "bucket_name": "verbatims-preview"
+        }
+      ],
+      "browser": {
+        "binding": "BROWSER"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "CACHE",
+          "id": "6b69adf0026b4de4bbdca6f002cee8b3"
+        },
+        {
+          "binding": "KV",
+          "id": "2200ba71e0334a37b9185b0e760be6c4"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "4bc027b9-2da7-436f-8fd0-396d6e9e5475"
+        }
+      ]
+    }
   }
 }

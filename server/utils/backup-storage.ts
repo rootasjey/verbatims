@@ -5,7 +5,15 @@
 
 import { createHash } from 'node:crypto'
 import { gzipSync, gunzipSync, strToU8, strFromU8 } from 'fflate'
+import { blob } from 'hub:blob'
 import type { BackupFile, BackupCompressionType } from '~/types'
+import {
+  createBackupFile,
+  updateBackupFileStatus,
+  getBackupFileById,
+  trackBackupFileAccess,
+  deleteBackupFileRecord
+} from './backup-database'
 
 /**
  * Generate R2 file path using archives prefix
@@ -19,7 +27,10 @@ export function generateBackupFilePath(filename: string): string {
  * Calculate SHA-256 hash of content for integrity verification
  */
 export function calculateContentHash(content: string | Buffer): string {
-  return createHash('sha256').update(content).digest('hex')
+  const hash = createHash('sha256')
+  if (typeof content === 'string') hash.update(content)
+  else hash.update(new Uint8Array(content))
+  return hash.digest('hex')
 }
 
 /**
@@ -122,7 +133,6 @@ export async function uploadBackupFile(
     const { compressed, originalSize, compressedSize, compressionType } = await compressContent(content)
     const contentHash = calculateContentHash(Buffer.from(compressed))
 
-    const blob = hubBlob()
     if (!fileKey || fileKey.length === 0) {
       throw new Error('Invalid file key: empty or null')
     }
@@ -176,7 +186,6 @@ export async function downloadBackupFile(
   metadata: Record<string, string>
 }> {
   try {
-    const blob = hubBlob()
     const file = await blob.get(fileKey)
     if (!file) { throw new Error('Backup file not found in R2 storage') }
 
@@ -200,7 +209,6 @@ export async function downloadBackupFile(
  */
 export async function deleteBackupFile(fileKey: string): Promise<void> {
   try {
-    const blob = hubBlob()
     await blob.delete(fileKey)
   } catch (error: any) {
     console.error('Failed to delete backup file from R2:', error)
@@ -213,7 +221,6 @@ export async function deleteBackupFile(fileKey: string): Promise<void> {
  */
 export async function backupFileExists(fileKey: string): Promise<boolean> {
   try {
-    const blob = hubBlob()
     const file = await blob.head(fileKey)
     return !!file
   } catch (error) {
@@ -226,7 +233,6 @@ export async function backupFileExists(fileKey: string): Promise<boolean> {
  */
 export async function getBackupFileMetadata(fileKey: string): Promise<Record<string, string> | null> {
   try {
-    const blob = hubBlob()
     const file = await blob.head(fileKey)
     return file ? {} : null // Metadata is now stored in database, not R2
   } catch (error) {
@@ -239,7 +245,6 @@ export async function getBackupFileMetadata(fileKey: string): Promise<Record<str
  * Create a complete backup (upload to R2 + database record)
  */
 export async function createBackup(
-  db: any,
   content: string,
   filename: string,
   dataType: string,
@@ -262,7 +267,7 @@ export async function createBackup(
 
   try {
     const uploadResult = await uploadBackupFile(content, filename, dataType, format)
-    const backupId = await createBackupFile(db, {
+    const backupId = await createBackupFile({
       file_key: uploadResult.fileKey,
       export_log_id: exportLogId,
       filename,
@@ -275,7 +280,7 @@ export async function createBackup(
       metadata: metadata ? JSON.stringify(metadata) : undefined
     })
 
-    await updateBackupFileStatus(db, backupId, 'stored', new Date())
+    await updateBackupFileStatus(backupId, 'stored', new Date())
 
     return {
       backupId,
@@ -291,7 +296,6 @@ export async function createBackup(
  * Retrieve backup content by backup ID
  */
 export async function getBackup(
-  db: any,
   backupId: number
 ): Promise<{
   content: string
@@ -299,7 +303,7 @@ export async function getBackup(
   backupFile: BackupFile
 }> {
   try {
-    const backupFile = await getBackupFileById(db, backupId)
+    const backupFile = await getBackupFileById(backupId)
     if (!backupFile) { throw new Error('Backup file not found') }
 
     if (backupFile.storage_status !== 'stored') {
@@ -311,7 +315,7 @@ export async function getBackup(
       backupFile.compression_type as BackupCompressionType
     )
 
-    await trackBackupFileAccess(db, backupId)
+    await trackBackupFileAccess(backupId)
     const dbMetadata = backupFile.metadata ? JSON.parse(backupFile.metadata) : {}
 
     return {
@@ -328,13 +332,13 @@ export async function getBackup(
 /**
  * Delete backup (both R2 and database)
  */
-export async function deleteBackup(db: any, backupId: number): Promise<void> {
+export async function deleteBackup(backupId: number): Promise<void> {
   try {
-    const backupFile = await getBackupFileById(db, backupId)
+    const backupFile = await getBackupFileById(backupId)
     if (!backupFile) { throw new Error('Backup file not found') }
 
     await deleteBackupFile(backupFile.file_key)
-    await deleteBackupFileRecord(db, backupId)
+    await deleteBackupFileRecord(backupId)
   } catch (error: any) {
     console.error('Failed to delete backup:', error)
     throw new Error(`Backup deletion failed: ${error.message}`)

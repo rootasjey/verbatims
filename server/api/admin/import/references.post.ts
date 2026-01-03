@@ -1,6 +1,8 @@
 import { createAdminImport, getAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
 import { processImportReferences } from '~/server/utils/imports/import-references'
 import { scheduleBackground } from '~/server/utils/schedule'
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,42 +18,33 @@ export default defineEventHandler(async (event) => {
 
     // Persist snapshot to import_logs (best-effort)
     try {
-      const db = hubDatabase()
-      await db.prepare(`
-        INSERT INTO import_logs (import_id, filename, format, data_type, status, user_id, options) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
-      .bind(
+      await db.insert(schema.importLogs).values({
         importId,
-        filename || null,
-        (format || 'json'),
-        'references',
-        'pending',
-        user.id,
-        JSON.stringify(options || {})
-      )
-      .run()
+        filename: filename || null,
+        format: format || 'json',
+        dataType: 'references',
+        status: 'pending',
+        userId: user.id,
+        options: JSON.stringify(options || {})
+      })
     } catch (e) { console.warn('Failed to log import start:', e) }
 
     const runJob = () =>
       processImportReferences(importId, data, format, options).catch((err) => {
         addAdminImportError(importId, `Fatal error: ${err.message}`)
         try {
-          const db = hubDatabase()
           const p = getAdminImport(importId)!
-          db.prepare(`
-            UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP 
-            WHERE import_id=?
-          `)
-          .bind(
-            'failed',
-            p.totalRecords,
-            p.successfulRecords,
-            p.failedRecords,
-            p.warnings.length,
-            importId
-          )
-          .run()
+          db.update(schema.importLogs)
+            .set({
+              status: 'failed',
+              recordCount: p.totalRecords,
+              successfulCount: p.successfulRecords,
+              failedCount: p.failedRecords,
+              warningsCount: p.warnings.length,
+              completedAt: new Date()
+            })
+            .where(eq(schema.importLogs.importId, importId))
+            .run()
         } catch {}
       })
 

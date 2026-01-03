@@ -10,7 +10,7 @@
         <div class="space-y-3">
           <label class="block text-sm text-gray-600 dark:text-gray-300">Sort by</label>
           <NSelect
-            v-model="internalSortBy"
+            v-model="internalSortOption"
             :items="sortOptions"
             placeholder="Sort by"
             item-key="label"
@@ -47,9 +47,7 @@
 <script setup lang="ts">
 interface SortOption {
   label: string
-  value?: string
-  // allow passthrough of any additional fields used by USelect
-  [key: string]: unknown
+  value: string
 }
 
 const props = defineProps<{
@@ -71,9 +69,9 @@ const internalOpen = computed({
   set: (v: boolean) => emit('update:open', v)
 })
 
-const internalSortBy = computed({
-  get: () => props.sortBy,
-  set: (v: string) => emit('update:sortBy', v)
+const internalSortOption = computed<SortOption>({
+  get: () => props.sortOptions.find(o => o.value === props.sortBy) || props.sortOptions[0],
+  set: (opt) => emit('update:sortBy', opt.value)
 })
 
 // sortOrder is read-only here; toggling is delegated to parent via event

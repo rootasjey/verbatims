@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql, eq, and, inArray } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -27,16 +30,15 @@ export default defineEventHandler(async (event) => {
       return numId
     })
 
-    const db = hubDatabase()
-
     // Check existence and draft status
-    const placeholders = quoteIds.map(() => '?').join(',')
-    const quotesResult = await db.prepare(`
-      SELECT id, name FROM quotes
-      WHERE id IN (${placeholders}) AND status = 'draft'
-    `).bind(...quoteIds).all()
+    const existing = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
+      .from(schema.quotes)
+      .where(and(
+        inArray(schema.quotes.id, quoteIds),
+        eq(schema.quotes.status, 'draft')
+      ))
+      .all()
 
-    const existing = (quotesResult?.results || []) as { id: number; name: string }[]
     if (existing.length !== quoteIds.length) {
       throw createError({ statusCode: 400, statusMessage: 'Some quotes not found or not drafts' })
     }
@@ -48,11 +50,13 @@ export default defineEventHandler(async (event) => {
     }
 
     await Promise.all(quoteIds.map(id =>
-      db.prepare(`
-        UPDATE quotes
-        SET status = 'pending', updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).bind(id).run()
+      db.update(schema.quotes)
+        .set({ 
+          status: 'pending',
+          updatedAt: sql`CURRENT_TIMESTAMP`
+        })
+        .where(eq(schema.quotes.id, id))
+        .run()
     ))
 
     return {

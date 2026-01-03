@@ -3,6 +3,9 @@ import type {
   QuoteWithMetadata,
   CreatedQuoteResult
 } from '~/types'
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
     const session = await requireUserSession(event)
@@ -22,7 +25,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     }
 
     const body = await readBody(event)
-    const db = hubDatabase()
 
     // Validate required fields
     if (!body.name || body.name.length < 2 || body.name.length > 3000) {
@@ -33,9 +35,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     }
 
     // Check if quote exists and user has permission to edit it
-    const existingQuote = await db.prepare(`
-      SELECT * FROM quotes WHERE id = ?
-    `).bind(quoteId).first()
+    const existingQuote = await db.select().from(schema.quotes).where(eq(schema.quotes.id, parseInt(quoteId))).get()
 
     if (!existingQuote) {
       throw createError({
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
 
     // Check permissions: users can only edit their own drafts, admins can edit any quote
     const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwner = existingQuote.user_id === session.user.id
+    const isOwner = existingQuote.userId === session.user.id
     const isDraft = existingQuote.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {
@@ -61,136 +61,135 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
 
     // Handle new author creation
     if (body.new_author && body.new_author.name) {
-      const newAuthor = await db.prepare(`
-        INSERT INTO authors (name, is_fictional, created_at, updated_at)
-        VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `).bind(
-        body.new_author.name.trim(),
-        body.new_author.is_fictional || false
-      ).run()
+      const newAuthor = await db.insert(schema.authors).values({
+        name: body.new_author.name.trim(),
+        isFictional: body.new_author.is_fictional || false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning({ id: schema.authors.id }).get()
 
-      if (!newAuthor.success) {
-        throw createError({
-          statusCode: 500,
-          statusMessage: 'Failed to create new author'
-        })
-      }
-
-      authorId = newAuthor.meta.last_row_id
+      authorId = newAuthor.id
     }
 
     // Handle new reference creation
     if (body.new_reference && body.new_reference.name) {
-      const newReference = await db.prepare(`
-        INSERT INTO quote_references (name, original_language, primary_type, created_at, updated_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `).bind(
-        body.new_reference.name.trim(),
-        body.new_reference.original_language || body.language || 'en',
-        body.new_reference.primary_type || 'other'
-      ).run()
+      const newReference = await db.insert(schema.quoteReferences).values({
+        name: body.new_reference.name.trim(),
+        originalLanguage: body.new_reference.original_language || body.language || 'en',
+        primaryType: body.new_reference.primary_type || 'other',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning({ id: schema.quoteReferences.id }).get()
 
-      if (!newReference.success) {
-        throw createError({
-          statusCode: 500,
-          statusMessage: 'Failed to create new reference'
-        })
-      }
-
-      referenceId = newReference.meta.last_row_id
+      referenceId = newReference.id
     }
 
     // Update the quote
-    const updateResult = await db.prepare(`
-      UPDATE quotes 
-      SET 
-        name = ?,
-        language = ?,
-        author_id = ?,
-        reference_id = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(
-      body.name.trim(),
-      body.language || 'en',
-      authorId || null,
-      referenceId || null,
-      quoteId
-    ).run()
-
-    if (!updateResult.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to update quote'
+    await db.update(schema.quotes)
+      .set({
+        name: body.name.trim(),
+        originalLanguage: body.language || 'en',
+        authorId: authorId || null,
+        referenceId: referenceId || null,
+        updatedAt: new Date()
       })
-    }
+      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .run()
 
     // Fetch the updated quote with all related data
-    const updatedQuoteResult = await db.prepare(`
-      SELECT
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.id = ?
-      GROUP BY q.id
-    `).bind(quoteId).first()
+    const updatedQuote = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      originalLanguage: schema.quotes.originalLanguage,
+      authorId: schema.quotes.authorId,
+      referenceId: schema.quotes.referenceId,
+      userId: schema.quotes.userId,
+      status: schema.quotes.status,
+      moderatorId: schema.quotes.moderatorId,
+      moderatedAt: schema.quotes.moderatedAt,
+      rejectionReason: schema.quotes.rejectionReason,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      author: {
+        id: schema.authors.id,
+        name: schema.authors.name,
+        isFictional: schema.authors.isFictional
+      },
+      reference: {
+        id: schema.quoteReferences.id,
+        name: schema.quoteReferences.name,
+        primaryType: schema.quoteReferences.primaryType
+      },
+      user: {
+        id: schema.users.id,
+        name: schema.users.name
+      }
+    })
+    .from(schema.quotes)
+    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+    .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .get()
 
-    if (!updatedQuoteResult) {
+    if (!updatedQuote) {
       throw createError({
         statusCode: 500,
         statusMessage: 'Failed to fetch updated quote'
       })
     }
 
-    const updatedQuote = updatedQuoteResult as unknown as CreatedQuoteResult
+    // Fetch tags for the quote
+    const tags = await db.select({
+      id: schema.tags.id,
+      name: schema.tags.name,
+      color: schema.tags.color
+    })
+    .from(schema.tags)
+    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
+    .where(eq(schema.quotesTags.quoteId, parseInt(quoteId)))
+    .all()
 
     const transformedQuote: QuoteWithMetadata = {
       id: updatedQuote.id,
       name: updatedQuote.name,
-      language: updatedQuote.language,
-      author_id: updatedQuote.author_id,
-      reference_id: updatedQuote.reference_id,
-      user_id: updatedQuote.user_id,
+      language: updatedQuote.originalLanguage,
+      author_id: updatedQuote.authorId,
+      reference_id: updatedQuote.referenceId,
+      user_id: updatedQuote.userId,
       status: updatedQuote.status as any,
-      moderator_id: updatedQuote.moderator_id,
-      moderated_at: updatedQuote.moderated_at,
-      rejection_reason: updatedQuote.rejection_reason,
-      views_count: updatedQuote.views_count,
-      likes_count: updatedQuote.likes_count,
-      shares_count: updatedQuote.shares_count,
-      is_featured: updatedQuote.is_featured,
-      created_at: updatedQuote.created_at,
-      updated_at: updatedQuote.updated_at,
-      author: updatedQuote.author_id ? {
-        id: updatedQuote.author_id,
-        name: updatedQuote.author_name || '',
-        is_fictional: updatedQuote.author_is_fictional || false
+      moderator_id: updatedQuote.moderatorId,
+      moderated_at: updatedQuote.moderatedAt,
+      rejection_reason: updatedQuote.rejectionReason,
+      views_count: updatedQuote.viewsCount,
+      likes_count: updatedQuote.likesCount,
+      shares_count: updatedQuote.sharesCount,
+      is_featured: updatedQuote.isFeatured,
+      created_at: updatedQuote.createdAt,
+      updated_at: updatedQuote.updatedAt,
+      author: updatedQuote.author ? {
+        id: updatedQuote.author.id,
+        name: updatedQuote.author.name,
+        is_fictional: updatedQuote.author.isFictional
       } : undefined,
-      reference: updatedQuote.reference_id ? {
-        id: updatedQuote.reference_id,
-        name: updatedQuote.reference_name || '',
-        primary_type: updatedQuote.reference_type || 'other'
+      reference: updatedQuote.reference ? {
+        id: updatedQuote.reference.id,
+        name: updatedQuote.reference.name,
+        primary_type: updatedQuote.reference.primaryType || 'other'
       } : undefined,
       user: {
-        id: updatedQuote.user_id,
-        name: updatedQuote.user_name || ''
+        id: updatedQuote.user.id,
+        name: updatedQuote.user.name || ''
       },
-      tags: updatedQuote.tag_names ? updatedQuote.tag_names.split(',').map((name, index) => ({
-        id: index + 1,
-        name: name.trim(),
-        color: updatedQuote.tag_colors?.split(',')[index]?.trim() || 'gray'
-      })) : []
+      tags: tags.map(t => ({
+        id: t.id,
+        name: t.name,
+        color: t.color || 'gray'
+      }))
     }
 
     return {

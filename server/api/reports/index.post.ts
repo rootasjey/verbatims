@@ -1,10 +1,11 @@
 import type { CreateUserMessageInput } from '~/types/report'
+import { db, schema } from 'hub:db'
+import { eq, and, gt, count, sql } from 'drizzle-orm'
 
 const ANON_WINDOW_MINUTES = 10
 const ANON_MAX_PER_WINDOW = 3
 
 export default defineEventHandler(async (event) => {
-  const db = hubDatabase()
   const session = await getUserSession(event)
   const clientIP = getRequestIP(event) || 'unknown'
   const userAgent = getHeader(event, 'user-agent') || 'unknown'
@@ -34,21 +35,26 @@ export default defineEventHandler(async (event) => {
 
   // Anti-flood for anonymous: limit N per window per IP, and dedupe exact repeats in 5 minutes
   if (!userId) {
-    const recentCount = await db.prepare(`
-      SELECT COUNT(1) as cnt FROM user_messages
-      WHERE ip_address = ? AND created_at > datetime('now', ?)
-    `).bind(clientIP, `-${ANON_WINDOW_MINUTES} minutes`).first()
+    const [recentCount] = await db.select({ cnt: count() })
+      .from(schema.userMessages)
+      .where(and(
+        eq(schema.userMessages.ipAddress, clientIP),
+        gt(schema.userMessages.createdAt, sql`datetime('now', ${`-${ANON_WINDOW_MINUTES} minutes`})`)
+      ))
 
-  const count = Number((recentCount as any)?.cnt || 0)
-  if (count >= ANON_MAX_PER_WINDOW) {
+    const messageCount = Number(recentCount?.cnt || 0)
+    if (messageCount >= ANON_MAX_PER_WINDOW) {
       return { status: 'ratelimited' as const }
     }
 
-    const duplicate = await db.prepare(`
-      SELECT id FROM user_messages
-      WHERE ip_address = ? AND message = ? AND created_at > datetime('now', '-5 minutes')
-      LIMIT 1
-    `).bind(clientIP, message).first()
+    const [duplicate] = await db.select({ id: schema.userMessages.id })
+      .from(schema.userMessages)
+      .where(and(
+        eq(schema.userMessages.ipAddress, clientIP),
+        eq(schema.userMessages.message, message),
+        gt(schema.userMessages.createdAt, sql`datetime('now', '-5 minutes')`)
+      ))
+      .limit(1)
 
     if (duplicate) {
       return { status: 'accepted' as const, id: duplicate.id }
@@ -57,28 +63,32 @@ export default defineEventHandler(async (event) => {
 
   // If content targeted, basic existence check
   if (targetType !== 'general' && targetId) {
-    const table = targetType === 'quote' ? 'quotes' : targetType === 'author' ? 'authors' : 'quote_references'
-    const exists = await db.prepare(`SELECT id FROM ${table} WHERE id = ? LIMIT 1`).bind(targetId).first()
+    let exists
+    if (targetType === 'quote') {
+      [exists] = await db.select({ id: schema.quotes.id }).from(schema.quotes).where(eq(schema.quotes.id, targetId)).limit(1)
+    } else if (targetType === 'author') {
+      [exists] = await db.select({ id: schema.authors.id }).from(schema.authors).where(eq(schema.authors.id, targetId)).limit(1)
+    } else {
+      [exists] = await db.select({ id: schema.quoteReferences.id }).from(schema.quoteReferences).where(eq(schema.quoteReferences.id, targetId)).limit(1)
+    }
+
     if (!exists) {
       throw createError({ statusCode: 404, statusMessage: `${targetType} not found` })
     }
   }
 
-  const result = await db.prepare(`
-    INSERT INTO user_messages (user_id, name, email, category, tags, message, target_type, target_id, ip_address, user_agent)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
+  const [result] = await db.insert(schema.userMessages).values({
     userId,
     name,
     email,
     category,
-    tagsJson,
+    tags: tagsJson,
     message,
     targetType,
     targetId,
-    userId ? null : clientIP,
+    ipAddress: userId ? null : clientIP,
     userAgent
-  ).run()
+  }).returning({ id: schema.userMessages.id })
 
-  return { status: 'accepted', id: (result as any).meta?.last_row_id }
+  return { status: 'accepted', id: result.id }
 })

@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
@@ -14,29 +17,27 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Tag name is required' })
     }
 
-    const db = hubDatabase()
-    const exists = await db.prepare(`
-      SELECT id FROM tags WHERE LOWER(name) = LOWER(?)
-    `).bind(name).first()
+    const exists = await db.select({ id: schema.tags.id })
+      .from(schema.tags)
+      .where(sql`LOWER(${schema.tags.name}) = LOWER(${name})`)
+      .limit(1)
     
-    if (exists) { throw createError({ statusCode: 409, statusMessage: 'Tag with this name already exists' }) }
+    if (exists.length > 0) { 
+      throw createError({ statusCode: 409, statusMessage: 'Tag with this name already exists' }) 
+    }
 
-    const result = await db.prepare(`
-      INSERT INTO tags (name, description, category, color)
-      VALUES (?, ?, ?, ?)
-    `)
-    .bind(name, description, category, color)
-    .run()
+    const result = await db.insert(schema.tags).values({
+      name,
+      description,
+      category,
+      color
+    }).returning()
 
-    const created = await db.prepare(`
-      SELECT id, name, description, category, color, created_at, updated_at
-      FROM tags
-      WHERE id = ?
-    `)
-    .bind(result.meta.last_row_id)
-    .first()
+    if (!result || result.length === 0) {
+      throw createError({ statusCode: 500, statusMessage: 'Failed to create tag' })
+    }
 
-    return { success: true, data: created }
+    return { success: true, data: result[0] }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error creating tag:', error)

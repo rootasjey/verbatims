@@ -1,25 +1,12 @@
+import { db, schema } from 'hub:db'
+import { sql, count, eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
-    const db = hubDatabase()
-
-    if (!db) {
-      return {
-        success: false,
-        message: 'Database not available',
-        data: {
-          needsOnboarding: true,
-          hasDatabase: false,
-          hasAdminUser: false,
-          hasData: false,
-          step: 'database_init'
-        }
-      }
-    }
-
     // Check if database tables exist by trying to query them
     let hasDatabase = false
     try {
-      await db.prepare('SELECT 1 FROM users LIMIT 1').first()
+      await db.select({ val: sql`1` }).from(schema.users).limit(1).get()
       hasDatabase = true
     } catch (error) {
       // Database tables don't exist yet
@@ -40,16 +27,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check for admin users
-    const adminCount: { count: number } | null = await db.prepare(`
-      SELECT COUNT(*) as count FROM users WHERE role = 'admin'
-    `).first()
+    const [adminCount] = await db.select({ count: count() })
+      .from(schema.users)
+      .where(eq(schema.users.role, 'admin'))
 
     const hasAdminUser = (adminCount?.count || 0) > 0
 
     // Check if database has data (quotes)
-    const quotesCount: { count: number } | null = await db.prepare(`
-      SELECT COUNT(*) as count FROM quotes
-    `).first()
+    const [quotesCount] = await db.select({ count: count() }).from(schema.quotes)
 
     const hasData = (quotesCount?.count || 0) > 0
 
@@ -68,9 +53,9 @@ export default defineEventHandler(async (event) => {
     // Get basic stats if data exists
     let stats = null
     if (hasData) {
-      const [authorsCount, referencesCount] = await Promise.all([
-        db.prepare('SELECT COUNT(*) as count FROM authors').first(),
-        db.prepare('SELECT COUNT(*) as count FROM quote_references').first()
+      const [[authorsCount], [referencesCount]] = await Promise.all([
+        db.select({ count: count() }).from(schema.authors),
+        db.select({ count: count() }).from(schema.quoteReferences)
       ])
 
       stats = {

@@ -1,4 +1,7 @@
 import type { User } from '#auth-utils'
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -15,9 +18,7 @@ export default defineEventHandler(async (event) => {
   let isAsync = query.async === 'true'
 
   try {
-    const db = hubDatabase(); if (!db) throwServer(500, 'Database not available')
-
-    try { await db.prepare('SELECT 1 FROM users LIMIT 1').first() }
+    try { await db.select({ val: sql`1` }).from(schema.users).limit(1).get() }
     catch (error) {
       // Database tables don't exist, initialize them first
       const initSuccess = await initializeDatabase()
@@ -66,17 +67,23 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if admin user exists unless we're importing users from ZIP
-    let adminUser: User | null = await db.prepare(`
-      SELECT id FROM users WHERE role = 'admin' LIMIT 1
-    `).first()
+    const adminUserRow = await db.select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.role, 'admin'))
+      .limit(1)
+      .get()
+
+    const adminUser: User | null = (adminUserRow ? ({ id: adminUserRow.id } as any) : null)
 
     if (!adminUser && !zipBytes) {
       throwServer(400, 'Admin user must be created or import a ZIP containing users first')
     }
 
     // Check if data already exists
-    const existingQuotes = await db.prepare('SELECT COUNT(*) as count FROM quotes').first()
-    if (Number(existingQuotes?.count) > 0) {
+    const existingQuotes = await db.select({ count: sql<number>`COUNT(*)`.as('count') })
+      .from(schema.quotes)
+      .get()
+    if (Number((existingQuotes as any)?.count) > 0) {
       throwServer(409, 'Database already contains data')
     }
 
@@ -95,7 +102,6 @@ export default defineEventHandler(async (event) => {
           addError(importId, `Import failed: ${error.message}`)
         })
 
-      const { scheduleBackground } = await import('~/server/utils/schedule')
       scheduleBackground(event, runJob)
 
       return {
@@ -275,7 +281,6 @@ async function processImportSync(
   } catch (error: any) {
     console.error('Failed to import collections:', error)
     // Soft-fail: continue import but record warning
-    const { addWarning } = await import('~/server/utils/onboarding-progress')
     addWarning(importId, `Collection import issue: ${error.message}`)
   }
 
@@ -289,7 +294,6 @@ async function processImportSync(
     }
   } catch (error: any) {
     console.error('Failed to import user likes:', error)
-    const { addWarning } = await import('~/server/utils/onboarding-progress')
     addWarning(importId, `User likes import issue: ${error.message}`)
   }
 
@@ -309,7 +313,6 @@ async function processImportSync(
     }
   } catch (error: any) {
     console.error('Failed to import sessions/messages:', error)
-    const { addWarning } = await import('~/server/utils/onboarding-progress')
     addWarning(importId, `Sessions/messages import issue: ${error.message}`)
   }
 
@@ -338,12 +341,10 @@ async function processImportSync(
       addExtras(importId, { reference_views: c })
     }
     if (analyticsCounts.length) {
-      const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
       updateStepProgress(importId, 'quotes', { message: `Analytics imported: ${analyticsCounts.join(', ')}` })
     }
   } catch (error: any) {
     console.error('Failed to import moderation/analytics:', error)
-    const { addWarning } = await import('~/server/utils/onboarding-progress')
     addWarning(importId, `Moderation/analytics import issue: ${error.message}`)
   }
 

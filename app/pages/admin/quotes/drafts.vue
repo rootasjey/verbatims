@@ -463,7 +463,7 @@ const loadQuotes = async (page = currentPage.value) => {
       }
     })
     
-    quotes.value = response.data || []
+    quotes.value = (response.data as any) || []
     totalQuotes.value = response.pagination?.total || 0
     // Update current page and total pages
     currentPage.value = page

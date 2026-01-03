@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, or, isNotNull, isNull, gt, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
@@ -8,7 +11,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
     const session = await getUserSession(event)
 
     // Get client IP for anonymous tracking
@@ -16,9 +18,13 @@ export default defineEventHandler(async (event) => {
     const userAgent = getHeader(event, 'user-agent') || 'unknown'
 
     // Check if quote exists and is approved
-    const quote = await db.prepare(`
-      SELECT id FROM quotes WHERE id = ? AND status = 'approved'
-    `).bind(quoteId).first()
+    const quote = await db.select({ id: schema.quotes.id })
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get()
 
     if (!quote) {
       throw createError({
@@ -28,32 +34,34 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if this user/IP has already viewed this quote recently (within 1 hour)
-    const recentView = await db.prepare(`
-      SELECT id FROM quote_views 
-      WHERE quote_id = ? 
-      AND (
-        (user_id = ? AND user_id IS NOT NULL) OR 
-        (ip_address = ? AND user_id IS NULL)
-      )
-      AND viewed_at > datetime('now', '-1 hour')
-      LIMIT 1
-    `).bind(
-      quoteId, 
-      session.user?.id || null, 
-      clientIP
-    ).first()
+    const oneHourAgo = sql`datetime('now', '-1 hour')`
+    const recentView = await db.select({ id: schema.quoteViews.id })
+      .from(schema.quoteViews)
+      .where(and(
+        eq(schema.quoteViews.quoteId, parseInt(quoteId)),
+        or(
+          and(
+            eq(schema.quoteViews.userId, session.user?.id || 0),
+            isNotNull(schema.quoteViews.userId)
+          ),
+          and(
+            eq(schema.quoteViews.ipAddress, clientIP),
+            isNull(schema.quoteViews.userId)
+          )
+        ),
+        gt(schema.quoteViews.viewedAt, oneHourAgo)
+      ))
+      .limit(1)
+      .get()
 
     // Only track if not a recent view
     if (!recentView) {
-      await db.prepare(`
-        INSERT INTO quote_views (quote_id, user_id, ip_address, user_agent)
-        VALUES (?, ?, ?, ?)
-      `).bind(
-        quoteId,
-        session.user?.id || null,
-        session.user ? null : clientIP, // Only store IP for anonymous users
+      await db.insert(schema.quoteViews).values({
+        quoteId: parseInt(quoteId),
+        userId: session.user?.id || null,
+        ipAddress: session.user ? null : clientIP, // Only store IP for anonymous users
         userAgent
-      ).run()
+      })
     }
 
     return {

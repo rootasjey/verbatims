@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { db, schema } from 'hub:db'
+import { eq, or } from 'drizzle-orm'
 
 const bodySchema = z.object({
   name: z.string().min(2).max(50),
@@ -12,10 +14,12 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Check if user already exists
-    const existingUser = await hubDatabase()
-      .prepare('SELECT id FROM users WHERE email = ?1 OR name = ?2 LIMIT 1')
-      .bind(email, name)
-      .first()
+    const existingUser = await db
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(or(eq(schema.users.email, email), eq(schema.users.name, name)))
+      .limit(1)
+      .get()
 
     if (existingUser) {
       throw createError({
@@ -28,47 +32,37 @@ export default defineEventHandler(async (event) => {
     const hashedPassword = await hashPassword(password)
 
     // Insert new user
-    const result = await hubDatabase()
-      .prepare(`
-        INSERT INTO users (name, email, password, role)
-        VALUES (?1, ?2, ?3, 'user')
-      `)
-      .bind(name, email, hashedPassword)
-      .run()
+    const result = await db
+      .insert(schema.users)
+      .values({
+        name,
+        email,
+        password: hashedPassword,
+        role: 'user'
+      })
+      .returning()
+      .get()
 
-    if (!result.success) {
+    if (!result) {
       throw createError({
         statusCode: 500,
         message: 'Failed to create user account'
       })
     }
 
-    // Fetch the created user
-    const newUser = await hubDatabase()
-      .prepare('SELECT * FROM users WHERE id = ?1 LIMIT 1')
-      .bind(result.meta.last_row_id)
-      .first()
-
-    if (!newUser) {
-      throw createError({
-        statusCode: 500,
-        message: 'Failed to retrieve created user'
-      })
-    }
-
     const user = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      created_at: newUser.created_at,
-      avatar_url: newUser.avatar_url,
-      biography: newUser.biography,
-      job: newUser.job,
-      language: newUser.language,
-      location: newUser.location,
-      socials: newUser.socials,
-      updated_at: newUser.updated_at
+      id: result.id,
+      name: result.name,
+      email: result.email,
+      role: result.role,
+      created_at: result.created_at,
+      avatar_url: result.avatar_url,
+      biography: result.biography,
+      job: result.job,
+      language: result.language,
+      location: result.location,
+      socials: result.socials,
+      updated_at: result.updated_at
     }
 
     await setUserSession(event, { user })

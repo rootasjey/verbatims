@@ -1,9 +1,10 @@
+import { db, schema } from 'hub:db'
+import { like, eq, and, or, desc, asc, sql, count } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
     const session = await getUserSession(event)
-    
-    const db = hubDatabase()
     
     // Parse query parameters
     const page = parseInt(query.page as string) || 1
@@ -12,84 +13,76 @@ export default defineEventHandler(async (event) => {
     const search = query.search as string || ''
     const userId = query.user_id as string
     const publicOnly = query.public === 'true'
-    const sort = query.sort as string || 'updated_at'
+    const sort = query.sort as string || 'updatedAt'
     const order = query.order as string || 'desc'
     
     // Build WHERE conditions
-    const conditions = []
-    const bindings = []
+    const whereConditions = []
     
     if (search) {
-      conditions.push('(c.name LIKE ? OR c.description LIKE ?)')
-      bindings.push(`%${search}%`, `%${search}%`)
+      whereConditions.push(or(like(schema.userCollections.name, `%${search}%`), like(schema.userCollections.description, `%${search}%`)))
     }
     
     if (userId) {
-      conditions.push('c.user_id = ?')
-      bindings.push(userId)
+      whereConditions.push(eq(schema.userCollections.userId, parseInt(userId)))
     }
     
     if (publicOnly) {
-      conditions.push('c.is_public = 1')
+      whereConditions.push(eq(schema.userCollections.isPublic, true))
     } else if (!session.user) {
-      // Non-authenticated users can only see public collections
-      conditions.push('c.is_public = 1')
+      whereConditions.push(eq(schema.userCollections.isPublic, true))
     } else if (!userId) {
-      // If no specific user requested, show public collections and user's own
-      conditions.push('(c.is_public = 1 OR c.user_id = ?)')
-      bindings.push(session.user.id)
+      whereConditions.push(or(eq(schema.userCollections.isPublic, true), eq(schema.userCollections.userId, session.user.id)))
     }
-    
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-    // Validate sort column
-    const validSortColumns = ['created_at', 'updated_at', 'name', 'quotes_count']
-    const sortColumn = validSortColumns.includes(sort) ? sort : 'updated_at'
-    const sortOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC'
+    // Map sort column
+    const sortCol = sort === 'created_at' ? schema.userCollections.createdAt : 
+                    sort === 'name' ? schema.userCollections.name :
+                    schema.userCollections.updatedAt
 
-    // Handle quotes_count sorting (need to use COUNT result)
-    const orderByClause = sortColumn === 'quotes_count'
-      ? `ORDER BY quotes_count ${sortOrder}, c.updated_at DESC`
-      : `ORDER BY c.${sortColumn} ${sortOrder}`
+    const quotesCountSq = sql<number>`(SELECT COUNT(*) FROM collection_quotes WHERE collection_id = ${schema.userCollections.id})`
 
-    // Get collections with quote count and user info
-    const collections = await db.prepare(`
-      SELECT
-        c.*,
-        u.name as user_name,
-        u.avatar_url as user_avatar,
-        COUNT(cq.quote_id) as quotes_count
-      FROM user_collections c
-      LEFT JOIN users u ON c.user_id = u.id
-      LEFT JOIN collection_quotes cq ON c.id = cq.collection_id
-      ${whereClause}
-      GROUP BY c.id
-      ${orderByClause}
-      LIMIT ? OFFSET ?
-    `).bind(...bindings, limit, offset).all()
-    
-    // Get total count for pagination
-    const totalResult = await db.prepare(`
-      SELECT COUNT(DISTINCT c.id) as total
-      FROM user_collections c
-      LEFT JOIN users u ON c.user_id = u.id
-      ${whereClause}
-    `).bind(...bindings.slice(0, -2)).first() // Remove limit and offset from bindings
-    
-    const total = Number(totalResult?.total) || 0
-    // D1 `.all()` returns an object with a `results` array, so normalize to rows
-    const rows = (collections as any).results ?? []
-    const hasMore = offset + rows.length < total
-    
+    let queryBuilder = db.select({
+      id: schema.userCollections.id,
+      name: schema.userCollections.name,
+      description: schema.userCollections.description,
+      isPublic: schema.userCollections.isPublic,
+      userId: schema.userCollections.userId,
+      createdAt: schema.userCollections.createdAt,
+      updatedAt: schema.userCollections.updatedAt,
+      userName: schema.users.name,
+      userAvatar: schema.users.avatarUrl,
+      quotesCount: quotesCountSq
+    })
+    .from(schema.userCollections)
+    .leftJoin(schema.users, eq(schema.userCollections.userId, schema.users.id))
+    .$dynamic()
+
+    if (whereConditions.length > 0) {
+      queryBuilder = queryBuilder.where(and(...whereConditions))
+    }
+
+    if (sort === 'quotes_count') {
+      queryBuilder = queryBuilder.orderBy(order === 'asc' ? asc(quotesCountSq) : desc(quotesCountSq))
+    } else {
+      queryBuilder = queryBuilder.orderBy(order === 'asc' ? asc(sortCol) : desc(sortCol))
+    }
+
+    const results = await queryBuilder.limit(limit).offset(offset)
+
+    // Get total count
+    const [totalResult] = await db.select({ count: count() })
+      .from(schema.userCollections)
+      .where(and(...whereConditions))
+
     return {
       success: true,
-      data: rows,
+      data: results,
       pagination: {
         page,
         limit,
-        total,
-        hasMore,
-        totalPages: Math.ceil(total / limit)
+        total: totalResult?.count || 0,
+        pages: Math.ceil((totalResult?.count || 0) / limit)
       }
     }
   } catch (error) {

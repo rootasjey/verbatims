@@ -256,6 +256,7 @@
 definePageMeta({ layout: 'default' })
 
 import type { Quote, QuoteReferenceWithMetadata } from '~/types'
+import { ofetch } from 'ofetch'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
@@ -266,10 +267,11 @@ const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 type langCode = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh'
 
 const id = String(route.params.id || '')
-const { data: referenceData, pending } = await useLazyFetch(`/api/references/${id}`)
+type ReferenceApiResponse = { success: boolean; data: QuoteReferenceWithMetadata | QuoteReferenceWithMetadata[] }
+const { data: referenceData, pending } = await useLazyFetch<ReferenceApiResponse>(`/api/references/${id}`)
 const reference = computed<QuoteReferenceWithMetadata | undefined>(() => {
   const val = referenceData.value
-  if (!val || !('data' in val)) {
+  if (!val) {
     return undefined
   }
 
@@ -376,7 +378,7 @@ const onReferenceDeleted = async () => {
 
 const onReferenceUpdated = async () => {
   try {
-    const refreshed = await $fetch(`/api/references/${route.params.id}`)
+    const refreshed = await ofetch<ReferenceApiResponse>(`/api/references/${route.params.id}`)
     referenceData.value = refreshed
   } catch (error) {
     console.error('Failed to refresh reference after update:', error)

@@ -1,3 +1,7 @@
+import { db, schema } from 'hub:db'
+import { eq, desc, sql } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/sqlite-core'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
@@ -14,39 +18,36 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     
-    const db = hubDatabase()
-    
     // Get user's recent activity (likes, collections, submissions)
     const activities: Array<Record<string, any>> = []
+
+    const qa = alias(schema.authors, 'qa')
     
-    // Recent likes
-    const recentLikes = await db.prepare(`
-      SELECT 
-        ul.created_at,
-        ul.likeable_type,
-        ul.likeable_id,
-        CASE 
-          WHEN ul.likeable_type = 'quote' THEN q.name
-          WHEN ul.likeable_type = 'author' THEN a.name
-          WHEN ul.likeable_type = 'reference' THEN r.name
-        END as item_name,
-        CASE 
-          WHEN ul.likeable_type = 'quote' THEN qa.name
-          WHEN ul.likeable_type = 'author' THEN NULL
-          WHEN ul.likeable_type = 'reference' THEN NULL
-        END as author_name
-      FROM user_likes ul
-      LEFT JOIN quotes q ON ul.likeable_type = 'quote' AND ul.likeable_id = q.id
-      LEFT JOIN authors a ON ul.likeable_type = 'author' AND ul.likeable_id = a.id
-      LEFT JOIN quote_references r ON ul.likeable_type = 'reference' AND ul.likeable_id = r.id
-      LEFT JOIN authors qa ON q.author_id = qa.id
-      WHERE ul.user_id = ?
-      ORDER BY ul.created_at DESC
-      LIMIT 10
-    `).bind(session.user.id).all()
+    // Recent likes - using SQL CASE for conditional fields
+    const recentLikes = await db.select({
+      created_at: schema.userLikes.createdAt,
+      likeable_type: schema.userLikes.likeableType,
+      likeable_id: schema.userLikes.likeableId,
+      item_name: sql<string>`CASE 
+        WHEN ${schema.userLikes.likeableType} = 'quote' THEN ${schema.quotes.name}
+        WHEN ${schema.userLikes.likeableType} = 'author' THEN ${schema.authors.name}
+        WHEN ${schema.userLikes.likeableType} = 'reference' THEN ${schema.quoteReferences.name}
+      END`,
+      author_name: sql<string>`CASE 
+        WHEN ${schema.userLikes.likeableType} = 'quote' THEN ${qa.name}
+        ELSE NULL
+      END`
+    })
+      .from(schema.userLikes)
+      .leftJoin(schema.quotes, sql`${schema.userLikes.likeableType} = 'quote' AND ${schema.userLikes.likeableId} = ${schema.quotes.id}`)
+      .leftJoin(schema.authors, sql`${schema.userLikes.likeableType} = 'author' AND ${schema.userLikes.likeableId} = ${schema.authors.id}`)
+      .leftJoin(schema.quoteReferences, sql`${schema.userLikes.likeableType} = 'reference' AND ${schema.userLikes.likeableId} = ${schema.quoteReferences.id}`)
+      .leftJoin(qa, eq(schema.quotes.authorId, qa.id))
+      .where(eq(schema.userLikes.userId, session.user.id))
+      .orderBy(desc(schema.userLikes.createdAt))
+      .limit(10)
     
-    const recentLikesRows = (recentLikes as any).results ?? []
-    recentLikesRows.forEach((like: any) => {
+    recentLikes.forEach((like: any) => {
       activities.push({
         type: 'like',
         action: `Liked ${like.likeable_type}`,
@@ -59,21 +60,18 @@ export default defineEventHandler(async (event) => {
     })
     
     // Recent collection updates
-    const recentCollections = await db.prepare(`
-      SELECT 
-        c.id,
-        c.name,
-        c.created_at,
-        c.updated_at,
-        'collection_created' as action_type
-      FROM user_collections c
-      WHERE c.user_id = ?
-      ORDER BY c.created_at DESC
-      LIMIT 10
-    `).bind(session.user.id).all()
+    const recentCollections = await db.select({
+      id: schema.userCollections.id,
+      name: schema.userCollections.name,
+      created_at: schema.userCollections.createdAt,
+      updated_at: schema.userCollections.updatedAt
+    })
+      .from(schema.userCollections)
+      .where(eq(schema.userCollections.userId, session.user.id))
+      .orderBy(desc(schema.userCollections.createdAt))
+      .limit(10)
     
-    const recentCollectionsRows = (recentCollections as any).results ?? []
-    recentCollectionsRows.forEach((collection: any) => {
+    recentCollections.forEach((collection: any) => {
       activities.push({
         type: 'collection',
         action: 'Created collection',
@@ -85,22 +83,20 @@ export default defineEventHandler(async (event) => {
     })
     
     // Recent quote submissions
-    const recentSubmissions = await db.prepare(`
-      SELECT 
-        q.id,
-        q.name,
-        q.status,
-        q.created_at,
-        a.name as author_name
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      WHERE q.user_id = ?
-      ORDER BY q.created_at DESC
-      LIMIT 10
-    `).bind(session.user.id).all()
+    const recentSubmissions = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      status: schema.quotes.status,
+      created_at: schema.quotes.createdAt,
+      author_name: schema.authors.name
+    })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .where(eq(schema.quotes.userId, session.user.id))
+      .orderBy(desc(schema.quotes.createdAt))
+      .limit(10)
     
-    const recentSubmissionsRows = (recentSubmissions as any).results ?? []
-    recentSubmissionsRows.forEach((submission: any) => {
+    recentSubmissions.forEach((submission: any) => {
       activities.push({
         type: 'submission',
         action: `Submitted quote (${submission.status})`,

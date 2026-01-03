@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
@@ -26,12 +29,11 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const db = hubDatabase()
-    
     // Check if collection exists and user owns it
-    const collection = await db.prepare(`
-      SELECT * FROM user_collections WHERE id = ?
-    `).bind(collectionId).first()
+    const collection = await db.select()
+      .from(schema.userCollections)
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .get()
     
     if (!collection) {
       throw createError({
@@ -40,7 +42,7 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    if (collection.user_id !== session.user.id) {
+    if (collection.userId !== session.user.id) {
       throw createError({
         statusCode: 403,
         statusMessage: 'Access denied'
@@ -48,10 +50,13 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check if quote is in collection
-    const collectionQuote = await db.prepare(`
-      SELECT * FROM collection_quotes 
-      WHERE collection_id = ? AND quote_id = ?
-    `).bind(collectionId, quoteId).first()
+    const collectionQuote = await db.select()
+      .from(schema.collectionQuotes)
+      .where(and(
+        eq(schema.collectionQuotes.collectionId, parseInt(collectionId)),
+        eq(schema.collectionQuotes.quoteId, parseInt(quoteId))
+      ))
+      .get()
     
     if (!collectionQuote) {
       throw createError({
@@ -61,17 +66,18 @@ export default defineEventHandler(async (event) => {
     }
     
     // Remove quote from collection
-    await db.prepare(`
-      DELETE FROM collection_quotes 
-      WHERE collection_id = ? AND quote_id = ?
-    `).bind(collectionId, quoteId).run()
+    await db.delete(schema.collectionQuotes)
+      .where(and(
+        eq(schema.collectionQuotes.collectionId, parseInt(collectionId)),
+        eq(schema.collectionQuotes.quoteId, parseInt(quoteId))
+      ))
+      .run()
     
     // Update collection's updated_at timestamp
-    await db.prepare(`
-      UPDATE user_collections 
-      SET updated_at = CURRENT_TIMESTAMP 
-      WHERE id = ?
-    `).bind(collectionId).run()
+    await db.update(schema.userCollections)
+      .set({ updatedAt: new Date() })
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .run()
     
     return {
       success: true,

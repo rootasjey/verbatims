@@ -3,6 +3,8 @@
  * Updates an existing reference with admin authentication
  */
 
+import { db, schema } from 'hub:db'
+import { sql, eq, and } from 'drizzle-orm'
 import type { UpdateQuoteReferenceData } from '~/types/quote-reference'
 
 export default defineEventHandler(async (event) => {
@@ -25,12 +27,12 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event) as UpdateQuoteReferenceData
-    const db = hubDatabase()
 
     // Check if reference exists
-    const existingReference = await db.prepare(`
-      SELECT * FROM quote_references WHERE id = ?
-    `).bind(referenceId).first()
+    const existingReference = await db.select()
+      .from(schema.quoteReferences)
+      .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
+      .get()
 
     if (!existingReference) {
       throw createError({
@@ -60,9 +62,13 @@ export default defineEventHandler(async (event) => {
 
     // Check if another reference with same name already exists (excluding current reference)
     if (body.name && body.name.trim() !== existingReference.name) {
-      const duplicateReference = await db.prepare(`
-        SELECT id FROM quote_references WHERE LOWER(name) = LOWER(?) AND id != ?
-      `).bind(body.name.trim(), referenceId).first()
+      const duplicateReference = await db.select()
+        .from(schema.quoteReferences)
+        .where(and(
+          sql`LOWER(${schema.quoteReferences.name}) = LOWER(${body.name.trim()})`,
+          sql`${schema.quoteReferences.id} != ${parseInt(referenceId)}`
+        ))
+        .get()
 
       if (duplicateReference) {
         throw createError({
@@ -72,73 +78,31 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Build update fields
-    const updateFields = []
-    const updateValues = []
+    // Build update object
+    const updateData: any = { updatedAt: sql`CURRENT_TIMESTAMP` }
 
-    if (body.name !== undefined) {
-      updateFields.push('name = ?')
-      updateValues.push(body.name.trim())
-    }
-    if (body.original_language !== undefined) {
-      updateFields.push('original_language = ?')
-      updateValues.push(body.original_language)
-    }
-    if (body.release_date !== undefined) {
-      updateFields.push('release_date = ?')
-      updateValues.push(body.release_date)
-    }
-    if (body.description !== undefined) {
-      updateFields.push('description = ?')
-      updateValues.push(body.description)
-    }
-    if (body.primary_type !== undefined) {
-      updateFields.push('primary_type = ?')
-      updateValues.push(body.primary_type)
-    }
-    if (body.secondary_type !== undefined) {
-      updateFields.push('secondary_type = ?')
-      updateValues.push(body.secondary_type)
-    }
-    if (body.image_url !== undefined) {
-      updateFields.push('image_url = ?')
-      updateValues.push(body.image_url)
-    }
-    if (body.urls !== undefined) {
-      updateFields.push('urls = ?')
-      updateValues.push(JSON.stringify(body.urls))
-    }
+    if (body.name !== undefined) updateData.name = body.name.trim()
+    if (body.original_language !== undefined) updateData.originalLanguage = body.original_language
+    if (body.release_date !== undefined) updateData.releaseDate = body.release_date
+    if (body.description !== undefined) updateData.description = body.description
+    if (body.primary_type !== undefined) updateData.primaryType = body.primary_type
+    if (body.secondary_type !== undefined) updateData.secondaryType = body.secondary_type
+    if (body.image_url !== undefined) updateData.imageUrl = body.image_url
+    if (body.urls !== undefined) updateData.urls = JSON.stringify(body.urls)
 
-    // Always update the updated_at timestamp
-    updateFields.push('updated_at = ?')
-    updateValues.push(new Date().toISOString())
-
-    if (updateFields.length === 1) { // Only updated_at was added
+    if (Object.keys(updateData).length === 1) { // Only updatedAt was added
       throw createError({
         statusCode: 400,
         statusMessage: 'No fields to update'
       })
     }
 
-    // Add reference ID for WHERE clause
-    updateValues.push(referenceId)
-
     // Update reference
-    const result = await db.prepare(`
-      UPDATE quote_references SET ${updateFields.join(', ')} WHERE id = ?
-    `).bind(...updateValues).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to update reference'
-      })
-    }
-
-    // Fetch the updated reference
-    const updatedReference = await db.prepare(`
-      SELECT * FROM quote_references WHERE id = ?
-    `).bind(referenceId).first()
+    const updatedReference = await db.update(schema.quoteReferences)
+      .set(updateData)
+      .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
+      .returning()
+      .get()
 
     return {
       success: true,

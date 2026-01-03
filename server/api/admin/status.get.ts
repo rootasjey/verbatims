@@ -1,6 +1,8 @@
+import { db, schema } from 'hub:db'
+import { eq, count } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
-    const db = hubDatabase()
     if (!db) {
       return {
         success: false,
@@ -14,17 +16,21 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check for admin users
-    const adminUsers = await db.prepare(`
-      SELECT id, name, email, created_at, last_login_at, is_active
-      FROM users 
-      WHERE role = 'admin'
-      ORDER BY created_at ASC
-    `).all()
+    const adminUsers = await db.select({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      created_at: schema.users.createdAt,
+      last_login_at: schema.users.lastLoginAt,
+      is_active: schema.users.isActive
+    })
+    .from(schema.users)
+    .where(eq(schema.users.role, 'admin'))
+    .orderBy(schema.users.createdAt)
 
     // Get total user count
-    const userCount = await db.prepare(`
-      SELECT COUNT(*) as count FROM users
-    `).first()
+    const userCountResult = await db.select({ count: count() })
+      .from(schema.users)
 
     // Get environment variable status (without exposing values)
     const envStatus = {
@@ -37,10 +43,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: {
         hasDatabase: true,
-        hasAdminUser: adminUsers.results.length > 0,
-        adminUserCount: adminUsers.results.length,
-        totalUserCount: userCount?.count || 0,
-        adminUsers: adminUsers.results.map(user => ({
+        hasAdminUser: adminUsers.length > 0,
+        adminUserCount: adminUsers.length,
+        totalUserCount: userCountResult[0]?.count || 0,
+        adminUsers: adminUsers.map(user => ({
           id: user.id,
           name: user.name,
           email: user.email,

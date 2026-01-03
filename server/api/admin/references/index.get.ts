@@ -3,6 +3,9 @@
  * Retrieves references with pagination, search, and filtering for admin interface
  */
 
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check admin authentication
@@ -15,7 +18,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const query = getQuery(event)
-    const db = hubDatabase()
     
     // Parse query parameters
     const page = parseInt(query.page as string) || 1
@@ -29,16 +31,14 @@ export default defineEventHandler(async (event) => {
     
     // Build the WHERE clause
     const whereConditions = []
-    const params = []
     
     if (search) {
-      whereConditions.push('(r.name LIKE ? OR r.description LIKE ? OR r.secondary_type LIKE ?)')
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`)
+      const searchPattern = `%${search}%`
+      whereConditions.push(`(r.name LIKE ${sql.raw(`'${searchPattern}'`)} OR r.description LIKE ${sql.raw(`'${searchPattern}'`)} OR r.secondary_type LIKE ${sql.raw(`'${searchPattern}'`)})`)
     }
     
     if (primary_type) {
-      whereConditions.push('r.primary_type = ?')
-      params.push(primary_type)
+      whereConditions.push(`r.primary_type = ${sql.raw(`'${primary_type}'`)}`)
     }
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
@@ -62,42 +62,36 @@ export default defineEventHandler(async (event) => {
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
     // Main query with quote count
-    const referencesQuery = `
+    const references = await db.all(sql.raw(`
       SELECT 
         r.*,
         COUNT(q.id) as quotes_count
-      FROM quote_references r
-      LEFT JOIN quotes q ON r.id = q.reference_id
+      FROM ${schema.quoteReferences._.name} r
+      LEFT JOIN ${schema.quotes._.name} q ON r.id = q.reference_id
       ${whereClause}
       GROUP BY r.id
       ORDER BY ${sortColumn === 'quotes_count' ? 'quotes_count' : `r.${sortColumn}`} ${sortDirection}
-      LIMIT ? OFFSET ?
-    `
+      LIMIT ${limit} OFFSET ${offset}
+    `))
     
     // Count query for pagination
-    const countQuery = `
+    const countResult = await db.get<{ total: number }>(sql.raw(`
       SELECT COUNT(*) as total
-      FROM quote_references r
+      FROM ${schema.quoteReferences._.name} r
       ${whereClause}
-    `
+    `))
     
-    // Execute queries
-    const [referencesResult, countResult] = await Promise.all([
-      db.prepare(referencesQuery).bind(...params, limit, offset).all(),
-      db.prepare(countQuery).bind(...params).first()
-    ])
-    
-    const references = (referencesResult?.results || []).map((reference: any) => ({
+    const referencesData = references.map((reference: any) => ({
       ...reference,
       urls: reference.urls ? JSON.parse(reference.urls) : {}
     }))
     
-    const total = Number(countResult?.total) || 0
+    const total = countResult?.total || 0
     const totalPages = Math.ceil(total / limit)
     
     return {
       success: true,
-      data: references,
+      data: referencesData,
       pagination: {
         page,
         limit,

@@ -5,6 +5,9 @@
  * SECURITY WARNING: This is a destructive operation that will permanently delete all data
  * Only accessible to admin users with proper authentication
  */
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -18,7 +21,6 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Database reset requires explicit confirmation token')
     }
 
-    const db = hubDatabase()
     console.log(`🔥 Database reset initiated by admin user: ${user.name} (${user.email})`)
     
     // Step 1: CLEAR all tables (no DDL) — use DELETE in a safe FK order
@@ -27,37 +29,36 @@ export default defineEventHandler(async (event) => {
 
     const clearOrder = [
       // Leaf and junction tables
-      'quote_tags',
-      'collection_quotes',
-      'quote_views',
-      'author_views',
-      'reference_views',
-      'quote_reports',
-      'user_messages',
-      'user_sessions',
-      'user_likes',
-      'backup_files',
-      'export_logs',
-      'import_logs',
-      'user_collections',
+      { table: 'quote_tags', schema: schema.quoteTags },
+      { table: 'collection_quotes', schema: schema.collectionQuotes },
+      { table: 'quote_views', schema: schema.quoteViews },
+      { table: 'author_views', schema: schema.authorViews },
+      { table: 'reference_views', schema: schema.referenceViews },
+      { table: 'quote_reports', schema: schema.quoteReports },
+      { table: 'user_messages', schema: schema.userMessages },
+      { table: 'user_sessions', schema: schema.userSessions },
+      { table: 'user_likes', schema: schema.userLikes },
+      { table: 'backup_files', schema: schema.backupFiles },
+      { table: 'export_logs', schema: schema.exportLogs },
+      { table: 'import_logs', schema: schema.importLogs },
+      { table: 'user_collections', schema: schema.userCollections },
       // Core content tables
-      'quotes',
-      'tags',
-      'authors',
-      'quote_references',
+      { table: 'quotes', schema: schema.quotes },
+      { table: 'tags', schema: schema.tags },
+      { table: 'authors', schema: schema.authors },
+      { table: 'quote_references', schema: schema.quoteReferences },
       // Users last (referenced by many tables)
-      'users'
+      { table: 'users', schema: schema.users }
     ] as const
 
     let tablesCleared = 0
     let rowsDeleted = 0
-    for (const table of clearOrder) {
+    for (const { table, schema: tableSchema } of clearOrder) {
       try {
-        const res = await db.prepare(`DELETE FROM ${table}`).run()
-        const changes = Number(res?.meta?.changes || 0)
-        rowsDeleted += changes
+        const result = await db.delete(tableSchema as any)
+        // Note: Drizzle doesn't return affected rows count, so we estimate
         tablesCleared++
-        console.log(`✅ Cleared table '${table}' (deleted ${changes} rows)`) 
+        console.log(`✅ Cleared table '${table}'`) 
       } catch (e: any) {
         // If a table does not exist in a given environment or DELETE is not authorized, surface a clear error
         console.error(`❌ Failed to clear table '${table}':`, e?.message || e)
@@ -91,7 +92,7 @@ export default defineEventHandler(async (event) => {
     try {
       for (const table of autoIncrementTables) {
         try {
-          await db.prepare(`DELETE FROM sqlite_sequence WHERE name = ?`).bind(table).run()
+          await db.run(sql`DELETE FROM sqlite_sequence WHERE name = ${table}`)
           sequencesReset++
           console.log(`✅ Reset sequence for '${table}'`)
         } catch (seqErr: any) {

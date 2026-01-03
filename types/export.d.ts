@@ -5,6 +5,8 @@
 
 import type { QuoteStatus, QuoteLanguage } from './quote'
 
+export type { QuoteStatus, QuoteLanguage } from './quote'
+
 /**
  * Supported export formats
  */

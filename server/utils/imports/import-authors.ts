@@ -3,10 +3,10 @@ import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-p
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
 import { validateAuthorDataZod } from '~/server/utils/validation/author'
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
 
 export async function importAuthorsInline(parentImportId: string, authors: any[], options: ImportOptions) {
-  const db = hubDatabase(); if (!db) throw new Error('Database not available')
-
   const validation = validateAuthorDataZod(authors)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`Authors validation failed: ${validation.errors.length} errors`)
@@ -21,31 +21,34 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
   if (options.createBackup !== false) {
     try {
       const json = JSON.stringify({ data: authors })
-      const { fileKey, filePath, fileSize, compressedSize, contentHash, compressionType } =
-        await uploadBackupFile(json, `import_${parentImportId}_authors.json`, 'authors', 'json')
+      const up = await uploadBackupFile(json, `import_${parentImportId}_authors.json`, 'authors', 'json')
 
       let importLogId: number | undefined = undefined
       try {
-        const row = await db.prepare('SELECT id FROM import_logs WHERE import_id = ? LIMIT 1').bind(parentImportId).first()
-        importLogId = Number(row?.id) ?? undefined
+        const row = await db.select({ id: schema.importLogs.id })
+          .from(schema.importLogs)
+          .where(eq(schema.importLogs.importId, parentImportId))
+          .limit(1)
+          .get()
+        importLogId = row?.id
       } catch {}
 
-      await createBackupFile(db, {
-        file_key: fileKey,
+      await createBackupFile({
+        file_key: up.fileKey,
         export_log_id: undefined,
-        import_log_id: importLogId ?? undefined,
+        import_log_id: importLogId,
         filename: `import_${parentImportId}_authors.json`,
-        file_path: filePath,
-        file_size: fileSize,
-        compressed_size: compressedSize,
-        content_hash: contentHash,
-        compression_type: compressionType,
+        file_path: up.filePath,
+        file_size: up.fileSize,
+        compressed_size: up.compressedSize,
+        content_hash: up.contentHash,
+        compression_type: up.compressionType,
         retention_days: options.retentionDays || 90,
         metadata: JSON.stringify({ kind: 'import', import_id: parentImportId, data_type: 'authors', format: 'json' })
       })
 
       const p2 = getAdminImport(parentImportId)!
-      updateAdminImport(parentImportId, { warnings: [...p2.warnings, `Backup stored for authors (${filePath})`] })
+      updateAdminImport(parentImportId, { warnings: [...p2.warnings, `Backup stored for authors (${up.filePath})`] })
     } catch (e: any) {
       const p = getAdminImport(parentImportId)!
       updateAdminImport(parentImportId, { warnings: [...p.warnings, `Backup skipped (authors): ${e.message}`] })
@@ -54,22 +57,6 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
 
   const authorPolicy = options.conflict?.authors?.mode || 'ignore'
   const authorStrategy = options.conflict?.authors?.updateStrategy || 'fill-missing'
-
-  const insert = db.prepare(`
-    INSERT INTO authors (
-      name, is_fictional, birth_date, birth_location, death_date, death_location,
-      job, description, image_url, socials, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  // Optional insert with explicit id when preserveIds is enabled
-  const insertWithId = db.prepare(`
-    INSERT INTO authors (
-      id, name, is_fictional, birth_date, birth_location, death_date, death_location,
-      job, description, image_url, socials, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
 
   const batchSize = options.batchSize || 50
   const subSize = 10
@@ -85,7 +72,11 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
         const keys = Array.from(new Set(sub.map(a => (String(a.name || '')).toLowerCase().trim()).filter(Boolean)))
         if (keys.length) {
           for (const k of keys) {
-            const row = await db.prepare('SELECT id, name FROM authors WHERE lower(name) = ? LIMIT 1').bind(k).first()
+            const row = await db.select({ id: schema.authors.id, name: schema.authors.name })
+              .from(schema.authors)
+              .where(sql`lower(${schema.authors.name}) = ${k}`)
+              .limit(1)
+              .get()
             if (row?.id && row?.name) existingByKey.set(String(row.name).toLowerCase(), { id: Number(row.id), name: String(row.name) })
           }
         }
@@ -108,100 +99,55 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
         }
 
         if (match && authorPolicy === 'upsert') {
-          // Build UPDATE with strategy
-          let sql = `UPDATE authors SET
-            is_fictional = COALESCE(?, is_fictional),
-            birth_date = COALESCE(?, birth_date),
-            birth_location = COALESCE(?, birth_location),
-            death_date = COALESCE(?, death_date),
-            death_location = COALESCE(?, death_location),
-            job = COALESCE(?, job),
-            description = COALESCE(?, description),
-            image_url = COALESCE(?, image_url),
-            socials = COALESCE(?, socials),
-            views_count = COALESCE(?, views_count),
-            likes_count = COALESCE(?, likes_count),
-            shares_count = COALESCE(?, shares_count),
-            updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?`
-          if (authorStrategy === 'overwrite') {
-            sql = `UPDATE authors SET
-              is_fictional = ?,
-              birth_date = ?,
-              birth_location = ?,
-              death_date = ?,
-              death_location = ?,
-              job = ?,
-              description = ?,
-              image_url = ?,
-              socials = ?,
-              views_count = ?,
-              likes_count = ?,
-              shares_count = ?,
-              updated_at = CURRENT_TIMESTAMP
-              WHERE id = ?`
+          const updateData: any = {}
+          const addFieldFill = (key: keyof typeof schema.authors, value: any) => {
+             if (authorStrategy === 'overwrite') {
+               updateData[key] = value
+             } else {
+               updateData[key] = sql`COALESCE(${schema.authors[key]}, ${value})`
+             }
           }
-          const stmt = db.prepare(sql).bind(
-            (author.is_fictional ?? null),
-            author.birth_date || null,
-            author.birth_location || null,
-            author.death_date || null,
-            author.death_location || null,
-            author.job || null,
-            author.description || null,
-            author.image_url || null,
-            socialsField,
-            author.views_count ?? null,
-            author.likes_count ?? null,
-            author.shares_count ?? null,
-            match.id,
-          )
-          stmts.push(stmt)
+          
+          addFieldFill('isFictional', Boolean(author.is_fictional) || false)
+          addFieldFill('birthDate', author.birth_date || null)
+          addFieldFill('birthLocation', author.birth_location || null)
+          addFieldFill('deathDate', author.death_date || null)
+          addFieldFill('deathLocation', author.death_location || null)
+          addFieldFill('job', author.job || null)
+          addFieldFill('description', author.description || null)
+          addFieldFill('imageUrl', author.image_url || null)
+          addFieldFill('socials', socialsField)
+          addFieldFill('viewsCount', author.views_count || 0)
+          addFieldFill('likesCount', author.likes_count || 0)
+          addFieldFill('sharesCount', author.shares_count || 0)
+          
+          updateData.updatedAt = new Date()
+          
+          stmts.push(db.update(schema.authors).set(updateData).where(eq(schema.authors.id, match.id)))
           continue
         }
 
         // Default: insert; optionally preserve explicit id
         const explicitId = options.preserveIds && Number.isFinite(Number(author.id)) ? Number(author.id) : undefined
-        if (explicitId != null) {
-          const stmt = insertWithId.bind(
-            explicitId,
-            author.name,
-            Boolean(author.is_fictional) || false,
-            author.birth_date || null,
-            author.birth_location || null,
-            author.death_date || null,
-            author.death_location || null,
-            author.job || null,
-            author.description || null,
-            author.image_url || null,
-            socialsField,
-            author.views_count || 0,
-            author.likes_count || 0,
-            author.shares_count || 0,
-            author.created_at || new Date().toISOString(),
-            author.updated_at || new Date().toISOString(),
-          )
-          stmts.push(stmt)
-        } else {
-          const stmt = insert.bind(
-            author.name,
-            Boolean(author.is_fictional) || false,
-            author.birth_date || null,
-            author.birth_location || null,
-            author.death_date || null,
-            author.death_location || null,
-            author.job || null,
-            author.description || null,
-            author.image_url || null,
-            socialsField,
-            author.views_count || 0,
-            author.likes_count || 0,
-            author.shares_count || 0,
-            author.created_at || new Date().toISOString(),
-            author.updated_at || new Date().toISOString(),
-          )
-          stmts.push(stmt)
+        const values = {
+            id: explicitId,
+            name: author.name,
+            isFictional: Boolean(author.is_fictional) || false,
+            birthDate: author.birth_date || null,
+            birthLocation: author.birth_location || null,
+            deathDate: author.death_date || null,
+            deathLocation: author.death_location || null,
+            job: author.job || null,
+            description: author.description || null,
+            imageUrl: author.image_url || null,
+            socials: socialsField,
+            viewsCount: author.views_count || 0,
+            likesCount: author.likes_count || 0,
+            sharesCount: author.shares_count || 0,
+            createdAt: author.created_at ? new Date(author.created_at) : new Date(),
+            updatedAt: author.updated_at ? new Date(author.updated_at) : new Date(),
         }
+        stmts.push(db.insert(schema.authors).values(values))
       }
 
       // Account for skipped as processed
@@ -214,18 +160,20 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
       }
 
       try {
-        await db.batch(stmts)
-        const p = getAdminImport(parentImportId)!
-        updateAdminImport(parentImportId, {
-          successfulRecords: p.successfulRecords + stmts.length,
-          processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
-        })
+        if (stmts.length > 0) {
+            await db.batch(stmts as any)
+            const p = getAdminImport(parentImportId)!
+            updateAdminImport(parentImportId, {
+            successfulRecords: p.successfulRecords + stmts.length,
+            processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
+            })
+        }
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
           try {
             const s = stmts[idx]
             if (!s) continue
-            await s.run()
+            await s
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -249,17 +197,17 @@ export async function importAuthorsInline(parentImportId: string, authors: any[]
   // If IDs were preserved, align sqlite_sequence to MAX(id)
   if (options.preserveIds) {
     try {
-      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM authors').first()
+      const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.authors).get()
       const maxId = Number(row?.mx || 0)
       if (maxId > 0) {
-        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'authors'`).bind(maxId).run()
-        const changes = Number(upd?.meta?.changes || 0)
+        const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'authors'`)
+        const changes = Number(upd?.rowsAffected || 0)
         if (changes === 0) {
           try {
-            await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ?)`).bind(maxId).run()
+            await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ${maxId})`)
           } catch {
-            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'authors'`).run() } catch {}
-            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ?)`).bind(maxId).run() } catch {}
+            try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'authors'`) } catch {}
+            try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ${maxId})`) } catch {}
           }
         }
       }
@@ -283,19 +231,24 @@ export async function processImportAuthors(
     else throw new Error(`Unsupported format: ${format}`)
 
     updateAdminImport(importId, { totalRecords: authors.length })
-    const db = hubDatabase()
-    if (!db) throw new Error('Database not available')
     await importAuthorsInline(importId, authors, options)
     try {
-      const db2 = hubDatabase()
       const pp = getAdminImport(importId)!
-      await db2.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-        .bind('completed', pp.totalRecords, pp.successfulRecords, pp.failedRecords, pp.warnings.length, importId).run()
-      updateAdminImport(importId, { status: 'completed', completedAt: new Date() })
+      await db.update(schema.importLogs)
+        .set({
+            status: 'completed',
+            recordCount: pp.totalRecords,
+            successfulCount: pp.successfulRecords,
+            failedCount: pp.failedRecords,
+            warningsCount: pp.warnings.length,
+            completedAt: new Date()
+        })
+        .where(eq(schema.importLogs.importId, importId))
+      updateAdminImport(importId, { status: 'completed', completedAt: new Date() as any })
     } catch {}
   } catch (e: any) {
     const p = getAdminImport(importId)!
-    updateAdminImport(importId, { status: 'failed', completedAt: new Date(), errors: [...p.errors, e.message] })
+    updateAdminImport(importId, { status: 'failed', completedAt: new Date() as any, errors: [...p.errors, e.message] })
     throw e
   }
 }

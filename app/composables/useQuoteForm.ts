@@ -147,7 +147,7 @@ export function useQuoteForm() {
       const { francAll } = await import('franc-min')
       const results = francAll(content, {
         minLength: MIN_CONTENT_LENGTH_FOR_DETECTION,
-        whitelist: SUPPORTED_ISO3_CODES
+        only: SUPPORTED_ISO3_CODES
       })
 
       if (!results.length || results[0][0] === 'und') {

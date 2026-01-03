@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+import type { DatabaseAdminQuote } from '~/types'
 import { transformAdminQuotes } from '~/server/utils/quote-transformer'
 
 export default defineEventHandler(async (event) => {
@@ -11,7 +14,6 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
     }
 
-    const db = hubDatabase()
     const query = getQuery(event)
 
     const page = Math.max(parseInt(query.page as string) || 1, 1)
@@ -22,25 +24,22 @@ export default defineEventHandler(async (event) => {
     const language = (query.language as string) || ''
     const search = (query.search as string) || ''
 
-    // WHERE conditions and bindings
-    const conditions: string[] = ['q.status = ?']
-    const bindings: any[] = [status]
+    // WHERE conditions
+    const conditions: string[] = [`q.status = ${sql.raw(`'${status}'`)}`]
 
     if (language) {
-      conditions.push('q.language = ?')
-      bindings.push(language)
+      conditions.push(`q.language = ${sql.raw(`'${language}'`)}`)
     }
 
     if (search) {
-      conditions.push('(q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ? OR u.name LIKE ?)')
       const like = `%${search}%`
-      bindings.push(like, like, like, like)
+      conditions.push(`(q.name LIKE ${sql.raw(`'${like}'`)} OR a.name LIKE ${sql.raw(`'${like}'`)} OR r.name LIKE ${sql.raw(`'${like}'`)} OR u.name LIKE ${sql.raw(`'${like}'`)})`)
     }
 
     const whereClause = `WHERE ${conditions.join(' AND ')}`
 
     // Main query with joins for admin view
-    const quotesResult = await db.prepare(`
+    const quotes = await db.all<DatabaseAdminQuote>(sql.raw(`
       SELECT
         q.*,
         a.name as author_name,
@@ -54,32 +53,30 @@ export default defineEventHandler(async (event) => {
         m.name as moderator_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN users m ON q.moderator_id = m.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
+      FROM ${schema.quotes._.name} q
+      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
+      LEFT JOIN ${schema.users._.name} m ON q.moderator_id = m.id
+      LEFT JOIN ${schema.quoteTags._.name} qt ON q.id = qt.quote_id
+      LEFT JOIN ${schema.tags._.name} t ON qt.tag_id = t.id
       ${whereClause}
       GROUP BY q.id
       ORDER BY q.created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(...bindings, limit, offset).all()
-
-    const quotes = (quotesResult?.results || []) as any[]
+      LIMIT ${limit} OFFSET ${offset}
+    `))
 
     // Count query
-    const totalRow = await db.prepare(`
+    const totalRow = await db.get<{ total: number }>(sql.raw(`
       SELECT COUNT(DISTINCT q.id) as total
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
+      FROM ${schema.quotes._.name} q
+      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
       ${whereClause}
-    `).bind(...bindings).first()
+    `))
 
-    const total = Number(totalRow?.total) || 0
+    const total = totalRow?.total || 0
     const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
 

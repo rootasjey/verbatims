@@ -1,7 +1,9 @@
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
     
     // Parse query parameters
     const page = parseInt(query.page as string) || 1
@@ -12,47 +14,42 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    // Build the WHERE clause
-    const whereConditions = []
-    const params = []
-    
-    if (search) {
-      whereConditions.push('t.name LIKE ?')
-      params.push(`%${search}%`)
-    }
-    
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-    
     // Validate sort column
     const allowedSortColumns = ['name', 'created_at']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
+    // Build WHERE clause
+    let whereClause = sql``
+    if (search) {
+      whereClause = sql` WHERE t.name LIKE ${'%' + search + '%'}`
+    }
+    
     // Main query with quote count
-    const tagsQuery = `
+    const tagsQuery = sql`
       SELECT 
         t.*,
         COUNT(qt.quote_id) as quotes_count
-      FROM tags t
-      LEFT JOIN quote_tags qt ON t.id = qt.tag_id
-      LEFT JOIN quotes q ON qt.quote_id = q.id AND q.status = 'approved'
+      FROM ${schema.tags} t
+      LEFT JOIN ${schema.quoteTags} qt ON t.id = qt.tag_id
+      LEFT JOIN ${schema.quotes} q ON qt.quote_id = q.id AND q.status = 'approved'
       ${whereClause}
       GROUP BY t.id
-      ORDER BY t.${sortColumn} ${sortDirection}
-      LIMIT ? OFFSET ?
+      ORDER BY ${sql.raw(`t.${sortColumn}`)} ${sql.raw(sortDirection)}
+      LIMIT ${limit} OFFSET ${offset}
     `
     
     // Count query for pagination
-    const countQuery = `
+    const countQuery = sql`
       SELECT COUNT(*) as total
-      FROM tags t
+      FROM ${schema.tags} t
       ${whereClause}
     `
     
     // Execute queries
     const [tags, countResult] = await Promise.all([
-      db.prepare(tagsQuery).bind(...params, limit, offset).all(),
-      db.prepare(countQuery).bind(...params).first()
+      db.all(tagsQuery),
+      db.get<{ total: number }>(countQuery)
     ])
     
     const total = Number(countResult?.total) || 0

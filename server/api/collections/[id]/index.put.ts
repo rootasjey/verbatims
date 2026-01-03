@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
@@ -18,12 +21,12 @@ export default defineEventHandler(async (event) => {
     }
     
     const body = await readBody(event)
-    const db = hubDatabase()
     
     // Check if collection exists and user owns it
-    const collection = await db.prepare(`
-      SELECT * FROM user_collections WHERE id = ?
-    `).bind(collectionId).first()
+    const collection = await db.select()
+      .from(schema.userCollections)
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .get()
     
     if (!collection) {
       throw createError({
@@ -33,7 +36,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check ownership or admin privileges
-    const canEdit = collection.user_id === session.user.id ||
+    const canEdit = collection.userId === session.user.id ||
                    session.user.role === 'admin' ||
                    session.user.role === 'moderator'
     
@@ -61,12 +64,15 @@ export default defineEventHandler(async (event) => {
       }
       
       // Check if user already has another collection with this name
-      const existingCollection = await db.prepare(`
-        SELECT id FROM user_collections 
-        WHERE user_id = ? AND name = ? AND id != ?
-      `).bind(collection.user_id, body.name.trim(), collectionId).first()
+      const existingCollection = await db.select()
+        .from(schema.userCollections)
+        .where(and(
+          eq(schema.userCollections.userId, collection.userId),
+          eq(schema.userCollections.name, body.name.trim())
+        ))
+        .get()
       
-      if (existingCollection) {
+      if (existingCollection && existingCollection.id !== parseInt(collectionId)) {
         throw createError({
           statusCode: 409,
           statusMessage: 'You already have a collection with this name'
@@ -81,55 +87,49 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Build update query
-    const updates = []
-    const bindings = []
+    // Build update object
+    const updateData: any = {}
     
     if (body.name !== undefined) {
-      updates.push('name = ?')
-      bindings.push(body.name.trim())
+      updateData.name = body.name.trim()
     }
     
     if (body.description !== undefined) {
-      updates.push('description = ?')
-      bindings.push(body.description?.trim() || null)
+      updateData.description = body.description?.trim() || null
     }
     
     if (body.is_public !== undefined) {
-      updates.push('is_public = ?')
-      bindings.push(!!body.is_public)
+      updateData.isPublic = !!body.is_public
     }
     
-    if (updates.length === 0) {
+    if (Object.keys(updateData).length === 0) {
       throw createError({
         statusCode: 400,
         statusMessage: 'No valid fields to update'
       })
     }
     
-    updates.push('updated_at = CURRENT_TIMESTAMP')
-    bindings.push(collectionId)
+    updateData.updatedAt = new Date()
     
     // Update collection
-    await db.prepare(`
-      UPDATE user_collections 
-      SET ${updates.join(', ')}
-      WHERE id = ?
-    `).bind(...bindings).run()
+    await db.update(schema.userCollections)
+      .set(updateData)
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .run()
     
     // Fetch updated collection with user info
-    const updatedCollection = await db.prepare(`
+    const updatedCollection = await db.get(sql`
       SELECT 
         c.*,
         u.name as user_name,
         u.avatar_url as user_avatar,
         COUNT(cq.quote_id) as quotes_count
-      FROM user_collections c
-      LEFT JOIN users u ON c.user_id = u.id
-      LEFT JOIN collection_quotes cq ON c.id = cq.collection_id
-      WHERE c.id = ?
+      FROM ${schema.userCollections} c
+      LEFT JOIN ${schema.users} u ON c.user_id = u.id
+      LEFT JOIN ${schema.collectionQuotes} cq ON c.id = cq.collection_id
+      WHERE c.id = ${parseInt(collectionId)}
       GROUP BY c.id
-    `).bind(collectionId).first()
+    `)
     
     return {
       success: true,

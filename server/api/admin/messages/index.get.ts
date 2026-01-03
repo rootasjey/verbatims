@@ -1,3 +1,5 @@
+import { db, schema } from 'hub:db'
+import { and, desc, eq, like, or, sql } from 'drizzle-orm'
 import { parseJSONSafely } from '~/server/utils/extraction'
 import type { ReportCategory, ReportStatus, ReportTargetType, AdminUserMessage, AdminMessagesListResponse } from '~/types/report'
 
@@ -7,7 +9,6 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
     throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
   }
 
-  const db = hubDatabase()
   const query = getQuery(event)
   const page = Math.max(1, Number(query.page || 1))
   const limit = Math.min(100, Math.max(1, Number(query.limit || 50)))
@@ -17,54 +18,75 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
   const targetType = (query.target_type as ReportTargetType) || undefined
   const search = (query.search as string) || ''
 
-  const where: string[] = []
-  const binds: any[] = []
-
-  if (status) { where.push('um.status = ?'); binds.push(status) }
-  if (category) { where.push('um.category = ?'); binds.push(category) }
-  if (targetType) { where.push('um.target_type = ?'); binds.push(targetType) }
+  const conditions = []
+  if (status) conditions.push(eq(schema.userMessages.status, status))
+  if (category) conditions.push(eq(schema.userMessages.category, category))
+  if (targetType) conditions.push(eq(schema.userMessages.targetType, targetType))
   if (search) {
-    where.push(`(
-      um.message LIKE ? OR
-      COALESCE(um.name,'') LIKE ? OR
-      COALESCE(um.email,'') LIKE ?
-    )`)
-    binds.push(`%${search}%`, `%${search}%`, `%${search}%`)
+    conditions.push(or(
+      like(schema.userMessages.message, `%${search}%`),
+      like(sql`COALESCE(${schema.userMessages.name}, '')`, `%${search}%`),
+      like(sql`COALESCE(${schema.userMessages.email}, '')`, `%${search}%`)
+    ))
   }
 
-  const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : ''
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-  const totalRow = await db.prepare(`
-    SELECT COUNT(1) as cnt
-    FROM user_messages um
-    ${whereClause}
-  `).bind(...binds).first()
-  const total = Number((totalRow as any)?.cnt || 0)
+  const [totalResult] = await db
+    .select({ count: sql<number>`COUNT(1)` })
+    .from(schema.userMessages)
+    .where(whereClause)
+  const total = Number(totalResult?.count || 0)
 
-  const rows = await db.prepare(`
-    SELECT um.*, 
-      q.name AS quote_text,
-      a.name AS author_name,
-      r.name AS reference_name,
-      u.name AS user_name,
-      u.email AS user_email
-    FROM user_messages um
-    LEFT JOIN quotes q ON (um.target_type = 'quote' AND q.id = um.target_id)
-    LEFT JOIN authors a ON (um.target_type = 'author' AND a.id = um.target_id)
-    LEFT JOIN quote_references r ON (um.target_type = 'reference' AND r.id = um.target_id)
-    LEFT JOIN users u ON (um.user_id = u.id)
-    ${whereClause}
-    ORDER BY um.created_at DESC
-    LIMIT ? OFFSET ?
-  `).bind(...binds, limit, offset).all()
+  const results = await db
+    .select({
+      id: schema.userMessages.id,
+      user_id: schema.userMessages.userId,
+      name: schema.userMessages.name,
+      email: schema.userMessages.email,
+      category: schema.userMessages.category,
+      tags: schema.userMessages.tags,
+      message: schema.userMessages.message,
+      target_type: schema.userMessages.targetType,
+      target_id: schema.userMessages.targetId,
+      ip_address: schema.userMessages.ipAddress,
+      user_agent: schema.userMessages.userAgent,
+      status: schema.userMessages.status,
+      reviewed_by: schema.userMessages.reviewedBy,
+      reviewed_at: schema.userMessages.reviewedAt,
+      created_at: schema.userMessages.createdAt,
+      user_name: schema.users.name,
+      user_email: schema.users.email,
+      quote_text: schema.quotes.name,
+      author_name: schema.authors.name,
+      reference_name: schema.quoteReferences.name,
+    })
+    .from(schema.userMessages)
+    .leftJoin(schema.quotes, and(
+      eq(schema.userMessages.targetType, 'quote'),
+      eq(schema.quotes.id, schema.userMessages.targetId)
+    ))
+    .leftJoin(schema.authors, and(
+      eq(schema.userMessages.targetType, 'author'),
+      eq(schema.authors.id, schema.userMessages.targetId)
+    ))
+    .leftJoin(schema.quoteReferences, and(
+      eq(schema.userMessages.targetType, 'reference'),
+      eq(schema.quoteReferences.id, schema.userMessages.targetId)
+    ))
+    .leftJoin(schema.users, eq(schema.userMessages.userId, schema.users.id))
+    .where(whereClause)
+    .orderBy(desc(schema.userMessages.createdAt))
+    .limit(limit)
+    .offset(offset)
 
-  const data = (rows?.results || []).map((row: any) => ({
+  const data = results.map((row) => ({
       id: row.id,
       user_id: row.user_id ?? null,
       name: row.name ?? null,
       email: row.email ?? null,
       category: row.category,
-  tags: parseJSONSafely(row.tags) || [],
+      tags: parseJSONSafely(row.tags) || [],
       message: row.message,
       target_type: row.target_type,
       target_id: row.target_id ?? null,

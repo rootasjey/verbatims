@@ -1,4 +1,6 @@
 import { getAdminImport } from '~/server/utils/admin-import-progress'
+import { db, schema } from 'hub:db'
+import { eq, desc, sql } from 'drizzle-orm'
 
 /**
  * Admin API: List Import History (backed by import_logs + live overlay)
@@ -12,28 +14,31 @@ export default defineEventHandler(async (event) => {
   const offset = parseInt((query.offset as string) || '0')
   const status = (query.status as string) || ''
 
-  const db = hubDatabase(); if (!db) throwServer(500, 'Database not available')
-
-  // Base query
-  const filters: string[] = []
-  const params: any[] = []
+  // Build WHERE clause for status filter
+  let whereCondition = undefined
   if (status && ['pending','processing','completed','failed'].includes(status)) {
-    filters.push('status = ?')
-    params.push(status)
+    whereCondition = eq(schema.importLogs.status, status as any)
   }
-  const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
 
   // List imports ordered by created_at desc
-  const listStmt = db.prepare(`
-    SELECT import_id, filename, format, data_type, record_count, successful_count, failed_count, warnings_count,
-           status, created_at, completed_at
-    FROM import_logs
-    ${where}
-    ORDER BY datetime(created_at) DESC
-    LIMIT ? OFFSET ?
-  `).bind(...params, limit, offset)
-
-  const { results: rows = [] } = await listStmt.all<any>()
+  const rows = await db.select({
+    import_id: schema.importLogs.importId,
+    filename: schema.importLogs.filename,
+    format: schema.importLogs.format,
+    data_type: schema.importLogs.dataType,
+    record_count: schema.importLogs.recordCount,
+    successful_count: schema.importLogs.successfulCount,
+    failed_count: schema.importLogs.failedCount,
+    warnings_count: schema.importLogs.warningsCount,
+    status: schema.importLogs.status,
+    created_at: schema.importLogs.createdAt,
+    completed_at: schema.importLogs.completedAt,
+  })
+    .from(schema.importLogs)
+    .where(whereCondition)
+    .orderBy(desc(schema.importLogs.createdAt))
+    .limit(limit)
+    .offset(offset)
 
   // Overlay live in-memory progress when available
   const imports = rows.map((row: any) => {
@@ -69,21 +74,29 @@ export default defineEventHandler(async (event) => {
   })
 
   // Summary stats from DB
-  const summaryRows = await db.prepare(`
-    SELECT status, COUNT(*) AS c FROM import_logs GROUP BY status
-  `).all<any>()
+  const summaryRows = await db.select({
+    status: schema.importLogs.status,
+    count: sql<number>`COUNT(*)`.as('count')
+  })
+    .from(schema.importLogs)
+    .groupBy(schema.importLogs.status)
   
   const summaryMap: Record<string, number> = {}
-  for (const r of summaryRows.results || []) summaryMap[r.status] = Number(r.c)
+  for (const r of summaryRows) summaryMap[r.status] = Number(r.count)
 
-  const sumSuccess = await db.prepare(`
-    SELECT COALESCE(SUM(successful_count),0) AS s FROM import_logs WHERE status = 'completed'
-  `).all<any>()
-  const totalRecordsImported = Number((sumSuccess.results?.[0]?.s) ?? 0)
+  const sumSuccess = await db.select({
+    sum: sql<number>`COALESCE(SUM(${schema.importLogs.successfulCount}),0)`.as('sum')
+  })
+    .from(schema.importLogs)
+    .where(eq(schema.importLogs.status, 'completed'))
+  const totalRecordsImported = Number(sumSuccess[0]?.sum ?? 0)
 
-  const countStmt = db.prepare(`SELECT COUNT(*) AS total FROM import_logs ${where}`).bind(...params)
-  const countRes = await countStmt.all<any>()
-  const total = Number(countRes.results?.[0]?.total ?? imports.length)
+  const countRes = await db.select({
+    total: sql<number>`COUNT(*)`.as('total')
+  })
+    .from(schema.importLogs)
+    .where(whereCondition)
+  const total = Number(countRes[0]?.total ?? imports.length)
 
   return {
     success: true,

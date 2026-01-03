@@ -20,7 +20,7 @@ export const ReferenceSchema = z.object({
   urls: z
     .union([
       z.array(z.string().url()), // export array format
-      z.record(z.string().optional()), // object map format
+      z.record(z.string(), z.string().optional()), // object map format
       z.string() // JSON string; importer parses to object/array
     ])
     .nullable()

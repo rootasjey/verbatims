@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -14,13 +17,18 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Provide tagId or name' })
     }
 
-    const db = hubDatabase()
-
     // Check permissions: owner of draft or admin/moderator can edit tags
-    const quote = await db.prepare('SELECT user_id, status FROM quotes WHERE id = ?').bind(quoteId).first()
+    const quote = await db.select({
+      userId: schema.quotes.userId,
+      status: schema.quotes.status
+    })
+    .from(schema.quotes)
+    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .get()
+
     if (!quote) throw createError({ statusCode: 404, statusMessage: 'Quote not found' })
     const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwnerDraft = quote.user_id === session.user.id && quote.status === 'draft'
+    const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
     if (!isAdmin && !isOwnerDraft) {
       throw createError({ statusCode: 403, statusMessage: 'Not allowed to edit tags for this quote' })
     }
@@ -29,19 +37,40 @@ export default defineEventHandler(async (event) => {
 
     if (!finalTagId) {
       // Create or find tag by name (case-insensitive)
-      const existing = await db.prepare('SELECT id, name, color FROM tags WHERE LOWER(name) = LOWER(?)').bind(String(name).trim()).first()
+      const existing = await db.select({
+        id: schema.tags.id,
+        name: schema.tags.name,
+        color: schema.tags.color
+      })
+      .from(schema.tags)
+      .where(sql`LOWER(${schema.tags.name}) = LOWER(${String(name).trim()})`)
+      .get()
+
       if (existing) {
         finalTagId = existing.id
       } else {
-        const result = await db.prepare('INSERT INTO tags (name, color) VALUES (?, ?)').bind(String(name).trim(), color || '#687FE5').run()
-        finalTagId = result.meta.last_row_id
+        const result = await db.insert(schema.tags).values({
+          name: String(name).trim(),
+          color: color || '#687FE5'
+        }).returning({ id: schema.tags.id }).get()
+        finalTagId = result.id
       }
     }
 
     // Attach relation (ignore duplicates)
-    await db.prepare('INSERT OR IGNORE INTO quote_tags (quote_id, tag_id) VALUES (?, ?)').bind(quoteId, finalTagId).run()
+    await db.insert(schema.quotesTags).values({
+      quoteId: parseInt(quoteId),
+      tagId: finalTagId
+    }).onConflictDoNothing().run()
 
-    const tag = await db.prepare('SELECT id, name, color FROM tags WHERE id = ?').bind(finalTagId).first()
+    const tag = await db.select({
+      id: schema.tags.id,
+      name: schema.tags.name,
+      color: schema.tags.color
+    })
+    .from(schema.tags)
+    .where(eq(schema.tags.id, finalTagId))
+    .get()
 
     return { success: true, data: tag }
   } catch (error: any) {

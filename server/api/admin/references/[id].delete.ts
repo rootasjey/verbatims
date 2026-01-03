@@ -3,6 +3,9 @@
  * Deletes a reference with admin authentication and proper validation
  */
 
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -21,12 +24,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-
     // Check if reference exists
-    const existingReference = await db.prepare(`
-      SELECT * FROM quote_references WHERE id = ?
-    `).bind(referenceId).first()
+    const existingReference = await db.select()
+      .from(schema.quoteReferences)
+      .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
+      .get()
 
     if (!existingReference) {
       throw createError({
@@ -36,10 +38,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Count associated quotes
-    const quoteCountResult = await db.prepare(`
-      SELECT COUNT(*) as count FROM quotes WHERE reference_id = ?
-    `).bind(referenceId).first()
-    const quoteCount = Number(quoteCountResult?.count) || 0
+    const quoteCountResult = await db.get<{ count: number }>(sql`
+      SELECT COUNT(*) as count FROM ${schema.quotes} WHERE reference_id = ${parseInt(referenceId)}
+    `)
+    const quoteCount = quoteCountResult?.count || 0
 
     // Determine strategy
     const body = await readBody(event).catch(() => ({})) as { strategy?: 'delete' | 'anonymize' }
@@ -53,20 +55,26 @@ export default defineEventHandler(async (event) => {
         })
       }
 
-      await db.prepare('BEGIN TRANSACTION').run()
+      await db.run(sql`BEGIN TRANSACTION`)
       try {
         if (strategy === 'delete') {
-          await db.prepare(`DELETE FROM quotes WHERE reference_id = ?`).bind(referenceId).run()
+          await db.delete(schema.quotes)
+            .where(eq(schema.quotes.referenceId, parseInt(referenceId)))
+            .run()
         } else {
-          await db.prepare(`UPDATE quotes SET reference_id = NULL WHERE reference_id = ?`).bind(referenceId).run()
+          await db.update(schema.quotes)
+            .set({ referenceId: null })
+            .where(eq(schema.quotes.referenceId, parseInt(referenceId)))
+            .run()
         }
 
-        const del = await db.prepare(`DELETE FROM quote_references WHERE id = ?`).bind(referenceId).run()
-        if (!del.success) throw new Error('Failed to delete reference')
+        await db.delete(schema.quoteReferences)
+          .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
+          .run()
 
-        await db.prepare('COMMIT').run()
+        await db.run(sql`COMMIT`)
       } catch (txErr) {
-        await db.prepare('ROLLBACK').run()
+        await db.run(sql`ROLLBACK`)
         throw createError({ statusCode: 500, statusMessage: 'Failed to process deletion transaction' })
       }
 
@@ -79,10 +87,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // No related quotes: simple delete
-    const del = await db.prepare(`DELETE FROM quote_references WHERE id = ?`).bind(referenceId).run()
-    if (!del.success) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to delete reference' })
-    }
+    await db.delete(schema.quoteReferences)
+      .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
+      .run()
 
     return { success: true, message: 'Reference deleted successfully', quotesAffected: 0 }
 

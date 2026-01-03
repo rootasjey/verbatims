@@ -17,8 +17,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid backup ID' })
     }
 
-    const db = hubDatabase()
-    await deleteBackup(db, Number(backupId))
+    await deleteBackup(Number(backupId))
 
     return {
       success: true,

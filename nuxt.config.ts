@@ -1,11 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { defineNuxtConfig } from 'nuxt/config'
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve, dirname } from 'node:path'
 
 export default defineNuxtConfig({
-  compatibilityDate: '2025-05-15',
+  compatibilityDate: '2025-12-31',
   devtools: { enabled: true },
 
   app: {
@@ -52,12 +53,15 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
   ],
 
+  typescript: {
+    strict: false
+  },
+
   hub: {
     blob: true,
     cache: true,
-    database: true,
+    db: 'sqlite',
     kv: true,
-    browser: true,
   },
 
   nitro: {

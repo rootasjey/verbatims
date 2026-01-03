@@ -1,50 +1,64 @@
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) throwServer(401, 'Authentication required')
 
-    const quoteId = getRouterParam(event, 'id')
-    if (!quoteId || isNaN(parseInt(quoteId))) throwServer(400, 'Invalid quote ID')
-
-    const db = hubDatabase()
+    const quoteIdParam = getRouterParam(event, 'id')
+    const quoteId = Number.parseInt(quoteIdParam || '', 10)
+    if (!quoteIdParam || Number.isNaN(quoteId)) throwServer(400, 'Invalid quote ID')
 
     // Check if quote exists and is approved
-    const quote = await db.prepare(`
-      SELECT id, status FROM quotes WHERE id = ? AND status = 'approved'
-    `).bind(quoteId).first()
+    const quote = await db.select({ id: schema.quotes.id, status: schema.quotes.status })
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, quoteId),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get()
 
     if (!quote) throwServer(404, 'Quote not found or not approved')
 
     // Check if user has already liked this quote
-    const existingLike = await db.prepare(`
-      SELECT id FROM user_likes 
-      WHERE user_id = ? AND likeable_type = 'quote' AND likeable_id = ?
-    `).bind(session.user.id, quoteId).first()
+    const existingLike = await db.select({ id: schema.userLikes.id })
+      .from(schema.userLikes)
+      .where(and(
+        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.likeableType, 'quote'),
+        eq(schema.userLikes.likeableId, quoteId)
+      ))
+      .get()
 
     let is_liked = false
 
     if (existingLike) {
       // Unlike - remove the like
-      await db.prepare(`
-        DELETE FROM user_likes 
-        WHERE user_id = ? AND likeable_type = 'quote' AND likeable_id = ?
-      `).bind(session.user.id, quoteId).run()
+      await db.delete(schema.userLikes)
+        .where(and(
+          eq(schema.userLikes.userId, session.user.id),
+          eq(schema.userLikes.likeableType, 'quote'),
+          eq(schema.userLikes.likeableId, quoteId)
+        ))
       
       is_liked = false
     } else {
       // Like - add the like
-      await db.prepare(`
-        INSERT INTO user_likes (user_id, likeable_type, likeable_id)
-        VALUES (?, 'quote', ?)
-      `).bind(session.user.id, quoteId).run()
+      await db.insert(schema.userLikes).values({
+        userId: session.user.id,
+        likeableType: 'quote',
+        likeableId: quoteId
+      })
       
       is_liked = true
     }
 
     // Get updated like count
-    const updatedQuote = await db.prepare(`
-      SELECT likes_count FROM quotes WHERE id = ?
-    `).bind(quoteId).first()
+    const updatedQuote = await db.select({ likes_count: schema.quotes.likesCount })
+      .from(schema.quotes)
+      .where(eq(schema.quotes.id, quoteId))
+      .get()
     
     if (!updatedQuote) { throwServer(500, 'Failed to retrieve updated quote'); return }
 

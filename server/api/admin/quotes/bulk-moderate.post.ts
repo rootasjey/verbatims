@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql, eq, and, inArray } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
@@ -49,8 +52,6 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const db = hubDatabase()
-    
     // Validate all quote IDs are numbers and quotes exist
     const quoteIds: number[] = body.quote_ids.map((id: string) => {
       const numId = parseInt(id)
@@ -64,13 +65,13 @@ export default defineEventHandler(async (event) => {
     })
     
     // Check if all quotes exist and are pending
-    const placeholders = quoteIds.map(() => '?').join(',')
-    const quotesResult = await db.prepare(`
-      SELECT id FROM quotes
-      WHERE id IN (${placeholders}) AND status = 'pending'
-    `).bind(...quoteIds).all()
-
-    const existingQuotes = quotesResult?.results || []
+    const existingQuotes = await db.select({ id: schema.quotes.id })
+      .from(schema.quotes)
+      .where(and(
+        inArray(schema.quotes.id, quoteIds),
+        eq(schema.quotes.status, 'pending')
+      ))
+      .all()
 
     if (existingQuotes.length !== quoteIds.length) {
       throw createError({
@@ -82,25 +83,18 @@ export default defineEventHandler(async (event) => {
     // Perform bulk update
     const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
     
-    const updatePromises = quoteIds.map(quoteId => 
-      db.prepare(`
-        UPDATE quotes 
-        SET 
-          status = ?,
-          moderator_id = ?,
-          moderated_at = CURRENT_TIMESTAMP,
-          rejection_reason = ?,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).bind(
-        newStatus,
-        session.user.id,
-        body.action === 'reject' ? body.rejection_reason.trim() : null,
-        quoteId
-      ).run()
-    )
-    
-    await Promise.all(updatePromises)
+    await Promise.all(quoteIds.map(quoteId => 
+      db.update(schema.quotes)
+        .set({
+          status: newStatus,
+          moderatorId: session.user.id,
+          moderatedAt: sql`CURRENT_TIMESTAMP`,
+          rejectionReason: body.action === 'reject' ? body.rejection_reason.trim() : null,
+          updatedAt: sql`CURRENT_TIMESTAMP`
+        })
+        .where(eq(schema.quotes.id, quoteId))
+        .run()
+    ))
     
     return {
       success: true,

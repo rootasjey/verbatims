@@ -33,23 +33,48 @@ Server APIs follow Nuxt's file-based routing in `/server/api/`:
 /api/auth/login.post.ts            # Auth endpoints
 ```
 
-**Pattern**: Use `getUserSession(event)` for auth, `hubDatabase()` for DB access:
+**Pattern**: Use `getUserSession(event)` for auth, import `db` and `schema` from 'hub:db' for database access:
 ```typescript
+import { db, schema } from 'hub:db'
+import { eq, and, desc } from 'drizzle-orm'
+
 const session = await getUserSession(event)
-const db = hubDatabase()
+const quotes = await db.select().from(schema.quotes).where(eq(schema.quotes.status, 'approved'))
 ```
 
 ### 2. Database Queries
-Use D1's prepared statements with proper joins for related data:
+Use Drizzle ORM query builder with type-safe schema references:
 ```typescript
-const quotesResult = await db.prepare(`
-  SELECT q.*, a.name as author_name, r.name as reference_name, u.name as user_name
-  FROM quotes q
-  LEFT JOIN authors a ON q.author_id = a.id
-  LEFT JOIN quote_references r ON q.reference_id = r.id
-  LEFT JOIN users u ON q.user_id = u.id
-  WHERE q.status = ?
-`).bind(status).all()
+import { db, schema } from 'hub:db'
+import { eq, and, or, like, desc, count, sql } from 'drizzle-orm'
+
+// Simple query
+const quote = await db.select().from(schema.quotes).where(eq(schema.quotes.id, quoteId)).get()
+
+// Query with joins
+const quotesWithAuthor = await db.select({
+  ...getTableColumns(schema.quotes),
+  author_name: schema.authors.name,
+  author_is_fictional: schema.authors.isFictional
+})
+  .from(schema.quotes)
+  .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+  .where(eq(schema.quotes.status, 'approved'))
+
+// Insert
+await db.insert(schema.quotes).values({ name: 'Quote text', userId: 1, status: 'draft' })
+
+// Update
+await db.update(schema.quotes).set({ status: 'approved' }).where(eq(schema.quotes.id, quoteId))
+
+// Delete
+await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId))
+
+// Complex aggregations with sql template
+const stats = await db.select({
+  total: count(),
+  approved: sum(sql`CASE WHEN ${schema.quotes.status} = 'approved' THEN 1 ELSE 0 END`)
+}).from(schema.quotes)
 ```
 
 ### 3. Type System

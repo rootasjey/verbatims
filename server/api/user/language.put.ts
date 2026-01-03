@@ -21,20 +21,16 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const db = hubDatabase()
+    const { db, schema } = await import('hub:db')
+    const { eq } = await import('drizzle-orm')
     
     // Update user's language preference
-    const result = await db
-      .prepare('UPDATE users SET language = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-      .bind(language, user.id)
-      .run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to update language preference'
+    await db.update(schema.users)
+      .set({ 
+        language: language as any,
+        updatedAt: new Date()
       })
-    }
+      .where(eq(schema.users.id, user.id))
 
     return {
       success: true,

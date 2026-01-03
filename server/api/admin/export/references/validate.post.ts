@@ -5,6 +5,8 @@
 
 import type { ExportOptions, ReferenceExportFilters, ExportValidation } from '~/types/export'
 import { validateFiltersForReferencesExport } from '~/server/utils/export-filters'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -45,21 +47,12 @@ export default defineEventHandler(async (event) => {
       validation.warnings.push(...filterValidation.warnings)
     }
 
-    const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
     // Build query to estimate count and size
     const { query, bindings } = buildReferencesQuery(filters as ReferenceExportFilters, true, limit)
 
-    // Get estimated count - need to wrap the original query to handle GROUP BY
-    const countQuery = `SELECT COUNT(*) as count FROM (${query}) as subquery`
-    const countResult = await db.prepare(countQuery).bind(...bindings).first()
-    const estimatedCount = Number(countResult?.count) || 0
+    // Get estimated count
+    const results = await query;
+    const estimatedCount = Array.isArray(results) ? results.length : 0;
 
     // Add warnings based on count
     if (estimatedCount === 0) {

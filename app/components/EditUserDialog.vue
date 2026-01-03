@@ -16,7 +16,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <NFormGroup label="Role" required>
-            <NSelect v-model="form.role" :items="roleOptions" :disabled="submitting || isSelf" />
+            <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting || isSelf" item-key="label" value-key="label" />
             <template #help>
               <span v-if="isSelf" class="text-amber-600 text-xs">You cannot change your own role.</span>
             </template>
@@ -55,14 +55,22 @@ const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit
 const user = computed(() => props.user)
 const isSelf = computed(() => user.value?.id === currentUser.value?.id)
 
+type Role = 'user' | 'moderator' | 'admin'
+type RoleOption = { label: string; value: Role }
+
 const roleOptions = [
   { label: 'User', value: 'user' },
   { label: 'Moderator', value: 'moderator' },
   { label: 'Admin', value: 'admin' }
-]
+] satisfies RoleOption[]
 
-const form = ref({ role: 'user', is_active: true, email_verified: false })
+const form = ref({ role: 'user' as Role, is_active: true, email_verified: false })
 const submitting = ref(false)
+
+const roleModel = computed<RoleOption>({
+  get: () => roleOptions.find(o => o.value === form.value.role) || roleOptions[0],
+  set: (opt) => { form.value.role = opt.value }
+})
 
 watch(user, (u) => {
   if (u) {

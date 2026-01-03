@@ -1,4 +1,6 @@
 import { getApprovedQuoteForOg } from '~/server/utils/og'
+import { kv } from 'hub:kv'
+import puppeteer from '@cloudflare/puppeteer'
 
 export default defineEventHandler(async (event) => {
   let quoteId = getRouterParam(event, 'id')
@@ -26,7 +28,6 @@ export default defineEventHandler(async (event) => {
   })
   const hash = await sha1(basis)
 
-  const kv = hubKV()
   const keyData = `og:quote:${quoteId}:latest`
   const keyImage = (h: string) => `og:quote:${quoteId}:${h}.png`
 
@@ -43,7 +44,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Render using Cloudflare Browser Rendering (Puppeteer)
-  const { page } = await hubBrowser({ keepAlive: 120 })
+  const browser = await puppeteer.launch(process.env.BROWSER)
+  const page = await browser.newPage()
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`
 
@@ -61,6 +63,8 @@ export default defineEventHandler(async (event) => {
   }
   
   await kv.set(keyData, hash)
+
+  await browser.close()
 
   setHeader(event, 'Content-Type', 'image/png')
   setHeader(event, 'ETag', `W/"${hash}"`)

@@ -1,4 +1,7 @@
 import type { Quote, CreatedQuoteResult } from "~/types"
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -17,13 +20,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-
     // Check if quote exists, is a draft, and belongs to the user
-    const quote: Quote | null = await db.prepare(`
-      SELECT * FROM quotes 
-      WHERE id = ? AND status = 'draft' AND user_id = ?
-    `).bind(quoteId, session.user.id).first()
+    const quote = await db.select()
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'draft'),
+        eq(schema.quotes.userId, session.user.id)
+      ))
+      .get()
 
     if (!quote) {
       throw createError({
@@ -41,50 +46,75 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update quote status to pending
-    await db.prepare(`
-      UPDATE quotes 
-      SET 
-        status = 'pending',
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(quoteId).run()
+    await db.update(schema.quotes)
+      .set({ status: 'pending' })
+      .where(eq(schema.quotes.id, parseInt(quoteId)))
 
     // Fetch the updated quote with all related data
-    const updatedQuote: CreatedQuoteResult | null = await db.prepare(`
-      SELECT 
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        a.image_url as author_image_url,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.id = ?
-      GROUP BY q.id
-    `).bind(quoteId).first()
+    const updatedQuoteData = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      originalLanguage: schema.quotes.originalLanguage,
+      status: schema.quotes.status,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      authorId: schema.quotes.authorId,
+      referenceId: schema.quotes.referenceId,
+      userId: schema.quotes.userId,
+      author: {
+        id: schema.authors.id,
+        name: schema.authors.name,
+        isFictional: schema.authors.isFictional,
+        imageUrl: schema.authors.imageUrl
+      },
+      reference: {
+        id: schema.quoteReferences.id,
+        name: schema.quoteReferences.name,
+        primaryType: schema.quoteReferences.primaryType
+      },
+      user: {
+        id: schema.users.id,
+        name: schema.users.name
+      }
+    })
+    .from(schema.quotes)
+    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+    .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .get()
 
-    if (!updatedQuote) {
+    if (!updatedQuoteData) {
       throw createError({
         statusCode: 500,
         statusMessage: 'Failed to fetch updated quote'
       })
     }
 
-    // Process tags
+    // Fetch tags
+    const tags = await db.select({
+      name: schema.tags.name,
+      color: schema.tags.color
+    })
+    .from(schema.tags)
+    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+    .all()
+
+    // Process the quote result
     const processedQuote = {
-      ...updatedQuote,
-      tags: updatedQuote.tag_names ? updatedQuote.tag_names.split(',').map((name, index) => ({
-        name,
-        color: updatedQuote.tag_colors?.split(',')[index] || 'gray'
-      })) : []
+      ...updatedQuoteData,
+      author_name: updatedQuoteData.author?.name || null,
+      author_is_fictional: updatedQuoteData.author?.isFictional || false,
+      author_image_url: updatedQuoteData.author?.imageUrl || null,
+      reference_name: updatedQuoteData.reference?.name || null,
+      reference_type: updatedQuoteData.reference?.primaryType || null,
+      user_name: updatedQuoteData.user?.name || null,
+      tags
     }
 
     return {

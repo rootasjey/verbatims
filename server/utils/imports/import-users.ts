@@ -3,11 +3,10 @@ import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-p
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
 import { validateUserDataZod } from '~/server/utils/validation/user'
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
 
 export async function importUsersInline(parentImportId: string, users: any[], options: ImportOptions) {
-  const db = hubDatabase()
-  if (!db) throw new Error('Database not available')
-
   const validation = validateUserDataZod(users)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`Users validation failed: ${validation.errors.length} errors`)
@@ -25,11 +24,15 @@ export async function importUsersInline(parentImportId: string, users: any[], op
 
       let importLogId: number | undefined = undefined
       try {
-        const row = await db.prepare('SELECT id FROM import_logs WHERE import_id = ? LIMIT 1').bind(parentImportId).first()
-        importLogId = Number(row?.id) ?? undefined
+        const row = await db.select({ id: schema.importLogs.id })
+          .from(schema.importLogs)
+          .where(eq(schema.importLogs.importId, parentImportId))
+          .limit(1)
+          .get()
+        importLogId = row?.id
       } catch {}
 
-      await createBackupFile(db, {
+      await createBackupFile({
         file_key: up.fileKey,
         export_log_id: undefined,
         import_log_id: importLogId,
@@ -54,63 +57,6 @@ export async function importUsersInline(parentImportId: string, users: any[], op
   const userPolicy = options.conflict?.users?.mode || 'upsert'
   const userStrategy = options.conflict?.users?.updateStrategy || 'fill-missing'
 
-  let insertSql = `INSERT INTO users (
-      email, name, password, avatar_url, role, is_active, email_verified,
-      biography, job, language, location, socials, last_login_at, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
-  if (userPolicy === 'ignore') {
-    insertSql = `INSERT OR IGNORE INTO users (
-      email, name, password, avatar_url, role, is_active, email_verified,
-      biography, job, language, location, socials, last_login_at, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  } else if (userPolicy === 'upsert') {
-    if (userStrategy === 'overwrite') {
-      // DO NOT overwrite password or role by default
-      insertSql = `INSERT INTO users (
-        email, name, password, avatar_url, role, is_active, email_verified,
-        biography, job, language, location, socials, last_login_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(email) DO UPDATE SET
-        name           = excluded.name,
-        avatar_url     = excluded.avatar_url,
-        is_active      = excluded.is_active,
-        email_verified = excluded.email_verified,
-        biography      = excluded.biography,
-        job            = excluded.job,
-        language       = excluded.language,
-        location       = excluded.location,
-        socials        = excluded.socials,
-        last_login_at  = COALESCE(excluded.last_login_at, users.last_login_at),
-        updated_at     = CURRENT_TIMESTAMP`
-    } else {
-      // fill-missing / prefer-existing (keep existing when new is null/empty)
-      insertSql = `INSERT INTO users (
-        email, name, password, avatar_url, role, is_active, email_verified,
-        biography, job, language, location, socials, last_login_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(email) DO UPDATE SET
-        name           = COALESCE(excluded.name, users.name),
-        avatar_url     = COALESCE(excluded.avatar_url, users.avatar_url),
-        is_active      = COALESCE(excluded.is_active, users.is_active),
-        email_verified = COALESCE(excluded.email_verified, users.email_verified),
-        biography      = COALESCE(excluded.biography, users.biography),
-        job            = COALESCE(excluded.job, users.job),
-        language       = COALESCE(excluded.language, users.language),
-        location       = COALESCE(excluded.location, users.location),
-        socials        = COALESCE(excluded.socials, users.socials),
-        last_login_at  = COALESCE(excluded.last_login_at, users.last_login_at),
-        updated_at     = CURRENT_TIMESTAMP`
-    }
-  }
-
-  const insert = db.prepare(insertSql)
-  // Optional variant to include id explicitly when preserveIds and not using upsert
-  const insertWithId = db.prepare(`INSERT INTO users (
-    id, email, name, password, avatar_url, role, is_active, email_verified,
-    biography, job, language, location, socials, last_login_at, created_at, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-
   const batchSize = options.batchSize || 50
   const subSize = 10
 
@@ -118,61 +64,88 @@ export async function importUsersInline(parentImportId: string, users: any[], op
     const batch = users.slice(i, i + batchSize)
     for (let j = 0; j < batch.length; j += subSize) {
       const sub = batch.slice(j, j + subSize)
-      const stmts = sub.map((u) => {
+      const stmts: any[] = []
+
+      for (const u of sub) {
         const socialsField = u.socials ? (typeof u.socials === 'string' ? u.socials : JSON.stringify(u.socials)) : '[]'
-        const hasExplicit = options.preserveIds && Number.isFinite(Number(u.id))
-        if (hasExplicit && userPolicy !== 'upsert') {
-          return insertWithId.bind(
-            Number(u.id),
-            u.email,
-            u.name || 'User',
-            u.password || '',
-            u.avatar_url || null,
-            u.role || 'user',
-            u.is_active ?? true,
-            u.email_verified ?? false,
-            u.biography || null,
-            u.job || null,
-            u.language || 'en',
-            u.location || 'On Earth',
-            socialsField,
-            u.last_login_at || null,
-            u.created_at || new Date().toISOString(),
-            u.updated_at || new Date().toISOString(),
-          )
+        const explicitId = options.preserveIds && Number.isFinite(Number(u.id)) ? Number(u.id) : undefined
+        
+        const values = {
+            id: explicitId,
+            email: u.email,
+            name: u.name || 'User',
+            password: u.password || '',
+            avatarUrl: u.avatar_url || null,
+            role: u.role || 'user',
+            isActive: u.is_active ?? true,
+            emailVerified: u.email_verified ?? false,
+            biography: u.biography || null,
+            job: u.job || null,
+            language: u.language || 'en',
+            location: u.location || 'On Earth',
+            socials: socialsField,
+            lastLoginAt: u.last_login_at ? new Date(u.last_login_at) : null,
+            createdAt: u.created_at ? new Date(u.created_at) : new Date(),
+            updatedAt: u.updated_at ? new Date(u.updated_at) : new Date(),
         }
-        return insert.bind(
-          u.email,
-          u.name || 'User',
-          u.password || '',
-          u.avatar_url || null,
-          u.role || 'user',
-          u.is_active ?? true,
-          u.email_verified ?? false,
-          u.biography || null,
-          u.job || null,
-          u.language || 'en',
-          u.location || 'On Earth',
-          socialsField,
-          u.last_login_at || null,
-          u.created_at || new Date().toISOString(),
-          u.updated_at || new Date().toISOString(),
-        )
-      })
+
+        if (userPolicy === 'ignore') {
+            stmts.push(db.insert(schema.users).values(values).onConflictDoNothing({ target: schema.users.email }))
+        } else if (userPolicy === 'upsert') {
+            const updateData: any = {}
+            
+            if (userStrategy === 'overwrite') {
+                updateData.name = sql`excluded.name`
+                updateData.avatarUrl = sql`excluded.avatar_url`
+                updateData.isActive = sql`excluded.is_active`
+                updateData.emailVerified = sql`excluded.email_verified`
+                updateData.biography = sql`excluded.biography`
+                updateData.job = sql`excluded.job`
+                updateData.language = sql`excluded.language`
+                updateData.location = sql`excluded.location`
+                updateData.socials = sql`excluded.socials`
+                updateData.lastLoginAt = sql`COALESCE(excluded.last_login_at, users.last_login_at)`
+                updateData.updatedAt = new Date()
+            } else {
+                // fill-missing
+                updateData.name = sql`COALESCE(excluded.name, users.name)`
+                updateData.avatarUrl = sql`COALESCE(excluded.avatar_url, users.avatar_url)`
+                updateData.isActive = sql`COALESCE(excluded.is_active, users.is_active)`
+                updateData.emailVerified = sql`COALESCE(excluded.email_verified, users.email_verified)`
+                updateData.biography = sql`COALESCE(excluded.biography, users.biography)`
+                updateData.job = sql`COALESCE(excluded.job, users.job)`
+                updateData.language = sql`COALESCE(excluded.language, users.language)`
+                updateData.location = sql`COALESCE(excluded.location, users.location)`
+                updateData.socials = sql`COALESCE(excluded.socials, users.socials)`
+                updateData.lastLoginAt = sql`COALESCE(excluded.last_login_at, users.last_login_at)`
+                updateData.updatedAt = new Date()
+            }
+            
+            stmts.push(db.insert(schema.users).values(values).onConflictDoUpdate({
+                target: schema.users.email,
+                set: updateData
+            }))
+        } else {
+            // Insert (default) - might fail if exists
+            stmts.push(db.insert(schema.users).values(values))
+        }
+      }
 
       try {
-        await db.batch(stmts)
-        const p = getAdminImport(parentImportId)!
-        updateAdminImport(parentImportId, {
-          successfulRecords: p.successfulRecords + sub.length,
-          processedRecords: Math.min((p.processedRecords + sub.length), p.totalRecords)
-        })
+        if (stmts.length > 0) {
+            await db.batch(stmts as any)
+            const p = getAdminImport(parentImportId)!
+            updateAdminImport(parentImportId, {
+            successfulRecords: p.successfulRecords + stmts.length,
+            processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
+            })
+        }
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
           try {
             const s = stmts[idx]
             if (!s) continue
-            await s.run()
+            await s
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -196,16 +169,16 @@ export async function importUsersInline(parentImportId: string, users: any[], op
   // Align sqlite_sequence if IDs preserved
   if (options.preserveIds) {
     try {
-      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM users').first()
+      const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.users).get()
       const maxId = Number(row?.mx || 0)
       if (maxId > 0) {
-        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'users'`).bind(maxId).run()
-        const changes = Number(upd?.meta?.changes || 0)
+        const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'users'`)
+        const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
         if (changes === 0) {
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ?)`).bind(maxId).run() }
+          try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ${maxId})`) }
           catch {
-            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'users'`).run() } catch {}
-            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ?)`).bind(maxId).run() } catch {}
+            try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'users'`) } catch {}
+            try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ${maxId})`) } catch {}
           }
         }
       }
@@ -240,17 +213,21 @@ export async function processImportUsers(
 
     updateAdminImport(importId, { totalRecords: users.length })
 
-    const db = hubDatabase()
-    if (!db) throw new Error('Database not available')
-
     await importUsersInline(importId, users, options)
 
     // Persist completion
     try {
-      const db2 = hubDatabase()
       const pp = getAdminImport(importId)!
-      await db2.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-        .bind('completed', pp.totalRecords, pp.successfulRecords, pp.failedRecords, pp.warnings.length, importId).run()
+      await db.update(schema.importLogs)
+        .set({
+            status: 'completed',
+            recordCount: pp.totalRecords,
+            successfulCount: pp.successfulRecords,
+            failedCount: pp.failedRecords,
+            warningsCount: pp.warnings.length,
+            completedAt: new Date()
+        })
+        .where(eq(schema.importLogs.importId, importId))
       updateAdminImport(importId, { status: 'completed', completedAt: new Date() as any })
     } catch {}
 

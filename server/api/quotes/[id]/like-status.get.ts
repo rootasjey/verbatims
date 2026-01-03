@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
@@ -17,13 +20,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-
     // Check if user has liked this quote
-    const like = await db.prepare(`
-      SELECT id FROM user_likes 
-      WHERE user_id = ? AND likeable_type = 'quote' AND likeable_id = ?
-    `).bind(session.user.id, quoteId).first()
+    const like = await db.select({ id: schema.userLikes.id })
+      .from(schema.userLikes)
+      .where(and(
+        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.likeableType, 'quote'),
+        eq(schema.userLikes.likeableId, parseInt(quoteId))
+      ))
+      .get()
 
     return {
       success: true,

@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 /**
  * Admin API: Rollback Import
  * Restores data from centralized backup_files + R2 snapshot
@@ -18,10 +21,7 @@ export default defineEventHandler(async (event) => {
     if (!backupId || isNaN(Number(backupId))) throwServer(400, 'Valid backupId is required')
     if (!confirmRollback) throwServer(400, 'Rollback confirmation is required')
 
-    const db = hubDatabase()
-    if (!db) throwServer(500, 'Database not available')
-
-    const backup = await getBackupFileById(db, Number(backupId))
+    const backup = await getBackupFileById(Number(backupId))
     if (!backup) { throwServer(404, 'Backup file not found'); return }
 
     // Download and parse snapshot (must be a full backup with all tables)
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
     // 1) Delete all data (child tables first)
     for (const table of deleteOrder) {
       if (payload[table]) {
-        await db.batch([db.prepare(`DELETE FROM ${table}`)])
+        await db.$client.execute({ sql: `DELETE FROM ${table}`, args: [] })
       }
     }
 
@@ -60,25 +60,21 @@ export default defineEventHandler(async (event) => {
       // Build insert statement dynamically
       const columns = Object.keys(records[0])
       const placeholders = columns.map(() => '?').join(', ')
-      const insert = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`)
-
+      
       // Insert in batches
       const batchSize = 100
-      const subSize = 25
       for (let i = 0; i < records.length; i += batchSize) {
         const batch = records.slice(i, i + batchSize)
-        for (let j = 0; j < batch.length; j += subSize) {
-          const sub = batch.slice(j, j + subSize)
-          const stmts = sub.map((row) => insert.bind(...columns.map(col => row[col])))
+        for (const row of batch) {
           try {
-            await db.batch(stmts)
-            restored += stmts.length
+            await db.$client.execute({
+              sql: `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`,
+              args: columns.map(col => row[col])
+            })
+            restored += 1
           } catch (e: any) {
-            // Fallback to per-row insert to salvage partial restores
-            for (let idx = 0; idx < stmts.length; idx++) {
-              const s = stmts[idx]
-              try { if (s) { await s.run(); restored += 1 } } catch {}
-            }
+            // Skip failed rows
+            console.warn(`Failed to restore row in ${table}:`, e.message)
           }
         }
       }
@@ -88,8 +84,8 @@ export default defineEventHandler(async (event) => {
     const integrity: Record<string, number> = {}
     for (const table of insertOrder) {
       try {
-        const { results } = await db.prepare(`SELECT COUNT(*) as count FROM ${table}`).all()
-        const count = Array.isArray(results) && results[0] && typeof results[0].count === 'number' ? results[0].count : 0
+        const result = await db.$client.execute({ sql: `SELECT COUNT(*) as count FROM ${table}`, args: [] })
+        const count = Number((result.rows?.[0] as any)?.count ?? 0)
         integrity[table] = count
       } catch {}
     }

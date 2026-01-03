@@ -1,4 +1,7 @@
+import { db, schema } from 'hub:db'
+import { sql, eq, and } from 'drizzle-orm'
 import type { CreatedQuoteResult } from "~/types"
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -42,12 +45,14 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const db = hubDatabase()
-    
     // Check if quote exists and is pending
-    const quote = await db.prepare(`
-      SELECT * FROM quotes WHERE id = ? AND status = 'pending'
-    `).bind(quoteId).first()
+    const quote = await db.select()
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'pending')
+      ))
+      .get()
 
     if (!quote) {
       throw createError({
@@ -59,24 +64,19 @@ export default defineEventHandler(async (event) => {
     // Update quote status
     const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
     
-    await db.prepare(`
-      UPDATE quotes 
-      SET 
-        status = ?,
-        moderator_id = ?,
-        moderated_at = CURRENT_TIMESTAMP,
-        rejection_reason = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(
-      newStatus,
-      session.user.id,
-      body.action === 'reject' ? body.rejection_reason.trim() : null,
-      quoteId
-    ).run()
+    await db.update(schema.quotes)
+      .set({
+        status: newStatus,
+        moderatorId: session.user.id,
+        moderatedAt: sql`CURRENT_TIMESTAMP`,
+        rejectionReason: body.action === 'reject' ? body.rejection_reason.trim() : null,
+        updatedAt: sql`CURRENT_TIMESTAMP`
+      })
+      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .run()
     
     // Get updated quote with full details
-    const updatedQuote: CreatedQuoteResult | null = await db.prepare(`
+    const updatedQuote = await db.get<CreatedQuoteResult>(sql.raw(`
       SELECT 
         q.*,
         a.name as author_name,
@@ -90,16 +90,16 @@ export default defineEventHandler(async (event) => {
         m.name as moderator_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN users m ON q.moderator_id = m.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.id = ?
+      FROM ${schema.quotes._.name} q
+      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
+      LEFT JOIN ${schema.users._.name} m ON q.moderator_id = m.id
+      LEFT JOIN ${schema.quoteTags._.name} qt ON q.id = qt.quote_id
+      LEFT JOIN ${schema.tags._.name} t ON qt.tag_id = t.id
+      WHERE q.id = ${parseInt(quoteId)}
       GROUP BY q.id
-    `).bind(quoteId).first()
+    `))
 
     if (!updatedQuote) {
       throw createError({

@@ -186,11 +186,22 @@ const createAdminUser = async () => {
 // Check if we should be here
 onMounted(async () => {
   try {
-    const status = await $fetch('/api/onboarding/status')
+    type OnboardingStatusResponse = {
+      success: boolean
+      data: {
+        needsOnboarding: boolean
+        hasDatabase: boolean
+        hasAdminUser: boolean
+        hasData: boolean
+        step?: string
+      }
+    }
+
+    const status = await $fetch<OnboardingStatusResponse>('/api/onboarding/status')
     if (status.success && !status.data.needsOnboarding) {
       // Already onboarded, redirect to home
       await navigateTo('/')
-    } else if (status.data.step !== 'admin_user' && status.data.hasAdminUser) {
+    } else if (status.data.step && status.data.step !== 'admin_user' && status.data.hasAdminUser) {
       // Admin user already exists, go to database step
       await navigateTo('/onboarding/database')
     }

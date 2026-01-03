@@ -4,6 +4,8 @@ import type {
   TagExportFilters,
   ExportedTag,
 } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { eq, inArray, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -26,12 +28,14 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
     }
 
-    const db = hubDatabase()
     const exportId = `tags_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
     const { query, bindings } = buildTagsQuery(tagFilters, include_relations, limit)
-    const rows = await db.prepare(query).bind(...bindings).all()
-    const results = (rows?.results || []) as any[]
+    const resultSet = await db.$client.execute({
+      sql: query,
+      args: bindings
+    })
+    const results = (resultSet.rows ?? []) as any[]
 
     const processed: ExportedTag[] = results.map((t: any) => {
       const out: ExportedTag = {
@@ -94,7 +98,6 @@ export default defineEventHandler(async (event) => {
     })
 
     const backupResult = await createBackup(
-      db,
       contentData,
       filename,
       'tags',
@@ -248,22 +251,21 @@ async function logTagsExport(db: any, info: {
   includeMetadata: boolean
 }): Promise<{ exportLogId: number }> {
   const filtersApplied = JSON.stringify(info.filters || {})
-  const res = await db.prepare(`
-    INSERT INTO export_logs (
-      export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    info.exportId,
-    info.filename,
-    info.format,
-    'tags',
-    filtersApplied,
-    info.recordCount,
-    info.fileSize,
-    info.userId,
-    info.includeRelations,
-    info.includeMetadata,
-  ).run()
-  return { exportLogId: Number(res.meta.last_row_id) }
+  const [row] = await db.insert(schema.exportLogs)
+    .values({
+      exportId: info.exportId,
+      filename: info.filename,
+      format: info.format,
+      dataType: 'tags',
+      filtersApplied,
+      recordCount: info.recordCount,
+      fileSize: info.fileSize,
+      userId: info.userId,
+      includeRelations: info.includeRelations,
+      includeMetadata: info.includeMetadata,
+    })
+    .returning({ exportLogId: schema.exportLogs.id })
+
+  return { exportLogId: row?.exportLogId ?? 0 }
 }
 

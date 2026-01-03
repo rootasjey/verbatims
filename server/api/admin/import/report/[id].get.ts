@@ -1,5 +1,8 @@
 import { getQuery } from 'h3'
 import { downloadBackupFile } from '~/server/utils/backup-storage'
+import { db, schema } from 'hub:db'
+import { blob } from 'hub:blob'
+import { eq, and, desc, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
@@ -10,29 +13,31 @@ export default defineEventHandler(async (event) => {
   const importId = getRouterParam(event, 'id')
   if (!importId) throw createError({ statusCode: 400, statusMessage: 'Import ID is required' })
 
-  const db = hubDatabase()
-
   // Try to discover backup file by metadata first (preferred)
   const q = getQuery(event)
   const requestedFormat = (typeof q.format === 'string' ? q.format.toLowerCase() : 'ndjson') as 'ndjson' | 'csv'
 
   // Prefer a report with the requested format if available
-  const row: any = await db.prepare(`
-    SELECT bf.* FROM backup_files bf
-    WHERE bf.metadata IS NOT NULL
-      AND json_extract(bf.metadata, '$.kind') = 'import-report'
-      AND json_extract(bf.metadata, '$.import_id') = ?
-    ORDER BY CASE WHEN json_extract(bf.metadata, '$.format') = ? THEN 0 ELSE 1 END, bf.created_at DESC
-    LIMIT 1
-  `).bind(importId, requestedFormat).first()
+  const row = await db.select()
+    .from(schema.backupFiles)
+    .where(and(
+      sql`${schema.backupFiles.metadata} IS NOT NULL`,
+      sql`json_extract(${schema.backupFiles.metadata}, '$.kind') = 'import-report'`,
+      sql`json_extract(${schema.backupFiles.metadata}, '$.import_id') = ${importId}`
+    ))
+    .orderBy(
+      sql`CASE WHEN json_extract(${schema.backupFiles.metadata}, '$.format') = ${requestedFormat} THEN 0 ELSE 1 END`,
+      desc(schema.backupFiles.createdAt)
+    )
+    .limit(1)
+    .get()
 
   if (!row) {
     // If not found, return 404 but include a hint
     throw createError({ statusCode: 404, statusMessage: 'No report found for this import' })
   }
 
-  const blob = hubBlob()
-  const fileKey = String(row.file_key)
+  const fileKey = String(row.fileKey)
   const file = await blob.get(fileKey)
   if (!file) throw createError({ statusCode: 404, statusMessage: 'Report file missing from storage' })
 
@@ -54,8 +59,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Else: convert on-the-fly
-  const compression = (row.compression_type === 'gzip' ? 'gzip' : 'none') as 'gzip' | 'none'
-  const { content } = await downloadBackupFile(String(row.file_key), compression)
+  const compression = (row.compressionType === 'gzip' ? 'gzip' : 'none') as 'gzip' | 'none'
+  const { content } = await downloadBackupFile(String(row.fileKey), compression)
   let out = ''
   if (storedFormat === 'ndjson' && requestedFormat === 'csv') {
     // Convert NDJSON -> CSV

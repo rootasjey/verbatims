@@ -1,5 +1,6 @@
 import { getBackup } from '~/server/utils/backup-storage'
 import { getBackupFileById, trackBackupFileAccess } from '~/server/utils/backup-database'
+import { blob } from 'hub:blob'
 
 /**
  * Admin API: Download Backup File
@@ -20,11 +21,9 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid backup ID' })
     }
 
-    const db = hubDatabase()
-
     // First, look up the backup file to determine how to serve it
     const backupNumericId = Number(backupId)
-    const backupFileRecord = await getBackupFileById(db, backupNumericId)
+    const backupFileRecord = await getBackupFileById(backupNumericId)
     if (!backupFileRecord) {
       throw createError({ statusCode: 404, statusMessage: 'Backup file not found' })
     }
@@ -33,8 +32,7 @@ export default defineEventHandler(async (event) => {
 
     // If it's a ZIP, serve the binary directly from R2 without UTF-8 conversion
     if (ext === 'zip') {
-      const blobStore = hubBlob()
-      const file = await blobStore.get(backupFileRecord.file_key)
+      const file = await blob.get(backupFileRecord.file_key)
       if (!file) {
         throw createError({ statusCode: 404, statusMessage: 'Backup file not found in storage' })
       }
@@ -53,12 +51,12 @@ export default defineEventHandler(async (event) => {
         setHeader(event, 'X-Content-Hash', backupFileRecord.content_hash)
       }
 
-      await trackBackupFileAccess(db, backupNumericId)
+      await trackBackupFileAccess(backupNumericId)
       return new Uint8Array(arrayBuffer)
     }
 
     // For non-binary formats (json/csv/xml), use the existing text-based retrieval
-    const { content, backupFile } = await getBackup(db, Number(backupId))
+    const { content, backupFile } = await getBackup(Number(backupId))
 
     let mimeType = 'application/octet-stream'
     switch (ext) {

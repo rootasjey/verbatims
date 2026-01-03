@@ -4,10 +4,10 @@ import { validateReferenceDataZod } from '~/server/utils/validation/reference'
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
 import { createImportReport } from '~/server/utils/import-report'
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
 
 export async function importReferencesInline(parentImportId: string, references: any[], options: ImportOptions) {
-  const db = hubDatabase(); if (!db) throw new Error('Database not available')
-
   const validation = validateReferenceDataZod(references)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`References validation failed: ${validation.errors.length} errors`)
@@ -22,35 +22,35 @@ export async function importReferencesInline(parentImportId: string, references:
   if (options.createBackup !== false) {
     try {
       const json = JSON.stringify({ data: references })
-      const { fileKey, filePath, fileSize, compressedSize, contentHash, compressionType } =
-        await uploadBackupFile(json, `import_${parentImportId}_references.json`, 'references', 'json')
+      const up = await uploadBackupFile(json, `import_${parentImportId}_references.json`, 'references', 'json')
 
       // Lookup numeric import_log_id for linkage (best effort)
       let importLogId: number | undefined = undefined
       try {
-        const row = await db.prepare('SELECT id FROM import_logs WHERE import_id = ? LIMIT 1')
-        .bind(parentImportId)
-        .first()
-
-        importLogId = Number(row?.id) ?? undefined
+        const row = await db.select({ id: schema.importLogs.id })
+          .from(schema.importLogs)
+          .where(eq(schema.importLogs.importId, parentImportId))
+          .limit(1)
+          .get()
+        importLogId = row?.id
       } catch {}
 
-      await createBackupFile(db, {
-        file_key: fileKey,
+      await createBackupFile({
+        file_key: up.fileKey,
         export_log_id: undefined,
-        import_log_id: importLogId ?? undefined,
+        import_log_id: importLogId,
         filename: `import_${parentImportId}_references.json`,
-        file_path: filePath,
-        file_size: fileSize,
-        compressed_size: compressedSize,
-        content_hash: contentHash,
-        compression_type: compressionType,
+        file_path: up.filePath,
+        file_size: up.fileSize,
+        compressed_size: up.compressedSize,
+        content_hash: up.contentHash,
+        compression_type: up.compressionType,
         retention_days: options.retentionDays || 90,
         metadata: JSON.stringify({ kind: 'import', import_id: parentImportId, data_type: 'references', format: 'json' })
       })
 
       const p2 = getAdminImport(parentImportId)!
-      updateAdminImport(parentImportId, { warnings: [...p2.warnings, `Backup stored for references (${filePath})`] })
+      updateAdminImport(parentImportId, { warnings: [...p2.warnings, `Backup stored for references (${up.filePath})`] })
     } catch (e: any) {
       const p = getAdminImport(parentImportId)!
       updateAdminImport(parentImportId, { warnings: [...p.warnings, `Backup skipped (references): ${e.message}`] })
@@ -60,22 +60,6 @@ export async function importReferencesInline(parentImportId: string, references:
   // Insert in batches (each db.batch() call is a transaction in D1)
   const refPolicy = options.conflict?.references?.mode || 'ignore'
   const refStrategy = options.conflict?.references?.updateStrategy || 'fill-missing'
-
-  const insert = db.prepare(`
-    INSERT INTO quote_references (
-      name, original_language, release_date, description, primary_type, secondary_type,
-      image_url, urls, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  // Optional insert with explicit id when preserveIds is enabled
-  const insertWithId = db.prepare(`
-    INSERT INTO quote_references (
-      id, name, original_language, release_date, description, primary_type, secondary_type,
-      image_url, urls, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
 
   const batchSize = options.batchSize || 50
   const subSize = 10
@@ -93,8 +77,12 @@ export async function importReferencesInline(parentImportId: string, references:
         const keys = Array.from(new Set(sub.map((r) => `${String(r.name||'').toLowerCase().trim()}|${String(r.primary_type||'')}`).filter(k => k.split('|')[0])))
         for (const k of keys) {
           const [n, pt] = k.split('|')
-          const row = await db.prepare('SELECT id, name, primary_type FROM quote_references WHERE lower(name) = ? AND primary_type = ? LIMIT 1').bind(n, pt).first()
-          if (row?.id) existingByKey.set(k, { id: Number(row.id), name: String(row.name), primary_type: String(row.primary_type) })
+          const row = await db.select({ id: schema.quoteReferences.id, name: schema.quoteReferences.name, primaryType: schema.quoteReferences.primaryType })
+            .from(schema.quoteReferences)
+            .where(and(sql`lower(${schema.quoteReferences.name}) = ${n}`, eq(schema.quoteReferences.primaryType, pt)))
+            .limit(1)
+            .get()
+          if (row?.id) existingByKey.set(k, { id: Number(row.id), name: String(row.name), primary_type: String(row.primaryType) })
         }
       }
 
@@ -108,90 +96,56 @@ export async function importReferencesInline(parentImportId: string, references:
           else if (typeof reference.urls === 'string') urlsField = reference.urls
           else if (typeof reference.urls === 'object') urlsField = JSON.stringify(reference.urls)
         }
-  const key = `${String(reference.name||'').toLowerCase().trim()}|${String(reference.primary_type||'other')}`
+        const key = `${String(reference.name||'').toLowerCase().trim()}|${String(reference.primary_type||'other')}`
         const match = existingByKey.get(key)
 
         if (match && refPolicy === 'ignore') { skipped++; continue }
 
         if (match && refPolicy === 'upsert') {
-          let sql = `UPDATE quote_references SET
-            original_language = COALESCE(?, original_language),
-            release_date = COALESCE(?, release_date),
-            description = COALESCE(?, description),
-            secondary_type = COALESCE(?, secondary_type),
-            image_url = COALESCE(?, image_url),
-            urls = COALESCE(?, urls),
-            views_count = COALESCE(?, views_count),
-            likes_count = COALESCE(?, likes_count),
-            shares_count = COALESCE(?, shares_count),
-            updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?`
-          if (refStrategy === 'overwrite') {
-            sql = `UPDATE quote_references SET
-              original_language = ?,
-              release_date = ?,
-              description = ?,
-              secondary_type = ?,
-              image_url = ?,
-              urls = ?,
-              views_count = ?,
-              likes_count = ?,
-              shares_count = ?,
-              updated_at = CURRENT_TIMESTAMP
-              WHERE id = ?`
+          const updateData: any = {}
+          const addFieldFill = (key: keyof typeof schema.quoteReferences, value: any) => {
+             if (refStrategy === 'overwrite') {
+               updateData[key] = value
+             } else {
+               updateData[key] = sql`COALESCE(${schema.quoteReferences[key]}, ${value})`
+             }
           }
-          const stmt = db.prepare(sql).bind(
-            reference.original_language || 'en',
-            reference.release_date || null,
-            reference.description || '',
-            reference.secondary_type || '',
-            reference.image_url || '',
-            urlsField,
-            reference.views_count ?? null,
-            reference.likes_count ?? null,
-            reference.shares_count ?? null,
-            match.id,
-          )
-          stmts.push(stmt)
+          
+          addFieldFill('originalLanguage', reference.original_language || 'en')
+          addFieldFill('releaseDate', reference.release_date || null)
+          addFieldFill('description', reference.description || '')
+          addFieldFill('secondaryType', reference.secondary_type || '')
+          addFieldFill('imageUrl', reference.image_url || '')
+          addFieldFill('urls', urlsField)
+          addFieldFill('viewsCount', reference.views_count ?? null)
+          addFieldFill('likesCount', reference.likes_count ?? null)
+          addFieldFill('sharesCount', reference.shares_count ?? null)
+          
+          updateData.updatedAt = new Date()
+          
+          stmts.push(db.update(schema.quoteReferences).set(updateData).where(eq(schema.quoteReferences.id, match.id)))
           continue
         }
 
         // default insert; allow explicit id when preserveIds
         const explicitId = options.preserveIds && Number.isFinite(Number(reference.id)) ? Number(reference.id) : undefined
-        if (explicitId != null) {
-          stmts.push(insertWithId.bind(
-            explicitId,
-            reference.name,
-            reference.original_language || 'en',
-            reference.release_date || null,
-            reference.description || '',
-            reference.primary_type || 'other',
-            reference.secondary_type || '',
-            reference.image_url || '',
-            urlsField,
-            reference.views_count || 0,
-            reference.likes_count || 0,
-            reference.shares_count || 0,
-            reference.created_at || new Date().toISOString(),
-            reference.updated_at || new Date().toISOString(),
-          ))
-        } else {
-          stmts.push(insert.bind(
-            reference.name,
-            reference.original_language || 'en',
-            reference.release_date || null,
-            reference.description || '',
-            reference.primary_type || 'other',
-            reference.secondary_type || '',
-            reference.image_url || '',
-            urlsField,
-            reference.views_count || 0,
-            reference.likes_count || 0,
-            reference.shares_count || 0,
-            reference.created_at || new Date().toISOString(),
-            reference.updated_at || new Date().toISOString(),
-          ))
+        const values = {
+            id: explicitId,
+            name: reference.name,
+            originalLanguage: reference.original_language || 'en',
+            releaseDate: reference.release_date || null,
+            description: reference.description || '',
+            primaryType: reference.primary_type || 'other',
+            secondaryType: reference.secondary_type || '',
+            imageUrl: reference.image_url || '',
+            urls: urlsField,
+            viewsCount: reference.views_count || 0,
+            likesCount: reference.likes_count || 0,
+            sharesCount: reference.shares_count || 0,
+            createdAt: reference.created_at ? new Date(reference.created_at) : new Date(),
+            updatedAt: reference.updated_at ? new Date(reference.updated_at) : new Date(),
         }
+        stmts.push(db.insert(schema.quoteReferences).values(values))
       }
 
       if (skipped > 0) {
@@ -203,18 +157,20 @@ export async function importReferencesInline(parentImportId: string, references:
       }
 
       try {
-        await db.batch(stmts)
-        const p = getAdminImport(parentImportId)!
-        updateAdminImport(parentImportId, {
-          successfulRecords: p.successfulRecords + stmts.length,
-          processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
-        })
+        if (stmts.length > 0) {
+            await db.batch(stmts as any)
+            const p = getAdminImport(parentImportId)!
+            updateAdminImport(parentImportId, {
+            successfulRecords: p.successfulRecords + stmts.length,
+            processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
+            })
+        }
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
           try {
             const s = stmts[idx]
             if (!s) continue
-            await s.run()
+            await s
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -243,17 +199,17 @@ export async function importReferencesInline(parentImportId: string, references:
   // If IDs were preserved, align sqlite_sequence to MAX(id)
   if (options.preserveIds) {
     try {
-      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quote_references').first()
+      const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.quoteReferences).get()
       const maxId = Number(row?.mx || 0)
       if (maxId > 0) {
-        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quote_references'`).bind(maxId).run()
-        const changes = Number(upd?.meta?.changes || 0)
+        const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'quote_references'`)
+        const changes = Number(upd?.rowsAffected || 0)
         if (changes === 0) {
           try {
-            await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ?)`).bind(maxId).run()
+            await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ${maxId})`)
           } catch {
-            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quote_references'`).run() } catch {}
-            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ?)`).bind(maxId).run() } catch {}
+            try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'quote_references'`) } catch {}
+            try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ${maxId})`) } catch {}
           }
         }
       }
@@ -286,17 +242,21 @@ export async function processImportReferences(
 
     updateAdminImport(importId, { totalRecords: references.length })
 
-    const db = hubDatabase()
-    if (!db) throw new Error('Database not available')
-
     await importReferencesInline(importId, references, options)
 
     // Persist completion
     try {
-      const db2 = hubDatabase()
       const pp = getAdminImport(importId)!
-      await db2.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-        .bind('completed', pp.totalRecords, pp.successfulRecords, pp.failedRecords, pp.warnings.length, importId).run()
+      await db.update(schema.importLogs)
+        .set({
+            status: 'completed',
+            recordCount: pp.totalRecords,
+            successfulCount: pp.successfulRecords,
+            failedCount: pp.failedRecords,
+            warningsCount: pp.warnings.length,
+            completedAt: new Date()
+        })
+        .where(eq(schema.importLogs.importId, importId))
       updateAdminImport(importId, { status: 'completed', completedAt: new Date() as any })
     } catch {}
 

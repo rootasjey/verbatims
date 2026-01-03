@@ -9,9 +9,9 @@
         <NSelect
           :model-value="modelValue.primary_type"
           @update:model-value="updateFilter('primary_type', $event)"
-          :items="primaryTypeOptions"
-          item-key="value"
-          value-key="value"
+            :items="primaryTypeOptions"
+            item-key="value"
+            value-key="value"
           placeholder="All types"
           multiple
         />

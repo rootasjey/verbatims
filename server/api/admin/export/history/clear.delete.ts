@@ -2,6 +2,9 @@
  * Admin API: Clear All Export History
  * Deletes all export history entries with confirmation
  */
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -11,12 +14,10 @@ export default defineEventHandler(async (event) => {
     const { confirm } = body
     if (!confirm) { throw createError({ statusCode: 400, statusMessage: 'Confirmation required to clear all export history' }) }
 
-    const db = hubDatabase()
-    const countResult = await db.prepare(`
-      SELECT COUNT(*) as total FROM export_logs
-    `).first()
+    const countResult = await db.select({ total: sql<number>`COUNT(*)` })
+      .from(schema.exportLogs);
 
-    const totalEntries = Number(countResult?.total) || 0
+    const totalEntries = Number(countResult[0]?.total) || 0;
 
     if (totalEntries === 0) {
       return {
@@ -27,24 +28,19 @@ export default defineEventHandler(async (event) => {
     }
 
     // Find all backup file keys before deleting export_logs
-    const backupFiles = await db.prepare(`
-      SELECT file_key FROM backup_files
-    `).all()
+    const backupFiles = await db.select({ fileKey: schema.backupFiles.fileKey })
+      .from(schema.backupFiles);
 
-    if (backupFiles?.results?.length) {
-      for (const row of backupFiles.results) {
-        if (row.file_key && typeof row.file_key === 'string') {
-          try { await deleteBackupFile(String(row.file_key)) } 
+    if (backupFiles && backupFiles.length > 0) {
+      for (const row of backupFiles) {
+        if (row.fileKey) {
+          try { await deleteBackupFile(String(row.fileKey)) } 
           catch (err) { console.error('Failed to delete backup file from blob storage:', err) }
         }
       }
     }
 
-    const result = await db.prepare(`
-      DELETE FROM export_logs
-    `).run()
-
-    if (!result.success) { throw createError({ statusCode: 500, statusMessage: 'Failed to clear export history' }) }
+    await db.delete(schema.exportLogs);
 
     return {
       success: true,

@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
+
 /**
  * Import Helper Utilities
  * Utilities for handling author/reference lookup and creation during imports
@@ -211,7 +214,6 @@ interface ReferenceLookupResult {
  * Find existing author by name or create new one
  */
 export async function findOrCreateAuthor(
-  db: any,
   authorData: ImportAuthor
 ): Promise<AuthorLookupResult> {
   if (!authorData.name?.trim()) {
@@ -221,9 +223,11 @@ export async function findOrCreateAuthor(
   const authorName = authorData.name.trim()
 
   // First, try to find existing author by name
-  const existingAuthor = await db.prepare(`
-    SELECT id FROM authors WHERE LOWER(name) = LOWER(?) LIMIT 1
-  `).bind(authorName).first()
+  const existingAuthor = await db.select({ id: schema.authors.id })
+    .from(schema.authors)
+    .where(sql`LOWER(${schema.authors.name}) = LOWER(${authorName})`)
+    .limit(1)
+    .get()
 
   if (existingAuthor) {
     return {
@@ -233,30 +237,23 @@ export async function findOrCreateAuthor(
   }
 
   // Create new author
-
-  const result = await db.prepare(`
-    INSERT INTO authors (
-      name, description, job, is_fictional, birth_date, death_date,
-      birth_location, death_location, image_url, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-  `).bind(
-    authorName,
-    authorData.summary || authorData.description || null,
-    authorData.job || null,
-    authorData.is_fictional || false,
-    authorData.birth_date || null,
-    authorData.death_date || null,
-    authorData.birth_location || null,
-    authorData.death_location || null,
-    authorData.image_url || authorData.urls?.image || null,
-    0, // views_count
-    0, // likes_count
-    0  // shares_count
-  ).run()
+  const result = await db.insert(schema.authors).values({
+    name: authorName,
+    description: authorData.summary || authorData.description || null,
+    job: authorData.job || null,
+    isFictional: authorData.is_fictional || false,
+    birthDate: authorData.birth_date || null,
+    deathDate: authorData.death_date || null,
+    birthLocation: authorData.birth_location || null,
+    deathLocation: authorData.death_location || null,
+    imageUrl: authorData.image_url || authorData.urls?.image || null,
+    viewsCount: 0,
+    likesCount: 0,
+    sharesCount: 0
+  }).returning({ id: schema.authors.id }).get()
 
   return {
-    id: result.meta.last_row_id as number,
+    id: result.id,
     isNew: true
   }
 }
@@ -265,7 +262,6 @@ export async function findOrCreateAuthor(
  * Find existing reference by name or create new one
  */
 export async function findOrCreateReference(
-  db: any,
   referenceData: ImportReference
 ): Promise<ReferenceLookupResult> {
   if (!referenceData.name?.trim()) {
@@ -275,9 +271,11 @@ export async function findOrCreateReference(
   const referenceName = referenceData.name.trim()
 
   // First, try to find existing reference by name
-  const existingReference = await db.prepare(`
-    SELECT id FROM quote_references WHERE LOWER(name) = LOWER(?) LIMIT 1
-  `).bind(referenceName).first()
+  const existingReference = await db.select({ id: schema.quoteReferences.id })
+    .from(schema.quoteReferences)
+    .where(sql`LOWER(${schema.quoteReferences.name}) = LOWER(${referenceName})`)
+    .limit(1)
+    .get()
 
   if (existingReference) {
     return {
@@ -287,29 +285,22 @@ export async function findOrCreateReference(
   }
 
   // Create new reference
-
-  const result = await db.prepare(`
-    INSERT INTO quote_references (
-      name, original_language, release_date, description, primary_type, secondary_type,
-      image_url, urls, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-  `).bind(
-    referenceName,
-    referenceData.original_language || referenceData.language || 'en',
-    referenceData.release_date || null,
-    referenceData.summary || referenceData.description || null,
-    referenceData.primary_type || 'other',
-    referenceData.secondary_type || null,
-    referenceData.image_url || referenceData.urls?.image || null,
-    JSON.stringify(referenceData.urls || {}),
-    0, // views_count
-    0, // likes_count
-    0  // shares_count
-  ).run()
+  const result = await db.insert(schema.quoteReferences).values({
+    name: referenceName,
+    originalLanguage: referenceData.original_language || referenceData.language || 'en',
+    releaseDate: referenceData.release_date || null,
+    description: referenceData.summary || referenceData.description || null,
+    primaryType: (referenceData.primary_type as any) || 'other',
+    secondaryType: referenceData.secondary_type || null,
+    imageUrl: referenceData.image_url || referenceData.urls?.image || null,
+    urls: JSON.stringify(referenceData.urls || {}),
+    viewsCount: 0,
+    likesCount: 0,
+    sharesCount: 0
+  }).returning({ id: schema.quoteReferences.id }).get()
 
   return {
-    id: result.meta.last_row_id as number,
+    id: result.id,
     isNew: true
   }
 }

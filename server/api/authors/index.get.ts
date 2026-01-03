@@ -1,8 +1,10 @@
 import type { Author } from "~/types"
+import { db, schema } from 'hub:db'
+import { like, desc, asc, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
     
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100)
@@ -12,58 +14,58 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    const whereConditions = []
-    const params = []
-    
-    if (search) {
-      whereConditions.push('a.name LIKE ?')
-      params.push(`%${search}%`)
-    }
-    
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-    
     const allowedSortColumns = ['name', 'created_at', 'views_count', 'likes_count', 'quotes_count']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
-    const orderByExpr = sortColumn === 'quotes_count' ? 'quotes_count' : `a.${sortColumn}`
     
-    const authorsQuery = `
+    // Build complex query with GROUP_CONCAT using sql template
+    let authorsQuery = sql`
       SELECT 
         a.*,
         COUNT(q.id) as quotes_count,
         (
-          SELECT r.id FROM quotes q2
-          JOIN quote_references r ON r.id = q2.reference_id
+          SELECT r.id FROM ${schema.quotes} q2
+          JOIN ${schema.quoteReferences} r ON r.id = q2.reference_id
           WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
           GROUP BY q2.reference_id
           ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
           LIMIT 1
         ) AS origin_reference_id,
         (
-          SELECT r.name FROM quotes q2
-          JOIN quote_references r ON r.id = q2.reference_id
+          SELECT r.name FROM ${schema.quotes} q2
+          JOIN ${schema.quoteReferences} r ON r.id = q2.reference_id
           WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
           GROUP BY q2.reference_id
           ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
           LIMIT 1
         ) AS origin_reference_name
-      FROM authors a
-      LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
-      ${whereClause}
-      GROUP BY a.id
-      ORDER BY ${orderByExpr} ${sortDirection}
-      LIMIT ? OFFSET ?
+      FROM ${schema.authors} a
+      LEFT JOIN ${schema.quotes} q ON a.id = q.author_id AND q.status = 'approved'
     `
     
-    const countQuery = `
-      SELECT COUNT(*) as total
-      FROM authors a
-      ${whereClause}
+    if (search) {
+      authorsQuery = sql`${authorsQuery} WHERE a.name LIKE ${'%' + search + '%'}`
+    }
+    
+    authorsQuery = sql`${authorsQuery}
+      GROUP BY a.id
+      ORDER BY ${sortColumn === 'quotes_count' ? sql.raw('quotes_count') : sql.raw(`a.${sortColumn}`)} ${sql.raw(sortDirection)}
+      LIMIT ${limit} OFFSET ${offset}
     `
+    
+    // Count query
+    let countQuery = sql`
+      SELECT COUNT(*) as total
+      FROM ${schema.authors} a
+    `
+    
+    if (search) {
+      countQuery = sql`${countQuery} WHERE a.name LIKE ${'%' + search + '%'}`
+    }
     
     const [authors, countResult] = await Promise.all([
-      db.prepare(authorsQuery).bind(...params, limit, offset).all(),
-      db.prepare(countQuery).bind(...params).first()
+      db.all(authorsQuery),
+      db.get<{ total: number }>(countQuery)
     ])
     
     const total = Number(countResult?.total) || 0
@@ -72,7 +74,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      data: authors.results as unknown as Author[],
+      data: authors as unknown as Author[],
       pagination: {
         page,
         limit,

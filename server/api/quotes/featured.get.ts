@@ -2,60 +2,90 @@ import type {
   ApiResponse,
   FeaturedQuoteResult
 } from '~/types'
+import { db, schema } from 'hub:db'
+import { eq, and, desc, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
   try {
-    const db = hubDatabase()
-
     // Get a featured quote (either marked as featured or random popular quote)
-    let featuredQuoteResult = await db.prepare(`
-      SELECT 
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.status = 'approved' AND q.is_featured = 1
-      GROUP BY q.id
-      ORDER BY q.created_at DESC
-      LIMIT 1
-    `).first()
-
-    let featuredQuote = featuredQuoteResult as unknown as FeaturedQuoteResult | null
+    let featuredQuote = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      originalLanguage: schema.quotes.originalLanguage,
+      status: schema.quotes.status,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      authorId: schema.quotes.authorId,
+      referenceId: schema.quotes.referenceId,
+      userId: schema.quotes.userId,
+      author: {
+        id: schema.authors.id,
+        name: schema.authors.name,
+        isFictional: schema.authors.isFictional
+      },
+      reference: {
+        id: schema.quoteReferences.id,
+        name: schema.quoteReferences.name,
+        primaryType: schema.quoteReferences.primaryType
+      },
+      user: {
+        name: schema.users.name
+      }
+    })
+    .from(schema.quotes)
+    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+    .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+    .where(and(
+      eq(schema.quotes.status, 'approved'),
+      eq(schema.quotes.isFeatured, true)
+    ))
+    .orderBy(desc(schema.quotes.createdAt))
+    .limit(1)
+    .get()
 
     // If no featured quote, get a popular one
     if (!featuredQuote) {
-      const popularQuoteResult = await db.prepare(`
-        SELECT
-          q.*,
-          a.name as author_name,
-          a.is_fictional as author_is_fictional,
-          r.name as reference_name,
-          r.primary_type as reference_type,
-          u.name as user_name,
-          GROUP_CONCAT(t.name) as tag_names,
-          GROUP_CONCAT(t.color) as tag_colors
-        FROM quotes q
-        LEFT JOIN authors a ON q.author_id = a.id
-        LEFT JOIN quote_references r ON q.reference_id = r.id
-        LEFT JOIN users u ON q.user_id = u.id
-        LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-        LEFT JOIN tags t ON qt.tag_id = t.id
-        WHERE q.status = 'approved'
-        GROUP BY q.id
-        ORDER BY (q.likes_count + q.views_count) DESC
-        LIMIT 1
-      `).first()
-
-      featuredQuote = popularQuoteResult as unknown as FeaturedQuoteResult | null
+      featuredQuote = await db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        originalLanguage: schema.quotes.originalLanguage,
+        status: schema.quotes.status,
+        viewsCount: schema.quotes.viewsCount,
+        likesCount: schema.quotes.likesCount,
+        sharesCount: schema.quotes.sharesCount,
+        isFeatured: schema.quotes.isFeatured,
+        createdAt: schema.quotes.createdAt,
+        updatedAt: schema.quotes.updatedAt,
+        authorId: schema.quotes.authorId,
+        referenceId: schema.quotes.referenceId,
+        userId: schema.quotes.userId,
+        author: {
+          id: schema.authors.id,
+          name: schema.authors.name,
+          isFictional: schema.authors.isFictional
+        },
+        reference: {
+          id: schema.quoteReferences.id,
+          name: schema.quoteReferences.name,
+          primaryType: schema.quoteReferences.primaryType
+        },
+        user: {
+          name: schema.users.name
+        }
+      })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .where(eq(schema.quotes.status, 'approved'))
+      .orderBy(desc(sql`${schema.quotes.likesCount} + ${schema.quotes.viewsCount}`))
+      .limit(1)
+      .get()
     }
 
     if (!featuredQuote) {
@@ -65,35 +95,45 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
       }
     }
     
+    // Fetch tags for the quote
+    const tags = await db.select({
+      name: schema.tags.name,
+      color: schema.tags.color
+    })
+    .from(schema.tags)
+    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
+    .where(eq(schema.quotesTags.quoteId, featuredQuote.id))
+    .all()
+    
     // Transform the result
     const transformedQuote = {
       id: featuredQuote.id,
       name: featuredQuote.name,
-      language: featuredQuote.language,
+      language: featuredQuote.originalLanguage,
       status: featuredQuote.status,
-      views_count: featuredQuote.views_count,
-      likes_count: featuredQuote.likes_count,
-      shares_count: featuredQuote.shares_count,
-      is_featured: featuredQuote.is_featured,
-      created_at: featuredQuote.created_at,
-      updated_at: featuredQuote.updated_at,
-      author: featuredQuote.author_id ? {
-        id: featuredQuote.author_id,
-        name: featuredQuote.author_name,
-        is_fictional: featuredQuote.author_is_fictional
+      views_count: featuredQuote.viewsCount,
+      likes_count: featuredQuote.likesCount,
+      shares_count: featuredQuote.sharesCount,
+      is_featured: featuredQuote.isFeatured,
+      created_at: featuredQuote.createdAt,
+      updated_at: featuredQuote.updatedAt,
+      author: featuredQuote.authorId ? {
+        id: featuredQuote.authorId,
+        name: featuredQuote.author.name,
+        is_fictional: featuredQuote.author.isFictional
       } : null,
-      reference: featuredQuote.reference_id ? {
-        id: featuredQuote.reference_id,
-        name: featuredQuote.reference_name,
-        type: featuredQuote.reference_type
+      reference: featuredQuote.referenceId ? {
+        id: featuredQuote.referenceId,
+        name: featuredQuote.reference.name,
+        type: featuredQuote.reference.primaryType
       } : null,
       user: {
-        name: featuredQuote.user_name
+        name: featuredQuote.user.name
       },
-      tags: featuredQuote.tag_names ? featuredQuote.tag_names.split(',').map((name: string, index: number) => ({
-        name,
-        color: featuredQuote.tag_colors?.split(',')[index] || 'gray'
-      })) : []
+      tags: tags.map(t => ({
+        name: t.name,
+        color: t.color || 'gray'
+      }))
     }
     
     return {

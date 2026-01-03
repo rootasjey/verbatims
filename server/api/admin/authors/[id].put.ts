@@ -3,6 +3,8 @@
  * Updates an existing author with admin authentication
  */
 
+import { db, schema } from 'hub:db'
+import { sql, eq, and } from 'drizzle-orm'
 import type { UpdateAuthorData } from '~/types/author'
 
 export default defineEventHandler(async (event) => {
@@ -25,12 +27,12 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event) as UpdateAuthorData
-    const db = hubDatabase()
 
     // Check if author exists
-    const existingAuthor = await db.prepare(`
-      SELECT * FROM authors WHERE id = ?
-    `).bind(authorId).first()
+    const existingAuthor = await db.select()
+      .from(schema.authors)
+      .where(eq(schema.authors.id, parseInt(authorId)))
+      .get()
 
     if (!existingAuthor) {
       throw createError({
@@ -49,9 +51,13 @@ export default defineEventHandler(async (event) => {
 
     // Check if another author with same name already exists (excluding current author)
     if (body.name && body.name.trim() !== existingAuthor.name) {
-      const duplicateAuthor = await db.prepare(`
-        SELECT id FROM authors WHERE LOWER(name) = LOWER(?) AND id != ?
-      `).bind(body.name.trim(), authorId).first()
+      const duplicateAuthor = await db.select()
+        .from(schema.authors)
+        .where(and(
+          sql`LOWER(${schema.authors.name}) = LOWER(${body.name.trim()})`,
+          sql`${schema.authors.id} != ${parseInt(authorId)}`
+        ))
+        .get()
 
       if (duplicateAuthor) {
         throw createError({
@@ -61,81 +67,33 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Build update fields
-    const updateFields = []
-    const updateValues = []
+    // Build update object
+    const updateData: any = { updatedAt: sql`CURRENT_TIMESTAMP` }
 
-    if (body.name !== undefined) {
-      updateFields.push('name = ?')
-      updateValues.push(body.name.trim())
-    }
-    if (body.is_fictional !== undefined) {
-      updateFields.push('is_fictional = ?')
-      updateValues.push(body.is_fictional)
-    }
-    if (body.birth_date !== undefined) {
-      updateFields.push('birth_date = ?')
-      updateValues.push(body.birth_date)
-    }
-    if (body.birth_location !== undefined) {
-      updateFields.push('birth_location = ?')
-      updateValues.push(body.birth_location)
-    }
-    if (body.death_date !== undefined) {
-      updateFields.push('death_date = ?')
-      updateValues.push(body.death_date)
-    }
-    if (body.death_location !== undefined) {
-      updateFields.push('death_location = ?')
-      updateValues.push(body.death_location)
-    }
-    if (body.job !== undefined) {
-      updateFields.push('job = ?')
-      updateValues.push(body.job)
-    }
-    if (body.description !== undefined) {
-      updateFields.push('description = ?')
-      updateValues.push(body.description)
-    }
-    if (body.image_url !== undefined) {
-      updateFields.push('image_url = ?')
-      updateValues.push(body.image_url)
-    }
-    if (body.socials !== undefined) {
-      updateFields.push('socials = ?')
-      updateValues.push(JSON.stringify(body.socials))
-    }
+    if (body.name !== undefined) updateData.name = body.name.trim()
+    if (body.is_fictional !== undefined) updateData.isFictional = body.is_fictional
+    if (body.birth_date !== undefined) updateData.birthDate = body.birth_date
+    if (body.birth_location !== undefined) updateData.birthLocation = body.birth_location
+    if (body.death_date !== undefined) updateData.deathDate = body.death_date
+    if (body.death_location !== undefined) updateData.deathLocation = body.death_location
+    if (body.job !== undefined) updateData.job = body.job
+    if (body.description !== undefined) updateData.description = body.description
+    if (body.image_url !== undefined) updateData.imageUrl = body.image_url
+    if (body.socials !== undefined) updateData.socials = JSON.stringify(body.socials)
 
-    // Always update the updated_at timestamp
-    updateFields.push('updated_at = ?')
-    updateValues.push(new Date().toISOString())
-
-    if (updateFields.length === 1) { // Only updated_at was added
+    if (Object.keys(updateData).length === 1) { // Only updatedAt was added
       throw createError({
         statusCode: 400,
         statusMessage: 'No fields to update'
       })
     }
 
-    // Add author ID for WHERE clause
-    updateValues.push(authorId)
-
     // Update author
-    const result = await db.prepare(`
-      UPDATE authors SET ${updateFields.join(', ')} WHERE id = ?
-    `).bind(...updateValues).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to update author'
-      })
-    }
-
-    // Fetch the updated author
-    const updatedAuthor = await db.prepare(`
-      SELECT * FROM authors WHERE id = ?
-    `).bind(authorId).first()
+    const updatedAuthor = await db.update(schema.authors)
+      .set(updateData)
+      .where(eq(schema.authors.id, parseInt(authorId)))
+      .returning()
+      .get()
 
     return {
       success: true,

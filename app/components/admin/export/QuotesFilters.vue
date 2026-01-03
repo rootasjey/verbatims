@@ -6,8 +6,7 @@
           Quote Status
         </label>
         <NSelect
-          :model-value="modelValue.status"
-          @update:model-value="updateFilter('status', $event)"
+          v-model="statusModel"
           :items="statusOptions"
           item-key="label"
           value-key="label"
@@ -21,8 +20,7 @@
           Language
         </label>
         <NSelect
-          :model-value="modelValue.language"
-          @update:model-value="updateFilter('language', $event)"
+          v-model="languageModel"
           :items="languageOptions"
           item-key="label"
           value-key="label"
@@ -116,12 +114,14 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteExportFilters } from '~/types/export'
+import type { QuoteExportFilters, QuoteLanguage, QuoteStatus } from '~/types/export'
+
+type Option<T extends string> = { label: string; value: T }
 
 interface Props {
   modelValue: QuoteExportFilters
-  statusOptions: Array<{ label: string; value: string }>
-  languageOptions: Array<{ label: string; value: string }>
+  statusOptions: Array<Option<QuoteStatus>>
+  languageOptions: Array<Option<QuoteLanguage>>
 }
 
 const props = defineProps<Props>()
@@ -129,9 +129,24 @@ const emit = defineEmits<{
   'update:modelValue': [value: QuoteExportFilters]
 }>()
 
-const updateFilter = (key: keyof QuoteExportFilters, value: any) => {
-  const updated = { ...props.modelValue, [key]: value }
-  emit('update:modelValue', updated)
+const toArray = <T,>(v: T | T[] | undefined): T[] => (Array.isArray(v) ? v : (v != null ? [v] : []))
+
+const statusModel = computed<Array<Option<QuoteStatus>>>({
+  get: () => toArray(props.modelValue.status)
+    .map(v => props.statusOptions.find(o => o.value === v))
+    .filter(Boolean) as Array<Option<QuoteStatus>>,
+  set: (opts) => emit('update:modelValue', { ...props.modelValue, status: opts.map(o => o.value) })
+})
+
+const languageModel = computed<Array<Option<QuoteLanguage>>>({
+  get: () => toArray(props.modelValue.language)
+    .map(v => props.languageOptions.find(o => o.value === v))
+    .filter(Boolean) as Array<Option<QuoteLanguage>>,
+  set: (opts) => emit('update:modelValue', { ...props.modelValue, language: opts.map(o => o.value) })
+})
+
+const updateFilter = (key: keyof QuoteExportFilters, value: unknown) => {
+  emit('update:modelValue', { ...props.modelValue, [key]: value } as QuoteExportFilters)
 }
 
 const updateDateRange = (type: 'start' | 'end', value: string) => {

@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, ne, inArray, desc, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
@@ -8,12 +11,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-
     // First, get the current quote's details to find related quotes
-    const currentQuote = await db.prepare(`
-      SELECT author_id, reference_id FROM quotes WHERE id = ? AND status = 'approved'
-    `).bind(quoteId).first()
+    const currentQuote = await db.select({ 
+      authorId: schema.quotes.authorId, 
+      referenceId: schema.quotes.referenceId 
+    })
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get()
 
     if (!currentQuote) {
       return {
@@ -26,139 +34,204 @@ export default defineEventHandler(async (event) => {
     // 1. Same author (highest priority)
     // 2. Same reference
     // 3. Similar tags
-    let relatedQuotes = []
+    let relatedQuotes: any[] = []
 
     // Get quotes by same author
-    if (currentQuote.author_id) {
-      const authorQuotes = await db.prepare(`
-        SELECT 
-          q.*,
-          a.name as author_name,
-          a.is_fictional as author_is_fictional,
-          r.name as reference_name,
-          r.primary_type as reference_type,
-          u.name as user_name,
-          GROUP_CONCAT(t.name) as tag_names,
-          GROUP_CONCAT(t.color) as tag_colors
-        FROM quotes q
-        LEFT JOIN authors a ON q.author_id = a.id
-        LEFT JOIN quote_references r ON q.reference_id = r.id
-        LEFT JOIN users u ON q.user_id = u.id
-        LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-        LEFT JOIN tags t ON qt.tag_id = t.id
-        WHERE q.author_id = ? AND q.id != ? AND q.status = 'approved'
-        GROUP BY q.id
-        ORDER BY q.likes_count DESC, q.views_count DESC
-        LIMIT 3
-      `).bind(currentQuote.author_id, quoteId).all()
+    if (currentQuote.authorId) {
+      const authorQuotes = await db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        originalLanguage: schema.quotes.originalLanguage,
+        status: schema.quotes.status,
+        viewsCount: schema.quotes.viewsCount,
+        likesCount: schema.quotes.likesCount,
+        sharesCount: schema.quotes.sharesCount,
+        isFeatured: schema.quotes.isFeatured,
+        createdAt: schema.quotes.createdAt,
+        updatedAt: schema.quotes.updatedAt,
+        authorId: schema.quotes.authorId,
+        referenceId: schema.quotes.referenceId,
+        userId: schema.quotes.userId,
+        authorName: schema.authors.name,
+        authorIsFictional: schema.authors.isFictional,
+        referenceName: schema.quoteReferences.name,
+        referenceType: schema.quoteReferences.primaryType,
+        userName: schema.users.name
+      })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .where(and(
+        eq(schema.quotes.authorId, currentQuote.authorId),
+        ne(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
+      .limit(3)
+      .all()
 
-      if (Array.isArray(authorQuotes)) {
+      if (authorQuotes) {
         relatedQuotes.push(...authorQuotes)
       }
     }
 
     // Get quotes from same reference if we need more
-    if (relatedQuotes.length < 4 && currentQuote.reference_id) {
-      const referenceQuotes = await db.prepare(`
-        SELECT 
-          q.*,
-          a.name as author_name,
-          a.is_fictional as author_is_fictional,
-          r.name as reference_name,
-          r.primary_type as reference_type,
-          u.name as user_name,
-          GROUP_CONCAT(t.name) as tag_names,
-          GROUP_CONCAT(t.color) as tag_colors
-        FROM quotes q
-        LEFT JOIN authors a ON q.author_id = a.id
-        LEFT JOIN quote_references r ON q.reference_id = r.id
-        LEFT JOIN users u ON q.user_id = u.id
-        LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-        LEFT JOIN tags t ON qt.tag_id = t.id
-        WHERE q.reference_id = ? AND q.id != ? AND q.status = 'approved'
-        GROUP BY q.id
-        ORDER BY q.likes_count DESC, q.views_count DESC
-        LIMIT ?
-      `).bind(currentQuote.reference_id, quoteId, 4 - relatedQuotes.length).all()
+    if (relatedQuotes.length < 4 && currentQuote.referenceId) {
+      const referenceQuotes = await db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        originalLanguage: schema.quotes.originalLanguage,
+        status: schema.quotes.status,
+        viewsCount: schema.quotes.viewsCount,
+        likesCount: schema.quotes.likesCount,
+        sharesCount: schema.quotes.sharesCount,
+        isFeatured: schema.quotes.isFeatured,
+        createdAt: schema.quotes.createdAt,
+        updatedAt: schema.quotes.updatedAt,
+        authorId: schema.quotes.authorId,
+        referenceId: schema.quotes.referenceId,
+        userId: schema.quotes.userId,
+        authorName: schema.authors.name,
+        authorIsFictional: schema.authors.isFictional,
+        referenceName: schema.quoteReferences.name,
+        referenceType: schema.quoteReferences.primaryType,
+        userName: schema.users.name
+      })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .where(and(
+        eq(schema.quotes.referenceId, currentQuote.referenceId),
+        ne(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
+      .limit(4 - relatedQuotes.length)
+      .all()
 
       // Filter out duplicates
-      if (Array.isArray(referenceQuotes)) {
-        const existingIds = new Set(relatedQuotes.map(q => q.id))
-        const newQuotes = referenceQuotes.filter(q => !existingIds.has(q.id))
+      if (referenceQuotes) {
+        const existingIds = new Set(relatedQuotes.map((q: any) => q.id))
+        const newQuotes = referenceQuotes.filter((q: any) => !existingIds.has(q.id))
         relatedQuotes.push(...newQuotes)
       }
     }
 
     // If we still need more, get popular quotes with similar tags
     if (relatedQuotes.length < 4) {
-      const tagQuotes = await db.prepare(`
-        SELECT DISTINCT
-          q.*,
-          a.name as author_name,
-          a.is_fictional as author_is_fictional,
-          r.name as reference_name,
-          r.primary_type as reference_type,
-          u.name as user_name,
-          GROUP_CONCAT(t.name) as tag_names,
-          GROUP_CONCAT(t.color) as tag_colors
-        FROM quotes q
-        LEFT JOIN authors a ON q.author_id = a.id
-        LEFT JOIN quote_references r ON q.reference_id = r.id
-        LEFT JOIN users u ON q.user_id = u.id
-        LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-        LEFT JOIN tags t ON qt.tag_id = t.id
-        WHERE q.id IN (
-          SELECT DISTINCT qt2.quote_id 
-          FROM quote_tags qt2 
-          WHERE qt2.tag_id IN (
-            SELECT qt3.tag_id 
-            FROM quote_tags qt3 
-            WHERE qt3.quote_id = ?
-          )
-        )
-        AND q.id != ? AND q.status = 'approved'
-        GROUP BY q.id
-        ORDER BY q.likes_count DESC, q.views_count DESC
-        LIMIT ?
-      `).bind(quoteId, quoteId, 4 - relatedQuotes.length).all()
+      // Get tag IDs for current quote
+      const currentQuoteTags = await db.select({ tagId: schema.quoteTags.tagId })
+        .from(schema.quoteTags)
+        .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+        .all()
 
-      // Filter out duplicates
-      if (Array.isArray(tagQuotes)) {
-        const existingIds = new Set(relatedQuotes.map(q => q.id))
-        const newQuotes = tagQuotes.filter(q => !existingIds.has(q.id))
-        relatedQuotes.push(...newQuotes)
+      const tagIds = currentQuoteTags.map(t => t.tagId)
+
+      if (tagIds.length > 0) {
+        // Get quotes with similar tags
+        const similarTagQuoteIds = await db.select({ quoteId: schema.quoteTags.quoteId })
+          .from(schema.quoteTags)
+          .where(inArray(schema.quoteTags.tagId, tagIds))
+          .all()
+
+        const uniqueQuoteIds = [...new Set(similarTagQuoteIds.map(q => q.quoteId))]
+          .filter(id => id !== parseInt(quoteId))
+
+        if (uniqueQuoteIds.length > 0) {
+          const tagQuotes = await db.select({
+            id: schema.quotes.id,
+            name: schema.quotes.name,
+            originalLanguage: schema.quotes.originalLanguage,
+            status: schema.quotes.status,
+            viewsCount: schema.quotes.viewsCount,
+            likesCount: schema.quotes.likesCount,
+            sharesCount: schema.quotes.sharesCount,
+            isFeatured: schema.quotes.isFeatured,
+            createdAt: schema.quotes.createdAt,
+            updatedAt: schema.quotes.updatedAt,
+            authorId: schema.quotes.authorId,
+            referenceId: schema.quotes.referenceId,
+            userId: schema.quotes.userId,
+            authorName: schema.authors.name,
+            authorIsFictional: schema.authors.isFictional,
+            referenceName: schema.quoteReferences.name,
+            referenceType: schema.quoteReferences.primaryType,
+            userName: schema.users.name
+          })
+          .from(schema.quotes)
+          .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+          .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+          .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+          .where(and(
+            inArray(schema.quotes.id, uniqueQuoteIds),
+            eq(schema.quotes.status, 'approved')
+          ))
+          .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
+          .limit(4 - relatedQuotes.length)
+          .all()
+
+          // Filter out duplicates
+          if (tagQuotes) {
+            const existingIds = new Set(relatedQuotes.map((q: any) => q.id))
+            const newQuotes = tagQuotes.filter((q: any) => !existingIds.has(q.id))
+            relatedQuotes.push(...newQuotes)
+          }
+        }
       }
     }
 
+    // Fetch tags for all related quotes
+    const quoteIds = relatedQuotes.map((q: any) => q.id)
+    let tagsByQuoteId: Record<number, any[]> = {}
+
+    if (quoteIds.length > 0) {
+      const allTags = await db.select({
+        quoteId: schema.quoteTags.quoteId,
+        name: schema.tags.name,
+        color: schema.tags.color
+      })
+      .from(schema.quoteTags)
+      .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+      .where(inArray(schema.quoteTags.quoteId, quoteIds))
+      .all()
+
+      // Group tags by quote ID
+      allTags.forEach(tag => {
+        if (!tagsByQuoteId[tag.quoteId]) {
+          tagsByQuoteId[tag.quoteId] = []
+        }
+        tagsByQuoteId[tag.quoteId].push({ name: tag.name, color: tag.color })
+      })
+    }
+
     // Transform the results
-    const transformedQuotes = relatedQuotes.slice(0, 4).map((quote) => ({
+    const transformedQuotes = relatedQuotes.slice(0, 4).map((quote: any) => ({
       id: quote.id,
       name: quote.name,
-      language: quote.language,
+      language: quote.originalLanguage,
       status: quote.status,
-      views_count: quote.views_count,
-      likes_count: quote.likes_count,
-      shares_count: quote.shares_count,
-      is_featured: quote.is_featured,
-      created_at: quote.created_at,
-      updated_at: quote.updated_at,
-      author: quote.author_id ? {
-        id: quote.author_id,
-        name: quote.author_name,
-        is_fictional: quote.author_is_fictional
+      views_count: quote.viewsCount,
+      likes_count: quote.likesCount,
+      shares_count: quote.sharesCount,
+      is_featured: quote.isFeatured,
+      created_at: quote.createdAt,
+      updated_at: quote.updatedAt,
+      author: quote.authorId ? {
+        id: quote.authorId,
+        name: quote.authorName,
+        is_fictional: quote.authorIsFictional
       } : null,
-      reference: quote.reference_id ? {
-        id: quote.reference_id,
-        name: quote.reference_name,
-        type: quote.reference_type
+      reference: quote.referenceId ? {
+        id: quote.referenceId,
+        name: quote.referenceName,
+        type: quote.referenceType
       } : null,
       user: {
-        name: quote.user_name
+        name: quote.userName
       },
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-        name,
-        color: quote.tag_colors.split(',')[index]
-      })) : []
+      tags: tagsByQuoteId[quote.id] || []
     }))
 
     return {

@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -9,17 +12,29 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid identifiers' })
     }
 
-    const db = hubDatabase()
-    const quote = await db.prepare('SELECT user_id, status FROM quotes WHERE id = ?').bind(quoteId).first()
+    const quote = await db.select({
+      userId: schema.quotes.userId,
+      status: schema.quotes.status
+    })
+    .from(schema.quotes)
+    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .get()
+
     if (!quote) throw createError({ statusCode: 404, statusMessage: 'Quote not found' })
 
     const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwnerDraft = quote.user_id === session.user.id && quote.status === 'draft'
+    const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
     if (!isAdmin && !isOwnerDraft) {
       throw createError({ statusCode: 403, statusMessage: 'Not allowed to edit tags for this quote' })
     }
 
-    await db.prepare('DELETE FROM quote_tags WHERE quote_id = ? AND tag_id = ?').bind(quoteId, tagId).run()
+    await db.delete(schema.quotesTags)
+      .where(and(
+        eq(schema.quotesTags.quoteId, parseInt(quoteId)),
+        eq(schema.quotesTags.tagId, parseInt(tagId))
+      ))
+      .run()
+
     return { success: true }
   } catch (error: any) {
     if ((error as any).statusCode) throw error

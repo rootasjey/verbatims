@@ -1,5 +1,7 @@
 import { unzipSync, strFromU8 } from 'fflate'
 import type { ImportOptions } from '~/types'
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 
 /**
  * Admin API: Unified "All" Import (Bundle or ZIP)
@@ -54,9 +56,15 @@ export default defineEventHandler(async (event) => {
 
   // Persist initial log for the ALL import (best-effort)
   try {
-    const db = hubDatabase()
-    await db.prepare(`INSERT INTO import_logs (import_id, filename, format, data_type, status, user_id, options) VALUES (?, ?, ?, ?, ?, ?, ?)`)
-      .bind(importId, filename || null, formatLabel, 'all', 'pending', user.id, JSON.stringify(options || {})).run()
+    await db.insert(schema.importLogs).values({
+      importId,
+      filename: filename || null,
+      format: formatLabel,
+      dataType: 'all',
+      status: 'pending',
+      userId: user.id,
+      options: JSON.stringify(options || {})
+    })
   } catch (e) { console.warn('Failed to log ALL import start:', e) }
 
 
@@ -145,23 +153,18 @@ export default defineEventHandler(async (event) => {
       updateAdminImport(importId, { status: 'completed', completedAt: new Date() })
 
       try { // Snapshot completion to import_logs
-        const db = hubDatabase()
         const importData = getAdminImport(importId)
 
-        if (importData) await db.prepare(`
-          UPDATE import_logs 
-          SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP 
-          WHERE import_id=?
-        `)
-          .bind(
-            importData.status,
-            importData.totalRecords,
-            importData.successfulRecords,
-            importData.failedRecords,
-            importData.warnings.length,
-            importId,
-          )
-          .run()
+        if (importData) await db.update(schema.importLogs)
+          .set({
+            status: importData.status,
+            recordCount: importData.totalRecords,
+            successfulCount: importData.successfulRecords,
+            failedCount: importData.failedRecords,
+            warningsCount: importData.warnings.length,
+            completedAt: new Date()
+          })
+          .where(eq(schema.importLogs.importId, importId))
       } catch {}
     } catch (e: any) {
       const p = getAdminImport(importId)

@@ -205,9 +205,9 @@ onMounted(async () => {
   let loaded: QuoteWithMetadata[] | undefined
 
   try {
-    const { data } = await useFetch('/api/quotes/random?count=12', { server: false })
+    const { data } = await useFetch<any>('/api/quotes/random?count=12', { server: false })
     const arr = data.value?.data
-    loaded = arr
+    loaded = arr as unknown as QuoteWithMetadata[]
   } catch {
     // Ignore and fallback
   }
