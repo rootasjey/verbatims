@@ -1,8 +1,10 @@
 import type { QuoteReference } from "~/types"
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
     
     const q = query.q as string
     const limit = Math.min(parseInt(query.limit as string) || 10, 20)
@@ -15,8 +17,9 @@ export default defineEventHandler(async (event) => {
     }
     
     const searchTerm = `%${q.trim()}%`
+    const startsWith = `${q.trim()}%`
     
-    const references = await db.prepare(`
+    const references = await db.all(sql`
       SELECT 
         id,
         name,
@@ -27,18 +30,18 @@ export default defineEventHandler(async (event) => {
         image_url,
         views_count,
         likes_count
-      FROM quote_references r
-      WHERE r.name LIKE ?
+      FROM ${schema.quoteReferences} r
+      WHERE r.name LIKE ${searchTerm}
       ORDER BY 
-        CASE WHEN r.name LIKE ? THEN 0 ELSE 1 END,
+        CASE WHEN r.name LIKE ${startsWith} THEN 0 ELSE 1 END,
         r.likes_count DESC,
         r.name ASC
-      LIMIT ?
-    `).bind(searchTerm, `${q.trim()}%`, limit).all()
+      LIMIT ${limit}
+    `)
     
     return {
       success: true,
-      data: (references.results || []) as unknown as QuoteReference[]
+      data: references as unknown as QuoteReference[]
     }
   } catch (error) {
     console.error('Reference search error:', error)

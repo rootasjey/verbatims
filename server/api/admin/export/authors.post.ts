@@ -1,4 +1,6 @@
 import type { ExportOptions, AuthorExportFilters, ExportResult, ExportedAuthor, ExportResultWithBackup } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { eq, inArray, sql } from 'drizzle-orm'
 
 /**
  * Admin API: Export Authors Data
@@ -28,12 +30,14 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
     }
 
-    const db = hubDatabase()
     const uniqueExportId = `authors_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildAuthorsQuery(authorsFilters, include_relations, limit)
 
-    const authorsResult = await db.prepare(query).bind(...bindings).all()
-    const authors = (authorsResult?.results || [])
+    const authorsResult = await db.$client.execute({
+      sql: query,
+      args: bindings
+    })
+    const authors = (authorsResult.rows ?? []) as any[]
 
     const processedAuthors: ExportedAuthor[] = authors.map((author: any) => {
       const processed: ExportedAuthor = {
@@ -124,7 +128,6 @@ export default defineEventHandler(async (event) => {
 
     try {
       const backupResult = await createBackup(
-        db,
         contentData,
         filename,
         'authors',
@@ -432,23 +435,22 @@ async function logAuthorsExport(db: any, exportInfo: {
   includeMetadata?: boolean
 }): Promise<{ exportLogId: number }> {
   try {
-    const result = await db.prepare(`
-      INSERT INTO export_logs (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      exportInfo.exportId,
-      exportInfo.filename,
-      exportInfo.format,
-      'authors',
-      JSON.stringify(exportInfo.filters),
-      exportInfo.recordCount,
-      exportInfo.fileSize,
-      exportInfo.userId,
-      exportInfo.includeRelations || false,
-      exportInfo.includeMetadata || false
-    ).run()
+    const [row] = await db.insert(schema.exportLogs)
+      .values({
+        exportId: exportInfo.exportId,
+        filename: exportInfo.filename,
+        format: exportInfo.format,
+        dataType: 'authors',
+        filtersApplied: JSON.stringify(exportInfo.filters),
+        recordCount: exportInfo.recordCount,
+        fileSize: exportInfo.fileSize,
+        userId: exportInfo.userId,
+        includeRelations: exportInfo.includeRelations || false,
+        includeMetadata: exportInfo.includeMetadata || false,
+      })
+      .returning({ exportLogId: schema.exportLogs.id })
 
-    return { exportLogId: result.meta.last_row_id }
+    return { exportLogId: row?.exportLogId ?? 0 }
 
   } catch (error) {
     console.error('Failed to log authors export:', error)

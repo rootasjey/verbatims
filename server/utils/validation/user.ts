@@ -13,7 +13,7 @@ export const UserSchema = z.object({
   job: z.string().max(200).nullable().optional(),
   language: z.enum(validLanguages).optional(),
   location: z.string().max(200).optional(),
-  socials: z.union([z.array(z.any()), z.record(z.any()), z.string()]).optional(),
+  socials: z.union([z.array(z.any()), z.record(z.string(), z.any()), z.string()]).optional(),
   last_login_at: z.string().nullable().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),

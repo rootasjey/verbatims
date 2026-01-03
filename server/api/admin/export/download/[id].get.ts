@@ -1,6 +1,9 @@
 import type { QuoteExportFilters } from '~/types/export'
 import { parseFiltersFromExportLog, buildFilterConditions } from '~/server/utils/export-filters'
 import { getBackupFilesForExport } from '~/server/utils/backup-database'
+import { db, schema } from 'hub:db'
+import { blob } from 'hub:blob'
+import { eq, sql, gt } from 'drizzle-orm'
 
 /**
  * Admin API: Download Export File
@@ -18,32 +21,34 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Export ID is required' })
     }
 
-    const db = hubDatabase()
-    const exportLog = await db.prepare(`
-      SELECT * FROM export_logs
-      WHERE export_id = ? AND expires_at > datetime('now')
-    `).bind(exportId).first()
+    const exportLog = await db.select()
+      .from(schema.exportLogs)
+      .where(
+        sql`${schema.exportLogs.exportId} = ${exportId} AND ${schema.exportLogs.expiresAt} > datetime('now')`
+      )
+      .limit(1);
 
-    if (!exportLog) {
+    if (!exportLog || exportLog.length === 0) {
       throw createError({ statusCode: 404, statusMessage: 'Export not found or expired' })
     }
 
+    const exportLogData = exportLog[0];
+
     // If this is an 'all' export (zip), try to serve the stored backup directly from R2
-    if (exportLog.data_type === 'all') {
-      const backups = await getBackupFilesForExport(db, Number(exportLog.id ?? -1))
+    if (exportLogData.dataType === 'all') {
+      const backups = await getBackupFilesForExport(Number(exportLogData.id ?? -1))
       const latest = backups.find(b => b.file_path?.endsWith('.zip')) || backups[0]
 
       // If we couldn't find any backup or the backup lacks a file key, return 404.
       if (!latest || !latest.file_key) {
         throw createError({ statusCode: 404, statusMessage: 'Export file not found in storage' })
       }
-      const blob = hubBlob()
       const file = await blob.get(latest.file_key as string)
       if (!file) { throw createError({ statusCode: 404, statusMessage: 'Archive not found in storage' }) }
 
       const ab = await file.arrayBuffer()
       setHeader(event, 'Content-Type', 'application/zip')
-      setHeader(event, 'Content-Disposition', `attachment; filename="${exportLog.filename}"`)
+      setHeader(event, 'Content-Disposition', `attachment; filename="${exportLogData.filename}"`)
       setHeader(event, 'Content-Length', ab.byteLength)
       setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
       setHeader(event, 'Pragma', 'no-cache')
@@ -52,12 +57,15 @@ export default defineEventHandler(async (event) => {
     }
 
     // For single-type exports, regenerate the content (JSON/CSV/XML)
-    const filters = parseFiltersFromExportLog(exportLog)
+    const filters = parseFiltersFromExportLog(exportLogData)
 
     // Rebuild the export (this is a simplified approach for demo)
     const { query, bindings } = buildQuotesQueryForDownload(filters, true, 0)
-    const quotesResult = await db.prepare(query).bind(...bindings).all()
-    const quotes = (quotesResult?.results || []) as any[]
+    const quotesResult = await db.$client.execute({
+      sql: query,
+      args: bindings
+    })
+    const quotes = (quotesResult.rows ?? []) as any[]
 
     // Process quotes data (simplified version)
     const processedQuotes = quotes.map((quote: any) => ({
@@ -96,7 +104,7 @@ export default defineEventHandler(async (event) => {
     let content: string
     let mimeType: string
 
-    switch (exportLog.format) {
+    switch (exportLogData.format) {
       case 'json':
         content = JSON.stringify(processedQuotes, null, 2)
         mimeType = 'application/json'
@@ -119,14 +127,12 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    await db.prepare(`
-      UPDATE export_logs
-      SET download_count = download_count + 1
-      WHERE export_id = ?
-    `).bind(exportId).run()
+    await db.update(schema.exportLogs)
+      .set({ downloadCount: sql`${schema.exportLogs.downloadCount} + 1` })
+      .where(eq(schema.exportLogs.exportId, exportId));
 
     setHeader(event, 'Content-Type', mimeType)
-    setHeader(event, 'Content-Disposition', `attachment; filename="${exportLog.filename}"`)
+    setHeader(event, 'Content-Disposition', `attachment; filename="${exportLogData.filename}"`)
     setHeader(event, 'Content-Length', Buffer.byteLength(content, 'utf8'))
     setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
     setHeader(event, 'Pragma', 'no-cache')

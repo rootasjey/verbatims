@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'All backup IDs must be valid numbers' })
     }
 
-    const db = hubDatabase()
     const results = {
       total: validIds.length,
       deleted: 0,
@@ -33,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
     for (const backupId of validIds) {
       try {
-        await deleteBackup(db, backupId)
+        await deleteBackup(backupId)
         results.deleted++
       } catch (error: any) {
         results.failed++

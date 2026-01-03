@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, or, count, sum, sql, desc, like } from 'drizzle-orm'
+
 export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> => {
   try {
     const session = await requireUserSession(event)
@@ -23,62 +26,75 @@ export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> 
     const role = query.role as string
     const status = query.status as string
     
-    const db = hubDatabase()
-    
     // Build WHERE conditions
     const conditions = []
-    const bindings = []
     
     if (search) {
-      conditions.push('(u.name LIKE ? OR u.email LIKE ?)')
-      bindings.push(`%${search}%`, `%${search}%`)
+      conditions.push(
+        or(
+          like(schema.users.name, `%${search}%`),
+          like(schema.users.email, `%${search}%`)
+        )
+      )
     }
     
     if (role && ['user', 'moderator', 'admin'].includes(role)) {
-      conditions.push('u.role = ?')
-      bindings.push(role)
+      conditions.push(eq(schema.users.role, role as any))
     }
     
     if (status === 'active') {
-      conditions.push('u.is_active = 1')
+      conditions.push(eq(schema.users.isActive, true))
     } else if (status === 'inactive') {
-      conditions.push('u.is_active = 0')
+      conditions.push(eq(schema.users.isActive, false))
     }
     
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined
     
     // Get users with their statistics
-    const usersResult = await db.prepare(`
-      SELECT 
-        u.*,
-        COUNT(DISTINCT q.id) as quote_count,
-        COUNT(DISTINCT CASE WHEN q.status = 'approved' THEN q.id END) as approved_quotes,
-        COUNT(DISTINCT uc.id) as collection_count,
-        COUNT(DISTINCT ul.id) as likes_given,
-        SUM(q.likes_count) as total_likes_received
-      FROM users u
-      LEFT JOIN quotes q ON u.id = q.user_id
-      LEFT JOIN user_collections uc ON u.id = uc.user_id
-      LEFT JOIN user_likes ul ON u.id = ul.user_id
-      ${whereClause}
-      GROUP BY u.id
-      ORDER BY u.created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(...bindings, limit, offset).all()
+    const usersResult = await db.select({
+      id: schema.users.id,
+      email: schema.users.email,
+      name: schema.users.name,
+      password: schema.users.password,
+      avatarUrl: schema.users.avatarUrl,
+      role: schema.users.role,
+      isActive: schema.users.isActive,
+      emailVerified: schema.users.emailVerified,
+      biography: schema.users.biography,
+      job: schema.users.job,
+      language: schema.users.language,
+      location: schema.users.location,
+      socials: schema.users.socials,
+      lastLoginAt: schema.users.lastLoginAt,
+      createdAt: schema.users.createdAt,
+      updatedAt: schema.users.updatedAt,
+      quote_count: sql<number>`COUNT(DISTINCT ${schema.quotes.id})`.as('quote_count'),
+      approved_quotes: sql<number>`COUNT(DISTINCT CASE WHEN ${schema.quotes.status} = 'approved' THEN ${schema.quotes.id} END)`.as('approved_quotes'),
+      collection_count: sql<number>`COUNT(DISTINCT ${schema.userCollections.id})`.as('collection_count'),
+      likes_given: sql<number>`COUNT(DISTINCT ${schema.userLikes.id})`.as('likes_given'),
+      total_likes_received: sql<number>`COALESCE(SUM(${schema.quotes.likesCount}), 0)`.as('total_likes_received')
+    })
+    .from(schema.users)
+    .leftJoin(schema.quotes, eq(schema.users.id, schema.quotes.userId))
+    .leftJoin(schema.userCollections, eq(schema.users.id, schema.userCollections.userId))
+    .leftJoin(schema.userLikes, eq(schema.users.id, schema.userLikes.userId))
+    .where(whereCondition)
+    .groupBy(schema.users.id)
+    .orderBy(desc(schema.users.createdAt))
+    .limit(limit)
+    .offset(offset)
     
     // Get total count
-    const totalResult = await db.prepare(`
-      SELECT COUNT(*) as total
-      FROM users u
-      ${whereClause}
-    `).bind(...bindings).first()
+    const totalResult = await db.select({ total: count() })
+      .from(schema.users)
+      .where(whereCondition)
 
-    const userCount = Number(usersResult.results.length) || 0
-    const total = Number(totalResult?.total) || 0
+    const userCount = usersResult.length
+    const total = Number(totalResult[0]?.total) || 0
     const hasMore = offset + userCount < total
     
     // Remove sensitive information for non-admin users
-    const processedUsers: AdminUser[] = usersResult.results.map((user: any) => {
+    const processedUsers: AdminUser[] = usersResult.map((user: any) => {
       const userData: any = { ...user }
       
       // Only admins can see email addresses

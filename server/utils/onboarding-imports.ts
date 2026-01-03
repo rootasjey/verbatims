@@ -1,7 +1,8 @@
 // Utilities extracted from the onboarding database import API.
 // These functions operate against a D1-style `db` prepared statement API and
-// report progress/warnings via the onboarding-progress utils (dynamically
-// imported inside functions to avoid circular imports).
+// report progress/warnings via the onboarding-progress utils.
+
+import { updateStepProgress, addWarning } from './onboarding-progress'
 
 export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<string, any[]>> {
   const { unzipSync } = await import('fflate')
@@ -49,7 +50,6 @@ export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Reco
 }
 
 export async function importUserCollectionsFromDataset(db: any, importId: string, cols: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${cols.length} user collections...` })
   const insert = db.prepare(`
@@ -108,7 +108,6 @@ export async function importUserCollectionsFromDataset(db: any, importId: string
 }
 
 export async function importCollectionQuotesFromDataset(db: any, importId: string, rows: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Linking ${rows.length} collection-quote relations...` })
   for (let i = 0; i < rows.length; i++) {
@@ -126,7 +125,6 @@ export async function importCollectionQuotesFromDataset(db: any, importId: strin
 }
 
 export async function importUserLikesFromDataset(db: any, importId: string, likes: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   const allowed = new Set(['quote','author','reference'])
   updateStepProgress(importId, 'quotes', { message: `Importing ${likes.length} user likes...` })
@@ -174,7 +172,6 @@ export async function importUserLikesFromDataset(db: any, importId: string, like
 }
 
 export async function importUserSessionsFromDataset(db: any, importId: string, sessions: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${sessions.length} user sessions...` })
   const insert = db.prepare(`
@@ -220,7 +217,6 @@ export async function importUserSessionsFromDataset(db: any, importId: string, s
 }
 
 export async function importUserMessagesFromDataset(db: any, importId: string, msgs: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   const allowedCat = new Set(['bug','feature','feedback','content','other'])
   const allowedTarget = new Set(['general','quote','author','reference'])
@@ -307,7 +303,6 @@ export async function importUserMessagesFromDataset(db: any, importId: string, m
 }
 
 export async function importQuoteReportsFromDataset(db: any, importId: string, reports: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   const allowedReason = new Set(['spam','inappropriate','copyright','misinformation','other'])
   const allowedStatus = new Set(['pending','reviewed','resolved'])
@@ -362,7 +357,6 @@ export async function importQuoteReportsFromDataset(db: any, importId: string, r
 }
 
 export async function importQuoteViewsFromDataset(db: any, importId: string, views: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${views.length} quote views...` })
   for (let i = 0; i < views.length; i++) {
@@ -407,7 +401,6 @@ export async function importQuoteViewsFromDataset(db: any, importId: string, vie
 }
 
 export async function importAuthorViewsFromDataset(db: any, importId: string, views: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${views.length} author views...` })
   for (let i = 0; i < views.length; i++) {
@@ -452,7 +445,6 @@ export async function importAuthorViewsFromDataset(db: any, importId: string, vi
 }
 
 export async function importReferenceViewsFromDataset(db: any, importId: string, views: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${views.length} reference views...` })
   for (let i = 0; i < views.length; i++) {
@@ -497,7 +489,6 @@ export async function importReferenceViewsFromDataset(db: any, importId: string,
 }
 
 export async function importUsersFromDataset(db: any, importId: string, users: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = users.length
   let imported = 0
   updateStepProgress(importId, 'users', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} users...` })
@@ -578,7 +569,6 @@ export async function importUsersFromDataset(db: any, importId: string, users: a
 }
 
 export async function importAuthorsFromDataset(db: any, importId: string, authors: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = authors.length
   let imported = 0
   updateStepProgress(importId, 'authors', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} authors...` })
@@ -642,7 +632,6 @@ export async function importAuthorsFromDataset(db: any, importId: string, author
 }
 
 export async function importReferencesFromDataset(db: any, importId: string, refs: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = refs.length
   let imported = 0
   updateStepProgress(importId, 'references', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} references...` })
@@ -707,7 +696,6 @@ export async function importReferencesFromDataset(db: any, importId: string, ref
 }
 
 export async function importTagsFromDataset(db: any, importId: string, tags: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = tags.length
   let imported = 0
   updateStepProgress(importId, 'tags', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} tags...` })
@@ -755,7 +743,6 @@ export async function importTagsFromDataset(db: any, importId: string, tags: any
 }
 
 export async function importQuotesFromDataset(db: any, adminUserId: number, importId: string, quotes: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = quotes.length
   let imported = 0
   let skipped = 0
@@ -834,7 +821,6 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
       if (imported % 25 === 0) updateStepProgress(importId, 'quotes', { current: i + 1, imported, message: `Imported ${imported}/${total} quotes` })
     } catch (e: any) {
       skipped++
-      const { addWarning } = await import('~/server/utils/onboarding-progress')
       addWarning(importId, `Quote ${i + 1} "${String(q.name || '').slice(0,80)}" skipped: ${e?.message || 'unknown error'}`)
     }
   }
@@ -859,7 +845,6 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
 }
 
 export async function importQuoteTagsFromDataset(db: any, importId: string, quoteTags: any[]): Promise<number> {
-  const { updateStepProgress } = await import('~/server/utils/onboarding-progress')
   const total = quoteTags.length
   let imported = 0
   // Reuse quotes step progress to avoid adding a separate stage

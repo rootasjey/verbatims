@@ -3,6 +3,8 @@
  * Creates a new reference with admin authentication
  */
 
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
 import type { CreateQuoteReferenceData } from '~/types/quote-reference'
 
 export default defineEventHandler(async (event) => {
@@ -17,7 +19,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event) as CreateQuoteReferenceData
-    const db = hubDatabase()
 
     // Validate required fields
     if (!body.name || !body.name.trim()) {
@@ -44,9 +45,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if reference with same name already exists
-    const existingReference = await db.prepare(`
-      SELECT id FROM quote_references WHERE LOWER(name) = LOWER(?)
-    `).bind(body.name.trim()).first()
+    const existingReference = await db.select()
+      .from(schema.quoteReferences)
+      .where(sql`LOWER(${schema.quoteReferences.name}) = LOWER(${body.name.trim()})`)
+      .get()
 
     if (existingReference) {
       throw createError({
@@ -55,61 +57,27 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Prepare reference data
-    const referenceData = {
-      name: body.name.trim(),
-      original_language: body.original_language || 'en',
-      release_date: body.release_date || null,
-      description: body.description || null,
-      primary_type: body.primary_type,
-      secondary_type: body.secondary_type || null,
-      image_url: body.image_url || null,
-      urls: JSON.stringify(body.urls || {}),
-      views_count: 0,
-      likes_count: 0,
-      shares_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-
     // Insert reference
-    const result = await db.prepare(`
-      INSERT INTO quote_references (
-        name, original_language, release_date, description, primary_type, secondary_type,
-        image_url, urls, views_count, likes_count, shares_count,
-        created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      referenceData.name,
-      referenceData.original_language,
-      referenceData.release_date,
-      referenceData.description,
-      referenceData.primary_type,
-      referenceData.secondary_type,
-      referenceData.image_url,
-      referenceData.urls,
-      referenceData.views_count,
-      referenceData.likes_count,
-      referenceData.shares_count,
-      referenceData.created_at,
-      referenceData.updated_at
-    ).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to create reference'
+    const result = await db.insert(schema.quoteReferences)
+      .values({
+        name: body.name.trim(),
+        originalLanguage: body.original_language || 'en',
+        releaseDate: body.release_date || null,
+        description: body.description || null,
+        primaryType: body.primary_type,
+        secondaryType: body.secondary_type || null,
+        imageUrl: body.image_url || null,
+        urls: JSON.stringify(body.urls || {}),
+        viewsCount: 0,
+        likesCount: 0,
+        sharesCount: 0
       })
-    }
-
-    // Fetch the created reference
-    const createdReference = await db.prepare(`
-      SELECT * FROM quote_references WHERE id = ?
-    `).bind(result.meta.last_row_id).first()
+      .returning()
+      .get()
 
     return {
       success: true,
-      data: createdReference
+      data: result
     }
 
   } catch (error: any) {

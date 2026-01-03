@@ -1,10 +1,11 @@
 import type { ImportOptions } from '~/types'
 import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
 import { addUnresolvedRow } from '~/server/utils/admin-import-unresolved'
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
 
 export async function importCollectionQuotesInline(importId: string, data: any[], options?: ImportOptions): Promise<void> {
   if (!Array.isArray(data) || !data.length) return
-  const db = hubDatabase()
   let success = 0, failed = 0
   const errors: string[] = []
   const warnings: string[] = []
@@ -16,12 +17,19 @@ export async function importCollectionQuotesInline(importId: string, data: any[]
       // If IDs are missing or possibly mismatched, try to resolve from names
       // 1) Resolve collection by name (and optionally user_id)
       if ((!collectionId || Number.isNaN(collectionId)) && typeof row.collection_name === 'string' && row.collection_name.trim()) {
-        const col = await db.prepare(
-          row.user_id
-            ? 'SELECT id FROM user_collections WHERE name = ? AND user_id = ? LIMIT 1'
-            : 'SELECT id FROM user_collections WHERE name = ? LIMIT 1'
-        ).bind(row.collection_name.trim(), row.user_id).first()
-        if (col?.id) collectionId = Number(col.id)
+        const col = await db.select({ id: schema.userCollections.id })
+          .from(schema.userCollections)
+          .where(
+            row.user_id
+              ? and(
+                  eq(schema.userCollections.name, row.collection_name.trim()),
+                  eq(schema.userCollections.userId, row.user_id)
+                )
+              : eq(schema.userCollections.name, row.collection_name.trim())
+          )
+          .limit(1)
+          .get()
+        if (col?.id) collectionId = col.id
         else warnings.push(`Could not resolve collection id for name="${row.collection_name}"${row.user_id ? ` (user_id=${row.user_id})` : ''}`)
       }
 
@@ -32,21 +40,42 @@ export async function importCollectionQuotesInline(importId: string, data: any[]
         // Prefer an exact name+language match when language provided
         let q: any
         if (lang) {
-          q = await db.prepare('SELECT id FROM quotes WHERE name = ? AND language = ? ORDER BY created_at DESC LIMIT 1').bind(name, lang).first()
+          q = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .where(and(
+              eq(schema.quotes.name, name),
+              eq(schema.quotes.language, lang)
+            ))
+            .orderBy(sql`${schema.quotes.createdAt} DESC`)
+            .limit(1)
+            .get()
         } else {
-          q = await db.prepare('SELECT id FROM quotes WHERE name = ? ORDER BY created_at DESC LIMIT 1').bind(name).first()
+          q = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .where(eq(schema.quotes.name, name))
+            .orderBy(sql`${schema.quotes.createdAt} DESC`)
+            .limit(1)
+            .get()
         }
-        if (q?.id) quoteId = Number(q.id)
+        if (q?.id) quoteId = q.id
         else warnings.push(`Could not resolve quote id for name="${name}"${lang ? ` (lang=${lang})` : ''}`)
       }
 
       // Last chance: verify provided IDs exist; if not, skip with warning
       if (collectionId) {
-        const colExists = await db.prepare('SELECT 1 FROM user_collections WHERE id = ? LIMIT 1').bind(collectionId).first()
+        const colExists = await db.select({ id: schema.userCollections.id })
+          .from(schema.userCollections)
+          .where(eq(schema.userCollections.id, collectionId))
+          .limit(1)
+          .get()
         if (!colExists) warnings.push(`Collection id not found: ${collectionId}`)
       }
       if (quoteId) {
-        const qExists = await db.prepare('SELECT 1 FROM quotes WHERE id = ? LIMIT 1').bind(quoteId).first()
+        const qExists = await db.select({ id: schema.quotes.id })
+          .from(schema.quotes)
+          .where(eq(schema.quotes.id, quoteId))
+          .limit(1)
+          .get()
         if (!qExists) warnings.push(`Quote id not found: ${quoteId}`)
       }
 
@@ -65,8 +94,14 @@ export async function importCollectionQuotesInline(importId: string, data: any[]
         continue
       }
 
-      await db.prepare('INSERT OR IGNORE INTO collection_quotes (collection_id, quote_id, added_at) VALUES (?, ?, ?)')
-        .bind(collectionId, quoteId, row.added_at || null).run()
+      await db.insert(schema.collectionQuotes)
+        .values({
+          collectionId,
+          quoteId,
+          addedAt: row.added_at || null,
+        })
+        .onConflictDoNothing()
+        .run()
       success++
     } catch (e: any) {
       failed++

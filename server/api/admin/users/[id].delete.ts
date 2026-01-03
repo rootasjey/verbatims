@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, count } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
@@ -18,23 +21,28 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Cannot delete your own account' })
     }
 
-    const db = hubDatabase()
-
-    const user = await db.prepare('SELECT id, role FROM users WHERE id = ?').bind(userId).first()
-    if (!user) {
+    const user = await db.select({ id: schema.users.id, role: schema.users.role })
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1)
+    
+    if (!user || user.length === 0) {
       throw createError({ statusCode: 404, statusMessage: 'User not found' })
     }
 
     // Optional safeguard: prevent deleting the last admin
-    if (user.role === 'admin') {
-      const adminCountRow = await db.prepare("SELECT COUNT(*) as c FROM users WHERE role = 'admin'").first()
-      const adminCount = Number((adminCountRow as any)?.c || 0)
+    if (user[0].role === 'admin') {
+      const adminCountResult = await db.select({ count: count() })
+        .from(schema.users)
+        .where(eq(schema.users.role, 'admin'))
+      
+      const adminCount = Number(adminCountResult[0]?.count || 0)
       if (adminCount <= 1) {
         throw createError({ statusCode: 400, statusMessage: 'Cannot delete the last admin' })
       }
     }
 
-    await db.prepare('DELETE FROM users WHERE id = ?').bind(userId).run()
+    await db.delete(schema.users).where(eq(schema.users.id, userId))
 
     return { success: true, message: 'User deleted successfully' }
   } catch (error: any) {

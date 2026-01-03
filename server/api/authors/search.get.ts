@@ -1,8 +1,10 @@
 import type { Author } from "~/types"
+import { db, schema } from 'hub:db'
+import { like, desc, asc, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
     
     const q = query.q as string
     const limit = Math.min(parseInt(query.limit as string) || 10, 20)
@@ -15,8 +17,9 @@ export default defineEventHandler(async (event) => {
     }
     
     const searchTerm = `%${q.trim()}%`
+    const startsWith = `${q.trim()}%`
     
-    const authors = await db.prepare(`
+    const authors = await db.all(sql`
       SELECT 
         id,
         name,
@@ -25,18 +28,18 @@ export default defineEventHandler(async (event) => {
         image_url,
         views_count,
         likes_count
-      FROM authors a
-      WHERE a.name LIKE ?
+      FROM ${schema.authors} a
+      WHERE a.name LIKE ${searchTerm}
       ORDER BY 
-        CASE WHEN a.name LIKE ? THEN 0 ELSE 1 END,
+        CASE WHEN a.name LIKE ${startsWith} THEN 0 ELSE 1 END,
         a.likes_count DESC,
         a.name ASC
-      LIMIT ?
-    `).bind(searchTerm, `${q.trim()}%`, limit).all()
+      LIMIT ${limit}
+    `)
     
     return {
       success: true,
-      data: (authors.results || []) as unknown as Author[]
+      data: authors as unknown as Author[]
     }
   } catch (error) {
     console.error('Author search error:', error)

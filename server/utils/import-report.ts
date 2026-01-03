@@ -1,5 +1,7 @@
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 
 export interface ImportFailureEntry {
   index: number
@@ -76,12 +78,14 @@ export function createImportReport(
 
         // Link into backup_files table and associate to import_logs row if present
         try {
-          const db = hubDatabase()
-          const row = await db.prepare('SELECT id FROM import_logs WHERE import_id = ? LIMIT 1')
-            .bind(importId).first()
-          const importLogId = row?.id ? Number(row.id) : undefined
+          const row = await db.select({ id: schema.importLogs.id })
+            .from(schema.importLogs)
+            .where(eq(schema.importLogs.importId, importId))
+            .limit(1)
+            .get()
+          const importLogId = row?.id
 
-          const backupId = await createBackupFile(db, {
+          const backupId = await createBackupFile({
             file_key: up.fileKey,
             export_log_id: undefined,
             import_log_id: importLogId,

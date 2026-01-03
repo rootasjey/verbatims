@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, or, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
@@ -20,17 +23,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
     // Initialize database schema first if needed
     try {
-      await db.prepare('SELECT 1 FROM users LIMIT 1').first()
+      await db.select({ val: sql`1` }).from(schema.users).limit(1).get()
     } catch (error) {
       // Database tables don't exist, initialize them
       const initSuccess = await initializeDatabase()
@@ -43,9 +38,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if any admin user already exists
-    const existingAdmin = await db.prepare(`
-      SELECT id, name, email FROM users WHERE role = 'admin' LIMIT 1
-    `).first()
+    const [existingAdmin] = await db.select({ id: schema.users.id, name: schema.users.name, email: schema.users.email })
+      .from(schema.users)
+      .where(eq(schema.users.role, 'admin'))
+      .limit(1)
 
     if (existingAdmin) {
       throw createError({
@@ -55,9 +51,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if user with this email or username already exists
-    const existingUser = await db.prepare(`
-      SELECT id, name, email, role FROM users WHERE email = ? OR name = ? LIMIT 1
-    `).bind(email, username).first()
+    const [existingUser] = await db.select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, role: schema.users.role })
+      .from(schema.users)
+      .where(or(eq(schema.users.email, email), eq(schema.users.name, username)))
+      .limit(1)
 
     if (existingUser) {
       throw createError({
@@ -87,22 +84,20 @@ export default defineEventHandler(async (event) => {
     const hashedPassword = await hashPassword(password)
 
     // Create new admin user
-    const result = await db.prepare(`
-      INSERT INTO users (name, email, password, role, is_active, email_verified, created_at, updated_at)
-      VALUES (?, ?, ?, 'admin', TRUE, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `).bind(username, email, hashedPassword).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to create admin user'
-      })
-    }
-
-    // Get the created user (without password)
-    const createdUser = await db.prepare(`
-      SELECT id, name, email, role, created_at FROM users WHERE id = ?
-    `).bind(result.meta.last_row_id).first()
+    const [createdUser] = await db.insert(schema.users).values({
+      name: username,
+      email,
+      password: hashedPassword,
+      role: 'admin',
+      isActive: true,
+      emailVerified: true
+    }).returning({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      role: schema.users.role,
+      createdAt: schema.users.createdAt
+    })
 
     console.log(`✅ Admin user created successfully: ${username} (${email})`)
     if (!createdUser) {
@@ -121,7 +116,7 @@ export default defineEventHandler(async (event) => {
           name: createdUser.name,
           email: createdUser.email,
           role: createdUser.role,
-          createdAt: createdUser.created_at
+          createdAt: createdUser.createdAt
         }
       }
     }

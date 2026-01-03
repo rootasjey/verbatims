@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -10,17 +13,15 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid author ID' })
     }
 
-    const db = hubDatabase()
-
-    const author = await db.prepare(`
+    const author = await db.get(sql.raw(`
       SELECT 
         a.*,
         COUNT(q.id) as quotes_count
-      FROM authors a
-      LEFT JOIN quotes q ON a.id = q.author_id
-      WHERE a.id = ?
+      FROM ${schema.authors._.name} a
+      LEFT JOIN ${schema.quotes._.name} q ON a.id = q.author_id
+      WHERE a.id = ${parseInt(authorId)}
       GROUP BY a.id
-    `).bind(authorId).first()
+    `))
 
     if (!author) {
       throw createError({ statusCode: 404, statusMessage: 'Author not found' })

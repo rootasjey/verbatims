@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
@@ -17,12 +20,11 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const db = hubDatabase()
-    
     // Check if collection exists and user owns it
-    const collection = await db.prepare(`
-      SELECT * FROM user_collections WHERE id = ?
-    `).bind(collectionId).first()
+    const collection = await db.select()
+      .from(schema.userCollections)
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .get()
     
     if (!collection) {
       throw createError({
@@ -32,7 +34,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check ownership or admin privileges
-    const canDelete = collection.user_id === session.user.id ||
+    const canDelete = collection.userId === session.user.id ||
                      session.user.role === 'admin' ||
                      session.user.role === 'moderator'
     
@@ -44,9 +46,9 @@ export default defineEventHandler(async (event) => {
     }
     
     // Delete collection (cascade will handle collection_quotes)
-    await db.prepare(`
-      DELETE FROM user_collections WHERE id = ?
-    `).bind(collectionId).run()
+    await db.delete(schema.userCollections)
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .run()
     
     return {
       success: true,

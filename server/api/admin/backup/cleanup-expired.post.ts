@@ -12,8 +12,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
     }
 
-    const db = hubDatabase()
-    const expiredFiles = await listBackupFiles(db, {
+    const expiredFiles = await listBackupFiles({
       page: 1,
       limit: 1000, // Get all expired files
       dateTo: new Date().toISOString() // Files that should have expired by now
@@ -36,7 +35,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const deletedFromDb = await deleteExpiredBackupFiles(db)
+    const deletedFromDb = await deleteExpiredBackupFiles()
 
     return {
       success: true,

@@ -1,15 +1,24 @@
 import type { ImportOptions } from '~/types'
 import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export async function importUserMessagesInline(importId: string, data: any[], options?: ImportOptions, userId?: string): Promise<void> {
   if (!Array.isArray(data) || !data.length) return
-  const db = hubDatabase()
   let success = 0, failed = 0
   const errors: string[] = []
   for (const row of data) {
     try {
-      await db.prepare('INSERT OR IGNORE INTO user_messages (id, user_id, message, created_at, read_at) VALUES (?, ?, ?, ?, ?)')
-        .bind(row.id, row.user_id, row.message, row.created_at || null, row.read_at || null).run()
+      await db.insert(schema.userMessages)
+        .values({
+          id: row.id,
+          userId: row.user_id,
+          message: row.message,
+          createdAt: row.created_at || null,
+          readAt: row.read_at || null,
+        })
+        .onConflictDoNothing()
+        .run()
       success++
     } catch (e: any) {
       failed++

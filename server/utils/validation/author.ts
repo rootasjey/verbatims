@@ -11,7 +11,7 @@ export const AuthorSchema = z.object({
   job: z.string().optional(),
   description: z.string().max(5000).optional(),
   image_url: z.string().url().optional(),
-  socials: z.union([z.array(z.any()), z.record(z.any()), z.string()]).optional(),
+  socials: z.union([z.array(z.any()), z.record(z.string(), z.any()), z.string()]).optional(),
   views_count: z.number().int().nonnegative().optional(),
   likes_count: z.number().int().nonnegative().optional(),
   shares_count: z.number().int().nonnegative().optional(),

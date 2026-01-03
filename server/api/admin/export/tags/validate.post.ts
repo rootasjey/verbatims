@@ -1,4 +1,6 @@
 import type { ExportOptions, ExportValidation, TagExportFilters } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { inArray, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
@@ -43,11 +45,10 @@ export default defineEventHandler(async (event) => {
 
   // Quick estimate
   try {
-    const db = hubDatabase()
-    const { query, bindings } = buildTagsCountQuery(tagFilters)
-    const countRow = await db.prepare(query).bind(...bindings).first()
-    const estimated = Number(countRow?.total || 0)
-    validation.estimated_count = estimated
+    const { query } = buildTagsCountQuery(tagFilters);
+    const countResult = await query;
+    const estimated = Number(countResult[0]?.total || 0);
+    validation.estimated_count = estimated;
   } catch (e) {
     // Non-fatal for validation
     validation.warnings.push('Failed to estimate record count')
@@ -57,45 +58,39 @@ export default defineEventHandler(async (event) => {
 })
 
 function buildTagsCountQuery(filters: TagExportFilters) {
-  let query = `SELECT COUNT(DISTINCT t.id) as total FROM tags t`
-  const where: string[] = []
-  const bindings: any[] = []
-  let joinedUsage = false
+  let query = db
+    .select({ total: sql<number>`COUNT(DISTINCT ${schema.tags.id})`.as('total') })
+    .from(schema.tags)
+    .$dynamic()
 
   if (filters.unused_only || (typeof filters.min_usage === 'number' && filters.min_usage > 0)) {
-    query += ` LEFT JOIN quote_tags qt ON t.id = qt.tag_id`
-    joinedUsage = true
+    query = query.leftJoin(schema.quoteTags, sql`${schema.tags.id} = ${schema.quoteTags.tagId}`);
   }
 
   if (filters.search && filters.search.trim()) {
-    where.push('(t.name LIKE ? OR t.description LIKE ?)')
-    bindings.push(`%${filters.search.trim()}%`, `%${filters.search.trim()}%`)
+    const searchTerm = `%${filters.search.trim()}%`;
+    query = query.where(
+      sql`${schema.tags.name} LIKE ${searchTerm} OR ${schema.tags.description} LIKE ${searchTerm}`
+    );
   }
 
   if (filters.category) {
-    const cats = Array.isArray(filters.category) ? filters.category : [filters.category]
-    where.push(`t.category IN (${cats.map(() => '?').join(',')})`)
-    bindings.push(...cats)
+    const cats = Array.isArray(filters.category) ? filters.category : [filters.category];
+    query = query.where(inArray(schema.tags.category, cats));
   }
 
   if (filters.color) {
-    const cols = Array.isArray(filters.color) ? filters.color : [filters.color]
-    where.push(`t.color IN (${cols.map(() => '?').join(',')})`)
-    bindings.push(...cols)
+    const cols = Array.isArray(filters.color) ? filters.color : [filters.color];
+    query = query.where(inArray(schema.tags.color, cols));
   }
 
-  if (filters.date_range?.start) { where.push('t.created_at >= ?'); bindings.push(filters.date_range.start) }
-  if (filters.date_range?.end) { where.push('t.created_at <= ?'); bindings.push(filters.date_range.end + ' 23:59:59') }
-
-  if (where.length) query += ` WHERE ${where.join(' AND ')}`
-
-  if (joinedUsage) {
-    query += ' GROUP BY t.id'
-    if (filters.unused_only) query += ' HAVING COUNT(qt.quote_id) = 0'
-    else if (typeof filters.min_usage === 'number' && filters.min_usage > 0) query += ' HAVING COUNT(qt.quote_id) >= ?'
-    if (typeof filters.min_usage === 'number' && filters.min_usage > 0) bindings.push(filters.min_usage)
+  if (filters.date_range?.start) {
+    query = query.where(sql`${schema.tags.createdAt} >= ${filters.date_range.start}`);
+  }
+  if (filters.date_range?.end) {
+    query = query.where(sql`${schema.tags.createdAt} <= ${filters.date_range.end + ' 23:59:59'}`);
   }
 
-  return { query, bindings }
+  return { query };
 }
 

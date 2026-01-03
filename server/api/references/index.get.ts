@@ -1,8 +1,10 @@
 import type { QuoteReference } from "~/types"
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
     
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100)
@@ -13,47 +15,47 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    // Build the WHERE clause
-    const whereConditions = []
-    const params = []
-    
-    if (search) {
-      whereConditions.push('r.name LIKE ?')
-      params.push(`%${search}%`)
-    }
-    
-    if (primaryType) {
-      whereConditions.push('r.primary_type = ?')
-      params.push(primaryType)
-    }
-    
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-    
     const allowedSortColumns = ['name', 'created_at', 'release_date', 'views_count', 'likes_count']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
-    const referencesQuery = `
+    // Build WHERE conditions dynamically
+    let whereClause = sql``
+    const conditions = []
+    
+    if (search) {
+      conditions.push(sql`r.name LIKE ${'%' + search + '%'}`)
+    }
+    
+    if (primaryType) {
+      conditions.push(sql`r.primary_type = ${primaryType}`)
+    }
+    
+    if (conditions.length > 0) {
+      whereClause = sql` WHERE ${sql.join(conditions, sql` AND `)}`
+    }
+    
+    const referencesQuery = sql`
       SELECT
         r.*,
         COUNT(q.id) as quotes_count
-      FROM quote_references r
-      LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'
+      FROM ${schema.quoteReferences} r
+      LEFT JOIN ${schema.quotes} q ON r.id = q.reference_id AND q.status = 'approved'
       ${whereClause}
       GROUP BY r.id
-      ORDER BY r.${sortColumn} ${sortDirection}
-      LIMIT ? OFFSET ?
+      ORDER BY ${sql.raw(`r.${sortColumn}`)} ${sql.raw(sortDirection)}
+      LIMIT ${limit} OFFSET ${offset}
     `
 
-    const countQuery = `
+    const countQuery = sql`
       SELECT COUNT(*) as total
-      FROM quote_references r
+      FROM ${schema.quoteReferences} r
       ${whereClause}
     `
     
     const [references, countResult] = await Promise.all([
-      db.prepare(referencesQuery).bind(...params, limit, offset).all(),
-      db.prepare(countQuery).bind(...params).first()
+      db.all(referencesQuery),
+      db.get<{ total: number }>(countQuery)
     ])
     
     const total = Number(countResult?.total) || 0
@@ -62,7 +64,7 @@ export default defineEventHandler(async (event) => {
     
     return {
       success: true,
-      data: references.results as unknown as QuoteReference[],
+      data: references as unknown as QuoteReference[],
       pagination: {
         page,
         limit,

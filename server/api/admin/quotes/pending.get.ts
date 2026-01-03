@@ -1,4 +1,7 @@
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 import type { CreatedQuoteResult } from "~/types"
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
@@ -24,21 +27,18 @@ export default defineEventHandler(async (event) => {
     const search = query.search as string || ''
     const status = (query.status as string) || 'pending'
     
-    const db = hubDatabase()
-    
     // Build WHERE conditions
-    const conditions = ['q.status = ?']
-    const bindings = [status]
+    const conditions = [`q.status = ${sql.raw(`'${status}'`)}`]
     
     if (search) {
-      conditions.push('(q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ? OR u.name LIKE ?)')
-      bindings.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+      const searchPattern = `%${search}%`
+      conditions.push(`(q.name LIKE ${sql.raw(`'${searchPattern}'`)} OR a.name LIKE ${sql.raw(`'${searchPattern}'`)} OR r.name LIKE ${sql.raw(`'${searchPattern}'`)} OR u.name LIKE ${sql.raw(`'${searchPattern}'`)})`)
     }
     
     const whereClause = `WHERE ${conditions.join(' AND ')}`
     
     // Get pending quotes with all related data
-    const quotesResult = await db.prepare(`
+    const quotes = await db.all<CreatedQuoteResult>(sql.raw(`
       SELECT
         q.*,
         a.name as author_name,
@@ -52,32 +52,30 @@ export default defineEventHandler(async (event) => {
         m.name as moderator_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN users m ON q.moderator_id = m.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
+      FROM ${schema.quotes._.name} q
+      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
+      LEFT JOIN ${schema.users._.name} m ON q.moderator_id = m.id
+      LEFT JOIN ${schema.quoteTags._.name} qt ON q.id = qt.quote_id
+      LEFT JOIN ${schema.tags._.name} t ON qt.tag_id = t.id
       ${whereClause}
       GROUP BY q.id
       ORDER BY q.created_at ASC
-      LIMIT ? OFFSET ?
-    `).bind(...bindings, limit, offset).all()
-
-    const quotes = (quotesResult?.results || []) as unknown as CreatedQuoteResult[]
+      LIMIT ${limit} OFFSET ${offset}
+    `))
 
     // Get total count
-  const totalResult = await db.prepare(`
+    const totalResult = await db.get<{ total: number }>(sql.raw(`
       SELECT COUNT(*) as total
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
+      FROM ${schema.quotes._.name} q
+      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
       ${whereClause}
-  `).bind(...bindings).first()
+    `))
 
-    const total = Number(totalResult?.total) || 0
+    const total = totalResult?.total || 0
     const hasMore = offset + quotes.length < total
 
     // Process quotes data

@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -11,12 +14,15 @@ export default defineEventHandler(async (event) => {
     }
     const quoteId = Number(idParam)
 
-    const db = hubDatabase()
-
     // Ensure the quote exists, belongs to the user, and is currently pending
-    const quote = await db.prepare(
-      `SELECT id FROM quotes WHERE id = ? AND user_id = ? AND status = 'pending'`
-    ).bind(quoteId, session.user.id).first()
+    const quote = await db.select({ id: schema.quotes.id })
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, quoteId),
+        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.status, 'pending')
+      ))
+      .get()
 
     if (!quote) {
       throw createError({
@@ -26,17 +32,20 @@ export default defineEventHandler(async (event) => {
     }
 
     // Move back to draft and clear moderation fields
-    const result = await db.prepare(
-      `UPDATE quotes
-       SET status = 'draft',
-           moderator_id = NULL,
-           moderated_at = NULL,
-           rejection_reason = NULL,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = ? AND user_id = ? AND status = 'pending'`
-    ).bind(quoteId, session.user.id).run()
+    const result = await db.update(schema.quotes)
+      .set({
+        status: 'draft',
+        moderatorId: null,
+        moderatedAt: null,
+        rejectionReason: null
+      })
+      .where(and(
+        eq(schema.quotes.id, quoteId),
+        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.status, 'pending')
+      ))
 
-    const changes = (result as any)?.meta?.changes ?? 0
+    const changes = result ? 1 : 0
 
     return {
       success: true,

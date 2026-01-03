@@ -1,4 +1,6 @@
 import type { ExportValidation } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { eq, inArray, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
@@ -17,107 +19,92 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const db = hubDatabase()
-
     // Helper to count from a query
-    const countFrom = async (query: string, bindings: any[] = []) => {
-      const res = await db.prepare(query).bind(...bindings).first<{ total: number }>()
-      return Number(res?.total || 0)
+    const countFrom = async (query: any) => {
+      const res = await query
+      return Number(res[0]?.total || 0)
     }
 
     // Quotes count (apply minimal filters where simple; full parity left to per-type validators)
-    let quotesWhere: string[] = []
-    let qBind: any[] = []
     const qf = (all_filters?.quotes || {})
+    let quotesQuery = db
+      .select({ total: sql<number>`COUNT(DISTINCT ${schema.quotes.id})`.as('total') })
+      .from(schema.quotes)
+      .$dynamic()
     
     if (qf.language && Array.isArray(qf.language) && qf.language.length) {
-      quotesWhere.push(`q.language IN (${qf.language.map(() => '?').join(',')})`)
-      qBind.push(...qf.language)
+      quotesQuery = quotesQuery.where(inArray(schema.quotes.language, qf.language))
     }
     
     if (qf.status && Array.isArray(qf.status) && qf.status.length) {
-      quotesWhere.push(`q.status IN (${qf.status.map(() => '?').join(',')})`)
-      qBind.push(...qf.status)
+      quotesQuery = quotesQuery.where(inArray(schema.quotes.status, qf.status))
     }
     
-    const quotesCount = await countFrom(`
-      SELECT COUNT(DISTINCT q.id) as total
-      FROM quotes q
-      ${quotesWhere.length ? 'WHERE ' + quotesWhere.join(' AND ') : ''}
-    `, qBind)
+    const quotesCount = await countFrom(quotesQuery);
 
     // Authors count
-    let authorsWhere: string[] = []
-    let aBind: any[] = []
     const af = (all_filters?.authors || {})
+    let authorsQuery = db
+      .select({ total: sql<number>`COUNT(*)`.as('total') })
+      .from(schema.authors)
+      .$dynamic()
+      
     if (af.is_fictional !== undefined) {
-      authorsWhere.push('a.is_fictional = ?')
-      aBind.push(!!af.is_fictional)
+      authorsQuery = authorsQuery.where(eq(schema.authors.isFictional, !!af.is_fictional))
     }
     
-    const authorsCount = await countFrom(`
-      SELECT COUNT(*) as total FROM authors a
-      ${authorsWhere.length ? 'WHERE ' + authorsWhere.join(' AND ') : ''}
-    `, aBind)
+    const authorsCount = await countFrom(authorsQuery);
 
     // References count
-    let refsWhere: string[] = []
-    let rBind: any[] = []
     const rf = (all_filters?.references || {})
+    let referencesQuery = db
+      .select({ total: sql<number>`COUNT(*)`.as('total') })
+      .from(schema.quoteReferences)
+      .$dynamic()
     
     if (rf.primary_type && Array.isArray(rf.primary_type) && rf.primary_type.length) {
-      refsWhere.push(`r.primary_type IN (${rf.primary_type.map(() => '?').join(',')})`)
-      rBind.push(...rf.primary_type)
+      referencesQuery = referencesQuery.where(inArray(schema.quoteReferences.primaryType, rf.primary_type))
     }
     
-    const referencesCount = await countFrom(`
-      SELECT COUNT(*) as total FROM quote_references r
-      ${refsWhere.length ? 'WHERE ' + refsWhere.join(' AND ') : ''}
-    `, rBind)
+    const referencesCount = await countFrom(referencesQuery);
 
     // Users count
-    let usersWhere: string[] = []
-    let uBind: any[] = []
     const uf = (all_filters?.users || {})
+    let usersQuery = db
+      .select({ total: sql<number>`COUNT(*)`.as('total') })
+      .from(schema.users)
+      .$dynamic()
     
     if (uf.role && Array.isArray(uf.role) && uf.role.length) {
-      usersWhere.push(`u.role IN (${uf.role.map(() => '?').join(',')})`)
-      uBind.push(...uf.role)
+      usersQuery = usersQuery.where(inArray(schema.users.role, uf.role))
     }
     
-    const usersCount = await countFrom(`
-      SELECT COUNT(*) as total FROM users u
-      ${usersWhere.length ? 'WHERE ' + usersWhere.join(' AND ') : ''}
-    `, uBind)
+    const usersCount = await countFrom(usersQuery);
 
     // Tags count
-    let tagsWhere: string[] = []
-    let tBind: any[] = []
     const tf = (all_filters?.tags || {})
-    
+    let tagsQuery = db
+      .select({ total: sql<number>`COUNT(DISTINCT ${schema.tags.id})`.as('total') })
+      .from(schema.tags)
+      .$dynamic()
+
     if (tf.category && Array.isArray(tf.category) && tf.category.length) {
-      tagsWhere.push(`t.category IN (${tf.category.map(() => '?').join(',')})`)
-      tBind.push(...tf.category)
+      tagsQuery = tagsQuery.where(inArray(schema.tags.category, tf.category))
     }
-    
+
     if (tf.color && Array.isArray(tf.color) && tf.color.length) {
-      tagsWhere.push(`t.color IN (${tf.color.map(() => '?').join(',')})`)
-      tBind.push(...tf.color)
+      tagsQuery = tagsQuery.where(inArray(schema.tags.color, tf.color))
     }
-    
+
     if (tf.unused_only) {
-      tagsWhere.push('NOT EXISTS (SELECT 1 FROM quote_tags qt WHERE qt.tag_id = t.id)')
+      tagsQuery = tagsQuery.where(sql`NOT EXISTS (SELECT 1 FROM quote_tags qt WHERE qt.tag_id = ${schema.tags.id})`)
     }
-    
+
     if (tf.min_usage && tf.min_usage > 0) {
-      tagsWhere.push('(SELECT COUNT(*) FROM quote_tags qt2 WHERE qt2.tag_id = t.id) >= ?')
-      tBind.push(tf.min_usage)
+      tagsQuery = tagsQuery.where(sql`(SELECT COUNT(*) FROM quote_tags qt2 WHERE qt2.tag_id = ${schema.tags.id}) >= ${tf.min_usage}`)
     }
-    
-    const tagsCount = await countFrom(`
-      SELECT COUNT(DISTINCT t.id) as total FROM tags t
-      ${tagsWhere.length ? 'WHERE ' + tagsWhere.join(' AND ') : ''}
-    `, tBind)
+
+    const tagsCount = await countFrom(tagsQuery)
 
     const parts = [quotesCount, referencesCount, authorsCount, usersCount, tagsCount]
     const limitedParts = parts.map(c => limit > 0 ? Math.min(c, limit) : c)

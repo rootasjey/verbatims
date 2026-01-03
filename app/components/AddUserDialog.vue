@@ -23,7 +23,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
           <NFormGroup label="Role" required>
-            <NSelect v-model="form.role" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
+            <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
           </NFormGroup>
           <div class="flex gap-4 justify-around items-center">
             <NFormGroup :label="form.is_active ? 'Active' : 'Inactive'">
@@ -61,20 +61,28 @@ const emit = defineEmits<Emits>()
 
 const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 
+type Role = 'user' | 'moderator' | 'admin'
+type RoleOption = { label: string; value: Role }
+
 const roleOptions = [
   { label: 'User', value: 'user' },
   { label: 'Moderator', value: 'moderator' },
   { label: 'Admin', value: 'admin' }
-]
+] satisfies RoleOption[]
 
 const form = ref({
   name: '',
   email: '',
   password: '',
-  role: 'user',
+  role: 'user' as Role,
   is_active: true,
   email_verified: false,
   avatar_url: ''
+})
+
+const roleModel = computed<RoleOption>({
+  get: () => roleOptions.find(o => o.value === form.value.role) || roleOptions[0],
+  set: (opt) => { form.value.role = opt.value }
 })
 
 const submitting = ref(false)

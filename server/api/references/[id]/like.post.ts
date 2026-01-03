@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -16,10 +19,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-    const ref = await db.prepare(`
-      SELECT id FROM quote_references WHERE id = ?
-    `).bind(refId).first()
+    const ref = await db.select({ id: schema.quoteReferences.id })
+      .from(schema.quoteReferences)
+      .where(eq(schema.quoteReferences.id, parseInt(refId)))
+      .get()
 
     if (!ref) {
       throw createError({
@@ -29,35 +32,43 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if user has already liked this reference
-    const existingLike = await db.prepare(`
-      SELECT id FROM user_likes 
-      WHERE user_id = ? AND likeable_type = 'reference' AND likeable_id = ?
-    `).bind(session.user.id, refId).first()
+    const existingLike = await db.select({ id: schema.userLikes.id })
+      .from(schema.userLikes)
+      .where(and(
+        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.likeableType, 'reference'),
+        eq(schema.userLikes.likeableId, parseInt(refId))
+      ))
+      .get()
 
     let isLiked = false
 
     if (existingLike) {
       // Unlike - remove the like
-      await db.prepare(`
-        DELETE FROM user_likes 
-        WHERE user_id = ? AND likeable_type = 'reference' AND likeable_id = ?
-      `).bind(session.user.id, refId).run()
+      await db.delete(schema.userLikes)
+        .where(and(
+          eq(schema.userLikes.userId, session.user.id),
+          eq(schema.userLikes.likeableType, 'reference'),
+          eq(schema.userLikes.likeableId, parseInt(refId))
+        ))
       
       isLiked = false
     } else {
       // Like - add the like
-      await db.prepare(`
-        INSERT INTO user_likes (user_id, likeable_type, likeable_id)
-        VALUES (?, 'reference', ?)
-      `).bind(session.user.id, refId).run()
+      await db.insert(schema.userLikes).values({
+        userId: session.user.id,
+        likeableType: 'reference',
+        likeableId: parseInt(refId)
+      })
       
       isLiked = true
     }
 
     // Get updated like count
-    const updatedRef = await db.prepare(`
-      SELECT likes_count FROM quote_references WHERE id = ?
-    `).bind(refId).first()
+    const updatedRef = await db.select({ likesCount: schema.quoteReferences.likesCount })
+      .from(schema.quoteReferences)
+      .where(eq(schema.quoteReferences.id, parseInt(refId)))
+      .get()
 
     if (!updatedRef) {
       throw createError({
@@ -70,7 +81,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: {
         isLiked,
-        likesCount: updatedRef.likes_count
+        likesCount: updatedRef.likesCount
       }
     }
   } catch (error: any) {

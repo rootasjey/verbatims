@@ -1,11 +1,12 @@
 import { transformQuotes } from '~/server/utils/quote-transformer'
 import type { DatabaseQuoteWithRelations, SortBy, SortOrder } from '~/types'
 import { getSortParams } from '~/server/utils/sort'
+import { db, schema } from 'hub:db'
+import { eq, and, like, desc, asc, sql, countDistinct, getTableColumns } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
 
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100) // Max 100 per page
@@ -30,75 +31,53 @@ export default defineEventHandler(async (event) => {
 
     // Use normalized and validated values for SQL
     const sortBy = sort_by
-    const sortOrder = sort_order === 'asc' ? 'ASC' : 'DESC'
+    const sortOrder = sort_order === 'asc' ? asc : desc
 
     const offset = (page - 1) * limit
 
-    const whereConditions = ['q.status = ?']
-    const params = [status]
+    const conditions = [eq(schema.quotes.status, status as any)]
+    if (language) conditions.push(eq(schema.quotes.language, language as any))
+    if (authorId) conditions.push(eq(schema.quotes.authorId, authorId))
+    if (referenceId) conditions.push(eq(schema.quotes.referenceId, referenceId))
+    if (search) conditions.push(like(schema.quotes.name, `%${search}%`))
 
-    if (language) {
-      whereConditions.push('q.language = ?')
-      params.push(language)
-    }
+    const quotesQuery = db.select({
+        ...getTableColumns(schema.quotes),
+        author_name: schema.authors.name,
+        author_is_fictional: schema.authors.isFictional,
+        reference_name: schema.quoteReferences.name,
+        reference_type: schema.quoteReferences.primaryType,
+        user_name: schema.users.name,
+        tag_names: sql`GROUP_CONCAT(${schema.tags.name})`,
+        tag_colors: sql`GROUP_CONCAT(${schema.tags.color})`
+      })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
+      .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+      .where(and(...conditions))
+      .groupBy(schema.quotes.id)
+      .orderBy(sortOrder(schema.quotes[sortBy]))
+      .limit(limit)
+      .offset(offset)
 
-    if (authorId) {
-      whereConditions.push('q.author_id = ?')
-      params.push(authorId.toString())
-    }
-
-    if (referenceId) {
-      whereConditions.push('q.reference_id = ?')
-      params.push(referenceId.toString())
-    }
-
-    if (search) {
-      whereConditions.push('q.name LIKE ?')
-      params.push(`%${search}%`)
-    }
-
-    const whereClause = whereConditions.join(' AND ')
-
-
-    const quotesQuery = `
-      SELECT
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE ${whereClause}
-      GROUP BY q.id
-      ORDER BY q.${sortBy} ${sortOrder}
-      LIMIT ? OFFSET ?
-    `
-
-    const countQuery = `
-      SELECT COUNT(DISTINCT q.id) as total
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      WHERE ${whereClause}
-    `
+    const countQuery = db.select({ total: countDistinct(schema.quotes.id) })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .where(and(...conditions))
 
     const [quotesResult, countResult] = await Promise.all([
-      db.prepare(quotesQuery).bind(...params, limit, offset).all(),
-      db.prepare(countQuery).bind(...params).first()
+      quotesQuery,
+      countQuery
     ])
 
-    const quotes = (quotesResult.results || []) as unknown as DatabaseQuoteWithRelations[]
+    const quotes = quotesResult as unknown as DatabaseQuoteWithRelations[]
     const transformedQuotes = transformQuotes(quotes)
 
-    const total = Number(countResult?.total) || 0
+    const total = Number(countResult[0]?.total) || 0
     const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
 

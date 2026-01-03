@@ -38,11 +38,11 @@
         </label>
         <div>
           <NSelect
-            :model-value="modelValue.is_active"
+            :model-value="modelValue.is_active as any"
             @update:model-value="updateFilter('is_active', $event)"
-            :items="activeStatusOptions"
-            item-key="value"
-            value-key="value"
+            :items="activeStatusOptions as any"
+            :item-key="('value' as any)"
+            :value-key="('value' as any)"
             placeholder="All accounts"
           />
         </div>
@@ -54,11 +54,11 @@
         </label>
         <div>
           <NSelect
-            :model-value="modelValue.email_verified"
+            :model-value="modelValue.email_verified as any"
             @update:model-value="updateFilter('email_verified', $event)"
-            :items="verificationOptions"
-            item-key="value"
-            value-key="value"
+            :items="verificationOptions as any"
+            :item-key="('value' as any)"
+            :value-key="('value' as any)"
             placeholder="All users"
           />
         </div>
@@ -73,11 +73,11 @@
         </label>
         <div>
           <NSelect
-            :model-value="modelValue.language"
+            :model-value="modelValue.language as any"
             @update:model-value="updateFilter('language', $event)"
-            :items="languageOptions"
-            item-key="value"
-            value-key="value"
+            :items="languageOptions as any"
+            :item-key="('value' as any)"
+            :value-key="('value' as any)"
             placeholder="All languages"
             multiple
           />

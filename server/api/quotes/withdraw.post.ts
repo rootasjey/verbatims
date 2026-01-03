@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, inArray, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -24,16 +27,17 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'You can withdraw at most 200 quotes at a time' })
     }
 
-    const db = hubDatabase()
-
     // Only allow withdrawing quotes owned by the user and currently pending
-    const placeholders = ids.map(() => '?').join(',')
-    const existing = await db.prepare(
-      `SELECT id FROM quotes WHERE id IN (${placeholders}) AND user_id = ? AND status = 'pending'`
-    ).bind(...ids, session.user.id).all()
+    const existing = await db.select({ id: schema.quotes.id })
+      .from(schema.quotes)
+      .where(and(
+        inArray(schema.quotes.id, ids),
+        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.status, 'pending')
+      ))
+      .all()
 
-    const rows = (existing?.results || []) as Array<{ id: number }>
-    const updatableIds = rows.map(r => r.id)
+    const updatableIds = existing.map(r => r.id)
     const skippedIds = ids.filter(id => !updatableIds.includes(id))
 
     if (updatableIds.length === 0) {
@@ -46,18 +50,22 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updPlaceholders = updatableIds.map(() => '?').join(',')
-    const updateResult = await db.prepare(
-      `UPDATE quotes
-       SET status = 'draft',
-           moderator_id = NULL,
-           moderated_at = NULL,
-           rejection_reason = NULL,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id IN (${updPlaceholders}) AND user_id = ? AND status = 'pending'`
-    ).bind(...updatableIds, session.user.id).run()
+    const updateResult = await db.update(schema.quotes)
+      .set({
+        status: 'draft',
+        moderatorId: null,
+        moderatedAt: null,
+        rejectionReason: null,
+        updatedAt: new Date()
+      })
+      .where(and(
+        inArray(schema.quotes.id, updatableIds),
+        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.status, 'pending')
+      ))
+      .run()
 
-    const updatedCount = (updateResult as any)?.meta?.changes ?? 0
+    const updatedCount = Number(updateResult.rowsAffected ?? 0)
 
     return {
       success: true,

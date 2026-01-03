@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const collectionId = getRouterParam(event, 'id')
@@ -7,18 +10,26 @@ export default defineEventHandler(async (event) => {
     }
     
     const session = await getUserSession(event)
-    const db = hubDatabase()
     
     // Get collection with user info
-    const collection = await db.prepare(`
+    type CollectionRow = {
+      id: number
+      user_id: number
+      is_public: number | boolean
+      user_name: string | null
+      user_avatar: string | null
+      [key: string]: unknown
+    }
+
+    const collection = await db.get<CollectionRow>(sql`
       SELECT 
         c.*,
         u.name as user_name,
         u.avatar_url as user_avatar
-      FROM user_collections c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.id = ?
-    `).bind(collectionId).first()
+      FROM ${schema.userCollections} c
+      LEFT JOIN ${schema.users} u ON c.user_id = u.id
+      WHERE c.id = ${parseInt(collectionId)}
+    `)
     
     if (!collection) {
       throw createError({
@@ -28,7 +39,8 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check access permissions
-    const canAccess = collection.is_public || 
+    const isPublic = collection.is_public === true || collection.is_public === 1
+    const canAccess = isPublic || 
                      (session.user && session.user.id === collection.user_id) ||
                      (session.user && (session.user.role === 'admin' || session.user.role === 'moderator'))
     
@@ -40,7 +52,7 @@ export default defineEventHandler(async (event) => {
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
     
-    const quotesResult = await db.prepare(`
+    const quotesResult = await db.all(sql`
       SELECT
         q.*,
         a.name as author_name,
@@ -52,28 +64,28 @@ export default defineEventHandler(async (event) => {
         cq.added_at,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM collection_quotes cq
-      JOIN quotes q ON cq.quote_id = q.id
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE cq.collection_id = ? AND q.status = 'approved'
+      FROM ${schema.collectionQuotes} cq
+      JOIN ${schema.quotes} q ON cq.quote_id = q.id
+      LEFT JOIN ${schema.authors} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users} u ON q.user_id = u.id
+      LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
+      LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
+      WHERE cq.collection_id = ${parseInt(collectionId)} AND q.status = 'approved'
       GROUP BY q.id
       ORDER BY cq.added_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(collectionId, limit, offset).all()
+      LIMIT ${limit} OFFSET ${offset}
+    `)
 
-    const quotes = quotesResult.results || []
+    const quotes = quotesResult || []
 
     // Get total quotes count
-    const totalResult = await db.prepare(`
+    const totalResult = await db.get<{ total: number }>(sql`
       SELECT COUNT(*) as total
-      FROM collection_quotes cq
-      JOIN quotes q ON cq.quote_id = q.id
-      WHERE cq.collection_id = ? AND q.status = 'approved'
-    `).bind(collectionId).first()
+      FROM ${schema.collectionQuotes} cq
+      JOIN ${schema.quotes} q ON cq.quote_id = q.id
+      WHERE cq.collection_id = ${parseInt(collectionId)} AND q.status = 'approved'
+    `)
 
     const total = Number(totalResult?.total) || 0
     const hasMore = offset + quotes.length < total

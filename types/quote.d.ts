@@ -4,12 +4,12 @@
  */
 
 import type { Author } from './author';
-import type { QuoteReference, QuoteReferencePrimaryType } from './quote-reference';
+export type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la';
 
 /**
  * Supported languages for quotes
  */
-export type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh';
+export type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la';
 
 /**
  * Quote moderation status

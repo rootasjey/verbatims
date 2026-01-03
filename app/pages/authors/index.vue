@@ -153,7 +153,13 @@ const loadAuthors = async (reset = true) => {
   }
 
   try {
-    const response = await $fetch('/api/authors', {
+    type AuthorsApiResponse = {
+      success: boolean
+      data: any[]
+      pagination?: { hasMore: boolean; total: number }
+    }
+
+    const response = await $fetch<AuthorsApiResponse>('/api/authors', {
       query: {
         page: currentPage.value,
         limit: 20,
@@ -173,10 +179,8 @@ const loadAuthors = async (reset = true) => {
       allFetchedAuthors.value.push(...authorsData)
     }
 
-    const paginationInfo = response.pagination || {}
-
-    hasMore.value = paginationInfo.hasMore || false
-    totalAuthors.value = paginationInfo.total || 0
+    hasMore.value = response.pagination?.hasMore ?? false
+    totalAuthors.value = response.pagination?.total ?? 0
   } catch (error) {
     console.error('Failed to load authors:', error)
   } finally {

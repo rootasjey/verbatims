@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
@@ -10,17 +13,23 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid reference ID' })
     }
 
-    const db = hubDatabase()
+    type AdminReferenceRow = {
+      id: number
+      name: string
+      urls: string | null
+      quotes_count: number
+      [key: string]: unknown
+    }
 
-    const reference = await db.prepare(`
-      SELECT 
+    const reference = await db.get<AdminReferenceRow>(sql`
+      SELECT
         r.*,
         COUNT(q.id) as quotes_count
-      FROM quote_references r
-      LEFT JOIN quotes q ON r.id = q.reference_id
-      WHERE r.id = ?
+      FROM ${schema.quoteReferences} r
+      LEFT JOIN ${schema.quotes} q ON r.id = q.reference_id
+      WHERE r.id = ${Number(referenceId)}
       GROUP BY r.id
-    `).bind(referenceId).first()
+    `)
 
     if (!reference) {
       throw createError({ statusCode: 404, statusMessage: 'Reference not found' })
@@ -28,7 +37,7 @@ export default defineEventHandler(async (event) => {
 
     const transformed = {
       ...reference,
-      urls: reference.urls ? JSON.parse(reference.urls as string) : []
+      urls: reference.urls ? JSON.parse(reference.urls) : []
     }
 
     return { success: true, data: transformed }

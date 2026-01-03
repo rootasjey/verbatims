@@ -4,6 +4,8 @@ import type {
   ExportResultWithBackup,
   ExportedReference,
 } from '~/types'
+import { db, schema } from 'hub:db'
+import { eq, inArray, sql } from 'drizzle-orm'
 
 /**
  * Admin API: Export References Data
@@ -47,11 +49,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
     const exportId = `references_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     const { query, bindings } = buildReferencesQuery(filters, include_relations, limit)
-    const referencesResult = await db.prepare(query).bind(...bindings).all()
-    const references = (referencesResult?.results || []) as any[]
+    const referencesResult = await db.$client.execute({
+      sql: query,
+      args: bindings
+    })
+    const references = (referencesResult.rows ?? []) as any[]
 
     const processedReferences: ExportedReference[] = references.map((reference: any) => {
       const processed: ExportedReference = {
@@ -131,7 +135,6 @@ export default defineEventHandler(async (event) => {
     })
 
     const backupResult = await createBackup(
-      db,
       contentData,
       filename,
       'references',
@@ -411,24 +414,22 @@ function serializeReferencesFilters(filters: ReferenceExportFilters): string {
  */
 async function logReferencesExport(db: any, exportInfo: any): Promise<{ exportLogId: number }> {
   try {
-    const result = await db.prepare(`
-      INSERT INTO export_logs
-      (export_id, filename, format, data_type, filters_applied, record_count, file_size, user_id, include_relations, include_metadata)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      exportInfo.exportId,
-      exportInfo.filename,
-      exportInfo.format,
-      'references',
-      exportInfo.filters,
-      exportInfo.recordCount,
-      exportInfo.fileSize || null,
-      exportInfo.userId,
-      exportInfo.includeRelations,
-      exportInfo.includeMetadata
-    ).run()
+    const [row] = await db.insert(schema.exportLogs)
+      .values({
+        exportId: exportInfo.exportId,
+        filename: exportInfo.filename,
+        format: exportInfo.format,
+        dataType: 'references',
+        filtersApplied: exportInfo.filters,
+        recordCount: exportInfo.recordCount,
+        fileSize: exportInfo.fileSize ?? null,
+        userId: exportInfo.userId,
+        includeRelations: exportInfo.includeRelations,
+        includeMetadata: exportInfo.includeMetadata,
+      })
+      .returning({ exportLogId: schema.exportLogs.id })
 
-    return { exportLogId: result.meta.last_row_id }
+    return { exportLogId: row?.exportLogId ?? 0 }
 
   } catch (error) {
     console.error('Failed to log references export:', error)

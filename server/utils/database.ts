@@ -1,15 +1,15 @@
 // Load schema at build-time using Vite raw import (works on Cloudflare Workers)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - type provided by custom declaration in types/sql-raw.d.ts
-import schemaSql from '~/server/database/migrations/schema.sql'
+import schemaSql from '~/server/db/migrations/schema.sql'
+import { db } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 /**
  * Initialize the database with the schema
  */
 export async function initializeDatabase() {
   try {
-    const db = hubDatabase()
-
     if (!db) {
       console.log('Database not available, skipping initialization')
       return false
@@ -17,7 +17,7 @@ export async function initializeDatabase() {
 
     // Test database connection
     try {
-      await db.prepare('SELECT 1').first()
+      await db.run(sql`SELECT 1`)
       console.log('Database connection successful')
     } catch (error) {
       console.log('Database connection failed:', error)
@@ -29,12 +29,6 @@ export async function initializeDatabase() {
 
     // Execute the full schema at once so triggers and multi-statement blocks are handled properly
     try {
-      // Prefer exec for multi-statement SQL
-      // Cloudflare D1 supports exec() to run a batch of SQL statements
-      // @ts-ignore - exec exists on D1 database bindings
-      await db.exec(migration)
-    } catch (execError) {
-      console.error('Failed to exec full schema, falling back to per-statement execution...')
       // Fallback: best-effort split for environments without exec
       const statements = migration
         .split(/;\s*\n/)
@@ -43,13 +37,16 @@ export async function initializeDatabase() {
 
       for (const statement of statements) {
         try {
-          await db.prepare(statement).run()
+          await db.run(sql.raw(statement))
         } catch (sqlError) {
           console.error('Failed to execute SQL statement:', statement.substring(0, 120) + '...')
           console.error('SQL Error:', sqlError)
           throw sqlError
         }
       }
+    } catch (execError) {
+       console.error('Failed to exec schema', execError)
+       throw execError
     }
 
     console.log('Database initialized successfully')
@@ -70,15 +67,13 @@ export async function initializeDatabase() {
  */
 export async function seedDatabase() {
   try {
-    const db = hubDatabase()
-
     if (!db) {
       console.log('Database not available, skipping seeding')
       return false
     }
 
     // Check if we already have data
-    const existingQuotes = await db.prepare('SELECT COUNT(*) as count FROM quotes').first()
+    const existingQuotes = await db.get(sql`SELECT COUNT(*) as count FROM quotes`) as { count: number }
     if (Number(existingQuotes?.count) > 0) {
       console.log('Database already seeded')
       return true
@@ -112,19 +107,12 @@ export async function seedDatabase() {
     
     const authorIds: number[] = []
     for (const author of authors) {
-      const result = await db.prepare(`
+      const result = await db.run(sql`
         INSERT INTO authors (name, is_fictional, birth_date, death_date, job, description)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).bind(
-        author.name,
-        author.is_fictional,
-        author.birth_date || null,
-        author.death_date || null,
-        author.job,
-        author.description
-      ).run()
+        VALUES (${author.name}, ${author.is_fictional}, ${author.birth_date || null}, ${author.death_date || null}, ${author.job}, ${author.description})
+      `)
       
-      authorIds.push(result.meta.last_row_id as number)
+      authorIds.push(Number(result.lastInsertRowid))
     }
     
     // Create sample references
@@ -147,18 +135,12 @@ export async function seedDatabase() {
     
     const referenceIds: number[] = []
     for (const reference of references) {
-      const result = await db.prepare(`
+      const result = await db.run(sql`
         INSERT INTO quote_references (name, primary_type, secondary_type, release_date, description)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(
-        reference.name,
-        reference.primary_type,
-        reference.secondary_type,
-        reference.release_date,
-        reference.description
-      ).run()
+        VALUES (${reference.name}, ${reference.primary_type}, ${reference.secondary_type}, ${reference.release_date}, ${reference.description})
+      `)
 
-      referenceIds.push(result.meta.last_row_id as number)
+      referenceIds.push(Number(result.lastInsertRowid))
     }
     
     // Initialize admin user (will check if already exists)
@@ -169,9 +151,9 @@ export async function seedDatabase() {
     }
 
     // Get the admin user ID for seeding sample data
-    const adminUser = await db.prepare(`
+    const adminUser = await db.get(sql`
       SELECT id FROM users WHERE role = 'admin' LIMIT 1
-    `).first()
+    `) as { id: number } | undefined
 
     if (!adminUser) {
       console.error('No admin user found after initialization')
@@ -191,11 +173,11 @@ export async function seedDatabase() {
     
     const tagIds: number[] = []
     for (const tag of tags) {
-      const result = await db.prepare(`
-        INSERT INTO tags (name, color) VALUES (?, ?)
-      `).bind(tag.name, tag.color).run()
+      const result = await db.run(sql`
+        INSERT INTO tags (name, color) VALUES (${tag.name}, ${tag.color})
+      `)
       
-      tagIds.push(result.meta.last_row_id as number)
+      tagIds.push(Number(result.lastInsertRowid))
     }
     
     // Create sample quotes
@@ -232,26 +214,18 @@ export async function seedDatabase() {
     ]
     
     for (const quote of quotes) {
-      const result = await db.prepare(`
+      const result = await db.run(sql`
         INSERT INTO quotes (name, author_id, reference_id, user_id, status, moderator_id, moderated_at, language)
-        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
-      `).bind(
-        quote.name,
-        quote.author_id,
-        quote.reference_id || null,
-        quote.user_id,
-        quote.status,
-        quote.moderator_id,
-        quote.language
-      ).run()
+        VALUES (${quote.name}, ${quote.author_id}, ${quote.reference_id || null}, ${quote.user_id}, ${quote.status}, ${quote.moderator_id}, CURRENT_TIMESTAMP, ${quote.language})
+      `)
       
-      const quoteId = result.meta.last_row_id as number
+      const quoteId = Number(result.lastInsertRowid)
       
       // Add tags to quote
       for (const tagId of quote.tags) {
-        await db.prepare(`
-          INSERT INTO quote_tags (quote_id, tag_id) VALUES (?, ?)
-        `).bind(quoteId, tagId).run()
+        await db.run(sql`
+          INSERT INTO quote_tags (quote_id, tag_id) VALUES (${quoteId}, ${tagId})
+        `)
       }
     }
     
@@ -272,14 +246,12 @@ export async function seedDatabase() {
  */
 export async function getDatabaseStats() {
   try {
-    const db = hubDatabase()
-    
     const stats = await Promise.all([
-      db.prepare('SELECT COUNT(*) as count FROM quotes WHERE status = ?').bind('approved').first(),
-      db.prepare('SELECT COUNT(*) as count FROM authors').first(),
-      db.prepare('SELECT COUNT(*) as count FROM quote_references').first(),
-      db.prepare('SELECT COUNT(*) as count FROM users').first(),
-      db.prepare('SELECT COUNT(*) as count FROM tags').first()
+      db.get(sql`SELECT COUNT(*) as count FROM quotes WHERE status = ${'approved'}`) as Promise<{ count: number }>,
+      db.get(sql`SELECT COUNT(*) as count FROM authors`) as Promise<{ count: number }>,
+      db.get(sql`SELECT COUNT(*) as count FROM quote_references`) as Promise<{ count: number }>,
+      db.get(sql`SELECT COUNT(*) as count FROM users`) as Promise<{ count: number }>,
+      db.get(sql`SELECT COUNT(*) as count FROM tags`) as Promise<{ count: number }>
     ])
     
     return {
@@ -301,17 +273,15 @@ export async function getDatabaseStats() {
  */
 export async function initializeAdminUser() {
   try {
-    const db = hubDatabase()
-
     if (!db) {
       console.log('Database not available, skipping admin user initialization')
       return false
     }
 
     // Check if any admin user already exists
-    const existingAdmin = await db.prepare(`
+    const existingAdmin = await db.get(sql`
       SELECT id, name, email FROM users WHERE role = 'admin' LIMIT 1
-    `).first()
+    `) as { id: number, name: string, email: string } | undefined
 
     if (existingAdmin) {
       console.log(`Admin user already exists: ${existingAdmin.name} (${existingAdmin.email})`)
@@ -324,17 +294,17 @@ export async function initializeAdminUser() {
     const password = process.env.USER_PASSWORD || 'Verbatims@Beautiful2024!'
 
     // Check if user with this email or username already exists
-    const existingUser = await db.prepare(`
-      SELECT id, name, email, role FROM users WHERE email = ? OR name = ? LIMIT 1
-    `).bind(email, username).first()
+    const existingUser = await db.get(sql`
+      SELECT id, name, email, role FROM users WHERE email = ${email} OR name = ${username} LIMIT 1
+    `) as { id: number, name: string, email: string, role: string } | undefined
 
     if (existingUser) {
       // If user exists but is not admin, upgrade them to admin
       if (existingUser.role !== 'admin') {
-        await db.prepare(`
+        await db.run(sql`
           UPDATE users SET role = 'admin', is_active = TRUE, email_verified = TRUE, updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `).bind(existingUser.id).run()
+          WHERE id = ${existingUser.id}
+        `)
 
         console.log(`✅ Upgraded existing user '${existingUser.name}' (${existingUser.email}) to admin role`)
         return true
@@ -348,12 +318,13 @@ export async function initializeAdminUser() {
     const hashedPassword = await hashPassword(password)
 
     // Create new admin user
-    const result = await db.prepare(`
+    const result = await db.run(sql`
       INSERT INTO users (name, email, password, role, is_active, email_verified, created_at, updated_at)
-      VALUES (?, ?, ?, 'admin', TRUE, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `).bind(username, email, hashedPassword).run()
+      VALUES (${username}, ${email}, ${hashedPassword}, 'admin', TRUE, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `)
 
-    if (!result.success) {
+    const inserted = (result as any)?.lastInsertRowid != null || Number((result as any)?.rowsAffected ?? 0) > 0
+    if (!inserted) {
       console.error('❌ Failed to create admin user')
       return false
     }

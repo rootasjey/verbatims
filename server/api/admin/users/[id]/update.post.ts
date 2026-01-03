@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, count, sum, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
@@ -24,23 +27,26 @@ export default defineEventHandler(async (event) => {
       })
     }
     
+    const userIdInt = parseInt(userId)
     const body = await readBody(event)
-    const db = hubDatabase()
     
     // Check if user exists
-    const user = await db.prepare(`
-      SELECT * FROM users WHERE id = ?
-    `).bind(userId).first()
+    const existingUser = await db.select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userIdInt))
+      .limit(1)
     
-    if (!user) {
+    if (!existingUser || existingUser.length === 0) {
       throw createError({
         statusCode: 404,
         statusMessage: 'User not found'
       })
     }
     
+    const user = existingUser[0]
+    
     // Prevent admin from modifying their own role or status
-    if (parseInt(userId) === session.user.id) {
+    if (userIdInt === session.user.id) {
       if (body.role !== undefined && body.role !== user.role) {
         throw createError({
           statusCode: 400,
@@ -56,62 +62,67 @@ export default defineEventHandler(async (event) => {
       }
     }
     
-    // Build update query
-    const updates = []
-    const bindings = []
+    // Build update object
+    const updates: any = {}
     
     if (body.role !== undefined && ['user', 'moderator', 'admin'].includes(body.role)) {
-      updates.push('role = ?')
-      bindings.push(body.role)
+      updates.role = body.role
     }
     
     if (body.is_active !== undefined) {
-      updates.push('is_active = ?')
-      bindings.push(body.is_active ? 1 : 0)
+      updates.isActive = body.is_active
     }
     
     if (body.email_verified !== undefined) {
-      updates.push('email_verified = ?')
-      bindings.push(body.email_verified ? 1 : 0)
+      updates.emailVerified = body.email_verified
     }
     
-    if (updates.length === 0) {
+    if (Object.keys(updates).length === 0) {
       throw createError({
         statusCode: 400,
         statusMessage: 'No valid fields to update'
       })
     }
     
-    updates.push('updated_at = CURRENT_TIMESTAMP')
-    bindings.push(userId)
-    
     // Update user
-    await db.prepare(`
-      UPDATE users 
-      SET ${updates.join(', ')}
-      WHERE id = ?
-    `).bind(...bindings).run()
+    await db.update(schema.users)
+      .set(updates)
+      .where(eq(schema.users.id, userIdInt))
     
     // Get updated user with statistics
-    const updatedUser = await db.prepare(`
-      SELECT 
-        u.*,
-        COUNT(DISTINCT q.id) as quote_count,
-        COUNT(DISTINCT CASE WHEN q.status = 'approved' THEN q.id END) as approved_quotes,
-        COUNT(DISTINCT uc.id) as collection_count,
-        COUNT(DISTINCT ul.id) as likes_given,
-        SUM(q.likes_count) as total_likes_received
-      FROM users u
-      LEFT JOIN quotes q ON u.id = q.user_id
-      LEFT JOIN user_collections uc ON u.id = uc.user_id
-      LEFT JOIN user_likes ul ON u.id = ul.user_id
-      WHERE u.id = ?
-      GROUP BY u.id
-    `).bind(userId).first()
+    const updatedUserResult = await db.select({
+      id: schema.users.id,
+      email: schema.users.email,
+      name: schema.users.name,
+      password: schema.users.password,
+      avatarUrl: schema.users.avatarUrl,
+      role: schema.users.role,
+      isActive: schema.users.isActive,
+      emailVerified: schema.users.emailVerified,
+      biography: schema.users.biography,
+      job: schema.users.job,
+      language: schema.users.language,
+      location: schema.users.location,
+      socials: schema.users.socials,
+      lastLoginAt: schema.users.lastLoginAt,
+      createdAt: schema.users.createdAt,
+      updatedAt: schema.users.updatedAt,
+      quote_count: sql<number>`COUNT(DISTINCT ${schema.quotes.id})`.as('quote_count'),
+      approved_quotes: sql<number>`COUNT(DISTINCT CASE WHEN ${schema.quotes.status} = 'approved' THEN ${schema.quotes.id} END)`.as('approved_quotes'),
+      collection_count: sql<number>`COUNT(DISTINCT ${schema.userCollections.id})`.as('collection_count'),
+      likes_given: sql<number>`COUNT(DISTINCT ${schema.userLikes.id})`.as('likes_given'),
+      total_likes_received: sql<number>`COALESCE(SUM(${schema.quotes.likesCount}), 0)`.as('total_likes_received')
+    })
+    .from(schema.users)
+    .leftJoin(schema.quotes, eq(schema.users.id, schema.quotes.userId))
+    .leftJoin(schema.userCollections, eq(schema.users.id, schema.userCollections.userId))
+    .leftJoin(schema.userLikes, eq(schema.users.id, schema.userLikes.userId))
+    .where(eq(schema.users.id, userIdInt))
+    .groupBy(schema.users.id)
     
     return {
       success: true,
-      data: updatedUser,
+      data: updatedUserResult[0],
       message: 'User updated successfully'
     }
   } catch (error) {

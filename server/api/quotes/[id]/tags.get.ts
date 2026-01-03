@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, asc } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
@@ -5,14 +8,16 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Invalid quote ID' })
     }
 
-    const db = hubDatabase()
-    const rows = await db.prepare(`
-      SELECT t.id, t.name, t.color
-      FROM quote_tags qt
-      JOIN tags t ON t.id = qt.tag_id
-      WHERE qt.quote_id = ?
-      ORDER BY t.name ASC
-    `).bind(quoteId).all()
+    const rows = await db.select({
+      id: schema.tags.id,
+      name: schema.tags.name,
+      color: schema.tags.color
+    })
+    .from(schema.tags)
+    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
+    .where(eq(schema.quotesTags.quoteId, parseInt(quoteId)))
+    .orderBy(asc(schema.tags.name))
+    .all()
 
     return { success: true, data: rows }
   } catch (error) {

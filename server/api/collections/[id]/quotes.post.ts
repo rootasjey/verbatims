@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
@@ -26,12 +29,11 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const db = hubDatabase()
-    
     // Check if collection exists and user owns it
-    const collection = await db.prepare(`
-      SELECT * FROM user_collections WHERE id = ?
-    `).bind(collectionId).first()
+    const collection = await db.select()
+      .from(schema.userCollections)
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .get()
     
     if (!collection) {
       throw createError({
@@ -40,7 +42,7 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    if (collection.user_id !== session.user.id) {
+    if (collection.userId !== session.user.id) {
       throw createError({
         statusCode: 403,
         statusMessage: 'Access denied'
@@ -48,9 +50,13 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check if quote exists and is approved
-    const quote = await db.prepare(`
-      SELECT id FROM quotes WHERE id = ? AND status = 'approved'
-    `).bind(body.quote_id).first()
+    const quote = await db.select()
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, parseInt(body.quote_id)),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get()
     
     if (!quote) {
       throw createError({
@@ -60,10 +66,13 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check if quote is already in collection
-    const existingEntry = await db.prepare(`
-      SELECT * FROM collection_quotes 
-      WHERE collection_id = ? AND quote_id = ?
-    `).bind(collectionId, body.quote_id).first()
+    const existingEntry = await db.select()
+      .from(schema.collectionQuotes)
+      .where(and(
+        eq(schema.collectionQuotes.collectionId, parseInt(collectionId)),
+        eq(schema.collectionQuotes.quoteId, parseInt(body.quote_id))
+      ))
+      .get()
     
     if (existingEntry) {
       throw createError({
@@ -73,20 +82,21 @@ export default defineEventHandler(async (event) => {
     }
     
     // Add quote to collection
-    await db.prepare(`
-      INSERT INTO collection_quotes (collection_id, quote_id)
-      VALUES (?, ?)
-    `).bind(collectionId, body.quote_id).run()
+    await db.insert(schema.collectionQuotes)
+      .values({
+        collectionId: parseInt(collectionId),
+        quoteId: parseInt(body.quote_id)
+      })
+      .run()
     
     // Update collection's updated_at timestamp
-    await db.prepare(`
-      UPDATE user_collections 
-      SET updated_at = CURRENT_TIMESTAMP 
-      WHERE id = ?
-    `).bind(collectionId).run()
+    await db.update(schema.userCollections)
+      .set({ updatedAt: new Date() })
+      .where(eq(schema.userCollections.id, parseInt(collectionId)))
+      .run()
     
     // Get the added quote with full details
-    const addedQuote = await db.prepare(`
+    const addedQuote = await db.get(sql`
       SELECT 
         q.*,
         a.name as author_name,
@@ -97,15 +107,15 @@ export default defineEventHandler(async (event) => {
         u.name as user_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.id = ?
+      FROM ${schema.quotes} q
+      LEFT JOIN ${schema.authors} a ON q.author_id = a.id
+      LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+      LEFT JOIN ${schema.users} u ON q.user_id = u.id
+      LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
+      LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
+      WHERE q.id = ${parseInt(body.quote_id)}
       GROUP BY q.id
-    `).bind(body.quote_id).first()
+    `)
     
     // Ensure we have an added quote result
     if (!addedQuote) {

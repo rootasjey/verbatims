@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { sql, eq, and, inArray } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -28,15 +31,15 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'You can unpublish at most 200 quotes at a time' })
     }
 
-    const db = hubDatabase()
-
     // Filter to only currently approved quotes to avoid unnecessary writes
-    const placeholders = ids.map(() => '?').join(',')
-    const existing = await db.prepare(
-      `SELECT id FROM quotes WHERE id IN (${placeholders}) AND status = 'approved'`
-    ).bind(...ids).all()
+    const rows = await db.select({ id: schema.quotes.id })
+      .from(schema.quotes)
+      .where(and(
+        inArray(schema.quotes.id, ids),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .all()
 
-    const rows = (existing?.results || []) as Array<{ id: number }>
     const updatableIds = rows.map(r => r.id)
     const skippedIds = ids.filter(id => !updatableIds.includes(id))
 
@@ -50,18 +53,21 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updPlaceholders = updatableIds.map(() => '?').join(',')
-    const updateResult = await db.prepare(
-      `UPDATE quotes
-       SET status = 'draft',
-           moderator_id = NULL,
-           moderated_at = NULL,
-           rejection_reason = NULL,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id IN (${updPlaceholders}) AND status = 'approved'`
-    ).bind(...updatableIds).run()
+    const updateResult = await db.update(schema.quotes)
+      .set({
+        status: 'draft',
+        moderatorId: null,
+        moderatedAt: null,
+        rejectionReason: null,
+        updatedAt: sql`CURRENT_TIMESTAMP`
+      })
+      .where(and(
+        inArray(schema.quotes.id, updatableIds),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .run()
 
-    const updatedCount = (updateResult as any)?.meta?.changes ?? 0
+    const updatedCount = (updateResult as any)?.changes ?? 0
 
     return {
       success: true,

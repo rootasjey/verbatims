@@ -1,3 +1,5 @@
+import { db, schema } from 'hub:db'
+import { inArray, sql } from 'drizzle-orm'
 import type { ReportStatus } from '~/types/report'
 
 export default defineEventHandler(async (event) => {
@@ -13,12 +15,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid payload' })
   }
 
-  const db = hubDatabase()
-  await db.prepare(
-    `UPDATE user_messages
-     SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
-     WHERE id IN (${ids.map(() => '?').join(',')})`
-  ).bind(status, session.user.id, ...ids).run()
+  await db.update(schema.userMessages)
+    .set({
+      status,
+      reviewedBy: session.user.id,
+      reviewedAt: sql`CURRENT_TIMESTAMP`
+    })
+    .where(inArray(schema.userMessages.id, ids))
 
   return { ok: true, updated: ids.length }
 })

@@ -3,10 +3,10 @@ import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-p
 import { uploadBackupFile } from '~/server/utils/backup-storage'
 import { createBackupFile } from '~/server/utils/backup-database'
 import { validateTagDataZod } from '~/server/utils/validation/tag'
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
 
 export async function importTagsInline(parentImportId: string, tags: any[], options: ImportOptions) {
-  const db = hubDatabase(); if (!db) throw new Error('Database not available')
-
   const validation = validateTagDataZod(tags)
   if (!validation.isValid && !options.ignoreValidationErrors) {
     throw new Error(`Tags validation failed: ${validation.errors.length} errors`)
@@ -26,14 +26,18 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
 
       let importLogId: number | undefined = undefined
       try {
-        const row = await db.prepare('SELECT id FROM import_logs WHERE import_id = ? LIMIT 1').bind(parentImportId).first()
-        importLogId = Number(row?.id) ?? undefined
+        const row = await db.select({ id: schema.importLogs.id })
+          .from(schema.importLogs)
+          .where(eq(schema.importLogs.importId, parentImportId))
+          .limit(1)
+          .get()
+        importLogId = row?.id
       } catch {}
 
-      await createBackupFile(db, {
+      await createBackupFile({
         file_key: fileKey,
         export_log_id: undefined,
-        import_log_id: importLogId ?? undefined,
+        import_log_id: importLogId,
         filename: `import_${parentImportId}_tags.json`,
         file_path: filePath,
         file_size: fileSize,
@@ -55,38 +59,6 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
   const tagPolicy = options.conflict?.tags?.mode || 'upsert'
   const tagStrategy = options.conflict?.tags?.updateStrategy || 'fill-missing'
 
-  // Build SQL according to conflict policy
-  let insertSql = `INSERT INTO tags (name, description, category, color, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?)`
-  if (tagPolicy === 'ignore') {
-    insertSql = `INSERT OR IGNORE INTO tags (name, description, category, color, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)`
-  } else if (tagPolicy === 'upsert') {
-    // Fill-missing by default; for overwrite we take excluded values directly
-    if (tagStrategy === 'overwrite') {
-      insertSql = `INSERT INTO tags (name, description, category, color, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(name) DO UPDATE SET
-          description = excluded.description,
-          category    = excluded.category,
-          color       = COALESCE(NULLIF(excluded.color, ''), tags.color),
-          updated_at  = CURRENT_TIMESTAMP`
-    } else {
-      // fill-missing / prefer-existing -> use coalesce to keep existing when new is null/empty
-      insertSql = `INSERT INTO tags (name, description, category, color, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(name) DO UPDATE SET
-          description = COALESCE(excluded.description, tags.description),
-          category    = COALESCE(excluded.category, tags.category),
-          color       = COALESCE(NULLIF(excluded.color, ''), tags.color),
-          updated_at  = CURRENT_TIMESTAMP`
-    }
-  }
-  const insert = db.prepare(insertSql)
-  // Optional variant including id when preserveIds is enabled and conflict mode is insert/ignore
-  const insertWithId = db.prepare(`INSERT INTO tags (id, name, description, category, color, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)`)
-
   const batchSize = options.batchSize || 50
   const subSize = 10
 
@@ -94,42 +66,126 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
     const batch = tags.slice(i, i + batchSize)
     for (let j = 0; j < batch.length; j += subSize) {
       const sub = batch.slice(j, j + subSize)
-      const stmts = sub.map((tag) => {
-        const hasExplicit = options.preserveIds && Number.isFinite(Number(tag.id))
-        if (hasExplicit && tagPolicy !== 'upsert') {
-          return insertWithId.bind(
-            Number(tag.id),
-            tag.name,
-            tag.description || null,
-            tag.category || null,
-            tag.color || '#3B82F6',
-            tag.created_at || new Date().toISOString(),
-            tag.updated_at || new Date().toISOString(),
-          )
-        }
-        return insert.bind(
-          tag.name,
-          tag.description || null,
-          tag.category || null,
-          tag.color || '#3B82F6',
-          tag.created_at || new Date().toISOString(),
-          tag.updated_at || new Date().toISOString(),
-        )
-      })
 
       try {
-        await db.batch(stmts)
+        // Process each tag in the sub-batch
+        for (const tag of sub) {
+          const tagData = {
+            name: tag.name,
+            description: tag.description || null,
+            category: tag.category || null,
+            color: tag.color || '#3B82F6',
+            createdAt: tag.created_at || new Date().toISOString(),
+            updatedAt: tag.updated_at || new Date().toISOString(),
+          }
+
+          if (tagPolicy === 'ignore') {
+            await db.insert(schema.tags)
+              .values(options.preserveIds && Number.isFinite(Number(tag.id)) 
+                ? { id: Number(tag.id), ...tagData }
+                : tagData)
+              .onConflictDoNothing()
+              .run()
+          } else if (tagPolicy === 'upsert') {
+            if (tagStrategy === 'overwrite') {
+              await db.insert(schema.tags)
+                .values(tagData)
+                .onConflictDoUpdate({
+                  target: schema.tags.name,
+                  set: {
+                    description: sql`excluded.description`,
+                    category: sql`excluded.category`,
+                    color: sql`COALESCE(NULLIF(excluded.color, ''), ${schema.tags.color})`,
+                    updatedAt: sql`CURRENT_TIMESTAMP`,
+                  }
+                })
+                .run()
+            } else {
+              // fill-missing / prefer-existing
+              await db.insert(schema.tags)
+                .values(tagData)
+                .onConflictDoUpdate({
+                  target: schema.tags.name,
+                  set: {
+                    description: sql`COALESCE(excluded.description, ${schema.tags.description})`,
+                    category: sql`COALESCE(excluded.category, ${schema.tags.category})`,
+                    color: sql`COALESCE(NULLIF(excluded.color, ''), ${schema.tags.color})`,
+                    updatedAt: sql`CURRENT_TIMESTAMP`,
+                  }
+                })
+                .run()
+            }
+          } else {
+            await db.insert(schema.tags)
+              .values(options.preserveIds && Number.isFinite(Number(tag.id))
+                ? { id: Number(tag.id), ...tagData }
+                : tagData)
+              .run()
+          }
+        }
+
         const p = getAdminImport(parentImportId)!
         updateAdminImport(parentImportId, {
           successfulRecords: p.successfulRecords + sub.length,
           processedRecords: Math.min((p.processedRecords + sub.length), p.totalRecords)
         })
       } catch (e: any) {
-          for (let idx = 0; idx < stmts.length; idx++) {
+        // Fallback to individual inserts
+        for (let idx = 0; idx < sub.length; idx++) {
           try {
-            const s = stmts[idx]
-            if (!s) continue
-            await s.run()
+            const tag = sub[idx]
+            const tagData = {
+              name: tag.name,
+              description: tag.description || null,
+              category: tag.category || null,
+              color: tag.color || '#3B82F6',
+              createdAt: tag.created_at || new Date().toISOString(),
+              updatedAt: tag.updated_at || new Date().toISOString(),
+            }
+
+            if (tagPolicy === 'ignore') {
+              await db.insert(schema.tags)
+                .values(options.preserveIds && Number.isFinite(Number(tag.id))
+                  ? { id: Number(tag.id), ...tagData }
+                  : tagData)
+                .onConflictDoNothing()
+                .run()
+            } else if (tagPolicy === 'upsert') {
+              if (tagStrategy === 'overwrite') {
+                await db.insert(schema.tags)
+                  .values(tagData)
+                  .onConflictDoUpdate({
+                    target: schema.tags.name,
+                    set: {
+                      description: sql`excluded.description`,
+                      category: sql`excluded.category`,
+                      color: sql`COALESCE(NULLIF(excluded.color, ''), ${schema.tags.color})`,
+                      updatedAt: sql`CURRENT_TIMESTAMP`,
+                    }
+                  })
+                  .run()
+              } else {
+                await db.insert(schema.tags)
+                  .values(tagData)
+                  .onConflictDoUpdate({
+                    target: schema.tags.name,
+                    set: {
+                      description: sql`COALESCE(excluded.description, ${schema.tags.description})`,
+                      category: sql`COALESCE(excluded.category, ${schema.tags.category})`,
+                      color: sql`COALESCE(NULLIF(excluded.color, ''), ${schema.tags.color})`,
+                      updatedAt: sql`CURRENT_TIMESTAMP`,
+                    }
+                  })
+                  .run()
+              }
+            } else {
+              await db.insert(schema.tags)
+                .values(options.preserveIds && Number.isFinite(Number(tag.id))
+                  ? { id: Number(tag.id), ...tagData }
+                  : tagData)
+                .run()
+            }
+
             const p = getAdminImport(parentImportId)!
             updateAdminImport(parentImportId, {
               successfulRecords: p.successfulRecords + 1,
@@ -153,18 +209,23 @@ export async function importTagsInline(parentImportId: string, tags: any[], opti
   // Align sqlite_sequence when IDs preserved
   if (options.preserveIds) {
     try {
-      const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM tags').first()
-      const maxId = Number(row?.mx || 0)
+      const row = await db.select({ mx: sql<number>`COALESCE(MAX(id), 0)` })
+        .from(schema.tags)
+        .get()
+      const maxId = row?.mx || 0
       if (maxId > 0) {
-        const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'tags'`).bind(maxId).run()
-        const changes = Number(upd?.meta?.changes || 0)
-        if (changes === 0) {
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ?)`).bind(maxId).run() }
-          catch {
-            try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'tags'`).run() } catch {}
-            try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ?)`).bind(maxId).run() } catch {}
+        try {
+          const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'tags'`)
+          const changes = Number((upd as any)?.rowsAffected ?? (upd as any)?.meta?.changes ?? 0)
+          if (changes === 0) {
+            try { 
+              await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ${maxId})`)
+            } catch {
+              try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'tags'`) } catch {}
+              try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ${maxId})`) } catch {}
+            }
           }
-        }
+        } catch {}
       }
     } catch {}
   }
@@ -196,17 +257,22 @@ export async function processImportTags(
 
     updateAdminImport(importId, { totalRecords: tags.length })
 
-    const db = hubDatabase()
-    if (!db) throw new Error('Database not available')
-
     await importTagsInline(importId, tags, options)
 
     // Persist completion
     try {
-      const db2 = hubDatabase()
       const pp = getAdminImport(importId)!
-      await db2.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-        .bind('completed', pp.totalRecords, pp.successfulRecords, pp.failedRecords, pp.warnings.length, importId).run()
+      await db.update(schema.importLogs)
+        .set({
+          status: 'completed',
+          recordCount: pp.totalRecords,
+          successfulCount: pp.successfulRecords,
+          failedCount: pp.failedRecords,
+          warningsCount: pp.warnings.length,
+          completedAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(schema.importLogs.importId, importId))
+        .run()
       updateAdminImport(importId, { status: 'completed', completedAt: new Date() as any })
     } catch {}
 

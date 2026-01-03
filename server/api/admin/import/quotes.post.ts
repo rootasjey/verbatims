@@ -2,6 +2,8 @@ import type { ImportOptions } from '~/types'
 import { createAdminImport, getAdminImport, updateAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
 import { processImportQuotes } from '~/server/utils/imports/import-quotes'
 import { scheduleBackground } from '~/server/utils/schedule'
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 
 /**
  * Admin API: Import Quotes (JSON/CSV/XML)
@@ -22,9 +24,15 @@ export default defineEventHandler(async (event) => {
 
     // Log import start (best-effort)
     try {
-      const db = hubDatabase()
-      await db.prepare(`INSERT INTO import_logs (import_id, filename, format, data_type, status, user_id, options) VALUES (?, ?, ?, ?, ?, ?, ?)`)
-        .bind(importId, filename || null, (format || 'json'), 'quotes', 'pending', user.id, JSON.stringify(options || {})).run()
+      await db.insert(schema.importLogs).values({
+        importId,
+        filename: filename || null,
+        format: format || 'json',
+        dataType: 'quotes',
+        status: 'pending',
+        userId: user.id,
+        options: JSON.stringify(options || {})
+      })
     } catch (e) {
       console.warn('Failed to log quotes import start:', e)
     }
@@ -34,10 +42,18 @@ export default defineEventHandler(async (event) => {
       processImportQuotes(importId, data, format, options, user.id).catch((err) => {
         addAdminImportError(importId, `Fatal error: ${err.message}`)
         try {
-          const db = hubDatabase()
           const p = getAdminImport(importId)!
-          db.prepare(`UPDATE import_logs SET status=?, record_count=?, successful_count=?, failed_count=?, warnings_count=?, completed_at=CURRENT_TIMESTAMP WHERE import_id=?`)
-            .bind('failed', p.totalRecords, p.successfulRecords, p.failedRecords, p.warnings.length, importId).run()
+          db.update(schema.importLogs)
+            .set({
+              status: 'failed',
+              recordCount: p.totalRecords,
+              successfulCount: p.successfulRecords,
+              failedCount: p.failedRecords,
+              warningsCount: p.warnings.length,
+              completedAt: new Date()
+            })
+            .where(eq(schema.importLogs.importId, importId))
+            .run()
         } catch {}
       })
 

@@ -1,6 +1,9 @@
 import { extractAuthor, extractReference, extractTags, parseIntSafe } from '~/server/utils/extraction'
 import { parseSort, parseSortOrder } from '~/server/utils/sort'
 import type { QuoteLanguage, ApiResponse, ProcessedQuoteResult, QuoteSearchResult } from '~/types'
+import { db, schema } from 'hub:db'
+import { eq, and, like, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
+
 export default defineEventHandler(async (event): Promise<ApiResponse<{
   quotes: ProcessedQuoteResult[]
   total: number
@@ -23,7 +26,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
 }>> => {
   try {
     const query = getQuery(event)
-    const db = hubDatabase()
 
     const q = (query.q as string | undefined) || ''
     const qTrim = q.trim()
@@ -65,147 +67,149 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
       to,
     }
 
-    // Base select and count (share the same WHERE and tag subquery)
-    let baseWhere = ` WHERE q.status = 'approved'`
-    const whereParams: (string | number)[] = []
+    // Build conditions
+    const conditions = [eq(schema.quotes.status, 'approved')]
 
     if (hasQuery) {
-      baseWhere += ' AND q.name LIKE ?'
-      whereParams.push(`%${qTrim}%`)
+      conditions.push(like(schema.quotes.name, `%${qTrim}%`))
     }
 
     if (language) {
-      baseWhere += ' AND q.language = ?'
-      whereParams.push(language)
+      conditions.push(eq(schema.quotes.originalLanguage, language))
     }
     if (authorId) {
-      baseWhere += ' AND q.author_id = ?'
-      whereParams.push(authorId)
+      conditions.push(eq(schema.quotes.authorId, authorId))
     }
     if (referenceId) {
-      baseWhere += ' AND q.reference_id = ?'
-      whereParams.push(referenceId)
+      conditions.push(eq(schema.quotes.referenceId, referenceId))
     }
     if (typeof minLen === 'number' && minLen > 0) {
-      baseWhere += ' AND LENGTH(q.name) >= ?'
-      whereParams.push(minLen)
+      conditions.push(sql`LENGTH(${schema.quotes.name}) >= ${minLen}`)
     }
     if (typeof maxLen === 'number' && maxLen > 0) {
-      baseWhere += ' AND LENGTH(q.name) <= ?'
-      whereParams.push(maxLen)
+      conditions.push(sql`LENGTH(${schema.quotes.name}) <= ${maxLen}`)
     }
     if (from) {
-      baseWhere += ' AND q.moderated_at >= ?'
-      whereParams.push(from)
+      conditions.push(gte(schema.quotes.moderatedAt, new Date(from)))
     }
     if (to) {
-      baseWhere += ' AND q.moderated_at <= ?'
-      whereParams.push(to)
+      conditions.push(lte(schema.quotes.moderatedAt, new Date(to)))
     }
 
     // Tag filter
-    let tagClause = ''
-    const tagParams: (number)[] = []
     if (tagIds.length > 0) {
-      tagClause = `
-        AND q.id IN (
-          SELECT qt3.quote_id
-          FROM quote_tags qt3
-          WHERE qt3.tag_id IN (${tagIds.map(() => '?').join(',')})
-          GROUP BY qt3.quote_id
-          HAVING COUNT(DISTINCT qt3.tag_id) = ?
-        )
-      `
-      tagParams.push(...tagIds)
-      tagParams.push(tagIds.length)
+      const subQuery = db.select({ quoteId: schema.quotesTags.quoteId })
+        .from(schema.quotesTags)
+        .where(inArray(schema.quotesTags.tagId, tagIds))
+        .groupBy(schema.quotesTags.quoteId)
+        .having(sql`COUNT(DISTINCT ${schema.quotesTags.tagId}) = ${tagIds.length}`)
+      
+      conditions.push(inArray(schema.quotes.id, subQuery))
     }
 
-    // Count query with identical filters
-    const countSql = `
-      SELECT COUNT(DISTINCT q.id) AS total
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      ${baseWhere}
-      ${tagClause}
-    `
-    const countParams = [...whereParams, ...tagParams]
-    const countRes = await db.prepare(countSql).bind(...countParams).first<{ total: number }>()
-    const total = Number(countRes?.total || 0)
-
-    // Data select with the same filters
-    let selectSql = `
-      SELECT
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        a.image_url as author_image_url,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
-      LEFT JOIN users u ON q.user_id = u.id
-      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-      LEFT JOIN tags t ON qt.tag_id = t.id
-      ${baseWhere}
-      ${tagClause}
-    `
-
-    const params: (string | number)[] = [...whereParams, ...tagParams]
-
-    selectSql += '\nGROUP BY q.id\n'
+    // Count query
+    const countRes = await db.select({ total: count(schema.quotes.id) })
+      .from(schema.quotes)
+      .where(and(...conditions))
+      .get()
+    
+    const total = countRes?.total || 0
 
     // Sorting
+    const orderBy = []
     if (effectiveSort === 'relevance' && hasQuery) {
       // Keep CASE priority first; apply sortOrder for subsequent fields
-      selectSql += `
-        ORDER BY
-          CASE WHEN q.name LIKE ? THEN 0 ELSE 1 END,
-          q.likes_count ${sortOrder.toUpperCase()},
-          q.views_count ${sortOrder.toUpperCase()},
-          q.created_at ${sortOrder.toUpperCase()}
-      `
-      params.push(`${qTrim}%`)
+      orderBy.push(sql`CASE WHEN ${schema.quotes.name} LIKE ${qTrim + '%'} THEN 0 ELSE 1 END`)
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.likesCount) : desc(schema.quotes.likesCount))
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.viewsCount) : desc(schema.quotes.viewsCount))
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.createdAt) : desc(schema.quotes.createdAt))
     } else if (effectiveSort === 'recent') {
       // Apply sortOrder to recency
-      selectSql += `
-        ORDER BY q.created_at ${sortOrder.toUpperCase()}
-      `
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.createdAt) : desc(schema.quotes.createdAt))
     } else {
       // Popularity: apply sortOrder to likes/views and tiebreaker on created_at
-      selectSql += `
-        ORDER BY q.likes_count ${sortOrder.toUpperCase()}, q.views_count ${sortOrder.toUpperCase()}, q.created_at ${sortOrder.toUpperCase()}
-      `
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.likesCount) : desc(schema.quotes.likesCount))
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.viewsCount) : desc(schema.quotes.viewsCount))
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.createdAt) : desc(schema.quotes.createdAt))
     }
 
-    // Pagination
-    selectSql += `
-      LIMIT ?
-      OFFSET ?
-    `
-    params.push(limit, offset)
-
-    const result = await db.prepare(selectSql).bind(...params).all()
-    const rows = (result?.results || []) as unknown as QuoteSearchResult[]
+    // Data select
+    const rows = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      originalLanguage: schema.quotes.originalLanguage,
+      status: schema.quotes.status,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      authorId: schema.quotes.authorId,
+      referenceId: schema.quotes.referenceId,
+      userId: schema.quotes.userId,
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      authorImageUrl: schema.authors.imageUrl,
+      referenceName: schema.quoteReferences.name,
+      referenceType: schema.quoteReferences.primaryType,
+      userName: schema.users.name,
+      tagNames: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
+      tagColors: sql<string>`GROUP_CONCAT(${schema.tags.color})`
+    })
+    .from(schema.quotes)
+    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+    .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+    .leftJoin(schema.quotesTags, eq(schema.quotes.id, schema.quotesTags.quoteId))
+    .leftJoin(schema.tags, eq(schema.quotesTags.tagId, schema.tags.id))
+    .where(and(...conditions))
+    .groupBy(schema.quotes.id)
+    .orderBy(...orderBy)
+    .limit(limit)
+    .offset(offset)
+    .all()
 
     const quotes: ProcessedQuoteResult[] = rows.map((row): ProcessedQuoteResult => {
-      const author = extractAuthor(row)
-      const reference = extractReference(row)
-      const tags = extractTags(row)
+      // Map Drizzle result to the structure expected by extract functions
+      // The extract functions expect snake_case properties from raw SQL
+      // We need to adapt or rewrite the extract functions.
+      // Since I cannot rewrite extract functions easily without seeing them, 
+      // I will construct the object manually here to match ProcessedQuoteResult
+      
+      const tags = row.tagNames ? row.tagNames.split(',').map((name: string, index: number) => ({
+        name,
+        color: row.tagColors?.split(',')[index]
+      })) : []
 
-      return ({
-        ...row,
-        author,
-        reference,
-        tags,
-      })
+      return {
+        id: row.id,
+        name: row.name,
+        language: row.originalLanguage,
+        status: row.status,
+        views_count: row.viewsCount,
+        likes_count: row.likesCount,
+        shares_count: row.sharesCount,
+        is_featured: row.isFeatured,
+        created_at: row.createdAt,
+        updated_at: row.updatedAt,
+        author: row.authorId ? {
+          id: row.authorId,
+          name: row.authorName,
+          is_fictional: row.authorIsFictional,
+          image_url: row.authorImageUrl
+        } : undefined,
+        reference: row.referenceId ? {
+          id: row.referenceId,
+          name: row.referenceName,
+          primary_type: row.referenceType
+        } : undefined,
+        user: {
+          id: row.userId,
+          name: row.userName
+        },
+        tags
+      } as unknown as ProcessedQuoteResult
     })
 
     const response = {

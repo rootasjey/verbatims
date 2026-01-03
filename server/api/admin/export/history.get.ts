@@ -4,6 +4,8 @@
  */
 
 import type { ExportHistoryEntry } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { eq, sql, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -19,42 +21,53 @@ export default defineEventHandler(async (event) => {
     const format = query.format as string
     const user_id = query.user_id ? parseInt(query.user_id as string) : undefined
 
-    const db = hubDatabase()
-    const conditions: string[] = []
-    const bindings: any[] = []
+    let historyQuery = db.select({
+      id: schema.exportLogs.id,
+      export_id: schema.exportLogs.exportId,
+      filename: schema.exportLogs.filename,
+      format: schema.exportLogs.format,
+      data_type: schema.exportLogs.dataType,
+      filters_applied: schema.exportLogs.filtersApplied,
+      record_count: schema.exportLogs.recordCount,
+      file_size: schema.exportLogs.fileSize,
+      user_id: schema.exportLogs.userId,
+      user_name: schema.users.name,
+      download_count: schema.exportLogs.downloadCount,
+      created_at: schema.exportLogs.createdAt,
+      expires_at: schema.exportLogs.expiresAt
+    })
+      .from(schema.exportLogs)
+      .leftJoin(schema.users, eq(schema.exportLogs.userId, schema.users.id))
+      .$dynamic()
 
     if (format) {
-      conditions.push('el.format = ?')
-      bindings.push(format)
+      historyQuery = historyQuery.where(eq(schema.exportLogs.format, format))
     }
 
     if (user_id) {
-      conditions.push('el.user_id = ?')
-      bindings.push(user_id)
+      historyQuery = historyQuery.where(eq(schema.exportLogs.userId, user_id))
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const history = await historyQuery
+      .orderBy(desc(schema.exportLogs.createdAt))
+      .limit(limit)
+      .offset(offset)
 
-    const historyResult = await db.prepare(`
-      SELECT
-        el.*,
-        u.name as user_name
-      FROM export_logs el
-      LEFT JOIN users u ON el.user_id = u.id
-      ${whereClause}
-      ORDER BY el.created_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(...bindings, limit, offset).all()
+    let countQuery = db
+      .select({ total: sql<number>`COUNT(*)`.as('total') })
+      .from(schema.exportLogs)
+      .$dynamic()
 
-    const history = (historyResult?.results || []) as any[]
+    if (format) {
+      countQuery = countQuery.where(eq(schema.exportLogs.format, format))
+    }
 
-    const countResult = await db.prepare(`
-      SELECT COUNT(*) as total
-      FROM export_logs el
-      ${whereClause}
-    `).bind(...bindings).first()
+    if (user_id) {
+      countQuery = countQuery.where(eq(schema.exportLogs.userId, user_id))
+    }
 
-    const total = Number(countResult?.total) || 0
+    const countResult = await countQuery
+    const total = Number(countResult[0]?.total) || 0
     const hasMore = offset + history.length < total
 
     const processedHistory: ExportHistoryEntry[] = history.map((entry: any) => ({

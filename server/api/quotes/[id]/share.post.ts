@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
@@ -8,12 +11,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = hubDatabase()
-
     // Check if quote exists and is approved
-    const quote = await db.prepare(`
-      SELECT id, shares_count FROM quotes WHERE id = ? AND status = 'approved'
-    `).bind(quoteId).first()
+    const quote = await db.select({ 
+      id: schema.quotes.id, 
+      sharesCount: schema.quotes.sharesCount 
+    })
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get()
 
     if (!quote) {
       throw createError({
@@ -23,14 +31,15 @@ export default defineEventHandler(async (event) => {
     }
 
     // Increment share count
-    await db.prepare(`
-      UPDATE quotes SET shares_count = shares_count + 1 WHERE id = ?
-    `).bind(quoteId).run()
+    await db.update(schema.quotes)
+      .set({ sharesCount: sql`${schema.quotes.sharesCount} + 1` })
+      .where(eq(schema.quotes.id, parseInt(quoteId)))
 
     // Get updated share count
-    const updatedQuote = await db.prepare(`
-      SELECT shares_count FROM quotes WHERE id = ?
-    `).bind(quoteId).first()
+    const updatedQuote = await db.select({ sharesCount: schema.quotes.sharesCount })
+      .from(schema.quotes)
+      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .get()
 
     if (!updatedQuote) {
       throw createError({ statusCode: 500, statusMessage: 'Failed to update quote share count' })
@@ -39,7 +48,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: {
-        sharesCount: (updatedQuote as any).shares_count
+        sharesCount: updatedQuote.sharesCount
       }
     }
   } catch (error) {

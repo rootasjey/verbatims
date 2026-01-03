@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -10,10 +12,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Find user by email
-    const userData = await hubDatabase()
-      .prepare('SELECT * FROM users WHERE email = ?1 LIMIT 1')
-      .bind(email)
-      .first()
+    const userData = await db.select().from(schema.users).where(eq(schema.users.email, email)).get()
 
     if (!userData) {
       throw createError({
@@ -41,10 +40,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update last login timestamp
-    await hubDatabase()
-      .prepare('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?1')
-      .bind(userData.id)
-      .run()
+    await db.update(schema.users)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(schema.users.id, userData.id))
 
     const user = {
       id: userData.id,

@@ -1,15 +1,25 @@
 import type { ImportOptions } from '~/types'
 import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export async function importQuoteViewsInline(importId: string, data: any[], options?: ImportOptions): Promise<void> {
   if (!Array.isArray(data) || !data.length) return
-  const db = hubDatabase()
   let success = 0, failed = 0
   const errors: string[] = []
   for (const row of data) {
     try {
-      await db.prepare('INSERT OR IGNORE INTO quote_views (id, quote_id, user_id, viewed_at, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?)')
-        .bind(row.id, row.quote_id, row.user_id || null, row.viewed_at || null, row.ip_address || null, row.user_agent || null).run()
+      await db.insert(schema.quoteViews)
+        .values({
+          id: row.id,
+          quoteId: row.quote_id,
+          userId: row.user_id || null,
+          viewedAt: row.viewed_at || null,
+          ipAddress: row.ip_address || null,
+          userAgent: row.user_agent || null,
+        })
+        .onConflictDoNothing()
+        .run()
       success++
     } catch (e: any) {
       failed++

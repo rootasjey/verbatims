@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -24,13 +27,14 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const db = hubDatabase()
-    
     // Check if user already has a collection with this name
-    const existingCollection = await db.prepare(`
-      SELECT id FROM user_collections 
-      WHERE user_id = ? AND name = ?
-    `).bind(session.user.id, body.name.trim()).first()
+    const existingCollection = await db.select()
+      .from(schema.userCollections)
+      .where(and(
+        eq(schema.userCollections.userId, session.user.id),
+        eq(schema.userCollections.name, body.name.trim())
+      ))
+      .get()
     
     if (existingCollection) {
       throw createError({
@@ -40,27 +44,27 @@ export default defineEventHandler(async (event) => {
     }
     
     // Create collection
-    const result = await db.prepare(`
-      INSERT INTO user_collections (user_id, name, description, is_public)
-      VALUES (?, ?, ?, ?)
-    `).bind(
-      session.user.id,
-      body.name.trim(),
-      body.description?.trim() || null,
-      !!body.is_public
-    ).run()
+    const result = await db.insert(schema.userCollections)
+      .values({
+        userId: session.user.id,
+        name: body.name.trim(),
+        description: body.description?.trim() || null,
+        isPublic: !!body.is_public
+      })
+      .returning()
+      .get()
     
     // Fetch the created collection with user info
-    const collection = await db.prepare(`
+    const collection = await db.get(sql`
       SELECT 
         c.*,
         u.name as user_name,
         u.avatar_url as user_avatar,
         0 as quotes_count
-      FROM user_collections c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.id = ?
-    `).bind(result.meta.last_row_id).first()
+      FROM ${schema.userCollections} c
+      LEFT JOIN ${schema.users} u ON c.user_id = u.id
+      WHERE c.id = ${result.id}
+    `)
     
     return {
       success: true,

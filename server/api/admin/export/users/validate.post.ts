@@ -4,6 +4,8 @@
  */
 
 import type { ExportOptions, UserExportFilters, ExportValidation } from '~/types/export'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -56,24 +58,13 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const db = hubDatabase()
-    if (!db) {
-      validation.errors.push('Database not available')
-      validation.valid = false
-      return {
-        success: false,
-        data: validation
-      }
-    }
-
     // Build query to estimate count and size
     const { query, bindings } = buildUsersQuery(filters as UserExportFilters, body.include_relations || false, limit)
 
     try {
-      // Get estimated count - need to wrap the original query to handle GROUP BY
-      const countQuery = `SELECT COUNT(*) as count FROM (${query}) as subquery`
-      const countResult = await db.prepare(countQuery).bind(...bindings).first()
-      const estimatedCount = Number(countResult?.count) || 0
+      // Get estimated count
+      const results = await query;
+      const estimatedCount = Array.isArray(results) ? results.length : 0;
 
       validation.estimated_count = estimatedCount
 

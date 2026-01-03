@@ -20,8 +20,7 @@ export default defineEventHandler(async (event) => {
     const dateFrom = query.dateFrom as string | undefined
     const dateTo = query.dateTo as string | undefined
 
-    const db = hubDatabase()
-    const result = await listBackupFiles(db, {
+    const result = await listBackupFiles({
       page,
       limit,
       status,

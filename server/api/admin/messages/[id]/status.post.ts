@@ -1,3 +1,5 @@
+import { db, schema } from 'hub:db'
+import { eq, sql } from 'drizzle-orm'
 import type { ReportStatus } from '~/types/report'
 
 export default defineEventHandler(async (event) => {
@@ -15,15 +17,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid status' })
   }
 
-  const db = hubDatabase()
-  const existing = await db.prepare('SELECT id FROM user_messages WHERE id = ?').bind(id).first()
-  if (!existing) { throw createError({ statusCode: 404, statusMessage: 'Message not found' }) }
+  const existing = await db
+    .select({ id: schema.userMessages.id })
+    .from(schema.userMessages)
+    .where(eq(schema.userMessages.id, id))
+    .limit(1)
+  if (!existing.length) { throw createError({ statusCode: 404, statusMessage: 'Message not found' }) }
 
-  await db.prepare(`
-    UPDATE user_messages
-    SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `).bind(status, session.user.id, id).run()
+  await db.update(schema.userMessages)
+    .set({
+      status,
+      reviewedBy: session.user.id,
+      reviewedAt: sql`CURRENT_TIMESTAMP`
+    })
+    .where(eq(schema.userMessages.id, id))
 
   return { ok: true }
 })

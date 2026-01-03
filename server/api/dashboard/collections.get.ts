@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq, desc, count, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
@@ -6,35 +9,31 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const offset = (page - 1) * limit
     
-    const db = hubDatabase()
-    
     // Get user's collections with quote count
-    const collections = await db.prepare(`
-      SELECT 
-        c.*,
-        COUNT(cq.quote_id) as quotes_count
-      FROM user_collections c
-      LEFT JOIN collection_quotes cq ON c.id = cq.collection_id
-      WHERE c.user_id = ?
-      GROUP BY c.id
-      ORDER BY c.updated_at DESC
-      LIMIT ? OFFSET ?
-    `).bind(session.user.id, limit, offset).all()
+    const collections = await db.select({
+      ...schema.userCollections,
+      quotes_count: sql<number>`COUNT(${schema.collectionQuotes.quoteId})`
+    })
+      .from(schema.userCollections)
+      .leftJoin(schema.collectionQuotes, eq(schema.userCollections.id, schema.collectionQuotes.collectionId))
+      .where(eq(schema.userCollections.userId, session.user.id))
+      .groupBy(schema.userCollections.id)
+      .orderBy(desc(schema.userCollections.updatedAt))
+      .limit(limit)
+      .offset(offset)
     
     // Get total count
-    const totalResult = await db.prepare(`
-      SELECT COUNT(*) as total
-      FROM user_collections
-      WHERE user_id = ?
-    `).bind(session.user.id).first()
+    const totalResult = await db.select({ total: count() })
+      .from(schema.userCollections)
+      .where(eq(schema.userCollections.userId, session.user.id))
 
-    const total = Number(totalResult?.total) ?? 0
-    const collectionCount = Number(collections.results.length) ?? 0
+    const total = Number(totalResult[0]?.total) ?? 0
+    const collectionCount = Number(collections.length) ?? 0
     const hasMore = offset + collectionCount < total
 
     return {
       success: true,
-      data: collections,
+      data: { results: collections },
       pagination: {
         page,
         limit,

@@ -3,6 +3,9 @@
  * Retrieves authors with pagination, search, and filtering for admin interface
  */
 
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
     // Check admin authentication
@@ -15,7 +18,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const query = getQuery(event)
-    const db = hubDatabase()
     
     // Parse query parameters
     const page = parseInt(query.page as string) || 1
@@ -29,16 +31,14 @@ export default defineEventHandler(async (event) => {
     
     // Build the WHERE clause
     const whereConditions = []
-    const params = []
     
     if (search) {
-      whereConditions.push('(a.name LIKE ? OR a.job LIKE ? OR a.description LIKE ?)')
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`)
+      const searchPattern = `%${search}%`
+      whereConditions.push(`(a.name LIKE ${sql.raw(`'${searchPattern}'`)} OR a.job LIKE ${sql.raw(`'${searchPattern}'`)} OR a.description LIKE ${sql.raw(`'${searchPattern}'`)})`)
     }
     
     if (is_fictional !== undefined && is_fictional !== '') {
-      whereConditions.push('a.is_fictional = ?')
-      params.push(is_fictional === 'true' ? 1 : 0)
+      whereConditions.push(`a.is_fictional = ${is_fictional === 'true' ? 1 : 0}`)
     }
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
@@ -60,42 +60,36 @@ export default defineEventHandler(async (event) => {
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
     // Main query with quote count
-    const authorsQuery = `
+    const authors = await db.all(sql.raw(`
       SELECT 
         a.*,
         COUNT(q.id) as quotes_count
-      FROM authors a
-      LEFT JOIN quotes q ON a.id = q.author_id
+      FROM ${schema.authors._.name} a
+      LEFT JOIN ${schema.quotes._.name} q ON a.id = q.author_id
       ${whereClause}
       GROUP BY a.id
       ORDER BY ${sortColumn === 'quotes_count' ? 'quotes_count' : `a.${sortColumn}`} ${sortDirection}
-      LIMIT ? OFFSET ?
-    `
+      LIMIT ${limit} OFFSET ${offset}
+    `))
     
     // Count query for pagination
-    const countQuery = `
+    const countResult = await db.get<{ total: number }>(sql.raw(`
       SELECT COUNT(*) as total
-      FROM authors a
+      FROM ${schema.authors._.name} a
       ${whereClause}
-    `
+    `))
     
-    // Execute queries
-    const [authorsResult, countResult] = await Promise.all([
-      db.prepare(authorsQuery).bind(...params, limit, offset).all(),
-      db.prepare(countQuery).bind(...params).first()
-    ])
-    
-    const authors = (authorsResult?.results || []).map((author: any) => ({
+    const authorsData = authors.map((author: any) => ({
       ...author,
       socials: author.socials ? JSON.parse(author.socials) : {}
     }))
     
-    const total = Number(countResult?.total) || 0
+    const total = countResult?.total || 0
     const totalPages = Math.ceil(total / limit)
     
     return {
       success: true,
-      data: authors,
+      data: authorsData,
       pagination: {
         page,
         limit,

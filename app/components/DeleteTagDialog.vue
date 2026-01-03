@@ -57,8 +57,9 @@ watch(isOpen, async (open) => {
     confirmHighUsage.value = false
     usageLoading.value = true
     try {
-      const res = await $fetch(`/api/admin/tags/${props.tag.id}`)
-      usageCount.value = Number(res?.data?.quotes_count || 0)
+      type TagUsageResponse = { data?: { quotes_count?: number } }
+      const res = await $fetch<TagUsageResponse>(`/api/admin/tags/${props.tag.id}`)
+      usageCount.value = Number(res.data?.quotes_count || 0)
     } catch (e) {
       usageCount.value = 0
     } finally {

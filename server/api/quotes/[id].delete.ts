@@ -2,6 +2,8 @@
  * API: Delete Quote
  * Deletes a quote by ID (only drafts can be deleted by regular users, admins can delete any quote)
  */
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -23,19 +25,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Connect to database
-    const db = hubDatabase()
-    if (!db) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database not available'
-      })
-    }
-
     // Check if quote exists and belongs to user
-    const quote = await db.prepare(`
-      SELECT id, user_id, status FROM quotes WHERE id = ?
-    `).bind(quoteId).first()
+    const quote = await db.select({
+      id: schema.quotes.id,
+      userId: schema.quotes.userId,
+      status: schema.quotes.status
+    })
+    .from(schema.quotes)
+    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .get()
 
     if (!quote) {
       throw createError({
@@ -47,7 +45,7 @@ export default defineEventHandler(async (event) => {
     // Check permissions: regular users can only delete their own drafts
     // Admins and moderators can delete any quote
     const isAdmin = user.role === 'admin' || user.role === 'moderator'
-    const isOwner = quote.user_id === user.id
+    const isOwner = quote.userId === user.id
     const isDraft = quote.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {
@@ -58,16 +56,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Delete quote
-    const result = await db.prepare(`
-      DELETE FROM quotes WHERE id = ?
-    `).bind(quoteId).run()
-
-    if (!result.success) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to delete quote'
-      })
-    }
+    await db.delete(schema.quotes)
+      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .run()
 
     return {
       success: true,

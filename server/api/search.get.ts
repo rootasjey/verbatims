@@ -8,6 +8,9 @@ import type {
   ProcessedQuoteResult,
   SearchResults
 } from '~/types'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event): Promise<ApiResponse<SearchResults>> => {
   try {
     const query = getQuery(event)
@@ -30,7 +33,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
       }
     }
 
-    const db = hubDatabase()
     const searchPattern = `%${searchTerm.trim()}%`
     const results: SearchResults = {
       quotes: [],
@@ -41,7 +43,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
 
     // Search quotes if requested
     if (!contentType || contentType === 'all' || contentType === 'quotes') {
-      let quotesQuery = `
+      let quotesQuery = sql`
         SELECT
           q.*,
           a.name as author_name,
@@ -53,44 +55,38 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
           GROUP_CONCAT(t.name) as tag_names,
           GROUP_CONCAT(t.color) as tag_colors,
           'quote' as result_type
-        FROM quotes q
-        LEFT JOIN authors a ON q.author_id = a.id
-        LEFT JOIN quote_references r ON q.reference_id = r.id
-        LEFT JOIN users u ON q.user_id = u.id
-        LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-        LEFT JOIN tags t ON qt.tag_id = t.id
-        WHERE q.status = 'approved' AND q.name LIKE ?
+        FROM ${schema.quotes} q
+        LEFT JOIN ${schema.authors} a ON q.author_id = a.id
+        LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+        LEFT JOIN ${schema.users} u ON q.user_id = u.id
+        LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
+        LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
+        WHERE q.status = 'approved' AND q.name LIKE ${searchPattern}
       `
-
-      const quotesParams = [searchPattern]
 
       // Add language filter
       if (language) {
-        quotesQuery += ' AND q.language = ?'
-        quotesParams.push(language)
+        quotesQuery = sql`${quotesQuery} AND q.language = ${language}`
       }
 
       // Add author filter
       if (authorId) {
-        quotesQuery += ' AND q.author_id = ?'
-        quotesParams.push(authorId.toString())
+        quotesQuery = sql`${quotesQuery} AND q.author_id = ${authorId}`
       }
 
       // Add reference filter
       if (referenceId) {
-        quotesQuery += ' AND q.reference_id = ?'
-        quotesParams.push(referenceId.toString())
+        quotesQuery = sql`${quotesQuery} AND q.reference_id = ${referenceId}`
       }
 
-      quotesQuery += `
+      quotesQuery = sql`${quotesQuery}
         GROUP BY q.id
         ORDER BY q.likes_count DESC, q.views_count DESC, q.created_at DESC
-        LIMIT ?
+        LIMIT ${limit}
       `
-      quotesParams.push(limit.toString())
 
-      const quotesResult = await db.prepare(quotesQuery).bind(...quotesParams).all()
-      const quotes = (quotesResult?.results || []) as unknown as QuoteSearchResult[]
+      const quotesResult = await db.all(quotesQuery)
+      const quotes = quotesResult as unknown as QuoteSearchResult[]
 
       results.quotes = quotes.map((quote): ProcessedQuoteResult => ({
         ...quote,
@@ -103,46 +99,40 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
 
     // Search authors if requested
     if (!contentType || contentType === 'all' || contentType === 'authors') {
-      const authorsQuery = `
+      const authorsQuery = sql`
         SELECT
           a.*,
           'author' as result_type,
           COUNT(q.id) as quotes_count
-        FROM authors a
-        LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
-        WHERE a.name LIKE ? OR a.description LIKE ? OR a.job LIKE ?
+        FROM ${schema.authors} a
+        LEFT JOIN ${schema.quotes} q ON a.id = q.author_id AND q.status = 'approved'
+        WHERE a.name LIKE ${searchPattern} OR a.description LIKE ${searchPattern} OR a.job LIKE ${searchPattern}
         GROUP BY a.id
         ORDER BY a.likes_count DESC, a.views_count DESC, quotes_count DESC
-        LIMIT ?
+        LIMIT ${limit}
       `
 
-      const authorsResult = await db.prepare(authorsQuery)
-        .bind(searchPattern, searchPattern, searchPattern, limit.toString())
-        .all()
-
-      results.authors = (authorsResult?.results || []) as unknown as AuthorSearchResult[]
+      const authorsResult = await db.all(authorsQuery)
+      results.authors = authorsResult as unknown as AuthorSearchResult[]
     }
 
     // Search references if requested
     if (!contentType || contentType === 'all' || contentType === 'references') {
-      const referencesQuery = `
+      const referencesQuery = sql`
         SELECT
           r.*,
           'reference' as result_type,
           COUNT(q.id) as quotes_count
-        FROM quote_references r
-        LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'
-        WHERE r.name LIKE ? OR r.description LIKE ? OR r.secondary_type LIKE ?
+        FROM ${schema.quoteReferences} r
+        LEFT JOIN ${schema.quotes} q ON r.id = q.reference_id AND q.status = 'approved'
+        WHERE r.name LIKE ${searchPattern} OR r.description LIKE ${searchPattern} OR r.secondary_type LIKE ${searchPattern}
         GROUP BY r.id
         ORDER BY r.likes_count DESC, r.views_count DESC, quotes_count DESC
-        LIMIT ?
+        LIMIT ${limit}
       `
 
-      const referencesResult = await db.prepare(referencesQuery)
-        .bind(searchPattern, searchPattern, searchPattern, limit.toString())
-        .all()
-
-      results.references = (referencesResult?.results || []) as unknown as ReferenceSearchResult[]
+      const referencesResult = await db.all(referencesQuery)
+      results.references = referencesResult as unknown as ReferenceSearchResult[]
     }
 
     // If searching all content types, limit total results and balance them
@@ -155,7 +145,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
       // Fill remaining slots with quotes (most important content)
       const remaining = limit - (results.quotes.length + results.authors.length + results.references.length)
       if (remaining > 0 && results.quotes.length < limit) {
-        const additionalQuotesResult = await db.prepare(`
+        const additionalQuotesResult = await db.all(sql`
           SELECT
             q.*,
             a.name as author_name,
@@ -167,22 +157,22 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
             GROUP_CONCAT(t.name) as tag_names,
             GROUP_CONCAT(t.color) as tag_colors,
             'quote' as result_type
-          FROM quotes q
-          LEFT JOIN authors a ON q.author_id = a.id
-          LEFT JOIN quote_references r ON q.reference_id = r.id
-          LEFT JOIN users u ON q.user_id = u.id
-          LEFT JOIN quote_tags qt ON q.id = qt.quote_id
-          LEFT JOIN tags t ON qt.tag_id = t.id
+          FROM ${schema.quotes} q
+          LEFT JOIN ${schema.authors} a ON q.author_id = a.id
+          LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+          LEFT JOIN ${schema.users} u ON q.user_id = u.id
+          LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
+          LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
           WHERE q.status = 'approved' AND (
-            a.name LIKE ? OR r.name LIKE ? OR
-            EXISTS (SELECT 1 FROM tags t2 JOIN quote_tags qt2 ON t2.id = qt2.tag_id WHERE qt2.quote_id = q.id AND t2.name LIKE ?)
+            a.name LIKE ${searchPattern} OR r.name LIKE ${searchPattern} OR
+            EXISTS (SELECT 1 FROM ${schema.tags} t2 JOIN ${schema.quoteTags} qt2 ON t2.id = qt2.tag_id WHERE qt2.quote_id = q.id AND t2.name LIKE ${searchPattern})
           )
           GROUP BY q.id
           ORDER BY q.likes_count DESC, q.views_count DESC
-          LIMIT ?
-        `).bind(searchPattern, searchPattern, searchPattern, remaining.toString()).all()
+          LIMIT ${remaining}
+        `)
 
-        const additionalQuotes = (additionalQuotesResult?.results || []) as unknown as QuoteSearchResult[]
+        const additionalQuotes = additionalQuotesResult as unknown as QuoteSearchResult[]
         const processedAdditionalQuotes: ProcessedQuoteResult[] = additionalQuotes.map((quote): ProcessedQuoteResult => ({
           ...quote,
           tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({

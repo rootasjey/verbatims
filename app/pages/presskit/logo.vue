@@ -86,7 +86,7 @@ const selectedFormat = ref<{ label: string; value: Format }>({ label: 'PNG', val
 const downloading = ref(false)
 const errorMsg = ref('')
 
-const formatItems = [
+const formatItems: Array<{ label: string; value: Format }> = [
   { label: 'PNG', value: 'png' },
   { label: 'JPEG', value: 'jpeg' },
   { label: 'SVG', value: 'svg' },

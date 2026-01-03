@@ -1,25 +1,35 @@
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
+
 export default defineEventHandler(async (event) => {
   try {
-    const referenceId = getRouterParam(event, 'id')
-    if (!referenceId || isNaN(parseInt(referenceId))) throwServer(400, 'Invalid reference ID')
+    const referenceIdParam = getRouterParam(event, 'id')
+    const referenceId = Number.parseInt(referenceIdParam || '', 10)
+    if (!referenceIdParam || Number.isNaN(referenceId)) throwServer(400, 'Invalid reference ID')
 
-    const db = hubDatabase()
-    // Fetch reference with quote count
-    const reference = await db.prepare(`
-      SELECT 
-        r.*,
-        COUNT(q.id) as quotes_count
-      FROM quote_references r
-      LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'
-      WHERE r.id = ?
-      GROUP BY r.id
-    `).bind(referenceId).first()
+    // Fetch reference
+    const reference = await db.select()
+      .from(schema.quoteReferences)
+      .where(eq(schema.quoteReferences.id, referenceId))
+      .get()
 
     if (!reference) { throwServer(404, 'Reference not found'); return }
 
+    // Count approved quotes for this reference
+    const quotesCountResult = await db.select({ count: sql<number>`count(*)` })
+      .from(schema.quotes)
+      .where(and(
+        eq(schema.quotes.referenceId, referenceId),
+        eq(schema.quotes.status, 'approved')
+      ))
+      .get()
+
+    const quotesCount = quotesCountResult?.count || 0
+
     const transformedReference = {
       ...reference,
-      urls: reference.urls ? JSON.parse(reference.urls as string) : []
+      urls: reference.urls ? JSON.parse(reference.urls as string) : [],
+      quotes_count: quotesCount
     }
 
     return {
