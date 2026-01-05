@@ -68,6 +68,19 @@ export default {
   ],
   shortcuts: [
     {
+      // Dynamic badge colors for quote status (pending, approved, rejected, draft)
+      'badge-soft-pending': 'bg-yellow-50 n-yellow-700 ring-yellow-700/10 dark:bg-yellow-400/10 dark:n-yellow-400 dark:ring-yellow-400/30',
+      'badge-soft-approved': 'bg-green-50 n-green-700 ring-green-700/10 dark:bg-green-400/10 dark:n-green-400 dark:ring-green-400/30',
+      'badge-soft-rejected': 'bg-red-50 n-red-700 ring-red-700/10 dark:bg-red-400/10 dark:n-red-400 dark:ring-red-400/30',
+      'badge-soft-draft': 'bg-gray-50 n-gray-700 ring-gray-700/10 dark:bg-gray-400/10 dark:n-gray-400 dark:ring-gray-400/30',
+      // Dynamic badge colors for reference types (book, film, game, series, etc.)
+      'badge-outline-book': 'n-blue-700 ring-blue-700/10 dark:n-blue-400 dark:ring-blue-400/30',
+      'badge-outline-film': 'n-purple-700 ring-purple-700/10 dark:n-purple-400 dark:ring-purple-400/30',
+      'badge-outline-game': 'n-green-700 ring-green-700/10 dark:n-green-400 dark:ring-green-400/30',
+      'badge-outline-series': 'n-orange-700 ring-orange-700/10 dark:n-orange-400 dark:ring-orange-400/30',
+      'badge-outline-song': 'n-pink-700 ring-pink-700/10 dark:n-pink-400 dark:ring-pink-400/30',
+      'badge-outline-speech': 'n-indigo-700 ring-indigo-700/10 dark:n-indigo-400 dark:ring-indigo-400/30',
+      'badge-outline-other': 'n-gray-700 ring-gray-700/10 dark:n-gray-400 dark:ring-gray-400/30',
       "btn-glowing": "from-primary-500 via-primary-600 to-primary-700 bg-gradient-to-r text-white shadow-lg shadow-primary-500/50 hover:bg-gradient-to-br dark:shadow-lg dark:shadow-primary-800/80 dark:focus:ring-primary-800",
       "btn-glowing-outline": "border border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white dark:border-primary-500 dark:text-primary-500 dark:hover:bg-primary-500 dark:hover:text-white",
       "dp-menu-trigger": "color-white absolute top-1 right-1 p-1 ring-0 invisible group-hover:visible rounded-lg backdrop-blur-md bg-white/20 dark:bg-black/60  hover:bg-white/40 dark:hover:bg-black/80 hover:scale-110 active:scale-99 transition b-0",
