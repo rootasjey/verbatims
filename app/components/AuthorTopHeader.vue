@@ -104,8 +104,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { AuthorWithSocials } from '~/types/author'
-
 interface HeaderMenuItem {
   label: string
   leading?: string

@@ -49,11 +49,11 @@
 </template>
 
 <script setup lang="ts">
+import type { ProcessedQuoteResult } from '~~/server/types';
+
 const props = defineProps<{
   feed: UseQuoteSearchFeed
 }>()
-
-import type { ProcessedQuoteResult } from '~/types'
 
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
 const showEditQuoteDialog = ref(false)
@@ -80,7 +80,7 @@ const closeEditAfterUpdate = async () => {
   
   try { // Fetch fresh data for the updated quote and patch it locally in the feed
     if (!selectedQuote.value?.id) return
-    const res = await $fetch(`/api/quotes/${selectedQuote.value.id}`)
+    const res = await $fetch<{ success: boolean; data: ProcessedQuoteResult }>(`/api/quotes/${selectedQuote.value.id}`)
     const updated = res.data
     if (updated) props.feed.updateQuoteInFeed(updated)
   } catch (e) { console.error('Failed to update quote:', e) }

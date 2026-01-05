@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
       const authorQuotes = await db.select({
         id: schema.quotes.id,
         name: schema.quotes.name,
-        originalLanguage: schema.quotes.originalLanguage,
+        language: schema.quotes.language,
         status: schema.quotes.status,
         viewsCount: schema.quotes.viewsCount,
         likesCount: schema.quotes.likesCount,
@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
       const referenceQuotes = await db.select({
         id: schema.quotes.id,
         name: schema.quotes.name,
-        originalLanguage: schema.quotes.originalLanguage,
+        language: schema.quotes.language,
         status: schema.quotes.status,
         viewsCount: schema.quotes.viewsCount,
         likesCount: schema.quotes.likesCount,
@@ -143,7 +143,7 @@ export default defineEventHandler(async (event) => {
           const tagQuotes = await db.select({
             id: schema.quotes.id,
             name: schema.quotes.name,
-            originalLanguage: schema.quotes.originalLanguage,
+            language: schema.quotes.language,
             status: schema.quotes.status,
             viewsCount: schema.quotes.viewsCount,
             likesCount: schema.quotes.likesCount,
@@ -210,7 +210,7 @@ export default defineEventHandler(async (event) => {
     const transformedQuotes = relatedQuotes.slice(0, 4).map((quote: any) => ({
       id: quote.id,
       name: quote.name,
-      language: quote.originalLanguage,
+      language: quote.language,
       status: quote.status,
       views_count: quote.viewsCount,
       likes_count: quote.likesCount,

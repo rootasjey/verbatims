@@ -4,7 +4,7 @@ import { eq, or } from 'drizzle-orm'
 
 const bodySchema = z.object({
   name: z.string().min(2).max(50),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 })
 
@@ -55,14 +55,14 @@ export default defineEventHandler(async (event) => {
       name: result.name,
       email: result.email,
       role: result.role,
-      created_at: result.created_at,
-      avatar_url: result.avatar_url,
+      created_at: result.createdAt,
+      avatar_url: result.avatarUrl,
       biography: result.biography,
       job: result.job,
       language: result.language,
       location: result.location,
       socials: result.socials,
-      updated_at: result.updated_at
+      updated_at: result.updatedAt
     }
 
     await setUserSession(event, { user })

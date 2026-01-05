@@ -38,8 +38,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteWithMetadata } from '~/types/quote'
-
 interface Props {
   modelValue: boolean
   quote?: QuoteWithMetadata | null

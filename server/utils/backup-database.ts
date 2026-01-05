@@ -1,11 +1,29 @@
-import type { 
-  BackupFile, 
-  BackupFileWithMetadata, 
-  CreateBackupFileData,
-  BackupStorageStatus
-} from '~/types'
 import { db, schema } from 'hub:db'
-import { eq, and, desc, count, lte, gte, sql } from 'drizzle-orm'
+import { eq, and, desc, count, lte, gte, sql, getTableColumns } from 'drizzle-orm'
+
+// Transform Drizzle result (camelCase) to BackupFile type (snake_case)
+function transformToBackupFile(result: any): BackupFile {
+  return {
+    id: result.id,
+    file_key: result.fileKey,
+    export_log_id: result.exportLogId,
+    import_log_id: result.importLogId,
+    filename: result.filename,
+    file_path: result.filePath,
+    file_size: result.fileSize,
+    compressed_size: result.compressedSize,
+    content_hash: result.contentHash,
+    compression_type: result.compressionType,
+    storage_status: result.storageStatus,
+    retention_days: result.retentionDays,
+    created_at: result.createdAt?.toISOString() || '',
+    uploaded_at: result.uploadedAt?.toISOString() || null,
+    expires_at: result.expiresAt?.toISOString() || null,
+    last_accessed_at: result.lastAccessedAt?.toISOString() || null,
+    access_count: result.accessCount,
+    metadata: result.metadata,
+  }
+}
 
 export async function createBackupFile(data: CreateBackupFileData): Promise<number> {
   try {
@@ -50,7 +68,7 @@ export async function updateBackupFileStatus(backupId: number, status: BackupSto
 export async function getBackupFileById(backupId: number): Promise<BackupFile | null> {
   try {
     const result = await db.select().from(schema.backupFiles).where(eq(schema.backupFiles.id, backupId)).get()
-    return result || null
+    return result ? transformToBackupFile(result) : null
   } catch (error) {
     console.error('Failed to get backup file by ID:', error)
     return null
@@ -60,7 +78,7 @@ export async function getBackupFileById(backupId: number): Promise<BackupFile | 
 export async function getBackupFileByKey(fileKey: string): Promise<BackupFile | null> {
   try {
     const result = await db.select().from(schema.backupFiles).where(eq(schema.backupFiles.fileKey, fileKey)).get()
-    return result || null
+    return result ? transformToBackupFile(result) : null
   } catch (error) {
     console.error('Failed to get backup file by key:', error)
     return null
@@ -74,7 +92,7 @@ export async function getBackupFilesForExport(exportLogId: number): Promise<Back
       .where(eq(schema.backupFiles.exportLogId, exportLogId))
       .orderBy(desc(schema.backupFiles.createdAt))
       .all()
-    return result || []
+    return result.map(transformToBackupFile)
   } catch (error) {
     console.error('Failed to get backup files for export:', error)
     return []
@@ -113,7 +131,7 @@ export async function listBackupFiles(
     const total = Number(countResult?.total ?? 0) || 0
 
     const filesResult = await db.select({
-        ...schema.backupFiles,
+        ...getTableColumns(schema.backupFiles),
         dataType: schema.exportLogs.dataType,
         userId: schema.exportLogs.userId,
         userName: schema.users.name

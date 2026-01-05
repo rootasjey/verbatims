@@ -1,4 +1,3 @@
-import type { QuoteReference } from "~/types"
 import { db, schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
 

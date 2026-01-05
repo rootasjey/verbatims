@@ -1,5 +1,4 @@
 import type { Ref } from 'vue'
-import type { ReportCategory, ReportTargetType } from '~/types/report'
 
 interface UseReportFormOptions {
   targetType?: ReportTargetType | Ref<ReportTargetType>

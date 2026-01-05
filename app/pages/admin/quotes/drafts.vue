@@ -290,7 +290,6 @@
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
-import type { AdminQuote } from '~/types'
 import { formatRelativeTime } from '~/utils/time-formatter'
 import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
 
@@ -311,7 +310,7 @@ const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
-const selectedLanguage = ref('')
+const selectedLanguage = ref({ label: '', value: '' })
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
@@ -363,8 +362,8 @@ const filteredQuotes = computed(() => {
     )
   }
 
-  if (selectedLanguage.value) {
-    filtered = filtered.filter(quote => quote.language === selectedLanguage.value)
+  if (selectedLanguage.value.value) {
+    filtered = filtered.filter(quote => quote.language === selectedLanguage.value.value)
   }
 
   return filtered
@@ -459,7 +458,7 @@ const loadQuotes = async (page = currentPage.value) => {
   page,
         limit: pageSize.value,
         search: searchQuery.value || undefined,
-        language: selectedLanguage.value || undefined
+        language: selectedLanguage.value.value || undefined
       }
     })
     
@@ -482,7 +481,7 @@ const loadQuotes = async (page = currentPage.value) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedLanguage.value = ''
+  selectedLanguage.value = { label: '', value: '' }
   currentPage.value = 1
   loadQuotes(1)
 }

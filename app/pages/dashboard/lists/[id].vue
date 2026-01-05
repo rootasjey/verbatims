@@ -54,8 +54,8 @@
       <!-- Quotes List -->
       <div v-else class="px-3 pt-3 pb-6 space-y-3">
         <QuoteListItem
-          v-for="quote in processedMobileQuotes"
-          :key="quote.id"
+          v-for="(quote, idx) in processedMobileQuotes"
+          :key="idx"
           :quote="quote"
           :actions="collectionQuoteActions"
           @share="handleShareQuote"
@@ -179,8 +179,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { CollectionWithQuotes } from '~/types/user-interactions'
-import type { ProcessedQuoteResult } from '~/types'
+import type { ProcessedQuoteResult } from '~~/server/types'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
@@ -250,8 +249,8 @@ const loadCollection = async (reset = true) => {
     } else {
       if (collection.value) {
         collection.value.quotes = [...(collection.value.quotes || []), ...(response.data?.quotes || [])]
-        // @ts-expect-error pagination may not be part of the type shape but exists in API response
-        collection.value.pagination = response.data.pagination
+        // Store pagination info separately (not in type but exists in API response)
+        ;(collection.value as any).pagination = response.data.pagination
       }
     }
     

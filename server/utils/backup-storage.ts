@@ -6,7 +6,6 @@
 import { createHash } from 'node:crypto'
 import { gzipSync, gunzipSync, strToU8, strFromU8 } from 'fflate'
 import { blob } from 'hub:blob'
-import type { BackupFile, BackupCompressionType } from '~/types'
 import {
   createBackupFile,
   updateBackupFileStatus,

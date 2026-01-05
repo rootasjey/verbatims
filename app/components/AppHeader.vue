@@ -64,7 +64,7 @@
           </NTooltip>
 
           <UserMenu v-if="user" :user="user" />
-          <NButton v-else btn="light:soft dark:soft-blue" to="/login" class="font-800 relative left-2">
+          <NButton v-else btn="light:soft" to="/login" rounded="4" class="font-800 relative left-2 dark:border hover:color-blue-6 hover:scale-102 active:scale-95 transition-transform">
             Sign in
           </NButton>
         </div>
@@ -90,10 +90,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { ReportTargetType, ReportCategory } from '~/types';
+  import { useStorage } from '@vueuse/core'
+  
 const config = useRuntimeConfig()
 const version: string = String((config.public as any).appVersion || '')
-import { useStorage } from '@vueuse/core'
+
 
 const { isMobile } = useMobileDetection()
 

@@ -4,7 +4,7 @@
  */
 
 import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import { sql, like, eq, or, and, count, desc, asc, getTableColumns } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -29,55 +29,71 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    // Build the WHERE clause
+    // Build the WHERE conditions using Drizzle ORM
     const whereConditions = []
     
     if (search) {
       const searchPattern = `%${search}%`
-      whereConditions.push(`(a.name LIKE ${sql.raw(`'${searchPattern}'`)} OR a.job LIKE ${sql.raw(`'${searchPattern}'`)} OR a.description LIKE ${sql.raw(`'${searchPattern}'`)})`)
+      whereConditions.push(
+        or(
+          like(schema.authors.name, searchPattern),
+          like(schema.authors.job, searchPattern),
+          like(schema.authors.description, searchPattern)
+        )
+      )
     }
     
     if (is_fictional !== undefined && is_fictional !== '') {
-      whereConditions.push(`a.is_fictional = ${is_fictional === 'true' ? 1 : 0}`)
+      whereConditions.push(eq(schema.authors.isFictional, is_fictional === 'true'))
     }
-    
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
     
     // Map frontend sort values to database columns
-    const sortColumnMap: Record<string, string> = {
-      'name': 'name',
-      'created': 'created_at',
-      'updated': 'updated_at',
-      'views': 'views_count',
-      'likes': 'likes_count',
-      'quotes': 'quotes_count'
+    const sortColumnMap: Record<string, any> = {
+      'name': schema.authors.name,
+      'created': schema.authors.createdAt,
+      'updated': schema.authors.updatedAt,
+      'views': schema.authors.viewsCount,
+      'likes': schema.authors.likesCount,
+      'quotes': sql<number>`COUNT(${schema.quotes.id})`
     }
 
-    // Validate and map sort column
-    const mappedSortBy = sortColumnMap[sortBy] || sortBy
-    const allowedSortColumns = ['name', 'created_at', 'updated_at', 'views_count', 'likes_count', 'quotes_count']
-    const sortColumn = allowedSortColumns.includes(mappedSortBy) ? mappedSortBy : 'name'
-    const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
+    // Get the sort column
+    const sortColumn = sortColumnMap[sortBy] || schema.authors.name
+    const sortDirection = sortOrder.toUpperCase() === 'DESC' ? desc : asc
     
-    // Main query with quote count
-    const authors = await db.all(sql.raw(`
-      SELECT 
-        a.*,
-        COUNT(q.id) as quotes_count
-      FROM ${schema.authors._.name} a
-      LEFT JOIN ${schema.quotes._.name} q ON a.id = q.author_id
-      ${whereClause}
-      GROUP BY a.id
-      ORDER BY ${sortColumn === 'quotes_count' ? 'quotes_count' : `a.${sortColumn}`} ${sortDirection}
-      LIMIT ${limit} OFFSET ${offset}
-    `))
+    // Build the query using Drizzle ORM
+    let authorsQuery = db
+      .select({
+        ...getTableColumns(schema.authors),
+        quotes_count: count(schema.quotes.id)
+      })
+      .from(schema.authors)
+      .leftJoin(schema.quotes, eq(schema.authors.id, schema.quotes.authorId))
+      .$dynamic()
+    
+    // Apply where conditions
+    if (whereConditions.length > 0) {
+      authorsQuery = authorsQuery.where(and(...whereConditions))
+    }
+    
+    // Apply grouping, sorting, and pagination
+    const authors = await authorsQuery
+      .groupBy(schema.authors.id)
+      .orderBy(sortDirection(sortColumn))
+      .limit(limit)
+      .offset(offset)
     
     // Count query for pagination
-    const countResult = await db.get<{ total: number }>(sql.raw(`
-      SELECT COUNT(*) as total
-      FROM ${schema.authors._.name} a
-      ${whereClause}
-    `))
+    let countQuery = db
+      .select({ total: count() })
+      .from(schema.authors)
+      .$dynamic()
+    
+    if (whereConditions.length > 0) {
+      countQuery = countQuery.where(and(...whereConditions))
+    }
+    
+    const countResult = await countQuery.get()
     
     const authorsData = authors.map((author: any) => ({
       ...author,

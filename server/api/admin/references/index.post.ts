@@ -1,12 +1,10 @@
+import { db, schema } from 'hub:db'
+import { sql, eq } from 'drizzle-orm'
+
 /**
  * Admin API: Create Reference
  * Creates a new reference with admin authentication
  */
-
-import { db, schema } from 'hub:db'
-import { sql, eq } from 'drizzle-orm'
-import type { CreateQuoteReferenceData } from '~/types/quote-reference'
-
 export default defineEventHandler(async (event) => {
   try {
     // Check admin authentication

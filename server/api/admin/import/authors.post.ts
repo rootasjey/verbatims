@@ -1,9 +1,5 @@
-import type { ImportOptions } from '~/types'
-import { createAdminImport, getAdminImport, addAdminImportError } from '~/server/utils/admin-import-progress'
-import { processImportAuthors } from '~/server/utils/imports/import-authors'
-import { scheduleBackground } from '~/server/utils/schedule'
-import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { eq } from "drizzle-orm"
+import type { ImportOptions } from "~/types"
 
 export default defineEventHandler(async (event) => {
   try {

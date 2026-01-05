@@ -1,7 +1,5 @@
 import { db, schema } from 'hub:db'
 import { and, desc, eq, like, or, sql } from 'drizzle-orm'
-import { parseJSONSafely } from '~/server/utils/extraction'
-import type { ReportCategory, ReportStatus, ReportTargetType, AdminUserMessage, AdminMessagesListResponse } from '~/types/report'
 
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {
   const session = await requireUserSession(event)
@@ -94,8 +92,8 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       user_agent: row.user_agent ?? null,
       status: row.status,
       reviewed_by: row.reviewed_by ?? null,
-      reviewed_at: row.reviewed_at ?? null,
-      created_at: row.created_at,
+      reviewed_at: row.reviewed_at ? (row.reviewed_at instanceof Date ? row.reviewed_at.toISOString() : row.reviewed_at) : null,
+      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
       user_name: row.user_name ?? null,
       user_email: row.user_email ?? null,
       quote_text: row.quote_text ?? null,

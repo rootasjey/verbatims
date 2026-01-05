@@ -1,12 +1,10 @@
+import { db, schema } from 'hub:db'
+import { sql, eq, and } from 'drizzle-orm'
+
 /**
  * Admin API: Update Reference
  * Updates an existing reference with admin authentication
  */
-
-import { db, schema } from 'hub:db'
-import { sql, eq, and } from 'drizzle-orm'
-import type { UpdateQuoteReferenceData } from '~/types/quote-reference'
-
 export default defineEventHandler(async (event) => {
   try {
     // Check admin authentication

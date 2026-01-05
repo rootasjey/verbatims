@@ -206,12 +206,7 @@
 </template>
 
 <script lang="ts" setup>
-import type {
-  BackupFileWithMetadata,
-  ExportHistoryEntryWithBackup,
-  ImportProgress,
-  ImportPagination,
-} from '~/types'
+import type { ImportPagination, ImportProgress } from '~~/server/types'
 
 const imports = ref<ExportHistoryEntryWithBackup[]>([])
 const loading = ref<boolean>(false)

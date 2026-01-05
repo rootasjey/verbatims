@@ -19,8 +19,8 @@
       </label>
       <div>
         <NSelect
-          :model-value="modelValue.role"
-          @update:model-value="updateFilter('role', $event)"
+          :model-value="roleModel"
+          @update:model-value="v => roleModel = (Array.isArray(v) ? v : [v])"
           :items="roleOptions"
           item-key="value"
           value-key="value"
@@ -38,11 +38,11 @@
         </label>
         <div>
           <NSelect
-            :model-value="modelValue.is_active as any"
-            @update:model-value="updateFilter('is_active', $event)"
-            :items="activeStatusOptions as any"
-            :item-key="('value' as any)"
-            :value-key="('value' as any)"
+            :model-value="activeStatusModel"
+            @update:model-value="v => activeStatusModel = (typeof v === 'object' ? v : activeStatusOptions.find(o => o.value === v) ?? null)"
+            :items="activeStatusOptions"
+            item-key="value"
+            value-key="value"
             placeholder="All accounts"
           />
         </div>
@@ -54,11 +54,11 @@
         </label>
         <div>
           <NSelect
-            :model-value="modelValue.email_verified as any"
-            @update:model-value="updateFilter('email_verified', $event)"
-            :items="verificationOptions as any"
-            :item-key="('value' as any)"
-            :value-key="('value' as any)"
+            :model-value="emailVerifiedModel"
+            @update:model-value="v => emailVerifiedModel = (typeof v === 'object' ? v : verificationOptions.find(o => o.value === v) ?? null)"
+            :items="verificationOptions"
+            item-key="value"
+            value-key="value"
             placeholder="All users"
           />
         </div>
@@ -73,11 +73,11 @@
         </label>
         <div>
           <NSelect
-            :model-value="modelValue.language as any"
-            @update:model-value="updateFilter('language', $event)"
-            :items="languageOptions as any"
-            :item-key="('value' as any)"
-            :value-key="('value' as any)"
+            :model-value="languageModel"
+            @update:model-value="v => languageModel = (Array.isArray(v) ? v : [v])"
+            :items="languageOptions"
+            item-key="value"
+            value-key="value"
             placeholder="All languages"
             multiple
           />
@@ -182,18 +182,18 @@
 </template>
 
 <script setup lang="ts">
-import type { UserExportFilters } from '~/types/export'
-
 interface Props {
   modelValue: UserExportFilters
 }
+
+import { computed } from 'vue'
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: UserExportFilters]
 }>()
 
-// Options for role filter
+// const currentRole = ref<{ label: string; value: string } | null>(null)
 const roleOptions = [
   { label: 'User', value: 'user' },
   { label: 'Moderator', value: 'moderator' },
@@ -241,4 +241,57 @@ const updateDateRange = (rangeType: 'date_range' | 'last_login_range', type: 'st
   }
   emit('update:modelValue', updated)
 }
+
+type Option<T = string> = { label: string; value: T }
+
+// Computed binding for the role filter (maps between `string[]` in model and `Option[]` for NSelect)
+const roleModel = computed({
+  get(): Option[] {
+    const val = props.modelValue.role
+    const values = Array.isArray(val) ? val : (val ? [val] : [])
+    return values.map(v => roleOptions.find(o => o.value === v) ?? { label: v, value: v })
+  },
+  set(options: Option[]) {
+    const values = options?.map(o => o.value) ?? []
+    updateFilter('role', values)
+  }
+})
+
+// Computed binding for the language filter (maps between `string[]` in model and `Option[]` for NSelect)
+const languageModel = computed({
+  get(): Option[] {
+    const val = props.modelValue.language
+    const values = Array.isArray(val) ? val : (val ? [val] : [])
+    return values.map(v => languageOptions.find(o => o.value === v) ?? { label: v, value: v })
+  },
+  set(options: Option[]) {
+    const values = options?.map(o => o.value) ?? []
+    updateFilter('language', values)
+  }
+})
+
+// Computed binding for boolean single-selects
+const activeStatusModel = computed<Option<boolean> | null>({
+  get() {
+    const val = props.modelValue.is_active
+    if (val === undefined || val === null) return null
+    return activeStatusOptions.find(o => o.value === val) ?? { label: String(val), value: val }
+  },
+  set(option) {
+    const val = option ? option.value : undefined
+    updateFilter('is_active', val)
+  }
+})
+
+const emailVerifiedModel = computed<Option<boolean> | null>({
+  get() {
+    const val = props.modelValue.email_verified
+    if (val === undefined || val === null) return null
+    return verificationOptions.find(o => o.value === val) ?? { label: String(val), value: val }
+  },
+  set(option) {
+    const val = option ? option.value : undefined
+    updateFilter('email_verified', val)
+  }
+})
 </script>

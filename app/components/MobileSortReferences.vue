@@ -15,7 +15,7 @@
             :items="typeOptions"
             placeholder="All Types"
             item-key="label"
-            value-key="value"
+            value-key="label"
           />
         </div>
 
@@ -60,7 +60,7 @@
 <script setup lang="ts">
 interface Option {
   label: string
-  value?: string
+  value: string
   [key: string]: unknown
 }
 
@@ -86,14 +86,14 @@ const internalOpen = computed({
   set: (v: boolean) => emit('update:open', v)
 })
 
-const internalSortBy = computed({
-  get: () => props.sortBy,
-  set: (v: string) => emit('update:sortBy', v)
+const internalSortBy = computed<Option>({
+  get: () => props.sortOptions.find(o => o.value === props.sortBy) || props.sortOptions[0],
+  set: (opt: Option) => emit('update:sortBy', opt.value)
 })
 
-const internalPrimaryType = computed({
-  get: () => props.primaryType,
-  set: (v: string) => emit('update:primaryType', v)
+const internalPrimaryType = computed<Option>({
+  get: () => props.typeOptions.find(o => o.value === props.primaryType) || props.typeOptions[0],
+  set: (opt: Option) => emit('update:primaryType', opt.value)
 })
 
 const sortOrder = computed(() => props.sortOrder)

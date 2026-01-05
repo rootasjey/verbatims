@@ -41,6 +41,6 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
     authorName: record.authorName ?? undefined,
     referenceName: record.referenceName ?? undefined,
     language: record.language ?? 'en',
-    updatedAt: record.updatedAt ?? null
+    updatedAt: record.updatedAt ? new Date(record.updatedAt).toISOString() : null
   }
 }

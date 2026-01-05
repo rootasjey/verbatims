@@ -54,8 +54,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteReferenceWithMetadata } from '~/types/quote-reference'
-
 interface Props {
   modelValue: boolean
   reference?: QuoteReferenceWithMetadata

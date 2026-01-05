@@ -34,8 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Author } from '~/types'
-
 interface Props {
   author: Author
 }

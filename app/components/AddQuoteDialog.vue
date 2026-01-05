@@ -224,11 +224,6 @@
 </template>
 
 <script setup lang="ts">
-import type {
-  QuoteWithRelations,
-  AdminQuote, CreateQuoteData,
-} from '~~/types'
-
 interface Props {
   modelValue: boolean
   editQuote?: QuoteWithRelations | AdminQuote | null

@@ -260,14 +260,8 @@
 </template>
 
 <script lang="ts" setup>
-import type {
-  AuthorSearchResult,
-  ProcessedQuoteResult,
-  QuoteReferencePrimaryType,
-  ReferenceSearchResult,
-} from '~/types'
-
 import { useSearchStore } from '~/stores/search'
+import type { AuthorSearchResult, ProcessedQuoteResult, ReferenceSearchResult } from '~~/server/types';
 
 interface Props {
   modelValue: boolean

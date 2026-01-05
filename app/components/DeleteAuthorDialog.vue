@@ -55,8 +55,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Author } from '~/types/author'
-
 interface Props {
   modelValue: boolean
   author?: Author | null

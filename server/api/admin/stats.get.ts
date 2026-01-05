@@ -112,8 +112,8 @@ export default defineEventHandler(async (event) => {
     .from(schema.users)
     .leftJoin(schema.quotes, sql`${schema.users.id} = ${schema.quotes.userId} AND ${schema.quotes.status} = 'approved'`)
     .groupBy(schema.users.id)
-    .having(sql`quote_count > 0`)
-    .orderBy(sql`quote_count DESC, total_likes DESC`)
+    .having(sql`COUNT(${schema.quotes.id}) > 0`)
+    .orderBy(desc(count(schema.quotes.id)), desc(sum(schema.quotes.likesCount)))
     .limit(10)
     
     return {

@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { db, schema } from 'hub:db'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 const bodySchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8)
 })
 
@@ -49,14 +49,14 @@ export default defineEventHandler(async (event) => {
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      created_at: userData.created_at,
-      avatar_url: userData.avatar_url,
+      created_at: userData.createdAt,
+      avatar_url: userData.avatarUrl,
       biography: userData.biography,
       job: userData.job,
       language: userData.language,
       location: userData.location,
       socials: userData.socials,
-      updated_at: userData.updated_at
+      updated_at: userData.updatedAt
     }
 
     // Set user session

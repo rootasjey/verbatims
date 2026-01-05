@@ -336,8 +336,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteReference, QuoteReferenceWithMetadata, QuoteReferencePrimaryType } from '~/types/quote-reference'
-
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'

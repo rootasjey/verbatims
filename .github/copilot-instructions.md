@@ -1,15 +1,18 @@
 # Verbatims - AI Coding Agent Instructions
 
 ## Project Overview
-Verbatims is a **Nuxt 3 quote management application** with user-generated content, moderation workflows, and admin capabilities. Built with **NuxtHub** (Cloudflare D1), **UnaUI**, **Pinia**, and **UnoCSS**.
+
+Verbatims is a **Nuxt 4 quote management application** with user-generated content, moderation workflows, and admin capabilities. 
+Built on **Cloudflare Workers**, **UnaUI** (UnoCSS), **Pinia**.
 
 ## Architecture & Stack
-- **Frontend**: Nuxt 3 + Vue 3 with SSR/SPA hybrid
-- **Database**: Cloudflare D1 (SQLite) via NuxtHub
+- **Frontend**: Nuxt 4 + Vue 3 with SSR/SPA hybrid
+- **Database**: Cloudflare D1 (SQLite) via Drizzle ORM
+- **Backend**: Nuxt server APIs with file-based routing
 - **UI**: UnaUI components + UnoCSS utility-first CSS
 - **Auth**: nuxt-auth-utils with role-based access (user/moderator/admin)
 - **State**: Pinia stores for global state management
-- **Deployment**: Cloudflare Pages via NuxtHub
+- **Deployment**: Cloudflare Workers
 
 ## Core Data Model
 ```
@@ -139,12 +142,12 @@ nohup npm run dev >/dev/null 2>&1 &
 You can also use a terminal multiplexer (tmux/screen) to keep the dev server running in its own pane/window.
 
 ### Database Migrations
-Schema in `/server/database/migrations/schema.sql` - NuxtHub handles D1 provisioning automatically.
+Schema in `/server/db/migrations/`.
 
 ### Key Commands
 - `nuxt dev` - Development with hot reload
 - `nuxt build` - Production build for Cloudflare Pages
-- Database managed through NuxtHub dashboard
+- Database managed through Cloudflare dashboard
 
 ## Common Patterns
 

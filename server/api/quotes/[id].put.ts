@@ -1,8 +1,3 @@
-import type {
-  ApiResponse,
-  QuoteWithMetadata,
-  CreatedQuoteResult
-} from '~/types'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
@@ -88,7 +83,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     await db.update(schema.quotes)
       .set({
         name: body.name.trim(),
-        originalLanguage: body.language || 'en',
+        language: body.language || 'en',
         authorId: authorId || null,
         referenceId: referenceId || null,
         updatedAt: new Date()
@@ -100,7 +95,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     const updatedQuote = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       authorId: schema.quotes.authorId,
       referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
@@ -114,20 +109,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      author: {
-        id: schema.authors.id,
-        name: schema.authors.name,
-        isFictional: schema.authors.isFictional
-      },
-      reference: {
-        id: schema.quoteReferences.id,
-        name: schema.quoteReferences.name,
-        primaryType: schema.quoteReferences.primaryType
-      },
-      user: {
-        id: schema.users.id,
-        name: schema.users.name
-      }
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
+      userName: schema.users.name
     })
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -150,14 +136,14 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       color: schema.tags.color
     })
     .from(schema.tags)
-    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
-    .where(eq(schema.quotesTags.quoteId, parseInt(quoteId)))
+    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
     .all()
 
     const transformedQuote: QuoteWithMetadata = {
       id: updatedQuote.id,
       name: updatedQuote.name,
-      language: updatedQuote.originalLanguage,
+      language: updatedQuote.language,
       author_id: updatedQuote.authorId,
       reference_id: updatedQuote.referenceId,
       user_id: updatedQuote.userId,
@@ -171,19 +157,19 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       is_featured: updatedQuote.isFeatured,
       created_at: updatedQuote.createdAt,
       updated_at: updatedQuote.updatedAt,
-      author: updatedQuote.author ? {
-        id: updatedQuote.author.id,
-        name: updatedQuote.author.name,
-        is_fictional: updatedQuote.author.isFictional
+      author: updatedQuote.authorId ? {
+        id: updatedQuote.authorId,
+        name: updatedQuote.authorName,
+        is_fictional: updatedQuote.authorIsFictional
       } : undefined,
-      reference: updatedQuote.reference ? {
-        id: updatedQuote.reference.id,
-        name: updatedQuote.reference.name,
-        primary_type: updatedQuote.reference.primaryType || 'other'
+      reference: updatedQuote.referenceId ? {
+        id: updatedQuote.referenceId,
+        name: updatedQuote.referenceName,
+        primary_type: updatedQuote.referencePrimaryType || 'other'
       } : undefined,
       user: {
-        id: updatedQuote.user.id,
-        name: updatedQuote.user.name || ''
+        id: updatedQuote.userId,
+        name: updatedQuote.userName || ''
       },
       tags: tags.map(t => ({
         id: t.id,

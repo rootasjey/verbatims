@@ -56,8 +56,6 @@
 </template>
 
 <script setup lang="ts">
-import type { TagExportFilters } from '~/types/export'
-
 const model = defineModel<TagExportFilters>({ default: {} as any })
 
 // Simple in-UI category/color options. You can replace with API-fed options later.

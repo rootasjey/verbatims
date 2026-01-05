@@ -40,8 +40,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { Quote, QuoteWithRelations } from '~/types';
-
 interface Props {
   quote: QuoteWithRelations
 }

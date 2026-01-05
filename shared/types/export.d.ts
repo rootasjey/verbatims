@@ -5,8 +5,6 @@
 
 import type { QuoteStatus, QuoteLanguage } from './quote'
 
-export type { QuoteStatus, QuoteLanguage } from './quote'
-
 /**
  * Supported export formats
  */
@@ -104,7 +102,7 @@ export function isQuoteStatus(value: unknown): value is QuoteStatus {
  * Type guard to check if a value is a valid QuoteLanguage
  */
 export function isQuoteLanguage(value: unknown): value is QuoteLanguage {
-  return typeof value === 'string' && ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh'].includes(value)
+  return typeof value === 'string' && ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'].includes(value)
 }
 
 /**

@@ -58,8 +58,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { QuoteWithRelations } from '~/types';
-
 interface Props {
   quote: QuoteWithRelations
 }

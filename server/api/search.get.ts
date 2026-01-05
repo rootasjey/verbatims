@@ -1,15 +1,13 @@
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 import type {
-  QuoteLanguage,
-  ApiResponse,
   SearchContentType,
   QuoteSearchResult,
   AuthorSearchResult,
   ReferenceSearchResult,
   ProcessedQuoteResult,
   SearchResults
-} from '~/types'
-import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+} from '~~/server/types'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<SearchResults>> => {
   try {
@@ -88,13 +86,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
       const quotesResult = await db.all(quotesQuery)
       const quotes = quotesResult as unknown as QuoteSearchResult[]
 
-      results.quotes = quotes.map((quote): ProcessedQuoteResult => ({
-        ...quote,
-        tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-          name,
-          color: quote.tag_colors?.split(',')[index] || 'gray'
-        })) : []
-      }))
+      results.quotes = quotes.map((quote): ProcessedQuoteResult => {
+        const processed: ProcessedQuoteResult = {
+          ...quote as any,
+          result_type: 'quote' as const,
+          tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
+            name,
+            color: quote.tag_colors?.split(',')[index] || 'gray'
+          })) : []
+        }
+        return processed
+      })
     }
 
     // Search authors if requested
@@ -173,13 +175,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         `)
 
         const additionalQuotes = additionalQuotesResult as unknown as QuoteSearchResult[]
-        const processedAdditionalQuotes: ProcessedQuoteResult[] = additionalQuotes.map((quote): ProcessedQuoteResult => ({
-          ...quote,
-          tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-            name,
-            color: quote.tag_colors?.split(',')[index] || 'gray'
-          })) : []
-        }))
+        const processedAdditionalQuotes: ProcessedQuoteResult[] = additionalQuotes.map((quote): ProcessedQuoteResult => {
+          const processed: ProcessedQuoteResult = {
+            ...quote as any,
+            result_type: 'quote' as const,
+            tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
+              name,
+              color: quote.tag_colors?.split(',')[index] || 'gray'
+            })) : []
+          }
+          return processed
+        })
 
         // Merge without duplicates
         const existingIds = new Set(results.quotes.map(q => q.id))

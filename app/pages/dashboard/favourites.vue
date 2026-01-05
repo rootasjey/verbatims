@@ -96,8 +96,8 @@
       <!-- Results -->
       <div v-else class="px-3 pt-3 pb-6 space-y-3">
         <QuoteListItem
-            v-for="quote in processedMobileQuotes"
-            :key="quote.id"
+            v-for="(quote, idx) in processedMobileQuotes"
+            :key="idx"
             :quote="quote"
             :actions="favouriteActions"
             @share="handleShareQuote"
@@ -173,9 +173,9 @@
         <!-- Masonry Grid -->
         <MasonryGrid>
           <QuoteMasonryItem
-            v-for="quote in filteredQuotes"
-            :index="quote.id"
-            :key="quote.id"
+            v-for="(quote, idx) in filteredQuotes"
+            :index="idx"
+            :key="idx"
             :quote="quote"
             :show-actions="true"
             @like-toggled="handleLikeToggled"
@@ -209,13 +209,12 @@
 </template>
 
 <script setup lang="ts">
-import type { ProcessedQuoteResult } from '~/types'
-import type { QuoteWithRelations } from '~/types/quote'
+import type { ProcessedQuoteResult } from '~~/server/types'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
-interface LikedQuote extends Omit<QuoteWithRelations, 'likes_count'> {
+interface LikedQuote extends QuoteWithMetadata {
   liked_at: string
   likes_count: number
   is_liked: boolean
@@ -362,6 +361,7 @@ const filteredQuotes = computed(() => {
 
 const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
   return filteredQuotes.value.map((q) => ({
+    id: (q as any).id,
     ...q,
     result_type: 'quote',
     author_name: q.author_name ?? q.author?.name,

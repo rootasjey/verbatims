@@ -1,9 +1,9 @@
-import type { ImportOptions } from '~/types'
-import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
-import { validateReferenceDataZod } from '~/server/utils/validation/reference'
-import { uploadBackupFile } from '~/server/utils/backup-storage'
-import { createBackupFile } from '~/server/utils/backup-database'
-import { createImportReport } from '~/server/utils/import-report'
+import type { ImportOptions } from '../../types'
+import { getAdminImport, updateAdminImport } from '../admin-import-progress'
+import { validateReferenceDataZod } from '../validation/reference'
+import { uploadBackupFile } from '../backup-storage'
+import { createBackupFile } from '../backup-database'
+import { createImportReport } from '../import-report'
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
 
@@ -79,7 +79,7 @@ export async function importReferencesInline(parentImportId: string, references:
           const [n, pt] = k.split('|')
           const row = await db.select({ id: schema.quoteReferences.id, name: schema.quoteReferences.name, primaryType: schema.quoteReferences.primaryType })
             .from(schema.quoteReferences)
-            .where(and(sql`lower(${schema.quoteReferences.name}) = ${n}`, eq(schema.quoteReferences.primaryType, pt)))
+            .where(and(sql`lower(${schema.quoteReferences.name}) = ${n}`, sql`${schema.quoteReferences.primaryType} = ${pt}`))
             .limit(1)
             .get()
           if (row?.id) existingByKey.set(k, { id: Number(row.id), name: String(row.name), primary_type: String(row.primaryType) })

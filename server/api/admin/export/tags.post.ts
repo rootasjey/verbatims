@@ -1,11 +1,4 @@
-import type {
-  ExportOptions,
-  ExportResultWithBackup,
-  TagExportFilters,
-  ExportedTag,
-} from '~/types/export'
 import { db, schema } from 'hub:db'
-import { eq, inArray, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {

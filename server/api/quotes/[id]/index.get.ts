@@ -1,6 +1,6 @@
-import type { ProcessedQuoteResult } from "~/types"
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
+import type { ProcessedQuoteResult } from '~~/server/types'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     const quote = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       status: schema.quotes.status,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
@@ -26,21 +26,12 @@ export default defineEventHandler(async (event) => {
       authorId: schema.quotes.authorId,
       referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      author: {
-        id: schema.authors.id,
-        name: schema.authors.name,
-        isFictional: schema.authors.isFictional,
-        imageUrl: schema.authors.imageUrl
-      },
-      reference: {
-        id: schema.quoteReferences.id,
-        name: schema.quoteReferences.name,
-        primaryType: schema.quoteReferences.primaryType
-      },
-      user: {
-        id: schema.users.id,
-        name: schema.users.name
-      }
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      authorImageUrl: schema.authors.imageUrl,
+      referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
+      userName: schema.users.name
     })
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -65,14 +56,14 @@ export default defineEventHandler(async (event) => {
       color: schema.tags.color
     })
     .from(schema.tags)
-    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
-    .where(eq(schema.quotesTags.quoteId, parseInt(quoteId)))
+    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
     .all()
 
     const transformedQuote = {
       id: quote.id,
       name: quote.name,
-      language: quote.originalLanguage,
+      language: quote.language,
       status: quote.status,
       views_count: quote.viewsCount,
       likes_count: quote.likesCount,
@@ -82,18 +73,18 @@ export default defineEventHandler(async (event) => {
       updated_at: quote.updatedAt,
       author: quote.authorId ? {
         id: quote.authorId,
-        name: quote.author.name,
-        is_fictional: quote.author.isFictional,
-        image_url: quote.author.imageUrl
+        name: quote.authorName,
+        is_fictional: quote.authorIsFictional,
+        image_url: quote.authorImageUrl
       } : undefined,
       reference: quote.referenceId ? {
         id: quote.referenceId,
-        name: quote.reference.name,
-        primary_type: quote.reference.primaryType
+        name: quote.referenceName,
+        primary_type: quote.referencePrimaryType
       } : undefined,
       user: {
         id: quote.userId,
-        name: quote.user.name
+        name: quote.userName
       },
       tags: tags.map(t => ({
         name: t.name,

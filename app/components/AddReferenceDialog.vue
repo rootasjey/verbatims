@@ -172,8 +172,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteReference, QuoteReferencePrimaryType, CreateQuoteReferenceData, UpdateQuoteReferenceData } from '~/types/quote-reference'
-
 interface Props {
   modelValue: boolean
   editReference?: QuoteReference | null

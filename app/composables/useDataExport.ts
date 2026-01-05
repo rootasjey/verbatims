@@ -1,18 +1,4 @@
-import type {
-  QuoteExportFilters,
-  ReferenceExportFilters,
-  AuthorExportFilters,
-  UserExportFilters,
-  TagExportFilters,
-  ExportResult,
-  ExportOptions,
-  UIExportOptions,
-  ExportState,
-  ExportDataType,
-} from '~/types/export'
 import { useLocalStorage, useDebounceFn } from '@vueuse/core'
-import type { ExportFormat } from '~/types'
-
 /**
  * Data Export Composable
  * Handles export logic and state management for the admin export interface
@@ -133,7 +119,7 @@ export const useDataExport = () => {
     unused_only: false,
   })
 
-  const formatOptions = [
+  const formatOptions: { label: string; value: ExportFormat }[] = [
     { label: 'JSON', value: 'json' },
     { label: 'CSV', value: 'csv' },
     { label: 'XML', value: 'xml' }
@@ -416,10 +402,10 @@ export const useDataExport = () => {
           return
       }
 
-      const response = await $fetch(apiEndpoint, {
+      const response = await $fetch<{ success: boolean; data: any }>(apiEndpoint, {
         method: 'POST',
         body: apiOptions
-      }) as { success: boolean; data: any }
+      })
 
       state.previewData = response.data
 
@@ -484,11 +470,11 @@ export const useDataExport = () => {
       if (dataType === 'all') {
         // Request a ZIP blob containing each dataset in the chosen internal format
         const allOptions = buildAllApiOptions()
-        const blob = await $fetch(apiEndpoint, {
+        const blob = await $fetch<Blob>(apiEndpoint, {
           method: 'POST',
           body: allOptions,
           responseType: 'blob'
-        }) as Blob
+        })
 
         if (shouldDownload && blob) {
           const ts = new Date().toISOString().slice(0, 10)
@@ -503,10 +489,10 @@ export const useDataExport = () => {
       }
 
       const apiOptions = convertToApiOptions()
-      const response = await $fetch(apiEndpoint, {
+      const response = await $fetch<ExportResult>(apiEndpoint, {
         method: 'POST',
         body: apiOptions
-      }) as ExportResult
+      })
 
       if (!response.success) {
         state.errorMessage = response.error || 'Unknown error occurred'

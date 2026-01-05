@@ -1,17 +1,29 @@
-import type { QuoteSearchResult } from "~/types"/**
+import type { QuoteSearchResult } from "../types"
+
+// Local intersection type that guarantees presence of joined fields from SQL queries
+type QuoteSearchResultWithJoins = QuoteSearchResult & Partial<{
+  author_id: number | null
+  author_is_fictional: boolean | null
+  author_image_url: string | null
+  reference_id: number | null
+  reference_type: string | null
+  tag_colors: string | null
+}>
+
+/**
  * Extracts the author information from a given `QuoteSearchResult` object.
  *
  * @param quote - The quote search result containing author data.
  * @returns An object with author details (`id`, `name`, `is_fictional`, `image_url`),
  *          or `undefined` if `author_id` is not present.
  */
-export function extractAuthor(quote: QuoteSearchResult) {
+export function extractAuthor(quote: QuoteSearchResultWithJoins) {
   if (!quote.author_id) return undefined
   return {
     id: quote.author_id,
     name: String(quote.author_name || ''),
-    is_fictional: (quote as any).author_is_fictional,
-    image_url: (quote as any).author_image_url
+    is_fictional: quote.author_is_fictional ?? undefined,
+    image_url: quote.author_image_url ?? undefined
   }
 }
 
@@ -21,12 +33,12 @@ export function extractAuthor(quote: QuoteSearchResult) {
  * @param quote - The `QuoteSearchResult` object containing reference data.
  * @returns An object with `id`, `name`, and `type` properties if `reference_id` exists; otherwise, `undefined`.
  */
-export function extractReference(quote: QuoteSearchResult) {
+export function extractReference(quote: QuoteSearchResultWithJoins) {
   if (!quote.reference_id) return undefined
   return {
     id: quote.reference_id,
     name: String(quote.reference_name || ''),
-    type: (quote as any).reference_type as any
+    type: quote.reference_type ?? undefined
   }
 }
 
@@ -44,7 +56,7 @@ export function extractReference(quote: QuoteSearchResult) {
 export function extractTags(quote: QuoteSearchResult) {
   if (!quote.tag_names) return []
   const names = quote.tag_names.split(',')
-  const colors = ((quote as any).tag_colors ? (quote as any).tag_colors.split(',') : []) as string[]
+  const colors = quote.tag_colors ? quote.tag_colors.split(',') : []
   return names.map((name, i) => ({
     name,
     color: colors[i] || 'gray'

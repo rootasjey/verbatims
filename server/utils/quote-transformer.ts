@@ -1,10 +1,4 @@
-import type { 
-  AdminQuote, 
-  DatabaseAdminQuote, 
-  DatabaseQuoteWithRelations, 
-  QuoteReferencePrimaryType, 
-  QuoteWithMetadata, 
-} from "~/types"/**
+/**
  * Transform basic database quote results into frontend-ready format
  */
 export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWithMetadata[] {

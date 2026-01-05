@@ -28,10 +28,10 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, statusMessage: 'Not allowed to edit tags for this quote' })
     }
 
-    await db.delete(schema.quotesTags)
+    await db.delete(schema.quoteTags)
       .where(and(
-        eq(schema.quotesTags.quoteId, parseInt(quoteId)),
-        eq(schema.quotesTags.tagId, parseInt(tagId))
+        eq(schema.quoteTags.quoteId, parseInt(quoteId)),
+        eq(schema.quoteTags.tagId, parseInt(tagId))
       ))
       .run()
 

@@ -19,8 +19,8 @@
       </label>
       <div>
         <NSelect
-          :model-value="modelValue.is_fictional"
-          @update:model-value="updateFilter('is_fictional', $event)"
+          :model-value="fictionalModel"
+          @update:model-value="v => fictionalModel = (typeof v === 'object' ? v : fictionalOptions.find(o => o.value === v) ?? null) as any"
           :items="fictionalOptions"
           item-key="value"
           value-key="value"
@@ -174,17 +174,30 @@
 </template>
 
 <script setup lang="ts">
-import type { AuthorExportFilters } from '~/types/export'
-
 interface Props {
   modelValue: AuthorExportFilters
 }
+
+import { computed } from 'vue'
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: AuthorExportFilters]
 }>()
 
+type Option<T = string> = { label: string; value: T }
+
+const fictionalModel = computed<Option<boolean> | null>({
+  get() {
+    const val = props.modelValue.is_fictional
+    if (val === undefined || val === null) return null
+    return fictionalOptions.find(o => o.value === val) ?? { label: String(val), value: val }
+  },
+  set(option) {
+    const val = option ? option.value : undefined
+    updateFilter('is_fictional', val)
+  }
+})
 // Options for fictional status filter
 const fictionalOptions = [
   { label: 'Real People', value: false },

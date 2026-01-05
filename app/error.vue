@@ -58,8 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteWithMetadata } from './types'
-
 // Nuxt passes an `error` prop to this special page; accept it to avoid extraneous-attrs warning
 const { error: errorProp } = defineProps<{ error?: any }>()
 const nuxtError = useError()

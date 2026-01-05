@@ -101,8 +101,8 @@
 
         <div class="space-y-3">
           <div
-            v-for="collection in filteredCollections"
-            :key="collection.id"
+            v-for="(collection, idx) in filteredCollections"
+            :key="idx"
             class="group dark:bg-[#0F0D0B] rounded-2
               border border-gray-200 b-dashed dark:border-gray-800 p-4 transition-all duration-200 hover:shadow-md select-none cursor-pointer"
             @click="navigateToCollection(collection)"
@@ -221,8 +221,8 @@
         <!-- Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <NCard
-            v-for="collection in filteredCollections"
-            :key="collection.id"
+            v-for="(collection, idx) in filteredCollections"
+            :key="idx"
             class="hover:shadow-lg transition-shadow cursor-pointer border-dashed"
             @click="navigateToCollection(collection)"
           >
@@ -351,7 +351,6 @@
 </template>
 
 <script setup lang="ts">
-import type { CollectionWithStats } from '~/types/user-interactions'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
@@ -433,14 +432,18 @@ const filteredCollections = computed(() => {
 
 const loadCollections = async (page = 1) => {
   try {
-    const response = await $fetch('/api/dashboard/collections', {
+    const response = await $fetch<{
+      success: boolean
+      data: { results: DashboardCollection[] }
+      pagination: { page: number; limit: number; total: number; hasMore: boolean; totalPages: number }
+    }>('/api/dashboard/collections', {
       query: { page, limit: 12 }
     })
     
     if (page === 1) {
-      collections.value = (response.data?.results || []) as unknown as DashboardCollection[]
+      collections.value = response.data?.results || []
     } else {
-      collections.value.push(...((response.data?.results || []) as unknown as DashboardCollection[]))
+      collections.value.push(...(response.data?.results || []))
     }
 
     hasMore.value = response.pagination?.hasMore || false

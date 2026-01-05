@@ -251,7 +251,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
-import type { Author, QuoteReference } from '~/types'
 
 interface Emits {
 	(e: 'update:open', value: boolean): void

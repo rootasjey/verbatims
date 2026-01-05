@@ -89,8 +89,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { ApiResponse, QuoteWithMetadata } from '~/types'
-
 interface Props {
   quote: QuoteWithMetadata
   index: number

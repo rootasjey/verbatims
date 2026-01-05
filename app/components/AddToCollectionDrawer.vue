@@ -114,8 +114,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { CollectionWithStats } from '~/types'
-
 interface Props {
   open?: boolean
   quote: any

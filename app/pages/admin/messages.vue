@@ -142,7 +142,6 @@
 
 <script lang="ts" setup>
 import { formatRelativeTime } from '~/utils/time-formatter'
-import type { AdminUserMessage } from '~/types'
 type MessageStatus = AdminUserMessage['status']
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })

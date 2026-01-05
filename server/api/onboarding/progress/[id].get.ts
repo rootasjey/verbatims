@@ -2,9 +2,6 @@
  * Onboarding Progress SSE Endpoint
  * Provides real-time progress updates via Server-Sent Events
  */
-
-import { getProgress, registerProgressHandler, unregisterProgressHandler } from '~/server/utils/onboarding-progress'
-
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)

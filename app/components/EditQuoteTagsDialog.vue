@@ -126,8 +126,6 @@
   </template>
 
 <script setup lang="ts">
-import type { Tag } from '~/types/tag'
-
 interface Props {
   modelValue: boolean
   quoteId: number

@@ -21,8 +21,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Tag } from '~/types/tag'
-
 interface Props { modelValue: boolean; tag: Pick<Tag,'id'|'name'> | null }
 interface Emits { (e:'update:modelValue', v:boolean):void; (e:'tag-deleted'):void }
 

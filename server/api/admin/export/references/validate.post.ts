@@ -3,11 +3,6 @@
  * Provides preview and validation for references export with filtering
  */
 
-import type { ExportOptions, ReferenceExportFilters, ExportValidation } from '~/types/export'
-import { validateFiltersForReferencesExport } from '~/server/utils/export-filters'
-import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)

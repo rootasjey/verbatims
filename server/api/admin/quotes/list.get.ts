@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
-import type { DatabaseAdminQuote } from '~/types'
-import { transformAdminQuotes } from '~/server/utils/quote-transformer'
+import type { DatabaseAdminQuote } from '~~/server/types'
+import { transformAdminQuotes } from '~~/server/utils/quote-transformer'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -25,15 +25,15 @@ export default defineEventHandler(async (event) => {
     const search = (query.search as string) || ''
 
     // WHERE conditions
-    const conditions: string[] = [`q.status = ${sql.raw(`'${status}'`)}`]
+    const conditions: string[] = [`q.status = '${status}'`]
 
     if (language) {
-      conditions.push(`q.language = ${sql.raw(`'${language}'`)}`)
+      conditions.push(`q.language = '${language}'`)
     }
 
     if (search) {
       const like = `%${search}%`
-      conditions.push(`(q.name LIKE ${sql.raw(`'${like}'`)} OR a.name LIKE ${sql.raw(`'${like}'`)} OR r.name LIKE ${sql.raw(`'${like}'`)} OR u.name LIKE ${sql.raw(`'${like}'`)})`)
+      conditions.push(`(q.name LIKE '${like}' OR a.name LIKE '${like}' OR r.name LIKE '${like}' OR u.name LIKE '${like}')`)
     }
 
     const whereClause = `WHERE ${conditions.join(' AND ')}`
@@ -53,13 +53,13 @@ export default defineEventHandler(async (event) => {
         m.name as moderator_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM ${schema.quotes._.name} q
-      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
-      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
-      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
-      LEFT JOIN ${schema.users._.name} m ON q.moderator_id = m.id
-      LEFT JOIN ${schema.quoteTags._.name} qt ON q.id = qt.quote_id
-      LEFT JOIN ${schema.tags._.name} t ON qt.tag_id = t.id
+      FROM quotes q
+      LEFT JOIN authors a ON q.author_id = a.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
+      LEFT JOIN users u ON q.user_id = u.id
+      LEFT JOIN users m ON q.moderator_id = m.id
+      LEFT JOIN quote_tags qt ON q.id = qt.quote_id
+      LEFT JOIN tags t ON qt.tag_id = t.id
       ${whereClause}
       GROUP BY q.id
       ORDER BY q.created_at DESC
@@ -69,10 +69,10 @@ export default defineEventHandler(async (event) => {
     // Count query
     const totalRow = await db.get<{ total: number }>(sql.raw(`
       SELECT COUNT(DISTINCT q.id) as total
-      FROM ${schema.quotes._.name} q
-      LEFT JOIN ${schema.authors._.name} a ON q.author_id = a.id
-      LEFT JOIN ${schema.quoteReferences._.name} r ON q.reference_id = r.id
-      LEFT JOIN ${schema.users._.name} u ON q.user_id = u.id
+      FROM quotes q
+      LEFT JOIN authors a ON q.author_id = a.id
+      LEFT JOIN quote_references r ON q.reference_id = r.id
+      LEFT JOIN users u ON q.user_id = u.id
       ${whereClause}
     `))
 

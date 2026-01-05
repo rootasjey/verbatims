@@ -1,4 +1,4 @@
-import type { AuthorSocialLink } from "~/types"
+import type { AuthorSocialLink } from "#shared/types/author"
 export const parseAuthorSocials = (rawSocials: string | null | undefined): AuthorSocialLink[] => {
   if (!rawSocials) return []
 

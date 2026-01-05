@@ -375,7 +375,6 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~/types'
-import type { QuoteWithRelations, AdminQuote } from '~/types/quote'
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -516,8 +515,11 @@ const loadPendingQuotes = async (page = 1) => {
     if (searchQuery.value) {
       queryParams.search = searchQuery.value
     }
-    const response = await $fetch('/api/dashboard/submissions', { query: queryParams })
-    const data = (response as any)?.data || []
+    const response = await $fetch<{
+      data: DashboardQuote[]
+      pagination: { total: number; limit: number; totalPages: number; hasMore: boolean }
+    }>('/api/dashboard/submissions', { query: queryParams })
+    const data = response?.data || []
     if (isMobile.value && page > 1) {
       quotes.value.push(...data)
     } else {
@@ -528,7 +530,7 @@ const loadPendingQuotes = async (page = 1) => {
     pageSize.value = response.pagination?.limit || pageSize.value
     totalPages.value = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
     currentPage.value = page
-    hasMore.value = (response as any)?.pagination?.hasMore ?? (currentPage.value < totalPages.value)
+    hasMore.value = response?.pagination?.hasMore ?? (currentPage.value < totalPages.value)
   } catch (error) {
     console.error('Failed to load pending quotes:', error)
   } finally {

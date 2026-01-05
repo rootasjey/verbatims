@@ -1,12 +1,10 @@
+import { db, schema } from 'hub:db'
+import { sql, eq, and } from 'drizzle-orm'
+
 /**
  * Admin API: Update Author
  * Updates an existing author with admin authentication
  */
-
-import { db, schema } from 'hub:db'
-import { sql, eq, and } from 'drizzle-orm'
-import type { UpdateAuthorData } from '~/types/author'
-
 export default defineEventHandler(async (event) => {
   try {
     // Check admin authentication

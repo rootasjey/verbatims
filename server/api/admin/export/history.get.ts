@@ -1,12 +1,10 @@
+import { db, schema } from 'hub:db'
+import { eq, sql, desc } from 'drizzle-orm'
+
 /**
  * Admin API: Export History
  * Retrieves export history with pagination and filtering
  */
-
-import type { ExportHistoryEntry } from '~/types/export'
-import { db, schema } from 'hub:db'
-import { eq, sql, desc } from 'drizzle-orm'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
