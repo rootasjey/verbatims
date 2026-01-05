@@ -65,6 +65,7 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    preset: 'cloudflare',
     experimental: {
       wasm: true
     },
@@ -94,6 +95,7 @@ export default defineNuxtConfig({
 
   // Image optimization
   image: {
+    provider: 'cloudflare',
     cloudflare: {
       baseURL: 'https://verbatims.cc'
     }
