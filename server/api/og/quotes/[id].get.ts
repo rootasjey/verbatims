@@ -1,4 +1,3 @@
-import { getApprovedQuoteForOg } from '~/server/utils/og'
 import { kv } from 'hub:kv'
 import puppeteer from '@cloudflare/puppeteer'
 
@@ -44,7 +43,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Render using Cloudflare Browser Rendering (Puppeteer)
-  const browser = await puppeteer.launch(process.env.BROWSER)
+  const browser = await puppeteer.launch(process.env.BROWSER as any)
   const page = await browser.newPage()
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`

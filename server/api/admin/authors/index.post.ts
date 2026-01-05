@@ -1,12 +1,10 @@
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
+
 /**
  * Admin API: Create Author
  * Creates a new author with admin authentication
  */
-
-import { db, schema } from 'hub:db'
-import { sql, eq } from 'drizzle-orm'
-import type { CreateAuthorData } from '~/types/author'
-
 export default defineEventHandler(async (event) => {
   try {
     // Check admin authentication

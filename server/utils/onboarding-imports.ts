@@ -3,6 +3,8 @@
 // report progress/warnings via the onboarding-progress utils.
 
 import { updateStepProgress, addWarning } from './onboarding-progress'
+import { schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<string, any[]>> {
   const { unzipSync } = await import('fflate')
@@ -52,169 +54,188 @@ export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Reco
 export async function importUserCollectionsFromDataset(db: any, importId: string, cols: any[]): Promise<number> {
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${cols.length} user collections...` })
-  const insert = db.prepare(`
-        INSERT INTO user_collections (user_id, name, description, is_public, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `)
-  const insertWithId = db.prepare(`
-        INSERT INTO user_collections (id, user_id, name, description, is_public, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
-  for (let i = 0; i < cols.length; i++) {
-    const c = cols[i]
-    try {
-      const hasExplicitId = Number.isFinite(Number(c?.id))
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(c.id),
-          c.user_id,
-          c.name || 'My Collection',
-          c.description || null,
-          !!c.is_public,
-          c.created_at || new Date().toISOString(),
-          c.updated_at || new Date().toISOString()
-        ).run()
-      } else {
-        await insert.bind(
-          c.user_id,
-          c.name || 'My Collection',
-          c.description || null,
-          !!c.is_public,
-          c.created_at || new Date().toISOString(),
-          c.updated_at || new Date().toISOString()
-        ).run()
+
+  const batchSize = 50
+  const subSize = 10
+
+  for (let i = 0; i < cols.length; i += batchSize) {
+    const batch = cols.slice(i, i + batchSize)
+    for (let j = 0; j < batch.length; j += subSize) {
+      const sub = batch.slice(j, j + subSize)
+      const stmts: any[] = []
+
+      for (const c of sub) {
+        const values: any = {
+          userId: c.user_id,
+          name: c.name || 'My Collection',
+          description: c.description || null,
+          isPublic: !!c.is_public,
+          createdAt: c.created_at ? new Date(c.created_at) : new Date(),
+          updatedAt: c.updated_at ? new Date(c.updated_at) : new Date()
+        }
+        const explicitId = Number.isFinite(Number(c?.id)) ? Number(c.id) : undefined
+        if (explicitId != null) values.id = explicitId
+
+        stmts.push(db.insert(schema.userCollections).values(values).onConflictDoNothing({ target: schema.userCollections.id }))
       }
-      imported++
-    } catch {}
+
+      try {
+        if (stmts.length > 0) {
+          await db.batch(stmts as any)
+          imported += sub.length
+        }
+      } catch (e) {
+        for (let idx = 0; idx < stmts.length; idx++) {
+          try { await stmts[idx]; imported++ } catch {}
+        }
+      }
+
+      if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
+    }
   }
+
   // Align sqlite_sequence for user_collections
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM user_collections').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.userCollections).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'user_collections'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'user_collections'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_collections', ?)`).bind(maxId).run() }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_collections', ${maxId})`) }
         catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'user_collections'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_collections', ?)`).bind(maxId).run() } catch {}
+          try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'user_collections'`) } catch {}
+          try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_collections', ${maxId})`) } catch {}
         }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} user collections` })
   return imported
-}
+} 
 
 export async function importCollectionQuotesFromDataset(db: any, importId: string, rows: any[]): Promise<number> {
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Linking ${rows.length} collection-quote relations...` })
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i]
+
+  const batchSize = 100
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const r of batch) {
+      const values = {
+        collectionId: r.collection_id,
+        quoteId: r.quote_id,
+        addedAt: r.added_at ? new Date(r.added_at) : new Date()
+      }
+      stmts.push(db.insert(schema.collectionQuotes).values(values).onConflictDoNothing())
+    }
     try {
-      await db.prepare(`
-        INSERT OR IGNORE INTO collection_quotes (collection_id, quote_id, added_at)
-        VALUES (?, ?, ?)
-      `).bind(r.collection_id, r.quote_id, r.added_at || new Date().toISOString()).run()
-      imported++
-    } catch {}
+      if (stmts.length > 0) {
+        await db.batch(stmts as any)
+        imported += stmts.length
+      }
+    } catch (e) {
+      for (const s of stmts) { try { await s } catch {} }
+    }
   }
+
   updateStepProgress(importId, 'quotes', { message: `Linked ${imported} collection-quote relations` })
   return imported
-}
+} 
 
 export async function importUserLikesFromDataset(db: any, importId: string, likes: any[]): Promise<number> {
   let imported = 0
   const allowed = new Set(['quote','author','reference'])
   updateStepProgress(importId, 'quotes', { message: `Importing ${likes.length} user likes...` })
-  const insert = db.prepare(`
-        INSERT OR IGNORE INTO user_likes (user_id, likeable_type, likeable_id, created_at)
-        VALUES (?, ?, ?, ?)
-      `)
-  const insertWithId = db.prepare(`
-        INSERT OR IGNORE INTO user_likes (id, user_id, likeable_type, likeable_id, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `)
-  for (let i = 0; i < likes.length; i++) {
-    const l = likes[i]
-    if (!allowed.has((l.likeable_type || '').toString())) continue
-    try {
-      const hasExplicitId = Number.isFinite(Number(l?.id))
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(l.id), l.user_id, l.likeable_type, l.likeable_id, l.created_at || new Date().toISOString()
-        ).run()
-      } else {
-        await insert.bind(l.user_id, l.likeable_type, l.likeable_id, l.created_at || new Date().toISOString()).run()
+
+  const batchSize = 100
+  for (let i = 0; i < likes.length; i += batchSize) {
+    const batch = likes.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const l of batch) {
+      if (!allowed.has((l.likeable_type || '').toString())) continue
+      const explicitId = Number.isFinite(Number(l?.id)) ? Number(l.id) : undefined
+      const values: any = {
+        userId: l.user_id,
+        likeableType: l.likeable_type,
+        likeableId: l.likeable_id,
+        createdAt: l.created_at ? new Date(l.created_at) : new Date()
       }
-      imported++
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.userLikes).values(values).onConflictDoNothing({ target: schema.userLikes.id }))
+    }
+
+    try {
+      if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length }
+    } catch (e) {
+      for (const s of stmts) { try { await s; imported++ } catch {} }
+    }
   }
+
   // Align sqlite_sequence for user_likes
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM user_likes').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.userLikes).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'user_likes'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'user_likes'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_likes', ?)`).bind(maxId).run() }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_likes', ${maxId})`) }
         catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'user_likes'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_likes', ?)`).bind(maxId).run() } catch {}
+          try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'user_likes'`) } catch {}
+          try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_likes', ${maxId})`) } catch {}
         }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} user likes` })
   return imported
-}
+} 
 
 export async function importUserSessionsFromDataset(db: any, importId: string, sessions: any[]): Promise<number> {
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${sessions.length} user sessions...` })
-  const insert = db.prepare(`
-        INSERT OR IGNORE INTO user_sessions (user_id, session_token, expires_at, created_at)
-        VALUES (?, ?, ?, ?)
-      `)
-  const insertWithId = db.prepare(`
-        INSERT OR IGNORE INTO user_sessions (id, user_id, session_token, expires_at, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `)
-  for (let i = 0; i < sessions.length; i++) {
-    const s = sessions[i]
-    try {
-      const hasExplicitId = Number.isFinite(Number(s?.id))
-      const exp = s.expires_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      const crt = s.created_at || new Date().toISOString()
-      if (hasExplicitId) {
-        await insertWithId.bind(Number(s.id), s.user_id, s.session_token, exp, crt).run()
-      } else {
-        await insert.bind(s.user_id, s.session_token, exp, crt).run()
+
+  const batchSize = 100
+  for (let i = 0; i < sessions.length; i += batchSize) {
+    const batch = sessions.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const s of batch) {
+      const explicitId = Number.isFinite(Number(s?.id)) ? Number(s.id) : undefined
+      const values: any = {
+        userId: s.user_id,
+        sessionToken: s.session_token,
+        expiresAt: s.expires_at ? new Date(s.expires_at) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        createdAt: s.created_at ? new Date(s.created_at) : new Date()
       }
-      imported++
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.userSessions).values(values).onConflictDoNothing({ target: schema.userSessions.id }))
+    }
+
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
   }
+
   // Align sqlite_sequence for user_sessions
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM user_sessions').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.userSessions).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'user_sessions'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'user_sessions'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_sessions', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'user_sessions'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_sessions', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_sessions', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'user_sessions'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_sessions', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} user sessions` })
   return imported
-}
+} 
 
 export async function importUserMessagesFromDataset(db: any, importId: string, msgs: any[]): Promise<number> {
   let imported = 0
@@ -222,348 +243,322 @@ export async function importUserMessagesFromDataset(db: any, importId: string, m
   const allowedTarget = new Set(['general','quote','author','reference'])
   const allowedStatus = new Set(['new','triaged','spam','resolved'])
   updateStepProgress(importId, 'quotes', { message: `Importing ${msgs.length} user messages...` })
-  for (let i = 0; i < msgs.length; i++) {
-    const m = msgs[i]
-    try {
+
+  const batchSize = 50
+  for (let i = 0; i < msgs.length; i += batchSize) {
+    const batch = msgs.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const m of batch) {
       const category = allowedCat.has(m.category) ? m.category : 'other'
       const target_type = allowedTarget.has(m.target_type) ? m.target_type : 'general'
       const status = allowedStatus.has(m.status) ? m.status : 'new'
-      const insert = db.prepare(`
-        INSERT INTO user_messages (
-          user_id, name, email, category, tags, message, target_type, target_id,
-          ip_address, user_agent, status, reviewed_by, reviewed_at, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-      const insertWithId = db.prepare(`
-        INSERT INTO user_messages (
-          id, user_id, name, email, category, tags, message, target_type, target_id,
-          ip_address, user_agent, status, reviewed_by, reviewed_at, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
       const tagsJson = JSON.stringify(m.tags || [])
-      const created = m.created_at || new Date().toISOString()
-      const hasExplicitId = Number.isFinite(Number(m?.id))
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(m.id),
-          m.user_id || null,
-          m.name || null,
-          m.email || null,
-          category,
-          tagsJson,
-          m.message || '',
-          target_type,
-          m.target_id || null,
-          m.ip_address || null,
-          m.user_agent || null,
-          status,
-          m.reviewed_by || null,
-          m.reviewed_at || null,
-          created
-        ).run()
-      } else {
-        await insert.bind(
-          m.user_id || null,
-          m.name || null,
-          m.email || null,
-          category,
-          tagsJson,
-          m.message || '',
-          target_type,
-          m.target_id || null,
-          m.ip_address || null,
-          m.user_agent || null,
-          status,
-          m.reviewed_by || null,
-          m.reviewed_at || null,
-          created
-        ).run()
+      const created = m.created_at ? new Date(m.created_at) : new Date()
+      const explicitId = Number.isFinite(Number(m?.id)) ? Number(m.id) : undefined
+
+      const values: any = {
+        userId: m.user_id || null,
+        name: m.name || null,
+        email: m.email || null,
+        category,
+        tags: tagsJson,
+        message: m.message || '',
+        targetType: target_type,
+        targetId: m.target_id || null,
+        ipAddress: m.ip_address || null,
+        userAgent: m.user_agent || null,
+        status,
+        reviewedBy: m.reviewed_by || null,
+        reviewedAt: m.reviewed_at ? new Date(m.reviewed_at) : null,
+        createdAt: created
       }
-      imported++
-    } catch {}
+
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.userMessages).values(values).onConflictDoNothing({ target: schema.userMessages.id }))
+    }
+
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
   }
+
   // Align sqlite_sequence for user_messages
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM user_messages').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.userMessages).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'user_messages'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'user_messages'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_messages', ?)`).bind(maxId).run() }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_messages', ${maxId})`) }
         catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'user_messages'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('user_messages', ?)`).bind(maxId).run() } catch {}
+          try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'user_messages'`) } catch {}
+          try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('user_messages', ${maxId})`) } catch {}
         }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} user messages` })
   return imported
-}
+} 
 
 export async function importQuoteReportsFromDataset(db: any, importId: string, reports: any[]): Promise<number> {
   let imported = 0
   const allowedReason = new Set(['spam','inappropriate','copyright','misinformation','other'])
   const allowedStatus = new Set(['pending','reviewed','resolved'])
   updateStepProgress(importId, 'quotes', { message: `Importing ${reports.length} quote reports...` })
-  for (let i = 0; i < reports.length; i++) {
-    const r = reports[i]
-    try {
+
+  const batchSize = 100
+  for (let i = 0; i < reports.length; i += batchSize) {
+    const batch = reports.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const r of batch) {
       const reason = allowedReason.has(r.reason) ? r.reason : 'other'
       const status = allowedStatus.has(r.status) ? r.status : 'pending'
-      const insert = db.prepare(`
-        INSERT INTO quote_reports (
-          quote_id, reporter_id, reason, description, status, reviewed_by, reviewed_at, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-      const insertWithId = db.prepare(`
-        INSERT INTO quote_reports (
-          id, quote_id, reporter_id, reason, description, status, reviewed_by, reviewed_at, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-      const hasExplicitId = Number.isFinite(Number(r?.id))
-      const created = r.created_at || new Date().toISOString()
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(r.id), r.quote_id, r.reporter_id, reason, r.description || null, status, r.reviewed_by || null, r.reviewed_at || null, created
-        ).run()
-      } else {
-        await insert.bind(
-          r.quote_id, r.reporter_id, reason, r.description || null, status, r.reviewed_by || null, r.reviewed_at || null, created
-        ).run()
+      const created = r.created_at ? new Date(r.created_at) : new Date()
+      const explicitId = Number.isFinite(Number(r?.id)) ? Number(r.id) : undefined
+
+      const values: any = {
+        quoteId: r.quote_id,
+        reporterId: r.reporter_id,
+        reason,
+        description: r.description || null,
+        status,
+        reviewedBy: r.reviewed_by || null,
+        reviewedAt: r.reviewed_at ? new Date(r.reviewed_at) : null,
+        createdAt: created
       }
-      imported++
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.quoteReports).values(values).onConflictDoNothing({ target: schema.quoteReports.id }))
+    }
+
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
   }
+
   // Align sqlite_sequence for quote_reports
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quote_reports').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.quoteReports).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quote_reports'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'quote_reports'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_reports', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quote_reports'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_reports', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_reports', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'quote_reports'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_reports', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} quote reports` })
   return imported
-}
+} 
 
 export async function importQuoteViewsFromDataset(db: any, importId: string, views: any[]): Promise<number> {
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${views.length} quote views...` })
-  for (let i = 0; i < views.length; i++) {
-    const v = views[i]
-    try {
-      const insert = db.prepare(`
-        INSERT INTO quote_views (quote_id, user_id, ip_address, user_agent, viewed_at)
-        VALUES (?, ?, ?, ?, ?)
-      `)
-      const insertWithId = db.prepare(`
-        INSERT INTO quote_views (id, quote_id, user_id, ip_address, user_agent, viewed_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `)
-      const hasExplicitId = Number.isFinite(Number(v?.id))
-      const viewedAt = v.viewed_at || new Date().toISOString()
-      if (hasExplicitId) {
-        await insertWithId.bind(Number(v.id), v.quote_id, v.user_id || null, v.ip_address || null, v.user_agent || null, viewedAt).run()
-      } else {
-        await insert.bind(v.quote_id, v.user_id || null, v.ip_address || null, v.user_agent || null, viewedAt).run()
+
+  const batchSize = 200
+  for (let i = 0; i < views.length; i += batchSize) {
+    const batch = views.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const v of batch) {
+      const explicitId = Number.isFinite(Number(v?.id)) ? Number(v.id) : undefined
+      const values: any = {
+        quoteId: v.quote_id,
+        userId: v.user_id || null,
+        ipAddress: v.ip_address || null,
+        userAgent: v.user_agent || null,
+        viewedAt: v.viewed_at ? new Date(v.viewed_at) : new Date()
       }
-      imported++
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.quoteViews).values(values).onConflictDoNothing({ target: schema.quoteViews.id }))
+    }
+
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
   }
+
   // Align sqlite_sequence for quote_views
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quote_views').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.quoteViews).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quote_views'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'quote_views'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_views', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quote_views'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_views', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_views', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'quote_views'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_views', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} quote views` })
   return imported
-}
+} 
 
 export async function importAuthorViewsFromDataset(db: any, importId: string, views: any[]): Promise<number> {
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${views.length} author views...` })
-  for (let i = 0; i < views.length; i++) {
-    const v = views[i]
-    try {
-      const insert = db.prepare(`
-        INSERT INTO author_views (author_id, user_id, ip_address, user_agent, viewed_at)
-        VALUES (?, ?, ?, ?, ?)
-      `)
-      const insertWithId = db.prepare(`
-        INSERT INTO author_views (id, author_id, user_id, ip_address, user_agent, viewed_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `)
-      const hasExplicitId = Number.isFinite(Number(v?.id))
-      const viewedAt = v.viewed_at || new Date().toISOString()
-      if (hasExplicitId) {
-        await insertWithId.bind(Number(v.id), v.author_id, v.user_id || null, v.ip_address || null, v.user_agent || null, viewedAt).run()
-      } else {
-        await insert.bind(v.author_id, v.user_id || null, v.ip_address || null, v.user_agent || null, viewedAt).run()
+
+  const batchSize = 200
+  for (let i = 0; i < views.length; i += batchSize) {
+    const batch = views.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const v of batch) {
+      const explicitId = Number.isFinite(Number(v?.id)) ? Number(v.id) : undefined
+      const values: any = {
+        authorId: v.author_id,
+        userId: v.user_id || null,
+        ipAddress: v.ip_address || null,
+        userAgent: v.user_agent || null,
+        viewedAt: v.viewed_at ? new Date(v.viewed_at) : new Date()
       }
-      imported++
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.authorViews).values(values).onConflictDoNothing({ target: schema.authorViews.id }))
+    }
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
   }
+
   // Align sqlite_sequence for author_views
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM author_views').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.authorViews).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'author_views'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'author_views'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('author_views', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'author_views'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('author_views', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('author_views', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'author_views'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('author_views', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} author views` })
   return imported
-}
+} 
 
 export async function importReferenceViewsFromDataset(db: any, importId: string, views: any[]): Promise<number> {
   let imported = 0
   updateStepProgress(importId, 'quotes', { message: `Importing ${views.length} reference views...` })
-  for (let i = 0; i < views.length; i++) {
-    const v = views[i]
-    try {
-      const insert = db.prepare(`
-        INSERT INTO reference_views (reference_id, user_id, ip_address, user_agent, viewed_at)
-        VALUES (?, ?, ?, ?, ?)
-      `)
-      const insertWithId = db.prepare(`
-        INSERT INTO reference_views (id, reference_id, user_id, ip_address, user_agent, viewed_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `)
-      const hasExplicitId = Number.isFinite(Number(v?.id))
-      const viewedAt = v.viewed_at || new Date().toISOString()
-      if (hasExplicitId) {
-        await insertWithId.bind(Number(v.id), v.reference_id, v.user_id || null, v.ip_address || null, v.user_agent || null, viewedAt).run()
-      } else {
-        await insert.bind(v.reference_id, v.user_id || null, v.ip_address || null, v.user_agent || null, viewedAt).run()
+
+  const batchSize = 200
+  for (let i = 0; i < views.length; i += batchSize) {
+    const batch = views.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const v of batch) {
+      const explicitId = Number.isFinite(Number(v?.id)) ? Number(v.id) : undefined
+      const values: any = {
+        referenceId: v.reference_id,
+        userId: v.user_id || null,
+        ipAddress: v.ip_address || null,
+        userAgent: v.user_agent || null,
+        viewedAt: v.viewed_at ? new Date(v.viewed_at) : new Date()
       }
-      imported++
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.referenceViews).values(values).onConflictDoNothing({ target: schema.referenceViews.id }))
+    }
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
   }
+
   // Align sqlite_sequence for reference_views
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM reference_views').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.referenceViews).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'reference_views'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'reference_views'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('reference_views', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'reference_views'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('reference_views', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('reference_views', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'reference_views'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('reference_views', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { message: `Imported ${imported} reference views` })
   return imported
-}
+} 
 
 export async function importUsersFromDataset(db: any, importId: string, users: any[]): Promise<number> {
   const total = users.length
   let imported = 0
   updateStepProgress(importId, 'users', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} users...` })
-  // Prepare statements (with and without explicit id)
-  const insert = db.prepare(`
-        INSERT INTO users (email, name, password, avatar_url, role, is_active, email_verified, biography, job, language, location, socials, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-  const insertWithId = db.prepare(`
-        INSERT INTO users (id, email, name, password, avatar_url, role, is_active, email_verified, biography, job, language, location, socials, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-  for (let i = 0; i < users.length; i++) {
-    const u = users[i]
-    try {
-      const hasExplicitId = Number.isFinite(Number(u?.id))
-      const socials = JSON.stringify(u.socials || [])
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(u.id),
-          u.email || '',
-          u.name || '',
-          u.password || '',
-          u.avatar_url || null,
-          u.role || 'user',
-          u.is_active !== false,
-          !!u.email_verified,
-          u.biography || null,
-          u.job || null,
-          u.language || 'en',
-          u.location || 'On Earth',
-          socials,
-          u.created_at || new Date().toISOString(),
-          u.updated_at || new Date().toISOString()
-        ).run()
-      } else {
-        await insert.bind(
-          u.email || '',
-          u.name || '',
-          u.password || '',
-          u.avatar_url || null,
-          u.role || 'user',
-          u.is_active !== false,
-          !!u.email_verified,
-          u.biography || null,
-          u.job || null,
-          u.language || 'en',
-          u.location || 'On Earth',
-          socials,
-          u.created_at || new Date().toISOString(),
-          u.updated_at || new Date().toISOString()
-        ).run()
+
+  const batchSize = 50
+  const subSize = 10
+
+  for (let i = 0; i < users.length; i += batchSize) {
+    const batch = users.slice(i, i + batchSize)
+    for (let j = 0; j < batch.length; j += subSize) {
+      const sub = batch.slice(j, j + subSize)
+      const stmts: any[] = []
+
+      for (const u of sub) {
+        const socials = u.socials ? (typeof u.socials === 'string' ? u.socials : JSON.stringify(u.socials)) : '[]'
+        const explicitId = Number.isFinite(Number(u?.id)) ? Number(u.id) : undefined
+
+        const values: any = {
+          email: u.email || '',
+          name: u.name || 'User',
+          password: u.password || '',
+          avatarUrl: u.avatar_url || null,
+          role: u.role || 'user',
+          isActive: u.is_active ?? true,
+          emailVerified: u.email_verified ?? false,
+          biography: u.biography || null,
+          job: u.job || null,
+          language: u.language || 'en',
+          location: u.location || 'On Earth',
+          socials: socials,
+          createdAt: u.created_at ? new Date(u.created_at) : new Date(),
+          updatedAt: u.updated_at ? new Date(u.updated_at) : new Date()
+        }
+
+        if (explicitId != null) values.id = explicitId
+
+        // Use onConflictDoNothing to mimic previous behavior (ignore duplicates)
+        stmts.push(db.insert(schema.users).values(values).onConflictDoNothing({ target: schema.users.email }))
       }
-      imported++
-      if (imported % 10 === 0) updateStepProgress(importId, 'users', { current: i + 1, imported, message: `Imported ${imported}/${total} users` })
-    } catch (e) {
-      // continue on duplicates/errors
+
+      try {
+        if (stmts.length > 0) {
+          await db.batch(stmts as any)
+          imported += sub.length
+        }
+      } catch (e) {
+        // On failure, attempt single execution to get per-row resilience
+        for (let idx = 0; idx < stmts.length; idx++) {
+          try {
+            await stmts[idx]
+            imported++
+          } catch {}
+        }
+      }
+
+      if (imported % 10 === 0) updateStepProgress(importId, 'users', { current: Math.min(i + j + sub.length, total), imported, message: `Imported ${imported}/${total} users` })
+      if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
   }
-  // Align sqlite_sequence when IDs preserved (or generally safe to align to MAX(id))
+
+  // Align sqlite_sequence to MAX(id)
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM users').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.users).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'users'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'users'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ?)`).bind(maxId).run() }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ${maxId})`) }
         catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'users'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ?)`).bind(maxId).run() } catch {}
+          try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'users'`) } catch {}
+          try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('users', ${maxId})`) } catch {}
         }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'users', { status: 'completed', current: total, imported, message: `Imported ${imported} users` })
   return imported
 }
@@ -572,277 +567,269 @@ export async function importAuthorsFromDataset(db: any, importId: string, author
   const total = authors.length
   let imported = 0
   updateStepProgress(importId, 'authors', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} authors...` })
-  
-  const insert = db.prepare(`
-    INSERT INTO authors (
-      name, description, birth_date, death_date, birth_location, job,
-      image_url, is_fictional, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  
-  const insertWithId = db.prepare(`
-    INSERT INTO authors (
-      id, name, description, birth_date, death_date, birth_location, job,
-      image_url, is_fictional, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
 
-  for (let i = 0; i < authors.length; i++) {
-    const a = authors[i]
-    try {
-      const hasExplicitId = Number.isFinite(Number(a?.id))
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(a.id),
-          a.name || '', a.description || '', a.birth_date || null, a.death_date || null, a.birth_location || '', a.job || '',
-          a.image_url || '', !!a.is_fictional, a.views_count || 0, a.likes_count || 0, a.shares_count || 0,
-          a.created_at || new Date().toISOString(), a.updated_at || new Date().toISOString()
-        ).run()
-      } else {
-        await insert.bind(
-          a.name || '', a.description || '', a.birth_date || null, a.death_date || null, a.birth_location || '', a.job || '',
-          a.image_url || '', !!a.is_fictional, a.views_count || 0, a.likes_count || 0, a.shares_count || 0,
-          a.created_at || new Date().toISOString(), a.updated_at || new Date().toISOString()
-        ).run()
+  const batchSize = 50
+  const subSize = 10
+
+  for (let i = 0; i < authors.length; i += batchSize) {
+    const batch = authors.slice(i, i + batchSize)
+    for (let j = 0; j < batch.length; j += subSize) {
+      const sub = batch.slice(j, j + subSize)
+      const stmts: any[] = []
+      for (const a of sub) {
+        const explicitId = Number.isFinite(Number(a?.id)) ? Number(a.id) : undefined
+        const values: any = {
+          name: a.name || '',
+          description: a.description || '',
+          birthDate: a.birth_date || null,
+          deathDate: a.death_date || null,
+          birthLocation: a.birth_location || '',
+          job: a.job || '',
+          imageUrl: a.image_url || '',
+          isFictional: !!a.is_fictional,
+          viewsCount: a.views_count || 0,
+          likesCount: a.likes_count || 0,
+          sharesCount: a.shares_count || 0,
+          createdAt: a.created_at ? new Date(a.created_at) : new Date(),
+          updatedAt: a.updated_at ? new Date(a.updated_at) : new Date()
+        }
+        if (explicitId != null) values.id = explicitId
+        stmts.push(db.insert(schema.authors).values(values).onConflictDoNothing({ target: schema.authors.id }))
       }
-      imported++
-      if (imported % 10 === 0) updateStepProgress(importId, 'authors', { current: i + 1, imported, message: `Imported ${imported}/${total} authors` })
-    } catch {}
+      try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+      catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
+      if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
+    }
   }
-  // Align sqlite_sequence for authors
+
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM authors').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.authors).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'authors'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'authors'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'authors'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'authors'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('authors', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'authors', { status: 'completed', current: total, imported, message: `Imported ${imported} authors` })
   return imported
-}
+} 
 
 export async function importReferencesFromDataset(db: any, importId: string, refs: any[]): Promise<number> {
   const total = refs.length
   let imported = 0
   updateStepProgress(importId, 'references', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} references...` })
-  
-  const insert = db.prepare(`
-    INSERT INTO quote_references (
-      name, original_language, release_date, description, primary_type, secondary_type,
-      image_url, urls, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
 
-  const insertWithId = db.prepare(`
-    INSERT INTO quote_references (
-      id, name, original_language, release_date, description, primary_type, secondary_type,
-      image_url, urls, views_count, likes_count, shares_count,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
+  const batchSize = 50
+  const subSize = 10
 
-  for (let i = 0; i < refs.length; i++) {
-    const r = refs[i]
-    try {
-      const hasExplicitId = Number.isFinite(Number(r?.id))
-      const urls = JSON.stringify(r.urls || [])
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(r.id),
-          r.name || '', r.original_language || 'en', r.release_date || null, r.description || '', r.primary_type || 'other', r.secondary_type || '',
-          r.image_url || '', urls, r.views_count || 0, r.likes_count || 0, r.shares_count || 0,
-          r.created_at || new Date().toISOString(), r.updated_at || new Date().toISOString()
-        ).run()
-      } else {
-        await insert.bind(
-          r.name || '', r.original_language || 'en', r.release_date || null, r.description || '', r.primary_type || 'other', r.secondary_type || '',
-          r.image_url || '', urls, r.views_count || 0, r.likes_count || 0, r.shares_count || 0,
-          r.created_at || new Date().toISOString(), r.updated_at || new Date().toISOString()
-        ).run()
+  for (let i = 0; i < refs.length; i += batchSize) {
+    const batch = refs.slice(i, i + batchSize)
+    for (let j = 0; j < batch.length; j += subSize) {
+      const sub = batch.slice(j, j + subSize)
+      const stmts: any[] = []
+      for (const r of sub) {
+        const explicitId = Number.isFinite(Number(r?.id)) ? Number(r.id) : undefined
+        const urls = JSON.stringify(r.urls || [])
+        const values: any = {
+          name: r.name || '',
+          originalLanguage: r.original_language || 'en',
+          releaseDate: r.release_date || null,
+          description: r.description || '',
+          primaryType: r.primary_type || 'other',
+          secondaryType: r.secondary_type || '',
+          imageUrl: r.image_url || '',
+          urls: urls,
+          viewsCount: r.views_count || 0,
+          likesCount: r.likes_count || 0,
+          sharesCount: r.shares_count || 0,
+          createdAt: r.created_at ? new Date(r.created_at) : new Date(),
+          updatedAt: r.updated_at ? new Date(r.updated_at) : new Date()
+        }
+        if (explicitId != null) values.id = explicitId
+        stmts.push(db.insert(schema.quoteReferences).values(values).onConflictDoNothing({ target: schema.quoteReferences.id }))
       }
-      imported++
-      if (imported % 10 === 0) updateStepProgress(importId, 'references', { current: i + 1, imported, message: `Imported ${imported}/${total} references` })
-    } catch {}
+      try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+      catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
+      if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
+    }
   }
+
   // Align sqlite_sequence for quote_references
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quote_references').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.quoteReferences).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quote_references'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'quote_references'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quote_references'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'quote_references'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quote_references', ${maxId})`) } catch {} }
       }
     }
   } catch {}
   updateStepProgress(importId, 'references', { status: 'completed', current: total, imported, message: `Imported ${imported} references` })
   return imported
-}
+} 
 
 export async function importTagsFromDataset(db: any, importId: string, tags: any[]): Promise<number> {
   const total = tags.length
   let imported = 0
   updateStepProgress(importId, 'tags', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} tags...` })
-  for (let i = 0; i < tags.length; i++) {
-    const t = tags[i]
-    try {
-      const hasExplicitId = Number.isFinite(Number(t?.id))
-      if (hasExplicitId) {
-        await db.prepare(`
-          INSERT INTO tags (id, name, description, category, color, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          Number(t.id), t.name || '', t.description || null, t.category || null, t.color || '#3B82F6', t.created_at || new Date().toISOString(), t.updated_at || new Date().toISOString()
-        ).run()
-      } else {
-        await db.prepare(`
-          INSERT INTO tags (name, description, category, color, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `).bind(
-          t.name || '', t.description || null, t.category || null, t.color || '#3B82F6', t.created_at || new Date().toISOString(), t.updated_at || new Date().toISOString()
-        ).run()
+
+  const batchSize = 200
+  for (let i = 0; i < tags.length; i += batchSize) {
+    const batch = tags.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const t of batch) {
+      const explicitId = Number.isFinite(Number(t?.id)) ? Number(t.id) : undefined
+      const values: any = {
+        name: t.name || '',
+        description: t.description || null,
+        category: t.category || null,
+        color: t.color || '#3B82F6',
+        createdAt: t.created_at ? new Date(t.created_at) : new Date(),
+        updatedAt: t.updated_at ? new Date(t.updated_at) : new Date()
       }
-      imported++
-      if (imported % 25 === 0) updateStepProgress(importId, 'tags', { current: i + 1, imported, message: `Imported ${imported}/${total} tags` })
-    } catch {}
+      if (explicitId != null) values.id = explicitId
+      stmts.push(db.insert(schema.tags).values(values).onConflictDoNothing({ target: schema.tags.id }))
+    }
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
+    if (imported % 25 === 0) updateStepProgress(importId, 'tags', { current: Math.min(i + imported, total), imported, message: `Imported ${imported}/${total} tags` })
   }
+
   // Align sqlite_sequence for tags
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM tags').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.tags).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'tags'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'tags'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'tags'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'tags'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('tags', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'tags', { status: 'completed', current: total, imported, message: `Imported ${imported} tags` })
   return imported
-}
+} 
 
 export async function importQuotesFromDataset(db: any, adminUserId: number, importId: string, quotes: any[]): Promise<number> {
   const total = quotes.length
   let imported = 0
   let skipped = 0
   updateStepProgress(importId, 'quotes', { status: 'processing', total, current: 0, imported: 0, message: `Importing ${total} quotes...` })
-  const insert = db.prepare(`
-    INSERT INTO quotes (
-      name, language, author_id, reference_id, user_id, status,
-      likes_count, shares_count, views_count, is_featured,
-      created_at, updated_at, moderator_id, moderated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  const insertWithId = db.prepare(`
-    INSERT INTO quotes (
-      id, name, language, author_id, reference_id, user_id, status,
-      likes_count, shares_count, views_count, is_featured,
-      created_at, updated_at, moderator_id, moderated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
 
-  for (let i = 0; i < quotes.length; i++) {
-    const q = quotes[i]
-    try {
-      const allowedStatuses = new Set(['draft','pending','approved','rejected'])
-      const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh'])
-      const str = (v: any) => typeof v === 'string' ? v.trim() : ''
-      const toInt = (v: any) => {
-        if (v === null || v === undefined || v === '') return null
-        const n = Number(v)
-        return Number.isFinite(n) ? Math.trunc(n) : null
-      }
-      const toNonNeg = (v: any) => {
-        const n = toInt(v)
-        return n == null ? 0 : Math.max(0, n)
-      }
-      const toBool = (v: any) => {
-        if (typeof v === 'boolean') return v
-        if (typeof v === 'number') return v === 1
-        if (typeof v === 'string') {
-          const s = v.trim().toLowerCase()
-          if (['1','true','yes','y'].includes(s)) return true
-          if (['0','false','no','n'].includes(s)) return false
+  const batchSize = 50
+  const subSize = 10
+
+  const allowedStatuses = new Set(['draft','pending','approved','rejected'])
+  const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh'])
+  const str = (v: any) => typeof v === 'string' ? v.trim() : ''
+  const toInt = (v: any) => {
+    if (v === null || v === undefined || v === '') return null
+    const n = Number(v)
+    return Number.isFinite(n) ? Math.trunc(n) : null
+  }
+  const toNonNeg = (v: any) => {
+    const n = toInt(v)
+    return n == null ? 0 : Math.max(0, n)
+  }
+  const toBool = (v: any) => {
+    if (typeof v === 'boolean') return v
+    if (typeof v === 'number') return v === 1
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase()
+      if (['1','true','yes','y'].includes(s)) return true
+      if (['0','false','no','n'].includes(s)) return false
+    }
+    return !!v
+  }
+
+  for (let i = 0; i < quotes.length; i += batchSize) {
+    const batch = quotes.slice(i, i + batchSize)
+    for (let j = 0; j < batch.length; j += subSize) {
+      const sub = batch.slice(j, j + subSize)
+      const stmts: any[] = []
+
+      for (const q of sub) {
+        try {
+          const language = allowedLanguages.has(str(q.language).toLowerCase()) ? str(q.language).toLowerCase() : 'en'
+          const status = allowedStatuses.has(str(q.status).toLowerCase()) ? str(q.status).toLowerCase() : 'approved'
+          const authorId = toInt(q.author_id)
+          const referenceId = toInt(q.reference_id)
+          const userId = toInt(q.user_id) ?? (adminUserId ?? 1)
+          const likes = toNonNeg(q.likes_count)
+          const shares = toNonNeg(q.shares_count)
+          const views = toNonNeg(q.views_count)
+          const isFeatured = toBool(q.is_featured)
+          const createdAt = q.created_at ? new Date(q.created_at) : new Date()
+          const updatedAt = q.updated_at ? new Date(q.updated_at) : new Date()
+          const moderatorId = toInt(q.moderator_id) ?? adminUserId
+          const moderatedAt = q.moderated_at ? new Date(q.moderated_at) : null
+
+          const explicitId = Number.isFinite(Number(q?.id)) ? Number(q.id) : undefined
+          const values: any = {
+            name: q.name || '',
+            language: language,
+            authorId: authorId ?? null,
+            referenceId: referenceId ?? null,
+            userId: userId,
+            status: status,
+            moderatorId: moderatorId,
+            moderatedAt: moderatedAt,
+            viewsCount: views,
+            likesCount: likes,
+            sharesCount: shares,
+            isFeatured: isFeatured,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+          }
+          if (explicitId != null) values.id = explicitId
+
+          stmts.push(db.insert(schema.quotes).values(values))
+        } catch (e: any) {
+          skipped++
+          addWarning(importId, `Quote import skipped: ${e?.message || 'unknown error'}`)
         }
-        return !!v
       }
 
-      const language = allowedLanguages.has(str(q.language).toLowerCase()) ? str(q.language).toLowerCase() : 'en'
-      const status = allowedStatuses.has(str(q.status).toLowerCase()) ? str(q.status).toLowerCase() : 'approved'
-      const authorId = toInt(q.author_id)
-      const referenceId = toInt(q.reference_id)
-      const userId = toInt(q.user_id) ?? (adminUserId ?? 1)
-      const likes = toNonNeg(q.likes_count)
-      const shares = toNonNeg(q.shares_count)
-      const views = toNonNeg(q.views_count)
-      const isFeatured = toBool(q.is_featured)
-      const createdAt = q.created_at || new Date().toISOString()
-      const updatedAt = q.updated_at || new Date().toISOString()
-      const moderatorId = toInt(q.moderator_id) ?? adminUserId
-      const moderatedAt = q.moderated_at || new Date().toISOString()
-
-      const hasExplicitId = Number.isFinite(Number(q?.id))
-      if (hasExplicitId) {
-        await insertWithId.bind(
-          Number(q.id),
-          q.name || '', language, authorId, referenceId,
-          userId, status, likes, shares, views, isFeatured,
-          createdAt, updatedAt, moderatorId, moderatedAt
-        ).run()
-      } else {
-        await insert.bind(
-          q.name || '', language, authorId, referenceId,
-          userId, status, likes, shares, views, isFeatured,
-          createdAt, updatedAt, moderatorId, moderatedAt
-        ).run()
+      try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+      catch (e: any) {
+        for (let idx = 0; idx < stmts.length; idx++) {
+          try { await stmts[idx]; imported++ } catch (ie: any) { skipped++; addWarning(importId, `Quote ${(i + j + (idx+1))} skipped: ${ie?.message || 'unknown error'}`) }
+        }
       }
-      imported++
-      if (imported % 25 === 0) updateStepProgress(importId, 'quotes', { current: i + 1, imported, message: `Imported ${imported}/${total} quotes` })
-    } catch (e: any) {
-      skipped++
-      addWarning(importId, `Quote ${i + 1} "${String(q.name || '').slice(0,80)}" skipped: ${e?.message || 'unknown error'}`)
+
+      if (imported % 25 === 0) updateStepProgress(importId, 'quotes', { current: Math.min(i + j + imported, total), imported, message: `Imported ${imported}/${total} quotes` })
+      if (sub.length > 1) await new Promise(r => setTimeout(r, 10))
     }
   }
+
   // Align sqlite_sequence for quotes
   try {
-    const row = await db.prepare('SELECT COALESCE(MAX(id), 0) as mx FROM quotes').first()
+    const row = await db.select({ mx: sql<number>`MAX(id)` }).from(schema.quotes).get()
     const maxId = Number(row?.mx || 0)
     if (maxId > 0) {
-      const upd = await db.prepare(`UPDATE sqlite_sequence SET seq = ? WHERE name = 'quotes'`).bind(maxId).run()
-      const changes = Number(upd?.meta?.changes || 0)
+      const upd = await db.run(sql`UPDATE sqlite_sequence SET seq = ${maxId} WHERE name = 'quotes'`)
+      const changes = Number((upd as { meta?: { changes?: number } } | undefined)?.meta?.changes ?? 0)
       if (changes === 0) {
-        try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ?)`).bind(maxId).run() }
-        catch {
-          try { await db.prepare(`DELETE FROM sqlite_sequence WHERE name = 'quotes'`).run() } catch {}
-          try { await db.prepare(`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ?)`).bind(maxId).run() } catch {}
-        }
+        try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ${maxId})`) }
+        catch { try { await db.run(sql`DELETE FROM sqlite_sequence WHERE name = 'quotes'`) } catch {} try { await db.run(sql`INSERT INTO sqlite_sequence(name, seq) VALUES('quotes', ${maxId})`) } catch {} }
       }
     }
   } catch {}
+
   updateStepProgress(importId, 'quotes', { status: 'completed', current: total, imported, message: `Imported ${imported}/${total} quotes${skipped ? ` • Skipped ${skipped}` : ''}` })
   return imported
-}
+} 
 
 export async function importQuoteTagsFromDataset(db: any, importId: string, quoteTags: any[]): Promise<number> {
   const total = quoteTags.length
@@ -852,23 +839,18 @@ export async function importQuoteTagsFromDataset(db: any, importId: string, quot
     message: `Linking ${total} quote-tag relations...`
   })
 
-  for (let i = 0; i < quoteTags.length; i++) {
-    const qt = quoteTags[i]
-    try {
+  const batchSize = 200
+  for (let i = 0; i < quoteTags.length; i += batchSize) {
+    const batch = quoteTags.slice(i, i + batchSize)
+    const stmts: any[] = []
+    for (const qt of batch) {
       if (qt && (qt.quote_id != null) && (qt.tag_id != null)) {
-        await db.prepare(`
-          INSERT OR IGNORE INTO quote_tags (quote_id, tag_id) VALUES (?, ?)
-        `).bind(qt.quote_id, qt.tag_id).run()
-        imported++
-        if (imported % 50 === 0) {
-          updateStepProgress(importId, 'quotes', {
-            message: `Linked ${imported}/${total} quote-tag relations...`
-          })
-        }
+        stmts.push(db.insert(schema.quoteTags).values({ quoteId: qt.quote_id, tagId: qt.tag_id }).onConflictDoNothing())
       }
-    } catch {
-      // ignore and continue
     }
+    try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
+    catch (e) { for (const s of stmts) { try { await s; imported++ } catch {} } }
+    if (imported % 50 === 0) updateStepProgress(importId, 'quotes', { message: `Linked ${imported}/${total} quote-tag relations...` })
   }
 
   updateStepProgress(importId, 'quotes', {

@@ -1,6 +1,3 @@
-import { transformQuotes } from '~/server/utils/quote-transformer'
-import type { DatabaseQuoteWithRelations, SortBy, SortOrder } from '~/types'
-import { getSortParams } from '~/server/utils/sort'
 import { db, schema } from 'hub:db'
 import { eq, and, like, desc, asc, sql, countDistinct, getTableColumns } from 'drizzle-orm'
 
@@ -59,7 +56,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
       .where(and(...conditions))
       .groupBy(schema.quotes.id)
-      .orderBy(sortOrder(schema.quotes[sortBy]))
+      .orderBy(sortBy in schema.quotes ? sortOrder(schema.quotes[sortBy]) : desc(schema.quotes.createdAt))
       .limit(limit)
       .offset(offset)
 

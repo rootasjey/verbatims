@@ -108,8 +108,6 @@
 <script lang="ts" setup>
 import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
 import { useDebounceFn } from '@vueuse/core'
-import type { QuoteReferenceWithMetadata } from '~/types/quote-reference'
-import type { Ref } from 'vue'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
@@ -152,6 +150,7 @@ const startY = ref<number>(0)
 const pullThreshold = 80
 
 type Option = { label: string; value: string }
+
 const typeOptions: Option[] = [
   { label: 'All Types', value: '' },
   { label: 'Books', value: 'book' },

@@ -69,8 +69,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { CollectionWithStats } from '~/types/user-interactions'
-
 interface Props {
   open?: boolean
   collection?: CollectionWithStats | null

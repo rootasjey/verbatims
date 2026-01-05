@@ -2,9 +2,6 @@
  * Admin API: Cleanup Old Progress Records
  * Manually trigger cleanup of old import progress records
  */
-
-import { cleanupOldProgress, checkForStuckImports, getImportStats } from '~/server/utils/onboarding-progress'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)

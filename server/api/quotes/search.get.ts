@@ -1,8 +1,6 @@
-import { extractAuthor, extractReference, extractTags, parseIntSafe } from '~/server/utils/extraction'
-import { parseSort, parseSortOrder } from '~/server/utils/sort'
-import type { QuoteLanguage, ApiResponse, ProcessedQuoteResult, QuoteSearchResult } from '~/types'
 import { db, schema } from 'hub:db'
 import { eq, and, like, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
+import type { ProcessedQuoteResult } from '~~/server/types'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<{
   quotes: ProcessedQuoteResult[]
@@ -75,7 +73,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     }
 
     if (language) {
-      conditions.push(eq(schema.quotes.originalLanguage, language))
+      conditions.push(eq(schema.quotes.language, language))
     }
     if (authorId) {
       conditions.push(eq(schema.quotes.authorId, authorId))
@@ -98,11 +96,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
 
     // Tag filter
     if (tagIds.length > 0) {
-      const subQuery = db.select({ quoteId: schema.quotesTags.quoteId })
-        .from(schema.quotesTags)
-        .where(inArray(schema.quotesTags.tagId, tagIds))
-        .groupBy(schema.quotesTags.quoteId)
-        .having(sql`COUNT(DISTINCT ${schema.quotesTags.tagId}) = ${tagIds.length}`)
+      const subQuery = db.select({ quoteId: schema.quoteTags.quoteId })
+        .from(schema.quoteTags)
+        .where(inArray(schema.quoteTags.tagId, tagIds))
+        .groupBy(schema.quoteTags.quoteId)
+        .having(sql`COUNT(DISTINCT ${schema.quoteTags.tagId}) = ${tagIds.length}`)
       
       conditions.push(inArray(schema.quotes.id, subQuery))
     }
@@ -137,7 +135,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     const rows = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       status: schema.quotes.status,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
@@ -161,8 +159,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
     .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-    .leftJoin(schema.quotesTags, eq(schema.quotes.id, schema.quotesTags.quoteId))
-    .leftJoin(schema.tags, eq(schema.quotesTags.tagId, schema.tags.id))
+    .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
+    .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
     .where(and(...conditions))
     .groupBy(schema.quotes.id)
     .orderBy(...orderBy)
@@ -185,7 +183,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
       return {
         id: row.id,
         name: row.name,
-        language: row.originalLanguage,
+        language: row.language,
         status: row.status,
         views_count: row.viewsCount,
         likes_count: row.likesCount,

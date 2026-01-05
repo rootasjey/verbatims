@@ -262,7 +262,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { ApiResponse, AuthorWithSocials, Quote, QuoteWithMetadata } from '~/types'
 import type { ComputedRef, Ref } from 'vue'
 
 const { isMobile } = useMobileDetection()

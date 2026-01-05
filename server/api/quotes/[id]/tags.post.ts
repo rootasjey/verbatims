@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Attach relation (ignore duplicates)
-    await db.insert(schema.quotesTags).values({
+    await db.insert(schema.quoteTags).values({
       quoteId: parseInt(quoteId),
       tagId: finalTagId
     }).onConflictDoNothing().run()

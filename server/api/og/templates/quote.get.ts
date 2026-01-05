@@ -1,5 +1,3 @@
-import { getApprovedQuoteForOg } from '~/server/utils/og'
-
 export default defineEventHandler(async (event) => {
   const id = getQuery(event).id as string | undefined
   if (!id) { throwServer(400, 'id is required'); return }

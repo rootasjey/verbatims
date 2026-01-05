@@ -1,8 +1,3 @@
-import type {
-  ApiResponse,
-  QuoteWithMetadata,
-  CreatedQuoteResult
-} from '~/types'
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 
@@ -105,13 +100,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     // Insert the quote
     const quoteResult = await db.insert(schema.quotes).values({
       name: body.name.trim(),
-      originalLanguage: body.language || 'en',
+      language: body.language || 'en',
       authorId: authorId || null,
       referenceId: referenceId || null,
       userId: user.id,
       status: 'draft',
-      isFictional: body.is_fictional || false,
-      context: body.context || null,
       createdAt: new Date(),
       updatedAt: new Date()
     }).returning({ id: schema.quotes.id }).get()
@@ -127,7 +120,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
           .get()
         
         if (tag) {
-          await db.insert(schema.quotesTags).values({
+          await db.insert(schema.quoteTags).values({
             quoteId: quoteId,
             tagId: tagId
           }).run()
@@ -139,40 +132,30 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     const createdQuote = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       authorId: schema.quotes.authorId,
       referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
       status: schema.quotes.status,
-      isFictional: schema.quotes.isFictional,
-      context: schema.quotes.context,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
       sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      author: {
-        id: schema.authors.id,
-        name: schema.authors.name,
-        isFictional: schema.authors.isFictional,
-        job: schema.authors.job,
-        description: schema.authors.description
-      },
-      reference: {
-        id: schema.quoteReferences.id,
-        name: schema.quoteReferences.name,
-        originalLanguage: schema.quoteReferences.originalLanguage,
-        primaryType: schema.quoteReferences.primaryType,
-        description: schema.quoteReferences.description,
-        releaseDate: schema.quoteReferences.releaseDate
-      },
-      user: {
-        id: schema.users.id,
-        name: schema.users.name,
-        email: schema.users.email,
-        avatar: schema.users.avatar,
-        role: schema.users.role
-      }
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      authorJob: schema.authors.job,
+      authorDescription: schema.authors.description,
+      referenceOriginalLanguage: schema.quoteReferences.originalLanguage,
+      referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
+      referenceDescription: schema.quoteReferences.description,
+      referenceReleaseDate: schema.quoteReferences.releaseDate,
+      userName: schema.users.name,
+      userEmail: schema.users.email,
+      userAvatarUrl: schema.users.avatarUrl,
+      userRole: schema.users.role
     })
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -192,19 +175,18 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     const tags = await db.select({
       id: schema.tags.id,
       name: schema.tags.name,
-      slug: schema.tags.slug,
       color: schema.tags.color
     })
     .from(schema.tags)
-    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
-    .where(eq(schema.quotesTags.quoteId, quoteId))
+    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+    .where(eq(schema.quoteTags.quoteId, quoteId))
     .all()
 
     // Transform the result
     const transformedQuote: QuoteWithMetadata = {
       id: createdQuote.id,
       name: createdQuote.name,
-      language: (createdQuote as any).language,
+      language: createdQuote.language,
       author_id: createdQuote.authorId,
       reference_id: createdQuote.referenceId,
       user_id: createdQuote.userId,
@@ -215,31 +197,30 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       is_featured: createdQuote.isFeatured,
       created_at: createdQuote.createdAt,
       updated_at: createdQuote.updatedAt,
-      author: createdQuote.author ? {
-        id: createdQuote.author.id,
-        name: createdQuote.author.name,
-        is_fictional: createdQuote.author.isFictional,
-        job: createdQuote.author.job,
-        description: createdQuote.author.description
+      author: createdQuote.authorId ? {
+        id: createdQuote.authorId,
+        name: createdQuote.authorName,
+        is_fictional: createdQuote.authorIsFictional,
+        job: createdQuote.authorJob,
+        description: createdQuote.authorDescription
       } : undefined,
-      reference: createdQuote.reference ? {
-        id: createdQuote.reference.id,
-        name: createdQuote.reference.name,
-        original_language: createdQuote.reference.originalLanguage,
-        primary_type: createdQuote.reference.primaryType,
-        description: createdQuote.reference.description,
-        release_date: createdQuote.reference.releaseDate
+      reference: createdQuote.referenceId ? {
+        id: createdQuote.referenceId,
+        name: createdQuote.referenceName,
+        original_language: createdQuote.referenceOriginalLanguage,
+        primary_type: createdQuote.referencePrimaryType,
+        description: createdQuote.referenceDescription,
+        release_date: createdQuote.referenceReleaseDate
       } : undefined,
       user: {
-        id: createdQuote.user.id,
-        name: createdQuote.user.name,
-        email: createdQuote.user.email,
-        avatar_url: (createdQuote.user as any).avatar_url ?? (createdQuote.user as any).avatarUrl ?? (createdQuote.user as any).avatar
+        id: createdQuote.userId,
+        name: createdQuote.userName,
+        email: createdQuote.userEmail,
+        avatar_url: createdQuote.userAvatarUrl
       },
       tags: tags.map(t => ({
         id: t.id,
         name: t.name,
-        slug: t.slug,
         color: t.color
       }))
     }

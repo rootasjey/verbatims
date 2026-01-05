@@ -215,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ImportProgress as BaseImportProgress } from '~/types'
+import type { ImportProgress as BaseImportProgress } from '~~/server/types'
 
 // Extend server ImportProgress with optional UI-only fields we render
 type UiImportProgress = BaseImportProgress & {

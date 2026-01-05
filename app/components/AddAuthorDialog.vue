@@ -167,8 +167,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Author, CreateAuthorData, UpdateAuthorData } from '~/types/author'
-
 interface Props {
   modelValue: boolean
   editAuthor?: Author | null

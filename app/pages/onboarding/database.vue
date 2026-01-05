@@ -2,7 +2,7 @@
   <div class="min-h-screen light:bg-purple-100 flex items-center justify-center p-8">
     <div class="w-full">
       <!-- Header -->
-      <div class="text-center mb-8">
+      <div class="text-center mt-12 mb-8">
         <h1 class="font-title text-size-6 font-600 line-height-none uppercase">Verbatims</h1>
         <h2 class="font-serif text-size-12 font-600">Initialize Database</h2>
         <p class="text-gray-600 dark:text-gray-400">
@@ -198,26 +198,64 @@
 
         <!-- Action Buttons -->
         <div class="mt-12">
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600">Import from ZIP</label>
-          <input type="file" accept=".zip" @change="handleFileChange" />
+        <div class="w-full max-w-2xl">
+          <div
+            class="flex items-center gap-3 p-3 rounded-4 border border-dashed transition-colors"
+            :class="{
+              'border-primary-500 bg-primary-50': isDragActive,
+              'border-pink-600 bg-pink-50': fileValidationError,
+              'border-gray-200 dark:border-gray-700': !isDragActive && !fileValidationError
+            }"
+            @dragenter.prevent="onDragEnter"
+            @dragover.prevent="onDragOver"
+            @dragleave.prevent="onDragLeave"
+            @drop.prevent="onDrop"
+          >
+            <input ref="fileInput" type="file" accept=".zip" class="hidden" @change="handleFileChange" />
+
+            <div class="flex items-center">
+              <NButton btn="soft-gray" size="sm" rounded="4" @click="triggerFileInput">
+                <NIcon name="i-ph-download" class="w-4 h-4 mr-2" />
+                Import from ZIP
+              </NButton>
+              <div class="text-sm text-gray-600 dark:text-gray-400 ml-3">
+                <div v-if="zipFileName" class="font-medium">{{ zipFileName }}</div>
+                <div v-else class="italic">Drag and drop a ZIP here, or click to select</div>
+                <div v-if="fileValidationError" class="text-sm text-pink-600 mt-1">{{ fileValidationError }}</div>
+              </div>
+            </div>
+
+            <div class="ml-auto">
+              <NButton v-if="zipFile" btn="ghost-gray" rounded="4" size="xs" @click="clearFile">Clear</NButton>
+            </div>
+          </div>
         </div>
 
-        <div class="mt-2 flex justify-between items-center">
+        <div class="mt-6 flex justify-between items-center">
           <NButton btn="link" to="/onboarding/admin" class="p-0">
             ← Back to Admin Setup
           </NButton>
           
           <div class="flex space-x-3">
-            <NButton
-              v-if="!isStarted && !isCompleted"
-              @click="startImport"
-              :disabled="loading"
-              :loading="loading"
-              size="sm"
+            <NTooltip
+              :content="fileValidationError ? fileValidationError : (!zipFile ? 'Select a ZIP to import' : undefined)"
+              :_tooltip-content="{ side: 'top' }"
+              :disabled="!(fileValidationError || !zipFile)"
             >
-              Start Import
-            </NButton>
+              <NButton
+                v-if="!isStarted && !isCompleted"
+                @click="startImport"
+                :disabled="loading || !zipFile || !!fileValidationError"
+                :loading="loading"
+                :btn="zipFile ? 'solid-secondary' : 'solid-gray'"
+                size="sm"
+                rounded="2"
+                class="px-6"
+                :label="!zipFile ? 'Select a ZIP to import' : 'Start Import'"
+                :trailing="zipFile ? 'i-ph-hammer' : undefined"
+                :leading="!zipFile ? 'i-ph-arrow-bend-left-up' : undefined"
+              />
+            </NTooltip>
             
             <NButton
               v-if="isCompleted"
@@ -434,13 +472,83 @@ const getStepIconClass = (step: StepKey) => {
 let eventSource: EventSource | null = null
 
 // Import functions
-let zipFile: File | null = null
+const fileInput = ref<HTMLInputElement | null>(null)
+const zipFile = ref<File | null>(null)
+const zipFileName = computed(() => zipFile.value ? zipFile.value.name : '')
+
+// Drag-and-drop state and validation
+const isDragActive = ref(false)
+const fileValidationError = ref<string | null>(null)
+const maxFileSizeMB = 200
+const maxFileSizeBytes = maxFileSizeMB * 1024 * 1024
+
+const validateFile = (file: File) => {
+  fileValidationError.value = null
+  const name = file.name.toLowerCase()
+  if (!name.endsWith('.zip')) {
+    fileValidationError.value = 'File must be a .zip archive'
+    return false
+  }
+  if (file.size > maxFileSizeBytes) {
+    fileValidationError.value = `File is too large (${(file.size / (1024*1024)).toFixed(1)} MB). Max ${maxFileSizeMB} MB.`
+    return false
+  }
+  return true
+}
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
 const handleFileChange = (e: Event) => {
   const input = e.target as HTMLInputElement | null
   if (input && input.files && input.files.length > 0) {
-    zipFile = input.files[0]
+    const file = input.files[0]
+    if (validateFile(file)) {
+      zipFile.value = file
+    } else {
+      zipFile.value = null
+      // Clear invalid selection
+      if (input) input.value = ''
+    }
   } else {
-    zipFile = null
+    zipFile.value = null
+  }
+}
+
+const clearFile = () => {
+  if (fileInput.value) fileInput.value.value = ''
+  zipFile.value = null
+  fileValidationError.value = null
+  isDragActive.value = false
+}
+
+// Drag-and-drop handlers
+const onDragEnter = (_e: DragEvent) => {
+  isDragActive.value = true
+  fileValidationError.value = null
+}
+
+const onDragOver = (_e: DragEvent) => {
+  // Intentionally empty — @dragover.prevent is used to allow drop
+}
+
+const onDragLeave = (_e: DragEvent) => {
+  isDragActive.value = false
+}
+
+const onDrop = (e: DragEvent) => {
+  isDragActive.value = false
+  fileValidationError.value = null
+  const dt = e.dataTransfer
+  if (!dt || !dt.files || dt.files.length === 0) return
+  const file = dt.files[0]
+  if (validateFile(file)) {
+    zipFile.value = file
+    // Clear native file input (keeps UI in sync)
+    if (fileInput.value) fileInput.value.value = ''
+  } else {
+    zipFile.value = null
   }
 }
 
@@ -450,11 +558,18 @@ const startImport = async () => {
   errors.value = []
 
   try {
+    // Validate selected file before starting
+    if (zipFile.value && fileValidationError.value) {
+      errors.value.push(fileValidationError.value)
+      loading.value = false
+      return
+    }
+
     // Start import with async mode; send zip file if provided
     let response: StartImportResponse
-    if (zipFile) {
+    if (zipFile.value) {
       const form = new FormData()
-      form.append('file', zipFile)
+      form.append('file', zipFile.value as Blob)
       form.append('async', 'true')
       response = await $fetch<StartImportResponse>('/api/onboarding/database', {
         method: 'POST',

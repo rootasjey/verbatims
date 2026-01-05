@@ -328,8 +328,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Author } from '~/types/author'
-
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'

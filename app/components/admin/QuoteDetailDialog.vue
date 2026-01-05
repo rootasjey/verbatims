@@ -73,7 +73,6 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminQuote } from '~/types'
 import { formatRelativeTime } from '~/utils/time-formatter'
 
 interface Props {

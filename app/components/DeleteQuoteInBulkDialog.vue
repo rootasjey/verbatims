@@ -38,8 +38,6 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminQuote, QuoteWithRelations } from '~/types/quote'
-
 interface Props {
   open: boolean
   deleting: boolean

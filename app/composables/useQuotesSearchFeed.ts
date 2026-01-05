@@ -1,4 +1,5 @@
-import type { ProcessedQuoteResult, QuotesSearchPayload } from '~/types'
+import type { ProcessedQuoteResult, QuotesSearchPayload } from "~~/server/types"
+
 type SortMode = 'relevance' | 'recent' | 'popular'
 
 /**
@@ -127,7 +128,7 @@ export function useQuoteSearchFeed() {
     const payload = val.data
     const quotes = payload?.quotes
     if (Array.isArray(quotes)) {
-      lastSuccessfulQuotes.value = quotes
+      lastSuccessfulQuotes.value = quotes as ProcessedQuoteResult[]
 
       lastSuccessfulMeta.value = {
         total: typeof payload?.total === 'number' ? payload.total : lastSuccessfulMeta.value.total,
@@ -213,7 +214,7 @@ export function useQuoteSearchFeed() {
       const response = await $fetch('/api/quotes/search', { query })
 
       if (response.data?.quotes) {
-        additionalQuotes.value = [...additionalQuotes.value, ...(response.data.quotes || [])]
+        additionalQuotes.value = [...additionalQuotes.value, ...(response.data.quotes as ProcessedQuoteResult[] || [])]
         currentPage.value = nextPage
       }
     } catch (error) {

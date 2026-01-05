@@ -1,9 +1,5 @@
 import { ref, nextTick, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
-import type {
-  Author, QuoteReference, CreateQuoteData, QuoteLanguage,
-  QuoteWithRelations, AdminQuote
-} from '~/types'
 
 type LanguageOption = {
   label: string

@@ -31,7 +31,6 @@
 
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import type { QuoteReference, QuoteReferencePrimaryType } from '~/types'
 
 interface Props {
   reference: QuoteReference

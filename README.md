@@ -25,26 +25,27 @@ Key ideas:
 
 ## Tech stack
 
-- Nuxt 3 (Vue 3) for the application framework and SSR
+- Nuxt 4 (Vue 3) for the application framework and SSR
 - Pinia for state management
 - UnaUI + UnoCSS for UI primitives and utility-first styling
 - Nuxt Image for image handling and optimization
-- NuxtHub (Cloudflare D1/SQLite) for database and deployment on Cloudflare Pages
+- Cloudflare D1/SQLite for database and deployment on Cloudflare Workers
+- Drizzle ORM for type-safe database queries
 - Auth via `nuxt-auth-utils` (role-based: user, moderator, admin)
 
 See exact versions in `package.json` and configuration in `nuxt.config.ts`.
 
 ## Architecture
 
-- Frontend: Nuxt 3 with SSR/SPA hybrid
-- Database: Cloudflare D1 (SQLite) via NuxtHub
+- Frontend: Nuxt 4 with SSR/SPA hybrid
+- Database: Cloudflare D1 (SQLite) via Drizzle ORM
 - API: File-based routes under `server/api/*`
 - Auth: `getUserSession(event)` on server, `useUserSession()` on client
 - State: Pinia stores for global state and preferences
-- Deployment: Cloudflare Pages via NuxtHub
+- Deployment: Cloudflare Workers
 
 Helpful references:
-- Schema: `server/database/migrations/schema.sql`
+- Schema: `server/db/migrations/schema.sql`
 - Types: `types/` (e.g., `Quote`, `QuoteWithRelations`)
 - Layouts: `layouts/` (`admin.vue`, `dashboard.vue`, `default.vue`)
 - Admin pages: `pages/admin/*`
@@ -62,7 +63,8 @@ bun run build      # Build for production
 bun run preview    # Preview the production build locally
 ```
 
-NuxtHub will provision a local D1 database automatically. The SQL schema lives in `server/database/migrations/schema.sql` and is applied through the NuxtHub integration.
+Cloudflare wrangler with sqlite will provision a local D1 database automatically. 
+The SQL schema lives in `server/db/migrations/schema.sql` and is applied through the Cloudflare integration.
 
 ## Scripts
 
@@ -84,7 +86,9 @@ Note: The legacy local CLI utilities under `scripts/` have been removed. Admin o
 
 ## Deployment
 
-This app targets Cloudflare Pages with NuxtHub. Follow Nuxt's deployment docs and the NuxtHub guide for Cloudflare Pages. CI typically runs `nuxt build` and deploys the output using Cloudflare tooling.
+This app targets Cloudflare Workers. 
+Follow Nuxt's deployment docs and the Cloudflare Workers guide. 
+CI typically runs `nuxt build` and deploys the output using Cloudflare tooling.
 
 ## Contributing
 
@@ -101,7 +105,7 @@ This project provides dynamic, high-quality OG images for quotes, optimized for 
 ### How it works
 
 - **Endpoint:** `GET /api/og/quotes/{id}.png` generates a PNG image for a quote, suitable for Twitter, Facebook, etc.
-- **Rendering:** Uses NuxtHub's browser automation (Puppeteer) to screenshot a styled HTML template (`/api/og/templates/quote?id=...`) (e.g. `http://localhost:3001/api/og/templates/quote?id=2309`).
+- **Rendering:** Uses Cloudflare Workers' browser automation (Puppeteer) to screenshot a styled HTML template (`/api/og/templates/quote?id=...`) (e.g. `http://localhost:3001/api/og/templates/quote?id=2309`).
 - **Caching:** Images are stored in KV (Cloudflare D1) with a hash based on quote content, author, reference, and style version. This ensures images are regenerated only when content or style changes.
 - **Fallback:** If no quote-specific image is available, the default site image (`/images/verbatims.jpeg`) is used.
 - **SVG Overlay:** Alternative SVG endpoint (`/api/og/quotes/{id}/overlay`) provides a scalable text overlay for advanced use cases.

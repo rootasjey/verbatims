@@ -106,8 +106,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { QuoteReference } from '~/types'
-
 interface Props {
   headerTitle: string
   reference: QuoteReference

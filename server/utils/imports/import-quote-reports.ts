@@ -1,7 +1,5 @@
-import type { ImportOptions } from '~/types'
-import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
 import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import type { ImportOptions } from '~~/server/types'
 
 export async function importQuoteReportsInline(importId: string, data: any[], options?: ImportOptions): Promise<void> {
   if (!Array.isArray(data) || !data.length) return
@@ -11,15 +9,14 @@ export async function importQuoteReportsInline(importId: string, data: any[], op
     try {
       await db.insert(schema.quoteReports)
         .values({
-          id: row.id,
           quoteId: row.quote_id,
-          userId: row.user_id,
+          reporterId: row.reporter_id,
           reason: row.reason || null,
+          description: row.description || null,
           status: row.status || null,
           createdAt: row.created_at || null,
           reviewedAt: row.reviewed_at || null,
-          reviewerId: row.reviewer_id || null,
-          notes: row.notes || null,
+          reviewedBy: row.reviewed_by || null,
         })
         .onConflictDoNothing()
         .run()

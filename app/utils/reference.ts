@@ -35,6 +35,7 @@ export const getReferenceIcon = (type: string) => {
  * // returns "Tv Series"
  * formatReferenceType("tv_series");
  */
-export const formatReferenceType = (type: string) => {
+export const formatReferenceType = (type: string | undefined | null) => {
+  if (!type) return ''
   return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }

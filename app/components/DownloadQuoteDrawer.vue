@@ -47,7 +47,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteWithRelations } from '~/types/quote'
 import QuoteImageCard from './QuoteImageCard.vue'
 import { toPng } from 'html-to-image'
 import { createApp, onMounted, watch } from 'vue'

@@ -1,4 +1,3 @@
-import type { CreateUserMessageInput } from '~/types/report'
 import { db, schema } from 'hub:db'
 import { eq, and, gt, count, sql } from 'drizzle-orm'
 

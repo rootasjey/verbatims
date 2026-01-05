@@ -97,9 +97,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { Author } from '~/types/author'
-import type { Ref } from 'vue'
-
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 

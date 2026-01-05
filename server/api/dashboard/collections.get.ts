@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, desc, count, sql } from 'drizzle-orm'
+import { eq, desc, count, sql, getTableColumns } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     
     // Get user's collections with quote count
     const collections = await db.select({
-      ...schema.userCollections,
+      ...getTableColumns(schema.userCollections),
       quotes_count: sql<number>`COUNT(${schema.collectionQuotes.quoteId})`
     })
       .from(schema.userCollections)

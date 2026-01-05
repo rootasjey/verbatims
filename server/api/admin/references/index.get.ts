@@ -34,11 +34,11 @@ export default defineEventHandler(async (event) => {
     
     if (search) {
       const searchPattern = `%${search}%`
-      whereConditions.push(`(r.name LIKE ${sql.raw(`'${searchPattern}'`)} OR r.description LIKE ${sql.raw(`'${searchPattern}'`)} OR r.secondary_type LIKE ${sql.raw(`'${searchPattern}'`)})`)
+      whereConditions.push(`(r.name LIKE '${searchPattern}' OR r.description LIKE '${searchPattern}' OR r.secondary_type LIKE '${searchPattern}')`)
     }
     
     if (primary_type) {
-      whereConditions.push(`r.primary_type = ${sql.raw(`'${primary_type}'`)}`)
+      whereConditions.push(`r.primary_type = '${primary_type}'`)
     }
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
@@ -66,8 +66,8 @@ export default defineEventHandler(async (event) => {
       SELECT 
         r.*,
         COUNT(q.id) as quotes_count
-      FROM ${schema.quoteReferences._.name} r
-      LEFT JOIN ${schema.quotes._.name} q ON r.id = q.reference_id
+      FROM quote_references r
+      LEFT JOIN quotes q ON r.id = q.reference_id
       ${whereClause}
       GROUP BY r.id
       ORDER BY ${sortColumn === 'quotes_count' ? 'quotes_count' : `r.${sortColumn}`} ${sortDirection}
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
     // Count query for pagination
     const countResult = await db.get<{ total: number }>(sql.raw(`
       SELECT COUNT(*) as total
-      FROM ${schema.quoteReferences._.name} r
+      FROM quote_references r
       ${whereClause}
     `))
     

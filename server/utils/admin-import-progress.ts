@@ -1,4 +1,5 @@
-import type { ImportProgress } from '~/types'
+import type { ImportProgress } from "../types"
+
 export type AdminImportStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export interface AdminImportProgress extends ImportProgress {

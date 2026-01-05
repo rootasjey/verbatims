@@ -1,5 +1,3 @@
-import { transformQuotes } from '~/server/utils/quote-transformer'
-import type { DatabaseQuoteWithRelations } from '~/types'
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
 
@@ -17,13 +15,13 @@ export default defineEventHandler(async (event) => {
     const conditions = [eq(schema.quotes.status, quoStatus as any)]
 
     if (typeof language === 'string' && language.length) {
-      conditions.push(eq(schema.quotes.originalLanguage, language))
+      conditions.push(eq(schema.quotes.language, language as any))
     }
 
     const quotes = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       status: schema.quotes.status,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
@@ -34,19 +32,11 @@ export default defineEventHandler(async (event) => {
       authorId: schema.quotes.authorId,
       referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      author: {
-        id: schema.authors.id,
-        name: schema.authors.name,
-        isFictional: schema.authors.isFictional
-      },
-      reference: {
-        id: schema.quoteReferences.id,
-        name: schema.quoteReferences.name,
-        primaryType: schema.quoteReferences.primaryType
-      },
-      user: {
-        name: schema.users.name
-      }
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
+      userName: schema.users.name
     })
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -63,13 +53,13 @@ export default defineEventHandler(async (event) => {
     
     if (quoteIds.length > 0) {
       const tags = await db.select({
-        quoteId: schema.quotesTags.quoteId,
+        quoteId: schema.quoteTags.quoteId,
         name: schema.tags.name,
         color: schema.tags.color
       })
       .from(schema.tags)
-      .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
-      .where(sql`${schema.quotesTags.quoteId} IN ${quoteIds}`)
+      .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+      .where(sql`${schema.quoteTags.quoteId} IN ${quoteIds}`)
       .all()
 
       tags.forEach(tag => {
@@ -94,7 +84,7 @@ export default defineEventHandler(async (event) => {
     const transformed = quotes.map(q => ({
       id: q.id,
       name: q.name,
-      language: q.originalLanguage,
+      language: q.language,
       status: q.status,
       views_count: q.viewsCount,
       likes_count: q.likesCount,
@@ -104,16 +94,16 @@ export default defineEventHandler(async (event) => {
       updated_at: q.updatedAt,
       author: q.authorId ? {
         id: q.authorId,
-        name: q.author.name,
-        is_fictional: q.author.isFictional
+        name: q.authorName,
+        is_fictional: q.authorIsFictional
       } : null,
       reference: q.referenceId ? {
         id: q.referenceId,
-        name: q.reference.name,
-        type: q.reference.primaryType
+        name: q.referenceName,
+        type: q.referencePrimaryType
       } : null,
       user: {
-        name: q.user.name
+        name: q.userName
       },
       tags: tagsMap[q.id] || []
     }))

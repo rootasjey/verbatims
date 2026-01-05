@@ -53,8 +53,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteWithRelations } from '~/types/quote'
-
 interface Props {
   quote: QuoteWithRelations
   theme?: 'light' | 'dark'

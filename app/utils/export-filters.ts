@@ -10,8 +10,8 @@ import type {
   FilterTransformOptions,
   ExportLogEntry,
   ParsedExportLog
-} from '~/types/export'
-import { isQuoteStatus, isQuoteLanguage } from '~/types/export'
+} from '~/types'
+import { isQuoteStatus, isQuoteLanguage } from '~/types'
 
 /**
  * Parse and sanitize raw filters from database JSON

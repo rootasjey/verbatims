@@ -133,7 +133,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { CollectionWithStats } from '~/types'
 const props = defineProps({
   modelValue: {
     type: Boolean,

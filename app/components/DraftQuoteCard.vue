@@ -96,7 +96,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { ProcessedQuoteResult } from '~/types'
+import type { ProcessedQuoteResult } from '~~/server/types'
 
 interface Props {
   quote: ProcessedQuoteResult

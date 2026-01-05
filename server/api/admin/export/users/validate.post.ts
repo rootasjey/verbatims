@@ -2,11 +2,6 @@
  * Admin API: Validate Users Export
  * Provides preview and validation for users export with filtering
  */
-
-import type { ExportOptions, UserExportFilters, ExportValidation } from '~/types/export'
-import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
-
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)

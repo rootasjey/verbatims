@@ -1,7 +1,5 @@
-import type { ImportOptions } from '~/types'
-import { getAdminImport, updateAdminImport } from '~/server/utils/admin-import-progress'
 import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import type { ImportOptions } from '~~/server/types'
 
 export async function importUserSessionsInline(importId: string, data: any[], options?: ImportOptions, userId?: string): Promise<void> {
   if (!Array.isArray(data) || !data.length) return
@@ -11,13 +9,10 @@ export async function importUserSessionsInline(importId: string, data: any[], op
     try {
       await db.insert(schema.userSessions)
         .values({
-          id: row.id,
           userId: row.user_id,
           sessionToken: row.session_token,
           createdAt: row.created_at || null,
           expiresAt: row.expires_at || null,
-          ipAddress: row.ip_address || null,
-          userAgent: row.user_agent || null,
         })
         .onConflictDoNothing()
         .run()

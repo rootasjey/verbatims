@@ -1,9 +1,6 @@
 /**
  * Admin API: Cancel Import
  */
-
-import { getAdminImport, requestCancel } from '~/server/utils/admin-import-progress'
-
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (!user || user.role !== 'admin') {

@@ -1,5 +1,3 @@
-import { getUnresolved } from '~/server/utils/admin-import-unresolved'
-
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (user.role !== 'admin') throw createError({ statusCode: 403, statusMessage: 'Admin access required' })

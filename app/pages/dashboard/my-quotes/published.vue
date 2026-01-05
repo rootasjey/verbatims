@@ -117,8 +117,8 @@
 
         <div class="space-y-3">
           <QuoteListItem
-            v-for="quote in processedMobileQuotes"
-            :key="quote.id"
+            v-for="(quote, idx) in processedMobileQuotes"
+            :key="idx"
             :quote="quote"
             :actions="publishedQuoteActions"
             @share="shareQuote"
@@ -426,8 +426,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ProcessedQuoteResult } from '~/types'
-import type { QuoteWithRelations } from '~/types/quote'
+import type { ProcessedQuoteResult } from '~~/server/types';
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -689,7 +688,10 @@ const loadPublishedQuotes = async () => {
       queryParams.search = searchQuery.value
     }
 
-    const response = await $fetch('/api/dashboard/submissions', {
+    const response = await $fetch<{
+      data: DashboardQuote[]
+      pagination: { total: number; limit: number; totalPages: number }
+    }>('/api/dashboard/submissions', {
       query: queryParams
     })
 

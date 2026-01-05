@@ -162,8 +162,12 @@ async function processImportSync(
       console.log('Importing users...')
       results.users = await importUsersFromDataset(db, importId, datasets.users)
       // Refresh adminUserId in case added via import
-      const admin: User | null = await db.prepare(`SELECT id FROM users WHERE role='admin' LIMIT 1`).first()
-      if (admin) adminUserId = admin.id
+      const adminRow = await db.select({ id: schema.users.id })
+        .from(schema.users)
+        .where(eq(schema.users.role, 'admin'))
+        .limit(1)
+        .get()
+      if (adminRow) adminUserId = adminRow.id
     } else {
       updateStepProgress(importId, 'users', {
         status: 'completed', total: 0, current: 0, imported: 0, message: 'No users dataset provided'

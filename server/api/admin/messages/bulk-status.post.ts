@@ -1,6 +1,5 @@
 import { db, schema } from 'hub:db'
 import { inArray, sql } from 'drizzle-orm'
-import type { ReportStatus } from '~/types/report'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)

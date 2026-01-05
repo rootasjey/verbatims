@@ -14,8 +14,8 @@ export default defineEventHandler(async (event) => {
       color: schema.tags.color
     })
     .from(schema.tags)
-    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
-    .where(eq(schema.quotesTags.quoteId, parseInt(quoteId)))
+    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
     .orderBy(asc(schema.tags.name))
     .all()
 

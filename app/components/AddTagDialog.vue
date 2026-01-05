@@ -36,8 +36,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Tag } from '~/types/tag'
-
 interface Props { modelValue: boolean; editTag?: Tag | null }
 interface Emits { (e:'update:modelValue', v:boolean):void; (e:'tag-added'):void; (e:'tag-updated'):void }
 

@@ -1,8 +1,6 @@
-import { getQuery } from 'h3'
-import { downloadBackupFile } from '~/server/utils/backup-storage'
 import { db, schema } from 'hub:db'
 import { blob } from 'hub:blob'
-import { eq, and, desc, sql } from 'drizzle-orm'
+import { and, desc, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)

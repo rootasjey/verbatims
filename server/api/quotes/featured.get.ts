@@ -1,7 +1,3 @@
-import type {
-  ApiResponse,
-  FeaturedQuoteResult
-} from '~/types'
 import { db, schema } from 'hub:db'
 import { eq, and, desc, sql } from 'drizzle-orm'
 
@@ -11,7 +7,7 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
     let featuredQuote = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       status: schema.quotes.status,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
@@ -22,19 +18,11 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
       authorId: schema.quotes.authorId,
       referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      author: {
-        id: schema.authors.id,
-        name: schema.authors.name,
-        isFictional: schema.authors.isFictional
-      },
-      reference: {
-        id: schema.quoteReferences.id,
-        name: schema.quoteReferences.name,
-        primaryType: schema.quoteReferences.primaryType
-      },
-      user: {
-        name: schema.users.name
-      }
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
+      userName: schema.users.name
     })
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -53,7 +41,7 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
       featuredQuote = await db.select({
         id: schema.quotes.id,
         name: schema.quotes.name,
-        originalLanguage: schema.quotes.originalLanguage,
+        language: schema.quotes.language,
         status: schema.quotes.status,
         viewsCount: schema.quotes.viewsCount,
         likesCount: schema.quotes.likesCount,
@@ -64,19 +52,11 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
         authorId: schema.quotes.authorId,
         referenceId: schema.quotes.referenceId,
         userId: schema.quotes.userId,
-        author: {
-          id: schema.authors.id,
-          name: schema.authors.name,
-          isFictional: schema.authors.isFictional
-        },
-        reference: {
-          id: schema.quoteReferences.id,
-          name: schema.quoteReferences.name,
-          primaryType: schema.quoteReferences.primaryType
-        },
-        user: {
-          name: schema.users.name
-        }
+        authorName: schema.authors.name,
+        authorIsFictional: schema.authors.isFictional,
+        referenceName: schema.quoteReferences.name,
+        referencePrimaryType: schema.quoteReferences.primaryType,
+        userName: schema.users.name
       })
       .from(schema.quotes)
       .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -101,15 +81,15 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
       color: schema.tags.color
     })
     .from(schema.tags)
-    .innerJoin(schema.quotesTags, eq(schema.tags.id, schema.quotesTags.tagId))
-    .where(eq(schema.quotesTags.quoteId, featuredQuote.id))
+    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+    .where(eq(schema.quoteTags.quoteId, featuredQuote.id))
     .all()
     
     // Transform the result
     const transformedQuote = {
       id: featuredQuote.id,
       name: featuredQuote.name,
-      language: featuredQuote.originalLanguage,
+      language: featuredQuote.language,
       status: featuredQuote.status,
       views_count: featuredQuote.viewsCount,
       likes_count: featuredQuote.likesCount,
@@ -119,16 +99,16 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
       updated_at: featuredQuote.updatedAt,
       author: featuredQuote.authorId ? {
         id: featuredQuote.authorId,
-        name: featuredQuote.author.name,
-        is_fictional: featuredQuote.author.isFictional
+        name: featuredQuote.authorName,
+        is_fictional: featuredQuote.authorIsFictional
       } : null,
       reference: featuredQuote.referenceId ? {
         id: featuredQuote.referenceId,
-        name: featuredQuote.reference.name,
-        type: featuredQuote.reference.primaryType
+        name: featuredQuote.referenceName,
+        type: featuredQuote.referencePrimaryType
       } : null,
       user: {
-        name: featuredQuote.user.name
+        name: featuredQuote.userName
       },
       tags: tags.map(t => ({
         name: t.name,

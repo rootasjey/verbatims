@@ -56,7 +56,6 @@
 </template>
 
 <script setup lang="ts">
-import type { ReportTargetType, ReportCategory } from '~/types/report'
 import { useReportForm } from '~/composables/useReportForm'
 
 interface Emits {

@@ -1,6 +1,5 @@
-import type { Author } from "~/types"
 import { db, schema } from 'hub:db'
-import { like, desc, asc, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {

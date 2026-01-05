@@ -36,13 +36,15 @@ export const getLanguageName = (code: string) => {
  * - If num >= 1_000_000, returns (num / 1_000_000).toFixed(1) + 'M'
  * - Else if num >= 1_000, returns (num / 1_000).toFixed(1) + 'K'
  * - Otherwise returns num.toString()
+ * - Returns "0" if num is null/undefined
  *
- * @param num - The numeric value to format.
+ * @param num - The numeric value to format (can be null/undefined).
  * @returns A string representation with a single decimal place for K/M ranges (e.g., "1.5K", "2.0M") or the plain number as a string for smaller values.
  *
  * @remarks
  * - Negative numbers and values below 1,000 are returned using num.toString().
  * - Values at the exact thresholds produce one decimal digit (e.g., 1000 -> "1.0K", 1000000 -> "1.0M").
+ * - Null or undefined values return "0".
  *
  * @example
  * formatNumber(1500); // "1.5K"
@@ -52,8 +54,14 @@ export const getLanguageName = (code: string) => {
  *
  * @example
  * formatNumber(999); // "999"
+ *
+ * @example
+ * formatNumber(undefined); // "0"
  */
-export const formatNumber = (num: number) => {
+export const formatNumber = (num: number | null | undefined) => {
+  if (num == null) {
+    return '0'
+  }
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M'
   } else if (num >= 1000) {

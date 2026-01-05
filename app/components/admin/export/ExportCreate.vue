@@ -161,7 +161,8 @@
                 </label>
                 <div>
                   <NSelect
-                    v-model="dataExport.exportOptions.value.format"
+                    :model-value="formatModel"
+                    @update:model-value="v => formatModel = (typeof v === 'object' ? v : dataExport.formatOptions.find(o => o.label === v) ?? dataExport.exportOptions.value.format)"
                     :items="dataExport.formatOptions"
                     item-key="label"
                     value-key="label"
@@ -241,8 +242,8 @@
                   <div v-if="dataExport.exportOptions.value.data_type.value === 'quotes' && !dataExport.isAllSelected.value">
                     <QuotesFilters
                       v-model="dataExport.quotesFilters.value"
-                      :status-options="dataExport.statusOptions"
-                      :language-options="dataExport.languageOptions"
+                      :status-options="dataExport.statusOptions as any"
+                      :language-options="dataExport.languageOptions as any"
                     />
                   </div>
 
@@ -288,9 +289,22 @@ import TagsFilters from '~/components/admin/export/TagsFilters.vue'
 
 import UsersFilters from '~/components/admin/export/UsersFilters.vue'
 import { useDataExport } from '~/composables/useDataExport'
-import type { ExportDataType } from '~/types'
+
+import { computed } from 'vue'
+import type { ExportFormat } from '~~/shared/types/export'
 
 const dataExport = useDataExport()
+
+// Computed proxy for export format select (maps object or label string to the full format object)
+const formatModel = computed({
+  get() {
+    return dataExport.exportOptions.value.format
+  },
+  set(option) {
+    const opt = (typeof option === 'object') ? option : dataExport.formatOptions.find(o => o.label === option)
+    if (opt) dataExport.exportOptions.value.format = opt as { label: string; value: ExportFormat }
+  }
+})
 
 const dataTypeOptions: Array<{ label: string; value: ExportDataType; icon: string; description: string; available: boolean }> = [
   { label: 'Everything', value: 'all', icon: 'i-ph-stack', description: 'Export all together', available: true },

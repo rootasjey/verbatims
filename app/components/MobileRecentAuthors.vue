@@ -82,8 +82,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Author } from '~/types';
-
 const recentAuthors = ref<Author[]>([])
 const loading = ref(true)
 

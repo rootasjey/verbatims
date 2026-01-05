@@ -3,10 +3,7 @@
  * Provides preview and validation for quotes export with filtering
  */
 
-import type { ExportOptions, ExportValidation } from '~/types/export'
-import { validateFiltersForExport, buildFilterConditions, sanitizeFiltersForQuery } from '~/server/utils/export-filters'
-import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import { sql } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
   try {

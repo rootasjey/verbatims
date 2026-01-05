@@ -1,4 +1,3 @@
-import type { Quote, CreatedQuoteResult } from "~/types"
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 
@@ -54,7 +53,7 @@ export default defineEventHandler(async (event) => {
     const updatedQuoteData = await db.select({
       id: schema.quotes.id,
       name: schema.quotes.name,
-      originalLanguage: schema.quotes.originalLanguage,
+      language: schema.quotes.language,
       status: schema.quotes.status,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
@@ -65,21 +64,12 @@ export default defineEventHandler(async (event) => {
       authorId: schema.quotes.authorId,
       referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      author: {
-        id: schema.authors.id,
-        name: schema.authors.name,
-        isFictional: schema.authors.isFictional,
-        imageUrl: schema.authors.imageUrl
-      },
-      reference: {
-        id: schema.quoteReferences.id,
-        name: schema.quoteReferences.name,
-        primaryType: schema.quoteReferences.primaryType
-      },
-      user: {
-        id: schema.users.id,
-        name: schema.users.name
-      }
+      authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      authorImageUrl: schema.authors.imageUrl,
+      referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
+      userName: schema.users.name
     })
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
@@ -108,12 +98,12 @@ export default defineEventHandler(async (event) => {
     // Process the quote result
     const processedQuote = {
       ...updatedQuoteData,
-      author_name: updatedQuoteData.author?.name || null,
-      author_is_fictional: updatedQuoteData.author?.isFictional || false,
-      author_image_url: updatedQuoteData.author?.imageUrl || null,
-      reference_name: updatedQuoteData.reference?.name || null,
-      reference_type: updatedQuoteData.reference?.primaryType || null,
-      user_name: updatedQuoteData.user?.name || null,
+      author_name: updatedQuoteData.authorName || null,
+      author_is_fictional: updatedQuoteData.authorIsFictional || false,
+      author_image_url: updatedQuoteData.authorImageUrl || null,
+      reference_name: updatedQuoteData.referenceName || null,
+      reference_type: updatedQuoteData.referencePrimaryType || null,
+      user_name: updatedQuoteData.userName || null,
       tags
     }
 

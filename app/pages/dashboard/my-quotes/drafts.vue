@@ -105,8 +105,8 @@
       <!-- Results -->
       <div v-else class="px-3 pt-3 pb-6 space-y-3">
         <DraftQuoteCard
-          v-for="quote in processedMobileQuotes"
-          :key="quote.id"
+          v-for="(quote, idx) in processedMobileQuotes"
+          :key="idx"
           :quote="quote"
           @edit="handleEditQuote"
           @submit="handleSubmitQuote"
@@ -393,7 +393,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ProcessedQuoteResult, QuoteWithRelations } from '~/types'
+import type { ProcessedQuoteResult } from '~~/server/types';
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -557,9 +557,12 @@ const loadDrafts = async (page = 1) => {
       queryParams.search = searchQuery.value
     }
 
-    const response = await $fetch('/api/dashboard/submissions', { query: queryParams })
+    const response = await $fetch<{
+      data: DashboardQuote[]
+      pagination: { total: number; limit: number; totalPages: number; hasMore: boolean }
+    }>('/api/dashboard/submissions', { query: queryParams })
 
-    const data = (response as any)?.data || []
+    const data = response?.data || []
     // On mobile, append when loading subsequent pages; on desktop, replace
     if (isMobile.value && page > 1) {
       quotes.value.push(...data)
@@ -573,7 +576,7 @@ const loadDrafts = async (page = 1) => {
     pageSize.value = response.pagination?.limit || pageSize.value
     totalPages.value = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
     currentPage.value = page
-    hasMore.value = (response as any)?.pagination?.hasMore ?? (currentPage.value < totalPages.value)
+    hasMore.value = response?.pagination?.hasMore ?? (currentPage.value < totalPages.value)
   } catch (error) {
     console.error('Failed to load drafts:', error)
   } finally {

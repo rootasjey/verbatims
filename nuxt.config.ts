@@ -111,17 +111,17 @@ export default defineNuxtConfig({
     theme: {
       colors: {
         primary: {
-          DEFAULT: '#0BA6DF',
-          50: '#E6F7FB',
-          100: '#C1EAF3',
-          200: '#99DCEB',
-          300: '#69B8E0',
-          400: '#34A3D8',
-          500: '#0BA6DF',
-          600: '#0A8CC1',
-          700: '#0574A3',
-          800: '#006B8F',
-          900: '#005377',
+          DEFAULT: '#3C82F6',
+          50: '#E6F2FA',
+          100: '#C3E4F5',
+          200: '#99D1F0',
+          300: '#66BFFB',
+          400: '#34AEEF',
+          500: '#3C82F6',
+          600: '#0D89C8',
+          700: '#007AAD',
+          800: '#006488',
+          900: '#004D66',
         },
         secondary: {
           DEFAULT: '#FAA533',

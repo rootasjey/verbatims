@@ -148,8 +148,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Tag } from '~/types/tag'
-
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Tags - Admin - Verbatims' })
 

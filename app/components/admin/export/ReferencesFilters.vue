@@ -7,8 +7,8 @@
       </label>
       <div>
         <NSelect
-          :model-value="modelValue.primary_type"
-          @update:model-value="updateFilter('primary_type', $event)"
+          :model-value="primaryTypeModel"
+          @update:model-value="v => primaryTypeModel = (Array.isArray(v) ? v : [v])"
             :items="primaryTypeOptions"
             item-key="value"
             value-key="value"
@@ -82,12 +82,12 @@
 </template>
 
 <script setup lang="ts">
-import type { ReferenceExportFilters } from '~/types/export'
-
 interface Props {
   modelValue: ReferenceExportFilters
   primaryTypeOptions: Array<{ label: string; value: string }>
 }
+
+import { computed } from 'vue'
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
@@ -110,4 +110,19 @@ const updateDateRange = (type: 'start' | 'end', value: string) => {
   }
   emit('update:modelValue', updated)
 }
+
+type Option = { label: string; value: string }
+
+// Computed binding for the primary_type filter (maps between `string[]` in model and `Option[]` for NSelect)
+const primaryTypeModel = computed({
+  get(): Option[] {
+    const val = props.modelValue.primary_type
+    const values = Array.isArray(val) ? val : (val ? [val] : [])
+    return values.map(v => props.primaryTypeOptions.find(o => o.value === v) ?? { label: v, value: v })
+  },
+  set(options: Option[]) {
+    const values = options?.map(o => o.value) ?? []
+    updateFilter('primary_type', values)
+  }
+})
 </script>

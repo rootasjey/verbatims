@@ -114,8 +114,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteExportFilters, QuoteLanguage, QuoteStatus } from '~/types/export'
-
 type Option<T extends string> = { label: string; value: T }
 
 interface Props {

@@ -302,9 +302,7 @@
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
-import type { AdminQuote } from '~/types'
 import { formatRelativeTime } from '~/utils/time-formatter'
-import { ofetch } from 'ofetch'
 
 definePageMeta({
   layout: 'admin',
@@ -508,7 +506,7 @@ const loadQuotes = async () => {
       pagination?: { total?: number }
     }
 
-    const response = await ofetch<AdminQuotesResponse>('/api/admin/quotes', {
+    const response = await $fetch<AdminQuotesResponse>('/api/admin/quotes', {
       query: {
         status: 'approved',
         page: currentPage.value,

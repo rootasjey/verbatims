@@ -45,8 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import type { QuoteReference } from '~/types';
-
 const recentReferences = ref<QuoteReference[]>([])
 const loading = ref(true)
 

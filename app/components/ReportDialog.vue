@@ -52,7 +52,6 @@
 </template>
 
 <script setup lang="ts">
-import type { ReportCategory, ReportTargetType } from '~/types'
 import { useReportForm } from '~/composables/useReportForm'
 
 interface Props {

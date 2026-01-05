@@ -1,4 +1,3 @@
-import type { ExportHistoryEntryWithBackup } from '~/types/export'
 import { db, schema } from 'hub:db'
 import { eq, sql, desc } from 'drizzle-orm'
 
