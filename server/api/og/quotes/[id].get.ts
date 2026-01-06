@@ -1,8 +1,4 @@
 import { kv } from 'hub:kv'
-import puppeteerCloudflare from '@cloudflare/puppeteer'
-import type { Browser as CloudflareBrowser } from '@cloudflare/puppeteer'
-import puppeteerLocal from 'puppeteer'
-import type { Browser as LocalBrowser } from 'puppeteer'
 
 export default defineEventHandler(async (event) => {
   let quoteId = getRouterParam(event, 'id')
@@ -45,16 +41,8 @@ export default defineEventHandler(async (event) => {
     return base64ToUint8(cached)
   }
   
-  // Use Cloudflare browser in production, local puppeteer in development
-  const isProduction = !!process.env.BROWSER
-  
-  let browser: CloudflareBrowser | LocalBrowser
-  if (isProduction) {
-    browser = await puppeteerCloudflare.launch(process.env.BROWSER as any)
-  } else {
-    browser = await puppeteerLocal.launch({ headless: true })
-  }
-  const page = await browser.newPage()
+  // Render using Puppeteer (works in both dev and production)
+  const { page } = await hubBrowser()
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`
   
@@ -73,7 +61,7 @@ export default defineEventHandler(async (event) => {
   
   await kv.set(keyData, hash)
 
-  await browser.close()
+  // Note: hubBrowser() automatically handles browser cleanup
 
   setHeader(event, 'Content-Type', 'image/png')
   setHeader(event, 'ETag', `W/"${hash}"`)
