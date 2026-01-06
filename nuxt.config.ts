@@ -76,39 +76,6 @@ export default defineNuxtConfig({
     }
   },
 
-  vite: {
-    build: {
-      chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          manualChunks: (id) => {
-            // Split large admin pages into separate chunks
-            if (id.includes('/pages/admin/')) {
-              return 'admin-pages'
-            }
-            // Split dashboard pages
-            if (id.includes('/pages/dashboard/')) {
-              return 'dashboard-pages'
-            }
-            // Split large node_modules packages
-            if (id.includes('node_modules')) {
-              if (id.includes('@una-ui')) {
-                return 'una-ui'
-              }
-              if (id.includes('drizzle-orm')) {
-                return 'drizzle'
-              }
-              if (id.includes('pinia')) {
-                return 'pinia'
-              }
-              return 'vendor'
-            }
-          }
-        }
-      }
-    }
-  },
-
   // css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
