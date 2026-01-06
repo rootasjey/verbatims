@@ -28,7 +28,7 @@
       <div class="flex gap-1">
         <NuxtLink
           :to="`/authors/${quote.author.id}`"
-          class="font-body text-size-4  font-400 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
+          class="font-subtitle text-size-6  font-600 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
         >
           {{ quote.author.name }}
         </NuxtLink>
@@ -49,7 +49,7 @@
       :class="{'-ml-4': quote.author?.is_fictional}">
       <NuxtLink
         :to="`/references/${quote.reference.id}`"
-        class="font-serif font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+        class="font-title text-size-6 font-600 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
       >
         {{ quote.reference.name }}
       </NuxtLink>

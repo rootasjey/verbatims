@@ -36,22 +36,40 @@
       </ClientOnly>
       
       <header class="mt-12 p-8">
-        <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
+        <!-- Poster/Image above badge -->
+        <div class="flex items-center justify-center mb-4">
+          <Transition name="fade-up" appear>
+            <div
+              v-if="showTypeBadge && reference.imageUrl"
+              class="poster-wrapper"
+              :class="headerIn ? 'scale-in' : 'scale-out'"
+            >
+              <img
+                :src="reference.imageUrl"
+                :alt="reference.name"
+                class="w-22 h-28 object-cover rounded-lg shadow-lg"
+              />
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Reference Type Badge -->
         <div class="flex items-center justify-center gap-4 min-h-8">
           <Transition name="fade-up" appear>
             <NBadge
-              v-if="showTypeBadge"
-              :color="getTypeColor(reference.primary_type)"
+              v-if="showTypeBadge && reference.primaryType"
+              :color="getTypeColor(reference.primaryType)"
               badge="outline"
               :style="{ 'border-width': '0.2px' }"
               size="sm"
+              class="font-medium"
             >
-              {{ formatReferenceType(reference.primary_type) }}
+              {{ formatReferenceType(reference.primaryType) }}
             </NBadge>
           </Transition>
         </div>
 
-        <div class="text-center mb-6">
+        <div class="text-center w-full">
           <h1
             class="font-title text-size-18 sm:text-size-24 md:text-size-42 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
@@ -61,7 +79,7 @@
           </h1>
 
           <span v-if="reference.release_date" 
-            class="font-serif text-gray-600 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
+            class="block font-serif text-lg font-500 text-gray-500 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(1)"
           >
@@ -70,22 +88,37 @@
 
           <p
             v-if="reference.secondary_type"
-            class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4 transform-gpu transition-all duration-700 ease-out"
+            class="font-subtitle italic text-xl font-500 text-gray-600 dark:text-gray-400 mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(1)"
           >
             {{ reference.secondary_type }}
           </p>
 
-          <p v-if="reference.description"
-            class="font-body text-size-4 md:text-size-5 font-200 text-gray-600
-            dark:text-gray-400 max-w-2xl mx-auto mb-6
-            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6 transform-gpu transition-all duration-700 ease-out"
+          <div v-if="reference.description"
+            class="mt-28 max-w-4xl w-full mx-auto mb-6 border-t border-b border-dashed border-gray-300 dark:border-gray-600 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(2)"
           >
-            {{ reference.description }}
-          </p>
+            <div class="p-6">
+              <div class="description-clip overflow-hidden" :class="descriptionExpanded ? 'expanded' : 'collapsed'">
+                <p class="text-justify font-serif text-base md:text-size-8 font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                  {{ reference.description }}
+                </p>
+              </div>
+
+              <NButton
+                v-if="isDescriptionLong(reference.description)"
+                btn="ghost-gray"
+                size="sm"
+                class="mt-3 text-xs font-medium"
+                @click="descriptionExpanded = !descriptionExpanded"
+              >
+                <NIcon :name="descriptionExpanded ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="mr-1" />
+                {{ descriptionExpanded ? 'Show Less' : 'Read More' }}
+              </NButton>
+            </div>
+          </div>
 
           <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
             <NIcon name="i-ph-globe" class="w-4 h-4" />
@@ -191,6 +224,45 @@
           >
             {{ loadingMoreQuotes ? 'Loading...' : 'Load More Quotes' }}
           </NButton>
+        </div>
+      </div>
+
+      <!-- Similar References Section -->
+      <div v-if="similarReferences.length > 0" class="px-8 pb-16">
+        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mb-8">
+          Similar References
+        </h2>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
+          <div
+            v-for="(similarRef, index) in similarReferences"
+            :key="similarRef.id"
+            class="group cursor-pointer similar-item"
+            :class="{ 'in': similarReferences.length > 0 }"
+            :style="{ transitionDelay: `${index * 60}ms` }"
+            @click="navigateTo(`/references/${similarRef.id}`)"
+          >
+            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-all duration-300 hover:shadow-md">
+              <div v-if="similarRef.image_url" class="w-16 h-24 mb-2">
+                <img
+                  :src="similarRef.image_url"
+                  :alt="similarRef.name"
+                  class="w-full h-full object-cover rounded group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div class="flex-1">
+                <p class="font-medium text-sm line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  {{ similarRef.name }}
+                </p>
+                <p v-if="similarRef.primary_type" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
+                  {{ formatReferenceType(similarRef.primary_type) }}
+                </p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  {{ formatNumber(similarRef.quotes_count) }} quotes
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -312,6 +384,8 @@ const sharePending = ref<boolean>(false)
 const copyState = ref<'idle' | 'copied'>('idle')
 const headerIn = ref<boolean>(false)
 const showTypeBadge = ref<boolean>(false)
+const descriptionExpanded = ref(false)
+const similarReferences = ref<any[]>([])
 
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -561,6 +635,26 @@ const formatReleaseDate = (dateString: string) => {
   return date.getFullYear().toString()
 }
 
+const formatReferenceType = (type: string): string => {
+  if (!type) return ''
+  const typeMap: Record<string, string> = {
+    'film': 'Film',
+    'book': 'Book',
+    'tv_series': 'TV Series',
+    'tv_show': 'TV Show',
+    'music': 'Music',
+    'speech': 'Speech',
+    'podcast': 'Podcast',
+    'interview': 'Interview',
+    'documentary': 'Documentary',
+    'media_stream': 'Media Stream',
+    'writings': 'Writings',
+    'video_game': 'Video Game',
+    'other': 'Other'
+  }
+  return typeMap[type] || type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+}
+
 const formatLanguage = (langCode: langCode) => {
   const languages = {
     'en': 'English',
@@ -604,6 +698,27 @@ const getTypeColor = (type: string) => {
   return colors[type] || 'gray'
 }
 
+const isDescriptionLong = (description: string): boolean => {
+  if (!description) return false
+  // Check if description has more than 3 non-empty lines or is longer than 300 characters
+  const lines = description.split('\n').filter(line => line.trim())
+  return lines.length > 3 || description.length > 300
+}
+
+const loadSimilarReferences = async () => {
+  if (!reference.value) return
+
+  try {
+    const response = await $fetch(`/api/references/${reference.value.id}/similar`, {
+      query: { limit: 6 }
+    })
+    similarReferences.value = response.data || []
+  } catch (error) {
+    console.error('Failed to load similar references:', error)
+    similarReferences.value = []
+  }
+}
+
 const hydrated = ref(false)
 
 onMounted(async () => {
@@ -623,6 +738,7 @@ onMounted(async () => {
   } catch (error) { console.error('Failed to track reference view:', error) }
 
   loadQuotes()
+  loadSimilarReferences()
   if (user.value) checkLikeStatus()
 
   // Trigger enter animation and delayed type badge
@@ -642,6 +758,7 @@ watch(reference, (newReference) => {
   if (!newReference) return
   
   loadQuotes()
+  loadSimilarReferences()
   if (user.value) checkLikeStatus()
 
   // retrigger header animation on reference change
@@ -708,4 +825,31 @@ onUnmounted(() => {
   transform: translateY(0);
   filter: blur(0);
 }
+
+/* Description expand/collapse animation */
+.description-clip {
+  transition: max-height 420ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease;
+  max-height: 6.5rem; /* collapsed height (~3 lines) */
+}
+.description-clip.collapsed { max-height: 6.5rem; }
+.description-clip.expanded { max-height: 1200px; }
+
+/* Subtle staggered fade-up for similar references */
+.similar-item {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 420ms cubic-bezier(.22,.61,.36,1), transform 420ms cubic-bezier(.22,.61,.36,1);
+}
+.similar-item.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Poster subtle scale on appear */
+.poster-wrapper {
+  transition: transform 420ms cubic-bezier(.22,.61,.36,1), box-shadow 320ms ease;
+  transform-origin: center;
+}
+.poster-wrapper.scale-in { transform: scale(1); }
+.poster-wrapper.scale-out { transform: scale(0.96); }
 </style>

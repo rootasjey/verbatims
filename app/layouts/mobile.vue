@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-[#0C0A09] dark:to-gray-900 mobile-layout">
+  <div class="min-h-screen light:bg-gradient-to-br light:from-gray-50 light:to-white mobile-layout">
     <header
       class="fixed top-0 left-0 right-0 z-40 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur-md px-4 py-3 safe-area-pt"
     >

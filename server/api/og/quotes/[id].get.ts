@@ -5,7 +5,6 @@ import puppeteerLocal from 'puppeteer'
 import type { Browser as LocalBrowser } from 'puppeteer'
 
 export default defineEventHandler(async (event) => {
-  console.log('[OG] 1• Generating quote image')
   let quoteId = getRouterParam(event, 'id')
   if (!quoteId) { throwServer(400, 'Quote id is required'); return }
 
@@ -20,7 +19,6 @@ export default defineEventHandler(async (event) => {
   const styleVersion = (config.public as any).ogStyleVersion as string
   // Use actual request origin so it works in dev, staging, and production
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
-  // const origin = "http://localhost:3000"  // Temporary fix for OG generation behind a proxy
 
   // Derive a stable hash from content + style to invalidate when needed
   const basis = JSON.stringify({
@@ -41,15 +39,12 @@ export default defineEventHandler(async (event) => {
 
   const cached = await kv.get<string>(keyImage(effectiveHash))
   if (cached) {
-    console.log(`[OG] Serving cached image for quote ${quoteId}`)
     setHeader(event, 'Content-Type', 'image/png')
     setHeader(event, 'ETag', `W/"${effectiveHash}"`)
     setHeader(event, 'Cache-Control', 'public, max-age=2592000') // 30 days
     return base64ToUint8(cached)
   }
   
-  console.log(`[OG] Cache miss for quote ${quoteId}, generating new image`)
-
   // Use Cloudflare browser in production, local puppeteer in development
   const isProduction = !!process.env.BROWSER
   
@@ -62,8 +57,6 @@ export default defineEventHandler(async (event) => {
   const page = await browser.newPage()
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`
-
-  console.log(`[OG] Navigating to: ${templateUrl}`)
   
   // Navigate and wait for fonts to load (dom + network idle enough for our minimal page)
   await page.goto(templateUrl, { waitUntil: 'networkidle0', timeout: 15000 })

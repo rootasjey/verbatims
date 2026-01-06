@@ -32,21 +32,36 @@
       </ClientOnly>
 
       <header class="mt-12 p-8">
+        <!-- Avatar centered above badge -->
+        <div class="flex items-center justify-center mb-4">
+          <Transition name="fade-up" appear>
+            <NAvatar
+              v-if="showTypeBadge"
+              :src="author.image_url || undefined"
+              :alt="author.name"
+              size="lg"
+              :fallback="getAuthorInitials(author.name)"
+              class="shadow-lg avatar-entrance"
+              :class="headerIn ? 'scale-in' : 'scale-out'"
+            />
+          </Transition>
+        </div>
+
         <!-- Author Type (appears after header content animates) -->
-        <!-- Reserve vertical space to avoid layout shift when the badge fades in -->
         <div class="flex items-center justify-center gap-4 min-h-8">
           <Transition name="fade-up" appear>
             <NBadge
               v-if="showTypeBadge"
               :color="author.is_fictional ? 'purple' : 'blue'"
               size="sm"
+              class="font-600"
             >
               {{ author.is_fictional ? 'Fictional Character' : 'Real Person' }}
             </NBadge>
           </Transition>
         </div>
 
-        <div class="text-center mb-6 w-full">
+        <div class="text-center w-full">
           <h1
             class="font-title text-size-24 md:text-size-42 md:text-size-54 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
@@ -55,33 +70,48 @@
             {{ author.name }}
           </h1>
 
-          <span
-            v-if="!author.is_fictional && (author.birth_date || author.death_date)"
-            class="block font-serif font-600 text-gray-600 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(1)"
-          >
-            {{ formatLifeDates(author.birth_date, author.death_date) }}
-          </span>
-
           <p
             v-if="author.job"
-            class="font-title text-lg text-gray-600 dark:text-gray-400 mb-4 transform-gpu transition-all duration-700 ease-out"
+            class="font-subtitle italic text-xl font-500 text-gray-600 dark:text-gray-400 mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(2)"
           >
             {{ author.job }}
           </p>
 
-          <p v-if="author.description"
-            class="font-body text-size-4 md:text-size-5 font-200 text-gray-600 
-            dark:text-gray-400 max-w-2xl mx-auto mb-6
-            border-t border-b border-dashed border-gray-300 dark:border-gray-600 p-6 transform-gpu transition-all duration-700 ease-out"
+          <span
+            v-if="!author.is_fictional && (author.birth_date || author.death_date)"
+            class="block font-subtitle text-size-8 font-600 text-gray-700 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(1)"
+          >
+            {{ formatLifeDates(author.birth_date, author.death_date) }}
+          </span>
+
+          <div v-if="author.description"
+            class="mt-28 max-w-4xl w-full mx-auto mb-6 border-t border-b border-dashed border-gray-300 dark:border-gray-600 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(3)"
           >
-            {{ author.description }}
-          </p>
+            <div class="p-6">
+              <div class="description-clip overflow-hidden" :class="descriptionExpanded ? 'expanded' : 'collapsed'">
+                <p class="text-justify font-serif text-base md:text-size-8 font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                  {{ author.description }}
+                </p>
+              </div>
+
+              <NButton
+                v-if="isDescriptionLong(author.description)"
+                btn="ghost-gray"
+                size="sm"
+                class="mt-3 text-xs font-medium"
+                @click="descriptionExpanded = !descriptionExpanded"
+              >
+                <NIcon :name="descriptionExpanded ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="mr-1" />
+                {{ descriptionExpanded ? 'Show Less' : 'Read More' }}
+              </NButton>
+            </div>
+          </div>
 
           <div v-if="author.birth_location || author.death_location" class="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
             <div v-if="author.birth_location" class="flex items-center space-x-1">
@@ -205,6 +235,45 @@
           >
             {{ loadingMoreQuotes ? 'Loading...' : 'Load More Quotes' }}
           </NButton>
+        </div>
+      </div>
+
+      <!-- Similar Authors Section -->
+      <div v-if="similarAuthors.length > 0" class="px-8 pb-16">
+        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mb-8">
+          Similar Authors
+        </h2>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
+          <div
+            v-for="(similarAuthor, index) in similarAuthors"
+            :key="similarAuthor.id"
+            class="group cursor-pointer similar-item"
+            :class="{ 'in': similarAuthors.length > 0 }"
+            :style="{ transitionDelay: `${index * 60}ms` }"
+            @click="navigateTo(`/authors/${similarAuthor.id}`)"
+          >
+            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-all duration-300 hover:shadow-md">
+              <NAvatar
+                :src="similarAuthor.image_url || undefined"
+                :alt="similarAuthor.name"
+                size="md"
+                :fallback="getAuthorInitials(similarAuthor.name)"
+                class="group-hover:scale-110 transition-transform duration-300"
+              />
+              <div class="flex-1">
+                <p class="font-medium text-sm line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  {{ similarAuthor.name }}
+                </p>
+                <p v-if="similarAuthor.job" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
+                  {{ similarAuthor.job }}
+                </p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  {{ formatNumber(similarAuthor.quotes_count) }} quotes
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
   </div>
@@ -345,6 +414,8 @@ const sharePending = ref(false)
 const copyState = ref<'idle' | 'copying' | 'copied'>('idle')
 const showEditAuthorDialog = ref(false)
 const showDeleteAuthorDialog = ref(false)
+const descriptionExpanded = ref(false)
+const similarAuthors = ref<any[]>([])
 
 // Convert AuthorWithSocials to Author for AddAuthorDialog
 const authorAsEditAuthor = computed(() => {
@@ -605,6 +676,49 @@ const formatNumber = (num?: number | null): string => {
   return num.toString()
 }
 
+const getAuthorInitials = (name: string): string => {
+  if (!name) return '??'
+  return name
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+const getDescriptionPreview = (description: string): string => {
+  if (!description) return ''
+  const lines = description.split('\n').filter(line => line.trim())
+  // Show first 2 lines or first 200 characters, whichever is shorter
+  const preview = lines.slice(0, 2).join('\n')
+  if (preview.length > 200) {
+    return preview.substring(0, 200) + '...'
+  }
+  return preview + (lines.length > 2 ? '...' : '')
+}
+
+const isDescriptionLong = (description: string): boolean => {
+  if (!description) return false
+  // Check if description has more than 3 non-empty lines or is longer than 300 characters
+  const lines = description.split('\n').filter(line => line.trim())
+  return lines.length > 3 || description.length > 300
+}
+
+const loadSimilarAuthors = async () => {
+  const currentAuthor = author.value
+  if (!currentAuthor) return
+
+  try {
+    const response = await $fetch(`/api/authors/${currentAuthor.id}/similar`, {
+      query: { limit: 6 }
+    })
+    similarAuthors.value = response.data || []
+  } catch (error) {
+    console.error('Failed to load similar authors:', error)
+    similarAuthors.value = []
+  }
+}
+
 const hydrated = ref(false)
 
 onMounted(async () => {
@@ -621,6 +735,7 @@ onMounted(async () => {
     }
 
     loadQuotes()
+    loadSimilarAuthors()
     if (user.value) checkLikeStatus()
     
     // Trigger enter animation once content is available
@@ -645,6 +760,7 @@ watch(currentLayout, (newLayout) => {
 watch(author, (newAuthor) => {
   if (newAuthor) {
     loadQuotes()
+    loadSimilarAuthors()
     if (user.value) {
       checkLikeStatus()
     }
@@ -710,4 +826,33 @@ onUnmounted(() => {
   transform: translateY(0);
   filter: blur(0);
 }
+
+/* Description expand/collapse animation */
+.description-clip {
+  transition: max-height 420ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease;
+  max-height: 6.5rem; /* collapsed height (~3 lines) */
+}
+.description-clip.collapsed { max-height: 6.5rem; }
+.description-clip.expanded { max-height: 1200px; }
+
+/* Subtle staggered fade-up for similar authors */
+.similar-item {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 420ms cubic-bezier(.22,.61,.36,1), transform 420ms cubic-bezier(.22,.61,.36,1);
+}
+.similar-item.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Avatar subtle scale on appear + hover */
+.avatar-entrance {
+  transition: transform 420ms cubic-bezier(.22,.61,.36,1), box-shadow 320ms ease;
+  transform-origin: center;
+}
+.avatar-entrance.scale-in { transform: scale(1); }
+.avatar-entrance.scale-out { transform: scale(0.96); }
+.avatar-entrance:hover { transform: scale(1.03); }
+
 </style>

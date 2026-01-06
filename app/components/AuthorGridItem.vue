@@ -65,7 +65,7 @@
       <!-- Description -->
       <p 
         v-if="author.description" 
-        class="font-sans text-sm text-gray-500 dark:text-gray-500 line-clamp-6 flex-1"
+        class="font-sans text-sm text-gray-500 dark:text-gray-500 line-clamp-6 whitespace-pre-line flex-1"
       >
         {{ author.description }}
       </p>
