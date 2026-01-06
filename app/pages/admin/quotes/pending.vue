@@ -229,7 +229,7 @@
             <!-- Status Column -->
             <template #status-cell="{ cell }">
               <div class="space-y-1">
-                <NBadge :badge="`soft-${getStatusColor(cell.row.original.status)}`" size="xs">
+                <NBadge :color="getStatusColor(cell.row.original.status)" badge="soft" size="xs">
                   {{ cell.row.original.status }}
                 </NBadge>
                 <div v-if="cell.row.original.status === 'rejected' && cell.row.original.rejection_reason" class="text-xs text-red-600 dark:text-red-400">

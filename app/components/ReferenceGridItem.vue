@@ -25,8 +25,7 @@
         :class="{ 
           'group-hover:opacity-100': true, 
           'opacity-100': !isHovered, 
-          'opacity-0': isHovered,
-          'border b-${getTypeColor(reference.primary_type)}-500': isHovered
+          'opacity-0': isHovered
         }"
       >
         {{ formatType(reference.primary_type) }}

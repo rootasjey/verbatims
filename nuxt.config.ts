@@ -7,7 +7,7 @@ import { resolve, dirname } from 'node:path'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
-  devtools: { enabled: true },
+  devtools: { enabled: false }, // Disabled due to Drizzle Studio bug in @nuxthub/core@0.10.4
 
   app: {
     head: {
@@ -38,6 +38,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/images/favicon-192.png' },
         { rel: 'canonical', href: 'https://verbatims.cc' }
       ]
     }

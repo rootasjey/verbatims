@@ -1,12 +1,15 @@
 import { kv } from 'hub:kv'
-import puppeteer from '@cloudflare/puppeteer'
+import puppeteerCloudflare from '@cloudflare/puppeteer'
+import type { Browser as CloudflareBrowser } from '@cloudflare/puppeteer'
+import puppeteerLocal from 'puppeteer'
+import type { Browser as LocalBrowser } from 'puppeteer'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
-  const siteUrl = (config.public as any).siteUrl as string
   const styleVersion = (config.public as any).ogStyleVersion as string
-  const origin = (siteUrl && siteUrl.length > 0 ? siteUrl : `${requestUrl.protocol}//${requestUrl.host}`).replace(/\/$/, '')
+  // Use actual request origin so it works in dev, staging, and production
+  const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
 
   // Derive a stable hash for caching
   const basis = JSON.stringify({
@@ -30,8 +33,15 @@ export default defineEventHandler(async (event) => {
     return base64ToUint8(cached)
   }
 
-  // Render using Cloudflare Browser Rendering (Puppeteer)
-  const browser = await puppeteer.launch(process.env.BROWSER as any)
+  // Use Cloudflare browser in production, local puppeteer in development
+  const isProduction = !!process.env.BROWSER
+  
+  let browser: CloudflareBrowser | LocalBrowser
+  if (isProduction) {
+    browser = await puppeteerCloudflare.launch(process.env.BROWSER as any)
+  } else {
+    browser = await puppeteerLocal.launch({ headless: true })
+  }
   const page = await browser.newPage()
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/default?v=${encodeURIComponent(styleVersion || '1')}`
