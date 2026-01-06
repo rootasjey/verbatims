@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { verifyPasswordWorker } from '~~/server/utils/password'
 
 const bodySchema = z.object({
   email: z.email(),
@@ -30,7 +31,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Verify password using nuxt-auth-utils
-    const isValidPassword = await verifyPassword(userData.password as string, password)
+    // const isValidPassword = await verifyPassword(userData.password as string, password)
+    // --------------------------------------
+    // NOTE: Using custom worker-based verification to avoid nuxt-auth-utils dependency issues in Cloudflare
+    const isValidPassword = await verifyPasswordWorker(userData.password, password)
 
     if (!isValidPassword) {
       throw createError({
@@ -44,19 +48,24 @@ export default defineEventHandler(async (event) => {
       .set({ lastLoginAt: new Date() })
       .where(eq(schema.users.id, userData.id))
 
+    // Ensure language is a valid locale and default to 'en' when missing/invalid
+    const language = (userData.language && validLanguages.includes(userData.language as any))
+      ? (userData.language as typeof validLanguages[number])
+      : 'en'
+
     const user = {
       id: userData.id,
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      created_at: userData.createdAt,
+      created_at: userData.createdAt?.toISOString(),
       avatar_url: userData.avatarUrl,
       biography: userData.biography,
       job: userData.job,
-      language: userData.language,
+      language,
       location: userData.location,
       socials: userData.socials,
-      updated_at: userData.updatedAt
+      updated_at: userData.updatedAt?.toISOString()
     }
 
     // Set user session
