@@ -40,10 +40,10 @@
     <div v-else-if="quote" class="mt-12 md:mt-16 px-4 md:px-8 py-8 md:py-16 animate-fade-in animate-duration-700 animate-ease-out">
       <div class="max-w-5xl mx-auto space-y-8">
         <!-- Main Quote Card -->
-        <div class="relative bg-white/60 dark:bg-[#0C0A09] 
+        <div class="relative light:bg-white/60 dark:bg-[#0C0A09] md:dark:bg-transparent
           backdrop-blur-lg rounded-3xl p-8 md:p-12 lg:p-16 
           shadow-lg shadow-gray-200/50 dark:shadow-black/20 
-          border border-gray-200/40 dark:border-gray-800 transition-all duration-300"
+          border md:border-none border-gray-200/40 dark:border-gray-800 transition-all duration-300"
         >
           <!-- Decorative gradient orb -->
           <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-gray-200/20 via-gray-300/20 to-gray-200/20 dark:from-gray-700/10 dark:via-gray-600/10 dark:to-gray-700/10 rounded-full blur-3xl pointer-events-none"></div>

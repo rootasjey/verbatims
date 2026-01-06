@@ -26,7 +26,7 @@
         <NDropdownMenu :items="dropdownActions">
           <NButton
             icon
-            btn="ghost"
+            btn="ghost-gray"
             size="sm"
             label="i-ph-dots-three-vertical"
             class="opacity-0 group-hover:opacity-100 transition-opacity"

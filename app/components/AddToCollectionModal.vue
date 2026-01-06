@@ -10,7 +10,7 @@
         <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
           <NCollapsible v-model:open="createOpen">
             <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
-              <NButton btn="ghost" size="xs">
+              <NButton btn="ghost-gray" size="xs">
                 <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
                 <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
               </NButton>
@@ -122,7 +122,7 @@
     <template #footer>
       <div class="flex justify-end">
         <NButton
-          btn="ghost"
+          btn="solid-gray"
           @click="closeModal"
         >
           Close

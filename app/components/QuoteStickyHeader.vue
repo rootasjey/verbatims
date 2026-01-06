@@ -96,7 +96,7 @@
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
               @click="$emit('add-to-collection')"
             >
-              <NIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-bookmark-simple'" class="w-3.5 h-3.5 mr-1" />
+              <NIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-folder-plus'" class="w-3.5 h-3.5 mr-1" />
               <span class="hidden sm:inline">{{ savedState === 'saved' ? 'Saved' : 'Save' }}</span>
             </NButton>
           </NTooltip>

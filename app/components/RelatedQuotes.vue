@@ -1,7 +1,7 @@
 <template>
   <div v-if="relatedQuotes?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-16 mt-16">
-    <h3 class="text-3xl font-serif font-semibold text-gray-900 dark:text-white text-center mb-12">Related Quotes</h3>
-    <div class="grid grid-cols-2 gap-4 items-stretch">
+    <h3 class="text-size-12 font-title font-700 uppercase text-gray-900 dark:text-white text-center mb-12">Related Quotes</h3>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 items-stretch">
       <div
         v-for="relatedQuote in relatedQuotes"
         :key="relatedQuote.id"
@@ -16,16 +16,6 @@
         </blockquote>
         <div class="flex flex-col gap-2 text-sm text-gray-500 dark:text-gray-400">
           <span v-if="relatedQuote.author" class="font-sans italic">{{ relatedQuote.author.name }}</span>
-          <div class="flex items-center space-x-4">
-            <span class="flex items-center space-x-1">
-              <NIcon name="i-ph-heart" class="w-4 h-4" />
-              <span>{{ formatNumber(relatedQuote.likes_count) }}</span>
-            </span>
-            <span class="flex items-center space-x-1">
-              <NIcon name="i-ph-eye" class="w-4 h-4" />
-              <span>{{ formatNumber(relatedQuote.views_count) }}</span>
-            </span>
-          </div>
         </div>
       </div>
     </div>
