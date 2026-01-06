@@ -207,11 +207,11 @@
       </form>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
+        <NButton btn="light:solid-gray dark:soft-white" @click="closeDialog" :disabled="submitting">
           Cancel
         </NButton>
         <NButton
-          btn="soft-blue"
+          btn="solid-blue"
           :loading="submitting"
           @click="submitQuote"
           :disabled="!form.content.trim()"
@@ -303,7 +303,6 @@ const onReferenceInput = () => {
 
 const closeDialog = () => {
   isOpen.value = false
-  resetForm()
 }
 
 watch(() => props.editQuote, (newQuote) => {
