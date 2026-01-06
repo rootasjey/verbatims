@@ -1,4 +1,4 @@
-CREATE TABLE `author_views` (
+CREATE TABLE IF NOT EXISTS `author_views` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`author_id` integer NOT NULL,
 	`user_id` integer,
@@ -9,10 +9,10 @@ CREATE TABLE `author_views` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `idx_author_views_author` ON `author_views` (`author_id`);--> statement-breakpoint
-CREATE INDEX `idx_author_views_user` ON `author_views` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_author_views_date` ON `author_views` (`viewed_at`);--> statement-breakpoint
-CREATE TABLE `authors` (
+CREATE INDEX IF NOT EXISTS `idx_author_views_author` ON `author_views` (`author_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_author_views_user` ON `author_views` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_author_views_date` ON `author_views` (`viewed_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `authors` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`is_fictional` integer DEFAULT false,
@@ -31,8 +31,8 @@ CREATE TABLE `authors` (
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
-CREATE INDEX `idx_authors_name` ON `authors` (`name`);--> statement-breakpoint
-CREATE TABLE `backup_files` (
+CREATE INDEX IF NOT EXISTS `idx_authors_name` ON `authors` (`name`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `backup_files` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`file_key` text NOT NULL,
 	`export_log_id` integer,
@@ -55,15 +55,15 @@ CREATE TABLE `backup_files` (
 	FOREIGN KEY (`import_log_id`) REFERENCES `import_logs`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `backup_files_file_key_unique` ON `backup_files` (`file_key`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_import_log` ON `backup_files` (`import_log_id`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_file_key` ON `backup_files` (`file_key`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_export_log` ON `backup_files` (`export_log_id`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_status` ON `backup_files` (`storage_status`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_created` ON `backup_files` (`created_at`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_expires` ON `backup_files` (`expires_at`);--> statement-breakpoint
-CREATE INDEX `idx_backup_files_path` ON `backup_files` (`file_path`);--> statement-breakpoint
-CREATE TABLE `collection_quotes` (
+CREATE UNIQUE INDEX IF NOT EXISTS `backup_files_file_key_unique` ON `backup_files` (`file_key`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_import_log` ON `backup_files` (`import_log_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_file_key` ON `backup_files` (`file_key`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_export_log` ON `backup_files` (`export_log_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_status` ON `backup_files` (`storage_status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_created` ON `backup_files` (`created_at`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_expires` ON `backup_files` (`expires_at`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_backup_files_path` ON `backup_files` (`file_path`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `collection_quotes` (
 	`collection_id` integer,
 	`quote_id` integer,
 	`added_at` integer DEFAULT CURRENT_TIMESTAMP,
@@ -72,7 +72,7 @@ CREATE TABLE `collection_quotes` (
 	FOREIGN KEY (`quote_id`) REFERENCES `quotes`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `export_logs` (
+CREATE TABLE IF NOT EXISTS `export_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`export_id` text NOT NULL,
 	`filename` text NOT NULL,
@@ -90,13 +90,13 @@ CREATE TABLE `export_logs` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `export_logs_export_id_unique` ON `export_logs` (`export_id`);--> statement-breakpoint
-CREATE INDEX `idx_export_logs_export_id` ON `export_logs` (`export_id`);--> statement-breakpoint
-CREATE INDEX `idx_export_logs_user` ON `export_logs` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_export_logs_data_type` ON `export_logs` (`data_type`);--> statement-breakpoint
-CREATE INDEX `idx_export_logs_created` ON `export_logs` (`created_at`);--> statement-breakpoint
-CREATE INDEX `idx_export_logs_expires` ON `export_logs` (`expires_at`);--> statement-breakpoint
-CREATE TABLE `import_logs` (
+CREATE UNIQUE INDEX IF NOT EXISTS `export_logs_export_id_unique` ON `export_logs` (`export_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_export_logs_export_id` ON `export_logs` (`export_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_export_logs_user` ON `export_logs` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_export_logs_data_type` ON `export_logs` (`data_type`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_export_logs_created` ON `export_logs` (`created_at`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_export_logs_expires` ON `export_logs` (`expires_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `import_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`import_id` text NOT NULL,
 	`filename` text,
@@ -114,11 +114,11 @@ CREATE TABLE `import_logs` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `import_logs_import_id_unique` ON `import_logs` (`import_id`);--> statement-breakpoint
-CREATE INDEX `idx_import_logs_import_id` ON `import_logs` (`import_id`);--> statement-breakpoint
-CREATE INDEX `idx_import_logs_status` ON `import_logs` (`status`);--> statement-breakpoint
-CREATE INDEX `idx_import_logs_created` ON `import_logs` (`created_at`);--> statement-breakpoint
-CREATE TABLE `quote_references` (
+CREATE UNIQUE INDEX IF NOT EXISTS `import_logs_import_id_unique` ON `import_logs` (`import_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_import_logs_import_id` ON `import_logs` (`import_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_import_logs_status` ON `import_logs` (`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_import_logs_created` ON `import_logs` (`created_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `quote_references` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`original_language` text DEFAULT 'en',
@@ -135,8 +135,8 @@ CREATE TABLE `quote_references` (
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
-CREATE INDEX `idx_references_type` ON `quote_references` (`primary_type`);--> statement-breakpoint
-CREATE TABLE `quote_reports` (
+CREATE INDEX IF NOT EXISTS `idx_references_type` ON `quote_references` (`primary_type`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `quote_reports` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`quote_id` integer NOT NULL,
 	`reporter_id` integer NOT NULL,
@@ -151,8 +151,8 @@ CREATE TABLE `quote_reports` (
 	FOREIGN KEY (`reviewed_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE INDEX `idx_quote_reports_status` ON `quote_reports` (`status`);--> statement-breakpoint
-CREATE TABLE `quote_tags` (
+CREATE INDEX IF NOT EXISTS `idx_quote_reports_status` ON `quote_reports` (`status`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `quote_tags` (
 	`quote_id` integer,
 	`tag_id` integer,
 	PRIMARY KEY(`quote_id`, `tag_id`),
@@ -160,7 +160,7 @@ CREATE TABLE `quote_tags` (
 	FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `quote_views` (
+CREATE TABLE IF NOT EXISTS `quote_views` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`quote_id` integer NOT NULL,
 	`user_id` integer,
@@ -171,10 +171,10 @@ CREATE TABLE `quote_views` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `idx_quote_views_quote` ON `quote_views` (`quote_id`);--> statement-breakpoint
-CREATE INDEX `idx_quote_views_user` ON `quote_views` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_quote_views_date` ON `quote_views` (`viewed_at`);--> statement-breakpoint
-CREATE TABLE `quotes` (
+CREATE INDEX IF NOT EXISTS `idx_quote_views_quote` ON `quote_views` (`quote_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quote_views_user` ON `quote_views` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quote_views_date` ON `quote_views` (`viewed_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `quotes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`language` text DEFAULT 'en',
@@ -197,14 +197,14 @@ CREATE TABLE `quotes` (
 	FOREIGN KEY (`moderator_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE INDEX `idx_quotes_status` ON `quotes` (`status`);--> statement-breakpoint
-CREATE INDEX `idx_quotes_author` ON `quotes` (`author_id`);--> statement-breakpoint
-CREATE INDEX `idx_quotes_reference` ON `quotes` (`reference_id`);--> statement-breakpoint
-CREATE INDEX `idx_quotes_user` ON `quotes` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_quotes_created` ON `quotes` (`created_at`);--> statement-breakpoint
-CREATE INDEX `idx_quotes_featured` ON `quotes` (`is_featured`);--> statement-breakpoint
-CREATE INDEX `idx_quotes_language` ON `quotes` (`language`);--> statement-breakpoint
-CREATE TABLE `reference_views` (
+CREATE INDEX IF NOT EXISTS `idx_quotes_status` ON `quotes` (`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quotes_author` ON `quotes` (`author_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quotes_reference` ON `quotes` (`reference_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quotes_user` ON `quotes` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quotes_created` ON `quotes` (`created_at`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quotes_featured` ON `quotes` (`is_featured`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_quotes_language` ON `quotes` (`language`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `reference_views` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`reference_id` integer NOT NULL,
 	`user_id` integer,
@@ -215,10 +215,10 @@ CREATE TABLE `reference_views` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `idx_reference_views_reference` ON `reference_views` (`reference_id`);--> statement-breakpoint
-CREATE INDEX `idx_reference_views_user` ON `reference_views` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_reference_views_date` ON `reference_views` (`viewed_at`);--> statement-breakpoint
-CREATE TABLE `tags` (
+CREATE INDEX IF NOT EXISTS `idx_reference_views_reference` ON `reference_views` (`reference_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_reference_views_user` ON `reference_views` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_reference_views_date` ON `reference_views` (`viewed_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `tags` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -228,8 +228,8 @@ CREATE TABLE `tags` (
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `tags_name_unique` ON `tags` (`name`);--> statement-breakpoint
-CREATE TABLE `user_collections` (
+CREATE UNIQUE INDEX IF NOT EXISTS `tags_name_unique` ON `tags` (`name`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `user_collections` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`name` text NOT NULL,
@@ -240,7 +240,7 @@ CREATE TABLE `user_collections` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `user_likes` (
+CREATE TABLE IF NOT EXISTS `user_likes` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`likeable_type` text NOT NULL,
@@ -249,10 +249,10 @@ CREATE TABLE `user_likes` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `unique_user_like` ON `user_likes` (`user_id`,`likeable_type`,`likeable_id`);--> statement-breakpoint
-CREATE INDEX `idx_user_likes_user` ON `user_likes` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_user_likes_likeable` ON `user_likes` (`likeable_type`,`likeable_id`);--> statement-breakpoint
-CREATE TABLE `user_messages` (
+CREATE UNIQUE INDEX IF NOT EXISTS `unique_user_like` ON `user_likes` (`user_id`,`likeable_type`,`likeable_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_likes_user` ON `user_likes` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_likes_likeable` ON `user_likes` (`likeable_type`,`likeable_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `user_messages` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer,
 	`name` text,
@@ -272,13 +272,13 @@ CREATE TABLE `user_messages` (
 	FOREIGN KEY (`reviewed_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `idx_user_messages_created` ON `user_messages` (`created_at`);--> statement-breakpoint
-CREATE INDEX `idx_user_messages_category` ON `user_messages` (`category`);--> statement-breakpoint
-CREATE INDEX `idx_user_messages_status` ON `user_messages` (`status`);--> statement-breakpoint
-CREATE INDEX `idx_user_messages_target` ON `user_messages` (`target_type`,`target_id`);--> statement-breakpoint
-CREATE INDEX `idx_user_messages_user` ON `user_messages` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_user_messages_ip` ON `user_messages` (`ip_address`);--> statement-breakpoint
-CREATE TABLE `user_sessions` (
+CREATE INDEX IF NOT EXISTS `idx_user_messages_created` ON `user_messages` (`created_at`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_messages_category` ON `user_messages` (`category`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_messages_status` ON `user_messages` (`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_messages_target` ON `user_messages` (`target_type`,`target_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_messages_user` ON `user_messages` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_messages_ip` ON `user_messages` (`ip_address`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `user_sessions` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`session_token` text NOT NULL,
@@ -287,10 +287,10 @@ CREATE TABLE `user_sessions` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `user_sessions_session_token_unique` ON `user_sessions` (`session_token`);--> statement-breakpoint
-CREATE INDEX `idx_user_sessions_token` ON `user_sessions` (`session_token`);--> statement-breakpoint
-CREATE INDEX `idx_user_sessions_expires` ON `user_sessions` (`expires_at`);--> statement-breakpoint
-CREATE TABLE `users` (
+CREATE UNIQUE INDEX IF NOT EXISTS `user_sessions_session_token_unique` ON `user_sessions` (`session_token`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_sessions_token` ON `user_sessions` (`session_token`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_user_sessions_expires` ON `user_sessions` (`expires_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `users` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`email` text NOT NULL,
 	`name` text NOT NULL,
@@ -309,6 +309,6 @@ CREATE TABLE `users` (
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
-CREATE INDEX `idx_users_email` ON `users` (`email`);--> statement-breakpoint
-CREATE INDEX `idx_users_role` ON `users` (`role`);
+CREATE UNIQUE INDEX IF NOT EXISTS `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_users_email` ON `users` (`email`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_users_role` ON `users` (`role`);

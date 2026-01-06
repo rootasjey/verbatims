@@ -41,7 +41,8 @@
           <Transition name="fade-up" appear>
             <NBadge
               v-if="showTypeBadge"
-              :badge="`outline-${getTypeColor(reference.primary_type)}`"
+              :color="getTypeColor(reference.primary_type)"
+              badge="outline"
               :style="{ 'border-width': '0.2px' }"
               size="sm"
             >

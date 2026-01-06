@@ -31,8 +31,19 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
   .limit(1)
   .get()
 
-  if (!record) {
-    return null
+  if (!record) return null
+
+  // Safely parse updatedAt - it might be null, invalid, or a valid date string
+  let updatedAtISO: string | null = null
+  if (record.updatedAt) {
+    try {
+      const date = new Date(record.updatedAt)
+      if (!isNaN(date.getTime())) {
+        updatedAtISO = date.toISOString()
+      }
+    } catch (e) {
+      // Invalid date, keep as null
+    }
   }
 
   return {
@@ -41,6 +52,6 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
     authorName: record.authorName ?? undefined,
     referenceName: record.referenceName ?? undefined,
     language: record.language ?? 'en',
-    updatedAt: record.updatedAt ? new Date(record.updatedAt).toISOString() : null
+    updatedAt: updatedAtISO
   }
 }
