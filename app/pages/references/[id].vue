@@ -13,11 +13,14 @@
     <div v-else-if="reference">
       <ClientOnly>
         <ReferenceTopHeader
+          ref="posterRef"
           :header-title="headerTitle"
           :reference="{
             ...reference,
             urls: reference.urls ? JSON.stringify(reference.urls) : '',
           }"
+          :poster-url="reference.imageUrl"
+          :poster-alt="reference.name"
           :share-pending="sharePending"
           :like-pending="likePending"
           :is-liked="isLiked"
@@ -32,27 +35,12 @@
           @copy-link="copyLink"
           @scroll-top="scrollToTop"
           @navigate-back="navigateToReferencesList"
+          @open-poster="openPosterPreview"
         />
       </ClientOnly>
       
       <header class="mt-12 p-8">
-        <!-- Poster/Image above badge -->
-        <div class="flex items-center justify-center mb-4">
-          <Transition name="fade-up" appear>
-            <div
-              v-if="showTypeBadge && reference.imageUrl"
-              class="poster-wrapper"
-              :class="headerIn ? 'scale-in' : 'scale-out'"
-            >
-              <img
-                :src="reference.imageUrl"
-                :alt="reference.name"
-                class="w-22 h-28 object-cover rounded-lg shadow-lg"
-              />
-            </div>
-          </Transition>
-        </div>
-
+    
         <!-- Reference Type Badge -->
         <div class="flex items-center justify-center gap-4 min-h-8">
           <Transition name="fade-up" appear>
@@ -101,20 +89,24 @@
             :style="enterAnim(2)"
           >
             <div class="p-6">
-              <div class="description-clip overflow-hidden" :class="descriptionExpanded ? 'expanded' : 'collapsed'">
+              <div
+                ref="descriptionEl"
+                class="description-clip overflow-hidden"
+                :class="[descriptionExpanded ? 'expanded' : 'collapsed', (!descriptionExpanded && (isDescriptionOverflowing || isDescriptionLong(reference.description))) ? 'has-ellipsis' : '']"
+              >
                 <p class="text-justify font-serif text-base md:text-size-8 font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                   {{ reference.description }}
                 </p>
               </div>
 
               <NButton
-                v-if="isDescriptionLong(reference.description)"
+                v-if="isDescriptionOverflowing || isDescriptionLong(reference.description)"
                 btn="ghost-gray"
                 size="sm"
                 class="mt-3 text-xs font-medium"
                 @click="descriptionExpanded = !descriptionExpanded"
               >
-                <NIcon :name="descriptionExpanded ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="mr-1" />
+                <NIcon name="i-ph-caret-down" class="mr-1 icon-rotate" :class="{ rotated: descriptionExpanded }" />
                 {{ descriptionExpanded ? 'Show Less' : 'Read More' }}
               </NButton>
             </div>
@@ -213,17 +205,14 @@
           </p>
         </div>
 
-        <div v-if="hasMoreQuotes && !quotesLoading" class="text-center">
-          <NButton
-            @click="loadMoreQuotes"
-            :loading="loadingMoreQuotes"
-            :disabled="loadingMoreQuotes"
-            size="sm"
-            btn="solid-black"
-            class="px-8 py-6 w-full rounded-3 hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
-          >
-            {{ loadingMoreQuotes ? 'Loading...' : 'Load More Quotes' }}
-          </NButton>
+        <div v-if="hasMoreQuotes && !quotesLoading" class="flex justify-center">
+          <LoadMoreButton
+            class="mb-4"
+            idleText="Load More Quotes"
+            loadingText="Loading Quotes..."
+            :isLoading="loadingMoreQuotes"
+            @load="loadMoreQuotes"
+          />
         </div>
       </div>
 
@@ -242,12 +231,12 @@
             :style="{ transitionDelay: `${index * 60}ms` }"
             @click="navigateTo(`/references/${similarRef.id}`)"
           >
-            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-all duration-300 hover:shadow-md">
-              <div v-if="similarRef.image_url" class="w-16 h-24 mb-2">
+            <div class="flex flex-col items-center text-center space-y-2 p-2 rounded-lg">
+              <div v-if="similarRef.image_url" class="w-full h-54 mb-2">
                 <img
                   :src="similarRef.image_url"
                   :alt="similarRef.name"
-                  class="w-full h-full object-cover rounded group-hover:scale-105 transition-transform duration-300"
+                  class="w-full h-full object-cover rounded group-hover:scale-105 group-hover:shadow-xl group-active:shadow-none group-active:scale-99 transition-all duration-300"
                 />
               </div>
               <div class="flex-1">
@@ -289,6 +278,16 @@
           urls: reference.urls ? JSON.stringify(reference.urls) : '',
         }"
         @reference-updated="onReferenceUpdated"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <ImagePreview
+        v-model="posterPreviewOpen"
+        :src="reference?.imageUrl || ''"
+        :alt="reference?.name || ''"
+        :closeOnScroll="true"
+        :mask-closable="true"
       />
     </ClientOnly>
 
@@ -385,13 +384,44 @@ const copyState = ref<'idle' | 'copied'>('idle')
 const headerIn = ref<boolean>(false)
 const showTypeBadge = ref<boolean>(false)
 const descriptionExpanded = ref(false)
+const descriptionEl = ref<HTMLElement | null>(null)
+const isDescriptionOverflowing = ref(false)
+let descriptionResizeObserver: ResizeObserver | null = null
 const similarReferences = ref<any[]>([])
 
+const checkDescriptionOverflow = () => {
+  const el = descriptionEl.value
+  if (!el) {
+    isDescriptionOverflowing.value = false
+    return
+  }
+  // Use the collapsed max-height (6.5rem) as a stable threshold so
+  // CSS transitions and intermediate clientHeight values don't
+  // cause temporary false negatives.
+  const rootFontSize = typeof window !== 'undefined'
+    ? parseFloat(getComputedStyle(document.documentElement).fontSize || '16')
+    : 16
+  const collapsedHeightPx = 6.5 * rootFontSize
+  isDescriptionOverflowing.value = el.scrollHeight > collapsedHeightPx
+}
+
+watch([() => reference.value?.description, () => descriptionExpanded.value], () => {
+  nextTick(checkDescriptionOverflow)
+})
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
   const text = reference.value?.name || ''
   return text.length > 80 ? text.slice(0, 80) + '…' : text
 })
+
+// poster preview state and focus
+const posterPreviewOpen = ref(false)
+const posterRef = ref<any>(null)
+
+const openPosterPreview = () => {
+  if (!reference.value?.imageUrl) return
+  posterPreviewOpen.value = true
+}
 
 const headerMenuItems = computed(() => {
   const items: Array<{ label: string; leading: string; onclick: () => void }> = []
@@ -725,6 +755,14 @@ onMounted(async () => {
   // Attach global shortcut as soon as component mounts
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
+    nextTick(() => {
+      checkDescriptionOverflow()
+      if (typeof ResizeObserver !== 'undefined') {
+        descriptionResizeObserver = new ResizeObserver(checkDescriptionOverflow)
+        if (descriptionEl.value) descriptionResizeObserver.observe(descriptionEl.value)
+      }
+      window.addEventListener('resize', checkDescriptionOverflow)
+    })
   }
 
   await waitForLanguageStore()
@@ -802,7 +840,9 @@ watch(pending, (now, prev) => {
 })
 
 onUnmounted(() => {
+  if (descriptionResizeObserver) descriptionResizeObserver.disconnect()
   if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', checkDescriptionOverflow)
     window.removeEventListener('keydown', handleGlobalKeydown)
   }
 })
@@ -828,11 +868,40 @@ onUnmounted(() => {
 
 /* Description expand/collapse animation */
 .description-clip {
+  position: relative;
   transition: max-height 420ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease;
   max-height: 6.5rem; /* collapsed height (~3 lines) */
 }
+.description-clip p { position: relative; z-index: 0; }
 .description-clip.collapsed { max-height: 6.5rem; }
 .description-clip.expanded { max-height: 1200px; }
+
+/* Fade overlay when clipped */
+.description-clip.collapsed.has-ellipsis::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.2rem; /* covers the bottom area */
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255,255,255,0), #FAFAF9 85%);
+}
+/* Dark mode variants */
+.dark .description-clip.collapsed.has-ellipsis::after {
+  background: linear-gradient(180deg, rgba(12,10,9,0), #0C0A09 85%);
+}
+
+/* Icon rotate for Read More button */
+.icon-rotate {
+  display: inline-block;
+  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
+  transform-origin: center;
+}
+.icon-rotate.rotated {
+  transform: rotate(180deg);
+}
 
 /* Subtle staggered fade-up for similar references */
 .similar-item {
@@ -844,12 +913,4 @@ onUnmounted(() => {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* Poster subtle scale on appear */
-.poster-wrapper {
-  transition: transform 420ms cubic-bezier(.22,.61,.36,1), box-shadow 320ms ease;
-  transform-origin: center;
-}
-.poster-wrapper.scale-in { transform: scale(1); }
-.poster-wrapper.scale-out { transform: scale(0.96); }
 </style>

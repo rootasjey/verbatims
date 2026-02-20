@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
+import { autoTagQuoteById } from '~~/server/utils/tagging'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -65,7 +66,11 @@ export default defineEventHandler(async (event) => {
     })
     
     // Check if all quotes exist and are pending
-    const existingQuotes = await db.select({ id: schema.quotes.id })
+    const existingQuotes = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      language: schema.quotes.language
+    })
       .from(schema.quotes)
       .where(and(
         inArray(schema.quotes.id, quoteIds),
@@ -95,13 +100,23 @@ export default defineEventHandler(async (event) => {
         .where(eq(schema.quotes.id, quoteId))
         .run()
     ))
+
+    let autoTaggedQuotes = 0
+    if (body.action === 'approve') {
+      const taggingResults = await Promise.all(existingQuotes.map(quote =>
+        autoTagQuoteById(quote.id, quote.name, quote.language || undefined)
+      ))
+
+      autoTaggedQuotes = taggingResults.filter(result => result.attachedCount > 0).length
+    }
     
     return {
       success: true,
       data: {
         processed_count: quoteIds.length,
         action: body.action,
-        quote_ids: quoteIds
+        quote_ids: quoteIds,
+        auto_tagged_quotes: autoTaggedQuotes
       },
       message: `${quoteIds.length} quotes ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
     }

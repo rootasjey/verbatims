@@ -25,15 +25,22 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-      <QuoteGridItem v-for="q in feed.quotes.value" :key="q.id" :quote="q" @edit="openEdit" @delete="openDelete"
-        @report="openReport" />
+      <QuoteGridItem 
+        v-for="q in feed.quotes.value"
+        link-card 
+        :key="q.id" 
+        :quote="q" 
+        @edit="openEdit" 
+        @delete="openDelete"
+        @report="openReport" 
+      />
     </div>
 
     <div v-if="feed.hasMore?.value" class="text-center">
       <LoadMoreButton 
         class="mb-4" 
-        idleText="load more quotes" 
-        loadingText="loading quotes..." 
+        idleText="Load More Quotes" 
+        loadingText="Loading Quotes..." 
         :isLoading="feed.quotesLoading?.value" 
         @load="feed.loadMore()"
       />

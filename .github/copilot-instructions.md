@@ -149,6 +149,9 @@ Schema in `/server/db/migrations/`.
 - `nuxt build` - Production build for Cloudflare Pages
 - Database managed through Cloudflare dashboard
 
+### Build policy
+- Do not run `bun run build`, `nuxt build`, or other production build commands unless the user explicitly asks for them. Automated builds are only permitted when directly requested.
+
 ## Common Patterns
 
 ### Error Handling
@@ -198,6 +201,16 @@ When customizing UnaUI/Naive-style components in this project, do not rely on a 
 - `NAvatar` → `avatar`
 
 Use these props to control style variants consistently across components instead of looking for `variant`.
+
+### NSelect typing rule
+
+When using `NSelect`, always keep `v-model` and `:items` on the same type.
+
+- If `:items` is `Option[]` (where `type Option = { label: string; value: string }`), bind `v-model` to `Option` (or `Option | null`) and map to primitive values in computed setters/getters when the parent needs the primitive id.
+- Prefer `item-key="label"` and `value-key="label"` so the control displays human-friendly labels while the `v-model` remains an `Option` object from the same `:items` array.
+- If `:items` is `string[]`, bind `v-model` to `string`.
+- Ensure `typeOptions` (and similar option lists) are typed as `Option[]` — avoid `any[]` or `unknown[]` so TypeScript can protect against mismatches.
+- Do not mix `Option[]` items with `string` model values directly; this causes runtime/type issues (e.g. `Type 'Option[]' is not assignable to type '(string | SelectGroup<string>)[]'`).
 
 ## Key Files to Reference
 - `/nuxt.config.ts` - Core configuration and modules

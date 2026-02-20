@@ -1,17 +1,16 @@
 <template>
-  <div
+  <NLink
+    :to="`/quotes/${quote.id}`"
     class="quote-masonry-item group border b-dashed border-gray-300 dark:border-gray-600 
-    relative rounded-2 cursor-pointer transition-all duration-300 ease-in-out
-    hover:shadow-lg hover:b-solid hover:border-gray-400 dark:hover:border-blue-500
+    relative block rounded-2 cursor-pointer transition-all duration-300 ease-in-out
+    hover:scale-101 hover:shadow-lg hover:b-solid hover:border-gray-400 dark:hover:border-blue-500
+    active:scale-99 active:shadow-none active:border-gray-500 dark:active:border-blue-600
     bg-white dark:bg-[#101010] overflow-hidden"
     :class="[
       getMasonryItemClasses(),
       `opacity-${getOpacityLevel(index)}`
     ]"
     :style="getMasonryItemStyle()"
-    @click="navigateToQuote"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
   >
     <!-- Content Container -->
     <div class="w-80% mx-auto px-6 h-full flex flex-col justify-center items-center">
@@ -38,7 +37,7 @@
                 btn="~"
                 @click.stop="toggleQuoteLike"
                 :disabled="!user || quoteLikePending"
-                class="p-0 min-w-0 min-h-0 h-auto w-auto transition-all duration-300 hover:scale-105"
+                class="p-0 min-w-0 min-h-0 h-auto w-auto transition-all duration-300 hover:scale-105 active:scale-99"
                 :class="isQuoteLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'"
               >
                 <NIcon
@@ -85,7 +84,7 @@
       class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 
       pointer-events-none bg-gradient-to-br from-primary-500/20 to-transparent"
     ></div>
-  </div>
+  </NLink>
 </template>
 
 <script lang="ts" setup>
@@ -97,7 +96,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const { user } = useUserSession()
-const isHovered = ref(false)
 const isQuoteLiked = ref(false)
 const quoteLikePending = ref(false)
 
@@ -178,10 +176,6 @@ const getTextSizeClass = () => {
 const getOpacityLevel = (index: number) => {
   const levels = [100, 95, 90]
   return levels[index % levels.length]
-}
-
-const navigateToQuote = () => {
-  navigateTo(`/quotes/${props.quote.id}`)
 }
 
 const toggleQuoteLike = async () => {

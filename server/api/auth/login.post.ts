@@ -58,14 +58,19 @@ export default defineEventHandler(async (event) => {
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      created_at: userData.createdAt?.toISOString(),
+      // createdAt/updatedAt may be Date, numeric timestamp or string — normalize safely
+      created_at: userData.createdAt instanceof Date
+        ? (isNaN(userData.createdAt.getTime()) ? null : userData.createdAt.toISOString())
+        : userData.createdAt,
       avatar_url: userData.avatarUrl,
       biography: userData.biography,
       job: userData.job,
       language,
       location: userData.location,
       socials: userData.socials,
-      updated_at: userData.updatedAt?.toISOString()
+      updated_at: userData.updatedAt instanceof Date
+        ? (isNaN(userData.updatedAt.getTime()) ? null : userData.updatedAt.toISOString())
+        : userData.updatedAt
     }
 
     // Set user session

@@ -1,9 +1,9 @@
 <template>
-  <div
-    class="quote-list-item group bg-white dark:bg-[#0F0D0B] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 transition-all duration-200 hover:shadow-md select-none"
-    @click="navigateToQuote"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
+  <NLink
+    :to="`/quotes/${quote.id}`"
+    :style="topicBorderStyle"
+    :class="{ 'has-topic-border': hasTopicBorder }"
+    class="quote-list-item block group bg-white dark:bg-[#0F0D0B] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 transition-all duration-200 hover:shadow-md select-none"
     @contextmenu.prevent="actionsOpen = true"
   >
   <div class="flex items-start gap-3 mb-1">
@@ -107,11 +107,12 @@
       @unlike="emitUnlike"
       @add-to-collection="emitAddToCollection"
     />
-  </div>
+  </NLink>
 </template>
 
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types'
+import { getTopicBorderStyle } from '~/utils/tagAccent'
 
 interface DropdownAction {
   label: string
@@ -131,8 +132,6 @@ const props = withDefaults(defineProps<Props>(), {
   showAvatar: true,
   badge: 'text',
 })
-
-const isHovered = ref(false)
 
 const emit = defineEmits<{
   (e: 'edit', quote: any): void
@@ -203,14 +202,12 @@ const drawerActions = computed(() => {
 })
 
 const actionsOpen = ref(false)
+const topicBorderStyle = computed(() => getTopicBorderStyle(props.quote.tags))
+const hasTopicBorder = computed(() => (props.quote.tags?.length ?? 0) > 0)
 
 // Reference type derived from quote
 const referenceType = computed(() => (props.quote.reference?.type || (props.quote.reference_type as any)) as string | undefined)
 
-
-const navigateToQuote = () => {
-  navigateTo(`/quotes/${props.quote.id}`)
-}
 
 const getReferenceTypeColor = (type: string) => {
   const colors: Record<string, string> = {
@@ -290,6 +287,12 @@ const emitAddToCollection = () => {
 /* Card layout polish */
 .quote-list-item {
   transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.quote-list-item.has-topic-border:hover {
+  border-color: var(--topic-border-color);
+  border-image-source: var(--topic-border-image, none);
+  border-image-slice: var(--topic-border-image-slice, 1);
 }
 
 .quote-list-item:active {

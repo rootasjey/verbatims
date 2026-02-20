@@ -1,8 +1,8 @@
 # verbatims
 
-Quote service for discovering, curating, and sharing timeless words — with moderation and admin workflows.
+Quote service for discovering, curating, and sharing timeless words, with moderation and admin workflows.
 
-![verbatims screenshot](./public/images/verbatims.jpeg)
+![verbatims screenshot](./public/images/life-is-a-snake.png)
 
 ## Overview
 

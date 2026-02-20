@@ -9,13 +9,9 @@
       </p>
     </header>
 
-    <AuthorsEmptyView
-      v-if="authors.length === 0 && !loading"
-      :search-query="searchQuery"
-    />
-
-    <div v-else class="px-8 pb-16">
+    <div class="px-8 pb-16">
       <AuthorsSearch
+        ref="searchInput"
         :authors-count="authors.length"
         :total-authors="totalAuthors"
         v-model:search-query="searchQuery"
@@ -41,6 +37,14 @@
         </div>
       </div>
 
+      <AuthorsEmptyView
+        v-else-if="authors.length === 0"
+        :search-query="searchQuery"
+        class="mt-24"
+        @clear-filters="clearFilters"
+        @open-submit-modal="openSubmitModal"
+      />
+
       <div v-else>
         <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
           <AuthorGridItem
@@ -58,11 +62,11 @@
       </div>
 
       <!-- Infinite scroll: desktop keeps auto-load at bottom; mobile uses inverted pull-up gesture -->
-      <div v-if="!isMobile" ref="infiniteScrollTrigger" class="h-10"></div>
+      <div v-if="authors.length > 0 && !isMobile" ref="infiniteScrollTrigger" class="h-10"></div>
 
       <!-- Mobile inverted pull-to-load-more (pull up from bottom) -->
       <div
-        v-else
+        v-else-if="authors.length > 0"
         class="overflow-hidden select-none"
         :style="{ height: `${Math.max(40, pullDistance)}px` }"
         @touchstart.passive="onPullStart"
@@ -76,13 +80,17 @@
         </div>
       </div>
 
-      <LoadMoreButton 
-        class="mb-4" 
-        idleText="load more authors" 
-        loadingText="loading authors..." 
-        :isLoading="loadingMore" 
-        @load="loadMore"
-      />
+      <div class="flex justify-center">
+        <LoadMoreButton 
+          v-if="authors.length > 0 && hasMore"
+          class="mb-4" 
+          idleText="Load More Authors" 
+          loadingText="Loading Authors..." 
+          :isLoading="loadingMore" 
+          @load="loadMore"
+          data-test="load-more-authors"
+        />
+      </div>
     </div>
     
     <MobileSortAuthors
@@ -124,6 +132,7 @@ const loadingMore = ref<boolean>(false)
 const hasMore = ref<boolean>(true)
 const currentPage = ref<number>(1)
 const totalAuthors = ref<number>(0)
+const searchInput = ref<any>(null)
 const infiniteScrollTrigger = ref<HTMLElement | null>(null)
 // Inverted pull-to-load-more (mobile)
 const pullDistance = ref(0)
@@ -139,6 +148,21 @@ const sortOptions = [
   { label: 'Popularity', value: 'likes_count' },
   { label: 'Recently Added', value: 'created_at' }
 ]
+
+useFocusOnTyping(searchInput, {
+  skipOnMobile: true,
+  fallbackSelector: 'input[placeholder="Search authors..."]'
+})
+
+// Optional page-level submit modal (keeps parity with references page)
+const showSubmitModal = ref<boolean>(false)
+const openSubmitModal = () => { showSubmitModal.value = true }
+
+// Clear filters helper used by the empty view
+const clearFilters = async () => {
+  searchQuery.value = ''
+  await loadAuthors()
+}
 
 const loadAuthors = async (reset = true) => {
   if (reset) {

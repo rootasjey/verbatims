@@ -7,22 +7,23 @@
           :src="quote.author.image_url"
           :alt="quote.author.name"
           size="xl"
-          class="hover:scale-105 active:scale-99 transition-transform"
+          :class="[
+            'border-1 b-transparent shadow-sm hover:scale-105 active:scale-99 transition-transform',
+            quote.author.is_fictional
+              ? 'shadow-pink-500/75 hover:shadow-pink-500 active:shadow-none'
+              : 'shadow-blue-500/75 hover:shadow-blue-500 active:shadow-none',
+            quote.author.is_fictional ? 'hover:b-pink-500' : 'hover:b-blue-600'
+          ]"
         />
       </NuxtLink>
       <div class="mt-2">
         <NuxtLink
           :to="`/authors/${quote.author.id}`"
           class="font-subtitle text-size-4  font-400 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
+          :aria-label="`${quote.author.name} — ${quote.author.is_fictional ? 'Fictional character' : 'Real person'}`"
         >
           {{ quote.author.name }}
         </NuxtLink>
-        <NBadge
-          v-if="quote.author.is_fictional"
-          class="mt-1"
-          badge="solid-blue"
-          label="Fictional Character"
-        />
       </div>
     </div>
 

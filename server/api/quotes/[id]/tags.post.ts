@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
+import { getTagById, isCuratedTagName } from '~~/server/utils/tagging'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event)
-    const { tagId, name, color } = body || {}
+    const { tagId, name } = body || {}
     if (!tagId && !name) {
       throw createError({ statusCode: 400, statusMessage: 'Provide tagId or name' })
     }
@@ -27,16 +28,17 @@ export default defineEventHandler(async (event) => {
     .get()
 
     if (!quote) throw createError({ statusCode: 404, statusMessage: 'Quote not found' })
-    const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
+    const isPrivileged = session.user.role === 'admin' || session.user.role === 'moderator'
+    const isAdminUser = session.user.role === 'admin'
     const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
-    if (!isAdmin && !isOwnerDraft) {
+    if (!isPrivileged && !isOwnerDraft) {
       throw createError({ statusCode: 403, statusMessage: 'Not allowed to edit tags for this quote' })
     }
 
     let finalTagId = tagId
 
     if (!finalTagId) {
-      // Create or find tag by name (case-insensitive)
+      // Find existing tag by name (case-insensitive)
       const existing = await db.select({
         id: schema.tags.id,
         name: schema.tags.name,
@@ -46,15 +48,38 @@ export default defineEventHandler(async (event) => {
       .where(sql`LOWER(${schema.tags.name}) = LOWER(${String(name).trim()})`)
       .get()
 
-      if (existing) {
-        finalTagId = existing.id
-      } else {
-        const result = await db.insert(schema.tags).values({
+      if (!existing && isAdminUser) {
+        const inserted = await db.insert(schema.tags).values({
           name: String(name).trim(),
-          color: color || '#687FE5'
+          color: '#687FE5'
         }).returning({ id: schema.tags.id }).get()
-        finalTagId = result.id
+
+        finalTagId = inserted.id
+      } else if (!existing) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Only admins can create new tags. Please select an existing curated tag.'
+        })
+      } else if (!isCuratedTagName(existing.name) && !isAdminUser) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'This tag is not part of the curated taxonomy.'
+        })
+      } else {
+        finalTagId = existing.id
       }
+    }
+
+    const selectedTag = await getTagById(finalTagId)
+    if (!selectedTag) {
+      throw createError({ statusCode: 404, statusMessage: 'Tag not found' })
+    }
+
+    if (!isCuratedTagName(selectedTag.name) && !isAdminUser) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Only curated tags can be added to quotes.'
+      })
     }
 
     // Attach relation (ignore duplicates)
