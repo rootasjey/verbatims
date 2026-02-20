@@ -9,15 +9,9 @@
       </p>
     </header>
 
-    <ReferencesEmptyView
-      v-if="references.length === 0 && !loading"
-      :search-query="searchQuery"
-      @open-submit-modal="openSubmitModal"
-    />
-
-    <!-- References Content (when references exist) -->
-    <div v-else class="px-8 pb-16 md:mt-8">
+    <div class="px-8 pb-16 md:mt-8">
       <ReferencesSearch
+        ref="searchInput"
         :visible-count="references.length"
         :total-count="totalReferences || 0"
         v-model:search-query="searchQuery"
@@ -42,6 +36,15 @@
         </div>
       </div>
 
+      <ReferencesEmptyView
+        v-else-if="referencesForDisplay.length === 0"
+        :search-query="searchQuery"
+        :selected-type="primaryType"
+        class="mt-24"
+        @clear-filters="clearFilters"
+        @open-submit-modal="openSubmitModal"
+      />
+
       <div v-else>
         <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
           <ReferenceGridItem
@@ -64,11 +67,11 @@
       </div>
 
       <!-- Infinite scroll: desktop uses auto-load at bottom; mobile uses inverted pull-up gesture -->
-      <div v-if="!isMobile" ref="infiniteScrollTrigger" class="h-10"></div>
+      <div v-if="referencesForDisplay.length > 0 && !isMobile" ref="infiniteScrollTrigger" class="h-10"></div>
 
       <!-- Mobile inverted pull-to-load-more (pull up from bottom) -->
       <div
-        v-else
+        v-else-if="referencesForDisplay.length > 0"
         class="overflow-hidden select-none"
         :style="{ height: `${Math.max(40, pullDistance)}px` }"
         @touchstart.passive="onPullStart"
@@ -82,13 +85,16 @@
         </div>
       </div>
       
-      <LoadMoreButton 
-        class="mb-4" 
-        idleText="load more references" 
-        loadingText="loading references..." 
-        :isLoading="loadingMore" 
-        @load="loadMore"
-      />
+      <div class="flex justify-center">
+        <LoadMoreButton 
+          v-if="referencesForDisplay.length > 0"
+          class="mb-4" 
+          idleText="Load More References" 
+          loadingText="Loading References..." 
+          :isLoading="loadingMore" 
+          @load="loadMore"
+        />
+      </div>
     </div>
 
     <!-- Mobile filters drawer -->
@@ -142,12 +148,18 @@ const searchInput = ref<any>(null)
 const infiniteScrollTrigger = ref<HTMLElement | null>(null)
 const isSearching = ref<boolean>(false)
 const mobileFiltersOpen = ref<boolean>(false)
+const isProgrammaticReset = ref<boolean>(false)
 
 // Inverted pull-to-load-more (mobile)
 const pullDistance = ref<number>(0)
 const isPulling = ref<boolean>(false)
 const startY = ref<number>(0)
 const pullThreshold = 80
+
+useFocusOnTyping(searchInput, {
+  skipOnMobile: true,
+  fallbackSelector: 'input[placeholder="Search references..."]'
+})
 
 type Option = { label: string; value: string }
 
@@ -314,6 +326,14 @@ const openSubmitModal = () => {
   showSubmitModal.value = true
 }
 
+const clearFilters = async () => {
+  isProgrammaticReset.value = true
+  searchQuery.value = ''
+  primaryType.value = ''
+  await loadReferences()
+  isProgrammaticReset.value = false
+}
+
 const navigateToReference = (referenceId: number | string) => {
   navigateTo(`/references/${referenceId}`)
 }
@@ -410,6 +430,8 @@ onUnmounted(() => {
 })
 
 watch([sortBy, primaryType], () => {
+  if (isProgrammaticReset.value) return
+
   if (searchQuery.value) {
     performSearch(searchQuery.value)
   } else {
@@ -418,6 +440,8 @@ watch([sortBy, primaryType], () => {
 })
 
 watch(searchQuery, (newQuery) => {
+  if (isProgrammaticReset.value) return
+
   debouncedSearch()
 })
 </script>

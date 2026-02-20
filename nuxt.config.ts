@@ -7,7 +7,7 @@ import { resolve, dirname } from 'node:path'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
-  devtools: { enabled: false }, // Disabled due to Drizzle Studio bug in @nuxthub/core@0.10.4
+  devtools: { enabled: true },
 
   app: {
     head: {
@@ -173,7 +173,7 @@ function computeVersion(): string {
     const tag = execSync("git describe --tags --match 'v[0-9]*.[0-9]*.[0-9]*' --abbrev=0", {
       stdio: ['ignore', 'pipe', 'ignore']
     }).toString().trim()
-    return tag.replace(/^v/, '')
+    return tag.replace(/^v/, '');
   } catch {}
 
   try {

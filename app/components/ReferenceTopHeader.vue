@@ -16,6 +16,27 @@
             </NButton>
           </NTooltip>
 
+          <!-- optional poster thumbnail -->
+          <template v-if="props.posterUrl">
+            <NTooltip content="View poster preview" :_tooltip-content="{ side: 'bottom' }">
+              <img
+                ref="posterEl"
+                role="button"
+                tabindex="0"
+                :aria-label="`Open poster preview`"
+                :src="props.posterUrl"
+                :alt="props.posterAlt || ''"
+                class="w-6 h-6 object-cover rounded cursor-pointer 
+                  hover:scale-105 hover:shadow-xl 
+                  active:scale-99 active:shadow-none 
+                  transition-transform duration-200"
+                @click.stop="emit('open-poster')"
+                @keyup.enter.prevent="emit('open-poster')"
+                @keyup.space.prevent="emit('open-poster')"
+              />
+            </NTooltip>
+          </template>
+
           <NIcon name="i-ph-book" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
             <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
@@ -89,7 +110,7 @@
             </NButton>
           </NTooltip>
 
-          <NDropdownMenu :items="headerMenuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
+          <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
             <NButton
               icon
               btn="ghost-gray"
@@ -109,6 +130,9 @@
 interface Props {
   headerTitle: string
   reference: QuoteReference
+  // optional poster thumbnail shown before the title
+  posterUrl?: string
+  posterAlt?: string
   sharePending?: boolean
   likePending?: boolean
   isLiked?: boolean
@@ -131,10 +155,15 @@ interface Emits {
   (e: 'copy-link'): void
   (e: 'scroll-top'): void
   (e: 'navigate-back'): void
+  (e: 'open-poster'): void
 }
 
-defineProps<Props>()
-defineEmits<Emits>()
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+// expose internal element so parents can restore focus when needed
+const posterEl = ref<HTMLElement | null>(null)
+defineExpose({ posterEl })
 </script>
 
 <style scoped>

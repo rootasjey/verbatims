@@ -1,11 +1,12 @@
 <template>
-  <div
+  <NuxtLink
+    :to="`/references/${props.reference.id}`"
     :class="[
-      'reference-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
+      'reference-grid-item group border relative p-6 cursor-pointer h-full flex flex-col no-underline',
       borderHoverClass,
-      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300'
+      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300',
+      'hover:z-2',
     ]"
-    @click="navigateToReference"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
@@ -94,7 +95,7 @@
       </div>
       <span>{{ formatNumber(reference.likes_count || 0) }} likes</span>
     </div>
-  </div>
+  </NuxtLink>
 </template>
 
 <script setup>
@@ -107,11 +108,6 @@ const props = defineProps({
 
 // Hover state management
 const isHovered = ref(false)
-
-// Navigation
-const navigateToReference = () => {
-  navigateTo(`/references/${props.reference.id}`)
-}
 
 // Utility functions
 const formatReleaseDate = (releaseDate) => {

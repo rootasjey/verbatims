@@ -1,11 +1,12 @@
 <template>
-  <div
+  <NuxtLink
+    :to="`/authors/${props.author.id}`"
     :class="[
-      'author-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
+      'author-grid-item group border relative p-6 cursor-pointer h-full flex flex-col no-underline',
       borderHoverClass,
-      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300'
+      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300',
+      'hover:z-2',
     ]"
-    @click="navigateToAuthor"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
@@ -27,15 +28,16 @@
       </NBadge>
       
       <!-- Quote Count Icon -->
-      <NIcon
-        name="i-ph-quotes-bold"
-        :class="[
-          'opacity-0 group-hover:opacity-100',
-          'text-gray-600 dark:text-gray-400 flex-shrink-0 transition-opacity duration-300',
-          'hover:scale-125 hover:rotate-12 active:scale-99 ease-in-out transition-transform duration-300'
-        ]"
-        :title="`${author.quotes_count || 0} quotes`"
-      />
+      <NTooltip :content="`${author.quotes_count || 0} quotes`">
+        <NIcon
+          name="i-ph-quotes-bold"
+          :class="[
+            'opacity-0 group-hover:opacity-100',
+            'text-gray-600 dark:text-gray-400 flex-shrink-0 transition-opacity duration-300',
+            'hover:scale-125 hover:rotate-12 active:scale-99 ease-in-out transition-transform duration-300'
+          ]"
+        />
+    </NTooltip>
     </div>
 
     <!-- Author Name (Main) -->
@@ -90,7 +92,7 @@
       </div>
       <span>{{ formatNumber(author.likes_count || 0) }} likes</span>
     </div>
-  </div>
+  </NuxtLink>
 </template>
 
 <script setup>
@@ -103,11 +105,6 @@ const props = defineProps({
 
 // Hover state management
 const isHovered = ref(false)
-
-// Navigation
-const navigateToAuthor = () => {
-  navigateTo(`/authors/${props.author.id}`)
-}
 
 // Utility functions
 const formatLifeDates = (birthDate, deathDate) => {

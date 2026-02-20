@@ -7,11 +7,13 @@
     <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
       <div class="flex-1">
         <NInput
+          ref="searchInput"
+          input="outline-gray"
           v-model="searchModel"
           placeholder="Search references..."
           leading="i-ph-magnifying-glass"
           size="md"
-          class="w-full"
+          class="focus:border-2 focus:border-lime-500"
         />
       </div>
       <div class="hidden md:flex gap-2">
@@ -20,14 +22,14 @@
           :items="typeOptions"
           placeholder="All Types"
           item-key="label"
-          value-key="value"
+          value-key="label"
         />
         <NSelect
           v-model="sortByModel"
           :items="sortOptions"
           placeholder="Sort by"
           item-key="label"
-          value-key="value"
+          value-key="label"
         />
         <NButton
           icon
@@ -43,21 +45,29 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  // counts
-  visibleCount: { type: Number, default: 0 },
-  totalCount: { type: Number, default: 0 },
+<script setup lang="ts">
+interface Option { label: string; value: string }
 
-  // v-models
-  searchQuery: { type: String, default: '' },
-  primaryType: { type: String, default: '' },
-  sortBy: { type: String, default: 'name' },
+const searchInput = ref<any>(null)
 
-  // other controls
-  sortOrder: { type: String, default: 'ASC' },
-  typeOptions: { type: Array, default: () => [] },
-  sortOptions: { type: Array, default: () => [] }
+const props = withDefaults(defineProps<{
+  visibleCount?: number
+  totalCount?: number
+  searchQuery?: string
+  primaryType?: string
+  sortBy?: string
+  sortOrder?: 'ASC' | 'DESC' | string
+  typeOptions?: Option[]
+  sortOptions?: Option[]
+}>(), {
+  visibleCount: 0,
+  totalCount: 0,
+  searchQuery: '',
+  primaryType: '',
+  sortBy: 'name',
+  sortOrder: 'ASC',
+  typeOptions: () => [],
+  sortOptions: () => []
 })
 
 const emit = defineEmits([
@@ -69,17 +79,43 @@ const emit = defineEmits([
 ])
 
 const searchModel = computed({
-  get: () => props.searchQuery,
-  set: (v) => emit('update:searchQuery', v)
+  get: () => props.searchQuery as string,
+  set: (v: string) => emit('update:searchQuery', v)
 })
 
-const primaryTypeModel = computed({
-  get: () => props.primaryType,
-  set: (v) => emit('update:primaryType', v)
+const primaryTypeModel = computed<Option | null>({
+  get: () => (props.typeOptions as Option[]).find((o) => o.value === props.primaryType) || null,
+  set: (opt: Option | null) => emit('update:primaryType', opt?.value || '')
 })
 
-const sortByModel = computed({
-  get: () => props.sortBy,
-  set: (v) => emit('update:sortBy', v)
+const sortByModel = computed<Option | null>({
+  get: () => (props.sortOptions as Option[]).find((o) => o.value === props.sortBy) || null,
+  set: (opt: Option | null) => emit('update:sortBy', opt?.value || '')
+})
+
+const focus = () => {
+  const inputComponent = searchInput.value
+
+  if (typeof inputComponent?.focus === 'function') {
+    inputComponent.focus()
+    return
+  }
+
+  const inputElement = inputComponent?.$el?.querySelector?.('input')
+  if (inputElement instanceof HTMLElement) {
+    inputElement.focus()
+  }
+}
+
+const typeCharacter = (key: string) => {
+  emit('update:searchQuery', `${props.searchQuery || ''}${key}`)
+  nextTick(() => {
+    focus()
+  })
+}
+
+defineExpose({
+  focus,
+  typeCharacter
 })
 </script>

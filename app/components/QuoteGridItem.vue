@@ -1,11 +1,103 @@
 <template>
-  <div
+  <NLink
+    v-if="linkCard"
+    :to="`/quotes/${quote.id}`"
+    :style="topicBorderStyle"
+    :class="{ 'has-topic-border': hasTopicBorder }"
+    class="quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col 
+      dark:hover:border-gray-600 hover:scale-101 hover:z-2 hover:font-500 active:scale-99 hover:shadow-lg transition-all duration-300 "
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
+  >
+    <div 
+      :class="[
+        'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
+        isHovered ? 'opacity-100' : 'opacity-50'
+      ]"
+    >
+      <span
+        v-if="quote.author"
+        class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300 cursor-pointer"
+        @click.prevent.stop="navigateToAuthor(quote.author.id)"
+        @keyup.enter.prevent.stop="navigateToAuthor(quote.author.id)"
+        role="link"
+        tabindex="0"
+        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+      >
+        {{ quote.author.name }}
+      </span>
+      <span
+        v-else
+        class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
+        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+      >
+        Unknown Author
+      </span>
+      
+      <NDropdownMenu :items="menuItems">
+        <NButton
+          icon
+          btn="ghost-gray"
+          size="xs"
+          label="i-ph-dots-three-vertical"
+          class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
+          @click.stop
+          :title="'Quote actions'"
+        />
+      </NDropdownMenu>
+    </div>
+
+    <!-- Quote Content (Main) -->
+    <div class="flex-1 flex">
+      <!-- Client-only typewriter with SSR fallback -->
+      <ClientOnly>
+        <blockquote
+          ref="containerRef"
+          class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+          :class="{
+            'text-sm': (quote.name || '').length > 200,
+            'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+            'text-lg': (quote.name || '').length <= 100
+          }"
+        >
+          <span>{{ displayedText }}</span>
+          <span v-show="showCaret" class="caret align-[-0.1em]"></span>
+        </blockquote>
+
+        <template #fallback>
+          <blockquote
+            class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+            :class="{
+              'text-sm': (quote.name || '').length > 200,
+              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-lg': (quote.name || '').length <= 100
+            }"
+          >
+            {{ quote.name }}
+          </blockquote>
+        </template>
+      </ClientOnly>
+    </div>
+
+    <NBadge
+      v-if="quote.is_featured"
+      color="yellow"
+      badge="subtle"
+      size="xs"
+      class="absolute top-2 right-2"
+    >
+      Featured
+    </NBadge>
+  </NLink>
+
+  <div v-else
+    :style="topicBorderStyle"
+    :class="{ 'has-topic-border': hasTopicBorder }"
     class="quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col
-    dark:hover:b-blue hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300 "
+    dark:hover:border-gray-600 hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300 "
     @click="navigateToQuote"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
-    ref="containerRef"
   >
     <div 
       :class="[
@@ -32,7 +124,7 @@
       <NDropdownMenu :items="menuItems">
         <NButton
           icon
-          btn="ghost"
+          btn="ghost-gray"
           size="xs"
           label="i-ph-dots-three-vertical"
           class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
@@ -47,6 +139,7 @@
       <!-- Client-only typewriter with SSR fallback -->
       <ClientOnly>
         <blockquote
+          ref="containerRef"
           class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
           :class="{
             'text-sm': (quote.name || '').length > 200,
@@ -87,12 +180,9 @@
 
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types';
+import { getTopicBorderStyle } from '~/utils/tagAccent'
 
-interface Props {
-  quote: ProcessedQuoteResult
-}
-
-const props = defineProps<Props>()
+const props = defineProps<{ quote: ProcessedQuoteResult; linkCard?: boolean }>()
 const emit = defineEmits<{
   (e: 'edit', quote: ProcessedQuoteResult): void
   (e: 'delete', quote: ProcessedQuoteResult): void
@@ -100,9 +190,15 @@ const emit = defineEmits<{
 }>()
 
 const isHovered = ref(false)
+const topicBorderStyle = computed(() => getTopicBorderStyle(props.quote.tags))
+const hasTopicBorder = computed(() => (props.quote.tags?.length ?? 0) > 0)
 
 const navigateToQuote = () => {
   navigateTo(`/quotes/${props.quote.id}`)
+}
+
+const navigateToAuthor = (authorId: number | string) => {
+  navigateTo(`/authors/${authorId}`)
 }
 
 // Typewriter animation when the card appears
@@ -140,7 +236,7 @@ const startTyping = () => {
   }, baseInterval)
 }
 
-onMounted(() => {
+onMounted(async () => {
   observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       if (entry.isIntersecting) {
@@ -150,7 +246,15 @@ onMounted(() => {
     }
   }, { threshold: 0.2 })
 
-  if (containerRef.value && observer) observer.observe(containerRef.value)
+  // ensure the DOM ref is available (ClientOnly may render slightly later)
+  await nextTick()
+  if (containerRef.value && observer) {
+    observer.observe(containerRef.value)
+  } else {
+    // fallback: if we couldn't attach the observer, show the quote immediately
+    displayedText.value = (props.quote?.name || '').toString()
+    showCaret.value = false
+  }
 })
 
 onBeforeUnmount(() => {
@@ -275,6 +379,12 @@ const shareQuote = async () => {
 </script>
 
 <style scoped>
+.quote-grid-item.has-topic-border:hover {
+  border-color: var(--topic-border-color);
+  border-image-source: var(--topic-border-image, none);
+  border-image-slice: var(--topic-border-image-slice, 1);
+}
+
 .caret {
   display: inline-block;
   width: 0.6ch;

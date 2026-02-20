@@ -1,5 +1,5 @@
 <template>
-  <div class="font-serif mb-8">
+  <div class="mb-8">
     <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400 mb-4">
       Showing {{ authorsCount }} of {{ totalAuthors || 0 }} authors
     </span>
@@ -7,14 +7,14 @@
     <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
       <div class="flex-1">
         <NInput
-          autofocus
           ref="searchInput"
+          input="outline-gray"
           v-model="searchQueryModel"
           placeholder="Search authors..."
           leading="i-ph-magnifying-glass"
           size="md"
           @input="$emit('search-input')"
-          class="w-full"
+          class="focus:border-2 focus:border-lime-500"
         />
       </div>
       <div class="hidden md:flex gap-2">
@@ -47,15 +47,27 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  authorsCount: { type: Number, default: 0 },
-  totalAuthors: { type: Number, default: 0 },
-  searchQuery: { type: String, default: '' },
-  sortBy: { type: String, default: 'name' },
-  sortOrder: { type: String, default: 'ASC' },
-  sortOptions: { type: Array, default: () => [] },
-  mobileFiltersOpen: { type: Boolean, default: false }
+<script setup lang="ts">
+interface Option { label: string; value: string }
+
+const searchInput = ref<any>(null)
+
+const props = withDefaults(defineProps<{
+  authorsCount?: number
+  totalAuthors?: number
+  searchQuery?: string
+  sortBy?: string
+  sortOrder?: 'ASC' | 'DESC' | string
+  sortOptions?: Option[]
+  mobileFiltersOpen?: boolean
+}>(), {
+  authorsCount: 0,
+  totalAuthors: 0,
+  searchQuery: '',
+  sortBy: 'name',
+  sortOrder: 'ASC',
+  sortOptions: () => [],
+  mobileFiltersOpen: false
 })
 
 const emit = defineEmits([
@@ -69,16 +81,42 @@ const emit = defineEmits([
 
 const searchQueryModel = computed({
   get: () => props.searchQuery,
-  set: (val) => emit('update:searchQuery', val)
+  set: (val: string) => emit('update:searchQuery', val)
 })
 
-const sortByModel = computed({
-  get: () => props.sortBy,
-  set: (val) => emit('update:sortBy', val)
+const sortByModel = computed<Option | null>({
+  get: () => (props.sortOptions).find(o => o.value === props.sortBy) || null,
+  set: (opt: Option | null) => emit('update:sortBy', opt?.value || '')
 })
 
 const mobileFiltersOpenModel = computed({
   get: () => props.mobileFiltersOpen,
-  set: (val) => emit('update:mobileFiltersOpen', val)
+  set: (val: boolean) => emit('update:mobileFiltersOpen', val)
+})
+
+const focus = () => {
+  const inputComponent = searchInput.value
+
+  if (typeof inputComponent?.focus === 'function') {
+    inputComponent.focus()
+    return
+  }
+
+  const inputElement = inputComponent?.$el?.querySelector?.('input')
+  if (inputElement instanceof HTMLElement) {
+    inputElement.focus()
+  }
+}
+
+const typeCharacter = (key: string) => {
+  emit('update:searchQuery', `${props.searchQuery || ''}${key}`)
+  nextTick(() => {
+    focus()
+  })
+}
+
+defineExpose({
+  focus,
+  typeCharacter
 })
 </script>

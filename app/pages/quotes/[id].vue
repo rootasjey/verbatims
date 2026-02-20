@@ -40,7 +40,7 @@
     <div v-else-if="quote" class="mt-12 md:mt-16 px-4 md:px-8 py-8 md:py-16 animate-fade-in animate-duration-700 animate-ease-out">
       <div class="max-w-5xl mx-auto space-y-8">
         <!-- Main Quote Card -->
-        <div class="relative light:bg-white/60 dark:bg-[#0C0A09] md:dark:bg-transparent
+        <div class="min-h-70vh relative light:bg-white/60 dark:bg-[#0C0A09] md:dark:bg-transparent
           backdrop-blur-lg rounded-3xl p-8 md:p-12 lg:p-16 
           shadow-lg shadow-gray-200/50 dark:shadow-black/20 
           border md:border-none border-gray-200/40 dark:border-gray-800 transition-all duration-300"
@@ -96,16 +96,20 @@
 
         <!-- Tags -->
         <div v-if="quote.tags?.length" class="animate-fade-in animate-duration-500 animate-delay-200">
-          <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-gray-200/40 dark:border-gray-700/40">
-            <h3 class="text-base md:text-lg font-semibold text-gray-600 dark:text-gray-400 mb-4 text-center">Topics</h3>
+          <div class="bg-white/50 dark:bg-transparent backdrop-blur-md rounded-2 p-6 md:p-8">
             <div class="flex flex-wrap justify-center gap-2.5">
               <NuxtLink
                 v-for="tag in quote.tags"
                 :key="tag.name"
                 :to="`/tags/${encodeURIComponent(tag.name)}`"
-                class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium font-sans transition-all hover:scale-105 bg-white/60 dark:bg-gray-800/60 border border-gray-200/60 dark:border-gray-700/60 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                :style="{ '--tag-color': tag.color }"
+                class="inline-flex items-center px-4 py-2 rounded-12 text-sm 
+                  font-medium font-sans transition-all hover:scale-102 active:scale-99 
+                  bg-white/60 dark:bg-gray-800/60 border border-gray-200/60 
+                  dark:border-gray-700/60 text-gray-700 dark:text-gray-300 
+                  tag-chip"
               >
-                <NIcon name="i-ph-tag" class="w-3.5 h-3.5 mr-1.5" />
+                <span class="inline-block w-3.5 h-3.5 mr-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: tag.color }" aria-hidden="true"></span>
                 {{ tag.name }}
               </NuxtLink>
             </div>
@@ -545,3 +549,17 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
 })
 </script>
+
+<style scoped>
+.tag-chip {
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+}
+.tag-chip:hover {
+  border-color: var(--tag-color);
+  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+}
+.tag-chip:focus-visible {
+  outline: 2px solid var(--tag-color);
+  outline-offset: 2px;
+}
+</style>

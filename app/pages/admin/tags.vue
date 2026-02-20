@@ -24,6 +24,10 @@
             item-key="label"
             value-key="label"
           />
+          <NButton btn="soft-indigo" size="sm" :loading="backfillProcessing" @click="showBackfillDialog = true">
+            <NIcon name="i-ph-arrows-clockwise" class="w-4 h-4 mr-2" />
+            Backfill Tags
+          </NButton>
           <NButton btn="soft-blue" size="sm" @click="openCreate"> 
             <NIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
             Create Tag
@@ -128,6 +132,48 @@
   <AddTagDialog v-model="showAddDialog" :edit-tag="selectedTag" @tag-added="reloadAfterModal" @tag-updated="reloadAfterModal" />
   <DeleteTagDialog v-model="showDeleteDialog" :tag="tagToDelete" @tag-deleted="reloadAfterDelete" />
 
+  <NDialog v-model:open="showBackfillDialog">
+    <template #header>
+      <h3 class="text-lg font-semibold">Backfill Quote Tags</h3>
+    </template>
+
+    <div class="space-y-4">
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Run the server-side matcher to assign tags to existing quotes.
+      </p>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Status Scope</label>
+        <NSelect
+          v-model="backfillStatus"
+          :items="backfillStatusOptions"
+          item-key="label"
+          value-key="label"
+          size="sm"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <NCheckbox v-model="backfillOnlyUntagged" label="Only untagged quotes" />
+        <NCheckbox v-model="backfillDryRun" label="Dry run (preview only)" />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <NInput v-model="backfillLimit" type="number" min="1" max="5000" placeholder="Limit (1-5000)" />
+        <NCheckbox v-model="backfillResetExisting" label="Reset existing tags first" />
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="mt-6 flex justify-end gap-3">
+        <NButton btn="link-gray" :disabled="backfillProcessing" @click="showBackfillDialog = false">Cancel</NButton>
+        <NButton btn="soft-blue" :loading="backfillProcessing" @click="triggerBackfill">
+          Run Backfill
+        </NButton>
+      </div>
+    </template>
+  </NDialog>
+
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
     <NCard>
@@ -168,6 +214,13 @@ const rowSelection = ref<Record<number, boolean>>({})
 const bulkOpen = ref(false)
 const bulkProcessing = ref(false)
 const showBulkDeleteDialog = ref(false)
+const showBackfillDialog = ref(false)
+const backfillProcessing = ref(false)
+const backfillDryRun = ref(true)
+const backfillOnlyUntagged = ref(true)
+const backfillResetExisting = ref(false)
+const backfillLimit = ref('2000')
+const backfillStatus = ref({ label: 'Approved quotes', value: 'approved' })
 
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
 watch(selectedIds, (ids) => { bulkOpen.value = ids.length > 0 }, { immediate: true })
@@ -185,6 +238,14 @@ const sortOptions = [
   { label: 'Most Recent', value: 'created_at_desc' },
   { label: 'Oldest First', value: 'created_at_asc' },
   { label: 'Most Quotes', value: 'quotes_desc' }
+]
+
+const backfillStatusOptions = [
+  { label: 'Approved quotes', value: 'approved' },
+  { label: 'Pending quotes', value: 'pending' },
+  { label: 'Draft quotes', value: 'draft' },
+  { label: 'Rejected quotes', value: 'rejected' },
+  { label: 'All quotes', value: 'all' }
 ]
 
 const tableColumns = [
@@ -263,6 +324,44 @@ const confirmBulkDelete = async () => {
     rowSelection.value = {}
     selectionMode.value = false
     loadTags()
+  }
+}
+
+const triggerBackfill = async () => {
+  backfillProcessing.value = true
+  try {
+    const response: any = await $fetch('/api/admin/quotes/backfill-tags', {
+      method: 'POST',
+      body: {
+        dryRun: backfillDryRun.value,
+        status: backfillStatus.value.value,
+        onlyUntagged: backfillOnlyUntagged.value,
+        resetExisting: backfillResetExisting.value,
+        limit: Math.min(Math.max(parseInt(backfillLimit.value || '2000') || 2000, 1), 5000)
+      }
+    })
+
+    const scanned = response?.results?.quotes_scanned ?? 0
+    const matched = response?.results?.quotes_with_matches ?? 0
+    const linksAttempted = response?.results?.links_attempted ?? 0
+
+    useToast().toast({
+      toast: 'success',
+      title: backfillDryRun.value ? 'Backfill dry-run complete' : 'Backfill completed',
+      description: `${scanned} scanned · ${matched} matched · ${linksAttempted} link attempts`
+    })
+
+    showBackfillDialog.value = false
+    await loadTags()
+  } catch (error) {
+    console.error('Backfill trigger failed', error)
+    useToast().toast({
+      toast: 'error',
+      title: 'Backfill failed',
+      description: 'Unable to run tag backfill.'
+    })
+  } finally {
+    backfillProcessing.value = false
   }
 }
 

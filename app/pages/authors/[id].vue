@@ -32,16 +32,23 @@
       </ClientOnly>
 
       <header class="mt-12 p-8">
-        <!-- Avatar centered above badge -->
-        <div class="flex items-center justify-center mb-4">
+        <!-- Avatar centered above badge (reserve space to prevent layout jump) -->
+        <div class="flex items-center justify-center mb-4 min-h-[56px]">
           <Transition name="fade-up" appear>
             <NAvatar
               v-if="showTypeBadge"
+              ref="avatarRef"
+              role="button"
+              tabindex="0"
+              :aria-label="`Open ${author.name} image preview`"
+              @click="openAvatarPreview"
+              @keyup.enter.prevent="openAvatarPreview"
+              @keyup.space.prevent="openAvatarPreview"
               :src="author.image_url || undefined"
               :alt="author.name"
               size="lg"
               :fallback="getAuthorInitials(author.name)"
-              class="shadow-lg avatar-entrance"
+              class="shadow-lg avatar-entrance cursor-pointer"
               :class="headerIn ? 'scale-in' : 'scale-out'"
             />
           </Transition>
@@ -94,20 +101,24 @@
             :style="enterAnim(3)"
           >
             <div class="p-6">
-              <div class="description-clip overflow-hidden" :class="descriptionExpanded ? 'expanded' : 'collapsed'">
+              <div
+                ref="descriptionEl"
+                class="description-clip overflow-hidden"
+                :class="[descriptionExpanded ? 'expanded' : 'collapsed', (!descriptionExpanded && (isDescriptionOverflowing || isDescriptionLong(author.description))) ? 'has-ellipsis' : '']"
+              >
                 <p class="text-justify font-serif text-base md:text-size-8 font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                   {{ author.description }}
                 </p>
               </div>
 
               <NButton
-                v-if="isDescriptionLong(author.description)"
+                v-if="isDescriptionOverflowing || isDescriptionLong(author.description)"
                 btn="ghost-gray"
                 size="sm"
                 class="mt-3 text-xs font-medium"
                 @click="descriptionExpanded = !descriptionExpanded"
               >
-                <NIcon :name="descriptionExpanded ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="mr-1" />
+                <NIcon name="i-ph-caret-down" class="mr-1 icon-rotate" :class="{ rotated: descriptionExpanded }" />
                 {{ descriptionExpanded ? 'Show Less' : 'Read More' }}
               </NButton>
             </div>
@@ -224,17 +235,14 @@
           </p>
         </div>
 
-        <div v-if="hasMoreQuotes && !quotesLoading" class="text-center">
-          <NButton
-            @click="loadMoreQuotes"
-            :loading="loadingMoreQuotes"
-            :disabled="loadingMoreQuotes"
-            size="sm"
-            btn="solid-black"
-            class="px-8 py-6 w-full rounded-3 hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
-          >
-            {{ loadingMoreQuotes ? 'Loading...' : 'Load More Quotes' }}
-          </NButton>
+        <div v-if="hasMoreQuotes && !quotesLoading" class="flex justify-center">
+          <LoadMoreButton
+            class="mb-4"
+            idleText="Load More Quotes"
+            loadingText="Loading Quotes..."
+            :isLoading="loadingMoreQuotes"
+            @load="loadMoreQuotes"
+          />
         </div>
       </div>
 
@@ -253,7 +261,11 @@
             :style="{ transitionDelay: `${index * 60}ms` }"
             @click="navigateTo(`/authors/${similarAuthor.id}`)"
           >
-            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-400 transition-all duration-300 hover:shadow-md">
+            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg 
+              border border-dashed border-gray-200 dark:border-gray-700 
+              hover:b-solid hover:border-primary-500 dark:hover:border-primary-400 
+              active:scale-99
+              transition-all duration-300 hover:shadow-md">
               <NAvatar
                 :src="similarAuthor.image_url || undefined"
                 :alt="similarAuthor.name"
@@ -315,6 +327,16 @@
         v-model="showReportDialog"
         targetType="author"
         :targetId="author.id"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <ImagePreview
+        v-model="avatarPreviewOpen"
+        :src="author?.image_url || ''"
+        :alt="author?.name || ''"
+        :closeOnScroll="true"
+        :mask-closable="true"
       />
     </ClientOnly>
   </div>
@@ -415,7 +437,34 @@ const copyState = ref<'idle' | 'copying' | 'copied'>('idle')
 const showEditAuthorDialog = ref(false)
 const showDeleteAuthorDialog = ref(false)
 const descriptionExpanded = ref(false)
+const descriptionEl = ref<HTMLElement | null>(null)
+const isDescriptionOverflowing = ref(false)
+let descriptionResizeObserver: ResizeObserver | null = null
 const similarAuthors = ref<any[]>([])
+
+// Avatar preview state (opened when clicking the avatar)
+const avatarPreviewOpen = ref(false)
+const avatarRef = ref<any>(null)
+
+const checkDescriptionOverflow = () => {
+  const el = descriptionEl.value
+  if (!el) {
+    isDescriptionOverflowing.value = false
+    return
+  }
+  // Use the collapsed max-height (6.5rem) as a stable threshold so
+  // CSS transitions and intermediate clientHeight values don't
+  // cause temporary false negatives.
+  const rootFontSize = typeof window !== 'undefined'
+    ? parseFloat(getComputedStyle(document.documentElement).fontSize || '16')
+    : 16
+  const collapsedHeightPx = 6.5 * rootFontSize
+  isDescriptionOverflowing.value = el.scrollHeight > collapsedHeightPx
+}
+
+watch([() => author.value?.description, () => descriptionExpanded.value], () => {
+  nextTick(checkDescriptionOverflow)
+})
 
 // Convert AuthorWithSocials to Author for AddAuthorDialog
 const authorAsEditAuthor = computed(() => {
@@ -745,6 +794,14 @@ onMounted(async () => {
   // Attach global shortcut
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
+    nextTick(() => {
+      checkDescriptionOverflow()
+      if (typeof ResizeObserver !== 'undefined') {
+        descriptionResizeObserver = new ResizeObserver(checkDescriptionOverflow)
+        if (descriptionEl.value) descriptionResizeObserver.observe(descriptionEl.value)
+      }
+      window.addEventListener('resize', checkDescriptionOverflow)
+    })
   }
 })
 
@@ -794,6 +851,24 @@ const triggerHeaderEnter = async () => {
   })
 }
 
+// Avatar preview handlers — open/close
+const openAvatarPreview = () => {
+  if (!author.value?.image_url) return
+  avatarPreviewOpen.value = true
+}
+
+// Restore focus to avatar when preview closes (regardless of how it closed)
+watch(avatarPreviewOpen, (open, prev) => {
+  if (prev && !open) {
+    nextTick(() => {
+      try {
+        const el = (avatarRef.value?.$el ?? avatarRef.value) as HTMLElement | undefined
+        el?.focus?.()
+      } catch (err) { /* noop */ }
+    })
+  }
+})
+
 // When navigating client-side, author fetch sets `pending` true -> false.
 // Trigger animation right after pending turns false and author is present.
 watch(pending, (now, prev) => {
@@ -803,7 +878,9 @@ watch(pending, (now, prev) => {
 })
 
 onUnmounted(() => {
+  if (descriptionResizeObserver) descriptionResizeObserver.disconnect()
   if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', checkDescriptionOverflow)
     window.removeEventListener('keydown', handleGlobalKeydown)
   }
 })
@@ -829,11 +906,40 @@ onUnmounted(() => {
 
 /* Description expand/collapse animation */
 .description-clip {
+  position: relative;
   transition: max-height 420ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease;
   max-height: 6.5rem; /* collapsed height (~3 lines) */
 }
+.description-clip p { position: relative; z-index: 0; }
 .description-clip.collapsed { max-height: 6.5rem; }
 .description-clip.expanded { max-height: 1200px; }
+
+/* Fade overlay when clipped */
+.description-clip.collapsed.has-ellipsis::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3.2rem; /* covers the bottom area */
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 85%);
+}
+/* Dark mode variants */
+.dark .description-clip.collapsed.has-ellipsis::after {
+  background: linear-gradient(180deg, rgba(12,10,9,0), #0C0A09 85%);
+}
+
+/* Icon rotate for Read More button */
+.icon-rotate {
+  display: inline-block;
+  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
+  transform-origin: center;
+}
+.icon-rotate.rotated {
+  transform: rotate(180deg);
+}
 
 /* Subtle staggered fade-up for similar authors */
 .similar-item {
@@ -846,13 +952,16 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
-/* Avatar subtle scale on appear + hover */
+/* Avatar subtle scale on appear + hover
+   reserve opacity transition so appearance doesn't cause a layout jump. */
 .avatar-entrance {
-  transition: transform 420ms cubic-bezier(.22,.61,.36,1), box-shadow 320ms ease;
+  transition: transform 420ms cubic-bezier(.22,.61,.36,1), box-shadow 320ms ease, opacity 320ms ease;
   transform-origin: center;
+  opacity: 1;
 }
-.avatar-entrance.scale-in { transform: scale(1); }
-.avatar-entrance.scale-out { transform: scale(0.96); }
-.avatar-entrance:hover { transform: scale(1.03); }
+.avatar-entrance.scale-in { transform: scale(1); opacity: 1; }
+.avatar-entrance.scale-out { transform: scale(0.96); opacity: 0; pointer-events: none; }
+.avatar-entrance:hover { transform: scale(1.03); opacity: 1; }
+
 
 </style>

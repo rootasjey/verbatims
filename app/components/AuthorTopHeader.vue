@@ -87,7 +87,7 @@
             </NButton>
           </NTooltip>
 
-          <NDropdownMenu :items="headerMenuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
+          <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
             <NButton
               icon
               btn="ghost-gray"

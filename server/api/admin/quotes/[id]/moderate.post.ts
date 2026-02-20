@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import type { CreatedQuoteResult } from '~~/server/types'
+import { autoTagQuoteById } from '~~/server/utils/tagging'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -74,6 +75,15 @@ export default defineEventHandler(async (event) => {
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
       .run()
+
+    let autoTagResult: { matchedTagNames: string[], attachedCount: number } | null = null
+    if (body.action === 'approve') {
+      autoTagResult = await autoTagQuoteById(
+        quote.id,
+        quote.name,
+        quote.language || undefined
+      )
+    }
     
     // Get updated quote with full details
     const updatedQuote = await db.get<CreatedQuoteResult>(sql.raw(`
@@ -120,6 +130,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: processedQuote,
+      autoTagging: autoTagResult,
       message: `Quote ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
     }
   } catch (error: any) {

@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, ne, inArray, desc, sql } from 'drizzle-orm'
+import { eq, and, ne, inArray, notInArray, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Invalid quote ID'
       })
     }
+    const quoteIdNum = parseInt(quoteId)
 
     // First, get the current quote's details to find related quotes
     const currentQuote = await db.select({ 
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
     })
       .from(schema.quotes)
       .where(and(
-        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.id, quoteIdNum),
         eq(schema.quotes.status, 'approved')
       ))
       .get()
@@ -64,7 +65,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
       .where(and(
         eq(schema.quotes.authorId, currentQuote.authorId),
-        ne(schema.quotes.id, parseInt(quoteId)),
+        ne(schema.quotes.id, quoteIdNum),
         eq(schema.quotes.status, 'approved')
       ))
       .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
@@ -104,7 +105,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
       .where(and(
         eq(schema.quotes.referenceId, currentQuote.referenceId),
-        ne(schema.quotes.id, parseInt(quoteId)),
+        ne(schema.quotes.id, quoteIdNum),
         eq(schema.quotes.status, 'approved')
       ))
       .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
@@ -124,60 +125,56 @@ export default defineEventHandler(async (event) => {
       // Get tag IDs for current quote
       const currentQuoteTags = await db.select({ tagId: schema.quoteTags.tagId })
         .from(schema.quoteTags)
-        .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+        .where(eq(schema.quoteTags.quoteId, quoteIdNum))
         .all()
 
       const tagIds = currentQuoteTags.map(t => t.tagId)
 
       if (tagIds.length > 0) {
-        // Get quotes with similar tags
-        const similarTagQuoteIds = await db.select({ quoteId: schema.quoteTags.quoteId })
-          .from(schema.quoteTags)
-          .where(inArray(schema.quoteTags.tagId, tagIds))
-          .all()
+        const existingIds = [...new Set(relatedQuotes.map((q: any) => q.id))]
 
-        const uniqueQuoteIds = [...new Set(similarTagQuoteIds.map(q => q.quoteId))]
-          .filter(id => id !== parseInt(quoteId))
+        const tagQueryConditions = [
+          inArray(schema.quoteTags.tagId, tagIds),
+          ne(schema.quotes.id, quoteIdNum),
+          eq(schema.quotes.status, 'approved')
+        ]
 
-        if (uniqueQuoteIds.length > 0) {
-          const tagQuotes = await db.select({
-            id: schema.quotes.id,
-            name: schema.quotes.name,
-            language: schema.quotes.language,
-            status: schema.quotes.status,
-            viewsCount: schema.quotes.viewsCount,
-            likesCount: schema.quotes.likesCount,
-            sharesCount: schema.quotes.sharesCount,
-            isFeatured: schema.quotes.isFeatured,
-            createdAt: schema.quotes.createdAt,
-            updatedAt: schema.quotes.updatedAt,
-            authorId: schema.quotes.authorId,
-            referenceId: schema.quotes.referenceId,
-            userId: schema.quotes.userId,
-            authorName: schema.authors.name,
-            authorIsFictional: schema.authors.isFictional,
-            referenceName: schema.quoteReferences.name,
-            referenceType: schema.quoteReferences.primaryType,
-            userName: schema.users.name
-          })
+        if (existingIds.length > 0) {
+          tagQueryConditions.push(notInArray(schema.quotes.id, existingIds))
+        }
+
+        const tagQuotes = await db.selectDistinct({
+          id: schema.quotes.id,
+          name: schema.quotes.name,
+          language: schema.quotes.language,
+          status: schema.quotes.status,
+          viewsCount: schema.quotes.viewsCount,
+          likesCount: schema.quotes.likesCount,
+          sharesCount: schema.quotes.sharesCount,
+          isFeatured: schema.quotes.isFeatured,
+          createdAt: schema.quotes.createdAt,
+          updatedAt: schema.quotes.updatedAt,
+          authorId: schema.quotes.authorId,
+          referenceId: schema.quotes.referenceId,
+          userId: schema.quotes.userId,
+          authorName: schema.authors.name,
+          authorIsFictional: schema.authors.isFictional,
+          referenceName: schema.quoteReferences.name,
+          referenceType: schema.quoteReferences.primaryType,
+          userName: schema.users.name
+        })
           .from(schema.quotes)
+          .innerJoin(schema.quoteTags, eq(schema.quoteTags.quoteId, schema.quotes.id))
           .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
           .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
           .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-          .where(and(
-            inArray(schema.quotes.id, uniqueQuoteIds),
-            eq(schema.quotes.status, 'approved')
-          ))
+          .where(and(...tagQueryConditions))
           .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
           .limit(4 - relatedQuotes.length)
           .all()
 
-          // Filter out duplicates
-          if (tagQuotes) {
-            const existingIds = new Set(relatedQuotes.map((q: any) => q.id))
-            const newQuotes = tagQuotes.filter((q: any) => !existingIds.has(q.id))
-            relatedQuotes.push(...newQuotes)
-          }
+        if (tagQuotes) {
+          relatedQuotes.push(...tagQuotes)
         }
       }
     }
