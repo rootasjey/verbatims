@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     const authorId = query.author_id ? parseInt(query.author_id as string) : null
     const referenceId = query.reference_id ? parseInt(query.reference_id as string) : null
     const search = query.search as string
+    const tag = query.tag as string | undefined
 
     // Normalize sort parameters (sort_by and sort_order only)
     const rawSortBy = (query.sort_by as string | undefined)?.toLowerCase()
@@ -37,6 +38,15 @@ export default defineEventHandler(async (event) => {
     if (authorId) conditions.push(eq(schema.quotes.authorId, authorId))
     if (referenceId) conditions.push(eq(schema.quotes.referenceId, referenceId))
     if (search) conditions.push(like(schema.quotes.name, `%${search}%`))
+    if (tag?.trim()) {
+      conditions.push(sql`EXISTS (
+        SELECT 1
+        FROM ${schema.quoteTags} qt2
+        INNER JOIN ${schema.tags} t2 ON qt2.tag_id = t2.id
+        WHERE qt2.quote_id = ${schema.quotes.id}
+          AND LOWER(t2.name) = LOWER(${tag.trim()})
+      )`)
+    }
 
     const quotesQuery = db.select({
         ...getTableColumns(schema.quotes),
