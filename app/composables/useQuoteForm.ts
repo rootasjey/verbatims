@@ -465,14 +465,53 @@ export function useQuoteForm() {
       lowConfidence: false
     }
 
+    form.value.selectedAuthor = null
+    form.value.selectedReference = null
+    authorQuery.value = ''
+    referenceQuery.value = ''
+
     if (quote.author) {
       form.value.selectedAuthor = quote.author as Author
       authorQuery.value = quote.author.name || ''
+    } else if (quote.author_id && quote.author_name) {
+      form.value.selectedAuthor = {
+        id: quote.author_id,
+        name: quote.author_name,
+        is_fictional: !!quote.author_is_fictional,
+        job: null,
+        description: null,
+        image_url: quote.author_image_url || undefined,
+        socials: '{}',
+        views_count: 0,
+        likes_count: 0,
+        shares_count: 0,
+        created_at: quote.created_at || new Date().toISOString(),
+        updated_at: quote.updated_at || new Date().toISOString()
+      } as Author
+      authorQuery.value = quote.author_name
     }
 
     if (quote.reference) {
       form.value.selectedReference = quote.reference as QuoteReference
       referenceQuery.value = quote.reference.name || ''
+    } else if (quote.reference_id && quote.reference_name) {
+      form.value.selectedReference = {
+        id: quote.reference_id,
+        name: quote.reference_name,
+        original_language: quote.language || form.value.language.value,
+        release_date: null,
+        description: null,
+        primary_type: quote.reference_type || 'other',
+        secondary_type: quote.reference_secondary_type || null,
+        image_url: undefined,
+        urls: '{}',
+        views_count: 0,
+        likes_count: 0,
+        shares_count: 0,
+        created_at: quote.created_at || new Date().toISOString(),
+        updated_at: quote.updated_at || new Date().toISOString()
+      } as QuoteReference
+      referenceQuery.value = quote.reference_name
     }
   }
 

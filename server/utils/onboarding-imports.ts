@@ -731,7 +731,7 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
   const subSize = 10
 
   const allowedStatuses = new Set(['draft','pending','approved','rejected'])
-  const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh'])
+  const allowedLanguages = new Set(['en','fr','es','de','it','pt','ru','ja','zh','la'])
   const str = (v: any) => typeof v === 'string' ? v.trim() : ''
   const toInt = (v: any) => {
     if (v === null || v === undefined || v === '') return null
