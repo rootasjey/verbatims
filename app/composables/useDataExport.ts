@@ -135,6 +135,7 @@ export const useDataExport = () => {
   const languageOptions = [
     { label: 'English', value: 'en' },
     { label: 'French', value: 'fr' },
+    { label: 'Latin', value: 'la' },
     { label: 'Spanish', value: 'es' },
     { label: 'German', value: 'de' },
     { label: 'Italian', value: 'it' },

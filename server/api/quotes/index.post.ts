@@ -43,7 +43,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     }
 
     // Validate language
-    const allowedLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh']
+    const allowedLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la']
     if (body.language && !allowedLanguages.includes(body.language)) {
       throw createError({
         statusCode: 400,
@@ -190,13 +190,13 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       author_id: createdQuote.authorId,
       reference_id: createdQuote.referenceId,
       user_id: createdQuote.userId,
-      status: createdQuote.status as any,
+      status: createdQuote.status as QuoteStatus,
       views_count: createdQuote.viewsCount,
       likes_count: createdQuote.likesCount,
       shares_count: createdQuote.sharesCount,
       is_featured: createdQuote.isFeatured,
-      created_at: createdQuote.createdAt,
-      updated_at: createdQuote.updatedAt,
+      created_at: createdQuote.createdAt.toISOString(),
+      updated_at: createdQuote.updatedAt.toISOString(),
       author: createdQuote.authorId ? {
         id: createdQuote.authorId,
         name: createdQuote.authorName,

@@ -294,6 +294,7 @@ const selectedReference = ref<{ label: string; value: string | number }>()
 const languageOptions = [
   { label: 'English', value: 'en' },
   { label: 'French', value: 'fr' },
+  { label: 'Latin', value: 'la' },
 ]
 
 const authorOptions: Ref<Array<{ label: string; value: number | string }>> = ref([])

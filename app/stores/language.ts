@@ -19,6 +19,7 @@ export const useLanguageStore = defineStore('language', () => {
     { value: 'all', display: 'All Languages', icon: 'i-openmoji-globe-showing-americas' },
     { value: 'en', display: 'English', icon: 'i-openmoji-hamburger' },
     { value: 'fr', display: 'French', icon: 'i-openmoji-baguette-bread' },
+    { value: 'la', display: 'Latin', icon: 'i-openmoji-classical-building' },
     // Future languages can be added here
     // { value: 'es', display: 'Spanish', icon: 'i-ph-flag' },
     // { value: 'de', display: 'German', icon: 'i-ph-flag' },
