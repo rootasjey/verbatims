@@ -148,6 +148,12 @@ const navMenuItems = computed(() => [
         description: 'Explore quotes from various sources',
         to: '/quotes'
       },
+      {
+        label: 'Tags',
+        leading: 'i-ph-tag-duotone',
+        description: 'Browse quote topics and themes',
+        to: '/tags'
+      },
     ]
   },
   {

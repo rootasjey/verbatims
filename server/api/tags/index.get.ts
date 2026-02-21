@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     const offset = (page - 1) * limit
     
     // Validate sort column
-    const allowedSortColumns = ['name', 'created_at']
+    const allowedSortColumns = ['name', 'created_at', 'quotes_count']
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN ${schema.quotes} q ON qt.quote_id = q.id AND q.status = 'approved'
       ${whereClause}
       GROUP BY t.id
-      ORDER BY ${sql.raw(`t.${sortColumn}`)} ${sql.raw(sortDirection)}
+      ORDER BY ${sortColumn === 'quotes_count' ? sql.raw('quotes_count') : sql.raw(`t.${sortColumn}`)} ${sql.raw(sortDirection)}
       LIMIT ${limit} OFFSET ${offset}
     `
     

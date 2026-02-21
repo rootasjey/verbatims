@@ -1,7 +1,7 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-4 sm:px-5 py-8 sm:py-12">
     <div class="mt-12">
-      <h1>About Verbatims</h1>
+      <h1 class="font-serif font-size-32 font-600 line-height-tight">About</h1>
       <p class="text-sm text-gray-500 relative -top-2">
         A home for timeless words — curated, searchable, and crafted for daily inspiration.
       </p>
@@ -138,9 +138,13 @@
       </p>
       <div>
         <NButton 
-          leading="i-ph-bug" label="Open a GitHub issue" 
-          btn="soft" size="sm" 
+          leading="i-ph-bug" 
+          trailing="i-ph-arrow-up-right"
+          label="Open a GitHub issue" 
+          btn="outline-gray" 
+          size="sm" 
           to="https://github.com/rootasjey/verbatims/issues" target="_blank" 
+          class="decoration-none"
         />
       </div>
       <p class="font-medium mt-6">Built with care, curiosity, and plenty of coffee.</p>
@@ -193,14 +197,8 @@ watch(currentLayout, (newLayout) => {
 }
 
 /* Headings: clear hierarchy and spacing */
-.prose :where(h1) {
-  font-family: 'Gambetta';
-  font-size: clamp(1.875rem, 1.2rem + 2vw, 2.25rem);
-  line-height: 0.6;
-  margin-bottom: 0.8em;
-}
 .prose :where(h2) {
-  font-size: 1.1rem;
+  font-size: 2rem;
   line-height: 1.3;
   font-weight: 800;
   font-family: 'Gambetta';
@@ -219,6 +217,7 @@ watch(currentLayout, (newLayout) => {
   margin-top: 1em;
   margin-bottom: 1.25em;
   padding-left: 1.4em;
+  list-style-type: disc;
 }
 .prose :where(li + li) {
   margin-top: 0.4em;
@@ -232,7 +231,7 @@ watch(currentLayout, (newLayout) => {
 /* Links: subtle underline that appears on hover/focus */
 .prose :where(a) {
   color: inherit;
-  text-decoration: underline;
+  /* text-decoration: underline; */
   text-underline-offset: 3px;
   text-decoration-thickness: 0.08em;
 }

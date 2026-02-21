@@ -1,15 +1,16 @@
 <template>
   <div
     :style="containerStyle"
-    class="font-title font-600 uppercase line-height-tight flex items-center justify-center"
+    class="flex items-center justify-center"
     aria-label="Verbatims logo"
   >
-    <div v-if="props.icon" :width="sizeNumber">
-      <span class="border b-dashed px-2 py-1">VBT</span>
-    </div>
-    <div v-else :width="sizeNumber">
-      <span class="border b-dashed px-2 py-1">VERBATIMS</span>
-    </div>
+    <img
+      src="/images/v-letter.png"
+      :width="sizeNumber"
+      :height="sizeNumber"
+      alt="Verbatims logo"
+      class="dark:invert"
+    />
   </div>
 </template>
 
@@ -17,10 +18,10 @@
 const props = defineProps({
   icon: { type: Boolean, default: false },
   /** size in pixels (number or numeric string) */
-  size: { type: [Number, String], default: 48 },
+  size: { type: [Number, String], default: 32 },
 })
 
-const sizeNumber = Number(props.size) || 48
+const sizeNumber = Number(props.size) || 32
 
 const containerStyle = {
   width: `${sizeNumber}px`,
