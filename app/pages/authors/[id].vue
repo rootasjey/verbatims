@@ -474,20 +474,57 @@ const authorAsEditAuthor = computed(() => {
   return { ...rest, socials: Array.isArray(socials) ? '' : socials }
 })
 
-// Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
+// Global keyboard shortcuts for author page (single letters)
+// Ignored when a meta/ctrl/alt key is held so native browser shortcuts continue to work
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-  if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
+  if (!e || !author.value) return
 
-  // Skip when typing in inputs/contenteditable elements
+  // ignore interactive elements (inputs, textareas, contenteditable, etc.)
   const target = e.target as HTMLElement | null
   const tag = target?.tagName?.toLowerCase?.()
   const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag || '')
   if (isEditable) return
 
+  // ignore if any modifier key is pressed; shortcuts are single-letter only
+  if (e.metaKey || e.ctrlKey || e.altKey) return
+
   const role = user.value?.role
-  if (author.value && (role === 'admin' || role === 'moderator')) {
-    e.preventDefault()
-    showEditAuthorDialog.value = true
+  const isAdminMod = role === 'admin' || role === 'moderator'
+  const key = e.key.toLowerCase()
+
+  switch (key) {
+    case 'c':
+      e.preventDefault()
+      copyTextAndLink()
+      break
+    case 'd':
+      if (isAdminMod) {
+        e.preventDefault()
+        showDeleteAuthorDialog.value = true
+      }
+      break
+    case 'e':
+      if (isAdminMod) {
+        e.preventDefault()
+        showEditAuthorDialog.value = true
+      }
+      break
+    case 'l':
+      if (user.value) {
+        e.preventDefault()
+        toggleLike()
+      }
+      break
+    case 'r':
+      e.preventDefault()
+      reportAuthor()
+      break
+    case 's':
+      e.preventDefault()
+      shareAuthor()
+      break
+    default:
+      break
   }
 }
 
@@ -674,6 +711,24 @@ const shareAuthor = async () => {
     toast({ title: 'Failed to share', description: 'Please try again.' })
   } finally {
     sharePending.value = false
+  }
+}
+
+// copy author name plus current page url
+const copyTextAndLink = async () => {
+  const currentAuthor = author.value
+  if (!currentAuthor) return
+  try {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      throw new Error('clipboard-unavailable')
+    }
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    await navigator.clipboard.writeText(`${currentAuthor.name}\n\n${url}`)
+
+    copyState.value = 'copied'
+    setTimeout(() => { copyState.value = 'idle' }, 2000)
+  } catch (error) {
+    useToast().toast({ title: 'Copy failed', description: 'Clipboard not available.' })
   }
 }
 

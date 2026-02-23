@@ -13,54 +13,64 @@
           </label>
 
           <div class="flex gap-2">
-            <div class="flex-1 relative">
+            <div ref="suggestionAreaRef" class="flex-1 relative">
               <NInput
                 ref="tagInputRef"
                 v-model="tagQuery"
-                input="outline-amber"
+                input="outline-gray"
                 placeholder="Type to search or create a tag…"
                 :disabled="submitting"
                 @input="searchTags"
                 @focus="handleInputFocus"
-                @blur="handleInputBlur"
                 @keydown="handleKeydown"
               />
-              <!-- Suggestions -->
+              <!-- Suggestions rendered as inline chips -->
               <div
                 v-if="showSuggestions && (safeSuggestions.length > 0 || tagQuery)"
                 ref="suggestionsRef"
-                class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-56 overflow-auto"
+                class="mt-2 flex flex-wrap gap-2"
                 tabindex="-1"
-                @blur="handleSuggestionsBlur"
                 @keydown="handleKeydown"
               >
                 <div
                   v-for="(tag, index) in safeSuggestions"
                   :key="tag.id"
                   :class="[
-                    'px-3 py-2 cursor-pointer flex items-center justify-between',
+                    'inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer border',
                     selectedIndex === index
-                      ? 'bg-blue-100 dark:bg-blue-900/50'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/50'
+                      : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                   ]"
                   @click="addExistingTag(tag)"
                   @mouseenter="selectedIndex = index"
                 >
-                  <span class="text-sm">#{{ tag.name }}</span>
                   <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: tag.color }" />
+                  <span class="text-sm">#{{ tag.name }}</span>
+                  <NTooltip v-if="tag.reason === 'popular'" content="Popular tag" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
+                    <NIcon
+                      name="i-ph-shooting-star"
+                      class="w-4 h-4 text-yellow-500"
+                    />
+                  </NTooltip>
+                  <NTooltip v-else-if="tag.reason === 'keyword'" content="Keyword match" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
+                    <NIcon
+                      name="i-ph-stack-simple-duotone"
+                      class="w-4 h-4 text-green-500"
+                    />
+                  </NTooltip>
                 </div>
                 <div
                   v-if="tagQuery && !safeSuggestions.some(s => s.name.toLowerCase() === tagQuery.toLowerCase())"
                   :class="[
-                    'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700 flex items-center justify-between',
+                    'inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer border',
                     selectedIndex === safeSuggestions.length
-                      ? 'bg-blue-100 dark:bg-blue-900/50'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/50'
+                      : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                   ]"
                   @click="createAndAddTag()"
                   @mouseenter="selectedIndex = safeSuggestions.length"
                 >
-                  <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Create new tag: "{{ tagQuery }}"</span>
+                  <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Create "{{ tagQuery }}"</span>
                   <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: defaultColor }" />
                 </div>
               </div>
@@ -118,7 +128,7 @@
         </div>
 
         <div class="mt-2 flex justify-end gap-3">
-          <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">Close</NButton>
+          <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">Close</NButton>
         </div>
       </div>
     </div>
@@ -129,6 +139,7 @@
 interface Props {
   modelValue: boolean
   quoteId: number
+  quoteText?: string
 }
 
 interface Emits {
@@ -148,13 +159,15 @@ const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
-const quoteTags = ref<Array<Pick<Tag, 'id' | 'name' | 'color'>>>([])
+type TagLite = Pick<Tag, 'id' | 'name' | 'color'> & Partial<{ reason: 'popular' | 'keyword' }>
+
+const quoteTags = ref<TagLite[]>([])
 // Template-safe wrapper — always an array
 const safeQuoteTags = computed(() => Array.isArray(quoteTags.value) ? quoteTags.value : [])
 
 // Suggestion state
 const tagQuery = ref('')
-const tagSuggestions = ref<Array<Pick<Tag, 'id' | 'name' | 'color'>>>([])
+const tagSuggestions = ref<TagLite[]>([])
 // Template-safe wrapper — always an array
 const safeSuggestions = computed(() => Array.isArray(tagSuggestions.value) ? tagSuggestions.value : [])
 const showSuggestions = ref(false)
@@ -162,8 +175,71 @@ const selectedIndex = ref(-1)
 
 const tagInputRef = ref()
 const suggestionsRef = ref()
+const suggestionAreaRef = ref<HTMLElement | null>(null)
 
 const defaultColor = '#687FE5'
+const FEW_TAGS_THRESHOLD = 2
+const SUGGESTION_LIMIT = 5
+const MIN_QUERY_LENGTH = 2
+
+const parseTagsPayload = (res: any): TagLite[] => {
+  const raw = res && (res.data || res.results) || []
+  return Array.isArray(raw) ? raw : []
+}
+
+const filterOutExistingTags = (tags: TagLite[]): TagLite[] => {
+  const existingIds = new Set(safeQuoteTags.value.map(tag => tag.id))
+  return tags.filter(tag => !existingIds.has(tag.id))
+}
+
+const dedupeTags = (tags: TagLite[]): TagLite[] => {
+  const seen = new Set<number>()
+  const result: TagLite[] = []
+  for (const tag of tags) {
+    if (seen.has(tag.id)) continue
+    seen.add(tag.id)
+    result.push(tag)
+    if (result.length >= SUGGESTION_LIMIT) break
+  }
+  return result
+}
+
+const fetchTags = async (query: Record<string, string | number>) => {
+  const res: any = await $fetch('/api/tags', { query })
+  return parseTagsPayload(res)
+}
+
+const loadInitialSuggestions = async () => {
+  if (safeQuoteTags.value.length > FEW_TAGS_THRESHOLD) {
+    tagSuggestions.value = []
+    return
+  }
+
+  try {
+    const res: any = await $fetch('/api/tags/suggest' as string, {
+      method: 'POST',
+      body: {
+        quoteText: props.quoteText || '',
+        quoteId: props.quoteId,
+        limit: SUGGESTION_LIMIT
+      }
+    })
+
+    const suggested = parseTagsPayload(res)
+    tagSuggestions.value = dedupeTags(filterOutExistingTags(suggested))
+  } catch (error) {
+    try {
+      const popular = await fetchTags({
+        limit: SUGGESTION_LIMIT,
+        sort_by: 'quotes_count',
+        sort_order: 'DESC'
+      })
+      tagSuggestions.value = dedupeTags(filterOutExistingTags(popular))
+    } catch {
+      tagSuggestions.value = []
+    }
+  }
+}
 
 const loadQuoteTags = async () => {
   loading.value = true
@@ -179,36 +255,31 @@ const loadQuoteTags = async () => {
 }
 
 const searchTags = useDebounceFn(async () => {
-  if (!tagQuery.value.trim() || tagQuery.value.trim().length < 2) {
-    tagSuggestions.value = []
+  const query = tagQuery.value.trim()
+
+  if (!query || query.length < MIN_QUERY_LENGTH) {
+    await loadInitialSuggestions()
     return
   }
+
   try {
-    const res: any = await $fetch('/api/tags', { query: { search: tagQuery.value.trim(), limit: 5 } })
-    // Ensure that we always expose an array to the template & logic. Some endpoints
-    // return an envelope ({ success: true, data: [] }) while others may vary.
-    const raw = res && (res.data || res.results) || []
-    tagSuggestions.value = Array.isArray(raw) ? raw : []
+    const results = await fetchTags({ search: query, limit: SUGGESTION_LIMIT })
+    tagSuggestions.value = dedupeTags(filterOutExistingTags(results))
   } catch (e) {
     tagSuggestions.value = []
   }
 }, 250)
 
-const handleInputFocus = () => {
+const handleInputFocus = async () => {
   showSuggestions.value = true
   selectedIndex.value = -1
-}
 
-const handleInputBlur = (event: FocusEvent) => {
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && suggestionsRef.value?.contains(relatedTarget)) return
-  setTimeout(() => { showSuggestions.value = false; selectedIndex.value = -1 }, 150)
-}
+  if (tagQuery.value.trim()) {
+    searchTags()
+    return
+  }
 
-const handleSuggestionsBlur = (event: FocusEvent) => {
-  const relatedTarget = event.relatedTarget as HTMLElement
-  if (relatedTarget && tagInputRef.value?.$el?.contains(relatedTarget)) return
-  setTimeout(() => { showSuggestions.value = false; selectedIndex.value = -1 }, 150)
+  await loadInitialSuggestions()
 }
 
 const scrollToSelected = () => {
@@ -271,7 +342,7 @@ const addExistingTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
     }
     emit('tags-updated')
     tagQuery.value = ''
-    tagSuggestions.value = []
+    await loadInitialSuggestions()
   } catch (e: any) {
     console.error('Failed to add tag', e)
     error.value = e?.statusMessage || 'Failed to add tag'
@@ -300,7 +371,7 @@ const createAndAddTag = async () => {
     }
     emit('tags-updated')
     tagQuery.value = ''
-    tagSuggestions.value = []
+    await loadInitialSuggestions()
   } catch (e: any) {
     console.error('Failed to create/add tag', e)
     error.value = e?.statusMessage || 'Failed to create tag'
@@ -328,6 +399,12 @@ const removeTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
       quoteTags.value = []
     }
     emit('tags-updated')
+
+    // if we've fallen below threshold, re-open suggestions
+    if (safeQuoteTags.value.length <= FEW_TAGS_THRESHOLD) {
+      await loadInitialSuggestions()
+      showSuggestions.value = !!tagSuggestions.value.length
+    }
   } catch (e: any) {
     console.error('Failed to remove tag', e)
     error.value = e?.statusMessage || 'Failed to remove tag'
@@ -341,11 +418,27 @@ const closeDialog = () => {
 }
 
 watch(isOpen, (open) => {
-  if (open) loadQuoteTags()
+  if (!open) {
+    showSuggestions.value = false
+    selectedIndex.value = -1
+    return
+  }
+
+  void (async () => {
+    await loadQuoteTags()
+    await loadInitialSuggestions()
+    showSuggestions.value = safeSuggestions.value.length > 0 || !!tagQuery.value.trim()
+  })()
 })
 
 onMounted(() => {
-  if (isOpen.value) loadQuoteTags()
+  if (isOpen.value) {
+    void (async () => {
+      await loadQuoteTags()
+      await loadInitialSuggestions()
+      showSuggestions.value = safeSuggestions.value.length > 0 || !!tagQuery.value.trim()
+    })()
+  }
   document.addEventListener('click', onGlobalClick)
 })
 
@@ -354,8 +447,12 @@ onUnmounted(() => {
 })
 
 const onGlobalClick = (event: Event) => {
+  if (!isOpen.value) return
+
   const target = event.target as HTMLElement
-  if (!target.closest('.relative')) {
+  if (suggestionAreaRef.value?.contains(target)) return
+
+  if (showSuggestions.value) {
     showSuggestions.value = false
     selectedIndex.value = -1
   }
