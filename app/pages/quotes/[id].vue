@@ -176,6 +176,7 @@
       v-if="quote"
       v-model="showEditTagsDialog"
       :quote-id="quote.id"
+      :quote-text="quote.name"
       @tags-updated="onTagsUpdated"
     />
   </ClientOnly>
@@ -283,23 +284,71 @@ const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
 const showEditTagsDialog = ref(false)
 
-// Global keyboard shortcut: Ctrl/Cmd + E to edit (admin/moderator only)
+// Global keyboard shortcuts (letters)
 const handleGlobalKeydown = (e) => {
-  // Only react to Ctrl/Cmd + E
-  if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
+  if (!e || !quote.value) return
 
-  // Ignore when typing in inputs, textareas, selects, or contenteditable elements
+  // ignore interactive elements
   const target = e.target
   const tag = target?.tagName?.toLowerCase?.()
   const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
   if (isEditable) return
 
+  // ignore if modifier keys are pressed (to allow browser/default shortcuts)
+  if (e.metaKey || e.altKey || e.ctrlKey) return
+
   const role = user.value?.role
   const isAdminMod = role === 'admin' || role === 'moderator'
-  const isOwnerDraft = quote.value && user.value && quote.value.user?.id === user.value.id && quote.value.status === 'draft'
-  if (quote.value && (isAdminMod || isOwnerDraft)) {
-    e.preventDefault()
-    showEditQuoteDialog.value = true
+  const key = e.key.toLowerCase()
+
+  // handle single-letter shortcuts
+  switch (key) {
+    case 'a':
+      if (user.value) {
+        e.preventDefault()
+        showAddToCollectionModal.value = true
+      }
+      break
+    case 'c':
+      e.preventDefault()
+      copyTextAndLink()
+      break
+    case 'd':
+      if (isAdminMod) {
+        e.preventDefault()
+        showDeleteQuoteDialog.value = true
+      }
+      break
+    case 'e':
+      if (isAdminMod) {
+        e.preventDefault()
+        showEditQuoteDialog.value = true
+      }
+      break
+    case 'i':
+      e.preventDefault()
+      downloadQuote()
+      break
+    case 'l':
+      if (user.value) {
+        e.preventDefault()
+        toggleLike()
+      }
+      break
+    case 'r':
+      e.preventDefault()
+      reportQuote()
+      break
+    case 's':
+      e.preventDefault()
+      shareQuote()
+      break
+    case 't':
+      if (isAdminMod) {
+        e.preventDefault()
+        showEditTagsDialog.value = true
+      }
+      break
   }
 }
 
@@ -428,11 +477,15 @@ const shareQuote = async () => {
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
+      // native share succeeded
+      useToast().toast({ title: 'Quote shared!' })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
+      // fallback copy succeeded
+      useToast().toast({ title: 'Quote link copied' })
     }
 
     // Track share
@@ -493,6 +546,30 @@ const copyQuoteText = async () => {
     const authorName = quote.value.author?.name ? ` — ${quote.value.author.name}` : ''
     const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
     await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}`)
+  } catch (error) {
+    useToast().toast({
+      title: 'Copy failed',
+      description: 'Clipboard is not available.', variant: 'error',
+    })
+  }
+}
+
+// copy both quote text and current URL link in one go
+const copyTextAndLink = async () => {
+  if (!quote.value) return
+  try {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      throw new Error('clipboard-unavailable')
+    }
+
+    const authorName = quote.value.author?.name ? ` — ${quote.value.author.name}` : ''
+    const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+
+    await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}\n\n${url}`)
+
+    copyState.value = 'copied'
+    setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
     useToast().toast({
       title: 'Copy failed',

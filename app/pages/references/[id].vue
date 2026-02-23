@@ -613,6 +613,24 @@ const shareReference = async () => {
   }
 }
 
+// copy reference name plus current page url
+const copyTextAndLink = async () => {
+  const current = reference.value
+  if (!current) return
+  try {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      throw new Error('clipboard-unavailable')
+    }
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    await navigator.clipboard.writeText(`${current.name}\n\n${url}`)
+
+    copyState.value = 'copied'
+    setTimeout(() => { copyState.value = 'idle' }, 2000)
+  } catch (error) {
+    useToast().toast({ title: 'Copy failed', description: 'Clipboard not available.' })
+  }
+}
+
 const copyLink = async () => {
   const { toast } = useToast()
   try {
@@ -643,19 +661,57 @@ const navigateToReferencesList = async () => {
 const showReportDialog = ref(false)
 const reportReference = () => { showReportDialog.value = true }
 
-// Global keyboard shortcut: Ctrl/Cmd + E to open edit dialog (admin/mod only)
+// Global keyboard shortcuts for reference page (single letters)
+// Ignored when a modifier key is held so native browser shortcuts continue to work
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-  if (!(e && (e.metaKey || e.ctrlKey) && (e.key === 'e' || e.key === 'E'))) return
+  if (!e || !reference.value) return
 
-  // Skip when typing in inputs/contenteditable elements
+  // ignore interactive elements (inputs, textareas, contenteditable, etc.)
   const target = e.target as HTMLElement | null
-  const tag = target?.tagName?.toLowerCase?.() as string | undefined
+  const tag = target?.tagName?.toLowerCase?.()
   const isEditable = (target as any)?.isContentEditable || ['input', 'textarea', 'select'].includes(tag || '')
   if (isEditable) return
 
-  if (reference.value && canEditReference.value) {
-    e.preventDefault()
-    isEditDialogOpen.value = true
+  // ignore if any modifier key is pressed; shortcuts are single-letter only
+  if (e.metaKey || e.ctrlKey || e.altKey) return
+
+  const role = user.value?.role
+  const isAdminMod = role === 'admin' || role === 'moderator'
+  const key = e.key.toLowerCase()
+
+  switch (key) {
+    case 'c':
+      e.preventDefault()
+      copyTextAndLink()
+      break
+    case 'd':
+      if (isAdminMod) {
+        e.preventDefault()
+        openDeleteReference()
+      }
+      break
+    case 'e':
+      if (isAdminMod) {
+        e.preventDefault()
+        openEditReference()
+      }
+      break
+    case 'l':
+      if (user.value) {
+        e.preventDefault()
+        toggleLike()
+      }
+      break
+    case 'r':
+      e.preventDefault()
+      reportReference()
+      break
+    case 's':
+      e.preventDefault()
+      shareReference()
+      break
+    default:
+      break
   }
 }
 

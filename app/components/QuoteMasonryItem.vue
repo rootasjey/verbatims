@@ -183,13 +183,13 @@ const toggleQuoteLike = async () => {
   
   quoteLikePending.value = true
   try {
-    const { data } = await $fetch<ApiResponse<{ is_liked: boolean, likes_count: number }>>(`/api/quotes/${props.quote.id}/like`, {
+    const { data } = await $fetch<ApiResponse<{ isLiked: boolean, likesCount: number }>>(`/api/quotes/${props.quote.id}/like`, {
       method: 'POST'
     })
     if (!data) throw new Error('No response data')
 
-    isQuoteLiked.value = data.is_liked
-    props.quote.likes_count = data.likes_count
+    isQuoteLiked.value = data.isLiked
+    props.quote.likes_count = data.likesCount
   } catch (error) {
     console.error('Failed to toggle quote like:', error)
   } finally {

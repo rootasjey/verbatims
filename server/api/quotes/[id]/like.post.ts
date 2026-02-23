@@ -55,18 +55,19 @@ export default defineEventHandler(async (event) => {
     }
 
     // Get updated like count
-    const updatedQuote = await db.select({ likes_count: schema.quotes.likesCount })
+    const updatedQuote = await db.select({ likesCount: schema.quotes.likesCount })
       .from(schema.quotes)
       .where(eq(schema.quotes.id, quoteId))
       .get()
     
     if (!updatedQuote) { throwServer(500, 'Failed to retrieve updated quote'); return }
 
+    // return camel-cased keys for consistency with other endpoints
     return {
       success: true,
       data: {
-        is_liked,
-        likes_count: updatedQuote.likes_count
+        isLiked: is_liked,
+        likesCount: updatedQuote.likesCount
       }
     }
   } catch (error: any) {
