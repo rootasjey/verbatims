@@ -40,7 +40,9 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_id": "330aad35-518b-437c-bbf4-5b7ea006eb3f"
+      "database_id": "330aad35-518b-437c-bbf4-5b7ea006eb3f",
+      "database_name": "verbatims",
+      "migrations_dir": "server/db/migrations/sqlite"
     }
   ],
   "env": {
@@ -67,7 +69,9 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_id": "4bc027b9-2da7-436f-8fd0-396d6e9e5475"
+          "database_id": "4bc027b9-2da7-436f-8fd0-396d6e9e5475",
+          "database_name": "verbatims_preview",
+          "migrations_dir": "server/db/migrations/sqlite"
         }
       ]
     }

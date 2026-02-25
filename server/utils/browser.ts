@@ -39,10 +39,12 @@ let _browser: Browser | null = null
  * @see https://hub.nuxt.com/docs/features/browser
  * @deprecated See https://hub.nuxt.com/docs/features/browser#migration-guide for more information.
  */
-export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBrowser> {
+export async function hubBrowser(eventOrOptions?: H3Event | HubBrowserOptions, maybeOptions: HubBrowserOptions = {}): Promise<HubBrowser> {
+  const event = isH3Event(eventOrOptions) ? eventOrOptions : undefined
+  const options = (isH3Event(eventOrOptions) ? maybeOptions : (eventOrOptions || {})) as HubBrowserOptions
   const puppeteer = await getPuppeteer()
   const nitroApp = useNitroApp()
-  const event = useEvent()
+  const requestEvent = event || useEvent()
   // If in production, use Cloudflare Puppeteer
   if (puppeteer instanceof PuppeteerWorkers) {
     const binding = getBrowserBinding()
@@ -70,7 +72,7 @@ export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBr
     const page = await browser.newPage()
     // Disconnect browser after response
     const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
-      if (event !== closingEvent) return
+      if (requestEvent !== closingEvent) return
       unregister()
       await page?.close().catch(() => {})
       browser?.disconnect()
@@ -98,7 +100,7 @@ export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBr
   }
   const page = await _browser.newPage()
   const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
-    if (event !== closingEvent) return
+    if (requestEvent !== closingEvent) return
     unregister()
     await page?.close().catch(() => {})
   })
@@ -106,6 +108,15 @@ export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBr
     browser: _browser,
     page
   }
+}
+
+function isH3Event(value: unknown): value is H3Event {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && 'context' in (value as Record<string, unknown>)
+    && 'path' in (value as Record<string, unknown>)
+  )
 }
 
 async function getRandomSession(puppeteer: PuppeteerWorkers, binding: BrowserWorker): Promise<string | null> {

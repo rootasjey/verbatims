@@ -12,9 +12,15 @@
       </div>
 
       <div class="flex gap-4 items-center">
-        <NSelect :model-value="feed.selectedSortBy?.value"
-          @update:model-value="val => (feed.selectedSortBy.value = val)" :items="feed.sortByOptions"
-          placeholder="Sort by" size="sm" item-key="label" value-key="label" />
+        <NSelect 
+          :model-value="feed.selectedSortBy?.value"
+          @update:model-value="(val) => { feed.selectedSortBy.value = val }" 
+          :items="feed.sortByOptions"
+          placeholder="Sort by" 
+          size="sm" 
+          item-key="label"
+          value-key="label"
+        />
         <!-- Order Toggle: OFF = Desc (↓), ON = Asc (↑) -->
         <div class="flex items-center gap-2">
           <NToggle :model-value="feed.isAsc?.value" @update:model-value="val => (feed.isAsc.value = val)" size="sm"

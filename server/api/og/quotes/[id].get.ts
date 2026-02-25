@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
   }
   
   // Render using Puppeteer (works in both dev and production)
-  const { page } = await hubBrowser()
+  const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
   const templateUrl = `${origin}/api/og/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion || '1')}`
   
