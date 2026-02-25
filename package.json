@@ -1,11 +1,12 @@
 {
   "name": "verbatims",
-  "version": "0.29.3",
+  "version": "0.29.5",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=4096' nuxt build",
     "dev": "nuxt dev",
+    "db:sync-local": "node ./scripts/sync-local-db-from-wrangler.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -17,37 +18,41 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@cloudflare/puppeteer": "^1.0.4",
-    "@libsql/client": "^0.15.15",
+    "@cloudflare/puppeteer": "^1.0.6",
+    "@libsql/client": "^0.17.0",
     "@noble/hashes": "^2.0.1",
     "@nuxt/image": "1.11.0",
     "@nuxt/test-utils": "3.21.0",
-    "@nuxthub/core": "^0.10.4",
+    "@nuxthub/core": "^0.10.6",
     "@pinia/nuxt": "0.11.3",
     "@una-ui/nuxt": "^0.66.0",
-    "@vueuse/nuxt": "^14.1.0",
+    "@vueuse/nuxt": "12.8.2",
     "fflate": "^0.8.2",
     "franc-min": "^6.2.0",
     "html-to-image": "^1.11.13",
-    "nuxt": "^4.2.2",
-    "nuxt-auth-utils": "0.5.26",
+    "nuxt": "^4.3.1",
+    "nuxt-auth-utils": "0.5.29",
     "pinia": "^3.0.4",
-    "vue": "^3.5.26",
-    "vue-router": "^4.6.4"
+    "vue": "^3.5.28",
+    "vue-router": "^5.0.3"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.82",
-    "@iconify-json/openmoji": "^1.2.19",
+    "@iconify-json/lucide": "^1.2.93",
+    "@iconify-json/openmoji": "^1.2.22",
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/radix-icons": "^1.2.6",
     "@iconify-json/solar": "^1.2.5",
-    "@iconify-json/tabler": "^1.2.26",
-    "drizzle-kit": "^0.31.8",
+    "@iconify-json/tabler": "^1.2.27",
+    "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.45.1",
     "jimp": "^1.6.0",
-    "puppeteer": "^24.34.0",
+    "puppeteer": "^24.37.5",
     "typescript": "^5.9.3",
-    "vue-tsc": "^3.2.1",
-    "wrangler": "^4.54.0"
+    "vue-tsc": "^3.2.5",
+    "wrangler": "^4.68.0"
+  },
+  "overrides": {
+    "@vueuse/core": "12.8.2",
+    "@vueuse/shared": "12.8.2"
   }
 }

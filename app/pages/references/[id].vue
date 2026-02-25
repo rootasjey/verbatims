@@ -351,17 +351,35 @@ const reference = computed<QuoteReferenceWithMetadata | undefined>(() => {
   return Array.isArray(val.data) ? val.data[0] : val.data
 })
 
-useHead(() => ({
-  title: reference.value ? `${reference.value.name} - References - Verbatims` : 'Reference - Verbatims',
-  meta: [
-    {
-      name: 'description',
-      content: reference.value
-        ? `Discover quotes from ${reference.value.name}. ${reference.value.description || ''}`
-        : 'View reference details and quotes on Verbatims'
+useVerbatimsSeo(() => {
+  const currentReference = reference.value
+
+  if (!currentReference) {
+    return {
+      title: 'Reference - Verbatims',
+      description: 'Discover reference pages and related quotes on Verbatims.',
+      type: 'article'
     }
-  ]
-}))
+  }
+
+  const trimmedName = currentReference.name.length > 90
+    ? `${currentReference.name.slice(0, 87)}…`
+    : currentReference.name
+
+  const fallbackDescription = `Discover quotes from ${currentReference.name} on Verbatims.`
+  const rawDescription = currentReference.description?.trim() || fallbackDescription
+  const trimmedDescription = rawDescription.length > 180
+    ? `${rawDescription.slice(0, 177)}…`
+    : rawDescription
+
+  return {
+    title: `${trimmedName} • Verbatims`,
+    description: trimmedDescription,
+    imagePath: `/api/og/references/${currentReference.id}.png`,
+    imageAlt: `Reference page for ${currentReference.name} on Verbatims`,
+    type: 'article'
+  }
+})
 
 const referenceQuotes = ref<Quote[]>([])
 const quotesLoading = ref<boolean>(false)

@@ -12,9 +12,12 @@ export function useVerbatimsSeo(options: SeoOptions | (() => SeoOptions)) {
   const config = useRuntimeConfig()
 
   const configuredOrigin = (config.public as Record<string, unknown>).siteUrl
-  const baseOrigin = typeof configuredOrigin === 'string' && configuredOrigin.length > 0
+  const requestOrigin = resolveOrigin()
+  const configuredBaseOrigin = typeof configuredOrigin === 'string' && configuredOrigin.length > 0
     ? configuredOrigin
-    : resolveOrigin()
+    : requestOrigin
+  const preferRequestOrigin = import.meta.server && isLocalOrigin(requestOrigin)
+  const baseOrigin = preferRequestOrigin ? requestOrigin : configuredBaseOrigin
   const origin = baseOrigin.endsWith('/') ? baseOrigin.slice(0, -1) : baseOrigin
   const resolveOptions = () => (typeof options === 'function' ? (options as () => SeoOptions)() : options)
 
@@ -65,4 +68,13 @@ function resolveOrigin(): string {
   }
 
   return 'https://verbatims.cc'
+}
+
+function isLocalOrigin(origin: string): boolean {
+  try {
+    const hostname = new URL(origin).hostname
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0'
+  } catch {
+    return false
+  }
 }

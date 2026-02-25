@@ -5,6 +5,9 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve, dirname } from 'node:path'
 
+const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc'
+const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
   devtools: { enabled: true },
@@ -22,7 +25,7 @@ export default defineNuxtConfig({
         { property: 'og:site_name', content: 'Verbatims' },
         { property: 'og:title', content: 'Verbatims - Modern Quotes Service' },
         { property: 'og:description', content: 'Discover inspiring quotes from films, books, games, and more. A comprehensive, user-generated quotes database with moderation capabilities.' },
-        { property: 'og:image', content: '/api/og/default.png' },
+        { property: 'og:image', content: `${normalizedSiteUrl}/api/og/default.png` },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { property: 'og:url', content: 'https://verbatims.cc' },
@@ -31,7 +34,7 @@ export default defineNuxtConfig({
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Verbatims - Modern Quotes Service' },
         { name: 'twitter:description', content: 'Discover inspiring quotes from films, books, games, and more. A comprehensive, user-generated quotes database with moderation capabilities.' },
-        { name: 'twitter:image', content: '/api/og/default.png' },
+        { name: 'twitter:image', content: `${normalizedSiteUrl}/api/og/default.png` },
         
         // Additional meta tags
         { name: 'theme-color', content: '#0BA6DF' }

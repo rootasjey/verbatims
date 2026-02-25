@@ -401,17 +401,35 @@ const headerUser = computed<HeaderUser | null>(() => {
   }
 })
 
-useHead(() => ({
-  title: author.value ? `${author.value.name} • Verbatims` : 'Author - Verbatims',
-  meta: [
-    { 
-      name: 'description', 
-      content: author.value 
-        ? `Discover quotes by ${author.value.name}. ${author.value.description || ''}`
-        : 'View author details and quotes on Verbatims' 
+useVerbatimsSeo(() => {
+  const currentAuthor = author.value
+
+  if (!currentAuthor) {
+    return {
+      title: 'Author - Verbatims',
+      description: 'Discover author profiles and quotes on Verbatims.',
+      type: 'profile'
     }
-  ]
-}))
+  }
+
+  const trimmedName = currentAuthor.name.length > 80
+    ? `${currentAuthor.name.slice(0, 77)}…`
+    : currentAuthor.name
+
+  const fallbackDescription = `Discover quotes by ${currentAuthor.name} on Verbatims.`
+  const rawDescription = currentAuthor.description?.trim() || fallbackDescription
+  const trimmedDescription = rawDescription.length > 180
+    ? `${rawDescription.slice(0, 177)}…`
+    : rawDescription
+
+  return {
+    title: `${trimmedName} • Verbatims`,
+    description: trimmedDescription,
+    imagePath: `/api/og/authors/${currentAuthor.id}.png`,
+    imageAlt: `Profile of ${currentAuthor.name} on Verbatims`,
+    type: 'profile'
+  }
+})
 
 const authorQuotes: Ref<QuoteWithMetadata[]> = ref([])
 const quotesLoading = ref<boolean>(false)

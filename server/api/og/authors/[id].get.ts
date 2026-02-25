@@ -1,23 +1,32 @@
 import { kv } from 'hub:kv'
 
 export default defineEventHandler(async (event) => {
+  let authorId = getRouterParam(event, 'id')
+  if (!authorId) { throwServer(400, 'Author id is required'); return }
+
+  if (authorId.endsWith('.png')) authorId = authorId.slice(0, -4)
+
+  const author = await getAuthorForOg(authorId)
+  if (!author) { throwServer(404, 'Author not found'); return }
+
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
   const styleVersion = (config.public as any).ogStyleVersion as string
-  // Use actual request origin so it works in dev, staging, and production
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
 
-  // Derive a stable hash for caching
   const basis = JSON.stringify({
-    t: 'default',
-    v: styleVersion || '1'
+    n: author.name,
+    j: author.job || '',
+    d: author.description || '',
+    f: author.isFictional,
+    v: styleVersion || '1',
+    u: author.updatedAt ? Date.parse(author.updatedAt) : 0
   })
 
   const hash = await sha1(basis)
-  const keyData = 'og:default:latest'
-  const keyImage = (h: string) => `og:default:${h}.png`
+  const keyData = `og:author:${authorId}:latest`
+  const keyImage = (h: string) => `og:author:${authorId}:${h}.png`
 
-  // Check cache first
   const latest = await kv.get<string>(keyData)
   const effectiveHash = latest && latest === hash ? latest : hash
 
@@ -25,35 +34,29 @@ export default defineEventHandler(async (event) => {
   if (cached) {
     setHeader(event, 'Content-Type', 'image/png')
     setHeader(event, 'ETag', `W/"${effectiveHash}"`)
-    setHeader(event, 'Cache-Control', 'public, max-age=2592000') // 30 days
+    setHeader(event, 'Cache-Control', 'public, max-age=2592000')
     return base64ToUint8(cached)
   }
 
-  // Render using Puppeteer (works in both dev and production)
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 2 })
-  const templateUrl = `${origin}/api/og/templates/default?v=${encodeURIComponent(styleVersion || '1')}`
+  const templateUrl = `${origin}/api/og/templates/author?id=${encodeURIComponent(authorId)}&v=${encodeURIComponent(styleVersion || '1')}`
 
-  // Navigate and wait for fonts to load
-  await page.goto(templateUrl, { waitUntil: 'domcontentloaded', timeout: 15000 })
+  await page.goto(templateUrl, { waitUntil: 'networkidle0', timeout: 15000 })
   const png = await page.screenshot({ type: 'png' }) as Buffer
 
-  // Note: hubBrowser() automatically handles browser cleanup
-
-  // Store in KV for future hits
   const b64 = uint8ToBase64(new Uint8Array(png))
   await kv.set(keyImage(hash), b64)
-  
-  // Clean up old image if hash changed
+
   if (latest && latest !== hash) {
     await kv.del(keyImage(latest))
   }
-  
+
   await kv.set(keyData, hash)
 
   setHeader(event, 'Content-Type', 'image/png')
   setHeader(event, 'ETag', `W/"${hash}"`)
-  setHeader(event, 'Cache-Control', 'public, max-age=2592000') // 30 days
+  setHeader(event, 'Cache-Control', 'public, max-age=2592000')
   return png
 })
 
