@@ -42,12 +42,12 @@ body {
 }
 
 input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 50px black inset;
+  -webkit-box-shadow: 0 0 0 20px #eee inset;
   /* -webkit-text-fill-color: #03C988; */
 }
 
 .dark input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 50px black inset;
+  -webkit-box-shadow: 0 0 0 20px black inset;
   /* -webkit-text-fill-color: #03C988; */
 }
 

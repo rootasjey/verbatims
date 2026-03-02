@@ -46,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+import { parseDateInput } from '~/utils/time-formatter'
+
 interface TagListItem {
   id: number
   name: string
@@ -63,8 +65,8 @@ const props = defineProps<{
 const formatDate = (date?: string) => {
   if (!date) return '—'
 
-  const parsed = new Date(date)
-  if (Number.isNaN(parsed.getTime())) return '—'
+  const parsed = parseDateInput(date)
+  if (!parsed) return '—'
   return parsed.getFullYear().toString()
 }
 

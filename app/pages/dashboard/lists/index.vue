@@ -351,6 +351,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDate } from '~/utils/time-formatter'
+
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
@@ -538,10 +540,6 @@ const handleCollectionUpdated = (updatedCollection: DashboardCollection) => {
   }
   showEditModal.value = false
   selectedCollection.value = null
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 // Context menu handler

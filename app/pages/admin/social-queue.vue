@@ -38,7 +38,6 @@
         <!-- provider info panel -->
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex-1 bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Provider info</h3>
             <div class="flex flex-col sm:flex-row items-center gap-2">
               <span class="font-medium">
                 {{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}
@@ -265,6 +264,7 @@ import { SOCIAL_PLATFORMS, SOCIAL_PLATFORM_LABELS } from '~~/shared/constants/so
 import { watch, computed, onMounted } from 'vue'
 import { useAdminSocialQueue } from '~/composables/useAdminSocialQueue'
 import type { SocialQueueItem } from '~/composables/useAdminSocialQueue'
+import { formatDate } from '~/utils/time-formatter'
 
 definePageMeta({
   layout: 'admin',
@@ -576,9 +576,8 @@ function statusColor(status: SocialQueueStatus) {
 
 function formatLastPosted(value: string | null) {
   if (!value) return 'Never'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Never'
-  return date.toLocaleDateString()
+  const formatted = formatDate(value)
+  return formatted === 'N/A' ? 'Never' : formatted
 }
 
 function showErrorToast(title: string, description: string) {

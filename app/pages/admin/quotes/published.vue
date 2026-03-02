@@ -149,8 +149,8 @@
                   <NTooltip text="Select all on page">
                     <NButton
                       icon
-                      btn="ghost"
-                      size="2xs"
+                      btn="outline-gray"
+                      size="xs"
                       label="i-ph-checks"
                       :disabled="allSelectedOnPage"
                       @click="selectAllOnPage"
@@ -161,7 +161,7 @@
                   <NButton
                     icon
                     btn="ghost-gray"
-                    size="2xs"
+                    size="xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
@@ -174,9 +174,10 @@
                 <NDropdownMenu :items="getQuoteActions(cell.row.original)">
                   <NButton
                     icon
-                    btn="ghost"
-                    size="sm"
+                    btn="ghost-gray"
+                    size="xs"
                     label="i-ph-dots-three-vertical"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                   />
                 </NDropdownMenu>
               </template>
@@ -254,7 +255,7 @@
 
             <!-- Status Column -->
             <template #status-cell>
-              <NBadge color="green" badge="soft" size="xs">
+              <NBadge badge="solid-lime" size="xs">
                 Published
               </NBadge>
             </template>
@@ -279,6 +280,7 @@
             :sibling-count="2"
             show-edges
             size="sm"
+            pagination-selected="solid-indigo"
           />
         </div>
       </div>
@@ -302,7 +304,7 @@
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
-import { formatRelativeTime } from '~/utils/time-formatter'
+import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 
 definePageMeta({
   layout: 'admin',
@@ -376,9 +378,9 @@ const filteredQuotes = computed(() => {
     filtered = [...filtered].sort((a, b) => {
       switch (selectedSort.value.value) {
         case 'newest':
-          return new Date(b.moderated_at || b.created_at).getTime() - new Date(a.moderated_at || a.created_at).getTime()
+          return getDateTimestamp(b.moderated_at || b.created_at) - getDateTimestamp(a.moderated_at || a.created_at)
         case 'oldest':
-          return new Date(a.moderated_at || a.created_at).getTime() - new Date(b.moderated_at || b.created_at).getTime()
+          return getDateTimestamp(a.moderated_at || a.created_at) - getDateTimestamp(b.moderated_at || b.created_at)
         case 'likes':
           return (b.likes_count || 0) - (a.likes_count || 0)
         case 'views':

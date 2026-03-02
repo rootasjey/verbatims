@@ -1,5 +1,4 @@
 PRAGMA foreign_keys = OFF;
-BEGIN TRANSACTION;
 
 DROP INDEX IF EXISTS idx_social_queue_platform_status_position;
 DROP INDEX IF EXISTS idx_social_queue_status_scheduled;
@@ -105,5 +104,4 @@ CREATE INDEX IF NOT EXISTS idx_social_posts_quote_platform ON social_posts(quote
 CREATE INDEX IF NOT EXISTS idx_social_posts_posted_at ON social_posts(posted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_social_posts_queue ON social_posts(queue_id);
 
-COMMIT;
 PRAGMA foreign_keys = ON;

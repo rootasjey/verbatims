@@ -152,7 +152,7 @@
                   <span class="truncate max-w-[50ch]" :title="file.file_path">{{ file.filename }}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs text-gray-500">{{ new Date(file.created_at).toLocaleString() }}</span>
+                  <span class="text-xs text-gray-500">{{ formatDateTime(file.created_at) }}</span>
                   <NButton size="xs" btn="ghost" :to="file.file_path" target="_blank">
                     <NIcon name="i-ph-download" />
                     Download
@@ -207,6 +207,7 @@
 
 <script lang="ts" setup>
 import type { ImportPagination, ImportProgress } from '~~/server/types'
+import { formatDateTime } from '~/utils/time-formatter'
 
 const imports = ref<ExportHistoryEntryWithBackup[]>([])
 const loading = ref<boolean>(false)
@@ -332,7 +333,7 @@ const getStatusColor = (status: string): string => {
 }
 
 const formatDate = (dateString: string | Date): string => {
-  return new Date(dateString).toLocaleString()
+  return formatDateTime(dateString)
 }
 
 const emit = defineEmits(['view-progress'])

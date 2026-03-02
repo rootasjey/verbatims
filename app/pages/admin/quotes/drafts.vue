@@ -139,27 +139,29 @@
             <!-- Actions Header: toggle selection mode -->
             <template #actions-header>
               <div class="flex items-center justify-center gap-1">
-                <template v-if="selectionMode">
-                  <NTooltip text="Select all on page">
-                    <NButton
-                      icon
-                      btn="ghost"
-                      size="2xs"
-                      label="i-ph-checks"
-                      :disabled="allSelectedOnPage"
-                      @click="selectAllOnPage"
-                    />
-                  </NTooltip>
-                </template>
-                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <NButton
                     icon
                     btn="ghost-gray"
-                    size="2xs"
+                    size="xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50" 
                   />
                 </NTooltip>
+                <template v-if="selectionMode">
+                  <NTooltip content="Select all on page">
+                    <NButton
+                      icon
+                      btn="ghost-gray"
+                      size="xs"
+                      label="i-ph-checks"
+                      :disabled="allSelectedOnPage"
+                      @click="selectAllOnPage"
+                      class="hover:bg-gray-200 dark:hover:bg-gray-700/50" 
+                    />
+                  </NTooltip>
+                </template>
               </div>
             </template>
             <!-- Actions Column -->
@@ -168,15 +170,17 @@
                 <NDropdownMenu :items="getQuoteActions(cell.row.original)">
                   <NButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="sm"
                     label="i-ph-dots-three-vertical"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                   />
                 </NDropdownMenu>
               </template>
               <template v-else>
                 <div class="flex items-center justify-center">
                   <NCheckbox
+                    checkbox="orange"
                     :model-value="!!rowSelection[cell.row.original.id]"
                     @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                   />
@@ -230,7 +234,7 @@
 
             <!-- Status Column -->
             <template #status-cell>
-              <NBadge color="gray" badge="soft" size="xs">
+              <NBadge badge="solid-orange" size="xs">
                 Draft
               </NBadge>
             </template>
@@ -256,6 +260,7 @@
             :sibling-count="2"
             show-edges
             size="sm"
+            pagination-selected="solid-indigo"
           />
         </div>
       </div>
@@ -290,7 +295,7 @@
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
-import { formatRelativeTime } from '~/utils/time-formatter'
+import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
 
 definePageMeta({
@@ -377,7 +382,7 @@ const uniqueContributors = computed(() => {
 const thisWeekCount = computed(() => {
   const oneWeekAgo = new Date()
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-  return quotes.value.filter(q => new Date(q.created_at) >= oneWeekAgo).length
+  return quotes.value.filter(q => getDateTimestamp(q.created_at) >= oneWeekAgo.getTime()).length
 })
 
 const tableColumns = [

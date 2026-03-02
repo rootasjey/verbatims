@@ -258,34 +258,36 @@
               :columns="tableColumns"
               :data="filteredQuotes"
               :loading="loading"
-              manual-paginationxz
+              manual-pagination
               empty-text="No published quotes found"
               empty-icon="i-ph-check-circle"
             >
             <!-- Actions Header: toggle selection mode -->
             <template #actions-header>
               <div class="flex items-center justify-center gap-1">
-                <template v-if="selectionMode">
-                  <NTooltip text="Select all on page">
-                    <NButton
-                      icon
-                      btn="ghost"
-                      size="2xs"
-                      label="i-ph-checks"
-                      :disabled="allSelectedOnPage"
-                      @click="selectAllOnPage"
-                    />
-                  </NTooltip>
-                </template>
-                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                   <NButton
                     icon
                     btn="ghost-gray"
-                    size="2xs"
+                    size="xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                   />
                 </NTooltip>
+                <template v-if="selectionMode">
+                  <NTooltip content="Select all on page">
+                    <NButton
+                      icon
+                      btn="ghost-gray"
+                      size="xs"
+                      label="i-ph-checks"
+                      :disabled="allSelectedOnPage"
+                      @click="selectAllOnPage"
+                      class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+                    />
+                  </NTooltip>
+                </template>
               </div>
             </template>
             <!-- Actions Column -->
@@ -294,9 +296,10 @@
                 <NDropdownMenu :items="getQuoteActions(cell.row.original)">
                   <NButton
                     icon
-                    btn="ghost"
-                    size="sm"
+                    btn="ghost-gray"
+                    size="xs"
                     label="i-ph-dots-three-vertical"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                   />
                 </NDropdownMenu>
               </template>
@@ -346,16 +349,15 @@
                 <NBadge
                   v-for="tag in cell.row.original.tags.slice(0, 2)"
                   :key="tag.id"
-                  badge="soft"
+                  badge="solid-gray"
                   size="xs"
                 >
                   {{ tag.name }}
                 </NBadge>
                 <NBadge
                   v-if="cell.row.original.tags.length > 2"
-                  badge="soft"
+                  badge="solid-gray"
                   size="xs"
-                  color="gray"
                   :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
                 >
                   +{{ cell.row.original.tags.length - 2 }}
@@ -403,6 +405,7 @@
               :sibling-count="2"
               show-edges
               size="sm"
+              pagination-selected="solid-indigo" 
             />
           </div>
         </div>
@@ -427,6 +430,7 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
+import { formatDate, getDateTimestamp } from '~/utils/time-formatter'
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -617,7 +621,7 @@ const filteredQuotes = computed(() => {
 
   switch (sortBy.value.value) {
     case 'oldest':
-      filtered.sort((a, b) => new Date(a.approved_at || a.created_at).getTime() - new Date(b.approved_at || b.created_at).getTime())
+      filtered.sort((a, b) => getDateTimestamp(a.approved_at || a.created_at) - getDateTimestamp(b.approved_at || b.created_at))
       break
     case 'popular':
       filtered.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
@@ -629,7 +633,7 @@ const filteredQuotes = computed(() => {
       filtered.sort((a, b) => (a.author?.name || '').localeCompare(b.author?.name || ''))
       break
     default: // recent
-      filtered.sort((a, b) => new Date(b.approved_at || b.created_at).getTime() - new Date(a.approved_at || a.created_at).getTime())
+      filtered.sort((a, b) => getDateTimestamp(b.approved_at || b.created_at) - getDateTimestamp(a.approved_at || a.created_at))
   }
 
   return filtered
@@ -819,10 +823,6 @@ const handleAddedToCollection = () => {
   showAddToCollectionDrawer.value = false
   showAddToCollectionModal.value = false
   selectedQuote.value = null
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 onMounted(() => {

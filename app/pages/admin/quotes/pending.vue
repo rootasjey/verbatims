@@ -143,8 +143,8 @@
                   <NTooltip text="Select all on page">
                     <NButton
                       icon
-                      btn="ghost"
-                      size="2xs"
+                      btn="ghost-gray"
+                      size="xs"
                       label="i-ph-checks"
                       :disabled="allSelectedOnPage"
                       @click="selectAllOnPage"
@@ -155,7 +155,7 @@
                   <NButton
                     icon
                     btn="ghost-gray"
-                    size="2xs"
+                    size="xs"
                     :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                     @click="toggleSelectionMode"
                   />
@@ -229,7 +229,7 @@
             <!-- Status Column -->
             <template #status-cell="{ cell }">
               <div class="space-y-1">
-                <NBadge :color="getStatusColor(cell.row.original.status)" badge="soft" size="xs">
+                <NBadge badge="solid-yellow" size="xs">
                   {{ cell.row.original.status }}
                 </NBadge>
                 <div v-if="cell.row.original.status === 'rejected' && cell.row.original.rejection_reason" class="text-xs text-red-600 dark:text-red-400">
@@ -251,15 +251,17 @@
                 <NDropdownMenu :items="getQuoteActions(cell.row.original)">
                   <NButton
                     icon
-                    btn="ghost"
+                    btn="ghost-gray"
                     size="xs"
                     label="i-ph-dots-three-vertical"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                   />
                 </NDropdownMenu>
               </template>
               <template v-else>
                 <div class="flex items-center justify-center">
                   <NCheckbox
+                    checkbox="yellow"
                     :model-value="!!rowSelection[cell.row.original.id]"
                     @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                   />
@@ -281,6 +283,7 @@
             :sibling-count="2"
             show-edges
             size="sm"
+            pagination-selected="solid-indigo"
           />
         </div>
       </div>

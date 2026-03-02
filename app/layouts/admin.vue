@@ -78,14 +78,14 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/quotes/published' 
-                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700' 
+                      : 'text-green-500 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-check-circle" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
-                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" color="green" badge="soft" size="xs" class="ml-auto" />
+                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" badge="solid-green" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -97,14 +97,14 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/quotes/pending' 
-                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border border-dashed border-yellow-200 dark:border-yellow-700' 
+                      : 'text-yellow-600 dark:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-600 dark:hover:text-yellow-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-clock" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
-                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" color="yellow" badge="soft" size="xs" class="ml-auto" />
+                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" badge="solid-yellow" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -116,14 +116,14 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/quotes/drafts' 
-                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
+                      ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-dashed border-orange-200 dark:border-orange-700' 
+                      : 'text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-700 dark:hover:text-orange-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-file-dashed" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
-                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" color="gray" badge="soft" size="xs" class="ml-auto" />
+                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" badge="solid-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -135,8 +135,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/social-queue'
-                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
+                      ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-dashed border-indigo-200 dark:border-indigo-700'
+                      : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -196,8 +196,8 @@
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
                     $route.path === '/admin/tags'
-                      ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-dashed border-purple-200 dark:border-purple-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300'
+                      ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -219,7 +219,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getMangementItemColor($route.path === '/admin/messages')
+                    getManagementItemColor($route.path === '/admin/messages')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -235,7 +235,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getMangementItemColor($route.path === '/admin/users')
+                    getManagementItemColor($route.path === '/admin/users')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -251,7 +251,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getMangementItemColor($route.path === '/admin/maintenance')
+                    getManagementItemColor($route.path === '/admin/maintenance')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -267,7 +267,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getMangementItemColor($route.path === '/admin/import')
+                    getManagementItemColor($route.path === '/admin/import')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -283,7 +283,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getMangementItemColor($route.path === '/admin/export')
+                    getManagementItemColor($route.path === '/admin/export')
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -301,7 +301,7 @@
                   :class="[
                     'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mt-2',
                     sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300'
+                    'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
@@ -383,10 +383,10 @@ const loadQuoteCounts = async () => {
   }
 }
 
-const getMangementItemColor = (isActive: boolean) => {
+const getManagementItemColor = (isActive: boolean) => {
   return isActive 
-    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700'
-    : 'text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
+    ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700'
+    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
 }
 
 // Close sidebar when route changes (mobile)

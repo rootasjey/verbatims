@@ -114,6 +114,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDate } from '~/utils/time-formatter'
+
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
@@ -162,10 +164,6 @@ const loadDashboardData = async () => {
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
   }
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 const getStatusColor = (status: string) => {
