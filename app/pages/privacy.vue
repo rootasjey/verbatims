@@ -1,7 +1,7 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-5 py-12">
     <div class="mt-8">
-      <h1>Privacy Policy</h1>
+      <h1 class="font-serif font-size-32 font-600 line-height-tight">Privacy Policy</h1>
       <p class="text-sm text-gray-500 relative -top-2">Effective date: {{ effectiveDate }}</p>
     </div>
 
@@ -176,14 +176,8 @@ const effectiveDate = new Date().toLocaleDateString('fr-FR', {
 }
 
 /* Headings: clear hierarchy and spacing */
-.prose :where(h1) {
-  font-family: 'Gambetta';
-  font-size: clamp(1.875rem, 1.2rem + 2vw, 2.25rem);
-  line-height: 0.6;
-  margin-bottom: 0.8em;
-}
 .prose :where(h2) {
-  font-size: 1.0rem;
+  font-size: 2.0rem;
   line-height: 1.3;
   font-weight: 800;
   font-family: 'Gambetta';

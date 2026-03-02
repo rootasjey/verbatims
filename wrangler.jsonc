@@ -18,6 +18,14 @@
   "observability": {
     "enabled": true
   },
+  "triggers": {
+    "crons": [
+      // 08:08 Europe/Paris during daylight saving time (UTC+2)
+      "8 6 * * *",
+      // 08:08 Europe/Paris during standard time (UTC+1)
+      "8 7 * * *"
+    ]
+  },
   "r2_buckets": [
     {
       "binding": "BLOB",

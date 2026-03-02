@@ -2,10 +2,10 @@
   <main class="prose mx-auto max-w-3xl px-4 sm:px-5 py-8 sm:py-12">
     <div class="mt-12">
       <h1 class="font-serif font-size-32 font-600 line-height-tight">About</h1>
-      <p class="text-sm text-gray-500 relative -top-2">
-        A home for timeless words — curated, searchable, and crafted for daily inspiration.
-      </p>
-      <p class="text-sm font-600 text-gray-500 relative -top-6">version: {{ version }}</p>
+      <h3 class="-top-2 text-6 font-subtitle text-gray-500 relative">
+        A home for timeless words: curated, searchable, and crafted for daily inspiration.
+      </h3>
+      <NBadge badge="outline-green" size="sm" :label="`version ${version}`" class="mt-2" />
     </div>
 
     <section>

@@ -126,6 +126,24 @@
                   <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" color="gray" badge="soft" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
+
+              <!-- Social Queue -->
+              <NTooltip :content="sidebarCollapsed ? 'Social Queue' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/social-queue"
+                  :class="[
+                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    $route.path === '/admin/social-queue'
+                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <NIcon name="i-ph-share-network" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Social Queue</span>
+                </NuxtLink>
+              </NTooltip>
             </div>
 
             <!-- Content Management Section -->
