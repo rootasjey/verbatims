@@ -58,7 +58,7 @@
               <span>{{ selectedIds.length }} selected</span>
             </div>
             <div class="flex items-center gap-2">
-              <NButton size="xs" btn="ghost" @click="clearSelection">Clear</NButton>
+              <NButton size="xs" btn="link-gray" label="Clear" @click="clearSelection" />
               <NButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
                 <NIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
               </NButton>
@@ -78,23 +78,23 @@
         >
           <template #actions-header>
             <div class="flex items-center justify-center">
-              <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
+              <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                <NButton icon btn="ghost-gray" size="xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
               </NTooltip>
-              <NTooltip class="ml-2" text="Select all on page">
-                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              <NTooltip v-if="selectionMode" class="ml-2" content="Select all on page">
+                <NCheckbox checkbox="indigo" :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
               </NTooltip>
             </div>
           </template>
           <template #actions-cell="{ cell }">
             <template v-if="!selectionMode">
               <NDropdownMenu :items="getTagActions(cell.row.original)">
-                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+                <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
               </NDropdownMenu>
             </template>
             <template v-else>
               <div class="flex items-center justify-center">
-                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+                <NCheckbox checkbox="indigo" :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
               </div>
             </template>
           </template>
@@ -124,7 +124,7 @@
         <div class="text-sm text-gray-500 dark:text-gray-400">
           Page {{ currentPage }} of {{ totalPages }} • {{ totalTags }} total tags
         </div>
-        <NPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
+        <NPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" pagination-selected="solid-indigo" />
       </div>
     </div>
   </div>
@@ -194,6 +194,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatRelativeTime } from '~/utils/time-formatter'
+
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Tags - Admin - Verbatims' })
 
@@ -363,17 +365,6 @@ const triggerBackfill = async () => {
   } finally {
     backfillProcessing.value = false
   }
-}
-
-const formatRelativeTime = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (diff < 60) return 'Just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`
-  return date.toLocaleDateString()
 }
 
 watchDebounced([currentPage, searchQuery, selectedSort], () => { loadTags() }, { debounce: 300 })

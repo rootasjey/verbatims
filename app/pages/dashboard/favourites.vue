@@ -96,14 +96,14 @@
       <!-- Results -->
       <div v-else class="px-3 pt-3 pb-6 space-y-3">
         <QuoteListItem
-            v-for="(quote, idx) in processedMobileQuotes"
-            :key="idx"
-            :quote="quote"
-            :actions="favouriteActions"
-            @share="handleShareQuote"
-            @unlike="handleUnlike"
-            @add-to-collection="handleAddToCollection"
-          />
+          v-for="(quote, idx) in processedMobileQuotes"
+          :key="idx"
+          :quote="quote"
+          :actions="favouriteActions"
+          @share="handleShareQuote"
+          @unlike="handleUnlike"
+          @add-to-collection="handleAddToCollection"
+        />
 
         <div v-if="hasMore" class="px-4 pt-6">
           <NButton
@@ -123,15 +123,21 @@
     <div v-else>
       <!-- Search and Filters -->
       <div class="mb-6 flex flex-col sm:flex-row gap-4">
-        <div class="flex-1">
-          <NInput
-            v-model="searchQuery"
-            placeholder="Search your favourites..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-          />
+        <div class="flex flex-1 items-center gap-4">
+          <!-- Results Count -->
+          <div class="font-subtitle text-md font-700 text-gray-500 dark:text-gray-400">
+            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'favourite' : 'favourites' }}
+          </div>
+          <div class="flex-1">
+            <NInput
+              v-model="searchQuery"
+              placeholder="Search your favourites..."
+              leading="i-ph-magnifying-glass"
+              size="md"
+            />
+          </div>
         </div>
-        <div class="w-full sm:w-48">
+        <div class="sm:w-48">
           <NSelect
             v-model="sortBy"
             :items="sortOptions"
@@ -165,11 +171,6 @@
 
       <!-- Quotes Grid -->
       <div v-else class="space-y-6">
-        <!-- Results Count -->
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'favourite' : 'favourites' }}
-        </div>
-
         <!-- Masonry Grid -->
         <MasonryGrid>
           <QuoteMasonryItem
@@ -210,6 +211,7 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types'
+import { getDateTimestamp } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
@@ -344,7 +346,7 @@ const filteredQuotes = computed(() => {
 
   switch (sortBy.value.value) {
     case 'oldest':
-      filtered.sort((a, b) => new Date(a.liked_at).getTime() - new Date(b.liked_at).getTime())
+      filtered.sort((a, b) => getDateTimestamp(a.liked_at) - getDateTimestamp(b.liked_at))
       break
     case 'popular':
       filtered.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
@@ -353,7 +355,7 @@ const filteredQuotes = computed(() => {
       filtered.sort((a, b) => (a.author?.name || '').localeCompare(b.author?.name || ''))
       break
     default: // recent
-      filtered.sort((a, b) => new Date(b.liked_at).getTime() - new Date(a.liked_at).getTime())
+      filtered.sort((a, b) => getDateTimestamp(b.liked_at) - getDateTimestamp(a.liked_at))
   }
 
   return filtered

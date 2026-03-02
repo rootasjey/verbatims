@@ -97,6 +97,7 @@
 
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types'
+import { formatRelativeTime } from '~/utils/time-formatter'
 
 interface Props {
   quote: ProcessedQuoteResult
@@ -193,23 +194,7 @@ const formatReferenceType = (type: string) => {
   return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-
-  if (diffInHours < 1) {
-    return 'Just now'
-  } else if (diffInHours < 24) {
-    return `${diffInHours}h ago`
-  } else if (diffInHours < 48) {
-    return 'Yesterday'
-  } else if (diffInHours < 168) {
-    return `${Math.floor(diffInHours / 24)}d ago`
-  } else {
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-  }
-}
+const formatDate = (dateString: string) => formatRelativeTime(dateString)
 </script>
 
 <style scoped>

@@ -301,6 +301,8 @@
 </template>
 
 <script setup>
+import { formatDate } from '~/utils/time-formatter'
+
 // Use admin layout
 definePageMeta({
   layout: 'admin',
@@ -328,11 +330,6 @@ const loadStats = async () => {
   } finally {
     loading.value = false
   }
-}
-
-// Utility functions
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 // Load initial data

@@ -168,7 +168,7 @@
               <span>{{ selectedIds.length }} selected</span>
             </div>
             <div class="flex items-center gap-2">
-              <NButton size="xs" btn="ghost" @click="clearSelection">Clear</NButton>
+              <NButton size="xs" btn="link-gray" label="Clear" @click="clearSelection" />
               <NButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
                 <NIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
               </NButton>
@@ -192,8 +192,8 @@
               <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                 <NButton icon btn="ghost-gray" size="2xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" />
               </NTooltip>
-              <NTooltip class="ml-2" text="Select all on page">
-                <NCheckbox :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
+              <NTooltip v-if="selectionMode" class="ml-2" text="Select all on page">
+                <NCheckbox checkbox="blue" :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
               </NTooltip>
             </div>
           </template>
@@ -203,15 +203,16 @@
               <NDropdownMenu :items="getAuthorActions(cell.row.original)">
                 <NButton
                   icon
-                  btn="ghost"
-                  size="sm"
+                  btn="ghost-gray"
+                  size="xs"
                   label="i-ph-dots-three-vertical"
+                  class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                 />
               </NDropdownMenu>
             </template>
             <template v-else>
               <div class="flex items-center justify-center">
-                <NCheckbox :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
+                <NCheckbox checkbox="blue" :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
               </div>
             </template>
           </template>
@@ -328,6 +329,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatRelativeTime } from '~/utils/time-formatter'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -547,19 +550,6 @@ const onAuthorDeleted = () => {
     currentPage.value = currentPage.value - 1
   }
   loadAuthors()
-}
-
-const formatRelativeTime = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (diffInSeconds < 60) return 'Just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`
-
-  return date.toLocaleDateString()
 }
 
 watchDebounced([currentPage, searchQuery, selectedFictionalFilter, selectedSort], () => {

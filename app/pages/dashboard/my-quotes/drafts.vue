@@ -231,27 +231,29 @@
               <!-- Actions Header: toggle selection mode -->
               <template #actions-header>
                 <div class="flex items-center justify-center gap-1">
-                  <template v-if="selectionMode">
-                    <NTooltip text="Select all on page">
-                      <NButton
-                        icon
-                        btn="ghost"
-                        size="2xs"
-                        label="i-ph-checks"
-                        :disabled="allSelectedOnPage"
-                        @click="selectAllOnPage"
-                      />
-                    </NTooltip>
-                  </template>
-                  <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                  <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
                     <NButton
                       icon
                       btn="ghost-gray"
-                      size="2xs"
+                      size="xs"
                       :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
                       @click="toggleSelectionMode"
+                      class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
                     />
                   </NTooltip>
+                  <template v-if="selectionMode">
+                    <NTooltip content="Select all on page">
+                      <NButton
+                        icon
+                        btn="ghost-gray"
+                        size="xs"
+                        label="i-ph-checks"
+                        :disabled="allSelectedOnPage"
+                        @click="selectAllOnPage"
+                        class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+                      />
+                    </NTooltip>
+                  </template>
                 </div>
               </template>
 
@@ -259,12 +261,13 @@
               <template #actions-cell="{ cell }">
                 <template v-if="!selectionMode">
                   <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                    <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" />
+                    <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
                   </NDropdownMenu>
                 </template>
                 <template v-else>
                   <div class="flex items-center justify-center">
                     <NCheckbox
+                      checkbox="orange"
                       :model-value="!!rowSelection[cell.row.original.id]"
                       @update:model-value="val => setRowSelected(cell.row.original.id, val)"
                     />
@@ -359,6 +362,7 @@
               :sibling-count="2"
               show-edges
               size="sm"
+              pagination-selected="solid-indigo"
             />
           </div>
         </div>
@@ -394,6 +398,7 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
+import { formatDate, getDateTimestamp } from '~/utils/time-formatter'
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -472,13 +477,13 @@ const filteredQuotes = computed(() => {
   const list = [...quotes.value]
   switch (sortBy.value.value) {
     case 'oldest':
-      list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      list.sort((a, b) => getDateTimestamp(a.created_at) - getDateTimestamp(b.created_at))
       break
     case 'author':
       list.sort((a, b) => (a.author?.name || '').localeCompare(b.author?.name || ''))
       break
     default:
-      list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      list.sort((a, b) => getDateTimestamp(b.created_at) - getDateTimestamp(a.created_at))
   }
   return list
 })
@@ -778,10 +783,6 @@ const resetFilters = () => {
 const onLanguageChanged = async () => {
   // Reset to first page when language changes and reload
   await loadDrafts(1)
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 // Handle scroll for header transformation

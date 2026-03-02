@@ -105,7 +105,7 @@
           <!-- Actions Column -->
           <template #actions-cell="{ cell }">
             <NDropdownMenu :items="getUserActions(cell.row.original)">
-              <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
+              <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
             </NDropdownMenu>
           </template>
 
@@ -178,6 +178,7 @@
           :sibling-count="2"
           show-edges
           size="sm"
+          pagination-selected="solid-indigo" 
         />
       </div>
     </div>
@@ -202,6 +203,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatRelativeTime } from '~/utils/time-formatter'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -325,20 +328,6 @@ const onUserDeleted = () => {
   userToDelete.value = null
   if (users.value.length <= 1 && currentPage.value > 1) currentPage.value = currentPage.value - 1
   loadUsers()
-}
-
-// Utility function for relative time formatting
-const formatRelativeTime = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (diffInSeconds < 60) return 'Just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`
-
-  return date.toLocaleDateString()
 }
 
 watchDebounced([currentPage, searchQuery, selectedRoleFilter, selectedStatusFilter], () => {

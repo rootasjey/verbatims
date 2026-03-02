@@ -180,6 +180,7 @@
 
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types'
+import { formatDate } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
@@ -371,10 +372,6 @@ const handleRemoveFromCollection = async (quote: any) => {
       description: 'Please try again'
     })
   }
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 onMounted(() => {

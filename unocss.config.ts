@@ -49,7 +49,8 @@ export default {
     // because they are generated dynamically in some cases
     'i-ph-robot-duotone', 'i-ph-atom-duotone', 'i-ph-brain-duotone', 'i-ph-game-controller-duotone', 'i-ph-feather-duotone', 'i-ph-yin-yang-duotone', 'i-ph-television',
     'i-ph-hands-clapping-duotone', 'i-ph-heart-duotone', 'i-ph-palette-duotone', 'i-ph-music-notes-duotone', 'i-ph-sword-duotone', 'i-openmoji-face-screaming-in-fear', 'i-openmoji-bat',
-    'i-ph-hand-fist-duotone', 'i-ph-skull-duotone', 'i-ph-shooting-star-duotone', 'i-ph-film-reel-duotone',
+    'i-ph-hand-fist-duotone', 'i-ph-skull-duotone', 'i-ph-shooting-star-duotone', 'i-ph-film-reel-duotone', 'i-ph-butterfly', 'i-ph-threads-logo', 'i-ph-pinterest-logo',
+    'i-ph-twitter-logo', 'i-ph-instagram-logo', 'i-ph-facebook-logo',
     // Border color utilities used dynamically by components (dark mode hover)
     'dark:hover:b-red',
     'dark:hover:b-blue',
