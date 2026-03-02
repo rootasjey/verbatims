@@ -128,3 +128,120 @@ This project provides dynamic, high-quality OG images for quotes, optimized for 
 - Admins can warm the cache or force regeneration as needed.
 
 For more details, see the code in `server/api/og/`, `server/utils/og.ts`, and the configuration in `nuxt.config.ts`.
+
+## Automated Social Posting (X + Bluesky + Instagram + Threads + Facebook + Pinterest)
+
+This project includes an admin-managed social queue and a daily scheduled autopost task for social providers.
+
+### What is included
+
+- Admin queue page: `/admin/social-queue`
+- Queue APIs: `/api/admin/social-queue/*`
+- Daily scheduler task: `tasks/social/autopost.ts`
+- Persistence tables: `social_queue` and `social_posts`
+
+### Environment variables
+
+- `NUXT_X_POST_ENABLED` (default: `true`)
+- `NUXT_X_POST_ACCESS_TOKEN` (OAuth 2.0 User Context access token, preferred)
+- `NUXT_X_POST_BEARER_TOKEN` (legacy alias for `NUXT_X_POST_ACCESS_TOKEN`, deprecated)
+- `NUXT_X_POST_OAUTH1_CONSUMER_KEY` (OAuth 1.0a user context, required for X media upload)
+- `NUXT_X_POST_OAUTH1_CONSUMER_SECRET` (OAuth 1.0a user context)
+- `NUXT_X_POST_OAUTH1_ACCESS_TOKEN` (OAuth 1.0a user context)
+- `NUXT_X_POST_OAUTH1_ACCESS_TOKEN_SECRET` (OAuth 1.0a user context)
+- `NUXT_X_POST_REQUIRE_MEDIA` (default: `false`, when `true` autopost fails if image upload to X fails)
+- `NUXT_BLUESKY_POST_ENABLED` (default: `false`)
+- `NUXT_BLUESKY_POST_SERVICE` (default: `https://bsky.social`)
+- `NUXT_BLUESKY_POST_IDENTIFIER` (Bluesky handle or identifier)
+- `NUXT_BLUESKY_POST_PASSWORD` (Bluesky app password)
+- `NUXT_INSTAGRAM_POST_ENABLED` (default: `false`)
+- `NUXT_INSTAGRAM_POST_BASE_URL` (default: `https://graph.facebook.com`)
+- `NUXT_INSTAGRAM_POST_API_VERSION` (default: `v24.0`)
+- `NUXT_INSTAGRAM_POST_ACCESS_TOKEN` (required for Instagram publishing)
+- `NUXT_INSTAGRAM_POST_IG_USER_ID` (required Instagram Business/Creator user id)
+- `NUXT_INSTAGRAM_POST_HASHTAGS` (default: `#quotes #inspiration #verbatims`)
+- `NUXT_INSTAGRAM_POST_POLL_INTERVAL_MS` (default: `5000`)
+- `NUXT_INSTAGRAM_POST_POLL_TIMEOUT_MS` (default: `300000`)
+- `NUXT_THREADS_POST_ENABLED` (default: `false`)
+- `NUXT_THREADS_POST_BASE_URL` (default: `https://graph.threads.net`)
+- `NUXT_THREADS_POST_API_VERSION` (default: `v1.0`)
+- `NUXT_THREADS_POST_ACCESS_TOKEN` (required for Threads publishing)
+- `NUXT_THREADS_POST_USER_ID` (required Threads user id)
+- `NUXT_THREADS_POST_POLL_INTERVAL_MS` (default: `4000`)
+- `NUXT_THREADS_POST_POLL_TIMEOUT_MS` (default: `120000`)
+- `NUXT_FACEBOOK_POST_ENABLED` (default: `false`)
+- `NUXT_FACEBOOK_POST_BASE_URL` (default: `https://graph.facebook.com`)
+- `NUXT_FACEBOOK_POST_API_VERSION` (default: `v24.0`)
+- `NUXT_FACEBOOK_POST_ACCESS_TOKEN` (required for Facebook publishing)
+- `NUXT_FACEBOOK_POST_PAGE_ID` (required Facebook Page id)
+- `NUXT_PINTEREST_POST_ENABLED` (default: `false`)
+- `NUXT_PINTEREST_POST_BASE_URL` (default: `https://api.pinterest.com`)
+- `NUXT_PINTEREST_POST_API_VERSION` (default: `v5`)
+- `NUXT_PINTEREST_POST_ACCESS_TOKEN` (required for Pinterest publishing)
+- `NUXT_PINTEREST_POST_BOARD_ID` (required default Pinterest board id for automatic posting)
+- `NUXT_SOCIAL_DAILY_TIMEZONE` (default: `Europe/Paris`)
+- `NUXT_SOCIAL_DAILY_TIME` (default: `08:08`)
+
+### Meta reconnect flow (Instagram + Threads + Facebook)
+
+- Provider status for every social service is now indicated by a small coloured dot (green/red) on the platform icons and is also displayed via tooltips on the platform icons in `/admin/social-queue` (hover the icon).
+- Tooltips show the service name, whether it’s configured, account/ID, expiry, and actions:
+  - **Check provider** runs the existing `/provider-check` endpoint.
+  - **Meta settings** and **Reconnect** buttons are available when hovering Instagram/Threads/Facebook.
+- `Meta settings` still configures App ID/Secret/Redirect URI in KV.
+- Reconnect requires server env vars `META_APP_ID` and `META_APP_SECRET` (optional `META_REDIRECT_URI`).
+- The reconnect flow stores credentials in KV (`social:meta:credentials:v1`) and social posting resolves KV first, then falls back to env vars.
+- Covered providers in this flow:
+	- Instagram (user token + IG user id)
+	- Threads (user token + Threads user id, when available from the granted permissions)
+	- Facebook (page token + page id)
+- If the tooltip’s provider-check reports missing credentials, reconnect Meta first before editing env vars.
+- If reconnect fails in local/dev, first verify the callback URL is listed in Facebook Login "Valid OAuth Redirect URIs" and your app mode/roles allow the account used for login.
+
+### Posting behavior
+
+- One queued item is processed per scheduler run.
+- Queue items are platform-scoped (`x`, `bluesky`, `instagram`, `threads`, `facebook`, or `pinterest`) for insertion.
+- Autopost now uses a square social image generated from `/api/social/images/quotes/{id}.png`.
+- Bluesky posts include the square social image.
+- X posts use user-context auth only (OAuth 2.0 User Context or OAuth 1.0a).
+- X image upload requires OAuth 1.0a credentials; with OAuth 2.0-only credentials, posting falls back to text-only unless `NUXT_X_POST_REQUIRE_MEDIA=true`.
+- Instagram posts create a Graph API media container, poll until ready, and publish to feed with image + caption.
+- Threads posts create a Graph Threads container, poll until ready, and publish with image + text.
+- Facebook posts publish a page photo post (image + message).
+- Pinterest posts create an image pin in `NUXT_PINTEREST_POST_BOARD_ID` using the quote image + link.
+
+### Facebook token helper script
+
+Use the helper script to automate the CLI steps for Facebook (app token, long-lived user token exchange, page token retrieval, token debug, page verification):
+
+```bash
+# run the full flow (does not write files)
+bun run facebook:token -- from-user-token \
+	--app-id "$META_APP_ID" \
+	--app-secret "$META_APP_SECRET" \
+	--user-token "$SHORT_USER_TOKEN" \
+	--page-id "$NUXT_FACEBOOK_POST_PAGE_ID"
+
+# run full flow and write/update .env automatically
+bun run facebook:token:write -- \
+	--app-id "$META_APP_ID" \
+	--app-secret "$META_APP_SECRET" \
+	--user-token "$SHORT_USER_TOKEN" \
+	--page-id "$NUXT_FACEBOOK_POST_PAGE_ID"
+
+# verify an existing page token
+bun run facebook:token -- verify-page-token \
+	--app-id "$META_APP_ID" \
+	--app-secret "$META_APP_SECRET" \
+	--page-id "$NUXT_FACEBOOK_POST_PAGE_ID" \
+	--page-token "$NUXT_FACEBOOK_POST_ACCESS_TOKEN"
+```
+
+### Scheduling model
+
+- Cloudflare cron triggers run at `06:08` and `07:08` UTC.
+- The Nitro task checks local time in `NUXT_SOCIAL_DAILY_TIMEZONE` and only publishes when it matches `NUXT_SOCIAL_DAILY_TIME`.
+- This keeps scheduling aligned with local time behavior while handling Paris DST on UTC infrastructure.
+- On deploy, Cloudflare applies cron triggers from `wrangler.jsonc` automatically for the target environment.
+- If you change cron expressions, redeploy to apply the updated schedule.

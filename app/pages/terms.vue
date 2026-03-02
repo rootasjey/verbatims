@@ -3,7 +3,7 @@
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="tos-header relative pt-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" role="banner">
-      <h1 class="title">Terms of Service</h1>
+      <h1 class="title font-serif font-size-32 font-600 line-height-tight">Terms of Service</h1>
       <p class="subtitle">
         Clear, simple terms for using our quotes platform.
       </p>
@@ -233,9 +233,9 @@
               </p>
               <address class="contact" aria-label="Contact information">
                 Jérémie CORPINOT<br />
-                123 Literary Lane, Suite 4<br />
+                Place d'Armes, 78000 Versailles<br />
                 Yvelines, France<br />
-                legal@example.com
+                <a href="mailto:help@verbatims.cc">help@verbatims.cc</a>.
               </address>
             </template>
           </div>
@@ -244,7 +244,8 @@
 
         <footer class="doc-end" aria-label="Document end">
           <p>
-            This document contains sample, non-binding legal copy for placeholder purposes only. Replace with counsel-reviewed language before production use.
+            This document contains hidden legal postal addresses for privacy reasons (we do not have business addresses yet). 
+            The visible contact information is an email address. For any legal notices, please use the email provided above.
           </p>
         </footer>
       </main>
@@ -437,17 +438,14 @@ onMounted(() => {
 }
 
 .title {
-  font-family: 'Gambetta';
-  font-weight: 600;
-  font-size: 2.25rem;
   letter-spacing: 0.2px;
-  margin: 1.2rem 0 0.4rem;
+  margin: 1.2rem 0 0.0rem;
   line-height: 1.1;
 }
 
 .subtitle {
   font-family: 'Gambetta';
-  font-size: 1rem;
+  font-size: 1.5rem;
   color: #555;
   margin: 0 0 0.4rem;
 }
@@ -613,23 +611,23 @@ onMounted(() => {
 
 .section-header h2 {
   font-family: 'Gambetta';
-  font-size: 1.2rem;
+  font-size: 2rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 2.0;
   margin: 1.6rem 0 0.6rem;
   color: inherit;
 }
 
 .sec-num {
-  color: #3a66d6;
+  color: #ff7ace;
   font-weight: 600;
 }
 .tos-root.prefers-dark .sec-num {
-  color: #7aa2ff;
+  color: #ff7ace;
 }
 @media (prefers-color-scheme: dark) {
   .tos-root .sec-num {
-    color: #7aa2ff;
+    color: #ff7ace;
   }
 }
 
@@ -677,35 +675,35 @@ onMounted(() => {
 
 /* Links */
 .inline-link {
-  color: #3a66d6;
+  color: #deac6a;
   text-decoration: none;
   border-radius: 6px;
   outline-offset: 3px;
 }
 .tos-root.prefers-dark .inline-link {
-  color: #7aa2ff;
+  color: #ffc57a;
 }
 @media (prefers-color-scheme: dark) {
   .tos-root .inline-link {
-    color: #7aa2ff;
+    color: #ffc57a;
   }
 }
 
 .inline-link:hover,
 .inline-link:focus-visible {
-  color: #244fb8;
+  color: #dc7841;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 .tos-root.prefers-dark .inline-link:hover,
 .tos-root.prefers-dark .inline-link:focus-visible {
-  color: #5e86ea;
+  color: #dc7841;
 }
 @media (prefers-color-scheme: dark) {
   .tos-root .inline-link:hover,
   .tos-root .inline-link:focus-visible {
-    color: #5e86ea;
+    color: #dc7841;
   }
 }
 

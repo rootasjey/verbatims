@@ -71,7 +71,14 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'cloudflare-module',
     experimental: {
-      wasm: true
+      wasm: true,
+      tasks: true
+    },
+    scheduledTasks: {
+      // 08:08 Europe/Paris during daylight saving time (UTC+2)
+      '8 6 * * *': ['social:autopost'],
+      // 08:08 Europe/Paris during standard time (UTC+1)
+      '8 7 * * *': ['social:autopost']
     },
     ignore: ['scripts/**'],
     alias: {
@@ -85,6 +92,44 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
+    xPostEnabled: process.env.NUXT_X_POST_ENABLED || 'true',
+    xPostAccessToken: process.env.NUXT_X_POST_ACCESS_TOKEN || process.env.NUXT_X_POST_BEARER_TOKEN || '',
+    xPostOauth1ConsumerKey: process.env.NUXT_X_POST_OAUTH1_CONSUMER_KEY || '',
+    xPostOauth1ConsumerSecret: process.env.NUXT_X_POST_OAUTH1_CONSUMER_SECRET || '',
+    xPostOauth1AccessToken: process.env.NUXT_X_POST_OAUTH1_ACCESS_TOKEN || '',
+    xPostOauth1AccessTokenSecret: process.env.NUXT_X_POST_OAUTH1_ACCESS_TOKEN_SECRET || '',
+    xPostRequireMedia: process.env.NUXT_X_POST_REQUIRE_MEDIA || 'false',
+    blueskyPostEnabled: process.env.NUXT_BLUESKY_POST_ENABLED || 'true',
+    blueskyPostService: process.env.NUXT_BLUESKY_POST_SERVICE || 'https://bsky.social',
+    blueskyPostIdentifier: process.env.NUXT_BLUESKY_POST_IDENTIFIER || '',
+    blueskyPostPassword: process.env.NUXT_BLUESKY_POST_PASSWORD || '',
+    instagramPostEnabled: process.env.NUXT_INSTAGRAM_POST_ENABLED || 'false',
+    instagramPostBaseUrl: process.env.NUXT_INSTAGRAM_POST_BASE_URL || 'https://graph.facebook.com',
+    instagramPostApiVersion: process.env.NUXT_INSTAGRAM_POST_API_VERSION || 'v24.0',
+    instagramPostAccessToken: process.env.NUXT_INSTAGRAM_POST_ACCESS_TOKEN || '',
+    instagramPostIgUserId: process.env.NUXT_INSTAGRAM_POST_IG_USER_ID || '',
+    instagramPostHashtags: process.env.NUXT_INSTAGRAM_POST_HASHTAGS || '#quotes #inspiration #verbatims',
+    instagramPostPollIntervalMs: process.env.NUXT_INSTAGRAM_POST_POLL_INTERVAL_MS || '5000',
+    instagramPostPollTimeoutMs: process.env.NUXT_INSTAGRAM_POST_POLL_TIMEOUT_MS || '300000',
+    threadsPostEnabled: process.env.NUXT_THREADS_POST_ENABLED || 'false',
+    threadsPostBaseUrl: process.env.NUXT_THREADS_POST_BASE_URL || 'https://graph.threads.net',
+    threadsPostApiVersion: process.env.NUXT_THREADS_POST_API_VERSION || 'v1.0',
+    threadsPostAccessToken: process.env.NUXT_THREADS_POST_ACCESS_TOKEN || '',
+    threadsPostUserId: process.env.NUXT_THREADS_POST_USER_ID || '',
+    threadsPostPollIntervalMs: process.env.NUXT_THREADS_POST_POLL_INTERVAL_MS || '4000',
+    threadsPostPollTimeoutMs: process.env.NUXT_THREADS_POST_POLL_TIMEOUT_MS || '120000',
+    facebookPostEnabled: process.env.NUXT_FACEBOOK_POST_ENABLED || 'false',
+    facebookPostBaseUrl: process.env.NUXT_FACEBOOK_POST_BASE_URL || 'https://graph.facebook.com',
+    facebookPostApiVersion: process.env.NUXT_FACEBOOK_POST_API_VERSION || 'v24.0',
+    facebookPostAccessToken: process.env.NUXT_FACEBOOK_POST_ACCESS_TOKEN || '',
+    facebookPostPageId: process.env.NUXT_FACEBOOK_POST_PAGE_ID || '',
+    pinterestPostEnabled: process.env.NUXT_PINTEREST_POST_ENABLED || 'false',
+    pinterestPostBaseUrl: process.env.NUXT_PINTEREST_POST_BASE_URL ?? 'https://api-sandbox.pinterest.com',
+    pinterestPostApiVersion: process.env.NUXT_PINTEREST_POST_API_VERSION || 'v5',
+    pinterestPostAccessToken: process.env.NUXT_PINTEREST_POST_ACCESS_TOKEN || '',
+    pinterestPostBoardId: process.env.NUXT_PINTEREST_POST_BOARD_ID || '',
+    socialDailyTimezone: process.env.NUXT_SOCIAL_DAILY_TIMEZONE || 'Europe/Paris',
+    socialDailyTime: process.env.NUXT_SOCIAL_DAILY_TIME || '08:08',
 
     // Public keys (exposed to client-side)
     public: {

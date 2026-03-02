@@ -326,9 +326,9 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    toast({ title: 'Link copied', toast: 'success' })
+    toast({ title: 'Link copied', toast: 'outline-success' })
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'error' })
+    toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'outline-error' })
   }
 }
 
@@ -337,9 +337,9 @@ const copyQuoteText = async () => {
   try {
     const text = `"${props.quote.name}"${props.quote.author ? ` — ${props.quote.author.name}` : ''}${props.quote.reference ? ` (${props.quote.reference.name})` : ''}`
     await navigator.clipboard.writeText(text)
-    toast({ title: 'Text copied', toast: 'success' })
+    toast({ title: 'Text copied', toast: 'outline-success' })
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Clipboard is not available.', toast: 'error' })
+    toast({ title: 'Copy failed', description: 'Clipboard is not available.', toast: 'outline-error' })
   }
 }
 
@@ -356,10 +356,10 @@ const shareQuote = async () => {
 
     if (navigator.share) {
       await navigator.share(shareData as any)
-      toast({ title: 'Quote shared!', toast: 'success' })
+      toast({ title: 'Quote shared!', toast: 'outline-success' })
     } else {
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
-      toast({ title: 'Quote link copied', toast: 'success' })
+      toast({ title: 'Quote link copied', toast: 'outline-success' })
     }
 
     // Best-effort share tracking
@@ -369,7 +369,7 @@ const shareQuote = async () => {
     }
   } catch (error) {
     console.error('Failed to share quote:', error)
-    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'error' })
+    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'outline-error' })
   } finally {
     sharePending.value = false
   }

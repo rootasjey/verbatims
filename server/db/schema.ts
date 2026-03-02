@@ -1,5 +1,7 @@
 import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
+import { SOCIAL_PLATFORMS } from '#shared/constants/social'
+import { SOCIAL_QUEUE_STATUSES, SOCIAL_POST_STATUSES } from '#shared/constants/social'
 
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -88,6 +90,41 @@ export const quotes = sqliteTable('quotes', {
   createdIdx: index('idx_quotes_created').on(table.createdAt),
   featuredIdx: index('idx_quotes_featured').on(table.isFeatured),
   languageIdx: index('idx_quotes_language').on(table.language),
+}))
+
+export const socialQueue = sqliteTable('social_queue', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  platform: text('platform', { enum: SOCIAL_PLATFORMS }).notNull().default('x'),
+  status: text('status', { enum: SOCIAL_QUEUE_STATUSES }).notNull().default('queued'),
+  position: integer('position').notNull().default(0),
+  scheduledFor: integer('scheduled_for', { mode: 'timestamp' }),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  platformStatusPosIdx: index('idx_social_queue_platform_status_position').on(table.platform, table.status, table.position),
+  statusScheduledIdx: index('idx_social_queue_status_scheduled').on(table.status, table.scheduledFor),
+  quoteIdx: index('idx_social_queue_quote').on(table.quoteId),
+}))
+
+export const socialPosts = sqliteTable('social_posts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  queueId: integer('queue_id').references(() => socialQueue.id, { onDelete: 'set null' }),
+  platform: text('platform', { enum: SOCIAL_PLATFORMS }).notNull().default('x'),
+  status: text('status', { enum: SOCIAL_POST_STATUSES }).notNull(),
+  postText: text('post_text').notNull(),
+  postUrl: text('post_url'),
+  externalPostId: text('external_post_id'),
+  errorMessage: text('error_message'),
+  idempotencyKey: text('idempotency_key').notNull().unique(),
+  postedAt: integer('posted_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  quotePlatformIdx: index('idx_social_posts_quote_platform').on(table.quoteId, table.platform),
+  postedAtIdx: index('idx_social_posts_posted_at').on(table.postedAt),
+  queueIdx: index('idx_social_posts_queue').on(table.queueId),
 }))
 
 export const tags = sqliteTable('tags', {

@@ -1,7 +1,7 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-5 py-12">
     <div class="mt-12">
-      <h1>Licenses & attribution</h1>
+      <h1 class="font-serif font-size-32 font-600 line-height-tight">Licenses & attribution</h1>
       <p class="text-sm text-gray-500 relative -top-2">
         License summary for Verbatims and credits for third‑party software and assets.
       </p>
@@ -101,7 +101,7 @@
       <h2>Questions or requests</h2>
       <p>
         If you're a rights holder or maintainer and want an adjustment to attribution, please reach out:
-        <a href="mailto:support@verbatims.app">support@verbatims.app</a>.
+        <a href="mailto:help@verbatims.cc">help@verbatims.cc</a>.
       </p>
     </section>
   </main>
@@ -150,14 +150,8 @@ watch(currentLayout, (newLayout) => {
 }
 
 /* Headings: clear hierarchy and spacing */
-.prose :where(h1) {
-  font-family: 'Gambetta';
-  font-size: clamp(1.875rem, 1.2rem + 2vw, 2.25rem);
-  line-height: 0.6;
-  margin-bottom: 0.8em;
-}
 .prose :where(h2) {
-  font-size: 1.1rem;
+  font-size: 3.0rem;
   line-height: 1.3;
   font-weight: 800;
   font-family: 'Gambetta';
@@ -176,6 +170,7 @@ watch(currentLayout, (newLayout) => {
   margin-top: 1em;
   margin-bottom: 1.25em;
   padding-left: 1.4em;
+  list-style: disc;
 }
 .prose :where(li + li) {
   margin-top: 0.4em;

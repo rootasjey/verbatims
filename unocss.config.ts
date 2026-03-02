@@ -78,6 +78,10 @@ export default {
     'ring-blue-700/10', 'ring-purple-700/10', 'ring-orange-700/10', 'ring-pink-700/10', 'ring-indigo-700/10',
     'dark:n-blue-400', 'dark:n-purple-400', 'dark:n-orange-400', 'dark:n-pink-400', 'dark:n-indigo-400',
     'dark:ring-blue-400/30', 'dark:ring-purple-400/30', 'dark:ring-orange-400/30', 'dark:ring-pink-400/30', 'dark:ring-indigo-400/30',
+    
+    // Toggle colors used by social queue class-based shortcuts
+    // (`toggle-on-*` / `toggle-off-*` classes in admin social queue)
+    'outline-gray', 'outline-blue', 'outline-green', 'outline-pink', 'outline-red', 'ghost-gray',
   ],
   shortcuts: [
     {
