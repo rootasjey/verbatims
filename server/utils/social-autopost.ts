@@ -1116,6 +1116,12 @@ async function fetchImagePayload(imageUrl: string): Promise<{ bytes: ArrayBuffer
 function getInternalImagePath(imageUrl: string): string | null {
   try {
     const parsed = new URL(imageUrl)
+    const hostname = parsed.hostname.toLowerCase()
+    const isLocalHost = hostname === 'localhost'
+      || hostname === '127.0.0.1'
+      || hostname === '::1'
+      || hostname.endsWith('.local')
+    if (!isLocalHost) return null
     const pathname = parsed.pathname || ''
     const isKnownImageEndpoint = pathname.startsWith('/api/social/images/') || pathname.startsWith('/api/og/')
     if (!isKnownImageEndpoint) return null
