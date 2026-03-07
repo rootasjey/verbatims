@@ -1,6 +1,7 @@
 import { runSocialAutopostWithOptions } from '../../../utils/social-autopost'
 import type { SocialPlatform } from '#shared/constants/social'
 import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constants/social'
+import { resolveAppOrigin } from '../../../utils/app-origin'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -20,8 +21,7 @@ export default defineEventHandler(async (event) => {
     : undefined
 
   const configuredBaseSiteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '')
-  const requestUrl = getRequestURL(event)
-  const requestBaseSiteUrl = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
+  const requestBaseSiteUrl = resolveAppOrigin(event)
   const baseSiteUrl = configuredBaseSiteUrl || requestBaseSiteUrl
 
   if (selectedPlatform === 'instagram' || selectedPlatform === 'threads' || selectedPlatform === 'pinterest' || selectedPlatform === 'facebook') {
@@ -59,10 +59,26 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const result = await runSocialAutopostWithOptions({ force: true, platform: selectedPlatform, baseSiteUrl })
+  try {
+    const result = await runSocialAutopostWithOptions({ force: true, platform: selectedPlatform, baseSiteUrl })
 
-  return {
-    success: true,
-    data: result
+    return {
+      success: true,
+      data: result
+    }
+  } catch (error: any) {
+    console.error('[social-queue/run-now] failed', {
+      platform: selectedPlatform,
+      baseSiteUrl,
+      message: error?.message || error
+    })
+
+    return {
+      success: true,
+      data: {
+        success: false,
+        reason: error?.message || 'Unexpected error while running social autopost'
+      }
+    }
   }
 })

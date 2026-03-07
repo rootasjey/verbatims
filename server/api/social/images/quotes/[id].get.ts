@@ -1,4 +1,5 @@
 import { kv } from 'hub:kv'
+import { resolveAppOrigin } from '../../../../utils/app-origin'
 
 export default defineEventHandler(async (event) => {
   let quoteId = getRouterParam(event, 'id')
@@ -19,9 +20,8 @@ export default defineEventHandler(async (event) => {
   if (!quote) { throwServer(404, 'Quote not found'); return }
 
   const config = useRuntimeConfig()
-  const requestUrl = getRequestURL(event)
   const styleVersion = `${(config.public as any).ogStyleVersion || '1'}:square-v1`
-  const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
+  const origin = resolveAppOrigin(event)
 
   const basis = JSON.stringify({
     t: quote.text,
