@@ -1,12 +1,105 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-4 sm:px-5 py-8 sm:py-12">
     <div class="mt-12">
-      <h1 class="font-serif font-size-32 font-600 line-height-tight">About</h1>
-      <h3 class="-top-2 text-6 font-subtitle text-gray-500 relative">
+      <h1 class="font-serif font-size-32 font-600 line-height-26">About</h1>
+      <h3 class="text-6 line-height-8 font-body font-200 text-gray-500 relative">
         A home for timeless words: curated, searchable, and crafted for daily inspiration.
       </h3>
-      <NBadge badge="outline-green" size="sm" :label="`version ${version}`" class="mt-2" />
+      <NBadge badge="solid-blue" size="sm" :label="`Version ${version}`" class="mt-2 px-4 font-600 font-sans" rounded="6" />
     </div>
+
+    <section>
+      <h2 class="text-center">Who am I?</h2>
+      <div class="flex justify-center items-center gap-4 mb-4">
+        <img
+          src="/images/profile-picture.png" 
+          alt="Photo of Jérémie, the creator of Verbatims" 
+          width="120" 
+          height="120" 
+          class="rounded-full mb-4"
+        />
+      </div>
+      <p>
+        I'm Jérémie, a software engineer and lifelong quote collector. 
+        I built Verbatims to solve a personal problem: how to keep track of the many quotes I love, along with their sources and context, in a way that makes them easy to find and share. 
+        I have a background in building web applications and a passion for thoughtful design, so this project is a blend of my interests in technology, literature, and curation.
+      </p>
+      
+      <div class="flex justify-start items-center gap-4 mt-4">
+        <NTooltip content="GitHub">
+          <NButton 
+            icon
+            label="i-ph-github-logo" 
+            btn="outline-gray" 
+            size="sm" 
+            to="https://github.com/rootasjey" target="_blank" 
+            class="decoration-none"
+          />
+        </NTooltip>
+
+        <NTooltip content="Twitter (X)">
+          <NButton 
+            icon
+            label="i-ph-twitter-logo" 
+            btn="outline-gray" 
+            size="sm" 
+            to="https://twitter.com/rootasjey" target="_blank" 
+            class="decoration-none"
+          />
+        </NTooltip>
+        <NTooltip content="Bluesky">
+          <NButton 
+            icon
+            label="i-ph-butterfly" 
+            btn="outline-gray" 
+            size="sm" 
+            to="https://bsky.app/profile/corpinot.bsky.social" target="_blank" 
+            class="decoration-none"
+          />
+        </NTooltip>
+
+        <NTooltip content="LinkedIn">
+          <NButton 
+            icon
+            label="i-ph-linkedin-logo" 
+            btn="outline-gray" 
+            size="sm" 
+            to="https://www.linkedin.com/in/jeremiecorpinot/" target="_blank" 
+            class="decoration-none"
+          />
+        </NTooltip>
+        <NTooltip content="Facebook">
+          <NButton 
+            icon
+            label="i-ph-facebook-logo" 
+            btn="outline-gray" 
+            size="sm" 
+            to="https://www.facebook.com/jeremiecorpinot/" target="_blank" 
+            class="decoration-none"
+          />
+        </NTooltip>
+        
+        <NTooltip content="Instagram">
+          <NButton 
+            icon
+            label="i-ph-instagram-logo" 
+            btn="outline-gray" 
+            size="sm" 
+            to="https://www.instagram.com/rootasjey/" target="_blank" 
+            class="decoration-none"
+          />
+        </NTooltip>
+      </div>
+
+      <div class="mt-24">
+        <img 
+          src="/images/moi-et-gigi.jpeg" 
+          alt="Photo of Jérémie and Gigi" 
+          height="120" 
+          class="rounded-2 mt-6 hover:scale-105 hover:shadow-lg transition-all duration-300 object-cover"
+        />
+      </div>
+    </section>
 
     <section>
       <h2>Purpose</h2>
@@ -198,22 +291,26 @@ watch(currentLayout, (newLayout) => {
 
 /* Headings: clear hierarchy and spacing */
 .prose :where(h2) {
-  font-size: 2rem;
-  line-height: 1.3;
-  font-weight: 800;
+  font-size: 3rem;
+  line-height: 0.8;
+  font-weight: 200;
   font-family: 'Gambetta';
   margin-top: 2.2em;
-  margin-bottom: 0.8em;
+  margin-bottom: 0.6em;
 }
 
 /* Paragraphs and lists spacing */
 .prose :where(p) {
   font-family: 'Nunito';
+  font-size: 1.4rem;
   margin-top: 1em;
   margin-bottom: 1em;
+  color: #374151; /* gray-700 */
 }
 .prose :where(ul, ol) {
   font-family: 'Nunito';
+  font-size: 1.4rem;
+  color: #374151; /* gray-700 */
   margin-top: 1em;
   margin-bottom: 1.25em;
   padding-left: 1.4em;
@@ -281,6 +378,9 @@ watch(currentLayout, (newLayout) => {
   }
   .prose :where(p.text-sm) {
     color: #9CA3AF; /* gray-400 */
+  }
+  .prose :where(p) {
+    color: #D1D5DB; /* gray-300 */
   }
 }
 </style>
