@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, asc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm'
 import type { SocialPlatform } from '#shared/constants/social'
 import { isUnimplementedSocialPlatform } from '#shared/constants/social'
 import { buildXAuthHeaders, getXAuthConfig, getXCredentialErrorMessage, withXUserContextHint, type XAuthConfig } from './social-x-auth'
@@ -226,7 +226,10 @@ function buildQueueConditions(platforms: SocialPlatform[], now: Date) {
   return [
     platformCondition,
     eq(schema.socialQueue.status, 'queued'),
-    sql`(${schema.socialQueue.scheduledFor} IS NULL OR ${schema.socialQueue.scheduledFor} <= ${now})`
+    or(
+      isNull(schema.socialQueue.scheduledFor),
+      lte(schema.socialQueue.scheduledFor, now)
+    )
   ]
 }
 
