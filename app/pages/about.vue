@@ -93,11 +93,15 @@
 
       <div class="mt-24">
         <img 
-          src="/images/moi-et-gigi.jpeg" 
-          alt="Photo of Jérémie and Gigi" 
+          src="/images/more-than-words.jpeg" 
+          alt="More than words" 
           height="120" 
           class="rounded-2 mt-6 hover:scale-105 hover:shadow-lg transition-all duration-300 object-cover"
         />
+        <p class="text-size-2 italic">
+          A drawing I did titled "More than Words" inspired by the Anime "Jujutsu Kaisen".
+          See more of my art on <a href="https://zimablue.cc" target="_blank" class="font-600 hover:underline">Zima Blue</a>.
+        </p>
       </div>
     </section>
 
@@ -367,6 +371,12 @@ watch(currentLayout, (newLayout) => {
 .prefers-dark .prose :where(p.text-sm) {
   color: #9CA3AF; /* gray-400 */
 }
+.prefers-dark .prose :where(p) {
+  color: #D1D5DB; /* gray-300 */
+}
+.prefers-dark .prose :where(ul, ol) {
+  color: #D1D5DB; /* gray-300 */
+}
 
 /* Dark mode via OS preference */
 @media (prefers-color-scheme: dark) {
@@ -380,6 +390,9 @@ watch(currentLayout, (newLayout) => {
     color: #9CA3AF; /* gray-400 */
   }
   .prose :where(p) {
+    color: #D1D5DB; /* gray-300 */
+  }
+  .prose :where(ul, ol) {
     color: #D1D5DB; /* gray-300 */
   }
 }
