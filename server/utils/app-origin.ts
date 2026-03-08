@@ -9,13 +9,14 @@ export function resolveAppOrigin(event: H3Event): string {
   const siteUrl = normalizeUrl(String(runtimeConfig.public.siteUrl || ''))
   const hostname = requestUrl.hostname.toLowerCase()
   const hasExplicitPort = Boolean(requestUrl.port)
-  const isLocalHost = hostname === 'localhost'
-    || hostname === '127.0.0.1'
-    || hostname === '::1'
-    || hostname.endsWith('.local')
+  const isInternalHost = isLocalHostname(hostname) || !hostname.includes('.')
 
-  if (import.meta.dev && isLocalHost && !hasExplicitPort && authUrl) {
+  if (import.meta.dev && isInternalHost && !hasExplicitPort && authUrl) {
     return authUrl
+  }
+
+  if (!import.meta.dev && isInternalHost && siteUrl) {
+    return siteUrl
   }
 
   if (requestOrigin) {
@@ -35,4 +36,11 @@ export function resolveAppOrigin(event: H3Event): string {
 
 function normalizeUrl(value: string): string {
   return value.trim().replace(/\/$/, '')
+}
+
+function isLocalHostname(hostname: string): boolean {
+  return hostname === 'localhost'
+    || hostname === '127.0.0.1'
+    || hostname === '::1'
+    || hostname.endsWith('.local')
 }

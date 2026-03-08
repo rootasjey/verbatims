@@ -1107,7 +1107,9 @@ async function fetchImagePayload(imageUrl: string): Promise<{ bytes: ArrayBuffer
 
   const imageResponse = await fetch(imageUrl)
   if (!imageResponse.ok) {
-    throw new Error(`Failed to fetch image from ${imageUrl}`)
+    const details = await imageResponse.text().catch(() => '')
+    const suffix = details ? ` (${imageResponse.status}: ${details.slice(0, 240)})` : ` (${imageResponse.status})`
+    throw new Error(`Failed to fetch image from ${imageUrl}${suffix}`)
   }
 
   return {
@@ -1118,13 +1120,24 @@ async function fetchImagePayload(imageUrl: string): Promise<{ bytes: ArrayBuffer
 
 function getInternalImagePath(imageUrl: string): string | null {
   try {
+    const runtimeConfig = useRuntimeConfig()
     const parsed = new URL(imageUrl)
+    const normalizedOrigin = parsed.origin.replace(/\/$/, '')
+    const knownOrigins = new Set(
+      [
+        String(runtimeConfig.public.siteUrl || ''),
+        String(runtimeConfig.public.authUrl || '')
+      ]
+        .map(value => value.trim().replace(/\/$/, ''))
+        .filter(Boolean)
+    )
     const hostname = parsed.hostname.toLowerCase()
     const isLocalHost = hostname === 'localhost'
       || hostname === '127.0.0.1'
       || hostname === '::1'
       || hostname.endsWith('.local')
-    if (!isLocalHost) return null
+    const isKnownOrigin = knownOrigins.has(normalizedOrigin)
+    if (!isLocalHost && !isKnownOrigin) return null
     const pathname = parsed.pathname || ''
     const isKnownImageEndpoint = pathname.startsWith('/api/social/images/') || pathname.startsWith('/api/og/')
     if (!isKnownImageEndpoint) return null
