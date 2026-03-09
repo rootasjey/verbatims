@@ -154,6 +154,7 @@ This project includes an admin-managed social queue and a daily scheduled autopo
 - `NUXT_BLUESKY_POST_SERVICE` (default: `https://bsky.social`)
 - `NUXT_BLUESKY_POST_IDENTIFIER` (Bluesky handle or identifier)
 - `NUXT_BLUESKY_POST_PASSWORD` (Bluesky app password)
+- `NUXT_BLUESKY_POST_HASHTAGS` (optional, space/comma-separated, default: empty)
 - `NUXT_INSTAGRAM_POST_ENABLED` (default: `false`)
 - `NUXT_INSTAGRAM_POST_BASE_URL` (default: `https://graph.facebook.com`)
 - `NUXT_INSTAGRAM_POST_API_VERSION` (default: `v24.0`)
@@ -203,7 +204,8 @@ This project includes an admin-managed social queue and a daily scheduled autopo
 - One queued item is processed per scheduler run.
 - Queue items are platform-scoped (`x`, `bluesky`, `instagram`, `threads`, `facebook`, or `pinterest`) for insertion.
 - Autopost now uses a square social image generated from `/api/social/images/quotes/{id}.png`.
-- Bluesky posts include the square social image.
+- Bluesky posts include the square social image and attach the quote URL as a rich-text link facet so the visible link is clickable in the published post.
+- Bluesky hashtags are optional and can be configured with `NUXT_BLUESKY_POST_HASHTAGS`; keep them sparse to avoid spammy-looking posts.
 - X posts use user-context auth only (OAuth 2.0 User Context or OAuth 1.0a).
 - X image upload requires OAuth 1.0a credentials; with OAuth 2.0-only credentials, posting falls back to text-only unless `NUXT_X_POST_REQUIRE_MEDIA=true`.
 - Instagram posts create a Graph API media container, poll until ready, and publish to feed with image + caption.

@@ -20,6 +20,27 @@ interface PublishResult {
   error?: string
 }
 
+interface BuildPostTextInput {
+  quoteText: string
+  authorName?: string
+  referenceName?: string
+  quoteUrl: string
+  blueskyHashtags?: string
+}
+
+type BlueskyFacet = {
+  index: {
+    byteStart: number
+    byteEnd: number
+  }
+  features: Array<
+    { $type: 'app.bsky.richtext.facet#link', uri: string }
+    | { $type: 'app.bsky.richtext.facet#tag', tag: string }
+  >
+}
+
+const utf8Encoder = new TextEncoder()
+
 export async function runSocialAutopost() {
   return runSocialAutopostWithOptions({ force: false })
 }
@@ -100,17 +121,23 @@ export async function runSocialAutopostWithOptions(options: { force?: boolean, p
     baseSiteUrl,
     quoteId: nextItem.quoteId
   })
+  const resolvedBluesky = itemPlatform === 'bluesky'
+    ? await resolveBlueskyProviderConfig()
+    : null
+
   const content = buildPostText(itemPlatform, {
     quoteText,
     authorName: nextItem.authorName || undefined,
     referenceName: nextItem.referenceName || undefined,
-    quoteUrl
+    quoteUrl,
+    blueskyHashtags: resolvedBluesky?.hashtags
   })
 
   const publishResult = await publishByPlatform(itemPlatform, {
     text: content,
     quoteUrl,
-    imageUrl
+    imageUrl,
+    blueskyHashtags: resolvedBluesky?.hashtags
   })
 
   if (!publishResult.ok) {
@@ -165,12 +192,7 @@ function getLocalTimeHHMM(now: Date, timezone: string): string {
   return `${hour}:${minute}`
 }
 
-function buildPostText(platform: SocialPlatform, input: {
-  quoteText: string
-  authorName?: string
-  referenceName?: string
-  quoteUrl: string
-}): string {
+function buildPostText(platform: SocialPlatform, input: BuildPostTextInput): string {
   const attributionParts: string[] = []
   if (input.authorName) attributionParts.push(input.authorName)
   if (input.referenceName) attributionParts.push(input.referenceName)
@@ -197,6 +219,30 @@ function buildPostText(platform: SocialPlatform, input: {
       `“${truncatedQuote}”`,
       attribution,
       hashtags ? `\n${hashtags}` : ''
+    ].filter(Boolean).join('\n').trim()
+  }
+
+  if (platform === 'bluesky') {
+    const hashtags = buildBlueskyHashtags(input.blueskyHashtags)
+    const maxLength = 300
+    const suffix = [attribution, input.quoteUrl, hashtags]
+      .filter(Boolean)
+      .join('\n')
+      .trim()
+    const base = [
+      `“${input.quoteText.trim()}”`,
+      suffix
+    ].filter(Boolean).join('\n').trim()
+
+    if (base.length <= maxLength) return base
+
+    const reserved = suffix ? `\n${suffix}`.length : 0
+    const maxQuoteLength = Math.max(30, maxLength - reserved - 4)
+    const truncatedQuote = `${input.quoteText.trim().slice(0, maxQuoteLength)}…`
+
+    return [
+      `“${truncatedQuote}”`,
+      suffix
     ].filter(Boolean).join('\n').trim()
   }
 
@@ -262,9 +308,9 @@ async function getEnabledPlatforms(): Promise<SocialPlatform[]> {
   return enabled
 }
 
-async function publishByPlatform(platform: SocialPlatform, payload: { text: string, quoteUrl: string, imageUrl: string }): Promise<PublishResult> {
+async function publishByPlatform(platform: SocialPlatform, payload: { text: string, quoteUrl: string, imageUrl: string, blueskyHashtags?: string }): Promise<PublishResult> {
   if (platform === 'bluesky') {
-    return postToBluesky(payload.text, payload.imageUrl)
+    return postToBluesky(payload.text, payload.quoteUrl, payload.imageUrl, payload.blueskyHashtags)
   }
 
   if (platform === 'instagram') {
@@ -414,7 +460,7 @@ function getPlatformImageUrl(platform: SocialPlatform, input: { baseSiteUrl: str
   return `${input.baseSiteUrl}/api/og/quotes/${input.quoteId}.png`
 }
 
-async function postToBluesky(text: string, imageUrl: string): Promise<PublishResult> {
+async function postToBluesky(text: string, quoteUrl: string, imageUrl: string, hashtagsSource?: string): Promise<PublishResult> {
   const resolved = await resolveBlueskyProviderConfig()
   const service = resolved.service
   const identifier = resolved.identifier
@@ -473,10 +519,12 @@ async function postToBluesky(text: string, imageUrl: string): Promise<PublishRes
       return { ok: false, error: message }
     }
 
+    const facets = buildBlueskyFacets(text, quoteUrl, hashtagsSource)
     const record = {
       $type: 'app.bsky.feed.post',
       text,
       createdAt: new Date().toISOString(),
+      ...(facets ? { facets } : {}),
       embed: {
         $type: 'app.bsky.embed.images',
         images: [
@@ -524,6 +572,57 @@ async function postToBluesky(text: string, imageUrl: string): Promise<PublishRes
   } catch (error: any) {
     return { ok: false, error: error?.message || 'Network error while posting to Bluesky' }
   }
+}
+
+function buildBlueskyFacets(text: string, quoteUrl: string, hashtagsSource?: string): BlueskyFacet[] | undefined {
+  const facets: BlueskyFacet[] = []
+  const hashtags = buildBlueskyHashtags(hashtagsSource)
+    .split(/\s+/)
+    .map(part => part.trim())
+    .filter(Boolean)
+
+  const linkStart = text.lastIndexOf(quoteUrl)
+  if (linkStart !== -1) {
+    facets.push({
+      index: buildBlueskyFacetIndex(text, linkStart, linkStart + quoteUrl.length),
+      features: [
+        {
+          $type: 'app.bsky.richtext.facet#link',
+          uri: quoteUrl
+        }
+      ]
+    })
+  }
+
+  let searchFrom = linkStart === -1 ? 0 : linkStart + quoteUrl.length
+  for (const hashtag of hashtags) {
+    const hashtagStart = text.indexOf(hashtag, searchFrom)
+    if (hashtagStart === -1) continue
+
+    facets.push({
+      index: buildBlueskyFacetIndex(text, hashtagStart, hashtagStart + hashtag.length),
+      features: [
+        {
+          $type: 'app.bsky.richtext.facet#tag',
+          tag: hashtag.slice(1)
+        }
+      ]
+    })
+    searchFrom = hashtagStart + hashtag.length
+  }
+
+  return facets.length ? facets : undefined
+}
+
+function buildBlueskyFacetIndex(text: string, start: number, end: number) {
+  return {
+    byteStart: utf16IndexToUtf8Index(text, start),
+    byteEnd: utf16IndexToUtf8Index(text, end)
+  }
+}
+
+function utf16IndexToUtf8Index(text: string, index: number): number {
+  return utf8Encoder.encode(text.slice(0, index)).byteLength
 }
 
 async function postToInstagram(caption: string, imageUrl: string): Promise<PublishResult> {
@@ -1052,6 +1151,22 @@ function buildInstagramHashtags(): string {
     .filter(part => part.length > 1)
 
   const unique = [...new Set(normalized)].slice(0, 30)
+  return unique.join(' ')
+}
+
+function buildBlueskyHashtags(sourceValue?: string): string {
+  const source = String(sourceValue ?? process.env.NUXT_BLUESKY_POST_HASHTAGS ?? '').trim()
+  if (!source) return ''
+
+  const normalized = source
+    .split(/[\s,]+/)
+    .map(part => part.trim())
+    .filter(Boolean)
+    .map(part => part.startsWith('#') ? part : `#${part}`)
+    .map(part => `#${part.slice(1).replace(/[^\p{L}\p{N}_]/gu, '')}`)
+    .filter(part => part.length > 1)
+
+  const unique = [...new Set(normalized)].slice(0, 3)
   return unique.join(' ')
 }
 

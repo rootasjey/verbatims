@@ -24,6 +24,7 @@ export interface SocialProviderConfigStore {
     service?: string
     identifier?: string
     password?: string
+    hashtags?: string
   }
   pinterest?: {
     enabled?: boolean
@@ -67,11 +68,13 @@ export interface ResolvedBlueskyProviderConfig {
   service: string
   identifier: string
   password: string
+  hashtags: string
   sources: {
     enabled: Source
     service: Source
     identifier: Source
     password: Source
+    hashtags: Source
   }
 }
 
@@ -124,7 +127,8 @@ function normalizeStoredConfig(raw: unknown): SocialProviderConfigStore | null {
           enabled: typeof value.bluesky.enabled === 'boolean' ? value.bluesky.enabled : undefined,
           service: typeof value.bluesky.service === 'string' ? value.bluesky.service : undefined,
           identifier: typeof value.bluesky.identifier === 'string' ? value.bluesky.identifier : undefined,
-          password: typeof value.bluesky.password === 'string' ? value.bluesky.password : undefined
+          password: typeof value.bluesky.password === 'string' ? value.bluesky.password : undefined,
+          hashtags: typeof value.bluesky.hashtags === 'string' ? value.bluesky.hashtags : undefined
         }
       : undefined,
     pinterest: value.pinterest && typeof value.pinterest === 'object'
@@ -211,7 +215,8 @@ export async function updateSocialProviderConfigStore(input: {
       enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.bluesky?.enabled,
       service: normalizeOptionalString(input.values.service),
       identifier: normalizeOptionalString(input.values.identifier),
-      password: normalizeOptionalString(input.values.password)
+      password: normalizeOptionalString(input.values.password),
+      hashtags: normalizeOptionalString(input.values.hashtags)
     }
   }
 
@@ -401,16 +406,24 @@ export async function resolveBlueskyProviderConfig(): Promise<ResolvedBlueskyPro
     fallback: ''
   })
 
+  const hashtags = resolveStringField({
+    kv: stored?.bluesky?.hashtags,
+    env: String(process.env.NUXT_BLUESKY_POST_HASHTAGS || ''),
+    fallback: ''
+  })
+
   return {
     enabled: enabled.value,
     service: service.value.replace(/\/$/, ''),
     identifier: identifier.value,
     password: password.value,
+    hashtags: hashtags.value,
     sources: {
       enabled: enabled.source,
       service: service.source,
       identifier: identifier.source,
-      password: password.source
+      password: password.source,
+      hashtags: hashtags.source
     }
   }
 }

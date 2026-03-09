@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
           enabled: resolved.enabled,
           service: resolved.service,
           identifier: resolved.identifier,
-          password: resolved.password
+          password: resolved.password,
+          hashtags: resolved.hashtags
         },
         sources: resolved.sources
       }
