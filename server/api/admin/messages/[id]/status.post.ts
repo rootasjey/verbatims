@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     .set({
       status,
       reviewedBy: session.user.id,
-      reviewedAt: sql`CURRENT_TIMESTAMP`
+      reviewedAt: new Date()
     })
     .where(eq(schema.userMessages.id, id))
 
