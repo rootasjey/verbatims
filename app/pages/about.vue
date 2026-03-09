@@ -118,14 +118,14 @@
     <section>
       <h2>A short history</h2>
       <p>
-        We love note-taking and collecting quotes — but keeping them scattered in docs and screenshots made them hard to find, verify, and share. Verbatims began as a simple tool to bring quotes, sources, and context together in one place.
+        We love note-taking and collecting quotes, but keeping them scattered in docs and screenshots made them hard to find, verify, and share. Verbatims began as a simple tool to bring quotes, sources, and context together in one place.
       </p>
       <p>
         The vision: a thoughtful, accurate, and inviting library where you can browse by topic or author, build personal collections, and get gentle nudges to revisit ideas that matter to you.
       </p>
       <p>
         This project has gone through multiple re-dos. It started as a Windows Phone app called
-        "Citamours", evolved through several prototypes and rewrites, and eventually became
+        <i>Citamour</i>, evolved through several prototypes and rewrites, and eventually became
         the web-focused project you see today: Verbatims. Each rebuild taught us about
         discoverability, moderation, and the importance of good metadata.
       </p>
@@ -135,7 +135,7 @@
       <h2>What you can do</h2>
       <ul>
         <li>Browse and search by topic, author, keyword, or reference. Relevant results surface fast, with smart ranking.</li>
-        <li>Save favorites and build collections — keep what resonates close and organized.</li>
+        <li>Save favorites and build collections: keep what resonates close and organized.</li>
         <li>Get a daily quote notification tailored to your interests and recent activity.</li>
         <li>Share beautifully formatted cards to social media, or copy clean text with attribution.</li>
         <li>Contribute your own quotes with sources. Submissions go through moderation for accuracy and clarity.</li>
@@ -148,7 +148,7 @@
         Quotes are sourced from primary texts when possible, reputable anthologies, scholarly databases, and trusted archives. Each quote includes attribution and, where available, reference details.
       </p>
       <p>
-        We verify wording and authorship before publishing. When a quote is widely misattributed, we either correct it with a note or decline it. We also welcome community reports with citations — corrections help everyone.
+        We verify wording and authorship before publishing. When a quote is widely misattributed, we either correct it with a note or decline it. We also welcome community reports with citations. Corrections help everyone.
       </p>
       <p>
         Editorial guidelines prioritize clarity, context, and respectful representation. Paraphrases are labeled; ellipses and edits are clearly indicated.
@@ -161,7 +161,7 @@
         <li>Submit quotes with sources directly from quote pages or your dashboard.</li>
         <li>Report issues (typos, attribution, duplicates) using the “Report” action on any quote.</li>
         <li>Suggest features and improvements from the settings “Feedback” link.</li>
-        <li>Participate respectfully — celebrate ideas, not individuals. Harassment, hate, or plagiarism isn't allowed.</li>
+        <li>Participate respectfully: celebrate ideas, not individuals. Harassment, hate, or plagiarism isn't allowed.</li>
       </ul>
     </section>
 

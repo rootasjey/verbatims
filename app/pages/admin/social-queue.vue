@@ -394,6 +394,7 @@ interface ProviderConfigForm {
   service: string
   identifier: string
   password: string
+  hashtags: string
   accessToken: string
   boardId: string
   baseUrl: string
@@ -448,6 +449,7 @@ const providerConfigForm = reactive<ProviderConfigForm>({
   service: '',
   identifier: '',
   password: '',
+  hashtags: '',
   accessToken: '',
   boardId: '',
   baseUrl: '',
@@ -894,6 +896,7 @@ function resetProviderConfigForm() {
   providerConfigForm.service = ''
   providerConfigForm.identifier = ''
   providerConfigForm.password = ''
+  providerConfigForm.hashtags = ''
   providerConfigForm.accessToken = ''
   providerConfigForm.boardId = ''
   providerConfigForm.baseUrl = ''
@@ -913,6 +916,7 @@ function applyProviderConfigResponse(data: ProviderConfigResponseData) {
   providerConfigForm.service = String(values.service || '')
   providerConfigForm.identifier = String(values.identifier || '')
   providerConfigForm.password = String(values.password || '')
+  providerConfigForm.hashtags = String(values.hashtags || '')
   providerConfigForm.accessToken = String(values.accessToken || '')
   providerConfigForm.boardId = String(values.boardId || '')
   providerConfigForm.baseUrl = String(values.baseUrl || '')
@@ -982,6 +986,7 @@ async function saveProviderConfig() {
       body.service = providerConfigForm.service
       body.identifier = providerConfigForm.identifier
       body.password = providerConfigForm.password
+      body.hashtags = providerConfigForm.hashtags
     }
 
     if (selectedPlatform.value === 'pinterest') {

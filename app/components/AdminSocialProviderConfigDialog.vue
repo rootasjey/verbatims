@@ -87,6 +87,13 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('password') }}</p>
         </div>
 
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Hashtags</label>
+          <NInput v-model="form.hashtags" placeholder="#quotes #verbatims" />
+          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('hashtags') }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Optional. Space or comma separated. Only the first 3 valid hashtags are used.</p>
+        </div>
+
         <NCollapsible v-model:open="providerAdvancedOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
           <NCollapsibleTrigger as-child class="w-full">
             <NButton btn="ghost-gray" class="px-2 w-full justify-between">
@@ -185,6 +192,7 @@ interface ProviderConfigForm {
   service: string
   identifier: string
   password: string
+  hashtags: string
   accessToken: string
   boardId: string
   baseUrl: string

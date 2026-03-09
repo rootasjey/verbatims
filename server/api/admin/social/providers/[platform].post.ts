@@ -68,7 +68,8 @@ export default defineEventHandler(async (event) => {
         enabled: normalizeBoolean(body?.enabled, false),
         service: normalizeOptionalString(body?.service),
         identifier: normalizeOptionalString(body?.identifier),
-        password: normalizeOptionalString(body?.password)
+        password: normalizeOptionalString(body?.password),
+        hashtags: normalizeOptionalString(body?.hashtags)
       }
     })
 
@@ -81,7 +82,8 @@ export default defineEventHandler(async (event) => {
           enabled: resolved.enabled,
           service: resolved.service,
           identifier: resolved.identifier,
-          password: resolved.password
+          password: resolved.password,
+          hashtags: resolved.hashtags
         },
         sources: resolved.sources
       }
