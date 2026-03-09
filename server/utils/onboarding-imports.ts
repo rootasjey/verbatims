@@ -5,6 +5,7 @@
 import { updateStepProgress, addWarning } from './onboarding-progress'
 import { schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
+import { parseTimestampInput } from '~~/server/utils/date-normalization'
 
 export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<string, any[]>> {
   const { unzipSync } = await import('fflate')
@@ -253,7 +254,8 @@ export async function importUserMessagesFromDataset(db: any, importId: string, m
       const target_type = allowedTarget.has(m.target_type) ? m.target_type : 'general'
       const status = allowedStatus.has(m.status) ? m.status : 'new'
       const tagsJson = JSON.stringify(m.tags || [])
-      const created = m.created_at ? new Date(m.created_at) : new Date()
+      const created = parseTimestampInput(m.created_at) ?? new Date()
+      const reviewedAt = parseTimestampInput(m.reviewed_at)
       const explicitId = Number.isFinite(Number(m?.id)) ? Number(m.id) : undefined
 
       const values: any = {
@@ -269,7 +271,7 @@ export async function importUserMessagesFromDataset(db: any, importId: string, m
         userAgent: m.user_agent || null,
         status,
         reviewedBy: m.reviewed_by || null,
-        reviewedAt: m.reviewed_at ? new Date(m.reviewed_at) : null,
+        reviewedAt,
         createdAt: created
       }
 

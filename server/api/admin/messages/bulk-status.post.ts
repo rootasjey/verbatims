@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { inArray, sql } from 'drizzle-orm'
+import { inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     .set({
       status,
       reviewedBy: session.user.id,
-      reviewedAt: sql`CURRENT_TIMESTAMP`
+      reviewedAt: new Date()
     })
     .where(inArray(schema.userMessages.id, ids))
 

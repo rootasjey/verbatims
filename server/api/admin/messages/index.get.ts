@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { and, desc, eq, like, or, sql } from 'drizzle-orm'
+import { toISOStringOrEmpty, toISOStringOrNull } from '~~/server/utils/date-normalization'
 
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {
   const session = await requireUserSession(event)
@@ -92,8 +93,8 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       user_agent: row.user_agent ?? null,
       status: row.status,
       reviewed_by: row.reviewed_by ?? null,
-      reviewed_at: row.reviewed_at ? (row.reviewed_at instanceof Date ? row.reviewed_at.toISOString() : row.reviewed_at) : null,
-      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+      reviewed_at: toISOStringOrNull(row.reviewed_at),
+      created_at: toISOStringOrEmpty(row.created_at),
       user_name: row.user_name ?? null,
       user_email: row.user_email ?? null,
       quote_text: row.quote_text ?? null,

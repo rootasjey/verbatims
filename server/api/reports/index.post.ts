@@ -8,6 +8,8 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
   const clientIP = getRequestIP(event) || 'unknown'
   const userAgent = getHeader(event, 'user-agent') || 'unknown'
+  const anonWindowStart = new Date(Date.now() - ANON_WINDOW_MINUTES * 60 * 1000)
+  const duplicateWindowStart = new Date(Date.now() - 5 * 60 * 1000)
 
   const body = await readBody<CreateUserMessageInput>(event)
 
@@ -38,7 +40,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.userMessages)
       .where(and(
         eq(schema.userMessages.ipAddress, clientIP),
-        gt(schema.userMessages.createdAt, sql`datetime('now', ${`-${ANON_WINDOW_MINUTES} minutes`})`)
+        gt(schema.userMessages.createdAt, anonWindowStart)
       ))
 
     const messageCount = Number(recentCount?.cnt || 0)
@@ -51,7 +53,7 @@ export default defineEventHandler(async (event) => {
       .where(and(
         eq(schema.userMessages.ipAddress, clientIP),
         eq(schema.userMessages.message, message),
-        gt(schema.userMessages.createdAt, sql`datetime('now', '-5 minutes')`)
+        gt(schema.userMessages.createdAt, duplicateWindowStart)
       ))
       .limit(1)
 
@@ -86,7 +88,8 @@ export default defineEventHandler(async (event) => {
     targetType,
     targetId,
     ipAddress: userId ? null : clientIP,
-    userAgent
+    userAgent,
+    createdAt: new Date()
   }).returning({ id: schema.userMessages.id })
 
   return { status: 'accepted', id: result.id }

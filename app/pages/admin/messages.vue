@@ -158,11 +158,12 @@ const bulkLoading = ref(false)
 const bulkOpen = ref(false)
 
 const searchQuery = ref('')
-const statusFilter = ref({ label: 'New', value: 'new' })
+const statusFilter = ref({ label: 'All statuses', value: '' })
 const categoryFilter = ref({ label: 'All categories', value: '' })
 const targetFilter = ref({ label: 'All targets', value: '' })
 
 const statusOptions = [
+  { label: 'All statuses', value: '' },
   { label: 'New', value: 'new' },
   { label: 'Triaged', value: 'triaged' },
   { label: 'Resolved', value: 'resolved' },
@@ -234,7 +235,7 @@ const loadMessages = async (page = 1) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  statusFilter.value = { label: 'New', value: 'new' }
+  statusFilter.value = { label: 'All statuses', value: '' }
   categoryFilter.value = { label: 'All categories', value: '' }
   targetFilter.value = { label: 'All targets', value: '' }
   currentPage.value = 1
