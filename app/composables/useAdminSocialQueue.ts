@@ -14,6 +14,9 @@ export interface SocialQueueItem {
   reference_name: string | null
   status: SocialQueueStatus
   position: number
+  published_post_url: string | null
+  published_external_post_id: string | null
+  published_posted_at: string | null
   quote_posts_count: number
   last_posted_at: string | null
 }

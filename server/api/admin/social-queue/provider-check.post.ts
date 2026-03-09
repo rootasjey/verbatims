@@ -372,7 +372,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const baseUrl = String(process.env.NUXT_FACEBOOK_POST_BASE_URL || 'https://graph.facebook.com').replace(/\/$/, '')
-    const apiVersion = String(process.env.NUXT_FACEBOOK_POST_API_VERSION || 'v24.0').replace(/^\/+/, '')
+    const apiVersion = String(process.env.NUXT_FACEBOOK_POST_API_VERSION || 'v25.0').replace(/^\/+/, '')
     const resolved = await resolveFacebookPostConfig()
     const accessToken = resolved.pageAccessToken
     const pageId = resolved.pageId

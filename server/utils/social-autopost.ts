@@ -894,7 +894,7 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
 
 async function postToFacebook(message: string, imageUrl: string): Promise<PublishResult> {
   const baseUrl = String(process.env.NUXT_FACEBOOK_POST_BASE_URL || 'https://graph.facebook.com').replace(/\/$/, '')
-  const apiVersion = String(process.env.NUXT_FACEBOOK_POST_API_VERSION || 'v24.0').replace(/^\/+/, '')
+  const apiVersion = String(process.env.NUXT_FACEBOOK_POST_API_VERSION || 'v25.0').replace(/^\/+/, '')
   const resolvedFacebook = await resolveFacebookPostConfig()
   const accessToken = resolvedFacebook.pageAccessToken
   const pageId = resolvedFacebook.pageId
