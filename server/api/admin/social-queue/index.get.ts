@@ -53,6 +53,30 @@ export default defineEventHandler(async (event) => {
     quote_language: schema.quotes.language,
     author_name: schema.authors.name,
     reference_name: schema.quoteReferences.name,
+    published_post_url: sql<string | null>`(
+      SELECT sp.post_url
+      FROM social_posts sp
+      WHERE sp.queue_id = ${schema.socialQueue.id}
+        AND sp.status = 'success'
+      ORDER BY sp.posted_at DESC, sp.id DESC
+      LIMIT 1
+    )`.as('published_post_url'),
+    published_external_post_id: sql<string | null>`(
+      SELECT sp.external_post_id
+      FROM social_posts sp
+      WHERE sp.queue_id = ${schema.socialQueue.id}
+        AND sp.status = 'success'
+      ORDER BY sp.posted_at DESC, sp.id DESC
+      LIMIT 1
+    )`.as('published_external_post_id'),
+    published_posted_at: sql<string | null>`(
+      SELECT sp.posted_at
+      FROM social_posts sp
+      WHERE sp.queue_id = ${schema.socialQueue.id}
+        AND sp.status = 'success'
+      ORDER BY sp.posted_at DESC, sp.id DESC
+      LIMIT 1
+    )`.as('published_posted_at'),
     quote_posts_count: sql<number>`COALESCE((
       SELECT COUNT(*)
       FROM social_posts sp

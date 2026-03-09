@@ -68,7 +68,26 @@
           empty-icon="i-ph-calendar"
         >
           <template #position-cell="{ cell }">
-            <span class="text-sm text-gray-900 dark:text-white">#{{ cell.row.original.position }}</span>
+            <div class="flex items-center gap-1.5">
+              <NLink
+                v-if="hasPublishedPostUrl(cell.row.original)"
+                :to="cell.row.original.published_post_url!"
+                target="_blank"
+                class="inline-flex items-center gap-1 text-sm text-green-700 dark:text-green-400 hover:underline"
+              >
+                <span>#{{ cell.row.original.position }}</span>
+                <NIcon name="i-ph-link-simple" class="w-3 h-3" />
+              </NLink>
+              <span v-else class="text-sm text-gray-900 dark:text-white">#{{ cell.row.original.position }}</span>
+              <NTooltip v-if="hasPublishedPostUrl(cell.row.original)">
+                <template #default>
+                  <NIcon name="i-ph-check-circle" class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                </template>
+                <template #content>
+                  <span>Published post available</span>
+                </template>
+              </NTooltip>
+            </div>
           </template>
 
           <template #quote-header>
@@ -582,6 +601,18 @@ function formatLastPosted(value: string | null) {
   return formatted === 'N/A' ? 'Never' : formatted
 }
 
+function hasPublishedPostUrl(item: SocialQueueItem) {
+  return item.status === 'posted' && !!item.published_post_url
+}
+
+function openPublishedPost(item: SocialQueueItem) {
+  if (!hasPublishedPostUrl(item) || typeof window === 'undefined') {
+    return
+  }
+
+  window.open(item.published_post_url!, '_blank', 'noopener,noreferrer')
+}
+
 function showErrorToast(title: string, description: string) {
   useToast().toast({
     title,
@@ -756,6 +787,14 @@ const tableHeaderMenuItems = computed(() => {
 function rowActionItems(item: SocialQueueItem) {
   const disabled = item.status !== 'queued'
   const actions: DropdownMenuItem[] = []
+  if (hasPublishedPostUrl(item)) {
+    actions.push({
+      label: 'Open post',
+      leading: 'i-ph-arrow-square-out',
+      onclick: () => openPublishedPost(item)
+    })
+    actions.push({})
+  }
   actions.push({
     label: 'Move up',
     leading: 'i-ph-caret-up',
