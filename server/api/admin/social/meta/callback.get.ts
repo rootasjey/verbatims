@@ -135,7 +135,7 @@ export default defineEventHandler(async (event) => {
       : undefined
 
     const accounts = await graphGet(`https://graph.facebook.com/${apiVersion}/me/accounts`, {
-      fields: 'id,name,access_token,perms,instagram_business_account{id,username}',
+      fields: 'id,name,access_token,instagram_business_account{id,username}',
       limit: '50',
       access_token: longUserToken
     })
@@ -144,7 +144,6 @@ export default defineEventHandler(async (event) => {
       id?: string
       name?: string
       access_token?: string
-      perms?: string[]
       instagram_business_account?: { id?: string, username?: string }
     }> : []
 
@@ -184,7 +183,7 @@ export default defineEventHandler(async (event) => {
         pageId: String(selectedPage.id),
         pageName: String(selectedPage.name || ''),
         pageAccessToken: String(selectedPage.access_token),
-        perms: Array.isArray(selectedPage.perms) ? selectedPage.perms.filter(perm => typeof perm === 'string') : []
+        perms: []
       }
     })
 
