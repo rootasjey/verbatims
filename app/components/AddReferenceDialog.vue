@@ -2,7 +2,7 @@
   <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
+        <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
       </div>
 
       <form @submit.prevent="submitReference" @keydown="handleFormKeydown" class="space-y-6">
@@ -15,6 +15,7 @@
             <NInput
               ref="titleInputRef"
               v-model="titleQuery"
+              input="outline-lime"
               placeholder="Enter reference title..."
               :disabled="submitting"
               @input="searchReferences"
@@ -155,7 +156,7 @@
       </form>
 
       <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">
+        <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">
           Cancel
         </NButton>
         <NButton

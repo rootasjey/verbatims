@@ -1,95 +1,8 @@
 <template>
   <div class="frame flex flex-col h-full">
-    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
-
-      <!-- Search and Filters -->
-      <div class="flex flex-col sm:flex-row gap-4">
-        <div class="flex-1">
-          <NInput
-            v-model="searchQuery"
-            placeholder="Search references by title, description, or genre..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-            :loading="loading"
-            :trailing="searchQuery ? 'i-ph-x' : undefined"
-            :una="{
-              inputTrailing: 'pointer-events-auto cursor-pointer',
-            }"
-            @trailing="resetFilters"
-          />
-        </div>
-        <div class="flex gap-2">
-          <NSelect
-            v-model="selectedTypeFilter"
-            :items="typeFilterOptions"
-            placeholder="All Types"
-            size="sm"
-            class="w-40"
-            item-key="label"
-            value-key="label"
-          />
-          <NSelect
-            v-model="selectedSort"
-            :items="sortOptions"
-            placeholder="Sort by"
-            size="sm"
-            class="w-40"
-            item-key="label"
-            value-key="label"
-          />
-          <NButton
-            btn="soft-blue"
-            @click="showAddReferenceDialog = true"
-            size="sm"
-          >
-            <NIcon name="i-ph-plus" class="w-4 h-4 mr-2" />
-            Create Reference
-          </NButton>
-        </div>
-      </div>
-
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-book" class="w-5 h-5 text-blue-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total References</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalReferences }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-film-strip" class="w-5 h-5 text-purple-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Films & TV</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalFilmsAndTV }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-book-open" class="w-5 h-5 text-green-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Books</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalBooks }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-quotes" class="w-5 h-5 text-orange-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalQuotes }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] mb-3">
       <!-- View Toggle -->
-      <div class="flex items-center justify-between mt-6">
+      <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View:</span>
           <NToggle
@@ -171,26 +84,8 @@
 
     <!-- Table View -->
     <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
-      <!-- Bulk Actions -->
-      <NCollapsible v-model:open="bulkOpen" class="px-4 py-2">
-        <NCollapsibleContent>
-          <div class="flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 rounded-md px-3 py-2 border border-dashed border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2 text-sm">
-              <NIcon name="i-ph-check-square" class="w-4 h-4" />
-              <span>{{ selectedIds.length }} selected</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <NButton size="xs" btn="link-gray" label="Clear" @click="clearSelection" />
-              <NButton size="xs" btn="soft-red" :loading="bulkProcessing" @click="showBulkDeleteDialog = true">
-                <NIcon name="i-ph-trash" class="w-3.5 h-3.5 mr-1" /> Delete selected
-              </NButton>
-            </div>
-          </div>
-        </NCollapsibleContent>
-      </NCollapsible>
-
       <!-- Scrollable Table Container -->
-      <div class="references-table-container flex-1 overflow-auto">
+      <div class="group references-table-container flex-1 overflow-auto">
         <NTable
           :columns="tableColumns"
           :data="filteredReferences"
@@ -199,37 +94,61 @@
           empty-text="No references found"
           empty-icon="i-ph-book"
         >
-          <template #actions-header>
-            <div class="flex items-center justify-center">
-              <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                <NButton icon btn="ghost-gray" size="xs" :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" @click="toggleSelectionMode" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
-              </NTooltip>
-              <NTooltip v-if="selectionMode" class="ml-2" content="Select all on page">
-                <NCheckbox checkbox="amber" :model-value="allSelectedOnPage" @update:model-value="selectAllOnPage" />
-              </NTooltip>
+
+          <template #select-header>
+            <div>
+              <NCheckbox
+                checkbox="gray"
+                :model-value="allSelected"
+                @update:model-value="toggleAllSelection"
+              />
             </div>
           </template>
-          <!-- Actions Column -->
-          <template #actions-cell="{ cell }">
-            <template v-if="!selectionMode">
-              <NDropdownMenu :items="getReferenceActions(cell.row.original)">
-                <NButton
-                  icon
-                  btn="ghost-gray"
-                  size="xs"
-                  label="i-ph-dots-three-vertical"
-                  class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                />
-              </NDropdownMenu>
-            </template>
-            <template v-else>
-              <div class="flex items-center justify-center">
-                <NCheckbox checkbox="amber" :model-value="!!rowSelection[cell.row.original.id]" @update:model-value="v => setRowSelected(cell.row.original.id, !!v)" />
-              </div>
-            </template>
-          </template>
 
+          <template #select-cell="{ cell }">
+            <div class="items-center justify-center" :class="[
+              Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
+              'group-hover:flex',
+            ]">
+              <NCheckbox
+                checkbox="gray"
+                :model-value="!!rowSelection[cell.row.original.id]"
+                @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
+              />
+            </div>
+          </template>
+          
           <!-- Reference Column -->
+          <template #reference-header>
+            <div class="flex items-center gap-4">
+              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">References</h4>
+              <div class="w-102">
+                <NInput
+                  v-model="searchQuery"
+                  placeholder="Search references by title, description, or genre..."
+                  leading="i-ph-magnifying-glass"
+                  size="md"
+                  :loading="loading"
+                  :trailing="searchQuery ? 'i-ph-x' : undefined"
+                  :una="{
+                    inputTrailing: 'pointer-events-auto cursor-pointer',
+                  }"
+                  @trailing="resetFilters"
+                />
+              </div>
+
+              <div>
+                <NSelect
+                  v-model="selectedSort"
+                  :items="sortOptions"
+                  placeholder="Sort by"
+                  size="sm"
+                  item-key="label"
+                  value-key="label"
+                />
+              </div>
+            </div>
+          </template>
           <template #reference-cell="{ cell }">
             <div class="flex items-center space-x-3">
               <div class="flex-shrink-0">
@@ -258,6 +177,18 @@
           </template>
 
           <!-- Type Column -->
+          <template #type-header>
+            <div>
+              <NSelect
+                v-model="selectedTypeFilter"
+                :items="typeFilterOptions"
+                placeholder="All Types"
+                size="sm"
+                item-key="label"
+                value-key="label"
+              />
+            </div>
+          </template>
           <template #type-cell="{ cell }">
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 capitalize">
               {{ cell.row.original.primary_type.replace('_', ' ') }}
@@ -284,6 +215,45 @@
             <span class="text-xs text-gray-500 dark:text-gray-400">
               {{ formatRelativeTime(cell.row.original.created_at) }}
             </span>
+          </template>
+
+          <!-- Actions Column -->
+          <template #actions-header>
+            <div class="flex items-center justify-center space-x-1">
+              <span v-if="selectedIds.length > 0">{{ selectedIds.length }}</span>
+              <NTooltip :_tooltip-content="{
+                class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50',
+              }">
+                <template #default>
+                  <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
+                </template>
+                <template #content>
+                  <div class="space-y-2">
+                    <div class="flex">
+                      <NBadge badge="solid-gray" size="xs" icon="i-ph-selection-background" class="w-full">
+                        {{ totalReferences }} Total References
+                      </NBadge>
+                    </div>
+                  </div>
+                </template>
+              </NTooltip>
+
+              <NDropdownMenu :items="headerActions">
+                <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
+              </NDropdownMenu>
+            </div>
+          </template>
+          
+          <template #actions-cell="{ cell }">
+            <NDropdownMenu :items="getReferenceActions(cell.row.original)">
+              <NButton
+                icon
+                btn="ghost-gray"
+                size="xs"
+                label="i-ph-dots-three-vertical"
+                class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+              />
+            </NDropdownMenu>
           </template>
         </NTable>
       </div>
@@ -366,6 +336,7 @@ const referenceToDelete = ref<QuoteReferenceWithMetadata | null>(null)
 // Bulk selection state
 const selectionMode = ref(false)
 const rowSelection = ref<Record<number, boolean>>({})
+const lastSelectedIndex = ref<number | null>(null)
 const bulkOpen = ref(false)
 const bulkProcessing = ref(false)
 const showBulkDeleteDialog = ref(false)
@@ -373,10 +344,63 @@ const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).
 watch(selectedIds, (ids) => { bulkOpen.value = ids.length > 0 }, { immediate: true })
 const visibleIds = computed<number[]>(() => filteredReferences.value.map(r => r.id))
 const allSelectedOnPage = computed<boolean>(() => visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id]))
-const toggleSelectionMode = () => { selectionMode.value = !selectionMode.value; if (!selectionMode.value) rowSelection.value = {} }
+
+// computed helper for header checkbox (select all on current page)
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => {
+    const total = filteredReferences.value.length
+    const count = selectedIds.value.length
+    if (total === 0) return false
+    if (count === total) return true
+    if (count > 0) return 'indeterminate'
+    return false
+  },
+  set: (v) => {
+    const newSelection: Record<number, boolean> = {}
+    if (v === true) {
+      filteredReferences.value.forEach(r => { newSelection[r.id] = true })
+    }
+    rowSelection.value = newSelection
+    lastSelectedIndex.value = null // reset range anchor when toggling all
+  }
+})
+
+const toggleSelectionMode = () => { selectionMode.value = !selectionMode.value; if (!selectionMode.value) rowSelection.value = {}; lastSelectedIndex.value = null }
 const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
+
+// toggles the header checkbox state (select/deselect all on current page)
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) {
+    const newSelection: Record<number, boolean> = {}
+    filteredReferences.value.forEach(r => { newSelection[r.id] = true })
+    rowSelection.value = newSelection
+  } else {
+    rowSelection.value = {}
+  }
+  lastSelectedIndex.value = null
+}
+
 const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
-const clearSelection = () => { rowSelection.value = {}; selectionMode.value = false }
+const clearSelection = () => { rowSelection.value = {}; selectionMode.value = false; lastSelectedIndex.value = null }
+
+// handle shift‑click range selection on the table rows
+const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
+  const currently = !!rowSelection.value[id]
+  const newVal = !currently
+
+  if (event.shiftKey && lastSelectedIndex.value !== null) {
+    const start = Math.min(lastSelectedIndex.value, index)
+    const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) {
+      const row = filteredReferences.value[i]
+      if (row) rowSelection.value[row.id] = newVal
+    }
+  } else {
+    rowSelection.value[id] = newVal
+  }
+
+  lastSelectedIndex.value = index
+}
 
 const typeFilterOptions = [
   { label: 'All Types', value: '' },
@@ -405,6 +429,36 @@ const sortOptions = [
   { label: 'Most Liked', value: 'likes_desc' }
 ]
 
+// header dropdown actions (depends on selection state)
+const headerActions = computed(() => {
+  const actions: any[] = []
+  if (selectedIds.value.length > 0) {
+    actions.push({
+      label: 'Delete Selected',
+      leading: 'i-ph-trash',
+      onclick: () => { showBulkDeleteDialog.value = true }
+    })
+  }
+  if (actions.length > 0) actions.push({})
+  actions.push({
+    label: 'Add New Reference',
+    leading: 'i-ph-plus',
+    onclick: () => { showAddReferenceDialog.value = true }
+  })
+  actions.push({})
+  actions.push({
+    label: 'Refresh',
+    leading: 'i-ph-arrows-clockwise',
+    onclick: () => loadReferences()
+  })
+  actions.push({
+    label: 'Reset Filters',
+    leading: 'i-ph-x',
+    onclick: () => resetFilters()
+  })
+  return actions
+})
+
 const totalPages = computed(() => Math.ceil(totalReferences.value / pageSize.value))
 
 const totalFilmsAndTV = computed(() => {
@@ -422,17 +476,7 @@ const totalQuotes = computed(() => {
 const filteredReferences = computed(() => references.value)
 
 const tableColumns = [
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
-      }
-    }
-  },
+  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
   {
     header: 'Reference',
     accessorKey: 'reference',
@@ -487,7 +531,19 @@ const tableColumns = [
         tableCell: 'w-32'
       }
     }
-  }
+  },
+
+  {
+    header: '',
+    accessorKey: 'actions',
+    enableSorting: false,
+    meta: {
+      una: {
+        tableHead: 'w-16',
+        tableCell: 'w-16'
+      }
+    }
+  },
 ]
 
 const getTypeIcon = (type: QuoteReferencePrimaryType) => {
@@ -531,6 +587,9 @@ const loadReferences = async () => {
 
     references.value = response.data || []
     totalReferences.value = response.pagination?.total || 0
+    // clear selection when data refreshes
+    rowSelection.value = {}
+    lastSelectedIndex.value = null
   } catch (error) {
     console.error('Failed to load references:', error)
     useToast().toast({
@@ -548,6 +607,9 @@ const resetFilters = () => {
   selectedTypeFilter.value = typeFilterOptions[0]
   selectedSort.value = sortOptions[0]
   currentPage.value = 1
+  // clear multi-select when filters change
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
 }
 
 const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
@@ -656,6 +718,6 @@ onMounted(() => {
 
 <style scoped>
 .references-table-container {
-  max-height: calc(100vh - 20rem);
+  max-height: calc(100vh - 13rem);
 }
 </style>
