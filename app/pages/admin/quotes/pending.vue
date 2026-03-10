@@ -1,99 +1,8 @@
 <template>
   <div class="frame flex flex-col h-full">
-    <!-- Fixed Header Section -->
-    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
 
-      <!-- Search and Filters -->
-      <div class="flex flex-col sm:flex-row gap-4 mb-6">
-        <div class="flex-1">
-          <NInput
-            v-model="searchQuery"
-            placeholder="Search quotes, authors, or users..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-            :loading="loading"
-          />
-        </div>
-        <div class="flex gap-2">
-          <NSelect
-            v-model="statusFilter"
-            :items="statusOptions"
-            placeholder="Filter by status"
-            size="sm"
-            class="w-40"
-            item-key="label"
-            value-key="label"
-          />
-          <NButton
-            btn="outline-gray"
-            size="sm"
-            @click="resetFilters"
-          >
-            <NIcon name="i-ph-x" />
-            Reset
-          </NButton>
-        </div>
-      </div>
 
-      <!-- Stats Summary -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-clock" class="w-5 h-5 text-yellow-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Review</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ pendingCount }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Selected</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ selectedQuotes.length }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-users" class="w-5 h-5 text-blue-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Contributors</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ uniqueContributors }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Bulk Actions (animated) -->
-    <NCollapsible v-model:open="bulkOpen">
-      <NCollapsibleContent>
-        <div class="flex-shrink-0 mb-6">
-          <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
-              </span>
-              <div class="flex items-center gap-3">
-                <NButton size="sm" btn="ghost-blue" :loading="bulkProcessing" @click="bulkApprove">
-                  <NIcon name="i-ph-check" />
-                  Approve Selected
-                </NButton>
-                <NButton size="sm" btn="ghost-pink" :loading="bulkProcessing" @click="showBulkRejectModal = true">
-                  <NIcon name="i-ph-x" />
-                  Reject Selected
-                </NButton>
-                <NButton size="sm" btn="ghost-gray" @click="clearSelection">
-                  Clear Selection
-                </NButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </NCollapsibleContent>
-    </NCollapsible>
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
@@ -114,7 +23,7 @@
       />
 
       <!-- Empty State -->
-      <div v-else-if="hasLoadedOnce && quotes.length === 0" class="text-center py-16">
+      <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
         <NIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           {{ searchQuery ? 'No matching quotes found' : 'All caught up!' }}
@@ -130,36 +39,97 @@
         <div class="quotes-table-container flex-1 overflow-auto">
           <NTable
             :columns="tableColumns"
-            :data="quotes"
+            :data="filteredQuotes"
             :loading="loading"
             manual-pagination
             empty-text="No pending quotes found"
             empty-icon="i-ph-clock"
           >
-            <!-- Actions Header: Selection mode & select-all on page -->
-            <template #actions-header>
-              <div class="flex items-center justify-center gap-1">
-                <template v-if="selectionMode">
-                  <NTooltip text="Select all on page">
-                    <NButton
-                      icon
-                      btn="ghost-gray"
-                      size="xs"
-                      label="i-ph-checks"
-                      :disabled="allSelectedOnPage"
-                      @click="selectAllOnPage"
-                    />
-                  </NTooltip>
-                </template>
-                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                  <NButton
-                    icon
-                    btn="ghost-gray"
-                    size="xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
-                    @click="toggleSelectionMode"
+            <template #select-header>
+              <div>
+                <NCheckbox
+                  checkbox="gray"
+                  :model-value="allSelected"
+                  @update:model-value="toggleAllSelection"
+                />
+              </div>
+            </template>
+
+            <template #select-cell="{ cell }">
+              <div class="items-center justify-center" :class="[
+                Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
+                'group-hover:flex',
+              ]">
+                <NCheckbox
+                  checkbox="gray"
+                  :model-value="!!rowSelection[cell.row.original.id]"
+                  @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
+                />
+              </div>
+            </template>
+
+            <template #quote-header>
+              <div class="flex items-center gap-4">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
+                <div class="w-102">
+                  <NInput
+                    v-model="searchQuery"
+                    placeholder="Search quotes, authors, or users..."
+                    leading="i-ph-magnifying-glass"
+                    size="md"
+                    :loading="loading"
+                    :trailing="searchQuery ? 'i-ph-x' : undefined"
+                    :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+                    @trailing="resetFilters"
                   />
+                </div>
+              </div>
+            </template>
+
+            <template #status-header>
+              <div>
+                <NSelect
+                  v-model="statusFilter"
+                  :items="statusOptions"
+                  placeholder="Filter by status"
+                  size="sm"
+                  item-key="label"
+                  value-key="label"
+                />
+              </div>
+            </template>
+
+            <template #actions-header>
+              <div class="flex items-center justify-center space-x-1">
+                <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
+                <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
+                  <template #default>
+                    <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
+                  </template>
+                  <template #content>
+                    <div class="space-y-2">
+                      <div class="flex">
+                        <NBadge badge="solid-yellow" size="xs" icon="i-ph-clock" class="w-full">
+                          {{ pendingCount }} Pending
+                        </NBadge>
+                      </div>
+                      <div class="flex">
+                        <NBadge badge="solid-green" size="xs" icon="i-ph-check-circle" class="w-full">
+                          {{ selectedQuotes.length }} Selected
+                        </NBadge>
+                      </div>
+                      <div class="flex">
+                        <NBadge badge="solid-blue" size="xs" icon="i-ph-users" class="w-full">
+                          {{ uniqueContributors }} Contributors
+                        </NBadge>
+                      </div>
+                    </div>
+                  </template>
                 </NTooltip>
+
+                <NDropdownMenu :items="headerActions">
+                  <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
+                </NDropdownMenu>
               </div>
             </template>
 
@@ -247,26 +217,15 @@
 
             <!-- Actions Column -->
             <template #actions-cell="{ cell }">
-              <template v-if="!selectionMode">
-                <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                  <NButton
-                    icon
-                    btn="ghost-gray"
-                    size="xs"
-                    label="i-ph-dots-three-vertical"
-                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                  />
-                </NDropdownMenu>
-              </template>
-              <template v-else>
-                <div class="flex items-center justify-center">
-                  <NCheckbox
-                    checkbox="yellow"
-                    :model-value="!!rowSelection[cell.row.original.id]"
-                    @update:model-value="val => setRowSelected(cell.row.original.id, val)"
-                  />
-                </div>
-              </template>
+              <NDropdownMenu :items="getQuoteActions(cell.row.original)">
+                <NButton
+                  icon
+                  btn="ghost-gray"
+                  size="xs"
+                  label="i-ph-dots-three-vertical"
+                  class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+                />
+              </NDropdownMenu>
             </template>
           </NTable>
         </div>
@@ -396,7 +355,7 @@
     />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
 
 definePageMeta({
@@ -418,9 +377,9 @@ const totalQuotes = ref(0)
 const totalPages = ref(0)
 const searchQuery = ref('')
 const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
-// Selection mode + row selection map
-const selectionMode = ref(false)
-const rowSelection = ref({})
+// row selection map (multi-select)
+const rowSelection = ref<Record<number, boolean>>({})
+const lastSelectedIndex = ref<number | null>(null)
 const processing = ref(new Set())
 
 const showRejectModal = ref(false)
@@ -430,7 +389,6 @@ const showQuoteDialog = ref(false)
 const selectedQuote = ref(null)
 const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
-const bulkOpen = ref(false)
 
 const statusOptions = [
   { label: 'Pending Review', value: 'pending' },
@@ -438,6 +396,7 @@ const statusOptions = [
   { label: 'Rejected', value: 'rejected' }
 ]
 
+// selection helpers & stats
 const pendingCount = computed(() => {
   return quotes.value.filter(q => q.status === 'pending').length
 })
@@ -447,18 +406,120 @@ const uniqueContributors = computed(() => {
   return contributors.size
 })
 
-const tableColumns = [
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-6',
-        tableCell: 'w-6'
-      }
-    }
+const filteredQuotes = computed(() => {
+  let filtered = quotes.value
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(q =>
+      q.name.toLowerCase().includes(query) ||
+      q.author_name?.toLowerCase().includes(query) ||
+      q.reference_name?.toLowerCase().includes(query) ||
+      q.user_name?.toLowerCase().includes(query)
+    )
+  }
+  if (statusFilter.value.value) {
+    filtered = filtered.filter(q => q.status === statusFilter.value.value)
+  }
+  return filtered
+})
+
+// helpers for table multi-select
+const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
+const allSelectedOnPage = computed<boolean>(() =>
+  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
+)
+
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => {
+    const total = filteredQuotes.value.length
+    const count = selectedQuotes.value.length
+    if (total === 0) return false
+    if (count === total) return true
+    if (count > 0) return 'indeterminate'
+    return false
   },
+  set: (v) => {
+    const newSelection: Record<number, boolean> = {}
+    if (v === true) {
+      filteredQuotes.value.forEach(q => { newSelection[q.id] = true })
+    }
+    rowSelection.value = newSelection
+    lastSelectedIndex.value = null
+  }
+})
+
+const setRowSelected = (id, value) => { rowSelection.value[id] = value === true }
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) {
+    const newSel: Record<number, boolean> = {}
+    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    rowSelection.value = newSel
+  } else {
+    rowSelection.value = {}
+  }
+  lastSelectedIndex.value = null
+}
+
+const selectAllOnPage = () => {
+  if (allSelectedOnPage.value) rowSelection.value = {}
+  else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+}
+
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
+
+// shift‑click support
+const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
+  const currently = !!rowSelection.value[id]
+  const newVal = !currently
+  if (event.shiftKey && lastSelectedIndex.value !== null) {
+    const start = Math.min(lastSelectedIndex.value, index)
+    const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) {
+      const row = filteredQuotes.value[i]
+      if (row) rowSelection.value[row.id] = newVal
+    }
+  } else {
+    rowSelection.value[id] = newVal
+  }
+  lastSelectedIndex.value = index
+}
+
+// derive selected ids
+const selectedQuotes = computed(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => Number(k)))
+
+const headerActions = computed(() => {
+  const actions: any[] = []
+  if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Approve Selected',
+      leading: 'i-ph-check',
+      onclick: () => bulkApprove()
+    })
+    actions.push({
+      label: 'Reject Selected',
+      leading: 'i-ph-x',
+      onclick: () => { showBulkRejectModal.value = true }
+    })
+  }
+  if (actions.length > 0) actions.push({})
+  actions.push({
+    label: 'Refresh',
+    leading: 'i-ph-arrows-clockwise',
+    onclick: () => loadQuotes()
+  })
+  actions.push({
+    label: 'Reset Filters',
+    leading: 'i-ph-x',
+    onclick: () => resetFilters()
+  })
+  return actions
+})
+
+const tableColumns = [
+  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
   {
     header: 'Quote',
     accessorKey: 'quote',
@@ -513,14 +574,16 @@ const tableColumns = [
         tableCell: 'w-28'
       }
     }
-  }
+  },
+  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } }
 ]
+
 
 const loadQuotes = async (page = 1) => {
   try {
     loading.value = true
 
-    const params = {
+    const params: any = {
       page,
       limit: pageSize.value,
       status: statusFilter.value.value
@@ -552,6 +615,8 @@ const resetFilters = () => {
   searchQuery.value = ''
   statusFilter.value = { label: 'Pending Review', value: 'pending' }
   currentPage.value = 1
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
 }
 
 // Debounced search + filter reload
@@ -565,31 +630,7 @@ watch(currentPage, () => {
   loadQuotes(currentPage.value)
 })
 
-// Selection helpers (borrowed from dashboard pending page)
-const clearSelection = () => {
-  rowSelection.value = {}
-}
 
-const toggleSelectionMode = () => {
-  selectionMode.value = !selectionMode.value
-  if (!selectionMode.value) clearSelection()
-}
-
-const setRowSelected = (id, value) => {
-  rowSelection.value[id] = value === true
-}
-
-const visibleIds = computed(() => quotes.value.map(q => q.id))
-const allSelectedOnPage = computed(() => visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id]))
-const selectAllOnPage = () => {
-  visibleIds.value.forEach(id => (rowSelection.value[id] = true))
-}
-
-// Derive selected quote ids
-const selectedQuotes = computed(() => Object
-  .entries(rowSelection.value)
-  .filter(([, v]) => !!v)
-  .map(([k]) => Number(k)))
 
 const approveQuote = async (quote) => {
   try {
@@ -743,8 +784,8 @@ const getStatusColor = (status) => {
   }
 }
 
-const getQuoteActions = (quote) => {
-  const actions = [
+const getQuoteActions = (quote): any[] => {
+  const actions: any[] = [
     {
       label: 'View Details',
       leading: 'i-ph-eye',
@@ -795,26 +836,10 @@ const onQuoteUpdated = () => {
 
 onMounted(() => {
   loadQuotes()
-  // Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
-  const onKeydown = (e) => {
-    if (!selectionMode.value) return
-    const isMac = navigator.platform.toLowerCase().includes('mac')
-    const metaPressed = isMac ? e.metaKey : e.ctrlKey
-    if (metaPressed && (e.key === 'a' || e.key === 'A')) {
-      e.preventDefault()
-      selectAllOnPage()
-    }
-  }
-  window.addEventListener('keydown', onKeydown)
-  onBeforeUnmount(() => {
-    window.removeEventListener('keydown', onKeydown)
-  })
+
 })
 
-// Smoothly show/hide bulk actions based on selection
-watch(selectedQuotes, (ids) => {
-  bulkOpen.value = ids.length > 0
-}, { immediate: true })
+
 
 </script>
 

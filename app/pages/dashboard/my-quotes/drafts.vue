@@ -131,63 +131,6 @@
 
     <!-- Desktop: Existing Table View -->
     <div v-else class="flex flex-col h-full">
-      <!-- Fixed Header Section -->
-      <div class="pb-6 mb-6 flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700">
-
-        <!-- Search and Filters -->
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <NInput
-              v-model="searchQuery"
-              placeholder="Search your drafts..."
-              leading="i-ph-magnifying-glass"
-              size="md"
-              :loading="loading"
-              :trailing="searchQuery ? 'i-ph-x' : undefined"
-              :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-              @trailing="resetFilters"
-            />
-          </div>
-          <div class="sm:w-48">
-            <LanguageSelector :on-language-changed="onLanguageChanged" />
-          </div>
-          <div class="sm:w-48">
-            <NSelect
-              v-model="sortBy"
-              :items="sortOptions"
-              placeholder="Sort by"
-              size="sm"
-              item-key="label"
-              value-key="label"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Bulk Actions -->
-      <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-6">
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} selected
-            </span>
-            <div class="flex items-center gap-3">
-              <NButton size="sm" btn="soft-blue" :loading="bulkProcessing" @click="bulkSubmit">
-                <NIcon name="i-ph-paper-plane-tilt" />
-                Submit Selected
-              </NButton>
-              <NButton size="sm" btn="soft-pink" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
-                <NIcon name="i-ph-trash" />
-                Delete Selected
-              </NButton>
-              <NButton size="sm" btn="ghost" @click="clearSelection">
-                Clear Selection
-              </NButton>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-hidden">
         <!-- First-load Skeleton State -->
@@ -228,51 +171,97 @@
               empty-text="No draft quotes found"
               empty-icon="i-ph-file-dashed"
             >
-              <!-- Actions Header: toggle selection mode -->
-              <template #actions-header>
-                <div class="flex items-center justify-center gap-1">
-                  <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                    <NButton
-                      icon
-                      btn="ghost-gray"
-                      size="xs"
-                      :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
-                      @click="toggleSelectionMode"
-                      class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                    />
-                  </NTooltip>
-                  <template v-if="selectionMode">
-                    <NTooltip content="Select all on page">
-                      <NButton
-                        icon
-                        btn="ghost-gray"
-                        size="xs"
-                        label="i-ph-checks"
-                        :disabled="allSelectedOnPage"
-                        @click="selectAllOnPage"
-                        class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                      />
-                    </NTooltip>
-                  </template>
+              <template #select-header>
+                <div>
+                  <NCheckbox
+                    checkbox="gray"
+                    :model-value="allSelected"
+                    @update:model-value="toggleAllSelection"
+                  />
                 </div>
               </template>
 
-              <!-- Actions Column -->
-              <template #actions-cell="{ cell }">
-                <template v-if="!selectionMode">
-                  <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                    <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
-                  </NDropdownMenu>
-                </template>
-                <template v-else>
-                  <div class="flex items-center justify-center">
-                    <NCheckbox
-                      checkbox="orange"
-                      :model-value="!!rowSelection[cell.row.original.id]"
-                      @update:model-value="val => setRowSelected(cell.row.original.id, val)"
+              <template #select-cell="{ cell }">
+                <div class="items-center justify-center" :class="[
+                  Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
+                  'group-hover:flex',
+                ]">
+                  <NCheckbox
+                    checkbox="gray"
+                    :model-value="!!rowSelection[cell.row.original.id]"
+                    @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
+                  />
+                </div>
+              </template>
+
+              <template #quote-header>
+                <div class="flex items-center gap-4">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
+                  <div class="w-102">
+                    <NInput
+                      v-model="searchQuery"
+                      :placeholder="`Search among ${filteredQuotes.length} draft${filteredQuotes.length === 1 ? '' : 's'}...`"
+                      leading="i-ph-magnifying-glass"
+                      size="md"
+                      :loading="loading"
+                      :trailing="searchQuery ? 'i-ph-x' : undefined"
+                      :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+                      @trailing="searchQuery = ''"
                     />
                   </div>
-                </template>
+                  <div>
+                    <NSelect
+                      v-model="sortBy"
+                      :items="sortOptions"
+                      placeholder="Sort by"
+                      size="sm"
+                      item-key="label"
+                      value-key="label"
+                    />
+                  </div>
+                </div>
+              </template>
+
+              <template #language-header>
+                <div>
+                  <LanguageSelector :on-language-changed="onLanguageChanged" />
+                </div>
+              </template>
+
+              <template #actions-header>
+                <div class="flex items-center justify-center space-x-1">
+                  <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
+                  <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
+                    <template #default>
+                      <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
+                    </template>
+                    <template #content>
+                      <div class="space-y-2">
+                        <div class="flex">
+                          <NBadge badge="solid-gray" size="xs" icon="i-ph-file-dashed" class="w-full">
+                            {{ filteredQuotes.length }} Drafts
+                          </NBadge>
+                        </div>
+                      </div>
+                    </template>
+                  </NTooltip>
+
+                  <NDropdownMenu :items="headerActions">
+                    <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
+                  </NDropdownMenu>
+                </div>
+              </template>
+
+              <template #actions-cell="{ cell }">
+                <NDropdownMenu :items="getQuoteActions(cell.row.original)">
+                  <NButton
+                    icon
+                    btn="ghost-gray"
+                    size="xs"
+                    label="i-ph-dots-three-vertical"
+                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+                  />
+                </NDropdownMenu>
               </template>
 
               <!-- Quote Column with text wrapping -->
@@ -308,6 +297,13 @@
                   <span class="truncate">{{ cell.row.original.reference.name }}</span>
                 </div>
                 <span v-else class="text-sm text-gray-400">—</span>
+              </template>
+
+              <!-- Language Column -->
+              <template #language-cell="{ cell }">
+                <span class="text-sm text-gray-900 dark:text-white">
+                  {{ cell.row.original.language || 'N/A' }}
+                </span>
               </template>
 
               <!-- Tags Column -->
@@ -433,8 +429,6 @@ const pageSize = ref(50)
 const totalDrafts = ref(0)
 const totalPages = ref(0)
 const hasMore = ref(false)
-// Custom selection mode (we avoid built-in enableRowSelection due to mount issues)
-const selectionMode = ref(false)
 
 // Scroll state for header transformation
 const scrollY = ref(0)
@@ -449,6 +443,8 @@ const showEditQuoteDrawer = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 // Local row selection state (keyed by row id)
 const rowSelection = ref<Record<string, boolean>>({})
+// track last clicked row for shift-range selection
+const lastSelectedIndex = ref<number | null>(null)
 // Derive selected quote ids from rowSelection
 const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
@@ -504,48 +500,13 @@ const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
 })
 
 const tableColumns = [
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } }
-  },
-  {
-    header: 'Quote',
-    accessorKey: 'quote',
-    enableSorting: false,
-    meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } }
-  },
-  {
-    header: 'Author',
-    accessorKey: 'author',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-40', tableCell: 'w-40' } }
-  },
-  {
-    header: 'Reference',
-    accessorKey: 'reference',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-40', tableCell: 'w-40' } }
-  },
-  {
-    header: 'Tags',
-    accessorKey: 'tags',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } }
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } }
-  },
-  {
-    header: 'Created',
-    accessorKey: 'date',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } }
-  }
+  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
+  { header: 'Quote', accessorKey: 'quote', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
+  { header: 'Language', accessorKey: 'language', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: 'Tags', accessorKey: 'tags', enableSorting: false, meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } } },
+  { header: 'Status', accessorKey: 'status', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: 'Created', accessorKey: 'date', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
+  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } }
 ]
 
 const loadDrafts = async (page = 1) => {
@@ -575,6 +536,7 @@ const loadDrafts = async (page = 1) => {
       quotes.value = data
       // Reset selection when replacing
       rowSelection.value = {}
+      lastSelectedIndex.value = null
     }
 
     totalDrafts.value = response.pagination?.total || 0
@@ -695,31 +657,90 @@ const deleteDraft = async () => {
   }
 }
 
-const clearSelection = () => {
-  rowSelection.value = {}
-}
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
-const toggleSelectionMode = () => {
-  selectionMode.value = !selectionMode.value
-  if (!selectionMode.value) {
-    clearSelection()
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => {
+    const total = filteredQuotes.value.length
+    const count = selectedQuotes.value.length
+    if (total === 0) return false
+    if (count === total) return true
+    if (count > 0) return 'indeterminate'
+    return false
+  },
+  set: (v) => {
+    const newSel: Record<number, boolean> = {}
+    if (v === true) {
+      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    }
+    rowSelection.value = newSel
+    lastSelectedIndex.value = null
   }
+})
+
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) {
+    const newSel: Record<number, boolean> = {}
+    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    rowSelection.value = newSel
+  } else {
+    rowSelection.value = {}
+  }
+  lastSelectedIndex.value = null
 }
 
-const setRowSelected = (id: number, value: boolean | 'indeterminate') => {
-  // Treat 'indeterminate' as false for this simple selection model
-  rowSelection.value[id] = value === true
-}
-
+const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
 const selectAllOnPage = () => {
-  visibleIds.value.forEach(id => {
-    rowSelection.value[id] = true
-  })
+  if (allSelectedOnPage.value) rowSelection.value = {}
+  else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
 }
 
-// Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
+// shift-click range selection
+const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
+  const currently = !!rowSelection.value[id]
+  const newVal = !currently
+  if (event.shiftKey && lastSelectedIndex.value !== null) {
+    const start = Math.min(lastSelectedIndex.value, index)
+    const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) {
+      const row = filteredQuotes.value[i]
+      if (row) rowSelection.value[row.id] = newVal
+    }
+  } else {
+    rowSelection.value[id] = newVal
+  }
+  lastSelectedIndex.value = index
+}
+
+const headerActions = computed(() => {
+  const actions: any[] = []
+  if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Submit Selected',
+      leading: 'i-ph-paper-plane-tilt',
+      onclick: () => bulkSubmit()
+    })
+    actions.push({
+      label: 'Delete Selected',
+      leading: 'i-ph-trash',
+      onclick: () => { showBulkDeleteModal.value = true }
+    })
+  }
+  if (actions.length > 0) actions.push({})
+  actions.push({
+    label: 'Refresh',
+    leading: 'i-ph-arrows-clockwise',
+    onclick: () => loadDrafts(currentPage.value)
+  })
+  actions.push({
+    label: 'Reset Filters',
+    leading: 'i-ph-x',
+    onclick: () => resetFilters()
+  })
+  return actions
+})
+
 const onKeydown = (e: KeyboardEvent) => {
-  if (!selectionMode.value) return
   const isMac = navigator.platform.toLowerCase().includes('mac')
   const metaPressed = isMac ? e.metaKey : e.ctrlKey
   if (metaPressed && (e.key === 'a' || e.key === 'A')) {
@@ -838,7 +859,7 @@ const loadMore = async () => {
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 16rem);
+  max-height: calc(100vh - 11rem);
   max-width: calc(100vw - 8rem);
 }
 

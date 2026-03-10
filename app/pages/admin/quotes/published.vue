@@ -1,75 +1,6 @@
 <template>
   <div class="frame flex flex-col h-full">
-    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
 
-      <!-- Search and Filters -->
-      <div class="flex flex-col sm:flex-row gap-4">
-        <div class="flex-1">
-          <NInput
-            v-model="searchQuery"
-            placeholder="Search quotes, authors, or references..."
-            leading="i-ph-magnifying-glass"
-            size="md"
-            :loading="loading"
-            :trailing="searchQuery ? 'i-ph-x' : undefined"
-            :una="{
-              inputTrailing: 'pointer-events-auto cursor-pointer',
-            }"
-            @trailing="resetFilters"
-          />
-        </div>
-        <div class="flex gap-2">
-          <NSelect
-            v-model="selectedLanguage"
-            :items="languageOptions"
-            placeholder="All Languages"
-            size="sm"
-            class="w-40"
-            item-key="label"
-            value-key="label"
-          />
-          <NSelect
-            v-model="selectedSort"
-            :items="sortOptions"
-            placeholder="Sort by"
-            size="sm"
-            class="w-40"
-            item-key="label"
-            value-key="label"
-          />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-check-circle" class="w-5 h-5 text-green-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Published</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalQuotes }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-eye" class="w-5 h-5 text-blue-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalViews }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center">
-            <NIcon name="i-ph-heart" class="w-5 h-5 text-red-600 mr-2" />
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Likes</p>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ totalLikes }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
@@ -104,36 +35,8 @@
 
       <!-- Quotes Table -->
       <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
-        <!-- Bulk Actions (animated) -->
-        <NCollapsible v-model:open="bulkOpen">
-          <NCollapsibleContent>
-            <div class="flex-shrink-0 mb-4">
-              <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
-                  </span>
-                  <div class="flex items-center gap-3">
-                    <NButton size="sm" btn="ghost-blue" @click="showBulkAddToCollection = true">
-                      <NIcon name="i-ph-bookmark" />
-                      Add to Collection
-                    </NButton>
-                    <NButton size="sm" btn="ghost-pink" @click="bulkUnpublish">
-                      <NIcon name="i-ph-eye-slash" />
-                      Unpublish
-                    </NButton>
-                    <NButton size="sm" btn="ghost-gray" @click="clearSelection">
-                      Clear Selection
-                    </NButton>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </NCollapsibleContent>
-        </NCollapsible>
-
         <!-- Scrollable Table Container -->
-        <div class="quotes-table-container flex-1 overflow-auto">
+        <div class="group quotes-table-container flex-1 overflow-auto">
           <NTable
             :columns="tableColumns"
             :data="filteredQuotes"
@@ -142,90 +45,133 @@
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
           >
-            <!-- Actions Header: toggle selection mode -->
-            <template #actions-header>
-              <div class="flex items-center justify-center gap-1">
-                <template v-if="selectionMode">
-                  <NTooltip text="Select all on page">
-                    <NButton
-                      icon
-                      btn="outline-gray"
-                      size="xs"
-                      label="i-ph-checks"
-                      :disabled="allSelectedOnPage"
-                      @click="selectAllOnPage"
-                    />
-                  </NTooltip>
-                </template>
-                <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                  <NButton
-                    icon
-                    btn="ghost-gray"
-                    size="xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
-                    @click="toggleSelectionMode"
-                  />
-                </NTooltip>
+            <template #select-header>
+              <div>
+                <NCheckbox
+                  checkbox="gray"
+                  :model-value="allSelected"
+                  @update:model-value="toggleAllSelection"
+                />
               </div>
             </template>
-            <!-- Actions Column -->
-            <template #actions-cell="{ cell }">
-              <template v-if="!selectionMode">
-                <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                  <NButton
-                    icon
-                    btn="ghost-gray"
-                    size="xs"
-                    label="i-ph-dots-three-vertical"
-                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                  />
-                </NDropdownMenu>
-              </template>
-              <template v-else>
-                <div class="flex items-center justify-center">
-                  <NCheckbox
-                    :model-value="!!rowSelection[cell.row.original.id]"
-                    @update:model-value="val => setRowSelected(cell.row.original.id, val)"
-                  />
-                </div>
-              </template>
+
+            <template #select-cell="{ cell }">
+              <div class="items-center justify-center" :class="[
+                Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
+                'group-hover:flex',
+              ]">
+                <NCheckbox
+                  checkbox="gray"
+                  :model-value="!!rowSelection[cell.row.original.id]"
+                  @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
+                />
+              </div>
             </template>
 
-            <!-- Quote Column with text wrapping -->
+            <template #quote-header>
+              <div class="flex items-center gap-4">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
+                <div class="w-102">
+                  <NInput
+                    v-model="searchQuery"
+                    placeholder="Search quotes, authors, or references..."
+                    leading="i-ph-magnifying-glass"
+                    size="md"
+                    :loading="loading"
+                    :trailing="searchQuery ? 'i-ph-x' : undefined"
+                    :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+                    @trailing="resetFilters"
+                  />
+                </div>
+                <div>
+                  <NSelect
+                    v-model="selectedSort"
+                    :items="sortOptions"
+                    placeholder="Sort by"
+                    size="sm"
+                    item-key="label"
+                    value-key="label"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template #language-header>
+              <div>
+                <NSelect
+                  v-model="selectedLanguage"
+                  :items="languageOptions"
+                  placeholder="All Languages"
+                  size="sm"
+                  item-key="label"
+                  value-key="label"
+                />
+              </div>
+            </template>
+
+            <template #actions-header>
+              <div class="flex items-center justify-center space-x-1">
+                <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
+                <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
+                  <template #default>
+                    <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
+                  </template>
+                  <template #content>
+                    <div class="space-y-2">
+                      <div class="flex">
+                        <NBadge badge="solid-gray" size="xs" icon="i-ph-check-circle" class="w-full">
+                          {{ totalQuotes }} Published
+                        </NBadge>
+                      </div>
+                      <div class="flex">
+                        <NBadge badge="solid-blue" size="xs" icon="i-ph-eye" class="w-full">
+                          {{ totalViews }} Views
+                        </NBadge>
+                      </div>
+                      <div class="flex">
+                        <NBadge badge="solid-red" size="xs" icon="i-ph-heart" class="w-full">
+                          {{ totalLikes }} Likes
+                        </NBadge>
+                      </div>
+                    </div>
+                  </template>
+                </NTooltip>
+
+                <NDropdownMenu :items="headerActions">
+                  <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
+                </NDropdownMenu>
+              </div>
+            </template>
+
+            <template #actions-cell="{ cell }">
+              <NDropdownMenu :items="getQuoteActions(cell.row.original)">
+                <NButton
+                  icon
+                  btn="ghost-gray"
+                  size="xs"
+                  label="i-ph-dots-three-vertical"
+                  class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+                />
+              </NDropdownMenu>
+            </template>
+
+            <!-- Quote Column with author/reference info -->
             <template #quote-cell="{ cell }">
               <div class="max-w-md">
                 <blockquote
-                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words"
+                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
                   :title="cell.row.original.name"
                 >
                   {{ cell.row.original.name }}
                 </blockquote>
+                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span v-if="cell.row.original.author?.name">{{ cell.row.original.author.name }}</span>
+                  <span v-if="cell.row.original.author?.name && cell.row.original.reference?.name">•</span>
+                  <span v-if="cell.row.original.reference?.name">{{ cell.row.original.reference.name }}</span>
+                </div>
               </div>
             </template>
 
-            <!-- Author Column -->
-            <template #author-cell="{ cell }">
-              <div class="text-sm">
-                <span v-if="cell.row.original.author_name" class="text-gray-900 dark:text-white">
-                  {{ cell.row.original.author_name }}
-                </span>
-                <span v-else class="text-gray-400 dark:text-gray-600 italic">
-                  Unknown
-                </span>
-              </div>
-            </template>
-
-            <!-- Reference Column -->
-            <template #reference-cell="{ cell }">
-              <div class="text-sm">
-                <span v-if="cell.row.original.reference_name" class="text-gray-900 dark:text-white">
-                  {{ cell.row.original.reference_name }}
-                </span>
-                <span v-else class="text-gray-400 dark:text-gray-600 italic">
-                  No reference
-                </span>
-              </div>
-            </template>
 
             <!-- User Column -->
             <template #user-cell="{ cell }">
@@ -237,6 +183,13 @@
                   Unknown
                 </span>
               </div>
+            </template>
+
+            <!-- Language Column -->
+            <template #language-cell="{ cell }">
+              <span class="text-sm text-gray-900 dark:text-white">
+                {{ cell.row.original.language || 'N/A' }}
+              </span>
             </template>
 
             <!-- Stats Column -->
@@ -336,16 +289,15 @@ const selectedLanguage = ref({ label: 'All Languages', value: '' })
 
 const selectedQuote = ref<AdminQuote | undefined>(undefined)
 const showEditQuoteDialog = ref(false)
-// Selection state
-const selectionMode = ref(false)
-const rowSelection = ref<Record<string, boolean>>({})
+// Selection state (multi-select column)
+const rowSelection = ref<Record<number, boolean>>({})
+const lastSelectedIndex = ref<number | null>(null)
 const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
 // Bulk modal
 const showBulkAddToCollection = ref(false)
-const bulkOpen = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -403,17 +355,7 @@ const totalLikes = computed(() => {
 })
 
 const tableColumns = [
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
-      }
-    }
-  },
+  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
   {
     header: 'Quote',
     accessorKey: 'quote',
@@ -426,24 +368,13 @@ const tableColumns = [
     }
   },
   {
-    header: 'Author',
-    accessorKey: 'author',
+    header: 'Language',
+    accessorKey: 'language',
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-40',
-        tableCell: 'w-40'
-      }
-    }
-  },
-  {
-    header: 'Reference',
-    accessorKey: 'reference',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-40',
-        tableCell: 'w-40'
+        tableHead: 'w-32',
+        tableCell: 'w-32'
       }
     }
   },
@@ -490,7 +421,8 @@ const tableColumns = [
         tableCell: 'w-28'
       }
     }
-  }
+  },
+  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-16', tableCell: 'w-16' } } }
 ]
 
 // Helpers derived from dashboard page
@@ -498,6 +430,36 @@ const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
 const allSelectedOnPage = computed<boolean>(() =>
   visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
 )
+
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => {
+    const total = filteredQuotes.value.length
+    const count = selectedQuotes.value.length
+    if (total === 0) return false
+    if (count === total) return true
+    if (count > 0) return 'indeterminate'
+    return false
+  },
+  set: (v) => {
+    const newSel: Record<number, boolean> = {}
+    if (v === true) {
+      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    }
+    rowSelection.value = newSel
+    lastSelectedIndex.value = null
+  }
+})
+
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) {
+    const newSel: Record<number, boolean> = {}
+    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    rowSelection.value = newSel
+  } else {
+    rowSelection.value = {}
+  }
+  lastSelectedIndex.value = null
+}
 
 const loadQuotes = async () => {
   try {
@@ -540,6 +502,8 @@ const resetFilters = () => {
   selectedLanguage.value = languageOptions.value[0] // Use the first option from the store (All Languages)
   selectedSort.value = { label: 'Most Recent', value: 'newest' }
   currentPage.value = 1
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
 }
 
 const getQuoteActions = (quote: AdminQuote) => [
@@ -599,22 +563,60 @@ const unpublishQuote = async (quote: AdminQuote) => {
   }
 }
 
-// Selection & Bulk helpers
-const clearSelection = () => {
-  rowSelection.value = {}
-}
+// Selection helpers
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
-const toggleSelectionMode = () => {
-  selectionMode.value = !selectionMode.value
-  if (!selectionMode.value) clearSelection()
-}
-
-const setRowSelected = (id: number, value: boolean | 'indeterminate') => {
-  rowSelection.value[id] = value === true
-}
+const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
 
 const selectAllOnPage = () => {
-  visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+  if (allSelectedOnPage.value) rowSelection.value = {}
+  else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+}
+
+
+const headerActions = computed(() => {
+  const actions: any[] = []
+  if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Add to Collection',
+      leading: 'i-ph-bookmark',
+      onclick: () => { showBulkAddToCollection.value = true }
+    })
+    actions.push({
+      label: 'Unpublish Selected',
+      leading: 'i-ph-eye-slash',
+      onclick: () => bulkUnpublish()
+    })
+  }
+  if (actions.length > 0) actions.push({})
+  actions.push({
+    label: 'Refresh',
+    leading: 'i-ph-arrows-clockwise',
+    onclick: () => loadQuotes()
+  })
+  actions.push({
+    label: 'Reset Filters',
+    leading: 'i-ph-x',
+    onclick: () => resetFilters()
+  })
+  return actions
+})
+
+// shift‑click support
+const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
+  const currently = !!rowSelection.value[id]
+  const newVal = !currently
+  if (event.shiftKey && lastSelectedIndex.value !== null) {
+    const start = Math.min(lastSelectedIndex.value, index)
+    const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) {
+      const row = filteredQuotes.value[i]
+      if (row) rowSelection.value[row.id] = newVal
+    }
+  } else {
+    rowSelection.value[id] = newVal
+  }
+  lastSelectedIndex.value = index
 }
 
 const handleBulkAddedToCollection = () => {
@@ -650,34 +652,12 @@ watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () =>
   loadQuotes()
 }, { debounce: 300, immediate: true })
 
-// Smoothly show/hide bulk actions based on selection
-watch(selectedQuotes, (ids) => {
-  bulkOpen.value = ids.length > 0
-}, { immediate: true })
 
-// Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown)
-})
-
-const onKeydown = (e: KeyboardEvent) => {
-  if (!selectionMode.value) return
-  const isMac = navigator.platform.toLowerCase().includes('mac')
-  const metaPressed = isMac ? e.metaKey : e.ctrlKey
-  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
-    e.preventDefault()
-    selectAllOnPage()
-  }
-}
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
-})
 </script>
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 20rem);
+  max-height: calc(100vh - 13rem);
 }
 
 .frame {

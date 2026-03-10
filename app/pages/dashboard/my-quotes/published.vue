@@ -150,58 +150,6 @@
 
     <!-- Desktop: existing table UI -->
     <div v-else class="flex flex-col h-full">
-      <!-- Fixed Header Section -->
-      <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
-        <!-- Search and Filters -->
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <NInput
-              v-model="searchQuery"
-              placeholder="Search your published quotes..."
-              leading="i-ph-magnifying-glass"
-              size="md"
-              :loading="loading"
-              :trailing="searchQuery ? 'i-ph-x' : undefined"
-              :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-              @trailing="resetFilters"
-            />
-          </div>
-          <div class="w-full sm:w-48">
-            <LanguageSelector :on-language-changed="onLanguageChanged" />
-          </div>
-          <div class="w-full sm:w-48">
-            <NSelect
-              v-model="sortBy"
-              :items="sortOptions"
-              placeholder="Sort by"
-              size="sm"
-              item-key="label"
-              value-key="label"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Bulk Actions -->
-      <div v-if="selectedQuotes.length > 0" class="flex-shrink-0 mb-6">
-        <div class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }} selected
-            </span>
-            <div class="flex items-center gap-3">
-              <NButton size="sm" btn="soft-blue" @click="showBulkAddToCollection = true">
-                <NIcon name="i-ph-bookmark" />
-                Add to Collection
-              </NButton>
-              <NButton size="sm" btn="ghost" @click="clearSelection">
-                Clear Selection
-              </NButton>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-hidden">
         <!-- First-load Skeleton State -->
@@ -239,21 +187,8 @@
 
         <!-- Quotes Table Container -->
         <div v-else class="flex flex-col h-full">
-          <!-- Results Count -->
-          <div class="flex-shrink-0 flex items-center justify-between mb-4">
-            <div class="text-sm text-gray-500 dark:text-gray-400">
-              Showing {{ displayedCount }} of {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
-              <span v-if="searchQuery || sortBy.value !== 'recent'" class="text-gray-400">
-                (page {{ currentPage }} of {{ totalPages }})
-              </span>
-            </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
-              Total views: {{ totalViews.toLocaleString() }} • Total likes: {{ totalLikes.toLocaleString() }}
-            </div>
-          </div>
-
           <!-- Scrollable Table Container -->
-          <div class="quotes-table-container flex-1 overflow-auto max-w-screen">
+          <div class="quotes-table-container overflow-auto flex-1 max-w-screen">
             <NTable
               :columns="tableColumns"
               :data="filteredQuotes"
@@ -261,38 +196,92 @@
               manual-pagination
               empty-text="No published quotes found"
               empty-icon="i-ph-check-circle"
+              :una="{
+                tableBody: '',
+              }"
             >
-            <!-- Actions Header: toggle selection mode -->
-            <template #actions-header>
-              <div class="flex items-center justify-center gap-1">
-                <NTooltip :content="selectionMode ? 'Deactivate selection' : 'Activate selection'">
-                  <NButton
-                    icon
-                    btn="ghost-gray"
-                    size="xs"
-                    :label="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'"
-                    @click="toggleSelectionMode"
-                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+              <template #select-header>
+                <div>
+                  <NCheckbox
+                    checkbox="gray"
+                    :model-value="allSelected"
+                    @update:model-value="toggleAllSelection"
                   />
-                </NTooltip>
-                <template v-if="selectionMode">
-                  <NTooltip content="Select all on page">
-                    <NButton
-                      icon
-                      btn="ghost-gray"
-                      size="xs"
-                      label="i-ph-checks"
-                      :disabled="allSelectedOnPage"
-                      @click="selectAllOnPage"
-                      class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+                </div>
+              </template>
+
+              <template #select-cell="{ cell }">
+                <div class="items-center justify-center" :class="[
+                  Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
+                  'group-hover:flex',
+                ]">
+                  <NCheckbox
+                    checkbox="gray"
+                    :model-value="!!rowSelection[cell.row.original.id]"
+                    @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
+                  />
+                </div>
+              </template>
+
+              <template #quote-header>
+                <div class="flex items-center gap-4">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
+                  <div class="w-102">
+                    <NInput
+                      v-model="searchQuery"
+                      :placeholder="`Search among ${filteredQuotes.length} published ${filteredQuotes.length === 1 ? 'quote' : 'quotes'}...`"
+                      leading="i-ph-magnifying-glass"
+                      size="md"
+                      :loading="loading"
+                      :trailing="searchQuery ? 'i-ph-x' : undefined"
+                      :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
+                      @trailing="searchQuery = ''"
                     />
+                  </div>
+                  <div>
+                    <NSelect
+                      v-model="sortBy"
+                      :items="sortOptions"
+                      placeholder="Sort by"
+                      size="sm"
+                      item-key="label"
+                      value-key="label"
+                    />
+                  </div>
+                </div>
+              </template>
+
+              <template #language-header>
+                <div>
+                  <LanguageSelector :on-language-changed="onLanguageChanged" />
+                </div>
+              </template>
+
+              <template #actions-header>
+                <div class="flex items-center justify-center space-x-1">
+                  <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
+                  <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
+                    <template #default>
+                      <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
+                    </template>
+                    <template #content>
+                      <div class="space-y-2">
+                        <div class="flex">
+                          <NBadge badge="solid-gray" size="xs" icon="i-ph-check-circle" class="w-full">
+                            {{ filteredQuotes.length }} Published
+                          </NBadge>
+                        </div>
+                      </div>
+                    </template>
                   </NTooltip>
-                </template>
-              </div>
-            </template>
-            <!-- Actions Column -->
-            <template #actions-cell="{ cell }">
-              <template v-if="!selectionMode">
+
+                  <NDropdownMenu :items="headerActions">
+                    <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
+                  </NDropdownMenu>
+                </div>
+              </template>
+
+              <template #actions-cell="{ cell }">
                 <NDropdownMenu :items="getQuoteActions(cell.row.original)">
                   <NButton
                     icon
@@ -303,45 +292,33 @@
                   />
                 </NDropdownMenu>
               </template>
-              <template v-else>
-                <div class="flex items-center justify-center">
-                  <NCheckbox
-                    :model-value="!!rowSelection[cell.row.original.id]"
-                    @update:model-value="val => setRowSelected(cell.row.original.id, val)"
-                  />
-                </div>
-              </template>
-            </template>
 
             <!-- Quote Column with text wrapping -->
             <template #quote-cell="{ cell }">
               <div class="max-w-md">
                 <blockquote
-                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words"
+                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
                   :title="cell.row.original.name"
                 >
                   {{ cell.row.original.name }}
                 </blockquote>
+                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span v-if="cell.row.original.author?.name">{{ cell.row.original.author.name }}</span>
+                  <span v-if="cell.row.original.author?.name && cell.row.original.reference?.name">•</span>
+                  <span v-if="cell.row.original.reference?.name">{{ cell.row.original.reference.name }}</span>
+                </div>
               </div>
             </template>
 
-            <!-- Author Column -->
-            <template #author-cell="{ cell }">
-              <div v-if="cell.row.original.author" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <NIcon name="i-ph-user" class="w-4 h-4 mr-1 flex-shrink-0" />
-                <span class="truncate">{{ cell.row.original.author.name }}</span>
-              </div>
-              <span v-else class="text-sm text-gray-400">—</span>
+            <template #language-cell="{ cell }">
+              <span class="text-sm text-gray-900 dark:text-white">
+                {{ cell.row.original.language || 'N/A' }}
+              </span>
             </template>
 
-            <!-- Reference Column -->
-            <template #reference-cell="{ cell }">
-              <div v-if="cell.row.original.reference" class="flex gap-2 text-sm text-gray-600 dark:text-gray-400 max-w-32">
-                <NIcon name="i-ph-book" class="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span class="">{{ cell.row.original.reference.name }}</span>
-              </div>
-              <span v-else class="text-sm text-gray-400">—</span>
-            </template>
+
+
+
 
             <!-- Tags Column -->
             <template #tags-cell="{ cell }">
@@ -396,7 +373,7 @@
           <!-- Pagination -->
           <div class="flex-shrink-0 flex items-center justify-between pt-4">
             <div class="text-sm text-gray-500 dark:text-gray-400">
-              Page {{ currentPage }} of {{ totalPages }}
+              Page {{ currentPage }} of {{ totalPages }} • Showing {{ displayedCount }} of {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
             </div>
             <NPagination
               v-model:page="currentPage"
@@ -485,8 +462,8 @@ const handleScroll = () => {
   lastScrollY.value = scrollY.value
 }
 
-const selectionMode = ref(false)
 const rowSelection = ref<Record<string, boolean>>({})
+const lastSelectedIndex = ref<number | null>(null)
 const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
   .filter(([, v]) => !!v)
@@ -518,83 +495,13 @@ const publishedQuoteActions = [
 ]
 
 const tableColumns = [
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
-      }
-    }
-  },
-  {
-    header: 'Quote',
-    accessorKey: 'quote',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'min-w-80',
-        tableCell: 'min-w-80'
-      }
-    }
-  },
-  {
-    header: 'Author',
-    accessorKey: 'author',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-40',
-        tableCell: 'w-40'
-      }
-    }
-  },
-  {
-    header: 'Reference',
-    accessorKey: 'reference',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-40',
-        tableCell: 'w-40'
-      }
-    }
-  },
-  {
-    header: 'Tags',
-    accessorKey: 'tags',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'Stats',
-    accessorKey: 'stats',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'Published',
-    accessorKey: 'published',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-28',
-        tableCell: 'w-28'
-      }
-    }
-  }
+  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
+  { header: 'Quote', accessorKey: 'quote', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
+  { header: 'Language', accessorKey: 'language', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: 'Tags', accessorKey: 'tags', enableSorting: false, meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } } },
+  { header: 'Stats', accessorKey: 'stats', enableSorting: false, meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } } },
+  { header: 'Published', accessorKey: 'published', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
+  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-16', tableCell: 'w-16' } } }
 ]
 
 const totalViews = computed(() => {
@@ -704,6 +611,7 @@ const loadPublishedQuotes = async () => {
     totalPages.value = response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.limit)
     pageSize.value = response.pagination.limit
     rowSelection.value = {}
+    lastSelectedIndex.value = null
   } catch (error) {
     console.error('Failed to load published quotes:', error)
   } finally {
@@ -737,6 +645,8 @@ const loadPublishedMobile = async (page = 1) => {
     const data = (response as any)?.data || []
     if (page === 1) {
       quotes.value = data
+      rowSelection.value = {}
+      lastSelectedIndex.value = null
     } else {
       quotes.value.push(...data)
     }
@@ -797,21 +707,95 @@ const shareQuote = (quote: DashboardQuote) => {
   navigator.clipboard.writeText(url)
 }
 
-const clearSelection = () => {
-  rowSelection.value = {}
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
+
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => {
+    const total = filteredQuotes.value.length
+    const count = selectedQuotes.value.length
+    if (total === 0) return false
+    if (count === total) return true
+    if (count > 0) return 'indeterminate'
+    return false
+  },
+  set: (v) => {
+    const newSel: Record<number, boolean> = {}
+    if (v === true) {
+      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    }
+    rowSelection.value = newSel
+    lastSelectedIndex.value = null
+  }
+})
+
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) {
+    const newSel: Record<number, boolean> = {}
+    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    rowSelection.value = newSel
+  } else {
+    rowSelection.value = {}
+  }
+  lastSelectedIndex.value = null
 }
 
-const toggleSelectionMode = () => {
-  selectionMode.value = !selectionMode.value
-  if (!selectionMode.value) clearSelection()
-}
-
-const setRowSelected = (id: number, value: boolean | 'indeterminate') => {
-  rowSelection.value[id] = value === true
-}
-
+const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
 const selectAllOnPage = () => {
-  visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+  if (allSelectedOnPage.value) rowSelection.value = {}
+  else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+}
+
+// shift-click range selection
+const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
+  const currently = !!rowSelection.value[id]
+  const newVal = !currently
+  if (event.shiftKey && lastSelectedIndex.value !== null) {
+    const start = Math.min(lastSelectedIndex.value, index)
+    const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) {
+      const row = filteredQuotes.value[i]
+      if (row) rowSelection.value[row.id] = newVal
+    }
+  } else {
+    rowSelection.value[id] = newVal
+  }
+  lastSelectedIndex.value = index
+}
+
+const headerActions = computed(() => {
+  const actions: any[] = []
+  if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Add to Collection',
+      leading: 'i-ph-bookmark',
+      onclick: () => { showBulkAddToCollection.value = true }
+    })
+  }
+  if (actions.length > 0) actions.push({})
+  actions.push({
+    label: 'Refresh',
+    leading: 'i-ph-arrows-clockwise',
+    onclick: () => {
+      if (isMobile.value) loadPublishedMobile(currentPage.value)
+      else loadPublishedQuotes()
+    }
+  })
+  actions.push({
+    label: 'Reset Filters',
+    leading: 'i-ph-x',
+    onclick: () => resetFilters()
+  })
+  return actions
+})
+
+// Keyboard shortcut: Cmd/Ctrl + A to select all
+const onKeydown = (e: KeyboardEvent) => {
+  const isMac = navigator.platform.toLowerCase().includes('mac')
+  const metaPressed = isMac ? e.metaKey : e.ctrlKey
+  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+    e.preventDefault()
+    selectAllOnPage()
+  }
 }
 
 const handleBulkAddedToCollection = () => {
@@ -840,16 +824,6 @@ watch(currentLayout, (newLayout) => {
   setPageLayout(newLayout)
 })
 
-// Keyboard shortcut: Cmd/Ctrl + A to select all (only when selection mode is active)
-const onKeydown = (e: KeyboardEvent) => {
-  if (!selectionMode.value) return
-  const isMac = navigator.platform.toLowerCase().includes('mac')
-  const metaPressed = isMac ? e.metaKey : e.ctrlKey
-  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
-    e.preventDefault()
-    selectAllOnPage()
-  }
-}
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
@@ -861,7 +835,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 22rem);
+  max-height: calc(100vh - 13rem);
 }
 
 .mobile-published-page {
