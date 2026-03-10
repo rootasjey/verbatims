@@ -4,14 +4,11 @@ import { resolveMetaOAuthConfig } from '../../../../utils/social-meta-config'
 
 const META_OAUTH_STATE_PREFIX = 'social:meta:oauth:state:'
 const META_DEFAULT_SCOPES = [
-  'threads_basic',
-  'threads_content_publish',
   'instagram_basic',
   'instagram_content_publish',
   'pages_show_list',
   'pages_read_engagement',
   'pages_manage_posts',
-  'pages_manage_metadata',
   'business_management'
 ]
 
