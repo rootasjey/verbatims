@@ -223,6 +223,15 @@
       @save="saveMetaAppConfig"
     />
 
+    <AdminSocialThreadsOAuthConfigDialog
+      :open="threadsOAuthConfigDialogOpen"
+      :form="threadsOAuthConfigForm"
+      :state="threadsOAuthConfigState"
+      :saving="threadsOAuthConfigSaving"
+      @update:open="threadsOAuthConfigDialogOpen = $event"
+      @save="saveThreadsOAuthConfig"
+    />
+
     <AdminSocialProviderConfigDialog
       :open="providerConfigDialogOpen"
       :selected-platform="selectedPlatform"
@@ -234,6 +243,17 @@
       :saving="providerConfigSaving"
       @update:open="providerConfigDialogOpen = $event"
       @save="saveProviderConfig"
+    />
+
+    <AdminSocialThreadsConfigDialog
+      :open="threadsConfigDialogOpen"
+      :form="threadsConfigForm"
+      :state="threadsConfigState"
+      :refreshing="threadsTokenRefreshLoading"
+      :saving="threadsConfigSaving"
+      @update:open="threadsConfigDialogOpen = $event"
+      @refresh="refreshThreadsToken"
+      @save="saveThreadsConfig"
     />
 
     <AdminSocialRandomAddDialog
@@ -300,9 +320,16 @@ const metaConnectLoading = ref(false)
 const metaConfigLoading = ref(false)
 const metaConfigSaving = ref(false)
 const metaConfigDialogOpen = ref(false)
+const threadsOAuthConnectLoading = ref(false)
+const threadsOAuthConfigLoading = ref(false)
+const threadsOAuthConfigSaving = ref(false)
+const threadsOAuthConfigDialogOpen = ref(false)
 const providerConfigLoading = ref(false)
 const providerConfigSaving = ref(false)
 const providerConfigDialogOpen = ref(false)
+const threadsTokenRefreshLoading = ref(false)
+const threadsConfigSaving = ref(false)
+const threadsConfigDialogOpen = ref(false)
 
 // new dialogs for actions
 const randomDialogOpen = ref(false)
@@ -362,6 +389,43 @@ const metaConfigState = ref({
     appId: 'none' as 'kv' | 'env' | 'none',
     appSecret: 'none' as 'kv' | 'env' | 'none',
     redirectUri: 'default' as 'kv' | 'env' | 'default'
+  }
+})
+
+const threadsOAuthConfigForm = reactive({
+  appId: '',
+  appSecret: '',
+  redirectUri: ''
+})
+
+const threadsOAuthConfigState = ref({
+  updatedAt: '' as string | null,
+  hasAppSecret: false,
+  sources: {
+    appId: 'none' as 'kv' | 'env' | 'none',
+    appSecret: 'none' as 'kv' | 'env' | 'none',
+    redirectUri: 'default' as 'kv' | 'env' | 'default'
+  }
+})
+
+const threadsConfigForm = reactive({
+  accessToken: '',
+  userId: ''
+})
+
+const threadsConfigState = ref({
+  updatedAt: '' as string | null,
+  hasAccessToken: false,
+  username: '',
+  expiresAt: '' as string | null,
+  tokenUpdatedAt: '' as string | null,
+  refreshAvailableAt: '' as string | null,
+  canRefreshNow: false,
+  tokenStatus: 'missing' as 'missing' | 'expired' | 'expiring-soon' | 'healthy',
+  redirectUri: '',
+  sources: {
+    accessToken: 'none' as 'kv' | 'env' | 'none',
+    userId: 'none' as 'kv' | 'env' | 'none'
   }
 })
 
@@ -756,7 +820,12 @@ watch(randomDialogOpen, (open) => {
 const actionMenuItems = computed(() => {
   const items: DropdownMenuItem[] = []
   items.push({ label: 'Check provider', leading: 'i-ph-plugs-connected', onclick: checkProvider })
-  if (isMetaPlatform(selectedPlatform.value)) {
+  if (selectedPlatform.value === 'threads') {
+    items.push({ label: 'Provider settings', leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    items.push({ label: 'Threads OAuth settings', leading: 'i-ph-sliders-horizontal', onclick: openThreadsOAuthConfigDialog })
+    items.push({ label: 'Reconnect Threads', leading: 'i-ph-arrow-clockwise', onclick: connectThreads })
+    items.push({ label: 'Threads API credentials', leading: 'i-ph-key', onclick: openThreadsConfigDialog })
+  } else if (selectedPlatform.value === 'instagram' || selectedPlatform.value === 'facebook') {
     items.push({ label: 'Provider settings', leading: 'i-ph-gear', onclick: openProviderConfigDialog })
     items.push({ label: 'Meta OAuth settings', leading: 'i-ph-sliders-horizontal', onclick: openMetaConfigDialog })
     items.push({ label: 'Reconnect', leading: 'i-ph-arrow-clockwise', onclick: connectMeta })
@@ -922,6 +991,98 @@ async function loadMetaAppConfig() {
 async function openMetaConfigDialog() {
   await loadMetaAppConfig()
   metaConfigDialogOpen.value = true
+}
+
+async function loadThreadsOAuthConfig() {
+  threadsOAuthConfigLoading.value = true
+
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data?: {
+        updatedAt: string | null
+        appId: string
+        redirectUri: string
+        hasAppSecret: boolean
+        sources: {
+          appId: 'kv' | 'env' | 'none'
+          appSecret: 'kv' | 'env' | 'none'
+          redirectUri: 'kv' | 'env' | 'default'
+        }
+      }
+    }>('/api/admin/social/threads/app-config')
+
+    if (!response?.data) return
+
+    threadsOAuthConfigForm.appId = response.data.appId || ''
+    threadsOAuthConfigForm.appSecret = ''
+    threadsOAuthConfigForm.redirectUri = response.data.sources.redirectUri === 'default' ? '' : response.data.redirectUri
+
+    threadsOAuthConfigState.value = {
+      updatedAt: response.data.updatedAt,
+      hasAppSecret: response.data.hasAppSecret,
+      sources: response.data.sources
+    }
+  } catch (error) {
+    console.error('Failed to load Threads OAuth config:', error)
+    showErrorToast('Error', readErrorMessage(error, 'Failed to load Threads OAuth settings'))
+  } finally {
+    threadsOAuthConfigLoading.value = false
+  }
+}
+
+async function openThreadsOAuthConfigDialog() {
+  await loadThreadsOAuthConfig()
+  threadsOAuthConfigDialogOpen.value = true
+}
+
+async function loadThreadsConfig() {
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data?: {
+        updatedAt: string | null
+        userId: string
+        username: string
+        expiresAt: string | null
+        tokenUpdatedAt: string | null
+        refreshAvailableAt: string | null
+        canRefreshNow: boolean
+        tokenStatus: 'missing' | 'expired' | 'expiring-soon' | 'healthy'
+        redirectUri: string
+        hasAccessToken: boolean
+        sources: {
+          accessToken: 'kv' | 'env' | 'none'
+          userId: 'kv' | 'env' | 'none'
+        }
+      }
+    }>('/api/admin/social/threads/credentials')
+
+    if (!response?.data) return
+
+    threadsConfigForm.accessToken = ''
+    threadsConfigForm.userId = response.data.userId || ''
+    threadsConfigState.value = {
+      updatedAt: response.data.updatedAt,
+      hasAccessToken: response.data.hasAccessToken,
+      username: response.data.username || '',
+      expiresAt: response.data.expiresAt,
+      tokenUpdatedAt: response.data.tokenUpdatedAt,
+      refreshAvailableAt: response.data.refreshAvailableAt,
+      canRefreshNow: response.data.canRefreshNow,
+      tokenStatus: response.data.tokenStatus,
+      redirectUri: response.data.redirectUri,
+      sources: response.data.sources
+    }
+  } catch (error) {
+    console.error('Failed to load Threads credentials:', error)
+    showErrorToast('Error', readErrorMessage(error, 'Failed to load Threads API credentials'))
+  }
+}
+
+async function openThreadsConfigDialog() {
+  await loadThreadsConfig()
+  threadsConfigDialogOpen.value = true
 }
 
 function resetProviderConfigForm() {
@@ -1113,6 +1274,128 @@ async function saveMetaAppConfig() {
   }
 }
 
+async function saveThreadsOAuthConfig() {
+  threadsOAuthConfigSaving.value = true
+
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data?: {
+        appId: string
+        redirectUri: string
+        hasAppSecret: boolean
+        sources: {
+          appId: 'kv' | 'env' | 'none'
+          appSecret: 'kv' | 'env' | 'none'
+          redirectUri: 'kv' | 'env' | 'default'
+        }
+      }
+    }>('/api/admin/social/threads/app-config', {
+      method: 'POST',
+      body: {
+        appId: threadsOAuthConfigForm.appId,
+        appSecret: threadsOAuthConfigForm.appSecret,
+        redirectUri: threadsOAuthConfigForm.redirectUri
+      }
+    })
+
+    if (response?.data) {
+      threadsOAuthConfigState.value = {
+        updatedAt: new Date().toISOString(),
+        hasAppSecret: response.data.hasAppSecret,
+        sources: response.data.sources
+      }
+
+      threadsOAuthConfigForm.appSecret = ''
+      threadsOAuthConfigDialogOpen.value = false
+
+      useToast().toast({
+        title: 'Saved',
+        description: 'Threads OAuth settings updated',
+        toast: 'outline-success'
+      })
+    }
+  } catch (error) {
+    console.error('Failed to save Threads OAuth config:', error)
+    showErrorToast('Error', readErrorMessage(error, 'Failed to save Threads OAuth settings'))
+  } finally {
+    threadsOAuthConfigSaving.value = false
+  }
+}
+
+async function saveThreadsConfig() {
+  threadsConfigSaving.value = true
+
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data?: {
+        userId: string
+        username: string
+        expiresAt: string | null
+        tokenUpdatedAt: string | null
+        hasAccessToken: boolean
+        sources: {
+          accessToken: 'kv' | 'env' | 'none'
+          userId: 'kv' | 'env' | 'none'
+        }
+      }
+    }>('/api/admin/social/threads/credentials', {
+      method: 'POST',
+      body: {
+        accessToken: threadsConfigForm.accessToken,
+        userId: threadsConfigForm.userId
+      }
+    })
+
+    if (response?.data) {
+      threadsConfigForm.accessToken = ''
+      threadsConfigForm.userId = response.data.userId || threadsConfigForm.userId
+      threadsConfigDialogOpen.value = false
+
+      useToast().toast({
+        title: 'Saved',
+        description: 'Threads API credentials updated',
+        toast: 'outline-success'
+      })
+
+      await loadThreadsConfig()
+      await loadMetaStatus()
+      await checkPlatform('threads', false)
+    }
+  } catch (error) {
+    console.error('Failed to save Threads credentials:', error)
+    showErrorToast('Error', readErrorMessage(error, 'Failed to save Threads API credentials'))
+  } finally {
+    threadsConfigSaving.value = false
+  }
+}
+
+async function refreshThreadsToken() {
+  threadsTokenRefreshLoading.value = true
+
+  try {
+    await $fetch('/api/admin/social/threads/refresh-token', {
+      method: 'POST'
+    })
+
+    useToast().toast({
+      title: 'Token refreshed',
+      description: 'Threads long-lived token refreshed successfully',
+      toast: 'outline-success'
+    })
+
+    await loadThreadsConfig()
+    await loadMetaStatus()
+    await checkPlatform('threads', false)
+  } catch (error) {
+    console.error('Failed to refresh Threads token:', error)
+    showErrorToast('Error', readErrorMessage(error, 'Failed to refresh Threads token'))
+  } finally {
+    threadsTokenRefreshLoading.value = false
+  }
+}
+
 async function connectMeta() {
   metaConnectLoading.value = true
 
@@ -1145,6 +1428,38 @@ async function connectMeta() {
   }
 }
 
+async function connectThreads() {
+  threadsOAuthConnectLoading.value = true
+
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data?: {
+        authUrl: string
+      }
+    }>('/api/admin/social/threads/connect-url', {
+      method: 'POST',
+      body: {
+        returnPath: '/admin/social-queue'
+      }
+    })
+
+    const authUrl = response?.data?.authUrl
+    if (!authUrl) {
+      throw new Error('Missing auth URL')
+    }
+
+    if (typeof window !== 'undefined') {
+      window.location.assign(authUrl)
+    }
+  } catch (error) {
+    console.error('Failed to start Threads OAuth:', error)
+    showErrorToast('Error', readErrorMessage(error, 'Failed to start Threads OAuth flow'))
+  } finally {
+    threadsOAuthConnectLoading.value = false
+  }
+}
+
 async function clearAllQueue() {
   await clearAllQueueRequest()
   showClearAllDialog.value = false
@@ -1161,27 +1476,51 @@ onMounted(async () => {
   await refreshAllStatuses()
 
   const connectResult = String(route.query.metaConnect || '')
-  if (!connectResult) return
+  const threadsConnectResult = String(route.query.threadsConnect || '')
 
-  if (connectResult === 'ok') {
-    useToast().toast({
-      title: 'Meta connected',
-      description: 'Instagram, Threads, and Facebook credentials were refreshed successfully',
-      toast: 'outline-success'
-    })
-  } else {
-    const reason = String(route.query.metaReason || 'Meta OAuth failed')
-    let readableReason = reason
-    try {
-      readableReason = decodeURIComponent(reason)
-    } catch {
-      readableReason = reason
+  if (connectResult) {
+    if (connectResult === 'ok') {
+      useToast().toast({
+        title: 'Meta connected',
+        description: 'Instagram, Threads, and Facebook credentials were refreshed successfully',
+        toast: 'outline-success'
+      })
+    } else {
+      const reason = String(route.query.metaReason || 'Meta OAuth failed')
+      let readableReason = reason
+      try {
+        readableReason = decodeURIComponent(reason)
+      } catch {
+        readableReason = reason
+      }
+
+      showErrorToast('Meta connection failed', readableReason)
     }
-
-    showErrorToast('Meta connection failed', readableReason)
   }
 
-  await navigateTo('/admin/social-queue', { replace: true })
+  if (threadsConnectResult) {
+    if (threadsConnectResult === 'ok') {
+      useToast().toast({
+        title: 'Threads connected',
+        description: 'Threads credentials were refreshed successfully',
+        toast: 'outline-success'
+      })
+    } else {
+      const reason = String(route.query.threadsReason || 'Threads OAuth failed')
+      let readableReason = reason
+      try {
+        readableReason = decodeURIComponent(reason)
+      } catch {
+        readableReason = reason
+      }
+
+      showErrorToast('Threads connection failed', readableReason)
+    }
+  }
+
+  if (connectResult || threadsConnectResult) {
+    await navigateTo('/admin/social-queue', { replace: true })
+  }
 })
 </script>
 
