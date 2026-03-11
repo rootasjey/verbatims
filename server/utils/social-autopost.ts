@@ -28,6 +28,53 @@ interface BuildPostTextInput {
   blueskyHashtags?: string
 }
 
+interface QueueCandidate {
+  queueId: number
+  platform: SocialPlatform
+  quoteId: number
+  quoteText: string | null
+  quoteStatus: string | null
+  authorName: string | null
+  referenceName: string | null
+}
+
+interface SocialAutopostSuccessResult {
+  success: true
+  queueId: number
+  platform: SocialPlatform
+  quoteId: number
+  postId?: string
+  postUrl?: string
+}
+
+interface SocialAutopostFailureResult {
+  success: false
+  queueId: number
+  platform: SocialPlatform
+  quoteId: number
+  reason: string
+}
+
+interface SocialAutopostSkippedResult {
+  skipped: true
+  reason: string
+  platform?: SocialPlatform
+}
+
+interface SocialAutopostBatchResult {
+  success: boolean
+  processedCount: number
+  successCount: number
+  failureCount: number
+  skippedCount: number
+  results: SocialAutopostPlatformResult[]
+}
+
+type SocialAutopostSingleResult = SocialAutopostSuccessResult | SocialAutopostFailureResult | SocialAutopostSkippedResult
+type SocialAutopostPlatformResult = SocialAutopostSuccessResult | SocialAutopostFailureResult | (SocialAutopostSkippedResult & { platform: SocialPlatform })
+
+const DEFAULT_AUTOPOST_MAX_DURATION_MS = 12 * 60 * 1000
+
 type BlueskyFacet = {
   index: {
     byteStart: number
@@ -45,7 +92,7 @@ export async function runSocialAutopost() {
   return runSocialAutopostWithOptions({ force: false })
 }
 
-export async function runSocialAutopostWithOptions(options: { force?: boolean, platform?: SocialPlatform, baseSiteUrl?: string } = {}) {
+export async function runSocialAutopostWithOptions(options: { force?: boolean, platform?: SocialPlatform, baseSiteUrl?: string } = {}): Promise<SocialAutopostSingleResult | SocialAutopostBatchResult> {
   const enabledPlatforms = await getEnabledPlatforms()
   if (!enabledPlatforms.length) {
     return { skipped: true, reason: 'all social posting providers disabled by config' }
@@ -70,7 +117,84 @@ export async function runSocialAutopostWithOptions(options: { force?: boolean, p
     return { skipped: true, reason: `current local time ${localTime} != ${targetTime}` }
   }
 
-  const nextItem = await db.select({
+  const baseSiteUrl = String(options.baseSiteUrl || process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')
+
+  if (options.platform) {
+    const nextItem = await getNextQueuedItem(options.platform, now)
+    if (!nextItem) {
+      return { skipped: true, reason: 'no queued item available' }
+    }
+
+    return processQueueCandidate(nextItem, baseSiteUrl)
+  }
+
+  const startedAt = Date.now()
+  const maxDurationMs = getAutopostMaxDurationMs()
+  const results: SocialAutopostPlatformResult[] = []
+
+  for (const platform of activePlatforms) {
+    if (Date.now() - startedAt >= maxDurationMs) {
+      results.push({
+        skipped: true,
+        platform,
+        reason: 'autopost time budget exceeded before processing this platform'
+      })
+      continue
+    }
+
+    const nextItem = await getNextQueuedItem(platform, now)
+    if (!nextItem) {
+      results.push({ skipped: true, platform, reason: 'no queued item available' })
+      continue
+    }
+
+    const result = await processQueueCandidate(nextItem, baseSiteUrl)
+    results.push(result)
+  }
+
+  const successCount = results.filter(result => 'success' in result && result.success).length
+  const failureCount = results.filter(result => 'success' in result && !result.success).length
+  const skippedCount = results.filter(result => 'skipped' in result && result.skipped).length
+  const processedCount = successCount + failureCount
+
+  if (!processedCount) {
+    return {
+      skipped: true,
+      reason: 'no queued item available',
+      processedCount,
+      successCount,
+      failureCount,
+      skippedCount,
+      results
+    }
+  }
+
+  return {
+    success: failureCount === 0,
+    processedCount,
+    successCount,
+    failureCount,
+    skippedCount,
+    results
+  }
+}
+
+function getLocalTimeHHMM(now: Date, timezone: string): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).formatToParts(now)
+
+  const hour = parts.find(part => part.type === 'hour')?.value || '00'
+  const minute = parts.find(part => part.type === 'minute')?.value || '00'
+
+  return `${hour}:${minute}`
+}
+
+async function getNextQueuedItem(platform: SocialPlatform, now: Date): Promise<QueueCandidate | undefined> {
+  return db.select({
     queueId: schema.socialQueue.id,
     platform: schema.socialQueue.platform,
     quoteId: schema.socialQueue.quoteId,
@@ -83,15 +207,13 @@ export async function runSocialAutopostWithOptions(options: { force?: boolean, p
   .leftJoin(schema.quotes, eq(schema.socialQueue.quoteId, schema.quotes.id))
   .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
   .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-  .where(and(...buildQueueConditions(activePlatforms, now)))
+  .where(and(...buildQueueConditions([platform], now)))
   .orderBy(asc(schema.socialQueue.position), asc(schema.socialQueue.id))
   .limit(1)
   .get()
+}
 
-  if (!nextItem) {
-    return { skipped: true, reason: 'no queued item available' }
-  }
-
+async function processQueueCandidate(nextItem: QueueCandidate, baseSiteUrl: string): Promise<SocialAutopostPlatformResult> {
   const claimed = await db.update(schema.socialQueue)
     .set({
       status: 'processing',
@@ -104,17 +226,16 @@ export async function runSocialAutopostWithOptions(options: { force?: boolean, p
     .returning({ id: schema.socialQueue.id })
 
   if (!claimed.length) {
-    return { skipped: true, reason: 'queue item already claimed' }
+    return { skipped: true, platform: nextItem.platform, reason: 'queue item already claimed' }
   }
 
-  const baseSiteUrl = String(options.baseSiteUrl || process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')
   const quoteUrl = `${baseSiteUrl}/quotes/${nextItem.quoteId}`
 
   const quoteText = nextItem.quoteText || ''
   const itemPlatform = nextItem.platform as SocialPlatform
   if (!quoteText || nextItem.quoteStatus !== 'approved') {
     await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, itemPlatform, 'Quote is missing or not approved', quoteUrl)
-    return { success: false, queueId: nextItem.queueId, reason: 'quote missing or not approved' }
+    return { success: false, queueId: nextItem.queueId, platform: itemPlatform, quoteId: nextItem.quoteId, reason: 'quote missing or not approved' }
   }
 
   const imageUrl = getPlatformImageUrl(itemPlatform, {
@@ -145,6 +266,8 @@ export async function runSocialAutopostWithOptions(options: { force?: boolean, p
     return {
       success: false,
       queueId: nextItem.queueId,
+      platform: itemPlatform,
+      quoteId: nextItem.quoteId,
       reason: publishResult.error || `${itemPlatform} publish failed`
     }
   }
@@ -178,18 +301,13 @@ export async function runSocialAutopostWithOptions(options: { force?: boolean, p
   }
 }
 
-function getLocalTimeHHMM(now: Date, timezone: string): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: timezone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).formatToParts(now)
+function getAutopostMaxDurationMs(): number {
+  const configuredValue = Number(process.env.NUXT_SOCIAL_AUTOPOST_MAX_DURATION_MS || '')
+  if (Number.isFinite(configuredValue) && configuredValue > 0) {
+    return configuredValue
+  }
 
-  const hour = parts.find(part => part.type === 'hour')?.value || '00'
-  const minute = parts.find(part => part.type === 'minute')?.value || '00'
-
-  return `${hour}:${minute}`
+  return DEFAULT_AUTOPOST_MAX_DURATION_MS
 }
 
 function buildPostText(platform: SocialPlatform, input: BuildPostTextInput): string {
