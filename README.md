@@ -244,6 +244,8 @@ bun run facebook:token -- verify-page-token \
 
 - Cloudflare cron triggers run at `06:08` and `07:08` UTC.
 - The Nitro task checks local time in `NUXT_SOCIAL_DAILY_TIMEZONE` and only publishes when it matches `NUXT_SOCIAL_DAILY_TIME`.
+- Each cron run processes up to one eligible queued item per active provider, instead of a single global queue item.
+- Providers are processed sequentially during the same run. If needed, `NUXT_SOCIAL_AUTOPOST_MAX_DURATION_MS` can cap the total wall-clock budget before remaining providers are skipped.
 - This keeps scheduling aligned with local time behavior while handling Paris DST on UTC infrastructure.
 - On deploy, Cloudflare applies cron triggers from `wrangler.jsonc` automatically for the target environment.
 - If you change cron expressions, redeploy to apply the updated schedule.
