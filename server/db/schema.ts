@@ -2,6 +2,13 @@ import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from 'driz
 import { sql } from 'drizzle-orm'
 import { SOCIAL_PLATFORMS } from '#shared/constants/social'
 import { SOCIAL_QUEUE_STATUSES, SOCIAL_POST_STATUSES } from '#shared/constants/social'
+import {
+  ENRICHMENT_ENTITY_TYPES,
+  ENRICHMENT_JOB_REASONS,
+  ENRICHMENT_JOB_STATUSES,
+  ENRICHMENT_TRIGGER_SOURCES,
+  ENRICHMENT_VERIFICATION_STATUSES,
+} from '#shared/constants/enrichment'
 
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -63,6 +70,103 @@ export const quoteReferences = sqliteTable('quote_references', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   typeIdx: index('idx_references_type').on(table.primaryType),
+}))
+
+export const entityVerificationState = sqliteTable('entity_verification_state', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  entityType: text('entity_type', { enum: ENRICHMENT_ENTITY_TYPES }).notNull(),
+  entityId: integer('entity_id').notNull(),
+  verificationStatus: text('verification_status', { enum: ENRICHMENT_VERIFICATION_STATUSES }).notNull().default('queued'),
+  lastVerifiedAt: integer('last_verified_at', { mode: 'timestamp' }),
+  nextCheckAt: integer('next_check_at', { mode: 'timestamp' }),
+  lastEnqueuedAt: integer('last_enqueued_at', { mode: 'timestamp' }),
+  lastSuccessfulJobId: integer('last_successful_job_id'),
+  lastSource: text('last_source'),
+  lastExternalId: text('last_external_id'),
+  lastConfidenceScore: integer('last_confidence_score'),
+  reviewRequired: integer('review_required', { mode: 'boolean' }).default(false),
+  lastError: text('last_error'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  entityUniqueIdx: uniqueIndex('idx_entity_verification_state_unique').on(table.entityType, table.entityId),
+  dueIdx: index('idx_entity_verification_state_due').on(table.entityType, table.nextCheckAt, table.verificationStatus),
+}))
+
+export const entityEnrichmentJobs = sqliteTable('entity_enrichment_jobs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  jobId: text('job_id').notNull().unique(),
+  entityType: text('entity_type', { enum: ENRICHMENT_ENTITY_TYPES }).notNull(),
+  entityId: integer('entity_id').notNull(),
+  reason: text('reason', { enum: ENRICHMENT_JOB_REASONS }).notNull().default('manual'),
+  status: text('status', { enum: ENRICHMENT_JOB_STATUSES }).notNull().default('queued'),
+  triggerSource: text('trigger_source', { enum: ENRICHMENT_TRIGGER_SOURCES }).notNull().default('manual'),
+  priority: integer('priority').notNull().default(0),
+  attemptCount: integer('attempt_count').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(3),
+  scheduledFor: integer('scheduled_for', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  startedAt: integer('started_at', { mode: 'timestamp' }),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  appliedAt: integer('applied_at', { mode: 'timestamp' }),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  payload: text('payload').default('{}'),
+  resultPayload: text('result_payload'),
+  resultSummary: text('result_summary'),
+  errorMessage: text('error_message'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  statusScheduledIdx: index('idx_entity_enrichment_jobs_status_scheduled').on(table.status, table.scheduledFor),
+  entityStatusIdx: index('idx_entity_enrichment_jobs_entity_status').on(table.entityType, table.entityId, table.status),
+  createdIdx: index('idx_entity_enrichment_jobs_created').on(table.createdAt),
+}))
+
+export const entityEnrichmentFieldProposals = sqliteTable('entity_enrichment_field_proposals', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  jobId: integer('job_id').notNull().references(() => entityEnrichmentJobs.id, { onDelete: 'cascade' }),
+  entityType: text('entity_type', { enum: ENRICHMENT_ENTITY_TYPES }).notNull(),
+  entityId: integer('entity_id').notNull(),
+  fieldName: text('field_name').notNull(),
+  currentValue: text('current_value'),
+  proposedValue: text('proposed_value'),
+  confidence: integer('confidence').notNull().default(0),
+  overwrite: integer('overwrite', { mode: 'boolean' }).notNull().default(false),
+  recommended: integer('recommended', { mode: 'boolean' }).notNull().default(false),
+  sourceLabels: text('source_labels').default('[]'),
+  sourceUrls: text('source_urls').default('[]'),
+  externalSourceType: text('external_source_type'),
+  externalSourceId: text('external_source_id'),
+  rationale: text('rationale'),
+  proposedByType: text('proposed_by_type', { enum: ['system', 'user'] }).notNull().default('system'),
+  proposedByUserId: integer('proposed_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  decisionStatus: text('decision_status', { enum: ['pending', 'accepted', 'rejected', 'applied', 'skipped'] }).notNull().default('pending'),
+  decidedBy: integer('decided_by').references(() => users.id, { onDelete: 'set null' }),
+  decidedAt: integer('decided_at', { mode: 'timestamp' }),
+  appliedBy: integer('applied_by').references(() => users.id, { onDelete: 'set null' }),
+  appliedAt: integer('applied_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  jobIdx: index('idx_entity_enrichment_field_proposals_job').on(table.jobId),
+  entityFieldIdx: index('idx_entity_enrichment_field_proposals_entity_field').on(table.entityType, table.entityId, table.fieldName),
+  decisionIdx: index('idx_entity_enrichment_field_proposals_decision').on(table.decisionStatus, table.createdAt),
+}))
+
+export const entityFieldChangeHistory = sqliteTable('entity_field_change_history', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  entityType: text('entity_type', { enum: ENRICHMENT_ENTITY_TYPES }).notNull(),
+  entityId: integer('entity_id').notNull(),
+  fieldName: text('field_name').notNull(),
+  previousValue: text('previous_value'),
+  newValue: text('new_value'),
+  changeOrigin: text('change_origin', { enum: ['enrichment_auto', 'enrichment_review', 'manual'] }).notNull().default('enrichment_review'),
+  jobId: integer('job_id').references(() => entityEnrichmentJobs.id, { onDelete: 'set null' }),
+  proposalId: integer('proposal_id').references(() => entityEnrichmentFieldProposals.id, { onDelete: 'set null' }),
+  changedBy: integer('changed_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  entityFieldIdx: index('idx_entity_field_change_history_entity_field').on(table.entityType, table.entityId, table.fieldName),
+  createdIdx: index('idx_entity_field_change_history_created').on(table.createdAt),
 }))
 
 export const quotes = sqliteTable('quotes', {

@@ -61,6 +61,15 @@
             <NButton
               size="xs"
               btn="ghost"
+              :loading="enrichmentLoading && enrichmentAuthorTarget?.id === author.id"
+              @click="openEnrichmentPreview(author)"
+            >
+              <NIcon name="i-ph-magic-wand" class="w-3 h-3 mr-1" />
+              Enrich
+            </NButton>
+            <NButton
+              size="xs"
+              btn="ghost"
               @click="editAuthor(author)"
             >
               <NIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
@@ -288,6 +297,32 @@
     @author-deleted="onAuthorDeleted"
   />
 
+  <AdminEnrichmentConfigDialog
+    :open="showEnrichmentConfigDialog"
+    :loading="enrichmentConfigLoading"
+    :saving="enrichmentConfigSaving"
+    :updated-at="enrichmentConfigUpdatedAt"
+    :form="enrichmentConfigForm"
+    :sources="enrichmentConfigSources"
+    @update:open="showEnrichmentConfigDialog = $event"
+    @save="saveEnrichmentConfig"
+  />
+
+  <AdminAuthorEnrichmentDialog
+    :open="showEnrichmentDialog"
+    :loading="enrichmentLoading"
+    :applying="enrichmentApplying"
+    :author="enrichmentAuthorTarget"
+    :preview="enrichmentPreview"
+    :job-id="enrichmentJobId"
+    :selected-fields="selectedEnrichmentFields"
+    @update:open="handleEnrichmentDialogOpenChange"
+    @refresh="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget)"
+    @toggle-field="toggleEnrichmentField"
+    @select-recommended="selectRecommendedEnrichmentFields"
+    @apply="applySelectedEnrichment"
+  />
+
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
     <NCard>
@@ -341,6 +376,27 @@ const showAddAuthorDialog = ref(false)
 const selectedAuthor = ref<Author | undefined>()
 const showDeleteAuthorDialog = ref(false)
 const authorToDelete = ref<Author | null>(null)
+const showEnrichmentDialog = ref(false)
+const showEnrichmentConfigDialog = ref(false)
+const enrichmentLoading = ref(false)
+const enrichmentApplying = ref(false)
+const enrichmentAuthorTarget = ref<Author | null>(null)
+const enrichmentPreview = ref<any | null>(null)
+const enrichmentJobId = ref<number | null>(null)
+const selectedEnrichmentFields = ref<string[]>([])
+const enrichmentConfigLoading = ref(false)
+const enrichmentConfigSaving = ref(false)
+const enrichmentConfigUpdatedAt = ref<string | null>(null)
+const enrichmentConfigSources = ref<Record<string, 'kv' | 'env' | 'default' | 'none'>>({})
+const enrichmentConfigForm = reactive({
+  scheduleEnabled: true,
+  processEnabled: true,
+  scheduleBatchSize: '25',
+  processBatchSize: '3',
+  authorStaleDays: '180',
+  referenceStaleDays: '365',
+  reviewGraceDays: '14',
+})
 
 // Bulk selection state (multi‑select column)
 const rowSelection = ref<Record<number, boolean>>({})
@@ -438,6 +494,11 @@ const headerActions = computed(() => {
     onclick: () => { showAddAuthorDialog.value = true }
   })
   actions.push({})
+  actions.push({
+    label: 'Enrichment settings',
+    leading: 'i-ph-sliders-horizontal',
+    onclick: () => openEnrichmentConfigDialog()
+  })
   actions.push({
     label: 'Refresh',
     leading: 'i-ph-arrows-clockwise',
@@ -570,6 +631,11 @@ const getAuthorActions = (author: Author) => [
     leading: 'i-ph-pencil',
     onclick: () => editAuthor(author)
   },
+  {
+    label: 'Preview enrichment',
+    leading: 'i-ph-magic-wand',
+    onclick: () => openEnrichmentPreview(author)
+  },
   {},
   {
     label: 'Delete Author',
@@ -582,14 +648,200 @@ const viewAuthor = (author: Author) => {
   navigateTo(`/authors/${author.id}`)
 }
 
-const editAuthor = (author: Author) => {
+const editAuthor = async (author: Author) => {
   selectedAuthor.value = author
   showAddAuthorDialog.value = true
+
+  try {
+    const response = await $fetch(`/api/admin/authors/${author.id}`) as { data?: Author }
+    if (response.data) {
+      selectedAuthor.value = response.data
+    }
+  } catch (error) {
+    console.error('Failed to load full author details:', error)
+  }
 }
 
 const deleteAuthor = async (author: Author) => {
   authorToDelete.value = author
   showDeleteAuthorDialog.value = true
+}
+
+const openEnrichmentPreview = async (author: Author) => {
+  enrichmentAuthorTarget.value = author
+  enrichmentLoading.value = true
+  showEnrichmentDialog.value = true
+
+  try {
+    const response = await $fetch(`/api/admin/enrichment/authors/${author.id}/preview`, {
+      method: 'POST'
+    }) as { data?: { job?: any, preview?: any } }
+
+    enrichmentPreview.value = response.data?.preview || null
+    enrichmentJobId.value = response.data?.job?.id || null
+    selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
+      ?.filter((proposal: any) => proposal.recommended)
+      ?.map((proposal: any) => proposal.field) || []
+
+    if (!enrichmentPreview.value) {
+      useToast().toast({
+        title: 'No preview available',
+        description: 'This author could not be enriched automatically right now.',
+        toast: 'warning'
+      })
+    }
+  } catch (error: any) {
+    console.error('Failed to build enrichment preview:', error)
+    useToast().toast({
+      title: 'Enrichment preview failed',
+      description: error?.data?.statusMessage || error?.message || 'Could not build the author preview.',
+      toast: 'error'
+    })
+    showEnrichmentDialog.value = false
+  } finally {
+    enrichmentLoading.value = false
+  }
+}
+
+const toggleEnrichmentField = (field: string, value: boolean | 'indeterminate') => {
+  if (value === true) {
+    if (!selectedEnrichmentFields.value.includes(field)) {
+      selectedEnrichmentFields.value = [...selectedEnrichmentFields.value, field]
+    }
+    return
+  }
+
+  selectedEnrichmentFields.value = selectedEnrichmentFields.value.filter(item => item !== field)
+}
+
+const selectRecommendedEnrichmentFields = () => {
+  selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
+    ?.filter((proposal: any) => proposal.recommended)
+    ?.map((proposal: any) => proposal.field) || []
+}
+
+const closeEnrichmentDialog = () => {
+  showEnrichmentDialog.value = false
+  enrichmentPreview.value = null
+  enrichmentJobId.value = null
+  selectedEnrichmentFields.value = []
+  enrichmentAuthorTarget.value = null
+}
+
+const handleEnrichmentDialogOpenChange = (open: boolean) => {
+  if (!open) {
+    closeEnrichmentDialog()
+    return
+  }
+
+  showEnrichmentDialog.value = true
+}
+
+const openEnrichmentConfigDialog = async () => {
+  enrichmentConfigLoading.value = true
+  showEnrichmentConfigDialog.value = true
+
+  try {
+    const response = await $fetch('/api/admin/enrichment/config') as {
+      data?: {
+        updatedAt: string | null
+        values: Record<string, string | number | boolean>
+        sources: Record<string, 'kv' | 'env' | 'default' | 'none'>
+      }
+    }
+
+    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null
+    enrichmentConfigSources.value = response.data?.sources || {}
+    enrichmentConfigForm.scheduleEnabled = Boolean(response.data?.values?.scheduleEnabled)
+    enrichmentConfigForm.processEnabled = Boolean(response.data?.values?.processEnabled)
+    enrichmentConfigForm.scheduleBatchSize = String(response.data?.values?.scheduleBatchSize || '25')
+    enrichmentConfigForm.processBatchSize = String(response.data?.values?.processBatchSize || '3')
+    enrichmentConfigForm.authorStaleDays = String(response.data?.values?.authorStaleDays || '180')
+    enrichmentConfigForm.referenceStaleDays = String(response.data?.values?.referenceStaleDays || '365')
+    enrichmentConfigForm.reviewGraceDays = String(response.data?.values?.reviewGraceDays || '14')
+  } catch (error: any) {
+    useToast().toast({
+      title: 'Failed to load settings',
+      description: error?.data?.statusMessage || error?.message || 'Could not load enrichment settings.',
+      toast: 'error'
+    })
+    showEnrichmentConfigDialog.value = false
+  } finally {
+    enrichmentConfigLoading.value = false
+  }
+}
+
+const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
+  enrichmentConfigSaving.value = true
+  try {
+    const response = await $fetch('/api/admin/enrichment/config', {
+      method: 'POST',
+      body: {
+        scheduleEnabled: form.scheduleEnabled,
+        processEnabled: form.processEnabled,
+        scheduleBatchSize: Number(form.scheduleBatchSize),
+        processBatchSize: Number(form.processBatchSize),
+        authorStaleDays: Number(form.authorStaleDays),
+        referenceStaleDays: Number(form.referenceStaleDays),
+        reviewGraceDays: Number(form.reviewGraceDays),
+      }
+    }) as {
+      data?: {
+        updatedAt: string | null
+        values: Record<string, string | number | boolean>
+        sources: Record<string, 'kv' | 'env' | 'default' | 'none'>
+      }
+    }
+
+    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null
+    enrichmentConfigSources.value = response.data?.sources || {}
+    useToast().toast({
+      title: 'Enrichment settings saved',
+      description: 'KV overrides are now active for the enrichment scheduler and processor.',
+      toast: 'success'
+    })
+    showEnrichmentConfigDialog.value = false
+  } catch (error: any) {
+    useToast().toast({
+      title: 'Save failed',
+      description: error?.data?.statusMessage || error?.message || 'Could not save enrichment settings.',
+      toast: 'error'
+    })
+  } finally {
+    enrichmentConfigSaving.value = false
+  }
+}
+
+const applySelectedEnrichment = async () => {
+  if (!enrichmentJobId.value || selectedEnrichmentFields.value.length === 0) return
+
+  enrichmentApplying.value = true
+  try {
+    await $fetch(`/api/admin/enrichment/jobs/${enrichmentJobId.value}/apply`, {
+      method: 'POST',
+      body: {
+        fields: selectedEnrichmentFields.value,
+      }
+    })
+
+    useToast().toast({
+      title: 'Enrichment applied',
+      description: `${selectedEnrichmentFields.value.length} field(s) were updated on the author record.`,
+      toast: 'success'
+    })
+
+    closeEnrichmentDialog()
+    loadAuthors()
+  } catch (error: any) {
+    console.error('Failed to apply enrichment preview:', error)
+    useToast().toast({
+      title: 'Apply failed',
+      description: error?.data?.statusMessage || error?.message || 'Could not apply the selected fields.',
+      toast: 'error'
+    })
+  } finally {
+    enrichmentApplying.value = false
+  }
 }
 
 const onAuthorAdded = () => {
@@ -647,6 +899,6 @@ const confirmBulkDelete = async () => {
 
 <style scoped>
 .authors-table-container {
-  max-height: calc(100vh - 20rem);
+  max-height: calc(100vh - 13rem);
 }
 </style>

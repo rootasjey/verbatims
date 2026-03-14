@@ -1,10 +1,12 @@
 <template>
   <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
+    <template #header>
+      <div class="border-b border-dashed border-gray-200 dark:border-gray-700 pb-2">
+        <h2 class="text-xl font-title uppercase text-gray-900 dark:text-white">{{ dialogTitle }}</h2>
       </div>
-
+    </template>
+    
+    <div class="mt-2 overflow-auto max-h-[70vh] px-2">
       <form @submit.prevent="submitReference" @keydown="handleFormKeydown" class="space-y-6">
         <!-- Reference Title -->
         <div>
@@ -100,31 +102,31 @@
           />
         </div>
 
-        <!-- Publication/Release Date -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Publication/Release Date
-          </label>
-          <NInput
-            v-model="form.release_date"
-            type="date"
-            :disabled="submitting"
-          />
-        </div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Publication/Release Date
+            </label>
+            <NInput
+              v-model="form.release_date"
+              type="date"
+              :disabled="submitting"
+            />
+          </div>
 
-        <!-- Original Language -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Original Language
-          </label>
-          <NSelect
-            v-model="form.original_language"
-            :items="languageOptions"
-            placeholder="Select language"
-            :disabled="submitting"
-            item-key="label"
-            value-key="label"
-          />
+          <div>
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Original Language
+            </label>
+            <NSelect
+              v-model="form.original_language"
+              :items="languageOptions"
+              placeholder="Select language"
+              :disabled="submitting"
+              item-key="label"
+              value-key="label"
+            />
+          </div>
         </div>
 
         <!-- Image URL -->
@@ -138,6 +140,27 @@
             placeholder="https://example.com/cover.jpg"
             :disabled="submitting"
           />
+
+          <div class="mt-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3">
+            <div class="flex items-center gap-3">
+              <div class="h-16 w-12 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                <img
+                  v-if="referencePreviewUrl && !referencePreviewErrored"
+                  :src="referencePreviewUrl"
+                  alt="Reference cover preview"
+                  class="h-full w-full object-cover"
+                  @error="referencePreviewErrored = true"
+                />
+                <NIcon v-else name="i-ph-image" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Cover preview</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ referencePreviewUrl && !referencePreviewErrored ? 'Image loaded from the provided URL.' : 'Paste an accessible cover or poster URL to preview it here.' }}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Description -->
@@ -149,12 +172,14 @@
             type="textarea"
             v-model="form.description"
             placeholder="Brief description or synopsis..."
-            :rows="3"
+            :rows="6"
             :disabled="submitting"
           />
         </div>
       </form>
+    </div>
 
+    <template #footer>
       <div class="mt-6 flex justify-end space-x-3">
         <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">
           Cancel
@@ -168,7 +193,7 @@
           {{ submitButtonText }}
         </NButton>
       </div>
-    </div>
+    </template>
   </NDialog>
 </template>
 
@@ -219,6 +244,12 @@ const selectedTitleIndex = ref(-1)
 // Template refs
 const titleInputRef = ref()
 const titleSuggestionsRef = ref()
+const referencePreviewErrored = ref(false)
+
+const referencePreviewUrl = computed(() => {
+  const value = form.value.image_url.trim()
+  return value || ''
+})
 
 // Options
 const primaryTypeOptions = [
@@ -394,6 +425,7 @@ const resetForm = () => {
   titleQuery.value = ''
   titleSuggestions.value = []
   selectedTitleIndex.value = -1
+  referencePreviewErrored.value = false
 }
 
 const initializeFormForEdit = () => {
@@ -419,6 +451,10 @@ const closeDialog = () => {
   isOpen.value = false
   resetForm()
 }
+
+watch(() => form.value.image_url, () => {
+  referencePreviewErrored.value = false
+})
 
 // Watch for editReference changes to initialize form
 watch(() => props.editReference, (newReference) => {

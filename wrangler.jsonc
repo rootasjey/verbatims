@@ -23,7 +23,11 @@
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       "8 6 * * *",
       // 08:08 Europe/Paris during standard time (UTC+1)
-      "8 7 * * *"
+      "8 7 * * *",
+      // Every 6 hours, enqueue authors/references due for re-verification.
+      "12 */6 * * *",
+      // Every 30 minutes, process queued enrichment jobs into preview proposals.
+      "*/30 * * * *"
     ]
   },
   "r2_buckets": [
