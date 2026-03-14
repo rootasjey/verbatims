@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, getTableColumns } from 'drizzle-orm'
+import { normalizeAdminAuthor } from '~~/server/utils/admin-author-transformer'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -27,7 +28,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, statusMessage: 'Author not found' })
     }
 
-    return { success: true, data: authorResult }
+    return { success: true, data: normalizeAdminAuthor(authorResult as any) }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error fetching admin author details:', error)

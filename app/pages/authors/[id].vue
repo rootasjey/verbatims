@@ -460,6 +460,38 @@ const isDescriptionOverflowing = ref(false)
 let descriptionResizeObserver: ResizeObserver | null = null
 const similarAuthors = ref<any[]>([])
 
+const scheduleDescriptionOverflowCheck = () => {
+  nextTick(() => {
+    checkDescriptionOverflow()
+    requestAnimationFrame(() => {
+      checkDescriptionOverflow()
+      setTimeout(checkDescriptionOverflow, 160)
+    })
+
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(() => {
+        checkDescriptionOverflow()
+      }).catch(() => {})
+    }
+  })
+}
+
+const reconnectDescriptionObserver = () => {
+  if (descriptionResizeObserver) {
+    descriptionResizeObserver.disconnect()
+    descriptionResizeObserver = null
+  }
+
+  if (typeof ResizeObserver === 'undefined' || !descriptionEl.value) {
+    return
+  }
+
+  descriptionResizeObserver = new ResizeObserver(() => {
+    checkDescriptionOverflow()
+  })
+  descriptionResizeObserver.observe(descriptionEl.value)
+}
+
 // Avatar preview state (opened when clicking the avatar)
 const avatarPreviewOpen = ref(false)
 const avatarRef = ref<any>(null)
@@ -480,8 +512,18 @@ const checkDescriptionOverflow = () => {
   isDescriptionOverflowing.value = el.scrollHeight > collapsedHeightPx
 }
 
-watch([() => author.value?.description, () => descriptionExpanded.value], () => {
-  nextTick(checkDescriptionOverflow)
+watch(() => author.value?.description, () => {
+  descriptionExpanded.value = false
+  scheduleDescriptionOverflowCheck()
+})
+
+watch(() => descriptionExpanded.value, () => {
+  scheduleDescriptionOverflowCheck()
+})
+
+watch(descriptionEl, () => {
+  reconnectDescriptionObserver()
+  scheduleDescriptionOverflowCheck()
 })
 
 // Convert AuthorWithSocials to Author for AddAuthorDialog
@@ -867,14 +909,9 @@ onMounted(async () => {
   // Attach global shortcut
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
-    nextTick(() => {
-      checkDescriptionOverflow()
-      if (typeof ResizeObserver !== 'undefined') {
-        descriptionResizeObserver = new ResizeObserver(checkDescriptionOverflow)
-        if (descriptionEl.value) descriptionResizeObserver.observe(descriptionEl.value)
-      }
-      window.addEventListener('resize', checkDescriptionOverflow)
-    })
+    scheduleDescriptionOverflowCheck()
+    reconnectDescriptionObserver()
+    window.addEventListener('resize', checkDescriptionOverflow)
   }
 })
 
@@ -897,6 +934,7 @@ watch(author, (newAuthor) => {
     
     // retrigger header animation on author change
     triggerHeaderEnter()
+    scheduleDescriptionOverflowCheck()
   }
 })
 
@@ -947,6 +985,7 @@ watch(avatarPreviewOpen, (open, prev) => {
 watch(pending, (now, prev) => {
   if (prev && !now && author.value) {
     triggerHeaderEnter()
+    scheduleDescriptionOverflowCheck()
   }
 })
 

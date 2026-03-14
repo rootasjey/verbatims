@@ -1,10 +1,12 @@
 <template>
   <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
+    <template #header>
+      <div class="border-b border-dashed border-gray-200 dark:border-gray-700 pb-2">
+        <h2 class="text-xl font-title uppercase text-gray-900 dark:text-white">{{ dialogTitle }}</h2>
       </div>
-
+    </template>
+    
+    <div class="mt-2 overflow-auto max-h-[70vh] px-2">
       <form @submit.prevent="submitAuthor" @keydown="handleFormKeydown" class="space-y-6">
         <!-- Author Name -->
         <div>
@@ -81,31 +83,31 @@
           />
         </div>
 
-        <!-- Birth Date -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Birth Date
-          </label>
-          <NInput
-            v-model="form.birth_date"
-            type="date"
-            :disabled="submitting"
-          />
-        </div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Birth Date
+            </label>
+            <NInput
+              v-model="form.birth_date"
+              type="date"
+              :disabled="submitting"
+            />
+          </div>
 
-        <!-- Death Date -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Death Date
-          </label>
-          <NInput
-            v-model="form.death_date"
-            type="date"
-            :disabled="submitting"
-          />
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Leave empty if the author is still alive
-          </p>
+          <div>
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Death Date
+            </label>
+            <NInput
+              v-model="form.death_date"
+              type="date"
+              :disabled="submitting"
+            />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Leave empty if the author is still alive
+            </p>
+          </div>
         </div>
 
         <!-- Avatar/Image URL -->
@@ -119,18 +121,44 @@
             placeholder="https://example.com/image.jpg"
             :disabled="submitting"
           />
+
+          <div class="mt-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3">
+            <div class="flex items-center gap-3">
+              <div class="h-14 w-14 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                <img
+                  v-if="authorPreviewUrl && !authorPreviewErrored"
+                  :src="authorPreviewUrl"
+                  alt="Author avatar preview"
+                  class="h-full w-full object-cover"
+                  @error="authorPreviewErrored = true"
+                />
+                <NIcon v-else name="i-ph-user" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">Avatar preview</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ authorPreviewUrl && !authorPreviewErrored ? 'Image loaded from the provided URL.' : 'Paste an accessible image URL to preview it here.' }}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Is Fictional -->
-        <div>
-          <label class="flex items-center space-x-2">
-            <NToggle
+        <div class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 px-4 py-3">
+          <label class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                This is a fictional character
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Enable this for invented people or characters from fictional worlds.
+              </p>
+            </div>
+            <NSwitch
               v-model="form.is_fictional"
               :disabled="submitting"
             />
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              This is a fictional character
-            </span>
           </label>
         </div>
 
@@ -143,26 +171,28 @@
             type="textarea"
             v-model="form.description"
             placeholder="Brief biographical description..."
-            :rows="3"
+            :rows="6"
             :disabled="submitting"
           />
         </div>
       </form>
+    </div>
 
-      <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:solid-gray dark:soft-white" @click="closeDialog" :disabled="submitting">
+    <template #footer>
+      <div class="flex justify-end space-x-3">
+        <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">
           Cancel
         </NButton>
         <NButton
           btn="solid-blue"
           :loading="submitting"
           @click="submitAuthor"
-          :disabled="!nameQuery.trim()"
+          :disabled="!nameQuery.trim() || submitting"
         >
           {{ submitButtonText }}
         </NButton>
       </div>
-    </div>
+    </template>
   </NDialog>
 </template>
 
@@ -213,6 +243,12 @@ const selectedNameIndex = ref(-1)
 // Template refs
 const nameInputRef = ref()
 const nameSuggestionsRef = ref()
+const authorPreviewErrored = ref(false)
+
+const authorPreviewUrl = computed(() => {
+  const value = form.value.image_url.trim()
+  return value || ''
+})
 
 // Search debounced function
 const searchAuthors = useDebounceFn(async () => {
@@ -357,6 +393,7 @@ const resetForm = () => {
   nameQuery.value = ''
   nameSuggestions.value = []
   selectedNameIndex.value = -1
+  authorPreviewErrored.value = false
 }
 
 const initializeFormForEdit = () => {
@@ -378,6 +415,10 @@ const initializeFormForEdit = () => {
 const closeDialog = () => {
   isOpen.value = false
 }
+
+watch(() => form.value.image_url, () => {
+  authorPreviewErrored.value = false
+})
 
 // Watch for editAuthor changes to initialize form
 watch(() => props.editAuthor, (newAuthor) => {

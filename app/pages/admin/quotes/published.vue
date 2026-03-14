@@ -657,7 +657,7 @@ watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () =>
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 13rem);
+  max-height: calc(100vh - 11rem);
 }
 
 .frame {

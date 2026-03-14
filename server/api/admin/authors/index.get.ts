@@ -5,6 +5,7 @@
 
 import { db, schema } from 'hub:db'
 import { sql, like, eq, or, and, count, desc, asc, getTableColumns } from 'drizzle-orm'
+import { normalizeAdminAuthor } from '~~/server/utils/admin-author-transformer'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -95,10 +96,7 @@ export default defineEventHandler(async (event) => {
     
     const countResult = await countQuery.get()
     
-    const authorsData = authors.map((author: any) => ({
-      ...author,
-      socials: author.socials ? JSON.parse(author.socials) : {}
-    }))
+    const authorsData = authors.map((author: any) => normalizeAdminAuthor(author))
     
     const total = countResult?.total || 0
     const totalPages = Math.ceil(total / limit)

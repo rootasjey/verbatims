@@ -78,7 +78,11 @@ export default defineNuxtConfig({
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       '8 6 * * *': ['social:autopost'],
       // 08:08 Europe/Paris during standard time (UTC+1)
-      '8 7 * * *': ['social:autopost']
+      '8 7 * * *': ['social:autopost'],
+      // Every 6 hours, enqueue authors and references that should be reverified.
+      '12 */6 * * *': ['enrichment:schedule'],
+      // Every 30 minutes, process queued enrichment jobs into preview proposals.
+      '*/30 * * * *': ['enrichment:process']
     },
     ignore: ['scripts/**'],
     alias: {
@@ -130,6 +134,13 @@ export default defineNuxtConfig({
     pinterestPostBoardId: process.env.NUXT_PINTEREST_POST_BOARD_ID || '',
     socialDailyTimezone: process.env.NUXT_SOCIAL_DAILY_TIMEZONE || 'Europe/Paris',
     socialDailyTime: process.env.NUXT_SOCIAL_DAILY_TIME || '08:08',
+    dataVerificationCronEnabled: process.env.NUXT_DATA_VERIFICATION_CRON_ENABLED || 'true',
+    dataVerificationProcessEnabled: process.env.NUXT_DATA_VERIFICATION_PROCESS_ENABLED || 'true',
+    dataVerificationBatchSize: process.env.NUXT_DATA_VERIFICATION_BATCH_SIZE || '25',
+    dataVerificationProcessBatchSize: process.env.NUXT_DATA_VERIFICATION_PROCESS_BATCH_SIZE || '3',
+    dataVerificationAuthorStaleDays: process.env.NUXT_DATA_VERIFICATION_AUTHOR_STALE_DAYS || '180',
+    dataVerificationReferenceStaleDays: process.env.NUXT_DATA_VERIFICATION_REFERENCE_STALE_DAYS || '365',
+    dataVerificationReviewGraceDays: process.env.NUXT_DATA_VERIFICATION_REVIEW_GRACE_DAYS || '14',
 
     // Public keys (exposed to client-side)
     public: {

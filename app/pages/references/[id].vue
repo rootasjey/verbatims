@@ -407,6 +407,38 @@ const isDescriptionOverflowing = ref(false)
 let descriptionResizeObserver: ResizeObserver | null = null
 const similarReferences = ref<any[]>([])
 
+const scheduleDescriptionOverflowCheck = () => {
+  nextTick(() => {
+    checkDescriptionOverflow()
+    requestAnimationFrame(() => {
+      checkDescriptionOverflow()
+      setTimeout(checkDescriptionOverflow, 160)
+    })
+
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(() => {
+        checkDescriptionOverflow()
+      }).catch(() => {})
+    }
+  })
+}
+
+const reconnectDescriptionObserver = () => {
+  if (descriptionResizeObserver) {
+    descriptionResizeObserver.disconnect()
+    descriptionResizeObserver = null
+  }
+
+  if (typeof ResizeObserver === 'undefined' || !descriptionEl.value) {
+    return
+  }
+
+  descriptionResizeObserver = new ResizeObserver(() => {
+    checkDescriptionOverflow()
+  })
+  descriptionResizeObserver.observe(descriptionEl.value)
+}
+
 const checkDescriptionOverflow = () => {
   const el = descriptionEl.value
   if (!el) {
@@ -423,8 +455,18 @@ const checkDescriptionOverflow = () => {
   isDescriptionOverflowing.value = el.scrollHeight > collapsedHeightPx
 }
 
-watch([() => reference.value?.description, () => descriptionExpanded.value], () => {
-  nextTick(checkDescriptionOverflow)
+watch(() => reference.value?.description, () => {
+  descriptionExpanded.value = false
+  scheduleDescriptionOverflowCheck()
+})
+
+watch(() => descriptionExpanded.value, () => {
+  scheduleDescriptionOverflowCheck()
+})
+
+watch(descriptionEl, () => {
+  reconnectDescriptionObserver()
+  scheduleDescriptionOverflowCheck()
 })
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
@@ -829,14 +871,9 @@ onMounted(async () => {
   // Attach global shortcut as soon as component mounts
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
-    nextTick(() => {
-      checkDescriptionOverflow()
-      if (typeof ResizeObserver !== 'undefined') {
-        descriptionResizeObserver = new ResizeObserver(checkDescriptionOverflow)
-        if (descriptionEl.value) descriptionResizeObserver.observe(descriptionEl.value)
-      }
-      window.addEventListener('resize', checkDescriptionOverflow)
-    })
+    scheduleDescriptionOverflowCheck()
+    reconnectDescriptionObserver()
+    window.addEventListener('resize', checkDescriptionOverflow)
   }
 
   await waitForLanguageStore()
@@ -875,6 +912,7 @@ watch(reference, (newReference) => {
 
   // retrigger header animation on reference change
   triggerHeaderEnter()
+  scheduleDescriptionOverflowCheck()
 })
 
 watch(user, (newUser) => {
@@ -910,6 +948,7 @@ const triggerHeaderEnter = async () => {
 watch(pending, (now, prev) => {
   if (prev && !now && reference.value) {
     triggerHeaderEnter()
+    scheduleDescriptionOverflowCheck()
   }
 })
 
