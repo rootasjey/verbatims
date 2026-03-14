@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * limit
   const status = String(query.status || '').trim()
   const entityType = String(query.entityType || '').trim()
+  const entityId = Number.parseInt(String(query.entityId || ''), 10)
 
   if (status && !isEnrichmentJobStatus(status)) {
     throwServer(400, 'status must be queued, processing, completed, failed, or cancelled')
@@ -25,11 +26,16 @@ export default defineEventHandler(async (event) => {
     throwServer(400, 'entityType must be author or reference')
   }
 
+  if (String(query.entityId || '').trim() && (!Number.isInteger(entityId) || entityId <= 0)) {
+    throwServer(400, 'entityId must be a positive integer')
+  }
+
   const stats = await getVerificationQueueStats(limit)
 
   const filters = []
   if (status) filters.push(eq(schema.entityEnrichmentJobs.status, status))
   if (entityType) filters.push(eq(schema.entityEnrichmentJobs.entityType, entityType as 'author' | 'reference'))
+  if (Number.isInteger(entityId) && entityId > 0) filters.push(eq(schema.entityEnrichmentJobs.entityId, entityId))
 
   const totalRows = await db.select({ total: count() })
     .from(schema.entityEnrichmentJobs)

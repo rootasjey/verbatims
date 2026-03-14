@@ -20,6 +20,10 @@
               size="sm"
               placeholder="All statuses"
             />
+            <div v-if="selectedEntityId" class="flex items-center gap-2 rounded-lg border border-dashed border-cyan-200 dark:border-cyan-800 bg-cyan-50/70 dark:bg-cyan-950/20 px-3 py-2 text-sm text-cyan-800 dark:text-cyan-200">
+              <span>Filtered on {{ selectedEntityType.value || 'entity' }} #{{ selectedEntityId }}</span>
+              <NButton size="xs" btn="ghost" @click="clearEntityFilter">Clear</NButton>
+            </div>
           </div>
 
           <div class="flex gap-3">
@@ -143,6 +147,8 @@
 <script setup lang="ts">
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
 
+const route = useRoute()
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -164,6 +170,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageS
 
 const selectedStatus = ref<FilterOption>({ label: 'All statuses', value: '' })
 const selectedEntityType = ref<FilterOption>({ label: 'All entities', value: '' })
+const selectedEntityId = ref<number | null>(null)
 
 const statusOptions: FilterOption[] = [
   { label: 'All statuses', value: '' },
@@ -211,6 +218,7 @@ const loadQueue = async () => {
         limit: pageSize.value,
         status: selectedStatus.value.value || undefined,
         entityType: selectedEntityType.value.value || undefined,
+        entityId: selectedEntityId.value || undefined,
       }
     }) as any
 
@@ -227,6 +235,22 @@ const loadQueue = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const syncFiltersFromRoute = () => {
+  const queryEntityType = String(route.query.entityType || '').trim()
+  const queryEntityId = Number.parseInt(String(route.query.entityId || ''), 10)
+  const queryStatus = String(route.query.status || '').trim()
+
+  selectedEntityType.value = entityTypeOptions.find(option => option.value === queryEntityType) || entityTypeOptions[0]
+  selectedStatus.value = statusOptions.find(option => option.value === queryStatus) || statusOptions[0]
+  selectedEntityId.value = Number.isInteger(queryEntityId) && queryEntityId > 0 ? queryEntityId : null
+  currentPage.value = 1
+}
+
+const clearEntityFilter = async () => {
+  selectedEntityId.value = null
+  await navigateTo({ query: { ...route.query, entityId: undefined, jobId: undefined } }, { replace: true })
 }
 
 const openJob = async (job: any) => {
@@ -364,6 +388,12 @@ watchDebounced([currentPage, selectedStatus, selectedEntityType], () => {
 }, { debounce: 200 })
 
 onMounted(() => {
+  syncFiltersFromRoute()
+  loadQueue()
+})
+
+watch(() => route.query, () => {
+  syncFiltersFromRoute()
   loadQueue()
 })
 </script>

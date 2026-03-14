@@ -18,6 +18,8 @@ type AdminAuthorRow = {
   createdAt?: string | number | Date | null
   updatedAt?: string | number | Date | null
   quotes_count?: number | string | null
+  enrichment_pending_count?: number | string | null
+  enrichment_latest_job_id?: number | string | null
 }
 
 export const normalizeAdminAuthor = (author: AdminAuthorRow): Author => ({
@@ -38,4 +40,8 @@ export const normalizeAdminAuthor = (author: AdminAuthorRow): Author => ({
   created_at: author.createdAt ? String(author.createdAt) : '',
   updated_at: author.updatedAt ? String(author.updatedAt) : '',
   quotes_count: Number(author.quotes_count ?? 0),
+  enrichment_pending_count: Number(author.enrichment_pending_count ?? 0),
+  enrichment_latest_job_id: author.enrichment_latest_job_id !== undefined && author.enrichment_latest_job_id !== null
+    ? Number(author.enrichment_latest_job_id)
+    : null,
 })
