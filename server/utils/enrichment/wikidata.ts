@@ -1,5 +1,11 @@
-import type { AuthorEnrichmentPreview, EnrichmentFieldProposal, EnrichmentMatchSummary } from '#shared/types/enrichment'
+import type {
+  AuthorEnrichmentPreview,
+  EnrichmentFieldProposal,
+  EnrichmentMatchSummary,
+  ReferenceEnrichmentPreview,
+} from '#shared/types/enrichment'
 import type { AuthorSocialLink } from '#shared/types/author'
+import type { QuoteReferencePrimaryType, QuoteReferenceUrls } from '#shared/types/quote-reference'
 import { parseAuthorSocials } from '~/server/utils/author-transformer'
 
 interface WikidataSearchEntity {
@@ -43,6 +49,14 @@ interface AuthorCandidate {
   socials: AuthorSocialLink[]
 }
 
+interface ReferenceCandidate {
+  match: EnrichmentMatchSummary
+  releaseDate: string | null
+  description: string | null
+  imageUrl: string | null
+  urls: QuoteReferenceUrls
+}
+
 interface AuthorRecordInput {
   id: number
   name: string
@@ -55,6 +69,16 @@ interface AuthorRecordInput {
   imageUrl?: string | null
   socials?: string | null
   isFictional?: boolean | null
+}
+
+interface ReferenceRecordInput {
+  id: number
+  name: string
+  primaryType: QuoteReferencePrimaryType
+  releaseDate?: string | null
+  description?: string | null
+  imageUrl?: string | null
+  urls?: string | null
 }
 
 const WIKIDATA_API = 'https://www.wikidata.org/w/api.php'
@@ -72,6 +96,7 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
     return {
       entity_type: 'author',
       entity_id: author.id,
+      entity_name: author.name,
       author_name: author.name,
       generated_at: new Date().toISOString(),
       match: null,
@@ -92,6 +117,7 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
     return {
       entity_type: 'author',
       entity_id: author.id,
+      entity_name: author.name,
       author_name: author.name,
       generated_at: new Date().toISOString(),
       match: null,
@@ -115,7 +141,58 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
   return {
     entity_type: 'author',
     entity_id: author.id,
+    entity_name: author.name,
     author_name: author.name,
+    generated_at: new Date().toISOString(),
+    match: candidate.match,
+    proposals,
+    review_required: reviewRequired,
+    auto_apply_fields: autoApplyFields,
+    summary: {
+      proposed_count: proposals.length,
+      recommended_count: recommendedCount,
+      skipped_count: 0,
+    },
+    notes,
+  }
+}
+
+export async function buildReferenceEnrichmentPreview(reference: ReferenceRecordInput): Promise<ReferenceEnrichmentPreview> {
+  const notes: string[] = []
+  const candidate = await findBestReferenceCandidate(reference, notes)
+
+  if (!candidate) {
+    return {
+      entity_type: 'reference',
+      entity_id: reference.id,
+      entity_name: reference.name,
+      reference_name: reference.name,
+      reference_primary_type: reference.primaryType,
+      generated_at: new Date().toISOString(),
+      match: null,
+      proposals: [],
+      review_required: true,
+      auto_apply_fields: [],
+      summary: {
+        proposed_count: 0,
+        recommended_count: 0,
+        skipped_count: 0,
+      },
+      notes: notes.length > 0 ? notes : ['No reliable Wikidata match was found for this reference.']
+    }
+  }
+
+  const proposals = createReferenceProposals(reference, candidate)
+  const recommendedCount = proposals.filter(proposal => proposal.recommended).length
+  const autoApplyFields = proposals.filter(proposal => proposal.recommended && !proposal.overwrite).map(proposal => proposal.field)
+  const reviewRequired = proposals.some(proposal => proposal.overwrite) || recommendedCount === 0
+
+  return {
+    entity_type: 'reference',
+    entity_id: reference.id,
+    entity_name: reference.name,
+    reference_name: reference.name,
+    reference_primary_type: reference.primaryType,
     generated_at: new Date().toISOString(),
     match: candidate.match,
     proposals,
@@ -318,6 +395,276 @@ function createAuthorProposals(author: AuthorRecordInput, candidate: AuthorCandi
         rationale: item.rationale,
       }
     })
+}
+
+async function findBestReferenceCandidate(reference: ReferenceRecordInput, notes: string[]) {
+  const searchResults = await searchWikidata(reference.name)
+  if (searchResults.length === 0) {
+    notes.push('Wikidata search returned no result for this reference.')
+    return null
+  }
+
+  const scoredResults = searchResults
+    .map(result => ({ result, score: scoreReferenceSearchResult(reference, result) }))
+    .sort((left, right) => right.score - left.score)
+
+  const best = scoredResults[0]
+  if (!best || best.score < 52) {
+    notes.push('A candidate was found, but the identity confidence is too low for manual review.')
+    return null
+  }
+
+  const entity = await fetchWikidataEntity(best.result.id)
+  if (!entity) {
+    notes.push('Failed to fetch the selected Wikidata entity details.')
+    return null
+  }
+
+  const instanceOfIds = extractEntityIds(entity.claims?.P31)
+  const creatorIds = uniqueStrings([
+    ...extractEntityIds(entity.claims?.P50),
+    ...extractEntityIds(entity.claims?.P57),
+    ...extractEntityIds(entity.claims?.P86),
+    ...extractEntityIds(entity.claims?.P170),
+    ...extractEntityIds(entity.claims?.P175),
+  ])
+  const labels = await fetchEntityLabels([...instanceOfIds, ...creatorIds])
+  const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean)
+
+  if (!matchesExpectedReferenceType(reference.primaryType, instanceLabels, getDescription(entity))) {
+    notes.push('The selected Wikidata entity does not match the expected reference type closely enough.')
+    return null
+  }
+
+  const releaseDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P577))
+  const wikipediaUrl = buildWikipediaUrl(entity)
+  const wikidataUrl = `https://www.wikidata.org/wiki/${entity.id}`
+  const imageFileName = getCommonsImageFileName(entity.claims?.P18)
+  const description = buildReferenceDescription(entity, reference.primaryType, releaseDate, instanceLabels, labels)
+  const urls = mergeReferenceUrls({}, {
+    wikipedia: wikipediaUrl || undefined,
+    official: getFirstUrlValue(entity.claims?.P856) || undefined,
+    imdb: buildImdbUrl(entity.claims?.P345) || undefined,
+  })
+
+  return {
+    match: {
+      source: 'wikidata',
+      external_id: entity.id,
+      label: getLabel(entity),
+      description: getDescription(entity),
+      wikipedia_url: wikipediaUrl,
+      wikidata_url: wikidataUrl,
+      score: Math.min(100, best.score),
+    },
+    releaseDate,
+    description,
+    imageUrl: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
+    urls: mergeReferenceUrls(urls, { wikidata: wikidataUrl }),
+  } satisfies ReferenceCandidate
+}
+
+function createReferenceProposals(reference: ReferenceRecordInput, candidate: ReferenceCandidate): EnrichmentFieldProposal[] {
+  const existingUrls = parseReferenceUrls(reference.urls)
+  const mergedUrls = mergeReferenceUrls(existingUrls, candidate.urls)
+
+  const mappings: Array<{
+    field: EnrichmentFieldProposal['field']
+    label: string
+    currentValue: string | null
+    proposedValue: string | null
+    confidence: number
+    sourceLabels: string[]
+    sourceUrls: string[]
+    rationale: string
+  }> = [
+    {
+      field: 'release_date',
+      label: 'Release date',
+      currentValue: normalizeNullableString(reference.releaseDate),
+      proposedValue: normalizeNullableString(candidate.releaseDate),
+      confidence: candidate.releaseDate ? 94 : 0,
+      sourceLabels: ['Wikidata'],
+      sourceUrls: [candidate.match.wikidata_url],
+      rationale: 'Structured publication or release date from Wikidata.',
+    },
+    {
+      field: 'description',
+      label: 'Reference summary',
+      currentValue: normalizeNullableString(reference.description),
+      proposedValue: normalizeNullableString(candidate.description),
+      confidence: candidate.description ? 74 : 0,
+      sourceLabels: ['Wikidata'],
+      sourceUrls: [candidate.match.wikidata_url],
+      rationale: 'Short factual summary derived from Wikidata labels and descriptions.',
+    },
+    {
+      field: 'image_url',
+      label: 'Cover or poster',
+      currentValue: normalizeNullableString(reference.imageUrl),
+      proposedValue: normalizeNullableString(candidate.imageUrl),
+      confidence: candidate.imageUrl ? 88 : 0,
+      sourceLabels: ['Wikidata', 'Wikimedia Commons'],
+      sourceUrls: uniqueStrings([candidate.match.wikidata_url, candidate.match.wikipedia_url || 'https://commons.wikimedia.org']),
+      rationale: 'Image file comes from Wikimedia Commons via Wikidata P18.',
+    },
+    {
+      field: 'urls',
+      label: 'External links',
+      currentValue: stableStringifyReferenceUrls(existingUrls),
+      proposedValue: stableStringifyReferenceUrls(mergedUrls),
+      confidence: Object.keys(candidate.urls).length > 0 ? 82 : 0,
+      sourceLabels: ['Wikidata', 'Wikipedia'],
+      sourceUrls: uniqueStrings(Object.values(candidate.urls).filter((value): value is string => typeof value === 'string' && value.length > 0)),
+      rationale: 'Reliable external links were merged with the existing reference URLs.',
+    },
+  ]
+
+  return mappings
+    .filter(item => item.confidence > 0 && item.proposedValue)
+    .filter(item => normalizeComparableString(item.currentValue) !== normalizeComparableString(item.proposedValue))
+    .map((item) => {
+      const overwrite = Boolean(item.currentValue)
+      return {
+        field: item.field,
+        label: item.label,
+        current_value: item.currentValue,
+        proposed_value: item.proposedValue,
+        confidence: item.confidence,
+        overwrite,
+        recommended: item.confidence >= (overwrite ? 90 : 78),
+        source_labels: item.sourceLabels,
+        source_urls: item.sourceUrls,
+        rationale: item.rationale,
+      }
+    })
+}
+
+function scoreReferenceSearchResult(reference: ReferenceRecordInput, result: WikidataSearchEntity) {
+  const normalizedReferenceName = normalizeComparableString(reference.name)
+  const normalizedLabel = normalizeComparableString(result.label)
+  const normalizedMatchText = normalizeComparableString(result.match?.text)
+
+  let score = 0
+  if (normalizedReferenceName && normalizedReferenceName === normalizedLabel) score += 68
+  else if (normalizedReferenceName && normalizedLabel.includes(normalizedReferenceName)) score += 52
+
+  if (normalizedReferenceName && normalizedMatchText === normalizedReferenceName) score += 12
+
+  const typeKeywords = getReferenceTypeKeywords(reference.primaryType)
+  const haystack = `${normalizeComparableString(result.description)} ${normalizeComparableString(result.aliases?.join(' '))}`
+  if (typeKeywords.some(keyword => haystack.includes(keyword))) score += 12
+  if (reference.releaseDate && haystack.includes(reference.releaseDate.slice(0, 4))) score += 8
+
+  return score
+}
+
+function matchesExpectedReferenceType(
+  primaryType: QuoteReferencePrimaryType,
+  instanceLabels: string[],
+  description: string | null,
+) {
+  if (primaryType === 'other') return true
+
+  const keywords = getReferenceTypeKeywords(primaryType)
+  const haystack = normalizeComparableString([...instanceLabels, description || ''].join(' '))
+  return keywords.some(keyword => haystack.includes(keyword))
+}
+
+function getReferenceTypeKeywords(primaryType: QuoteReferencePrimaryType) {
+  const keywordsByType: Record<QuoteReferencePrimaryType, string[]> = {
+    book: ['book', 'novel', 'written work', 'literary work', 'comic'],
+    film: ['film', 'movie'],
+    tv_series: ['television series', 'tv series', 'television program', 'anime series'],
+    music: ['song', 'album', 'single', 'musical work'],
+    speech: ['speech', 'lecture', 'address'],
+    podcast: ['podcast'],
+    interview: ['interview'],
+    documentary: ['documentary', 'documentary film'],
+    media_stream: ['web series', 'streaming television series', 'television program', 'series'],
+    writings: ['essay', 'article', 'written work', 'book'],
+    video_game: ['video game', 'computer game', 'game'],
+    other: [],
+  }
+
+  return keywordsByType[primaryType]
+}
+
+function buildReferenceDescription(
+  entity: WikidataEntityDocument,
+  primaryType: QuoteReferencePrimaryType,
+  releaseDate: string | null,
+  instanceLabels: string[],
+  labels: Record<string, string>,
+) {
+  const wikidataDescription = getDescription(entity)
+  const releaseYear = releaseDate?.slice(0, 4)
+  if (wikidataDescription) {
+    const normalized = capitalize(wikidataDescription)
+    if (!releaseYear || normalized.includes(releaseYear)) return normalized
+    return `${normalized} (${releaseYear}).`
+  }
+
+  const creatorIds = uniqueStrings([
+    ...extractEntityIds(entity.claims?.P50),
+    ...extractEntityIds(entity.claims?.P57),
+    ...extractEntityIds(entity.claims?.P86),
+    ...extractEntityIds(entity.claims?.P170),
+    ...extractEntityIds(entity.claims?.P175),
+  ])
+  const creators = creatorIds.map(id => labels[id]).filter(Boolean).slice(0, 2)
+  const typeLabel = instanceLabels[0] || primaryType.replace(/_/g, ' ')
+
+  if (releaseYear && creators.length > 0) return `${releaseYear} ${typeLabel.toLowerCase()} by ${creators.join(' and ')}.`
+  if (releaseYear) return `${releaseYear} ${typeLabel.toLowerCase()}.`
+  if (creators.length > 0) return `${capitalize(typeLabel)} by ${creators.join(' and ')}.`
+  return capitalize(typeLabel)
+}
+
+function parseReferenceUrls(raw: string | null | undefined): QuoteReferenceUrls {
+  if (!raw) return {}
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') return {}
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter(([, value]) => typeof value === 'string' && value.length > 0)
+    )
+  } catch {
+    return {}
+  }
+}
+
+function mergeReferenceUrls(current: QuoteReferenceUrls, next: QuoteReferenceUrls) {
+  const merged = { ...current } satisfies QuoteReferenceUrls
+
+  for (const [key, value] of Object.entries(next)) {
+    if (!value || typeof value !== 'string') continue
+    if (!merged[key]) merged[key] = value
+  }
+
+  return merged
+}
+
+function stableStringifyReferenceUrls(urls: QuoteReferenceUrls) {
+  const entries = Object.entries(urls)
+    .filter(([, value]) => typeof value === 'string' && value.length > 0)
+    .sort(([left], [right]) => left.localeCompare(right))
+
+  if (entries.length === 0) return null
+  return JSON.stringify(Object.fromEntries(entries))
+}
+
+function getFirstUrlValue(claims?: WikidataClaim[]) {
+  const url = claims?.[0]?.mainsnak?.datavalue?.value
+  return typeof url === 'string' && url ? url : null
+}
+
+function buildImdbUrl(claims?: WikidataClaim[]) {
+  const imdbId = claims?.[0]?.mainsnak?.datavalue?.value
+  if (!imdbId || typeof imdbId !== 'string') return null
+  return `https://www.imdb.com/title/${encodeURIComponent(imdbId)}/`
 }
 
 async function searchWikidata(name: string) {
