@@ -110,9 +110,18 @@
 
           <template #quote-cell="{ cell }">
             <div class="max-w-md">
-              <p class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words">
-                {{ cell.row.original.quote_text }}
-              </p>
+              <div class="flex items-start gap-2">
+                <p class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words flex-1">
+                  {{ cell.row.original.quote_text }}
+                </p>
+                <NLink
+                  :to="`/quotes/${cell.row.original.quote_id}`"
+                  class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                  title="Open quote page"
+                >
+                  <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
+                </NLink>
+              </div>
               <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {{ cell.row.original.author_name || 'Unknown author' }}
                 <span v-if="cell.row.original.reference_name"> · {{ cell.row.original.reference_name }}</span>
@@ -856,12 +865,20 @@ const tableHeaderMenuItems = computed(() => {
 function rowActionItems(item: SocialQueueItem) {
   const disabled = item.status !== 'queued'
   const actions: DropdownMenuItem[] = []
+  actions.push({
+    label: 'Open quote page',
+    leading: 'i-ph-arrow-up-right-duotone',
+    onclick: () => navigateTo(`/quotes/${item.quote_id}`)
+  })
   if (hasPublishedPostUrl(item)) {
     actions.push({
       label: 'Open post',
       leading: 'i-ph-arrow-square-out',
       onclick: () => openPublishedPost(item)
     })
+    actions.push({})
+  }
+  else {
     actions.push({})
   }
   actions.push({
