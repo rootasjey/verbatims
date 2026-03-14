@@ -41,15 +41,27 @@
               </div>
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {{ author.name }}
-              </h3>
+              <div class="flex items-center gap-2 min-w-0">
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {{ author.name }}
+                </h3>
+                <button
+                  v-if="hasPendingEnrichment(author)"
+                  type="button"
+                  class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-200 dark:ring-amber-900/60"
+                  :title="`${author.enrichment_pending_count} pending enrichment suggestion(s)`"
+                  @click="goToAuthorEnrichmentQueue(author)"
+                />
+              </div>
               <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {{ author.job }}
               </p>
               <div class="flex items-center space-x-2 mt-1">
                 <span v-if="author.is_fictional" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300">
                   Fictional
+                </span>
+                <span v-if="hasPendingEnrichment(author)" class="text-xs font-medium text-amber-700 dark:text-amber-300">
+                  {{ author.enrichment_pending_count }} suggestion{{ author.enrichment_pending_count !== 1 ? 's' : '' }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">
                   {{ author.quotes_count || 0 }} quotes
@@ -232,11 +244,23 @@
                 </div>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {{ cell.row.original.name }}
-                </p>
+                <div class="flex items-center gap-2 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {{ cell.row.original.name }}
+                  </p>
+                  <button
+                    v-if="hasPendingEnrichment(cell.row.original)"
+                    type="button"
+                    class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-200 dark:ring-amber-900/60"
+                    :title="`${cell.row.original.enrichment_pending_count} pending enrichment suggestion(s)`"
+                    @click="goToAuthorEnrichmentQueue(cell.row.original)"
+                  />
+                </div>
                 <p v-if="cell.row.original.job" class="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {{ cell.row.original.job }}
+                </p>
+                <p v-if="hasPendingEnrichment(cell.row.original)" class="text-xs font-medium text-amber-700 dark:text-amber-300 truncate">
+                  {{ cell.row.original.enrichment_pending_count }} pending suggestion{{ cell.row.original.enrichment_pending_count !== 1 ? 's' : '' }}
                 </p>
               </div>
             </div>
@@ -636,6 +660,13 @@ const getAuthorActions = (author: Author) => [
     leading: 'i-ph-magic-wand',
     onclick: () => openEnrichmentPreview(author)
   },
+  ...(hasPendingEnrichment(author)
+    ? [{
+        label: 'Open enrichment queue',
+        leading: 'i-ph-bell-ringing',
+        onclick: () => goToAuthorEnrichmentQueue(author)
+      }]
+    : []),
   {},
   {
     label: 'Delete Author',
@@ -648,12 +679,25 @@ const viewAuthor = (author: Author) => {
   navigateTo(`/authors/${author.id}`)
 }
 
+const hasPendingEnrichment = (author: Author) => Number(author.enrichment_pending_count || 0) > 0
+
+const goToAuthorEnrichmentQueue = (author: Author) => {
+  navigateTo({
+    path: '/admin/enrichment',
+    query: {
+      entityType: 'author',
+      entityId: String(author.id),
+      status: 'completed',
+    }
+  })
+}
+
 const editAuthor = async (author: Author) => {
   selectedAuthor.value = author
   showAddAuthorDialog.value = true
 
   try {
-    const response = await $fetch(`/api/admin/authors/${author.id}`) as { data?: Author }
+    const response = await $fetch<any>(`/api/admin/authors/${author.id}`)
     if (response.data) {
       selectedAuthor.value = response.data
     }

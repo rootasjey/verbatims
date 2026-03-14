@@ -90,6 +90,12 @@ export interface Author {
   /** (Calculated) Number of quotes attributed to this author */
   quotes_count?: number;
 
+  /** (Calculated) Number of pending enrichment suggestions for this author */
+  enrichment_pending_count?: number;
+
+  /** (Calculated) Latest enrichment job id with pending suggestions */
+  enrichment_latest_job_id?: number | null;
+
   /** If fictional: origin reference id inferred from quotes */
   origin_reference_id?: number;
 

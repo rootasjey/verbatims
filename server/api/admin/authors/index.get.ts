@@ -66,7 +66,29 @@ export default defineEventHandler(async (event) => {
     let authorsQuery = db
       .select({
         ...getTableColumns(schema.authors),
-        quotes_count: count(schema.quotes.id)
+        quotes_count: count(schema.quotes.id),
+        enrichment_pending_count: sql<number>`(
+          SELECT COUNT(*)
+          FROM ${schema.entityEnrichmentFieldProposals} proposal
+          INNER JOIN ${schema.entityEnrichmentJobs} job ON job.id = proposal.job_id
+          WHERE proposal.entity_type = 'author'
+            AND proposal.entity_id = ${schema.authors.id}
+            AND proposal.decision_status = 'pending'
+            AND job.status = 'completed'
+            AND job.applied_at IS NULL
+        )`,
+        enrichment_latest_job_id: sql<number | null>`(
+          SELECT job.id
+          FROM ${schema.entityEnrichmentJobs} job
+          INNER JOIN ${schema.entityEnrichmentFieldProposals} proposal ON proposal.job_id = job.id
+          WHERE job.entity_type = 'author'
+            AND job.entity_id = ${schema.authors.id}
+            AND job.status = 'completed'
+            AND job.applied_at IS NULL
+            AND proposal.decision_status = 'pending'
+          ORDER BY job.created_at DESC, job.id DESC
+          LIMIT 1
+        )`
       })
       .from(schema.authors)
       .leftJoin(schema.quotes, eq(schema.authors.id, schema.quotes.authorId))
