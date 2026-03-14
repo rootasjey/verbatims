@@ -1,5 +1,4 @@
-import { applyEnrichmentJob } from '../../../../../utils/enrichment/processor'
-import throwServer from '../../../../../utils/throw-server'
+import { applyEnrichmentJob } from "~~/server/utils/enrichment/processor"
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)

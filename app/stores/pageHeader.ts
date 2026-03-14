@@ -101,6 +101,11 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
         subtitle: 'Manage all references and sources in the system',
         section: 'admin'
       },
+      '/admin/enrichment': {
+        title: 'Enrichment Queue',
+        subtitle: 'Review scheduled suggestions, queued jobs, and applied enrichment changes',
+        section: 'admin'
+      },
       '/admin/users': {
         title: 'Users',
         subtitle: 'Manage user accounts and permissions',
