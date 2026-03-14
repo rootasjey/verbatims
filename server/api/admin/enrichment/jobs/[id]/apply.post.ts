@@ -1,5 +1,5 @@
-import { applyAuthorEnrichmentJob } from '~/server/utils/enrichment/processor'
-import throwServer from '~/server/utils/throw-server'
+import { applyEnrichmentJob } from '../../../../../utils/enrichment/processor'
+import throwServer from '../../../../../utils/throw-server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody<{ fields?: EnrichmentProposalField[] }>(event)
-  const result = await applyAuthorEnrichmentJob(id, body?.fields, session.user.id)
+  const result = await applyEnrichmentJob(id, body?.fields, session.user.id)
 
   return {
     success: true,

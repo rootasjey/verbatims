@@ -64,6 +64,15 @@
             <NButton
               size="xs"
               btn="ghost"
+              :loading="enrichmentLoading && enrichmentReferenceTarget?.id === reference.id"
+              @click="openEnrichmentPreview(reference)"
+            >
+              <NIcon name="i-ph-magic-wand" class="w-3 h-3 mr-1" />
+              Enrich
+            </NButton>
+            <NButton
+              size="xs"
+              btn="ghost"
               @click="editReference(reference)"
             >
               <NIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
@@ -288,6 +297,21 @@
     @reference-deleted="onReferenceDeleted"
   />
 
+  <AdminReferenceEnrichmentDialog
+    :open="showEnrichmentDialog"
+    :loading="enrichmentLoading"
+    :applying="enrichmentApplying"
+    :reference="convertToQuoteReference(enrichmentReferenceTarget) || null"
+    :preview="enrichmentPreview"
+    :job-id="enrichmentJobId"
+    :selected-fields="selectedEnrichmentFields"
+    @update:open="handleEnrichmentDialogOpenChange"
+    @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)"
+    @toggle-field="toggleEnrichmentField"
+    @select-recommended="selectRecommendedEnrichmentFields"
+    @apply="applySelectedEnrichment"
+  />
+
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
     <NCard>
@@ -332,6 +356,13 @@ const showAddReferenceDialog = ref(false)
 const selectedReference = ref<QuoteReferenceWithMetadata | undefined>()
 const showDeleteReferenceDialog = ref(false)
 const referenceToDelete = ref<QuoteReferenceWithMetadata | null>(null)
+const showEnrichmentDialog = ref(false)
+const enrichmentLoading = ref(false)
+const enrichmentApplying = ref(false)
+const enrichmentReferenceTarget = ref<QuoteReferenceWithMetadata | null>(null)
+const enrichmentPreview = ref<any | null>(null)
+const enrichmentJobId = ref<number | null>(null)
+const selectedEnrichmentFields = ref<string[]>([])
 
 // Bulk selection state
 const selectionMode = ref(false)
@@ -619,6 +650,11 @@ const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
     onclick: () => viewReference(reference)
   },
   {
+    label: 'Preview enrichment',
+    leading: 'i-ph-magic-wand',
+    onclick: () => openEnrichmentPreview(reference)
+  },
+  {
     label: 'Edit Reference',
     leading: 'i-ph-pencil',
     onclick: () => editReference(reference)
@@ -643,6 +679,108 @@ const editReference = (reference: QuoteReferenceWithMetadata) => {
 const deleteReference = async (reference: QuoteReferenceWithMetadata) => {
   referenceToDelete.value = reference
   showDeleteReferenceDialog.value = true
+}
+
+const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata) => {
+  enrichmentReferenceTarget.value = reference
+  enrichmentLoading.value = true
+  showEnrichmentDialog.value = true
+
+  try {
+    const response = await $fetch(`/api/admin/enrichment/references/${reference.id}/preview`, {
+      method: 'POST'
+    }) as { data?: { job?: any, preview?: any } }
+
+    enrichmentPreview.value = response.data?.preview || null
+    enrichmentJobId.value = response.data?.job?.id || null
+    selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
+      ?.filter((proposal: any) => proposal.recommended)
+      ?.map((proposal: any) => proposal.field) || []
+
+    if (!enrichmentPreview.value) {
+      useToast().toast({
+        title: 'No preview available',
+        description: 'This reference could not be enriched automatically right now.',
+        toast: 'warning'
+      })
+    }
+  } catch (error: any) {
+    console.error('Failed to build enrichment preview:', error)
+    useToast().toast({
+      title: 'Enrichment preview failed',
+      description: error?.data?.statusMessage || error?.message || 'Could not build the reference preview.',
+      toast: 'error'
+    })
+    showEnrichmentDialog.value = false
+  } finally {
+    enrichmentLoading.value = false
+  }
+}
+
+const toggleEnrichmentField = (field: string, value: boolean | 'indeterminate') => {
+  if (value === true) {
+    if (!selectedEnrichmentFields.value.includes(field)) {
+      selectedEnrichmentFields.value = [...selectedEnrichmentFields.value, field]
+    }
+    return
+  }
+
+  selectedEnrichmentFields.value = selectedEnrichmentFields.value.filter(item => item !== field)
+}
+
+const selectRecommendedEnrichmentFields = () => {
+  selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
+    ?.filter((proposal: any) => proposal.recommended)
+    ?.map((proposal: any) => proposal.field) || []
+}
+
+const closeEnrichmentDialog = () => {
+  showEnrichmentDialog.value = false
+  enrichmentPreview.value = null
+  enrichmentJobId.value = null
+  selectedEnrichmentFields.value = []
+  enrichmentReferenceTarget.value = null
+}
+
+const handleEnrichmentDialogOpenChange = (open: boolean) => {
+  if (!open) {
+    closeEnrichmentDialog()
+    return
+  }
+
+  showEnrichmentDialog.value = true
+}
+
+const applySelectedEnrichment = async () => {
+  if (!enrichmentJobId.value || selectedEnrichmentFields.value.length === 0) return
+
+  enrichmentApplying.value = true
+  try {
+    await $fetch(`/api/admin/enrichment/jobs/${enrichmentJobId.value}/apply`, {
+      method: 'POST',
+      body: {
+        fields: selectedEnrichmentFields.value,
+      }
+    })
+
+    useToast().toast({
+      title: 'Enrichment applied',
+      description: `${selectedEnrichmentFields.value.length} field(s) were updated on the reference record.`,
+      toast: 'success'
+    })
+
+    closeEnrichmentDialog()
+    loadReferences()
+  } catch (error: any) {
+    console.error('Failed to apply enrichment preview:', error)
+    useToast().toast({
+      title: 'Apply failed',
+      description: error?.data?.statusMessage || error?.message || 'Could not apply the selected fields.',
+      toast: 'error'
+    })
+  } finally {
+    enrichmentApplying.value = false
+  }
 }
 
 const onReferenceAdded = () => {
@@ -689,7 +827,7 @@ const confirmBulkDelete = async () => {
 }
 
 // Utility function to convert QuoteReferenceWithMetadata to QuoteReference
-const convertToQuoteReference = (ref: QuoteReferenceWithMetadata | undefined): QuoteReference | undefined => {
+const convertToQuoteReference = (ref: QuoteReferenceWithMetadata | null | undefined): QuoteReference | undefined => {
   if (!ref) return undefined
   
   // Extract only the properties that belong to QuoteReference

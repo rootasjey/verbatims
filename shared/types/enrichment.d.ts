@@ -1,4 +1,4 @@
-export type EnrichmentProposalField =
+export type AuthorEnrichmentProposalField =
   | 'birth_date'
   | 'birth_location'
   | 'death_date'
@@ -7,6 +7,14 @@ export type EnrichmentProposalField =
   | 'description'
   | 'image_url'
   | 'socials'
+
+export type ReferenceEnrichmentProposalField =
+  | 'release_date'
+  | 'description'
+  | 'image_url'
+  | 'urls'
+
+export type EnrichmentProposalField = AuthorEnrichmentProposalField | ReferenceEnrichmentProposalField
 
 export interface EnrichmentFieldProposal {
   field: EnrichmentProposalField
@@ -31,10 +39,10 @@ export interface EnrichmentMatchSummary {
   score: number
 }
 
-export interface AuthorEnrichmentPreview {
-  entity_type: 'author'
+export interface BaseEnrichmentPreview {
+  entity_type: 'author' | 'reference'
   entity_id: number
-  author_name: string
+  entity_name: string
   generated_at: string
   match: EnrichmentMatchSummary | null
   proposals: EnrichmentFieldProposal[]
@@ -47,3 +55,18 @@ export interface AuthorEnrichmentPreview {
   }
   notes: string[]
 }
+
+export interface AuthorEnrichmentPreview extends BaseEnrichmentPreview {
+  entity_type: 'author'
+  entity_name: string
+  author_name: string
+}
+
+export interface ReferenceEnrichmentPreview extends BaseEnrichmentPreview {
+  entity_type: 'reference'
+  entity_name: string
+  reference_name: string
+  reference_primary_type: string
+}
+
+export type EntityEnrichmentPreview = AuthorEnrichmentPreview | ReferenceEnrichmentPreview
