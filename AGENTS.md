@@ -1,3 +1,5 @@
+You are an experienced, pragmatic software engineering AI agent. Do not over-engineer a solution when a simple one is possible. Keep edits minimal. If you want an exception to ANY rule, you MUST stop and get permission first.
+
 # AGENTS.md
 
 This file is the canonical repository guide for coding agents working in **Verbatims**.
@@ -15,6 +17,7 @@ Main stack:
 - **Auth**: `nuxt-auth-utils` with role-based access (`user`, `moderator`, `admin`)
 - **State**: Pinia stores and composables
 - **Deployment**: Cloudflare Workers
+- **Package Manager**: Bun (default); npm/pnpm/yarn also supported
 
 ## Core domain model
 
@@ -30,6 +33,17 @@ users (role: user|moderator|admin)
 ```
 
 Key relationship: `quotes` belong to `users`, and may link to `authors` and `quote_references`.
+
+## Essential commands
+
+- **Development server**: `bun run dev` (or `npm run dev`)
+- **Type checking**: `bun run typecheck` or `npm run typecheck`
+- **Production build**: `bun run build` (requires explicit user request)
+- **Preview build**: `bun run preview`
+- **Version bump**: `bun run bump:patch`, `bun run bump:minor`, `bun run bump:major`, or `bun run bump:fix`
+- **Tag version**: `bun run version` (after bump)
+- **Database sync**: `bun run db:sync-local` (sync local DB from Wrangler)
+- **Token generation**: `bun run facebook:token`, `bun run instagram:token` (and variants with `:write-env`)
 
 ## Architecture and code organization
 
@@ -79,7 +93,7 @@ Common operations in this repo include:
 ### Types
 
 TypeScript is strict and central to this codebase.
-Follow existing type patterns in `/types/` and nearby modules.
+Follow existing type patterns in `shared/types/` and nearby modules.
 
 Conventions:
 
@@ -92,7 +106,7 @@ Conventions:
 - **Layouts** define major contexts such as `admin.vue`, `dashboard.vue`, `default.vue`.
 - **Pages** follow `/pages` conventions, including dynamic routes like `[id].vue`.
 - **Components** are generally auto-imported.
-- **Composable logic** belongs in `/composables/`.
+- **Composable logic** belongs in `app/composables/`.
 - **Server utilities** under `~/server/utils/` are commonly reused across API handlers.
 
 ## Admin UI conventions
@@ -196,9 +210,9 @@ When using `NSelect`, keep `v-model` and `:items` on compatible types.
 
 Common commands include:
 
-- `npm run dev` / `nuxt dev`
-- `npm run typecheck`
-- project-specific version bump scripts in `package.json`
+- `bun run dev` / `nuxt dev`
+- `bun run typecheck`
+- version bump scripts (e.g., `bun run bump:patch`, `bun run version`)
 
 ### Long-running processes
 
@@ -208,25 +222,52 @@ Dev servers are long-running processes. Do not block your workflow on them unnec
 
 Do **not** run production build commands such as `npm run build`, `bun run build`, or `nuxt build` unless the user explicitly asks for them.
 
-### Versioning before commit
-
-Before creating a commit, update the project version when the change should be versioned.
-Choose the version bump that matches the scope of the change:
-
-- `fix` / patch for small fixes, UI tweaks, and non-breaking corrections
-- `minor` for new non-breaking features
-- `major` for breaking changes or incompatible behavior changes
-
-Use the version bump scripts defined in `package.json` when applicable, then create the commit.
-
 ## Key files to inspect first
 
 - `/nuxt.config.ts`
-- `/types/quote.d.ts`
+- `/shared/types/quote.d.ts`
 - `/layouts/admin.vue`
 - `/pages/admin/quotes/drafts.vue`
-- `/stores/language.ts`
-- `/composables/useDataExport.ts`
+- `/app/stores/language.ts`
+- `/app/composables/useDataExport.ts`
+
+## Commit and Pull Request Guidelines
+
+### Commit messages
+
+Use the project's emoji-prefixed convention:
+
+```
+<emoji> <type>(<scope>)?: <description>
+```
+
+Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`.
+
+Examples:
+- `✨ feat(admin): add bulk approve action`
+- `🚑 fix: resolve quote deletion error`
+- `📝 docs: update AGENTS.md with commands`
+- `🔗 refactor(auth): simplify session checks`
+
+### Versioning
+
+Before committing a change that affects functionality, bump the project version appropriately:
+
+- `patch` for small fixes, UI tweaks, non-breaking corrections
+- `minor` for new non-breaking features
+- `major` for breaking changes
+- `fix` for quick hotfixes (treated as patch)
+
+Run the corresponding bump script (`bun run bump:patch`, etc.) and then `bun run version` to tag.
+
+### Pull requests
+
+- Provide a clear description of the change and its rationale.
+- Reference related issues or tasks.
+- Include screenshots or recordings for UI changes.
+- Ensure `typecheck` passes locally before requesting review.
+- Keep PRs focused and reasonably sized.
+
 
 ## Working principles for agents
 
