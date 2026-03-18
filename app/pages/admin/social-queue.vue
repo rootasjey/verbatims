@@ -5,7 +5,7 @@
         <div class="flex flex-col sm:flex-row gap-3">
           <div>
             <NToggleGroup
-              v-model="selectedPlatform"
+              v-model="safeSelectedPlatform"
               type="single"
               class="space-x-2 flex-wrap"
             >
@@ -308,7 +308,7 @@
 
 <script setup lang="ts">
 import type { SocialPlatform, SocialQueueStatus } from '~~/shared/constants/social'
-import { SOCIAL_PLATFORMS, SOCIAL_PLATFORM_LABELS } from '~~/shared/constants/social'
+import { SOCIAL_PLATFORMS, SOCIAL_PLATFORM_LABELS, isSocialPlatform } from '~~/shared/constants/social'
 import { watch, computed, onMounted } from 'vue'
 import { useAdminSocialQueue } from '~/composables/useAdminSocialQueue'
 import type { SocialQueueItem } from '~/composables/useAdminSocialQueue'
@@ -385,6 +385,15 @@ const {
   showErrorToast
 })
 
+
+const safeSelectedPlatform = computed<SocialPlatform>({
+  get: () => selectedPlatform.value,
+  set: (val) => {
+    if (isSocialPlatform(val)) {
+      selectedPlatform.value = val
+    }
+  }
+})
 const metaConfigForm = reactive({
   appId: '',
   appSecret: '',
@@ -567,6 +576,11 @@ function isMetaPlatform(platform: SocialPlatform) {
 }
 
 function getPlatformStatus(platform: SocialPlatform): PlatformStatus {
+  // Guard against invalid platform values (e.g., null from toggle group)
+  if (!isSocialPlatform(platform)) {
+    return { ok: false, platform, loading: false, account: '' } as PlatformStatus
+  }
+
   if (isMetaPlatform(platform)) {
     if (platform === 'facebook') {
       const m = metaStatus.value.facebook as MetaFacebookStatus
@@ -575,8 +589,8 @@ function getPlatformStatus(platform: SocialPlatform): PlatformStatus {
         platform,
         account: m.pageName || m.pageId || '',
         expiresAt: null,
-        loading: providerStatus[platform].loading,
-        lastChecked: providerStatus[platform].lastChecked
+        loading: providerStatus[platform]?.loading ?? false,
+        lastChecked: providerStatus[platform]?.lastChecked
       } as PlatformStatus
     }
 
@@ -587,11 +601,17 @@ function getPlatformStatus(platform: SocialPlatform): PlatformStatus {
       platform,
       account: m.username || m.userId || '',
       expiresAt: m.expiresAt ?? null,
-      loading: providerStatus[platform].loading,
-      lastChecked: providerStatus[platform].lastChecked
+      loading: providerStatus[platform]?.loading ?? false,
+      lastChecked: providerStatus[platform]?.lastChecked
     } as PlatformStatus
   }
-  return providerStatus[platform]
+
+  // non-Meta platform
+  const status = providerStatus[platform]
+  if (!status) {
+    return { ok: false, platform, loading: false, account: '' } as PlatformStatus
+  }
+  return status
 }
 
 function statusColorFor(platform: SocialPlatform) {
@@ -809,6 +829,7 @@ async function refreshAllStatuses() {
 }
 
 watch(selectedPlatform, (val) => {
+  if (!isSocialPlatform(val)) return
   checkPlatform(val, false)
 })
 
