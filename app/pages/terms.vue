@@ -323,7 +323,7 @@ useSeoMeta({
   ogDescription: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.'
 })
 
-import { useJsonLd } from '~/app/composables/useSeo'
+import { useJsonLd } from '../composables/useSeo'
 
 useJsonLd({
   '@context': 'https://schema.org',
