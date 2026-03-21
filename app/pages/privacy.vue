@@ -140,6 +140,16 @@ useHead({
   ],
 });
 
+import { useJsonLd } from '~/app/composables/useSeo'
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'PrivacyPolicy',
+  url: 'https://verbatims.cc/privacy',
+  name: 'Privacy Policy',
+  description: 'Privacy-first policy: analytics-only, no ads, no profiling, Cloudflare as infrastructure provider.',
+  datePublished: new Date().toISOString().split('T')[0]
+})
 definePageMeta({
   // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
   layout: 'default'

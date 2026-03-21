@@ -76,6 +76,20 @@ useHead({
   ]
 })
 
+import { useJsonLd } from '~/app/composables/useSeo'
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  url: 'https://verbatims.cc',
+  name: 'Verbatims',
+  description: 'A comprehensive, user-generated quotes service',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://verbatims.cc/search?q={search_term_string}',
+    'query-input': 'required name=search_term_string'
+  }
+})
 type StatsResponse = { quotes: number; authors: number; references: number; users: number }
 type OnboardingResponse = { needsOnboarding?: boolean; step?: string; hasAdminUser?: boolean; hasData?: boolean }
 
