@@ -262,6 +262,24 @@ useVerbatimsSeo(() => {
   }
 })
 
+watchEffect(() => {
+  const q = quote.value
+  if (!q) return
+  const { protocol, host } = useRequestURL()
+  const site = `${protocol}//${host}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: q.name,
+    description: q.name,
+    image: `${site}/api/og/quotes/${q.id}.png`,
+    author: { '@type': 'Person', name: q.author?.name || 'Unknown' },
+    datePublished: q.created_at,
+    url: `${site}/quotes/${q.id}`,
+    publisher: { '@type': 'Organization', name: 'Verbatims', url: 'https://verbatims.cc' }
+  }
+  useJsonLd(jsonLd)
+})
 // Track view
 onMounted(async () => {
   if (quote.value) {

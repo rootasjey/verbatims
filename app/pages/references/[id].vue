@@ -381,6 +381,25 @@ useVerbatimsSeo(() => {
   }
 })
 
+watchEffect(() => {
+  const refData = reference.value
+  if (!refData) return
+  const { protocol, host } = useRequestURL()
+  const site = `${protocol}//${host}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: refData.name,
+    description: refData.description || `Discover quotes from ${refData.name} on Verbatims.`,
+    image: `${site}/api/og/references/${refData.id}.png`,
+    author: refData.author ? { '@type': 'Person', name: refData.author } : undefined,
+    datePublished: refData.year ? `${refData.year}-01-01` : undefined,
+    url: `${site}/references/${refData.id}`
+  }
+  // Remove undefined values
+  Object.keys(jsonLd).forEach(k => jsonLd[k as keyof typeof jsonLd] === undefined && delete jsonLd[k as keyof typeof jsonLd])
+  useJsonLd(jsonLd)
+})
 const referenceQuotes = ref<Quote[]>([])
 const quotesLoading = ref<boolean>(false)
 const loadingMoreQuotes = ref<boolean>(false)

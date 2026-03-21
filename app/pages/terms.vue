@@ -323,6 +323,16 @@ useSeoMeta({
   ogDescription: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.'
 })
 
+import { useJsonLd } from '~/app/composables/useSeo'
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'TermsOfService',
+  url: 'https://verbatims.cc/terms',
+  name: 'Terms of Service',
+  description: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.',
+  datePublished: new Date().toISOString().split('T')[0]
+})
 import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
 
 const { isMobile } = useMobileDetection()

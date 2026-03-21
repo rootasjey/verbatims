@@ -431,6 +431,21 @@ useVerbatimsSeo(() => {
   }
 })
 
+watchEffect(() => {
+  const a = author.value
+  if (!a) return
+  const { protocol, host } = useRequestURL()
+  const site = `${protocol}//${host}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: a.name,
+    description: a.description || `Discover quotes by ${a.name} on Verbatims.`,
+    image: a.image_url ? (a.image_url.startsWith('http') ? a.image_url : `${site}${a.image_url}`) : `${site}/api/og/authors/${a.id}.png`,
+    url: `${site}/authors/${a.id}`
+  }
+  useJsonLd(jsonLd)
+})
 const authorQuotes: Ref<QuoteWithMetadata[]> = ref([])
 const quotesLoading = ref<boolean>(false)
 const loadingMoreQuotes = ref<boolean>(false)

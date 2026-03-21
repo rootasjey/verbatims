@@ -56,6 +56,16 @@ export function useVerbatimsSeo(options: SeoOptions | (() => SeoOptions)) {
     }
   })
 }
+export function useJsonLd(data: Record<string, unknown>) {
+  useHead({
+    script: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(data)
+      }
+    ]
+  })
+}
 
 function resolveOrigin(): string {
   if (import.meta.server) {
