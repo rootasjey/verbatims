@@ -61,7 +61,7 @@ export function useJsonLd(data: Record<string, unknown>) {
     script: [
       {
         type: 'application/ld+json',
-        children: JSON.stringify(data)
+        innerHTML: JSON.stringify(data)
       }
     ]
   })

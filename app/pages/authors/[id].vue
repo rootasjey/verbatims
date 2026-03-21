@@ -352,7 +352,7 @@
   </ClientOnly>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
 import type { ComputedRef, Ref } from 'vue'
 
 const { isMobile } = useMobileDetection()

@@ -208,7 +208,7 @@
   </ClientOnly>
 </template>
 
-<script setup>
+<script setup>import { useJsonLd } from '../../composables/useSeo'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const route = useRoute()

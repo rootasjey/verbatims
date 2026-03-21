@@ -323,7 +323,7 @@
   </ClientOnly>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
 

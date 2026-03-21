@@ -140,7 +140,7 @@ useHead({
   ],
 });
 
-import { useJsonLd } from '~/app/composables/useSeo'
+import { useJsonLd } from '../composables/useSeo'
 
 useJsonLd({
   '@context': 'https://schema.org',
