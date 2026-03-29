@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, isNotNull, desc, sql } from 'drizzle-orm'
+import { toISOStringOrEmpty } from '../../../utils/date-normalization'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -65,8 +66,8 @@ export default defineEventHandler(async (event) => {
       likes_count: Number(author.likesCount ?? 0),
       shares_count: Number(author.sharesCount ?? 0),
       quotes_count: Number(quotesCount),
-      created_at: author.createdAt,
-      updated_at: author.updatedAt,
+      created_at: toISOStringOrEmpty(author.createdAt),
+      updated_at: toISOStringOrEmpty(author.updatedAt),
       origin_reference_id: referenceCounts?.referenceId ? Number(referenceCounts.referenceId) : undefined,
       origin_reference_name: referenceCounts?.referenceName ?? undefined
     }

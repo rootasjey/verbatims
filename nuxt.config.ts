@@ -153,9 +153,7 @@ export default defineNuxtConfig({
     }
   },
 
-  // SEO configuration
   sitemap: {
-    siteUrl: normalizedSiteUrl,
     // The module will auto-generate routes based on the pages directory.
     // For dynamic routes, you can provide a custom function if needed.
   },  // Image optimization

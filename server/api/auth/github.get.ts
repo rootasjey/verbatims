@@ -1,5 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { toISOStringOrNull } from '../../utils/date-normalization'
+import { validLanguages } from '../../utils/validation/reference'
 
 export default defineOAuthGitHubEventHandler({
   config: {
@@ -7,6 +9,8 @@ export default defineOAuthGitHubEventHandler({
   },
   async onSuccess(event, { user, tokens }) {
     try {
+      const oauthPasswordHash = await hashPassword(`oauth:github:${user.id}`)
+
       // Check if user already exists
       let existingUser = await db
         .select()
@@ -36,6 +40,7 @@ export default defineOAuthGitHubEventHandler({
           .values({
             email: user.email,
             name: user.name || user.login,
+            password: oauthPasswordHash,
             avatarUrl: user.avatar_url,
             role: 'user',
             isActive: true,
@@ -45,6 +50,10 @@ export default defineOAuthGitHubEventHandler({
           .returning()
           .get()
       }
+
+      const language = (existingUser.language && validLanguages.includes(existingUser.language as any))
+        ? (existingUser.language as typeof validLanguages[number])
+        : 'en'
       
       // Set user session
       const sessionUser = {
@@ -55,9 +64,9 @@ export default defineOAuthGitHubEventHandler({
         role: existingUser.role,
         is_active: existingUser.isActive,
         email_verified: existingUser.emailVerified,
-        language: existingUser.language,
-        created_at: existingUser.createdAt,
-        updated_at: existingUser.updatedAt
+        language,
+        created_at: toISOStringOrNull(existingUser.createdAt),
+        updated_at: toISOStringOrNull(existingUser.updatedAt)
       }
 
       await setUserSession(event, {

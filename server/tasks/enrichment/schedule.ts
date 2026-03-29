@@ -17,7 +17,7 @@ export default defineTask({
     }
 
     return await scheduleVerificationJobs({
-      entityTypes: ['author'],
+      entityTypes: ['author', 'reference'],
       triggeredBy: 'cron',
       limitPerType: policy.batchSize,
     })

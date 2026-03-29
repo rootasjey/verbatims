@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { toISOStringOrNull } from '../../utils/date-normalization'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
   try {
@@ -149,14 +150,14 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       user_id: updatedQuote.userId,
       status: updatedQuote.status as any,
       moderator_id: updatedQuote.moderatorId,
-      moderated_at: updatedQuote.moderatedAt,
+      moderated_at: toISOStringOrNull(updatedQuote.moderatedAt) ?? undefined,
       rejection_reason: updatedQuote.rejectionReason,
       views_count: updatedQuote.viewsCount,
       likes_count: updatedQuote.likesCount,
       shares_count: updatedQuote.sharesCount,
       is_featured: updatedQuote.isFeatured,
-      created_at: updatedQuote.createdAt,
-      updated_at: updatedQuote.updatedAt,
+      created_at: toISOStringOrNull(updatedQuote.createdAt) || '',
+      updated_at: toISOStringOrNull(updatedQuote.updatedAt) || '',
       author: updatedQuote.authorId ? {
         id: updatedQuote.authorId,
         name: updatedQuote.authorName,

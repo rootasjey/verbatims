@@ -1,9 +1,10 @@
-import { scheduleVerificationJobs } from '~/server/utils/enrichment/scheduler'
+import { scheduleVerificationJobs } from '../../../utils/enrichment/scheduler'
 import { isEnrichmentEntityType } from '#shared/constants/enrichment'
-import throwServer from '~/server/utils/throw-server'
+import type { EnrichmentEntityType } from '#shared/constants/enrichment'
+import throwServer from '../../../utils/throw-server'
 
 interface ScheduleBody {
-  entityType?: string
+  entityType?: EnrichmentEntityType
   entityId?: number
   entityIds?: number[]
   limitPerType?: number
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<ScheduleBody>(event)
   const entityIds = Array.isArray(body?.entityIds) ? body.entityIds.map(value => Number(value)).filter(Number.isInteger) : []
-  const entityTypes = [] as Array<'author' | 'reference'>
+  const entityTypes: EnrichmentEntityType[] = []
 
   if (body?.entityType) {
     if (!isEnrichmentEntityType(body.entityType)) {
