@@ -307,6 +307,7 @@
     :selected-fields="selectedEnrichmentFields"
     @update:open="handleEnrichmentDialogOpenChange"
     @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)"
+    @promote-candidate="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget, $event)"
     @toggle-field="toggleEnrichmentField"
     @select-recommended="selectRecommendedEnrichmentFields"
     @apply="applySelectedEnrichment"
@@ -681,14 +682,16 @@ const deleteReference = async (reference: QuoteReferenceWithMetadata) => {
   showDeleteReferenceDialog.value = true
 }
 
-const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata) => {
+const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata, preferredExternalId?: string) => {
   enrichmentReferenceTarget.value = reference
   enrichmentLoading.value = true
   showEnrichmentDialog.value = true
 
   try {
-    const response = await $fetch(`/api/admin/enrichment/references/${reference.id}/preview`, {
-      method: 'POST'
+    const previewUrl = `/api/admin/enrichment/references/${reference.id}/preview` as string
+    const response = await ($fetch as any)(previewUrl, {
+      method: 'POST',
+      body: preferredExternalId ? { preferredExternalId } : undefined,
     }) as { data?: { job?: any, preview?: any } }
 
     enrichmentPreview.value = response.data?.preview || null

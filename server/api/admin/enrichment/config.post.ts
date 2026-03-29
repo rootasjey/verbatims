@@ -1,5 +1,5 @@
-import { resolveEnrichmentConfig, updateEnrichmentConfigStore } from '~/server/utils/enrichment/config'
-import throwServer from '~/server/utils/throw-server'
+import { resolveEnrichmentConfig, updateEnrichmentConfigStore } from '../../../utils/enrichment/config'
+import throwServer from '../../../utils/throw-server'
 
 function normalizeBoolean(value: unknown, fallback = false): boolean {
   if (typeof value === 'boolean') return value
@@ -14,6 +14,11 @@ function normalizeBoolean(value: unknown, fallback = false): boolean {
 function normalizePositiveInt(value: unknown): number | undefined {
   const parsed = Number.parseInt(String(value ?? ''), 10)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
+function normalizeScoreInt(value: unknown): number | undefined {
+  const parsed = Number.parseInt(String(value ?? ''), 10)
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= 100 ? parsed : undefined
 }
 
 export default defineEventHandler(async (event) => {
@@ -32,6 +37,9 @@ export default defineEventHandler(async (event) => {
     authorStaleDays: normalizePositiveInt(body?.authorStaleDays),
     referenceStaleDays: normalizePositiveInt(body?.referenceStaleDays),
     reviewGraceDays: normalizePositiveInt(body?.reviewGraceDays),
+    authorMatchMinScore: normalizeScoreInt(body?.authorMatchMinScore),
+    referenceMatchMinScore: normalizeScoreInt(body?.referenceMatchMinScore),
+    ambiguousMatchGap: normalizePositiveInt(body?.ambiguousMatchGap),
   })
 
   return {

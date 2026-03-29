@@ -58,6 +58,38 @@
         </div>
       </div>
 
+      <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4 bg-gray-50/60 dark:bg-gray-900/20">
+        <div>
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Matching thresholds</h4>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Saved values tune how strict Wikidata matching should be and when a result becomes ambiguous.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Author min score</label>
+            <NInput v-model="localForm.authorMatchMinScore" input="outline-gray" type="number" min="1" max="100" />
+            <p class="text-xs text-gray-500 dark:text-gray-400">Raise this to reject more weak author matches. Lower it only if valid people are skipped too often.</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('authorMatchMinScore') }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Reference min score</label>
+            <NInput v-model="localForm.referenceMatchMinScore" input="outline-gray" type="number" min="1" max="100" />
+            <p class="text-xs text-gray-500 dark:text-gray-400">Raise this to reject ambiguous title or media matches more aggressively.</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('referenceMatchMinScore') }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Ambiguous score gap</label>
+            <NInput v-model="localForm.ambiguousMatchGap" input="outline-gray" type="number" min="1" />
+            <p class="text-xs text-gray-500 dark:text-gray-400">If the best score is too close to the next candidate, the preview stays ambiguous and shows alternatives.</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('ambiguousMatchGap') }}</p>
+          </div>
+        </div>
+      </div>
+
       <p v-if="updatedAt" class="text-xs text-gray-400">
         Last updated {{ formatDate(updatedAt) }}
       </p>
@@ -83,6 +115,9 @@ interface EnrichmentConfigForm {
   authorStaleDays: string
   referenceStaleDays: string
   reviewGraceDays: string
+  authorMatchMinScore: string
+  referenceMatchMinScore: string
+  ambiguousMatchGap: string
 }
 
 interface Props {
@@ -113,6 +148,9 @@ const localForm = reactive<EnrichmentConfigForm>({
   authorStaleDays: '180',
   referenceStaleDays: '365',
   reviewGraceDays: '14',
+  authorMatchMinScore: '60',
+  referenceMatchMinScore: '58',
+  ambiguousMatchGap: '5',
 })
 
 watch(() => props.form, (value) => {

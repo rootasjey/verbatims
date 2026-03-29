@@ -342,6 +342,7 @@
     :selected-fields="selectedEnrichmentFields"
     @update:open="handleEnrichmentDialogOpenChange"
     @refresh="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget)"
+    @promote-candidate="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget, $event)"
     @toggle-field="toggleEnrichmentField"
     @select-recommended="selectRecommendedEnrichmentFields"
     @apply="applySelectedEnrichment"
@@ -420,6 +421,9 @@ const enrichmentConfigForm = reactive({
   authorStaleDays: '180',
   referenceStaleDays: '365',
   reviewGraceDays: '14',
+  authorMatchMinScore: '60',
+  referenceMatchMinScore: '58',
+  ambiguousMatchGap: '5',
 })
 
 // Bulk selection state (multi‑select column)
@@ -711,14 +715,16 @@ const deleteAuthor = async (author: Author) => {
   showDeleteAuthorDialog.value = true
 }
 
-const openEnrichmentPreview = async (author: Author) => {
+const openEnrichmentPreview = async (author: Author, preferredExternalId?: string) => {
   enrichmentAuthorTarget.value = author
   enrichmentLoading.value = true
   showEnrichmentDialog.value = true
 
   try {
-    const response = await $fetch(`/api/admin/enrichment/authors/${author.id}/preview`, {
-      method: 'POST'
+    const previewUrl = `/api/admin/enrichment/authors/${author.id}/preview` as string
+    const response = await ($fetch as any)(previewUrl, {
+      method: 'POST',
+      body: preferredExternalId ? { preferredExternalId } : undefined,
     }) as { data?: { job?: any, preview?: any } }
 
     enrichmentPreview.value = response.data?.preview || null
@@ -786,7 +792,8 @@ const openEnrichmentConfigDialog = async () => {
   showEnrichmentConfigDialog.value = true
 
   try {
-    const response = await $fetch('/api/admin/enrichment/config') as {
+    const configUrl = '/api/admin/enrichment/config' as string
+    const response = await ($fetch as any)(configUrl) as {
       data?: {
         updatedAt: string | null
         values: Record<string, string | number | boolean>
@@ -803,6 +810,9 @@ const openEnrichmentConfigDialog = async () => {
     enrichmentConfigForm.authorStaleDays = String(response.data?.values?.authorStaleDays || '180')
     enrichmentConfigForm.referenceStaleDays = String(response.data?.values?.referenceStaleDays || '365')
     enrichmentConfigForm.reviewGraceDays = String(response.data?.values?.reviewGraceDays || '14')
+    enrichmentConfigForm.authorMatchMinScore = String(response.data?.values?.authorMatchMinScore || '60')
+    enrichmentConfigForm.referenceMatchMinScore = String(response.data?.values?.referenceMatchMinScore || '58')
+    enrichmentConfigForm.ambiguousMatchGap = String(response.data?.values?.ambiguousMatchGap || '5')
   } catch (error: any) {
     useToast().toast({
       title: 'Failed to load settings',
@@ -818,7 +828,8 @@ const openEnrichmentConfigDialog = async () => {
 const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
   enrichmentConfigSaving.value = true
   try {
-    const response = await $fetch('/api/admin/enrichment/config', {
+    const configUrl = '/api/admin/enrichment/config' as string
+    const response = await ($fetch as any)(configUrl, {
       method: 'POST',
       body: {
         scheduleEnabled: form.scheduleEnabled,
@@ -828,6 +839,9 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
         authorStaleDays: Number(form.authorStaleDays),
         referenceStaleDays: Number(form.referenceStaleDays),
         reviewGraceDays: Number(form.reviewGraceDays),
+        authorMatchMinScore: Number(form.authorMatchMinScore),
+        referenceMatchMinScore: Number(form.referenceMatchMinScore),
+        ambiguousMatchGap: Number(form.ambiguousMatchGap),
       }
     }) as {
       data?: {
