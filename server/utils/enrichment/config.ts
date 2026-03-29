@@ -13,6 +13,9 @@ export interface EnrichmentConfigStore {
   authorStaleDays?: number
   referenceStaleDays?: number
   reviewGraceDays?: number
+  authorMatchMinScore?: number
+  referenceMatchMinScore?: number
+  ambiguousMatchGap?: number
 }
 
 export interface ResolvedEnrichmentConfig {
@@ -25,6 +28,9 @@ export interface ResolvedEnrichmentConfig {
     authorStaleDays: number
     referenceStaleDays: number
     reviewGraceDays: number
+    authorMatchMinScore: number
+    referenceMatchMinScore: number
+    ambiguousMatchGap: number
   }
   sources: Record<keyof ResolvedEnrichmentConfig['values'], Source>
 }
@@ -54,6 +60,9 @@ function normalizeStoredConfig(raw: unknown): EnrichmentConfigStore | null {
     authorStaleDays: normalizePositiveInt(value.authorStaleDays),
     referenceStaleDays: normalizePositiveInt(value.referenceStaleDays),
     reviewGraceDays: normalizePositiveInt(value.reviewGraceDays),
+    authorMatchMinScore: normalizeScoreInt(value.authorMatchMinScore),
+    referenceMatchMinScore: normalizeScoreInt(value.referenceMatchMinScore),
+    ambiguousMatchGap: normalizePositiveInt(value.ambiguousMatchGap),
   }
 }
 
@@ -84,6 +93,9 @@ export async function updateEnrichmentConfigStore(input: Partial<EnrichmentConfi
     authorStaleDays: normalizePositiveInt(input.authorStaleDays) ?? stored?.authorStaleDays,
     referenceStaleDays: normalizePositiveInt(input.referenceStaleDays) ?? stored?.referenceStaleDays,
     reviewGraceDays: normalizePositiveInt(input.reviewGraceDays) ?? stored?.reviewGraceDays,
+    authorMatchMinScore: normalizeScoreInt(input.authorMatchMinScore) ?? stored?.authorMatchMinScore,
+    referenceMatchMinScore: normalizeScoreInt(input.referenceMatchMinScore) ?? stored?.referenceMatchMinScore,
+    ambiguousMatchGap: normalizePositiveInt(input.ambiguousMatchGap) ?? stored?.ambiguousMatchGap,
   }
 
   await setEnrichmentConfigStore(next)
@@ -101,6 +113,9 @@ export async function resolveEnrichmentConfig(): Promise<ResolvedEnrichmentConfi
   const authorStaleDays = resolveNumberField(stored?.authorStaleDays, runtimeConfig?.dataVerificationAuthorStaleDays, 180)
   const referenceStaleDays = resolveNumberField(stored?.referenceStaleDays, runtimeConfig?.dataVerificationReferenceStaleDays, 365)
   const reviewGraceDays = resolveNumberField(stored?.reviewGraceDays, runtimeConfig?.dataVerificationReviewGraceDays, 14)
+  const authorMatchMinScore = resolveScoreField(stored?.authorMatchMinScore, runtimeConfig?.dataVerificationAuthorMatchMinScore, 60)
+  const referenceMatchMinScore = resolveScoreField(stored?.referenceMatchMinScore, runtimeConfig?.dataVerificationReferenceMatchMinScore, 58)
+  const ambiguousMatchGap = resolveNumberField(stored?.ambiguousMatchGap, runtimeConfig?.dataVerificationAmbiguousMatchGap, 5)
 
   return {
     updatedAt: stored?.updatedAt || null,
@@ -112,6 +127,9 @@ export async function resolveEnrichmentConfig(): Promise<ResolvedEnrichmentConfi
       authorStaleDays: authorStaleDays.value,
       referenceStaleDays: referenceStaleDays.value,
       reviewGraceDays: reviewGraceDays.value,
+      authorMatchMinScore: authorMatchMinScore.value,
+      referenceMatchMinScore: referenceMatchMinScore.value,
+      ambiguousMatchGap: ambiguousMatchGap.value,
     },
     sources: {
       scheduleEnabled: scheduleEnabled.source,
@@ -121,8 +139,24 @@ export async function resolveEnrichmentConfig(): Promise<ResolvedEnrichmentConfi
       authorStaleDays: authorStaleDays.source,
       referenceStaleDays: referenceStaleDays.source,
       reviewGraceDays: reviewGraceDays.source,
+      authorMatchMinScore: authorMatchMinScore.source,
+      referenceMatchMinScore: referenceMatchMinScore.source,
+      ambiguousMatchGap: ambiguousMatchGap.source,
     }
   }
+}
+
+function resolveScoreField(kv: number | undefined, envRaw: string | undefined, fallback: number) {
+  if (typeof kv === 'number' && Number.isFinite(kv) && kv > 0 && kv <= 100) {
+    return { value: kv, source: 'kv' as const }
+  }
+
+  const env = normalizeScoreInt(envRaw)
+  if (typeof env === 'number') {
+    return { value: env, source: 'env' as const }
+  }
+
+  return { value: fallback, source: 'default' as const }
 }
 
 function resolveBooleanField(kv: boolean | undefined, envRaw: string | undefined, fallback: boolean) {
@@ -157,4 +191,9 @@ function parseBooleanEnv(raw: string | undefined): boolean | null {
 function normalizePositiveInt(value: unknown): number | undefined {
   const parsed = Number.parseInt(String(value ?? ''), 10)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
+function normalizeScoreInt(value: unknown): number | undefined {
+  const parsed = Number.parseInt(String(value ?? ''), 10)
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= 100 ? parsed : undefined
 }

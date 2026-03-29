@@ -16,6 +16,8 @@ export type ReferenceEnrichmentProposalField =
 
 export type EnrichmentProposalField = AuthorEnrichmentProposalField | ReferenceEnrichmentProposalField
 
+export type EnrichmentMatchConfidence = 'high' | 'medium' | 'low' | 'ambiguous'
+
 export interface EnrichmentFieldProposal {
   field: EnrichmentProposalField
   label: string
@@ -37,6 +39,22 @@ export interface EnrichmentMatchSummary {
   wikipedia_url?: string | null
   wikidata_url: string
   score: number
+  confidence?: EnrichmentMatchConfidence
+  competing_score?: number | null
+  score_gap?: number | null
+  signals?: string[]
+  selected_manually?: boolean
+}
+
+export interface EnrichmentAlternativeMatch {
+  source: 'wikidata'
+  external_id: string
+  label: string
+  description?: string | null
+  wikipedia_url?: string | null
+  wikidata_url: string
+  score: number
+  signals?: string[]
 }
 
 export interface BaseEnrichmentPreview {
@@ -45,6 +63,7 @@ export interface BaseEnrichmentPreview {
   entity_name: string
   generated_at: string
   match: EnrichmentMatchSummary | null
+  alternative_matches: EnrichmentAlternativeMatch[]
   proposals: EnrichmentFieldProposal[]
   review_required: boolean
   auto_apply_fields: string[]

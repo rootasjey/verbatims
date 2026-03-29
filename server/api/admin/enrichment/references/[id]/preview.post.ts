@@ -1,5 +1,5 @@
-import { previewReferenceEnrichment } from '~/server/utils/enrichment/processor'
-import throwServer from '~/server/utils/throw-server'
+import { previewReferenceEnrichment } from '../../../../../utils/enrichment/processor'
+import throwServer from '../../../../../utils/throw-server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -12,7 +12,9 @@ export default defineEventHandler(async (event) => {
     throwServer(400, 'Invalid reference ID')
   }
 
-  const job = await previewReferenceEnrichment(id, session.user.id)
+  const body = await readBody<{ preferredExternalId?: string | null }>(event)
+
+  const job = await previewReferenceEnrichment(id, session.user.id, body?.preferredExternalId || null)
   if (!job) {
     throwServer(404, 'No enrichment job could be generated for this reference')
   }

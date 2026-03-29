@@ -79,10 +79,10 @@ export default defineNuxtConfig({
       '8 6 * * *': ['social:autopost'],
       // 08:08 Europe/Paris during standard time (UTC+1)
       '8 7 * * *': ['social:autopost'],
-      // Every 6 hours, enqueue authors and references that should be reverified.
-      '12 */6 * * *': ['enrichment:schedule'],
-      // Every 30 minutes, process queued enrichment jobs into preview proposals.
-      '*/30 * * * *': ['enrichment:process']
+      // Daily, enqueue authors and references that should be reverified.
+      '18 4 * * *': ['enrichment:schedule'],
+      // Every 4 hours, process queued enrichment jobs into preview proposals.
+      '48 */4 * * *': ['enrichment:process']
     },
     ignore: ['scripts/**'],
     alias: {

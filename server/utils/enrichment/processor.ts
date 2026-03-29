@@ -9,6 +9,7 @@ interface ProcessOptions {
   limit?: number
   entityType?: 'author' | 'reference'
   entityId?: number
+  preferredExternalId?: string
 }
 
 export async function processEnrichmentJobs(options: ProcessOptions = {}) {
@@ -33,7 +34,9 @@ export async function processEnrichmentJobs(options: ProcessOptions = {}) {
           continue
         }
 
-        const preview = await buildAuthorEnrichmentPreview(author)
+        const preview = await buildAuthorEnrichmentPreview(author, {
+          preferredExternalId: options.preferredExternalId,
+        })
         await completeEnrichmentJob(job.id, job.entityType, author.id, preview)
         results.push({
           id: job.id,
@@ -57,7 +60,9 @@ export async function processEnrichmentJobs(options: ProcessOptions = {}) {
           continue
         }
 
-        const preview = await buildReferenceEnrichmentPreview(reference)
+        const preview = await buildReferenceEnrichmentPreview(reference, {
+          preferredExternalId: options.preferredExternalId,
+        })
         await completeEnrichmentJob(job.id, job.entityType, reference.id, preview)
         results.push({
           id: job.id,
@@ -91,7 +96,7 @@ export async function processEnrichmentJobs(options: ProcessOptions = {}) {
   }
 }
 
-export async function previewAuthorEnrichment(authorId: number, createdBy?: number | null) {
+export async function previewAuthorEnrichment(authorId: number, createdBy?: number | null, preferredExternalId?: string | null) {
   await scheduleVerificationJobs({
     entityTypes: ['author'],
     entityIdsByType: { author: [authorId] },
@@ -100,12 +105,17 @@ export async function previewAuthorEnrichment(authorId: number, createdBy?: numb
     reason: 'manual',
   })
 
-  await processEnrichmentJobs({ entityType: 'author', entityId: authorId, limit: 1 })
+  await processEnrichmentJobs({
+    entityType: 'author',
+    entityId: authorId,
+    limit: 1,
+    preferredExternalId: preferredExternalId || undefined,
+  })
 
   return await getLatestAuthorJob(authorId)
 }
 
-export async function previewReferenceEnrichment(referenceId: number, createdBy?: number | null) {
+export async function previewReferenceEnrichment(referenceId: number, createdBy?: number | null, preferredExternalId?: string | null) {
   await scheduleVerificationJobs({
     entityTypes: ['reference'],
     entityIdsByType: { reference: [referenceId] },
@@ -114,7 +124,12 @@ export async function previewReferenceEnrichment(referenceId: number, createdBy?
     reason: 'manual',
   })
 
-  await processEnrichmentJobs({ entityType: 'reference', entityId: referenceId, limit: 1 })
+  await processEnrichmentJobs({
+    entityType: 'reference',
+    entityId: referenceId,
+    limit: 1,
+    preferredExternalId: preferredExternalId || undefined,
+  })
 
   return await getLatestReferenceJob(referenceId)
 }

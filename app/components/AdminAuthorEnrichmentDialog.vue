@@ -48,9 +48,32 @@
                 <span class="text-gray-400 dark:text-gray-500">•</span>
                 score <b>{{ preview.match.score }}</b>
               </p>
+              <div v-if="preview.match" class="mt-2 flex flex-wrap items-center gap-2">
+                <NBadge :badge="matchConfidenceBadge(preview.match.confidence)" size="xs">
+                  {{ matchConfidenceLabel(preview.match.confidence) }} confidence
+                </NBadge>
+                <NBadge v-if="preview.match.selected_manually" badge="soft-orange" size="xs">
+                  selected manually
+                </NBadge>
+                <NBadge v-if="typeof preview.match.score_gap === 'number'" badge="soft-gray" size="xs">
+                  score gap {{ preview.match.score_gap }}
+                </NBadge>
+                <NBadge v-if="typeof preview.match.competing_score === 'number'" badge="soft-gray" size="xs">
+                  runner-up {{ preview.match.competing_score }}
+                </NBadge>
+              </div>
               <p v-if="preview.match?.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {{ preview.match.description }}
               </p>
+              <div v-if="preview.match?.signals?.length" class="mt-3 space-y-1">
+                <p
+                  v-for="signal in preview.match.signals"
+                  :key="signal"
+                  class="text-xs text-orange-600 dark:text-orange-300"
+                >
+                  {{ signal }}
+                </p>
+              </div>
             </div>
 
             <div class="flex flex-wrap gap-2">
@@ -70,6 +93,62 @@
             >
               {{ note }}
             </p>
+          </div>
+
+          <div v-if="preview.alternative_matches?.length" class="mt-4 rounded-lg border border-dashed border-orange-200 dark:border-orange-900/60 p-3 bg-orange-50/60 dark:bg-orange-950/10">
+            <p class="text-xs font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">
+              Other plausible candidates
+            </p>
+            <div class="mt-2 space-y-2">
+              <div
+                v-for="candidate in preview.alternative_matches"
+                :key="candidate.external_id"
+                class="rounded-md bg-white/70 dark:bg-gray-950/30 p-3"
+              >
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">{{ candidate.label }}</span>
+                  <NBadge badge="soft-gray" size="xs">score {{ candidate.score }}</NBadge>
+                </div>
+                <p v-if="candidate.description" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {{ candidate.description }}
+                </p>
+                <div v-if="candidate.signals?.length" class="mt-2 space-y-1">
+                  <p
+                    v-for="signal in candidate.signals"
+                    :key="signal"
+                    class="text-xs text-orange-700 dark:text-orange-300"
+                  >
+                    {{ signal }}
+                  </p>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <NButton
+                    btn="soft-orange"
+                    size="xs"
+                    @click="emit('promote-candidate', candidate.external_id)"
+                  >
+                    Use this candidate
+                  </NButton>
+                  <a
+                    :href="candidate.wikidata_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline"
+                  >
+                    Wikidata
+                  </a>
+                  <a
+                    v-if="candidate.wikipedia_url"
+                    :href="candidate.wikipedia_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline"
+                  >
+                    Wikipedia
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -181,6 +260,7 @@ interface Props {
 interface Emits {
   (e: 'update:open', value: boolean): void
   (e: 'refresh'): void
+  (e: 'promote-candidate', externalId: string): void
   (e: 'toggle-field', field: string, value: boolean | 'indeterminate'): void
   (e: 'select-recommended'): void
   (e: 'apply'): void
@@ -188,4 +268,18 @@ interface Emits {
 
 defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+function matchConfidenceLabel(confidence?: string | null) {
+  if (confidence === 'high') return 'High'
+  if (confidence === 'medium') return 'Medium'
+  if (confidence === 'low') return 'Low'
+  return 'Ambiguous'
+}
+
+function matchConfidenceBadge(confidence?: string | null) {
+  if (confidence === 'high') return 'soft-green'
+  if (confidence === 'medium') return 'soft-blue'
+  if (confidence === 'low') return 'soft-gray'
+  return 'soft-orange'
+}
 </script>

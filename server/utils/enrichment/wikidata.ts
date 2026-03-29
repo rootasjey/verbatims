@@ -1,4 +1,5 @@
 import type {
+  EnrichmentAlternativeMatch,
   AuthorEnrichmentPreview,
   EnrichmentFieldProposal,
   EnrichmentMatchSummary,
@@ -6,7 +7,8 @@ import type {
 } from '#shared/types/enrichment'
 import type { AuthorSocialLink } from '#shared/types/author'
 import type { QuoteReferencePrimaryType, QuoteReferenceUrls } from '#shared/types/quote-reference'
-import { parseAuthorSocials } from '~/server/utils/author-transformer'
+import { parseAuthorSocials } from '../author-transformer'
+import { resolveEnrichmentConfig } from './config'
 
 interface WikidataSearchEntity {
   id: string
@@ -39,6 +41,7 @@ interface WikidataClaim {
 
 interface AuthorCandidate {
   match: EnrichmentMatchSummary
+  alternativeMatches: EnrichmentAlternativeMatch[]
   birthDate: string | null
   birthLocation: string | null
   deathDate: string | null
@@ -51,6 +54,7 @@ interface AuthorCandidate {
 
 interface ReferenceCandidate {
   match: EnrichmentMatchSummary
+  alternativeMatches: EnrichmentAlternativeMatch[]
   releaseDate: string | null
   description: string | null
   imageUrl: string | null
@@ -81,16 +85,49 @@ interface ReferenceRecordInput {
   urls?: string | null
 }
 
+interface ScoredWikidataCandidate {
+  result: WikidataSearchEntity
+  entity: WikidataEntityDocument | null
+  score: number
+  signals: string[]
+}
+
+interface MatchingThresholds {
+  authorMatchMinScore: number
+  referenceMatchMinScore: number
+  ambiguousMatchGap: number
+}
+
+interface PreviewBuildOptions {
+  preferredExternalId?: string | null
+}
+
 const WIKIDATA_API = 'https://www.wikidata.org/w/api.php'
 const WIKIDATA_ENTITY_API = 'https://www.wikidata.org/wiki/Special:EntityData'
 const COMMONS_FILE_REDIRECT = 'https://commons.wikimedia.org/wiki/Special:Redirect/file'
+const MATCH_GAP_FOR_MEDIUM_CONFIDENCE = 8
+const MATCH_GAP_FOR_HIGH_CONFIDENCE = 15
+const GENERIC_AUTHOR_DESCRIPTION_PATTERN = /(writer|author|poet|philosopher|novelist|journalist|playwright|screenwriter|essayist|composer|actor|human)/i
+const COMPARABLE_STOP_WORDS = new Set([
+  'a', 'an', 'and', 'at', 'as', 'also', 'by', 'for', 'from', 'in', 'into', 'is', 'known', 'of', 'on', 'or', 'the', 'to', 'with', 'who', 'was', 'were', 'born', 'former', 'professional', 'official', 'work', 'works', 'based', 'about', 'after', 'before', 'during', 'over', 'under', 'his', 'her', 'their', 'its', 'this', 'that', 'these', 'those'
+])
+const SEMANTIC_KEYWORD_GROUPS: Record<string, string[]> = {
+  sports: ['athlete', 'basketball', 'football', 'soccer', 'tennis', 'baseball', 'olympic', 'sport', 'player', 'coach', 'nba'],
+  science: ['scientist', 'biologist', 'mycologist', 'researcher', 'chemist', 'physicist', 'mathematician', 'academic'],
+  writing: ['writer', 'author', 'poet', 'essayist', 'journalist', 'novelist', 'playwright', 'screenwriter'],
+  entertainment: ['actor', 'actress', 'comedian', 'director', 'producer', 'musician', 'singer', 'announcer', 'television', 'radio'],
+  politics: ['politician', 'president', 'minister', 'senator', 'governor', 'statesman', 'diplomat'],
+  business: ['business', 'entrepreneur', 'executive', 'investor', 'founder', 'owner', 'ceo'],
+  religion: ['priest', 'pastor', 'bishop', 'rabbi', 'imam', 'theologian'],
+}
 const REQUEST_HEADERS = {
   'accept': 'application/json',
   'user-agent': 'VerbatimsBot/0.1 (+https://verbatims.cc)'
 }
 
-export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): Promise<AuthorEnrichmentPreview> {
+export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput, options: PreviewBuildOptions = {}): Promise<AuthorEnrichmentPreview> {
   const notes: string[] = []
+  const matching = await resolveMatchingThresholds()
 
   if (author.isFictional) {
     return {
@@ -100,6 +137,7 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
       author_name: author.name,
       generated_at: new Date().toISOString(),
       match: null,
+      alternative_matches: [],
       proposals: [],
       review_required: true,
       auto_apply_fields: [],
@@ -112,7 +150,7 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
     }
   }
 
-  const candidate = await findBestAuthorCandidate(author, notes)
+  const candidate = await findBestAuthorCandidate(author, notes, matching, options)
   if (!candidate) {
     return {
       entity_type: 'author',
@@ -121,6 +159,7 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
       author_name: author.name,
       generated_at: new Date().toISOString(),
       match: null,
+      alternative_matches: [],
       proposals: [],
       review_required: true,
       auto_apply_fields: [],
@@ -145,6 +184,7 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
     author_name: author.name,
     generated_at: new Date().toISOString(),
     match: candidate.match,
+    alternative_matches: candidate.alternativeMatches,
     proposals,
     review_required: reviewRequired,
     auto_apply_fields: autoApplyFields,
@@ -157,9 +197,10 @@ export async function buildAuthorEnrichmentPreview(author: AuthorRecordInput): P
   }
 }
 
-export async function buildReferenceEnrichmentPreview(reference: ReferenceRecordInput): Promise<ReferenceEnrichmentPreview> {
+export async function buildReferenceEnrichmentPreview(reference: ReferenceRecordInput, options: PreviewBuildOptions = {}): Promise<ReferenceEnrichmentPreview> {
   const notes: string[] = []
-  const candidate = await findBestReferenceCandidate(reference, notes)
+  const matching = await resolveMatchingThresholds()
+  const candidate = await findBestReferenceCandidate(reference, notes, matching, options)
 
   if (!candidate) {
     return {
@@ -170,6 +211,7 @@ export async function buildReferenceEnrichmentPreview(reference: ReferenceRecord
       reference_primary_type: reference.primaryType,
       generated_at: new Date().toISOString(),
       match: null,
+      alternative_matches: [],
       proposals: [],
       review_required: true,
       auto_apply_fields: [],
@@ -195,6 +237,7 @@ export async function buildReferenceEnrichmentPreview(reference: ReferenceRecord
     reference_primary_type: reference.primaryType,
     generated_at: new Date().toISOString(),
     match: candidate.match,
+    alternative_matches: candidate.alternativeMatches,
     proposals,
     review_required: reviewRequired,
     auto_apply_fields: autoApplyFields,
@@ -207,24 +250,32 @@ export async function buildReferenceEnrichmentPreview(reference: ReferenceRecord
   }
 }
 
-async function findBestAuthorCandidate(author: AuthorRecordInput, notes: string[]) {
+async function findBestAuthorCandidate(
+  author: AuthorRecordInput,
+  notes: string[],
+  matching: MatchingThresholds,
+  options: PreviewBuildOptions,
+) {
   const searchResults = await searchWikidata(author.name)
   if (searchResults.length === 0) {
     notes.push('Wikidata search returned no result for this author.')
     return null
   }
 
-  const scoredResults = searchResults
-    .map(result => ({ result, score: scoreSearchResult(author, result) }))
-    .sort((left, right) => right.score - left.score)
+  const scoredResults = await scoreAuthorCandidates(author, searchResults)
 
-  const best = scoredResults[0]
-  if (!best || best.score < 55) {
+  const best = resolvePreferredCandidate(scoredResults, options.preferredExternalId) || scoredResults[0]
+  const second = scoredResults.find(candidate => candidate.result.id !== best?.result.id)
+  if (!best || (!options.preferredExternalId && best.score < matching.authorMatchMinScore)) {
     notes.push('A candidate was found, but the identity confidence is too low for automated review.')
     return null
   }
 
-  const entity = await fetchWikidataEntity(best.result.id)
+  if (options.preferredExternalId && best.result.id === options.preferredExternalId) {
+    notes.push('This preview uses a manually selected alternative Wikidata candidate.')
+  }
+
+  const entity = best.entity
   if (!entity) {
     notes.push('Failed to fetch the selected Wikidata entity details.')
     return null
@@ -259,6 +310,12 @@ async function findBestAuthorCandidate(author: AuthorRecordInput, notes: string[
     { platform: 'Wikidata', url: wikidataUrl },
     getOfficialWebsite(entity.claims?.P856),
   ])
+  const confidence = resolveMatchConfidence(best.score, second?.score ?? null, best.signals, matching.ambiguousMatchGap)
+  const alternativeMatches = buildAlternativeMatches(scoredResults, best.result.id)
+
+  if (confidence === 'ambiguous') {
+    notes.push('Multiple Wikidata candidates are still close for this author; review carefully before applying changes.')
+  }
 
   return {
     match: {
@@ -269,7 +326,13 @@ async function findBestAuthorCandidate(author: AuthorRecordInput, notes: string[
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
       score: Math.min(100, best.score),
+      confidence,
+      competing_score: second?.score ?? null,
+      score_gap: computeScoreGap(best.score, second?.score ?? null),
+      signals: best.signals,
+      selected_manually: Boolean(options.preferredExternalId && best.result.id === options.preferredExternalId),
     },
+    alternativeMatches,
     birthDate,
     birthLocation,
     deathDate,
@@ -382,39 +445,48 @@ function createAuthorProposals(author: AuthorRecordInput, candidate: AuthorCandi
     .filter(item => normalizeComparableString(item.currentValue) !== normalizeComparableString(item.proposedValue))
     .map((item) => {
       const overwrite = Boolean(item.currentValue)
+      const confidence = adjustProposalConfidence(candidate.match, item.field, item.confidence)
       return {
         field: item.field,
         label: item.label,
         current_value: item.currentValue,
         proposed_value: item.proposedValue,
-        confidence: item.confidence,
+        confidence,
         overwrite,
-        recommended: item.confidence >= (overwrite ? 92 : 78),
+        recommended: confidence >= (overwrite ? 92 : 78),
         source_labels: item.sourceLabels,
         source_urls: item.sourceUrls,
-        rationale: item.rationale,
+        rationale: withMatchRationale(item.rationale, candidate.match),
       }
     })
 }
 
-async function findBestReferenceCandidate(reference: ReferenceRecordInput, notes: string[]) {
+async function findBestReferenceCandidate(
+  reference: ReferenceRecordInput,
+  notes: string[],
+  matching: MatchingThresholds,
+  options: PreviewBuildOptions,
+) {
   const searchResults = await searchWikidata(reference.name)
   if (searchResults.length === 0) {
     notes.push('Wikidata search returned no result for this reference.')
     return null
   }
 
-  const scoredResults = searchResults
-    .map(result => ({ result, score: scoreReferenceSearchResult(reference, result) }))
-    .sort((left, right) => right.score - left.score)
+  const scoredResults = await scoreReferenceCandidates(reference, searchResults)
 
-  const best = scoredResults[0]
-  if (!best || best.score < 52) {
+  const best = resolvePreferredCandidate(scoredResults, options.preferredExternalId) || scoredResults[0]
+  const second = scoredResults.find(candidate => candidate.result.id !== best?.result.id)
+  if (!best || (!options.preferredExternalId && best.score < matching.referenceMatchMinScore)) {
     notes.push('A candidate was found, but the identity confidence is too low for manual review.')
     return null
   }
 
-  const entity = await fetchWikidataEntity(best.result.id)
+  if (options.preferredExternalId && best.result.id === options.preferredExternalId) {
+    notes.push('This preview uses a manually selected alternative Wikidata candidate.')
+  }
+
+  const entity = best.entity
   if (!entity) {
     notes.push('Failed to fetch the selected Wikidata entity details.')
     return null
@@ -446,6 +518,12 @@ async function findBestReferenceCandidate(reference: ReferenceRecordInput, notes
     official: getFirstUrlValue(entity.claims?.P856) || undefined,
     imdb: buildImdbUrl(entity.claims?.P345) || undefined,
   })
+  const confidence = resolveMatchConfidence(best.score, second?.score ?? null, best.signals, matching.ambiguousMatchGap)
+  const alternativeMatches = buildAlternativeMatches(scoredResults, best.result.id)
+
+  if (confidence === 'ambiguous') {
+    notes.push('Multiple Wikidata candidates are close for this reference; verify the selected entity before applying changes.')
+  }
 
   return {
     match: {
@@ -456,7 +534,13 @@ async function findBestReferenceCandidate(reference: ReferenceRecordInput, notes
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
       score: Math.min(100, best.score),
+      confidence,
+      competing_score: second?.score ?? null,
+      score_gap: computeScoreGap(best.score, second?.score ?? null),
+      signals: best.signals,
+      selected_manually: Boolean(options.preferredExternalId && best.result.id === options.preferredExternalId),
     },
+    alternativeMatches,
     releaseDate,
     description,
     imageUrl: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
@@ -525,38 +609,220 @@ function createReferenceProposals(reference: ReferenceRecordInput, candidate: Re
     .filter(item => normalizeComparableString(item.currentValue) !== normalizeComparableString(item.proposedValue))
     .map((item) => {
       const overwrite = Boolean(item.currentValue)
+      const confidence = adjustProposalConfidence(candidate.match, item.field, item.confidence)
       return {
         field: item.field,
         label: item.label,
         current_value: item.currentValue,
         proposed_value: item.proposedValue,
-        confidence: item.confidence,
+        confidence,
         overwrite,
-        recommended: item.confidence >= (overwrite ? 90 : 78),
+        recommended: confidence >= (overwrite ? 90 : 78),
         source_labels: item.sourceLabels,
         source_urls: item.sourceUrls,
-        rationale: item.rationale,
+        rationale: withMatchRationale(item.rationale, candidate.match),
       }
     })
 }
 
-function scoreReferenceSearchResult(reference: ReferenceRecordInput, result: WikidataSearchEntity) {
+async function scoreAuthorCandidates(author: AuthorRecordInput, searchResults: WikidataSearchEntity[]) {
+  const hydrated = await hydrateSearchCandidates(searchResults)
+  const relatedIds = uniqueStrings(hydrated.flatMap(({ entity }) => entity ? [
+    ...extractEntityIds(entity.claims?.P31),
+    ...extractEntityIds(entity.claims?.P106),
+    ...extractEntityIds(entity.claims?.P27),
+  ] : []))
+  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds) : {}
+
+  return hydrated
+    .map(({ result, entity }) => scoreAuthorSearchResult(author, result, entity, labels))
+    .sort((left, right) => right.score - left.score)
+}
+
+async function scoreReferenceCandidates(reference: ReferenceRecordInput, searchResults: WikidataSearchEntity[]) {
+  const hydrated = await hydrateSearchCandidates(searchResults)
+  const relatedIds = uniqueStrings(hydrated.flatMap(({ entity }) => entity ? [
+    ...extractEntityIds(entity.claims?.P31),
+    ...extractEntityIds(entity.claims?.P50),
+    ...extractEntityIds(entity.claims?.P57),
+    ...extractEntityIds(entity.claims?.P86),
+    ...extractEntityIds(entity.claims?.P170),
+    ...extractEntityIds(entity.claims?.P175),
+  ] : []))
+  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds) : {}
+
+  return hydrated
+    .map(({ result, entity }) => scoreReferenceSearchResult(reference, result, entity, labels))
+    .sort((left, right) => right.score - left.score)
+}
+
+async function hydrateSearchCandidates(searchResults: WikidataSearchEntity[]) {
+  return await Promise.all(searchResults.map(async (result) => ({
+    result,
+    entity: await fetchWikidataEntity(result.id),
+  })))
+}
+
+function scoreAuthorSearchResult(
+  author: AuthorRecordInput,
+  result: WikidataSearchEntity,
+  entity: WikidataEntityDocument | null,
+  labels: Record<string, string>,
+): ScoredWikidataCandidate {
+  const normalizedAuthorName = normalizeComparableString(author.name)
+  const normalizedLabel = normalizeComparableString(result.label)
+  const normalizedMatchText = normalizeComparableString(result.match?.text)
+  const aliases = result.aliases || []
+  const aliasHaystack = normalizeComparableString(aliases.join(' '))
+  const signals: string[] = []
+
+  let score = 0
+  if (normalizedAuthorName && normalizedAuthorName === normalizedLabel) score += 70
+  else if (normalizedAuthorName && normalizedLabel.includes(normalizedAuthorName)) score += 55
+  else if (normalizedAuthorName && aliasHaystack.includes(normalizedAuthorName)) score += 42
+
+  if (normalizedAuthorName && normalizedMatchText === normalizedAuthorName) score += 15
+  if (normalizedAuthorName && aliasHaystack === normalizedAuthorName) score += 10
+  if (result.description && GENERIC_AUTHOR_DESCRIPTION_PATTERN.test(result.description)) score += 6
+
+  if (!entity) {
+    signals.push('Wikidata details for this candidate could not be loaded; confidence is reduced.')
+    return { result, entity, score, signals }
+  }
+
+  const instanceOfIds = extractEntityIds(entity.claims?.P31)
+  if (instanceOfIds.length > 0) {
+    if (instanceOfIds.includes('Q5')) score += 6
+    else {
+      score -= 35
+      signals.push('The selected candidate is not typed as a human in Wikidata.')
+    }
+  }
+
+  const occupationLabels = extractEntityIds(entity.claims?.P106).map(id => labels[id]).filter(Boolean)
+  const citizenshipLabels = extractEntityIds(entity.claims?.P27).map(id => labels[id]).filter(Boolean)
+  const birthDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P569))
+  const deathDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P570))
+  const candidateContext = [
+    result.description,
+    getDescription(entity),
+    occupationLabels.join(' '),
+    citizenshipLabels.join(' '),
+    aliases.join(' '),
+  ].filter(Boolean).join(' ')
+
+  if (author.birthDate) {
+    const delta = scoreYearAlignment(author.birthDate, birthDate, 'birth date')
+    score += delta.score
+    if (delta.signal) signals.push(delta.signal)
+  }
+
+  if (author.deathDate) {
+    const delta = scoreYearAlignment(author.deathDate, deathDate, 'death date')
+    score += delta.score
+    if (delta.signal) signals.push(delta.signal)
+  }
+
+  const jobAlignment = scoreSemanticAlignment(author.job, candidateContext, {
+    positiveSignal: 'Existing profession aligns with the selected Wikidata occupations.',
+    negativeSignal: 'Existing profession does not align with the selected Wikidata occupations.',
+    exactBonus: 12,
+    overlapBonus: 18,
+    overlapStep: 6,
+    mismatchPenalty: 24,
+    weakPenalty: 6,
+  })
+  score += jobAlignment.score
+  if (jobAlignment.signal) signals.push(jobAlignment.signal)
+
+  const descriptionAlignment = scoreSemanticAlignment(author.description, candidateContext, {
+    positiveSignal: 'Existing biography context overlaps with the selected Wikidata description.',
+    negativeSignal: 'Existing biography context conflicts with the selected Wikidata description.',
+    exactBonus: 6,
+    overlapBonus: 12,
+    overlapStep: 4,
+    mismatchPenalty: 10,
+    weakPenalty: 4,
+  })
+  score += descriptionAlignment.score
+  if (descriptionAlignment.signal) signals.push(descriptionAlignment.signal)
+
+  return {
+    result,
+    entity,
+    score,
+    signals: uniqueStrings(signals),
+  }
+}
+
+function scoreReferenceSearchResult(
+  reference: ReferenceRecordInput,
+  result: WikidataSearchEntity,
+  entity: WikidataEntityDocument | null,
+  labels: Record<string, string>,
+): ScoredWikidataCandidate {
   const normalizedReferenceName = normalizeComparableString(reference.name)
   const normalizedLabel = normalizeComparableString(result.label)
   const normalizedMatchText = normalizeComparableString(result.match?.text)
+  const aliasHaystack = normalizeComparableString(result.aliases?.join(' '))
+  const signals: string[] = []
 
   let score = 0
   if (normalizedReferenceName && normalizedReferenceName === normalizedLabel) score += 68
   else if (normalizedReferenceName && normalizedLabel.includes(normalizedReferenceName)) score += 52
+  else if (normalizedReferenceName && aliasHaystack.includes(normalizedReferenceName)) score += 38
 
   if (normalizedReferenceName && normalizedMatchText === normalizedReferenceName) score += 12
+  if (normalizedReferenceName && aliasHaystack === normalizedReferenceName) score += 8
 
+  const searchHaystack = `${normalizeComparableString(result.description)} ${aliasHaystack}`
   const typeKeywords = getReferenceTypeKeywords(reference.primaryType)
-  const haystack = `${normalizeComparableString(result.description)} ${normalizeComparableString(result.aliases?.join(' '))}`
-  if (typeKeywords.some(keyword => haystack.includes(keyword))) score += 12
-  if (reference.releaseDate && haystack.includes(reference.releaseDate.slice(0, 4))) score += 8
+  if (typeKeywords.some(keyword => searchHaystack.includes(keyword))) score += 12
 
-  return score
+  if (!entity) {
+    signals.push('Wikidata details for this reference candidate could not be loaded; confidence is reduced.')
+    return { result, entity, score, signals }
+  }
+
+  const instanceOfIds = extractEntityIds(entity.claims?.P31)
+  const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean)
+  if (matchesExpectedReferenceType(reference.primaryType, instanceLabels, getDescription(entity))) score += 18
+  else if (reference.primaryType !== 'other') {
+    score -= 24
+    signals.push('The selected candidate does not align cleanly with the expected reference type.')
+  }
+
+  const releaseDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P577))
+  if (reference.releaseDate) {
+    const delta = scoreYearAlignment(reference.releaseDate, releaseDate, 'release date', 16, 12)
+    score += delta.score
+    if (delta.signal) signals.push(delta.signal)
+  }
+
+  const candidateContext = [
+    result.description,
+    getDescription(entity),
+    instanceLabels.join(' '),
+    result.aliases?.join(' '),
+  ].filter(Boolean).join(' ')
+  const descriptionAlignment = scoreSemanticAlignment(reference.description, candidateContext, {
+    positiveSignal: 'Existing reference summary overlaps with the selected Wikidata description.',
+    negativeSignal: 'Existing reference summary conflicts with the selected Wikidata description.',
+    exactBonus: 4,
+    overlapBonus: 10,
+    overlapStep: 4,
+    mismatchPenalty: 8,
+    weakPenalty: 4,
+  })
+  score += descriptionAlignment.score
+  if (descriptionAlignment.signal) signals.push(descriptionAlignment.signal)
+
+  return {
+    result,
+    entity,
+    score,
+    signals: uniqueStrings(signals),
+  }
 }
 
 function matchesExpectedReferenceType(
@@ -628,9 +894,11 @@ function parseReferenceUrls(raw: string | null | undefined): QuoteReferenceUrls 
     const parsed = JSON.parse(raw)
     if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') return {}
 
-    return Object.fromEntries(
-      Object.entries(parsed).filter(([, value]) => typeof value === 'string' && value.length > 0)
+    const filteredEntries = Object.entries(parsed).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].length > 0
     )
+
+    return Object.fromEntries(filteredEntries) as QuoteReferenceUrls
   } catch {
     return {}
   }
@@ -672,7 +940,7 @@ async function searchWikidata(name: string) {
   url.searchParams.set('action', 'wbsearchentities')
   url.searchParams.set('format', 'json')
   url.searchParams.set('language', 'en')
-  url.searchParams.set('limit', '5')
+  url.searchParams.set('limit', '8')
   url.searchParams.set('type', 'item')
   url.searchParams.set('search', name)
 
@@ -719,23 +987,183 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-function scoreSearchResult(author: AuthorRecordInput, result: WikidataSearchEntity) {
-  const normalizedAuthorName = normalizeComparableString(author.name)
-  const normalizedLabel = normalizeComparableString(result.label)
-  const normalizedMatchText = normalizeComparableString(result.match?.text)
+function scoreYearAlignment(
+  currentValue: string,
+  candidateValue: string | null,
+  label: string,
+  exactBonus = 18,
+  mismatchPenalty = 14,
+) {
+  const currentYear = currentValue.slice(0, 4)
+  const candidateYear = candidateValue?.slice(0, 4)
 
-  let score = 0
-  if (normalizedAuthorName && normalizedAuthorName === normalizedLabel) score += 70
-  else if (normalizedAuthorName && normalizedLabel.includes(normalizedAuthorName)) score += 55
+  if (!currentYear || !candidateYear) return { score: 0, signal: null as string | null }
+  if (currentYear === candidateYear) return { score: exactBonus, signal: `Existing ${label} matches the Wikidata year.` }
 
-  if (normalizedAuthorName && normalizedMatchText === normalizedAuthorName) score += 15
-  if (result.description && /(writer|author|poet|philosopher|novelist|journalist|playwright|screenwriter|essayist|composer|actor|human)/i.test(result.description)) {
-    score += 10
+  return {
+    score: -mismatchPenalty,
+    signal: `Existing ${label} conflicts with the Wikidata year.`
   }
-  if (author.birthDate && result.description?.includes(author.birthDate.slice(0, 4))) score += 10
-  if (author.deathDate && result.description?.includes(author.deathDate.slice(0, 4))) score += 10
+}
 
-  return score
+function scoreSemanticAlignment(
+  currentText: string | null | undefined,
+  candidateText: string | null | undefined,
+  options: {
+    positiveSignal: string
+    negativeSignal: string
+    exactBonus: number
+    overlapBonus: number
+    overlapStep: number
+    mismatchPenalty: number
+    weakPenalty: number
+  },
+) {
+  const currentNormalized = normalizeComparableString(currentText)
+  const candidateNormalized = normalizeComparableString(candidateText)
+  if (!currentNormalized || !candidateNormalized) return { score: 0, signal: null as string | null }
+
+  if (candidateNormalized.includes(currentNormalized) || currentNormalized.includes(candidateNormalized)) {
+    return { score: options.exactBonus, signal: options.positiveSignal }
+  }
+
+  const currentTokens = tokenizeComparableText(currentText)
+  const candidateTokens = tokenizeComparableText(candidateText)
+  if (currentTokens.length === 0 || candidateTokens.length === 0) return { score: 0, signal: null as string | null }
+
+  const overlapCount = countTokenOverlap(currentTokens, candidateTokens)
+  if (overlapCount > 0) {
+    return {
+      score: Math.min(options.overlapBonus, overlapCount * options.overlapStep),
+      signal: options.positiveSignal,
+    }
+  }
+
+  const currentGroups = detectSemanticGroups(currentText)
+  const candidateGroups = detectSemanticGroups(candidateText)
+  if (currentGroups.length > 0 && candidateGroups.length > 0 && !currentGroups.some(group => candidateGroups.includes(group))) {
+    return {
+      score: -options.mismatchPenalty,
+      signal: options.negativeSignal,
+    }
+  }
+
+  return {
+    score: currentTokens.length >= 2 ? -options.weakPenalty : 0,
+    signal: currentTokens.length >= 2 ? options.negativeSignal : null,
+  }
+}
+
+function resolveMatchConfidence(
+  score: number,
+  competingScore: number | null,
+  signals: string[],
+  ambiguousMatchGap = 5,
+): NonNullable<EnrichmentMatchSummary['confidence']> {
+  const gap = computeScoreGap(score, competingScore)
+  const hasConflict = signals.some(signal => /does not align|conflicts/i.test(signal))
+
+  if (hasConflict || score < 66 || (gap !== null && gap < ambiguousMatchGap)) return 'ambiguous'
+  if (score >= 82 && gap >= MATCH_GAP_FOR_HIGH_CONFIDENCE) return 'high'
+  if (score >= 72 && gap >= MATCH_GAP_FOR_MEDIUM_CONFIDENCE) return 'medium'
+  return 'low'
+}
+
+function buildAlternativeMatches(scoredResults: ScoredWikidataCandidate[], selectedExternalId?: string) {
+  return scoredResults
+    .filter(candidate => candidate.result.id !== selectedExternalId)
+    .slice(0, 3)
+    .map(candidate => toAlternativeMatch(candidate))
+}
+
+function resolvePreferredCandidate(scoredResults: ScoredWikidataCandidate[], preferredExternalId?: string | null) {
+  if (!preferredExternalId) return null
+  return scoredResults.find(candidate => candidate.result.id === preferredExternalId) || null
+}
+
+function toAlternativeMatch(candidate: ScoredWikidataCandidate): EnrichmentAlternativeMatch {
+  const label = getLabel(candidate.entity) || candidate.result.label || candidate.result.id
+  const description = getDescription(candidate.entity) || candidate.result.description || null
+  const wikipediaUrl = candidate.entity ? buildWikipediaUrl(candidate.entity) : null
+
+  return {
+    source: 'wikidata',
+    external_id: candidate.result.id,
+    label,
+    description,
+    wikipedia_url: wikipediaUrl,
+    wikidata_url: `https://www.wikidata.org/wiki/${candidate.result.id}`,
+    score: Math.min(100, candidate.score),
+    signals: candidate.signals,
+  }
+}
+
+async function resolveMatchingThresholds(): Promise<MatchingThresholds> {
+  const config = await resolveEnrichmentConfig()
+
+  return {
+    authorMatchMinScore: config.values.authorMatchMinScore,
+    referenceMatchMinScore: config.values.referenceMatchMinScore,
+    ambiguousMatchGap: config.values.ambiguousMatchGap,
+  }
+}
+
+function computeScoreGap(score: number, competingScore: number | null) {
+  if (typeof competingScore !== 'number') return null
+  return Math.max(0, score - competingScore)
+}
+
+function adjustProposalConfidence(
+  match: EnrichmentMatchSummary,
+  field: EnrichmentFieldProposal['field'],
+  baseConfidence: number,
+) {
+  const riskPenalty = isRiskyProposalField(field) ? 8 : 0
+
+  if (match.confidence === 'high') return clampConfidence(baseConfidence)
+  if (match.confidence === 'medium') return clampConfidence(baseConfidence - 4 - riskPenalty)
+  if (match.confidence === 'low') return clampConfidence(baseConfidence - 10 - riskPenalty)
+  if (match.confidence === 'ambiguous') return clampConfidence(baseConfidence - 18 - riskPenalty)
+  return clampConfidence(baseConfidence)
+}
+
+function isRiskyProposalField(field: EnrichmentFieldProposal['field']) {
+  return ['job', 'description', 'image_url', 'socials', 'urls'].includes(field)
+}
+
+function clampConfidence(value: number) {
+  return Math.max(0, Math.min(99, Math.round(value)))
+}
+
+function withMatchRationale(baseRationale: string, match: EnrichmentMatchSummary) {
+  if (match.confidence === 'high') return baseRationale
+  if (match.confidence === 'medium') return `${baseRationale} Match confidence is moderate, so the field confidence was reduced slightly.`
+  if (match.confidence === 'low') return `${baseRationale} Match confidence is limited, so this proposal should be reviewed manually.`
+  if (match.confidence === 'ambiguous') return `${baseRationale} Match confidence is ambiguous because another Wikidata candidate remains plausible.`
+  return baseRationale
+}
+
+function tokenizeComparableText(value: string | null | undefined) {
+  return normalizeNullableString(value)
+    ?.toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .map(token => token.trim())
+    .filter(token => token.length > 2 && !COMPARABLE_STOP_WORDS.has(token)) || []
+}
+
+function countTokenOverlap(left: string[], right: string[]) {
+  const rightSet = new Set(right)
+  return left.filter(token => rightSet.has(token)).length
+}
+
+function detectSemanticGroups(value: string | null | undefined) {
+  const normalized = normalizeComparableString(value)
+  if (!normalized) return [] as string[]
+
+  return Object.entries(SEMANTIC_KEYWORD_GROUPS)
+    .filter(([, keywords]) => keywords.some(keyword => normalized.includes(keyword)))
+    .map(([group]) => group)
 }
 
 function parseWikidataDate(value: string | null) {

@@ -1,5 +1,5 @@
-import { resolveEnrichmentConfig } from '~/server/utils/enrichment/config'
-import throwServer from '~/server/utils/throw-server'
+import { resolveEnrichmentConfig } from '../../../utils/enrichment/config'
+import throwServer from '../../../utils/throw-server'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
