@@ -65,7 +65,29 @@ export default defineEventHandler(async (event) => {
     const references = await db.all(sql.raw(`
       SELECT 
         r.*,
-        COUNT(q.id) as quotes_count
+        COUNT(q.id) as quotes_count,
+        (
+          SELECT COUNT(*)
+          FROM entity_enrichment_field_proposals proposal
+          INNER JOIN entity_enrichment_jobs job ON job.id = proposal.job_id
+          WHERE proposal.entity_type = 'reference'
+            AND proposal.entity_id = r.id
+            AND proposal.decision_status = 'pending'
+            AND job.status = 'completed'
+            AND job.applied_at IS NULL
+        ) as enrichment_pending_count,
+        (
+          SELECT job.id
+          FROM entity_enrichment_jobs job
+          INNER JOIN entity_enrichment_field_proposals proposal ON proposal.job_id = job.id
+          WHERE job.entity_type = 'reference'
+            AND job.entity_id = r.id
+            AND job.status = 'completed'
+            AND job.applied_at IS NULL
+            AND proposal.decision_status = 'pending'
+          ORDER BY job.created_at DESC, job.id DESC
+          LIMIT 1
+        ) as enrichment_latest_job_id
       FROM quote_references r
       LEFT JOIN quotes q ON r.id = q.reference_id
       ${whereClause}

@@ -178,8 +178,8 @@ export async function getVerificationQueueStats(limit = 20): Promise<Verificatio
 
 async function getByEntityTypeStats() {
   const now = new Date()
-  const authorState = alias(schema.entityVerificationState, 'author_state')
-  const referenceState = alias(schema.entityVerificationState, 'reference_state')
+  const authorState = alias(schema.entityVerificationState, 'author_state') as any
+  const referenceState = alias(schema.entityVerificationState, 'reference_state') as any
 
   const [authorQueued, authorProcessing, authorDue, referenceQueued, referenceProcessing, referenceDue] = await Promise.all([
     getEntityTypeJobCount('author', 'queued'),
@@ -209,7 +209,7 @@ async function getEntityTypeJobCount(entityType: EnrichmentEntityType, status: '
 
 async function getEntityTypeDueCount(
   entityType: EnrichmentEntityType,
-  stateAlias: typeof schema.entityVerificationState,
+  stateAlias: any,
   now: Date,
 ) {
   const dueConditions = buildDueCondition(entityType, stateAlias, now)
@@ -243,7 +243,7 @@ async function findDueCandidates(
   policy: EnrichmentPolicy,
 ): Promise<DueCandidate[]> {
   const now = new Date()
-  const stateAlias = alias(schema.entityVerificationState, `${entityType}_verification_state`)
+  const stateAlias = alias(schema.entityVerificationState, `${entityType}_verification_state`) as any
   const staleCutoff = new Date(now.getTime() - (policy.staleAfterDays[entityType] * 24 * 60 * 60 * 1000))
   const dueConditions = buildDueCondition(entityType, stateAlias, now)
 
@@ -254,7 +254,7 @@ async function findDueCandidates(
     asc(stateAlias.nextCheckAt),
   ]
 
-  const rows = entityType === 'author'
+  const rows: Array<{ entityId: number, lastVerifiedAt: Date | null }> = entityType === 'author'
     ? await db.select({
       entityId: schema.authors.id,
       lastVerifiedAt: stateAlias.lastVerifiedAt,
@@ -374,7 +374,7 @@ async function getActiveEntityJobIds(entityType: EnrichmentEntityType, ids?: num
 
 function buildDueCondition(
   entityType: EnrichmentEntityType,
-  stateAlias: typeof schema.entityVerificationState,
+  stateAlias: any,
   now: Date,
 ) {
   return or(

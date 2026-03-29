@@ -79,6 +79,12 @@ export interface QuoteReference {
   
   /** Timestamp when record was last updated */
   updated_at: string;
+
+  /** (Calculated) Number of pending enrichment suggestions for this reference */
+  enrichment_pending_count?: number;
+
+  /** (Calculated) Latest enrichment job id with pending suggestions */
+  enrichment_latest_job_id?: number | null;
 }
 
 /**

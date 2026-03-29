@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { db, schema } from 'hub:db'
 import { eq, or } from 'drizzle-orm'
+import { toISOStringOrNull } from '../../utils/date-normalization'
+import { validLanguages } from '../../utils/validation/reference'
 
 const bodySchema = z.object({
   name: z.string().min(2).max(50),
@@ -55,14 +57,16 @@ export default defineEventHandler(async (event) => {
       name: result.name,
       email: result.email,
       role: result.role,
-      created_at: result.createdAt,
+      created_at: toISOStringOrNull(result.createdAt),
       avatar_url: result.avatarUrl,
       biography: result.biography,
       job: result.job,
-      language: result.language,
+      language: (result.language && validLanguages.includes(result.language as any))
+        ? (result.language as typeof validLanguages[number])
+        : 'en',
       location: result.location,
       socials: result.socials,
-      updated_at: result.updatedAt
+      updated_at: toISOStringOrNull(result.updatedAt)
     }
 
     await setUserSession(event, { user })

@@ -1,5 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { toISOStringOrNull } from '../../utils/date-normalization'
+import { validLanguages } from '../../utils/validation/reference'
 
 export default defineOAuthGoogleEventHandler({
   config: {
@@ -7,6 +9,8 @@ export default defineOAuthGoogleEventHandler({
   },
   async onSuccess(event, { user, tokens }) {
     try {
+      const oauthPasswordHash = await hashPassword(`oauth:google:${user.sub}`)
+
       // Check if user already exists
       let existingUser = await db
         .select()
@@ -36,6 +40,7 @@ export default defineOAuthGoogleEventHandler({
           .values({
             email: user.email,
             name: user.name,
+            password: oauthPasswordHash,
             avatarUrl: user.picture,
             role: 'user',
             isActive: true,
@@ -45,6 +50,10 @@ export default defineOAuthGoogleEventHandler({
           .returning()
           .get()
       }
+
+      const language = (existingUser.language && validLanguages.includes(existingUser.language as any))
+        ? (existingUser.language as typeof validLanguages[number])
+        : 'en'
       
       // Set user session
       const sessionUser = {
@@ -55,9 +64,9 @@ export default defineOAuthGoogleEventHandler({
         role: existingUser.role,
         is_active: existingUser.isActive,
         email_verified: existingUser.emailVerified,
-        language: existingUser.language,
-        created_at: existingUser.createdAt,
-        updated_at: existingUser.updatedAt
+        language,
+        created_at: toISOStringOrNull(existingUser.createdAt),
+        updated_at: toISOStringOrNull(existingUser.updatedAt)
       }
 
       await setUserSession(event, {
