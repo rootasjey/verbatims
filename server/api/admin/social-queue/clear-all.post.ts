@@ -25,6 +25,15 @@ export default defineEventHandler(async (event) => {
     .from(schema.socialQueue)
     .where(eq(schema.socialQueue.platform, platform as any))
 
+  const sourceBreakdown = await db
+    .select({
+      sourceType: schema.socialQueue.sourceType,
+      total: sql<number>`COUNT(*)`
+    })
+    .from(schema.socialQueue)
+    .where(eq(schema.socialQueue.platform, platform as any))
+    .groupBy(schema.socialQueue.sourceType)
+
   const total = Number(countResult[0]?.total || 0)
 
   if (total > 0) {
@@ -35,6 +44,14 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    deletedCount: total
+    data: {
+      deleted: true,
+      platform,
+      deletedCount: total,
+      sourceTypes: sourceBreakdown.map(entry => ({
+        sourceType: entry.sourceType,
+        count: Number(entry.total || 0)
+      }))
+    }
   }
 })

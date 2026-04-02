@@ -200,51 +200,51 @@ export async function updateSocialProviderConfigStore(input: {
 
   if (input.platform === 'x') {
     base.x = {
-      enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.x?.enabled,
-      oauth2AccessToken: normalizeOptionalString(input.values.oauth2AccessToken),
-      oauth1ConsumerKey: normalizeOptionalString(input.values.oauth1ConsumerKey),
-      oauth1ConsumerSecret: normalizeOptionalString(input.values.oauth1ConsumerSecret),
-      oauth1AccessToken: normalizeOptionalString(input.values.oauth1AccessToken),
-      oauth1AccessTokenSecret: normalizeOptionalString(input.values.oauth1AccessTokenSecret),
-      requireMedia: typeof input.values.requireMedia === 'boolean' ? input.values.requireMedia : base.x?.requireMedia
+      enabled: resolveOptionalBooleanUpdate(input.values, 'enabled', base.x?.enabled),
+      oauth2AccessToken: resolveOptionalStringUpdate(input.values, 'oauth2AccessToken', base.x?.oauth2AccessToken),
+      oauth1ConsumerKey: resolveOptionalStringUpdate(input.values, 'oauth1ConsumerKey', base.x?.oauth1ConsumerKey),
+      oauth1ConsumerSecret: resolveOptionalStringUpdate(input.values, 'oauth1ConsumerSecret', base.x?.oauth1ConsumerSecret),
+      oauth1AccessToken: resolveOptionalStringUpdate(input.values, 'oauth1AccessToken', base.x?.oauth1AccessToken),
+      oauth1AccessTokenSecret: resolveOptionalStringUpdate(input.values, 'oauth1AccessTokenSecret', base.x?.oauth1AccessTokenSecret),
+      requireMedia: resolveOptionalBooleanUpdate(input.values, 'requireMedia', base.x?.requireMedia)
     }
   }
 
   if (input.platform === 'bluesky') {
     base.bluesky = {
-      enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.bluesky?.enabled,
-      service: normalizeOptionalString(input.values.service),
-      identifier: normalizeOptionalString(input.values.identifier),
-      password: normalizeOptionalString(input.values.password),
-      hashtags: normalizeOptionalString(input.values.hashtags)
+      enabled: resolveOptionalBooleanUpdate(input.values, 'enabled', base.bluesky?.enabled),
+      service: resolveOptionalStringUpdate(input.values, 'service', base.bluesky?.service),
+      identifier: resolveOptionalStringUpdate(input.values, 'identifier', base.bluesky?.identifier),
+      password: resolveOptionalStringUpdate(input.values, 'password', base.bluesky?.password),
+      hashtags: resolveOptionalStringUpdate(input.values, 'hashtags', base.bluesky?.hashtags)
     }
   }
 
   if (input.platform === 'pinterest') {
     base.pinterest = {
-      enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.pinterest?.enabled,
-      accessToken: normalizeOptionalString(input.values.accessToken),
-      boardId: normalizeOptionalString(input.values.boardId),
-      baseUrl: normalizeOptionalString(input.values.baseUrl),
-      apiVersion: normalizeOptionalString(input.values.apiVersion)
+      enabled: resolveOptionalBooleanUpdate(input.values, 'enabled', base.pinterest?.enabled),
+      accessToken: resolveOptionalStringUpdate(input.values, 'accessToken', base.pinterest?.accessToken),
+      boardId: resolveOptionalStringUpdate(input.values, 'boardId', base.pinterest?.boardId),
+      baseUrl: resolveOptionalStringUpdate(input.values, 'baseUrl', base.pinterest?.baseUrl),
+      apiVersion: resolveOptionalStringUpdate(input.values, 'apiVersion', base.pinterest?.apiVersion)
     }
   }
 
   if (input.platform === 'instagram') {
     base.instagram = {
-      enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.instagram?.enabled
+      enabled: resolveOptionalBooleanUpdate(input.values, 'enabled', base.instagram?.enabled)
     }
   }
 
   if (input.platform === 'threads') {
     base.threads = {
-      enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.threads?.enabled
+      enabled: resolveOptionalBooleanUpdate(input.values, 'enabled', base.threads?.enabled)
     }
   }
 
   if (input.platform === 'facebook') {
     base.facebook = {
-      enabled: typeof input.values.enabled === 'boolean' ? input.values.enabled : base.facebook?.enabled
+      enabled: resolveOptionalBooleanUpdate(input.values, 'enabled', base.facebook?.enabled)
     }
   }
 
@@ -306,6 +306,26 @@ function normalizeOptionalString(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
   return trimmed || undefined
+}
+
+function hasOwnField(input: Record<string, any>, field: string): boolean {
+  return Object.prototype.hasOwnProperty.call(input, field)
+}
+
+function resolveOptionalStringUpdate(input: Record<string, any>, field: string, current: string | undefined): string | undefined {
+  if (!hasOwnField(input, field)) {
+    return current
+  }
+
+  return normalizeOptionalString(input[field])
+}
+
+function resolveOptionalBooleanUpdate(input: Record<string, any>, field: string, current: boolean | undefined): boolean | undefined {
+  if (!hasOwnField(input, field)) {
+    return current
+  }
+
+  return typeof input[field] === 'boolean' ? input[field] : current
 }
 
 function getRuntimeConfigSafe() {

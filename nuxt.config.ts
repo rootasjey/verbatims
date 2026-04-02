@@ -7,6 +7,7 @@ import { resolve, dirname } from 'node:path'
 
 const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc'
 const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
+const projectRoot = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
@@ -86,8 +87,8 @@ export default defineNuxtConfig({
     },
     ignore: ['scripts/**'],
     alias: {
-      '~/server': resolve(dirname(fileURLToPath(import.meta.url)), 'server'),
-      '~/shared': resolve(dirname(fileURLToPath(import.meta.url)), 'shared')
+      '~/server': resolve(projectRoot, 'server'),
+      '~/shared': resolve(projectRoot, 'shared')
     }
   },
 
@@ -225,8 +226,6 @@ export default defineNuxtConfig({
   // NOTE: removed the explicit `NIcon` alias because Una UI will supply `NIcon`
   // after switching the prefix to `N`. If you need a local app-specific icon
   // component, create a different name (e.g. `AppIcon`) to avoid collision.
-  alias: {
-  },
 })
 
 function computeVersion(): string {

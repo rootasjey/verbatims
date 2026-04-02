@@ -9,7 +9,9 @@ export interface SelectOption {
 export interface SocialQueueItem {
   id: number
   quote_id: number
-  quote_text: string
+  source_type: string
+  source_id: number
+  quote_text: string | null
   author_name: string | null
   reference_name: string | null
   status: SocialQueueStatus
@@ -19,6 +21,16 @@ export interface SocialQueueItem {
   published_posted_at: string | null
   quote_posts_count: number
   last_posted_at: string | null
+  resolved_content?: {
+    source_type: string
+    source_id: number
+    primary_text: string | null
+    secondary_text: string | null
+    canonical_path: string | null
+    title: string | null
+    subtitle: string | null
+    language: string | null
+  }
 }
 
 interface SocialQueueResponse {
@@ -56,6 +68,19 @@ interface RunNowResult {
 interface RunNowResponse {
   success: boolean
   data?: RunNowResult
+}
+
+interface ClearQueueResponse {
+  success: boolean
+  data?: {
+    deleted: boolean
+    platform: SocialPlatform
+    deletedCount: number
+    sourceTypes: Array<{
+      sourceType: string
+      count: number
+    }>
+  }
 }
 
 interface UseAdminSocialQueueOptions {
@@ -289,13 +314,14 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   async function clearAllQueue() {
     clearingAll.value = true
     try {
-      await $fetch('/api/admin/social-queue/clear-all', {
+      const response = await $fetch<ClearQueueResponse>('/api/admin/social-queue/clear-all', {
         method: 'POST',
         body: { platform: selectedPlatform.value, confirm: true }
       })
+      const deletedCount = Number(response?.data?.deletedCount || 0)
       useToast().toast({
         title: 'Cleared',
-        description: 'All queue items removed',
+        description: deletedCount === 1 ? '1 queue item removed' : `${deletedCount} queue items removed`,
         toast: 'outline-success'
       })
       await loadQueue()
@@ -310,13 +336,14 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   async function clearFinishedQueue() {
     clearingFinished.value = true
     try {
-      await $fetch('/api/admin/social-queue/clear-finished', {
+      const response = await $fetch<ClearQueueResponse>('/api/admin/social-queue/clear-finished', {
         method: 'POST',
         body: { platform: selectedPlatform.value, confirm: true }
       })
+      const deletedCount = Number(response?.data?.deletedCount || 0)
       useToast().toast({
         title: 'Cleared',
-        description: 'Finished queue items removed',
+        description: deletedCount === 1 ? '1 finished queue item removed' : `${deletedCount} finished queue items removed`,
         toast: 'outline-success'
       })
       await loadQueue()

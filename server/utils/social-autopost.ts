@@ -2,6 +2,17 @@ import { db, schema } from 'hub:db'
 import { and, asc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm'
 import type { SocialPlatform } from '#shared/constants/social'
 import { isUnimplementedSocialPlatform } from '#shared/constants/social'
+import {
+  buildSocialPostText,
+  runSocialAutopostQueue,
+  type SocialAutopostBatchResult,
+  type SocialAutopostExecutionResult,
+  type SocialAutopostQueueLoader,
+  type SocialAutopostQueueProcessor,
+  getAutopostMaxDurationMs,
+  normalizeHashtagString,
+  type SocialAutopostRunOptions,
+} from '@verbatims/social-autopost-core'
 import { buildXAuthHeaders, getXAuthConfig, getXCredentialErrorMessage, withXUserContextHint, type XAuthConfig } from './social-x-auth'
 import { resolveFacebookPostConfig, resolveInstagramPostConfig, resolveThreadsPostConfig } from './social-meta-config'
 import {
@@ -12,6 +23,7 @@ import {
   resolveThreadsEnabledConfig,
   resolveXProviderConfig
 } from './social-provider-config'
+import { getVerbatimsFallbackCanonicalUrl, verbatimsSocialPublishableSourceResolver } from './social-autopost-verbatims'
 
 interface PublishResult {
   ok: boolean
@@ -20,22 +32,12 @@ interface PublishResult {
   error?: string
 }
 
-interface BuildPostTextInput {
-  quoteText: string
-  authorName?: string
-  referenceName?: string
-  quoteUrl: string
-  blueskyHashtags?: string
-}
-
 interface QueueCandidate {
   queueId: number
   platform: SocialPlatform
+  sourceType: string
+  sourceId: number
   quoteId: number
-  quoteText: string | null
-  quoteStatus: string | null
-  authorName: string | null
-  referenceName: string | null
 }
 
 interface SocialAutopostSuccessResult {
@@ -55,25 +57,9 @@ interface SocialAutopostFailureResult {
   reason: string
 }
 
-interface SocialAutopostSkippedResult {
-  skipped: true
-  reason: string
-  platform?: SocialPlatform
-}
-
-interface SocialAutopostBatchResult {
-  success: boolean
-  processedCount: number
-  successCount: number
-  failureCount: number
-  skippedCount: number
-  results: SocialAutopostPlatformResult[]
-}
-
-type SocialAutopostSingleResult = SocialAutopostSuccessResult | SocialAutopostFailureResult | SocialAutopostSkippedResult
-type SocialAutopostPlatformResult = SocialAutopostSuccessResult | SocialAutopostFailureResult | (SocialAutopostSkippedResult & { platform: SocialPlatform })
-
-const DEFAULT_AUTOPOST_MAX_DURATION_MS = 12 * 60 * 1000
+type SocialAutopostProcessedResult = SocialAutopostSuccessResult | SocialAutopostFailureResult
+type SocialAutopostPlatformResult = SocialAutopostExecutionResult<SocialPlatform, SocialAutopostProcessedResult>
+type SocialAutopostSingleResult = SocialAutopostPlatformResult
 
 type BlueskyFacet = {
   index: {
@@ -92,128 +78,41 @@ export async function runSocialAutopost() {
   return runSocialAutopostWithOptions({ force: false })
 }
 
-export async function runSocialAutopostWithOptions(options: { force?: boolean, platform?: SocialPlatform, baseSiteUrl?: string } = {}): Promise<SocialAutopostSingleResult | SocialAutopostBatchResult> {
+export async function runSocialAutopostWithOptions(options: SocialAutopostRunOptions = {}): Promise<SocialAutopostSingleResult | SocialAutopostBatchResult<SocialAutopostPlatformResult>> {
   const enabledPlatforms = await getEnabledPlatforms()
-  if (!enabledPlatforms.length) {
-    return { skipped: true, reason: 'all social posting providers disabled by config' }
-  }
-
-  const activePlatforms = options.platform
-    ? enabledPlatforms.includes(options.platform)
-      ? [options.platform]
-      : []
-    : enabledPlatforms
-
-  if (!activePlatforms.length) {
-    return { skipped: true, reason: `${options.platform} posting disabled by config` }
-  }
-
   const timezone = String(process.env.NUXT_SOCIAL_DAILY_TIMEZONE || 'Europe/Paris')
   const targetTime = String(process.env.NUXT_SOCIAL_DAILY_TIME || '08:08')
-
-  const now = new Date()
-  const localTime = getLocalTimeHHMM(now, timezone)
-  if (!options.force && localTime !== targetTime) {
-    return { skipped: true, reason: `current local time ${localTime} != ${targetTime}` }
-  }
-
   const baseSiteUrl = String(options.baseSiteUrl || process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc').replace(/\/$/, '')
-
-  if (options.platform) {
-    const nextItem = await getNextQueuedItem(options.platform, now)
-    if (!nextItem) {
-      return { skipped: true, reason: 'no queued item available' }
-    }
-
-    return processQueueCandidate(nextItem, baseSiteUrl)
-  }
-
-  const startedAt = Date.now()
-  const maxDurationMs = getAutopostMaxDurationMs()
-  const results: SocialAutopostPlatformResult[] = []
-
-  for (const platform of activePlatforms) {
-    if (Date.now() - startedAt >= maxDurationMs) {
-      results.push({
-        skipped: true,
-        platform,
-        reason: 'autopost time budget exceeded before processing this platform'
-      })
-      continue
-    }
-
-    const nextItem = await getNextQueuedItem(platform, now)
-    if (!nextItem) {
-      results.push({ skipped: true, platform, reason: 'no queued item available' })
-      continue
-    }
-
-    const result = await processQueueCandidate(nextItem, baseSiteUrl)
-    results.push(result)
-  }
-
-  const successCount = results.filter(result => 'success' in result && result.success).length
-  const failureCount = results.filter(result => 'success' in result && !result.success).length
-  const skippedCount = results.filter(result => 'skipped' in result && result.skipped).length
-  const processedCount = successCount + failureCount
-
-  if (!processedCount) {
-    return {
-      skipped: true,
-      reason: 'no queued item available',
-      processedCount,
-      successCount,
-      failureCount,
-      skippedCount,
-      results
-    }
-  }
-
-  return {
-    success: failureCount === 0,
-    processedCount,
-    successCount,
-    failureCount,
-    skippedCount,
-    results
-  }
+  const maxDurationMs = getAutopostMaxDurationMs(process.env.NUXT_SOCIAL_AUTOPOST_MAX_DURATION_MS)
+  return runSocialAutopostQueue({
+    enabledPlatforms,
+    options,
+    timezone,
+    targetTime,
+    baseSiteUrl,
+    maxDurationMs,
+    getNextQueuedItem,
+    processQueueCandidate
+  })
 }
 
-function getLocalTimeHHMM(now: Date, timezone: string): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: timezone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).formatToParts(now)
-
-  const hour = parts.find(part => part.type === 'hour')?.value || '00'
-  const minute = parts.find(part => part.type === 'minute')?.value || '00'
-
-  return `${hour}:${minute}`
-}
-
-async function getNextQueuedItem(platform: SocialPlatform, now: Date): Promise<QueueCandidate | undefined> {
+const getNextQueuedItem: SocialAutopostQueueLoader<SocialPlatform, QueueCandidate> = async (platform, now) => {
   return db.select({
     queueId: schema.socialQueue.id,
     platform: schema.socialQueue.platform,
-    quoteId: schema.socialQueue.quoteId,
-    quoteText: schema.quotes.name,
-    quoteStatus: schema.quotes.status,
-    authorName: schema.authors.name,
-    referenceName: schema.quoteReferences.name
+    sourceType: schema.socialQueue.sourceType,
+    sourceId: schema.socialQueue.sourceId,
+    quoteId: schema.socialQueue.quoteId
   })
   .from(schema.socialQueue)
-  .leftJoin(schema.quotes, eq(schema.socialQueue.quoteId, schema.quotes.id))
-  .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-  .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
   .where(and(...buildQueueConditions([platform], now)))
   .orderBy(asc(schema.socialQueue.position), asc(schema.socialQueue.id))
   .limit(1)
   .get()
 }
 
-async function processQueueCandidate(nextItem: QueueCandidate, baseSiteUrl: string): Promise<SocialAutopostPlatformResult> {
+const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueCandidate, SocialAutopostProcessedResult> = async (nextItem, context) => {
+  const baseSiteUrl = context.baseSiteUrl
   const claimed = await db.update(schema.socialQueue)
     .set({
       status: 'processing',
@@ -229,40 +128,50 @@ async function processQueueCandidate(nextItem: QueueCandidate, baseSiteUrl: stri
     return { skipped: true, platform: nextItem.platform, reason: 'queue item already claimed' }
   }
 
-  const quoteUrl = `${baseSiteUrl}/quotes/${nextItem.quoteId}`
-
-  const quoteText = nextItem.quoteText || ''
   const itemPlatform = nextItem.platform as SocialPlatform
-  if (!quoteText || nextItem.quoteStatus !== 'approved') {
-    await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, itemPlatform, 'Quote is missing or not approved', quoteUrl)
+  const resolvedContent = await verbatimsSocialPublishableSourceResolver.resolveSource({
+    sourceType: nextItem.sourceType,
+    sourceId: nextItem.sourceId,
+    baseSiteUrl,
+    platform: itemPlatform
+  })
+
+  if (!resolvedContent) {
+    const canonicalUrl = getVerbatimsFallbackCanonicalUrl({
+      sourceType: nextItem.sourceType,
+      sourceId: nextItem.sourceId,
+      quoteId: nextItem.quoteId,
+      baseSiteUrl
+    })
+    await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, nextItem.sourceType, nextItem.sourceId, itemPlatform, 'Quote is missing or not approved', canonicalUrl)
     return { success: false, queueId: nextItem.queueId, platform: itemPlatform, quoteId: nextItem.quoteId, reason: 'quote missing or not approved' }
   }
 
-  const imageUrl = getPlatformImageUrl(itemPlatform, {
-    baseSiteUrl,
-    quoteId: nextItem.quoteId
-  })
   const resolvedBluesky = itemPlatform === 'bluesky'
     ? await resolveBlueskyProviderConfig()
     : null
+  const blueskyHashtags = itemPlatform === 'bluesky'
+    ? buildBlueskyHashtags(resolvedContent.content.hashtags, resolvedBluesky?.hashtags)
+    : undefined
+  const instagramHashtags = itemPlatform === 'instagram'
+    ? buildInstagramHashtags(resolvedContent.content.hashtags)
+    : undefined
 
-  const content = buildPostText(itemPlatform, {
-    quoteText,
-    authorName: nextItem.authorName || undefined,
-    referenceName: nextItem.referenceName || undefined,
-    quoteUrl,
-    blueskyHashtags: resolvedBluesky?.hashtags
+  const content = buildSocialPostText(itemPlatform, resolvedContent.content, {
+    blueskyHashtags,
+    instagramHashtags
   })
+  const canonicalUrl = resolvedContent.content.canonicalUrl || `${baseSiteUrl}/quotes/${nextItem.quoteId}`
 
   const publishResult = await publishByPlatform(itemPlatform, {
     text: content,
-    quoteUrl,
-    imageUrl,
-    blueskyHashtags: resolvedBluesky?.hashtags
+    canonicalUrl,
+    imageUrl: resolvedContent.media.url,
+    blueskyHashtags
   })
 
   if (!publishResult.ok) {
-    await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, itemPlatform, publishResult.error || 'Unknown social API error', quoteUrl, content)
+    await markQueueAsFailed(nextItem.queueId, nextItem.quoteId, resolvedContent.content.sourceType, Number(resolvedContent.content.sourceId), itemPlatform, publishResult.error || 'Unknown social API error', canonicalUrl, content)
     return {
       success: false,
       queueId: nextItem.queueId,
@@ -274,11 +183,13 @@ async function processQueueCandidate(nextItem: QueueCandidate, baseSiteUrl: stri
 
   await db.insert(schema.socialPosts).values({
     quoteId: nextItem.quoteId,
+    sourceType: resolvedContent.content.sourceType,
+    sourceId: Number(resolvedContent.content.sourceId),
     queueId: nextItem.queueId,
     platform: itemPlatform as any,
     status: 'success',
     postText: content,
-    postUrl: publishResult.postUrl || quoteUrl,
+    postUrl: publishResult.postUrl || canonicalUrl,
     externalPostId: publishResult.postId,
     idempotencyKey: `${itemPlatform}:${nextItem.queueId}`,
     postedAt: new Date()
@@ -299,87 +210,6 @@ async function processQueueCandidate(nextItem: QueueCandidate, baseSiteUrl: stri
     postId: publishResult.postId,
     postUrl: publishResult.postUrl
   }
-}
-
-function getAutopostMaxDurationMs(): number {
-  const configuredValue = Number(process.env.NUXT_SOCIAL_AUTOPOST_MAX_DURATION_MS || '')
-  if (Number.isFinite(configuredValue) && configuredValue > 0) {
-    return configuredValue
-  }
-
-  return DEFAULT_AUTOPOST_MAX_DURATION_MS
-}
-
-function buildPostText(platform: SocialPlatform, input: BuildPostTextInput): string {
-  const attributionParts: string[] = []
-  if (input.authorName) attributionParts.push(input.authorName)
-  if (input.referenceName) attributionParts.push(input.referenceName)
-
-  const attribution = attributionParts.length ? `— ${attributionParts.join(' · ')}` : ''
-  if (platform === 'instagram') {
-    const hashtags = buildInstagramHashtags()
-    const maxLength = 2200
-    const base = [
-      `“${input.quoteText.trim()}”`,
-      attribution,
-      hashtags ? `\n${hashtags}` : ''
-    ].filter(Boolean).join('\n').trim()
-
-    if (base.length <= maxLength) return base
-
-    const reserved = [attribution, hashtags ? `\n${hashtags}` : '']
-      .filter(Boolean)
-      .join('\n').length
-    const maxQuoteLength = Math.max(60, maxLength - reserved - 4)
-    const truncatedQuote = `${input.quoteText.trim().slice(0, maxQuoteLength)}…`
-
-    return [
-      `“${truncatedQuote}”`,
-      attribution,
-      hashtags ? `\n${hashtags}` : ''
-    ].filter(Boolean).join('\n').trim()
-  }
-
-  if (platform === 'bluesky') {
-    const hashtags = buildBlueskyHashtags(input.blueskyHashtags)
-    const maxLength = 300
-    const suffix = [attribution, input.quoteUrl, hashtags]
-      .filter(Boolean)
-      .join('\n')
-      .trim()
-    const base = [
-      `“${input.quoteText.trim()}”`,
-      suffix
-    ].filter(Boolean).join('\n').trim()
-
-    if (base.length <= maxLength) return base
-
-    const reserved = suffix ? `\n${suffix}`.length : 0
-    const maxQuoteLength = Math.max(30, maxLength - reserved - 4)
-    const truncatedQuote = `${input.quoteText.trim().slice(0, maxQuoteLength)}…`
-
-    return [
-      `“${truncatedQuote}”`,
-      suffix
-    ].filter(Boolean).join('\n').trim()
-  }
-
-  const maxLength = platform === 'x'
-    ? 280
-    : platform === 'threads'
-      ? 500
-      : platform === 'facebook'
-        ? 5000
-        : 300
-  const base = `“${input.quoteText.trim()}”\n${attribution}\n${input.quoteUrl}`.trim()
-
-  if (base.length <= maxLength) return base
-
-  const reserved = `\n${attribution}\n${input.quoteUrl}`.length
-  const maxQuoteLength = Math.max(30, maxLength - reserved - 4)
-  const truncatedQuote = `${input.quoteText.trim().slice(0, maxQuoteLength)}…`
-
-  return `“${truncatedQuote}”\n${attribution}\n${input.quoteUrl}`.trim()
 }
 
 function buildQueueConditions(platforms: SocialPlatform[], now: Date) {
@@ -426,9 +256,9 @@ async function getEnabledPlatforms(): Promise<SocialPlatform[]> {
   return enabled
 }
 
-async function publishByPlatform(platform: SocialPlatform, payload: { text: string, quoteUrl: string, imageUrl: string, blueskyHashtags?: string }): Promise<PublishResult> {
+async function publishByPlatform(platform: SocialPlatform, payload: { text: string, canonicalUrl: string, imageUrl: string, blueskyHashtags?: string }): Promise<PublishResult> {
   if (platform === 'bluesky') {
-    return postToBluesky(payload.text, payload.quoteUrl, payload.imageUrl, payload.blueskyHashtags)
+    return postToBluesky(payload.text, payload.canonicalUrl, payload.imageUrl, payload.blueskyHashtags)
   }
 
   if (platform === 'instagram') {
@@ -444,7 +274,7 @@ async function publishByPlatform(platform: SocialPlatform, payload: { text: stri
   }
 
   if (platform === 'pinterest') {
-    return postToPinterest(payload.text, payload.quoteUrl, payload.imageUrl)
+    return postToPinterest(payload.text, payload.canonicalUrl, payload.imageUrl)
   }
 
   if (isUnimplementedSocialPlatform(platform)) {
@@ -558,27 +388,7 @@ async function uploadXMedia(input: { auth: XAuthConfig, imageUrl: string }): Pro
   return payload.media_id_string
 }
 
-function getPlatformImageUrl(platform: SocialPlatform, input: { baseSiteUrl: string, quoteId: number }): string {
-  if (platform === 'instagram' || platform === 'threads') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.jpg`
-  }
-
-  if (platform === 'x' || platform === 'bluesky') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.png`
-  }
-
-  if (platform === 'facebook') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.jpg`
-  }
-
-  if (platform === 'pinterest') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.jpg`
-  }
-
-  return `${input.baseSiteUrl}/api/og/quotes/${input.quoteId}.png`
-}
-
-async function postToBluesky(text: string, quoteUrl: string, imageUrl: string, hashtagsSource?: string): Promise<PublishResult> {
+async function postToBluesky(text: string, canonicalUrl: string, imageUrl: string, hashtagsSource?: string): Promise<PublishResult> {
   const resolved = await resolveBlueskyProviderConfig()
   const service = resolved.service
   const identifier = resolved.identifier
@@ -637,7 +447,7 @@ async function postToBluesky(text: string, quoteUrl: string, imageUrl: string, h
       return { ok: false, error: message }
     }
 
-    const facets = buildBlueskyFacets(text, quoteUrl, hashtagsSource)
+    const facets = buildBlueskyFacets(text, canonicalUrl, hashtagsSource)
     const record = {
       $type: 'app.bsky.feed.post',
       text,
@@ -692,27 +502,27 @@ async function postToBluesky(text: string, quoteUrl: string, imageUrl: string, h
   }
 }
 
-function buildBlueskyFacets(text: string, quoteUrl: string, hashtagsSource?: string): BlueskyFacet[] | undefined {
+function buildBlueskyFacets(text: string, canonicalUrl: string, hashtagsSource?: string): BlueskyFacet[] | undefined {
   const facets: BlueskyFacet[] = []
-  const hashtags = buildBlueskyHashtags(hashtagsSource)
+  const hashtags = buildBlueskyHashtags([], hashtagsSource)
     .split(/\s+/)
     .map(part => part.trim())
     .filter(Boolean)
 
-  const linkStart = text.lastIndexOf(quoteUrl)
+  const linkStart = text.lastIndexOf(canonicalUrl)
   if (linkStart !== -1) {
     facets.push({
-      index: buildBlueskyFacetIndex(text, linkStart, linkStart + quoteUrl.length),
+      index: buildBlueskyFacetIndex(text, linkStart, linkStart + canonicalUrl.length),
       features: [
         {
           $type: 'app.bsky.richtext.facet#link',
-          uri: quoteUrl
+          uri: canonicalUrl
         }
       ]
     })
   }
 
-  let searchFrom = linkStart === -1 ? 0 : linkStart + quoteUrl.length
+  let searchFrom = linkStart === -1 ? 0 : linkStart + canonicalUrl.length
   for (const hashtag of hashtags) {
     const hashtagStart = text.indexOf(hashtag, searchFrom)
     if (hashtagStart === -1) continue
@@ -1060,7 +870,7 @@ async function postToFacebook(message: string, imageUrl: string): Promise<Publis
   }
 }
 
-async function postToPinterest(description: string, quoteUrl: string, imageUrl: string): Promise<PublishResult> {
+async function postToPinterest(description: string, canonicalUrl: string, imageUrl: string): Promise<PublishResult> {
   const config = await resolvePinterestProviderConfig()
   const baseUrl = config.baseUrl
   const apiVersion = config.apiVersion
@@ -1082,7 +892,7 @@ async function postToPinterest(description: string, quoteUrl: string, imageUrl: 
         board_id: boardId,
         title: truncatePinterestTitle(description),
         description,
-        link: quoteUrl,
+        link: canonicalUrl,
         media_source: {
           source_type: 'image_url',
           url: imageUrl
@@ -1256,36 +1066,14 @@ async function getInstagramPermalink(input: {
   return payload.permalink
 }
 
-function buildInstagramHashtags(): string {
+function buildInstagramHashtags(contentHashtags: string[] = []): string {
   const source = String(process.env.NUXT_INSTAGRAM_POST_HASHTAGS || '#quotes #inspiration #verbatims').trim()
-  if (!source) return ''
-
-  const normalized = source
-    .split(/[\s,]+/)
-    .map(part => part.trim())
-    .filter(Boolean)
-    .map(part => part.startsWith('#') ? part : `#${part}`)
-    .map(part => `#${part.slice(1).replace(/[^\p{L}\p{N}_]/gu, '')}`)
-    .filter(part => part.length > 1)
-
-  const unique = [...new Set(normalized)].slice(0, 30)
-  return unique.join(' ')
+  return normalizeHashtagString(`${contentHashtags.join(' ')} ${source}`.trim(), 30)
 }
 
-function buildBlueskyHashtags(sourceValue?: string): string {
+function buildBlueskyHashtags(contentHashtags: string[] = [], sourceValue?: string): string {
   const source = String(sourceValue ?? process.env.NUXT_BLUESKY_POST_HASHTAGS ?? '').trim()
-  if (!source) return ''
-
-  const normalized = source
-    .split(/[\s,]+/)
-    .map(part => part.trim())
-    .filter(Boolean)
-    .map(part => part.startsWith('#') ? part : `#${part}`)
-    .map(part => `#${part.slice(1).replace(/[^\p{L}\p{N}_]/gu, '')}`)
-    .filter(part => part.length > 1)
-
-  const unique = [...new Set(normalized)].slice(0, 3)
-  return unique.join(' ')
+  return normalizeHashtagString(`${contentHashtags.join(' ')} ${source}`.trim(), 3)
 }
 
 function readGraphApiError(payload: any, fallback: string): string {
@@ -1394,18 +1182,22 @@ function toArrayBuffer(data: unknown): ArrayBuffer {
 async function markQueueAsFailed(
   queueId: number,
   quoteId: number,
+  sourceType: string,
+  sourceId: number,
   platform: SocialPlatform,
   errorMessage: string,
-  quoteUrl: string,
+  canonicalUrl: string,
   postText: string = ''
 ) {
   await db.insert(schema.socialPosts).values({
     quoteId,
+    sourceType,
+    sourceId,
     queueId,
     platform: platform as any,
     status: 'failed',
-    postText: postText || quoteUrl,
-    postUrl: quoteUrl,
+    postText: postText || canonicalUrl,
+    postUrl: canonicalUrl,
     errorMessage,
     idempotencyKey: `${platform}:${queueId}`,
     postedAt: new Date()

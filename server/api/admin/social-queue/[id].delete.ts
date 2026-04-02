@@ -15,6 +15,8 @@ export default defineEventHandler(async (event) => {
   const existing = await db
     .select({
       id: schema.socialQueue.id,
+      sourceType: schema.socialQueue.sourceType,
+      sourceId: schema.socialQueue.sourceId,
       platform: schema.socialQueue.platform,
       status: schema.socialQueue.status,
       position: schema.socialQueue.position
@@ -45,6 +47,11 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    data: { deleted: true }
+    data: {
+      deleted: true,
+      id: existing.id,
+      sourceType: existing.sourceType,
+      sourceId: existing.sourceId
+    }
   }
 })

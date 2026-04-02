@@ -199,6 +199,8 @@ export const quotes = sqliteTable('quotes', {
 export const socialQueue = sqliteTable('social_queue', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  sourceType: text('source_type').notNull().default('quote'),
+  sourceId: integer('source_id').notNull(),
   platform: text('platform', { enum: SOCIAL_PLATFORMS }).notNull().default('x'),
   status: text('status', { enum: SOCIAL_QUEUE_STATUSES }).notNull().default('queued'),
   position: integer('position').notNull().default(0),
@@ -209,12 +211,15 @@ export const socialQueue = sqliteTable('social_queue', {
 }, (table) => ({
   platformStatusPosIdx: index('idx_social_queue_platform_status_position').on(table.platform, table.status, table.position),
   statusScheduledIdx: index('idx_social_queue_status_scheduled').on(table.status, table.scheduledFor),
+  sourcePlatformStatusPosIdx: index('idx_social_queue_source_platform_status_position').on(table.sourceType, table.sourceId, table.platform, table.status, table.position),
   quoteIdx: index('idx_social_queue_quote').on(table.quoteId),
 }))
 
 export const socialPosts = sqliteTable('social_posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  sourceType: text('source_type').notNull().default('quote'),
+  sourceId: integer('source_id').notNull(),
   queueId: integer('queue_id').references(() => socialQueue.id, { onDelete: 'set null' }),
   platform: text('platform', { enum: SOCIAL_PLATFORMS }).notNull().default('x'),
   status: text('status', { enum: SOCIAL_POST_STATUSES }).notNull(),
@@ -227,6 +232,7 @@ export const socialPosts = sqliteTable('social_posts', {
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   quotePlatformIdx: index('idx_social_posts_quote_platform').on(table.quoteId, table.platform),
+  sourcePlatformIdx: index('idx_social_posts_source_platform').on(table.sourceType, table.sourceId, table.platform),
   postedAtIdx: index('idx_social_posts_posted_at').on(table.postedAt),
   queueIdx: index('idx_social_posts_queue').on(table.queueId),
 }))

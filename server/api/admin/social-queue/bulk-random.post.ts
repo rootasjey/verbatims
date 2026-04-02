@@ -48,6 +48,8 @@ export default defineEventHandler(async (event) => {
 
   const values = randomQuotes.map((quote, index) => ({
     quoteId: quote.id,
+    sourceType: 'quote',
+    sourceId: quote.id,
     platform: platform as any,
     status: 'queued' as const,
     position: basePosition + index + 1,
@@ -57,6 +59,8 @@ export default defineEventHandler(async (event) => {
   const inserted = await db.insert(schema.socialQueue).values(values).returning({
     id: schema.socialQueue.id,
     quoteId: schema.socialQueue.quoteId,
+    sourceType: schema.socialQueue.sourceType,
+    sourceId: schema.socialQueue.sourceId,
     position: schema.socialQueue.position
   })
 

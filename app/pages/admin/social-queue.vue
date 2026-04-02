@@ -92,10 +92,10 @@
 
           <template #quote-header>
             <div class="flex items-center gap-4">
-              <span>Quote</span>
+              <span>Content</span>
               <NInput
                 v-model="searchQuery"
-                placeholder="Search queue by quote, author, reference..."
+                placeholder="Search queue by content, author, reference..."
                 leading="i-ph-magnifying-glass"
                 :loading="loading"
                 :trailing="searchQuery ? 'i-ph-x' : undefined"
@@ -112,19 +112,22 @@
             <div class="max-w-md">
               <div class="flex items-start gap-2">
                 <p class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words flex-1">
-                  {{ cell.row.original.quote_text }}
+                  {{ getQueueItemPrimaryText(cell.row.original) }}
                 </p>
                 <NLink
-                  :to="`/quotes/${cell.row.original.quote_id}`"
+                  v-if="getQueueItemPath(cell.row.original)"
+                  :to="getQueueItemPath(cell.row.original)!"
                   class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                  title="Open quote page"
+                  :title="getQueueItemLinkLabel(cell.row.original)"
                 >
                   <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
                 </NLink>
               </div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ cell.row.original.author_name || 'Unknown author' }}
-                <span v-if="cell.row.original.reference_name"> · {{ cell.row.original.reference_name }}</span>
+              <p v-if="getQueueItemSecondaryText(cell.row.original)" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{ getQueueItemSecondaryText(cell.row.original) }}
+              </p>
+              <p v-else class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                {{ formatQueueSourceLabel(cell.row.original) }}
               </p>
             </div>
           </template>
@@ -694,6 +697,31 @@ function formatLastPosted(value: string | null) {
   return formatted === 'N/A' ? 'Never' : formatted
 }
 
+function getQueueItemPrimaryText(item: SocialQueueItem) {
+  return item.resolved_content?.primary_text || item.quote_text || 'No content available'
+}
+
+function getQueueItemSecondaryText(item: SocialQueueItem) {
+  if (item.resolved_content?.secondary_text) {
+    return item.resolved_content.secondary_text
+  }
+
+  const parts = [item.author_name || 'Unknown author', item.reference_name].filter(Boolean)
+  return parts.length ? parts.join(' · ') : ''
+}
+
+function getQueueItemPath(item: SocialQueueItem) {
+  return item.resolved_content?.canonical_path || (item.quote_id ? `/quotes/${item.quote_id}` : null)
+}
+
+function getQueueItemLinkLabel(item: SocialQueueItem) {
+  return item.source_type === 'quote' ? 'Open quote page' : 'Open source page'
+}
+
+function formatQueueSourceLabel(item: SocialQueueItem) {
+  return `${item.source_type} #${item.source_id}`
+}
+
 function hasPublishedPostUrl(item: SocialQueueItem) {
   return item.status === 'posted' && !!item.published_post_url
 }
@@ -886,11 +914,15 @@ const tableHeaderMenuItems = computed(() => {
 function rowActionItems(item: SocialQueueItem) {
   const disabled = item.status !== 'queued'
   const actions: DropdownMenuItem[] = []
-  actions.push({
-    label: 'Open quote page',
-    leading: 'i-ph-arrow-up-right-duotone',
-    onclick: () => navigateTo(`/quotes/${item.quote_id}`)
-  })
+  const itemPath = getQueueItemPath(item)
+
+  if (itemPath) {
+    actions.push({
+      label: getQueueItemLinkLabel(item),
+      leading: 'i-ph-arrow-up-right-duotone',
+      onclick: () => navigateTo(itemPath)
+    })
+  }
   if (hasPublishedPostUrl(item)) {
     actions.push({
       label: 'Open post',
@@ -899,7 +931,7 @@ function rowActionItems(item: SocialQueueItem) {
     })
     actions.push({})
   }
-  else {
+  else if (itemPath) {
     actions.push({})
   }
   actions.push({
