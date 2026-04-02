@@ -101,6 +101,8 @@ CREATE TABLE IF NOT EXISTS quotes (
 CREATE TABLE IF NOT EXISTS social_queue (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   quote_id INTEGER NOT NULL,
+  source_type TEXT NOT NULL DEFAULT 'quote',
+  source_id INTEGER NOT NULL,
   platform TEXT NOT NULL DEFAULT 'x' CHECK (platform IN ('x', 'bluesky', 'instagram', 'threads', 'facebook', 'pinterest')),
   status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'processing', 'posted', 'failed')),
   position INTEGER NOT NULL DEFAULT 0,
@@ -116,6 +118,8 @@ CREATE TABLE IF NOT EXISTS social_queue (
 CREATE TABLE IF NOT EXISTS social_posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   quote_id INTEGER NOT NULL,
+  source_type TEXT NOT NULL DEFAULT 'quote',
+  source_id INTEGER NOT NULL,
   queue_id INTEGER,
   platform TEXT NOT NULL DEFAULT 'x' CHECK (platform IN ('x', 'bluesky', 'instagram', 'threads', 'facebook', 'pinterest')),
   status TEXT NOT NULL CHECK (status IN ('success', 'failed')),
@@ -343,9 +347,11 @@ CREATE INDEX IF NOT EXISTS idx_import_logs_created ON import_logs(created_at DES
 CREATE INDEX IF NOT EXISTS idx_social_queue_platform_status_position ON social_queue(platform, status, position);
 CREATE INDEX IF NOT EXISTS idx_social_queue_status_scheduled ON social_queue(status, scheduled_for);
 CREATE INDEX IF NOT EXISTS idx_social_queue_quote ON social_queue(quote_id);
+CREATE INDEX IF NOT EXISTS idx_social_queue_source_platform_status_position ON social_queue(source_type, source_id, platform, status, position);
 
 -- Social posts indexes
 CREATE INDEX IF NOT EXISTS idx_social_posts_quote_platform ON social_posts(quote_id, platform);
+CREATE INDEX IF NOT EXISTS idx_social_posts_source_platform ON social_posts(source_type, source_id, platform);
 CREATE INDEX IF NOT EXISTS idx_social_posts_posted_at ON social_posts(posted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_social_posts_queue ON social_posts(queue_id);
 

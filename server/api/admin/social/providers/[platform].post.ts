@@ -14,6 +14,26 @@ function normalizeBoolean(value: unknown, fallback = false): boolean {
   return fallback
 }
 
+function hasOwnField(input: unknown, field: string): input is Record<string, unknown> {
+  return Boolean(input && typeof input === 'object' && Object.prototype.hasOwnProperty.call(input, field))
+}
+
+function assignOptionalString(target: Record<string, string | boolean>, input: unknown, field: string) {
+  if (!hasOwnField(input, field)) {
+    return
+  }
+
+  target[field] = normalizeOptionalString(input[field])
+}
+
+function assignOptionalBoolean(target: Record<string, string | boolean>, input: unknown, field: string, fallback = false) {
+  if (!hasOwnField(input, field)) {
+    return
+  }
+
+  target[field] = normalizeBoolean(input[field], fallback)
+}
+
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || session.user.role !== 'admin') {
@@ -29,17 +49,18 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   if (platform === 'x') {
+    const values: Record<string, string | boolean> = {}
+    assignOptionalBoolean(values, body, 'enabled', true)
+    assignOptionalString(values, body, 'oauth2AccessToken')
+    assignOptionalString(values, body, 'oauth1ConsumerKey')
+    assignOptionalString(values, body, 'oauth1ConsumerSecret')
+    assignOptionalString(values, body, 'oauth1AccessToken')
+    assignOptionalString(values, body, 'oauth1AccessTokenSecret')
+    assignOptionalBoolean(values, body, 'requireMedia', false)
+
     await updateSocialProviderConfigStore({
       platform,
-      values: {
-        enabled: normalizeBoolean(body?.enabled, true),
-        oauth2AccessToken: normalizeOptionalString(body?.oauth2AccessToken),
-        oauth1ConsumerKey: normalizeOptionalString(body?.oauth1ConsumerKey),
-        oauth1ConsumerSecret: normalizeOptionalString(body?.oauth1ConsumerSecret),
-        oauth1AccessToken: normalizeOptionalString(body?.oauth1AccessToken),
-        oauth1AccessTokenSecret: normalizeOptionalString(body?.oauth1AccessTokenSecret),
-        requireMedia: normalizeBoolean(body?.requireMedia, false)
-      }
+      values
     })
 
     const resolved = await resolveXProviderConfig()
@@ -62,15 +83,16 @@ export default defineEventHandler(async (event) => {
   }
 
   if (platform === 'bluesky') {
+    const values: Record<string, string | boolean> = {}
+    assignOptionalBoolean(values, body, 'enabled', false)
+    assignOptionalString(values, body, 'service')
+    assignOptionalString(values, body, 'identifier')
+    assignOptionalString(values, body, 'password')
+    assignOptionalString(values, body, 'hashtags')
+
     await updateSocialProviderConfigStore({
       platform,
-      values: {
-        enabled: normalizeBoolean(body?.enabled, false),
-        service: normalizeOptionalString(body?.service),
-        identifier: normalizeOptionalString(body?.identifier),
-        password: normalizeOptionalString(body?.password),
-        hashtags: normalizeOptionalString(body?.hashtags)
-      }
+      values
     })
 
     const resolved = await resolveBlueskyProviderConfig()
@@ -91,11 +113,12 @@ export default defineEventHandler(async (event) => {
   }
 
   if (platform === 'instagram') {
+    const values: Record<string, string | boolean> = {}
+    assignOptionalBoolean(values, body, 'enabled', false)
+
     await updateSocialProviderConfigStore({
       platform,
-      values: {
-        enabled: normalizeBoolean(body?.enabled, false)
-      }
+      values
     })
 
     const resolved = await resolveInstagramEnabledConfig()
@@ -112,11 +135,12 @@ export default defineEventHandler(async (event) => {
   }
 
   if (platform === 'threads') {
+    const values: Record<string, string | boolean> = {}
+    assignOptionalBoolean(values, body, 'enabled', false)
+
     await updateSocialProviderConfigStore({
       platform,
-      values: {
-        enabled: normalizeBoolean(body?.enabled, false)
-      }
+      values
     })
 
     const resolved = await resolveThreadsEnabledConfig()
@@ -133,11 +157,12 @@ export default defineEventHandler(async (event) => {
   }
 
   if (platform === 'facebook') {
+    const values: Record<string, string | boolean> = {}
+    assignOptionalBoolean(values, body, 'enabled', false)
+
     await updateSocialProviderConfigStore({
       platform,
-      values: {
-        enabled: normalizeBoolean(body?.enabled, false)
-      }
+      values
     })
 
     const resolved = await resolveFacebookEnabledConfig()
@@ -154,15 +179,16 @@ export default defineEventHandler(async (event) => {
   }
 
   const runtimeConfig = useRuntimeConfig(event)
+  const values: Record<string, string | boolean> = {}
+  assignOptionalBoolean(values, body, 'enabled', false)
+  assignOptionalString(values, body, 'accessToken')
+  assignOptionalString(values, body, 'boardId')
+  assignOptionalString(values, body, 'baseUrl')
+  assignOptionalString(values, body, 'apiVersion')
+
   await updateSocialProviderConfigStore({
     platform,
-    values: {
-      enabled: normalizeBoolean(body?.enabled, false),
-      accessToken: normalizeOptionalString(body?.accessToken),
-      boardId: normalizeOptionalString(body?.boardId),
-      baseUrl: normalizeOptionalString(body?.baseUrl),
-      apiVersion: normalizeOptionalString(body?.apiVersion)
-    }
+    values
   })
 
   const resolved = await resolvePinterestProviderConfig({ runtimeConfig })
