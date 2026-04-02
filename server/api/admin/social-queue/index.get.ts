@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, asc, count, desc, eq, like, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, like, or, sql } from 'drizzle-orm'
 import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constants/social'
 import { isSocialQueueStatus } from '#shared/constants/social'
 import type { SocialSourceDisplay } from '@verbatims/social-autopost-core'
@@ -26,6 +26,42 @@ interface SocialQueueRow {
   published_posted_at: string | null
   quote_posts_count: number
   last_posted_at: string | null
+}
+
+interface SocialQueueBaseRow {
+  id: number
+  quote_id: number
+  source_type: string
+  source_id: number
+  platform: string
+  status: string
+  position: number
+  scheduled_for: Date | null
+  created_at: Date | null
+  updated_at: Date | null
+}
+
+interface LatestQueuePostRow {
+  queue_id: number | null
+  post_url: string | null
+  external_post_id: string | null
+  posted_at: Date | null
+  id: number
+}
+
+interface SourcePostRow {
+  source_type: string
+  source_id: number
+  platform: string
+  posted_at: Date | null
+}
+
+function getSourcePlatformKey(input: { source_type: string, source_id: number, platform: string }) {
+  return `${input.source_type}:${input.source_id}:${input.platform}`
+}
+
+function toResponseTimestamp(value: Date | null): string | null {
+  return value ? value.toISOString() : null
 }
 
 function buildResolvedContent(display: SocialSourceDisplay | undefined, row: SocialQueueRow) {
@@ -111,47 +147,7 @@ export default defineEventHandler(async (event) => {
     position: schema.socialQueue.position,
     scheduled_for: schema.socialQueue.scheduledFor,
     created_at: schema.socialQueue.createdAt,
-    updated_at: schema.socialQueue.updatedAt,
-    published_post_url: sql<string | null>`(
-      SELECT sp.post_url
-      FROM social_posts sp
-      WHERE sp.queue_id = ${schema.socialQueue.id}
-        AND sp.status = 'success'
-      ORDER BY sp.posted_at DESC, sp.id DESC
-      LIMIT 1
-    )`.as('published_post_url'),
-    published_external_post_id: sql<string | null>`(
-      SELECT sp.external_post_id
-      FROM social_posts sp
-      WHERE sp.queue_id = ${schema.socialQueue.id}
-        AND sp.status = 'success'
-      ORDER BY sp.posted_at DESC, sp.id DESC
-      LIMIT 1
-    )`.as('published_external_post_id'),
-    published_posted_at: sql<string | null>`(
-      SELECT sp.posted_at
-      FROM social_posts sp
-      WHERE sp.queue_id = ${schema.socialQueue.id}
-        AND sp.status = 'success'
-      ORDER BY sp.posted_at DESC, sp.id DESC
-      LIMIT 1
-    )`.as('published_posted_at'),
-    quote_posts_count: sql<number>`COALESCE((
-      SELECT COUNT(*)
-      FROM social_posts sp
-      WHERE sp.source_type = ${schema.socialQueue.sourceType}
-        AND sp.source_id = ${schema.socialQueue.sourceId}
-        AND sp.platform = ${schema.socialQueue.platform}
-        AND sp.status = 'success'
-    ), 0)`.as('quote_posts_count'),
-    last_posted_at: sql<string | null>`(
-      SELECT MAX(sp.posted_at)
-      FROM social_posts sp
-      WHERE sp.source_type = ${schema.socialQueue.sourceType}
-        AND sp.source_id = ${schema.socialQueue.sourceId}
-        AND sp.platform = ${schema.socialQueue.platform}
-        AND sp.status = 'success'
-    )`.as('last_posted_at')
+    updated_at: schema.socialQueue.updatedAt
   })
   .from(schema.socialQueue)
   .where(whereCondition)
@@ -179,6 +175,72 @@ export default defineEventHandler(async (event) => {
 
   const total = Number(totalRow[0]?.total || 0)
   const totalPages = Math.ceil(total / limit)
+  const queueIds = rows.map(row => row.id)
+  const sourceTriples = Array.from(new Map(
+    rows.map(row => [getSourcePlatformKey(row), row])
+  ).values())
+
+  const latestPostsByQueue = new Map<number, LatestQueuePostRow>()
+  if (queueIds.length) {
+    const latestQueuePosts = await db.select({
+      queue_id: schema.socialPosts.queueId,
+      post_url: schema.socialPosts.postUrl,
+      external_post_id: schema.socialPosts.externalPostId,
+      posted_at: schema.socialPosts.postedAt,
+      id: schema.socialPosts.id
+    })
+      .from(schema.socialPosts)
+      .where(and(
+        eq(schema.socialPosts.status, 'success'),
+        inArray(schema.socialPosts.queueId, queueIds)
+      ))
+      .orderBy(desc(schema.socialPosts.postedAt), desc(schema.socialPosts.id))
+
+    for (const post of latestQueuePosts) {
+      if (post.queue_id === null || latestPostsByQueue.has(post.queue_id)) {
+        continue
+      }
+
+      latestPostsByQueue.set(post.queue_id, post)
+    }
+  }
+
+  const sourcePostStats = new Map<string, { count: number, lastPostedAt: Date | null }>()
+  if (sourceTriples.length) {
+    const sourceConditions = sourceTriples.map(row => and(
+      eq(schema.socialPosts.sourceType, row.source_type),
+      eq(schema.socialPosts.sourceId, row.source_id),
+      eq(schema.socialPosts.platform, row.platform as any)
+    )!)
+
+    const sourcePosts = await db.select({
+      source_type: schema.socialPosts.sourceType,
+      source_id: schema.socialPosts.sourceId,
+      platform: schema.socialPosts.platform,
+      posted_at: schema.socialPosts.postedAt
+    })
+      .from(schema.socialPosts)
+      .where(and(
+        eq(schema.socialPosts.status, 'success'),
+        or(...sourceConditions)!
+      ))
+      .orderBy(desc(schema.socialPosts.postedAt), desc(schema.socialPosts.id))
+
+    for (const post of sourcePosts) {
+      const key = getSourcePlatformKey(post)
+      const current = sourcePostStats.get(key)
+      if (!current) {
+        sourcePostStats.set(key, {
+          count: 1,
+          lastPostedAt: post.posted_at
+        })
+        continue
+      }
+
+      current.count += 1
+    }
+  }
+
   const resolvedDisplays = await verbatimsSocialSourceDisplayResolver.resolveDisplays(rows.map(row => ({
     sourceType: row.source_type,
     sourceId: row.source_id
@@ -188,9 +250,16 @@ export default defineEventHandler(async (event) => {
       sourceType: row.source_type,
       sourceId: row.source_id
     })] as VerbatimsResolvedSourceDisplay | undefined
+    const latestQueuePost = latestPostsByQueue.get(row.id)
+    const sourceStats = sourcePostStats.get(getSourcePlatformKey(row))
 
     return {
       ...row,
+      published_post_url: latestQueuePost?.post_url || null,
+      published_external_post_id: latestQueuePost?.external_post_id || null,
+      published_posted_at: toResponseTimestamp(latestQueuePost?.posted_at || null),
+      quote_posts_count: sourceStats?.count || 0,
+      last_posted_at: toResponseTimestamp(sourceStats?.lastPostedAt || null),
       quote_text: resolvedDisplay?.quoteText || null,
       quote_language: resolvedDisplay?.quoteLanguage || null,
       author_name: resolvedDisplay?.authorName || null,
