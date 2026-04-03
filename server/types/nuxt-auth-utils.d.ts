@@ -36,4 +36,10 @@ declare module 'nuxt-auth-utils/dist/runtime/types/session' {
   }
 }
 
+declare module '#auth-utils' {
+  interface User {
+    email_verified?: boolean
+  }
+}
+
 export {}

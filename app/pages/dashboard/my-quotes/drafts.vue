@@ -17,6 +17,13 @@
             </h1>
           </div>
 
+          <NAlert
+            v-if="submissionRestrictionMessage"
+            alert="soft-amber"
+            :title="submissionRestrictionMessage"
+            class="mt-3"
+          />
+
           <!-- Search Bar with collapse animation -->
           <div 
             class="transition-all duration-300 ease-in-out overflow-hidden"
@@ -108,6 +115,7 @@
           v-for="(quote, idx) in processedMobileQuotes"
           :key="idx"
           :quote="quote"
+          :can-submit-for-review="canSubmitForReview"
           @edit="handleEditQuote"
           @submit="handleSubmitQuote"
           @delete="handleDeleteQuote"
@@ -131,6 +139,13 @@
 
     <!-- Desktop: Existing Table View -->
     <div v-else class="flex flex-col h-full">
+      <NAlert
+        v-if="submissionRestrictionMessage"
+        alert="soft-amber"
+        :title="submissionRestrictionMessage"
+        class="mb-4"
+      />
+
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-hidden">
         <!-- First-load Skeleton State -->
@@ -395,6 +410,7 @@
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
 import { formatDate, getDateTimestamp } from '~/utils/time-formatter'
+import { useQuoteSubmissionEligibility } from '~/composables/useQuotePostingEligibility';
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -413,6 +429,7 @@ useHead({
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const { user } = useUserSession()
 
 const languageStore = useLanguageStore()
 
@@ -455,6 +472,8 @@ const selectedQuotes = computed<number[]>(() => Object
 const selectedQuotesData = computed<DashboardQuote[]>(() => 
   quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
 )
+
+const { canSubmitForReview, restrictionMessage: submissionRestrictionMessage } = useQuoteSubmissionEligibility(user)
 
 // Visible ids based on current filteredQuotes page
 const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
@@ -575,6 +594,7 @@ const getQuoteActions = (quote: DashboardQuote) => [
   {
     label: 'Submit for Review',
     leading: 'i-ph-paper-plane-tilt',
+    disabled: !canSubmitForReview.value,
     onclick: () => submitQuote(quote)
   },
   {}, // Divider
@@ -609,6 +629,13 @@ const handleEditQuote = (quote: ProcessedQuoteResult) => {
 }
 
 const handleSubmitQuote = async (quote: ProcessedQuoteResult) => {
+  if (!canSubmitForReview.value) {
+    useToast().toast({
+      title: 'Submission unavailable',
+      description: submissionRestrictionMessage.value
+    })
+    return
+  }
   await submitQuote(quote as unknown as DashboardQuote)
 }
 
@@ -618,6 +645,13 @@ const handleDeleteQuote = (quote: ProcessedQuoteResult) => {
 }
 
 const submitQuote = async (quote: DashboardQuote) => {
+  if (!canSubmitForReview.value) {
+    useToast().toast({
+      title: 'Submission unavailable',
+      description: submissionRestrictionMessage.value
+    })
+    return
+  }
   try {
     await $fetch(`/api/quotes/${quote.id}/submit`, {
       method: 'POST'
@@ -718,6 +752,7 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Submit Selected',
       leading: 'i-ph-paper-plane-tilt',
+      disabled: !canSubmitForReview.value,
       onclick: () => bulkSubmit()
     })
     actions.push({
@@ -751,6 +786,13 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const bulkSubmit = async () => {
   if (selectedQuotes.value.length === 0) return
+  if (!canSubmitForReview.value) {
+    useToast().toast({
+      title: 'Submission unavailable',
+      description: submissionRestrictionMessage.value
+    })
+    return
+  }
   try {
     bulkProcessing.value = true
     // Process in parallel with small batches

@@ -86,7 +86,7 @@
       :submitting="submitting"
       status="draft"
       :show-edit="true"
-      :show-submit="true"
+      :show-submit="canSubmitForReview"
       :show-delete="true"
       @edit="handleEditFromDrawer"
       @submit="handleSubmitFromDrawer"
@@ -102,6 +102,7 @@ import { formatRelativeTime } from '~/utils/time-formatter'
 interface Props {
   quote: ProcessedQuoteResult
   showAvatar?: boolean
+  canSubmitForReview?: boolean
 }
 
 interface Emits {
@@ -112,6 +113,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   showAvatar: true,
+  canSubmitForReview: true,
 })
 
 const emit = defineEmits<Emits>()
@@ -164,6 +166,7 @@ const dropdownActions = computed(() => [
   {
     label: 'Submit for Review',
     leading: 'i-ph-paper-plane-tilt',
+    disabled: !props.canSubmitForReview,
     onclick: () => handleSubmit()
   },
   {}, // Divider

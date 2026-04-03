@@ -1,22 +1,31 @@
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
+import throwServer from '~~/server/utils/throw-server'
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
+    }
+
+    if (session.user.role === 'user') {
+      if (!session.user.email_verified) {
+        throwServer(403, 'You must verify your email before submitting a draft for review.')
+      }
+
+      const createdAtMs = new Date(session.user.created_at || '').getTime()
+      const accountAgeMs = Date.now() - createdAtMs
+      const oneWeekMs = 7 * 24 * 60 * 60 * 1000
+
+      if (!Number.isFinite(createdAtMs) || accountAgeMs < oneWeekMs) {
+        throwServer(403, 'Your account must be at least 7 days old before submitting a draft for review.')
+      }
     }
 
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
 
     // Check if quote exists, is a draft, and belongs to the user
@@ -30,18 +39,12 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found, not a draft, or you do not have permission to submit it'
-      })
+      throwServer(404, 'Quote not found, not a draft, or you do not have permission to submit it')
     }
 
     // Validate quote has minimum required content
     if (!quote.name || quote.name.trim().length < 10) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Quote must have at least 10 characters before submission'
-      })
+      throwServer(400, 'Quote must have at least 10 characters before submission')
     }
 
     // Update quote status to pending
@@ -79,10 +82,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
     if (!updatedQuoteData) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch updated quote'
-      })
+      throwServer(500, 'Failed to fetch updated quote')
     }
 
     // Fetch tags
@@ -118,9 +118,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Quote submission error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to submit quote'
-    })
+    throwServer(500, 'Failed to submit quote')
   }
 })
