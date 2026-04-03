@@ -585,6 +585,8 @@ async function postToInstagram(caption: string, imageUrl: string): Promise<Publi
   const targetIgUserId = resolvedInstagramContext.igUserId
 
   try {
+    await ensureRemoteImageReady(imageUrl, 'Instagram')
+
     const createContainerResponse = await fetch(`${baseUrl}/${apiVersion}/${targetIgUserId}/media`, {
       method: 'POST',
       headers: {
@@ -738,6 +740,8 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
   }
 
   try {
+    await ensureRemoteImageReady(imageUrl, 'Threads')
+
     const createContainerResponse = await fetch(`${baseUrl}/${apiVersion}/${userId}/threads`, {
       method: 'POST',
       headers: {
@@ -832,6 +836,8 @@ async function postToFacebook(message: string, imageUrl: string): Promise<Publis
   }
 
   try {
+    await ensureRemoteImageReady(imageUrl, 'Facebook')
+
     const response = await fetch(`${baseUrl}/${apiVersion}/${pageId}/photos`, {
       method: 'POST',
       headers: {
@@ -882,6 +888,8 @@ async function postToPinterest(description: string, canonicalUrl: string, imageU
   }
 
   try {
+    await ensureRemoteImageReady(imageUrl, 'Pinterest')
+
     const response = await fetch(`${baseUrl}/${apiVersion}/pins`, {
       method: 'POST',
       headers: {
@@ -1136,6 +1144,15 @@ async function fetchImagePayload(imageUrl: string): Promise<{ bytes: ArrayBuffer
   return {
     bytes: await imageResponse.arrayBuffer(),
     contentType: imageResponse.headers.get('content-type') || 'image/png'
+  }
+}
+
+async function ensureRemoteImageReady(imageUrl: string, platformLabel: string): Promise<void> {
+  const { contentType } = await fetchImagePayload(imageUrl)
+  const normalizedContentType = contentType.split(';')[0]?.trim().toLowerCase() || ''
+
+  if (!normalizedContentType.startsWith('image/')) {
+    throw new Error(`${platformLabel} media URL did not return an image (${normalizedContentType || 'unknown content type'})`)
   }
 }
 

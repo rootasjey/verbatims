@@ -27,6 +27,7 @@ export default defineEventHandler(async (event) => {
     t: quote.text,
     a: quote.authorName || '',
     r: quote.referenceName || '',
+    g: quote.tags?.map(tag => `${tag.name}:${tag.color}`).join('|') || '',
     v: styleVersion,
     u: quote.updatedAt ? Date.parse(quote.updatedAt) : 0
   })

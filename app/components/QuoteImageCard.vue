@@ -1,7 +1,7 @@
 <template>
   <!-- Fixed-size square card meant for image export -->
   <div
-    :style="{ width: `${size}px`, height: `${size}px` }"
+    :style="{ width: `${size}px`, height: `${size}px`, borderColor: accentColor }"
     :class="[
       'relative select-none overflow-hidden rounded-[36px] border-[18px] shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
       'flex flex-col items-center justify-between',
@@ -25,7 +25,7 @@
 
       <!-- Author and Reference -->
       <div class="mt-[56px] flex flex-col items-center">
-        <div v-if="authorImage" class="w-[120px] h-[120px] rounded-full overflow-hidden border-4" :class="themeClasses.avatarBorder">
+        <div v-if="authorImage" class="w-[120px] h-[120px] rounded-full overflow-hidden border-4" :class="themeClasses.avatarBorder" :style="{ borderColor: accentColor }">
           <img
             :src="authorImage"
             alt="author"
@@ -47,12 +47,12 @@
       </div>
     </div>
 
-    <!-- Accent border overlay to mimic thick rim -->
-    <div class="pointer-events-none absolute inset-0 rounded-[30px]" :class="themeClasses.rim"></div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { getRandomTagBorderColor } from '~~/shared/constants/tag'
+
 interface Props {
   quote: QuoteWithRelations
   theme?: 'light' | 'dark'
@@ -70,6 +70,7 @@ const authorName = computed(() => props.quote.author?.name || 'Unknown')
 const referenceName = computed(() => props.quote.reference?.name || '')
 const authorImage = computed(() => props.quote.author?.image_url || '')
 const authorInitial = computed(() => authorName.value.charAt(0).toUpperCase())
+const accentColor = computed(() => getRandomTagBorderColor(props.quote.tags))
 
 // Adjust quote text size depending on length a bit to avoid overflow
 const textSizeClass = computed(() => {
@@ -84,23 +85,21 @@ const textSizeClass = computed(() => {
 const themeClasses = computed(() => {
   if (props.theme === 'dark') {
     return {
-      container: [props.background === 'transparent' ? 'bg-transparent' : 'bg-[#0C0A09]', 'border-[#0BA6DF]'].join(' '),
+      container: [props.background === 'transparent' ? 'bg-transparent' : 'bg-[#0C0A09]'].join(' '),
       quote: 'text-white',
       author: 'text-white',
       reference: 'text-gray-300',
-      avatarBorder: 'border-[#0BA6DF] bg-[#111111]',
+      avatarBorder: 'bg-[#111111]',
       avatarFallback: 'text-white bg-[#111111]',
-      rim: 'ring-0',
     }
   }
   return {
-    container: [props.background === 'transparent' ? 'bg-transparent' : 'bg-[#F3F4F6]', 'border-[#0BA6DF]'].join(' '),
+    container: [props.background === 'transparent' ? 'bg-transparent' : 'bg-[#F3F4F6]'].join(' '),
     quote: 'text-gray-900',
     author: 'text-gray-900',
     reference: 'text-gray-700',
-    avatarBorder: 'border-[#0BA6DF] bg-white',
+    avatarBorder: 'bg-white',
     avatarFallback: 'text-gray-800 bg-white',
-    rim: 'ring-0',
   }
 })
 </script>
