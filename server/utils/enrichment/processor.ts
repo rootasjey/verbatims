@@ -84,8 +84,9 @@ export async function processEnrichmentJobs(options: ProcessOptions = {}) {
       })
     } catch (error: any) {
       console.error('Failed to process enrichment job:', error)
-      await failJob(job.id, job.entityType, job.entityId, error?.message || 'Unexpected enrichment failure')
-      results.push({ id: job.id, entityType: job.entityType, entityId: job.entityId, status: 'failed', summary: error?.message || 'unexpected error' })
+      const errorMessage = formatEnrichmentError(error)
+      await failJob(job.id, job.entityType, job.entityId, errorMessage)
+      results.push({ id: job.id, entityType: job.entityType, entityId: job.entityId, status: 'failed', summary: errorMessage })
     }
   }
 
@@ -526,27 +527,11 @@ async function completeEnrichmentJob(
     .run()
 
   if (preview.proposals.length > 0) {
-    await db.insert(schema.entityEnrichmentFieldProposals)
-      .values(preview.proposals.map((proposal) => ({
-        jobId,
-        entityType,
-        entityId,
-        fieldName: proposal.field,
-        currentValue: proposal.current_value,
-        proposedValue: proposal.proposed_value,
-        confidence: proposal.confidence,
-        overwrite: proposal.overwrite,
-        recommended: proposal.recommended,
-        sourceLabels: JSON.stringify(proposal.source_labels),
-        sourceUrls: JSON.stringify(proposal.source_urls),
-        externalSourceType: preview.match?.source || null,
-        externalSourceId: preview.match?.external_id || null,
-        rationale: proposal.rationale,
-        proposedByType: 'system' as const,
-        decisionStatus: 'pending' as const,
-        updatedAt: now,
-      })))
-      .run()
+    for (const proposalBatch of chunkProposalRows(preview.proposals, jobId, entityType, entityId, preview, now)) {
+      await db.insert(schema.entityEnrichmentFieldProposals)
+        .values(proposalBatch)
+        .run()
+    }
   }
 
   await db.insert(schema.entityVerificationState)
@@ -647,4 +632,84 @@ function readReferenceFieldValue(reference: typeof schema.quoteReferences.$infer
   if (fieldName === 'image_url') return reference.imageUrl || null
   if (fieldName === 'urls') return reference.urls || null
   return null
+}
+
+function chunkProposalRows(
+  proposals: EntityEnrichmentPreview['proposals'],
+  jobId: number,
+  entityType: 'author' | 'reference',
+  entityId: number,
+  preview: EntityEnrichmentPreview,
+  now: Date,
+) {
+  const rows = proposals.map((proposal) => ({
+    jobId,
+    entityType,
+    entityId,
+    fieldName: proposal.field,
+    currentValue: proposal.current_value,
+    proposedValue: proposal.proposed_value,
+    confidence: proposal.confidence,
+    overwrite: proposal.overwrite,
+    recommended: proposal.recommended,
+    sourceLabels: JSON.stringify(proposal.source_labels),
+    sourceUrls: JSON.stringify(proposal.source_urls),
+    externalSourceType: preview.match?.source || null,
+    externalSourceId: preview.match?.external_id || null,
+    rationale: proposal.rationale,
+    proposedByType: 'system' as const,
+    decisionStatus: 'pending' as const,
+    updatedAt: now,
+  }))
+
+  const chunks: typeof rows[] = []
+  const maxRowsPerInsert = 5
+
+  for (let index = 0; index < rows.length; index += maxRowsPerInsert) {
+    chunks.push(rows.slice(index, index + maxRowsPerInsert))
+  }
+
+  return chunks
+}
+
+function formatEnrichmentError(error: unknown) {
+  const messages = collectErrorMessages(error)
+
+  const detailedMessage = messages.find(message => !message.startsWith('Failed query:'))
+  if (detailedMessage) return detailedMessage
+
+  return messages[0] || 'Unexpected enrichment failure'
+}
+
+function collectErrorMessages(error: unknown, seen = new Set<unknown>(), messages: string[] = []) {
+  if (!error || seen.has(error)) return messages
+
+  if (typeof error === 'object') {
+    seen.add(error)
+
+    const maybeMessage = 'message' in error ? error.message : undefined
+    if (typeof maybeMessage === 'string' && maybeMessage.trim() && !messages.includes(maybeMessage.trim())) {
+      messages.push(maybeMessage.trim())
+    }
+
+    const maybeCause = 'cause' in error ? error.cause : undefined
+    if (maybeCause) {
+      collectErrorMessages(maybeCause, seen, messages)
+    }
+
+    const maybeErrors = 'errors' in error ? error.errors : undefined
+    if (Array.isArray(maybeErrors)) {
+      for (const nestedError of maybeErrors) {
+        collectErrorMessages(nestedError, seen, messages)
+      }
+    }
+
+    return messages
+  }
+
+  if (typeof error === 'string' && error.trim() && !messages.includes(error.trim())) {
+    messages.push(error.trim())
+  }
+
+  return messages
 }
