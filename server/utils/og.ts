@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, asc } from 'drizzle-orm'
+import { getReferenceBadgeColor } from '#shared/constants/reference'
 
 export interface QuoteOgPayload {
   id: number
@@ -28,6 +29,7 @@ export interface ReferenceOgPayload {
   id: number
   name: string
   primaryType: string
+  badgeColor: string
   secondaryType?: string
   description?: string
   updatedAt: string | null
@@ -130,6 +132,7 @@ export async function getReferenceForOg(referenceId: string): Promise<ReferenceO
     id: record.id,
     name: record.name,
     primaryType: record.primaryType ?? 'other',
+    badgeColor: getReferenceBadgeColor(record.primaryType),
     secondaryType: record.secondaryType ?? undefined,
     description: record.description ?? undefined,
     updatedAt: toIsoString(record.updatedAt)

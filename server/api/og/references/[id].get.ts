@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const requestUrl = getRequestURL(event)
-  const styleVersion = (config.public as any).ogStyleVersion as string
+  const styleVersion = `${(config.public as any).ogStyleVersion || '1'}:reference-chip-v1`
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')
 
   const basis = JSON.stringify({
