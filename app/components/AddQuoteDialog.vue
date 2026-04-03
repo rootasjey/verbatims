@@ -2,7 +2,6 @@
   <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
       <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
-
       <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="mt-6 space-y-6">
         <div>
           <NInput

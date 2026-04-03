@@ -25,7 +25,7 @@
 								focus-visible:border-gray-700 ring-transparent light:focus-visible:ring-transparent dark:focus-visible:ring-transparent dark:focus-visible:border-gray-300"
 							placeholder="Enter the quote content..."
 							:rows="4"
-							:disabled="submitting"
+								:disabled="submitting"
 							required
 						/>
 						<!-- Character Counter -->
@@ -49,7 +49,7 @@
 										placeholder="Select language"
 										item-key="label"
 										value-key="label"
-										:disabled="submitting"
+									:disabled="submitting"
 										@update:model-value="onLanguageSelected"
 									/>
 								<div
