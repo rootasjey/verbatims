@@ -1,7 +1,7 @@
 <template>
   <NDialog
     :open="open"
-    :_dialog-content="{ class: 'w-full sm:max-w-4xl' }"
+    :_dialog-content="{ class: 'w-full sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col' }"
     @update:open="emit('update:open', $event)"
   >
     <template #header>
@@ -23,7 +23,7 @@
       </div>
     </template>
 
-    <div class="space-y-4">
+    <div class="min-h-0 overflow-y-auto space-y-4 pr-1">
       <div v-if="loading" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
         Loading enrichment job details...
       </div>
@@ -48,9 +48,10 @@
               <p class="font-medium text-gray-900 dark:text-white">{{ formatTimestamp(job?.appliedAt) }}</p>
             </div>
           </div>
-          <p v-if="job?.errorMessage" class="mt-3 text-sm text-red-600 dark:text-red-400">
-            {{ job.errorMessage }}
-          </p>
+          <div v-if="job?.errorMessage" class="mt-3 rounded-md border border-dashed border-red-200 bg-red-50/70 p-3 dark:border-red-900/70 dark:bg-red-950/20">
+            <p class="text-xs font-medium uppercase tracking-wide text-red-600 dark:text-red-300">Error details</p>
+            <pre class="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words pr-2 text-xs text-red-700 dark:text-red-200">{{ job.errorMessage }}</pre>
+          </div>
         </div>
 
         <div v-if="preview?.notes?.length" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4 space-y-1">
