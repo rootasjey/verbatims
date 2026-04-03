@@ -122,7 +122,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
       orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.viewsCount) : desc(schema.quotes.viewsCount))
       orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.createdAt) : desc(schema.quotes.createdAt))
     } else if (effectiveSort === 'recent') {
-      // Apply sortOrder to recency
+      // Treat recency as approval time for public index ordering.
+      orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.moderatedAt) : desc(schema.quotes.moderatedAt))
       orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.createdAt) : desc(schema.quotes.createdAt))
     } else {
       // Popularity: apply sortOrder to likes/views and tiebreaker on created_at
