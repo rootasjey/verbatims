@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, asc } from 'drizzle-orm'
 
 export interface QuoteOgPayload {
   id: number
@@ -8,6 +8,11 @@ export interface QuoteOgPayload {
   referenceName?: string
   language: string
   updatedAt: string | null
+  tags?: Array<{
+    id: number
+    name: string
+    color: string
+  }>
 }
 
 export interface AuthorOgPayload {
@@ -51,6 +56,17 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
 
   if (!record) return null
 
+  const tags = await db.select({
+    id: schema.tags.id,
+    name: schema.tags.name,
+    color: schema.tags.color,
+  })
+  .from(schema.tags)
+  .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+  .where(eq(schema.quoteTags.quoteId, Number(quoteId)))
+  .orderBy(asc(schema.tags.name))
+  .all()
+
   const updatedAtISO = toIsoString(record.updatedAt)
 
   return {
@@ -59,7 +75,12 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
     authorName: record.authorName ?? undefined,
     referenceName: record.referenceName ?? undefined,
     language: record.language ?? 'en',
-    updatedAt: updatedAtISO
+    updatedAt: updatedAtISO,
+    tags: tags.map(tag => ({
+      id: tag.id,
+      name: tag.name,
+      color: tag.color ?? '#0BA6DF'
+    }))
   }
 }
 

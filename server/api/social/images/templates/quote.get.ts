@@ -1,3 +1,5 @@
+import { getRandomTagBorderColor } from '#shared/constants/tag'
+
 export default defineEventHandler(async (event) => {
   const id = getQuery(event).id as string | undefined
   if (!id) { throwServer(400, 'id is required'); return }
@@ -7,6 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const author = quote.authorName || 'Unknown author'
   const reference = quote.referenceName || ''
+  const rimColor = getRandomTagBorderColor(quote.tags)
 
   const html = `<!doctype html>
 <html lang="en">
@@ -27,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
       :root {
         --bg: #F3F4F6;
-        --rim: #0BA6DF;
+        --rim: ${rimColor};
         --text: #111827;
         --muted: #374151;
       }

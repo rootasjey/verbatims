@@ -4,6 +4,7 @@
  */
 
 import type { Author } from './author';
+import type { Tag } from './tag';
 export type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la';
 
 /**
@@ -75,6 +76,7 @@ export interface Quote {
 export interface QuoteWithRelations extends Quote {
   author?: Author;
   reference?: QuoteReference;
+  tags?: Array<Pick<Tag, 'id' | 'name' | 'color'>>;
   user?: {
     id: number;
     name: string;
@@ -93,7 +95,6 @@ export interface AdminQuote extends QuoteWithRelations {
     id?: number;
     name: string;
   } | undefined;
-  tags?: Array<{ id: number; name: string; color: string }>;
   // Flattened joined fields (available from admin DB queries)
   author_name?: string | null;
   author_is_fictional?: boolean | null;
@@ -168,7 +169,6 @@ export interface QuoteWithMetadata extends QuoteWithRelations {
   reference?: Partial<QuoteReference>;
   is_liked?: boolean;
   is_in_collection?: boolean;
-  tags?: Array<{ id: number; name: string; color: string }>;
 }
 
 /**
