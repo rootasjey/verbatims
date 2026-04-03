@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
         --bg-end: #000000;
         --fg: #f8fafc;
         --fg-dim: rgba(248, 250, 252, 0.82);
-        --chip: rgba(250, 165, 51, 0.2);
+        --chip: ${reference.badgeColor};
       }
       html, body { margin: 0; padding: 0; height: 100%; }
       body {
@@ -54,7 +54,9 @@ export default defineEventHandler(async (event) => {
         margin-bottom: 22px;
         padding: 8px 14px;
         border-radius: 9999px;
-        background: var(--chip);
+        background: color-mix(in srgb, var(--chip) 20%, transparent);
+        border: 1px solid color-mix(in srgb, var(--chip) 32%, transparent);
+        color: var(--chip);
         font-size: 20px;
         font-weight: 600;
       }
