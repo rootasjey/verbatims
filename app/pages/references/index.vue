@@ -66,25 +66,6 @@
         </div>
       </div>
 
-      <!-- Infinite scroll: desktop uses auto-load at bottom; mobile uses inverted pull-up gesture -->
-      <div v-if="referencesForDisplay.length > 0 && !isMobile" ref="infiniteScrollTrigger" class="h-10"></div>
-
-      <!-- Mobile inverted pull-to-load-more (pull up from bottom) -->
-      <div
-        v-else-if="referencesForDisplay.length > 0"
-        class="overflow-hidden select-none"
-        :style="{ height: `${Math.max(40, pullDistance)}px` }"
-        @touchstart.passive="onPullStart"
-        @touchmove="onPullMove"
-        @touchend="onPullEnd"
-      >
-        <div class="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
-          <NButton v-if="pullDistance < pullThreshold && hasMore" btn="text" @click="loadMore">Pull up to load more</NButton>
-          <span v-else-if="hasMore">Release to load more</span>
-          <span v-else>No more references</span>
-        </div>
-      </div>
-      
       <div class="flex justify-center">
         <LoadMoreButton 
           v-if="referencesForDisplay.length > 0"
@@ -148,19 +129,10 @@ const currentPage = ref<number>(1)
 const showSubmitModal = ref<boolean>(false)
 const totalReferences = ref<number>(0)
 const searchInput = ref<any>(null)
-const infiniteScrollTrigger = ref<HTMLElement | null>(null)
 const isSearching = ref<boolean>(false)
 const mobileFiltersOpen = ref<boolean>(false)
 const isProgrammaticReset = ref<boolean>(false)
 const isRestoringState = ref<boolean>(false)
-
-// Inverted pull-to-load-more (mobile)
-const pullDistance = ref<number>(0)
-const isPulling = ref<boolean>(false)
-const startY = ref<number>(0)
-const pullThreshold = 80
-
-let infiniteScrollCleanup: (() => void) | null = null
 
 const saveCurrentReferencesState = () => {
   referencesListStore.saveSnapshot({
@@ -378,66 +350,6 @@ const navigateToReference = (referenceId: number | string) => {
   navigateTo(`/references/${referenceId}`)
 }
 
-const setupInfiniteScroll = () => {
-  if (!infiniteScrollTrigger.value) return
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const [entry] = entries
-      if (entry.isIntersecting && hasMore.value && !loadingMore.value) {
-        loadMore()
-      }
-    },
-    {
-      rootMargin: '100px'
-    }
-  )
-
-  observer.observe(infiniteScrollTrigger.value as Element)
-
-  return () => {
-    observer.disconnect()
-  }
-}
-
-// Helpers and handlers for mobile pull-up
-const atBottom = () => {
-  const scrollEl = (document.scrollingElement || document.documentElement) as HTMLElement
-  return scrollEl.scrollHeight - (scrollEl.scrollTop + window.innerHeight) <= 2
-}
-
-const onPullStart = (e: TouchEvent | MouseEvent) => {
-  if (!isMobile.value || loadingMore.value || !hasMore.value) return
-  if (!atBottom()) return
-  isPulling.value = true
-  startY.value = ((e as TouchEvent).touches ? (e as TouchEvent).touches[0]?.clientY : (e as MouseEvent).clientY) || 0
-  pullDistance.value = 0
-}
-
-const onPullMove = (e: TouchEvent | MouseEvent) => {
-  if (!isPulling.value) return
-  const currentY = ((e as TouchEvent).touches ? (e as TouchEvent).touches[0]?.clientY : (e as MouseEvent).clientY) || 0
-  const delta = startY.value - currentY // moving up => positive
-  if (delta > 0) {
-    pullDistance.value = Math.min(delta, pullThreshold * 1.8)
-    if ((e as TouchEvent).cancelable || (e as MouseEvent & { cancelable?: boolean }).cancelable) {
-      // Some synthetic mouse events may not be cancelable
-      try { (e as TouchEvent).preventDefault?.() } catch {}
-    }
-  } else {
-    pullDistance.value = 0
-  }
-}
-
-const onPullEnd = async () => {
-  if (!isPulling.value) return
-  const shouldLoad = pullDistance.value >= pullThreshold
-  isPulling.value = false
-  pullDistance.value = 0
-  if (shouldLoad && hasMore.value && !loadingMore.value) {
-    await loadMore()
-  }
-}
 
 const focusSearchInput = () => {
   nextTick(() => {
@@ -478,8 +390,6 @@ onMounted(() => {
     }
 
     await nextTick()
-    // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
-    infiniteScrollCleanup = !isMobile.value ? (setupInfiniteScroll() ?? null) : null
   }
 
   void initializePage()
@@ -504,10 +414,6 @@ watch(currentLayout, (newLayout) => {
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('scroll', saveCurrentReferencesState)
-  }
-
-  if (infiniteScrollCleanup) {
-    infiniteScrollCleanup()
   }
 })
 
