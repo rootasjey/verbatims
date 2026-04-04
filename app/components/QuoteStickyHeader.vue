@@ -5,6 +5,17 @@
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact quote title and context -->
         <div class="min-w-0 flex items-center gap-3">
+          <NTooltip content="Back to quotes list" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
+              icon
+              btn="ghost-gray"
+              size="xs"
+              class="min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
+              @click.stop="$emit('navigate-back')"
+            >
+              <NIcon name="i-ph-arrow-left-bold" />
+            </NButton>
+          </NTooltip>
           <NIcon name="i-ph-quotes" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
             <div class="text-sm font-serif text-gray-900 dark:text-white truncate">"{{ headerTitle }}"</div>
@@ -129,7 +140,7 @@ const props = defineProps({
   menuItems: { type: Array, default: () => [] }
 })
 
-defineEmits(['share', 'toggle-like', 'add-to-collection', 'copy-link'])
+defineEmits(['share', 'toggle-like', 'add-to-collection', 'copy-link', 'navigate-back'])
 
 const headerTitle = computed(() => {
   const text = props.quote?.name || ''

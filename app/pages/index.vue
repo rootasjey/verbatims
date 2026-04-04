@@ -51,10 +51,15 @@
 import { useStorage } from '@vueuse/core'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const quotesFeedStore = useQuotesFeedStore()
+const restoreSourcePath = '/'
+let removeScrollListener: (() => void) | null = null
+const lastKnownScrollY = ref(0)
 
 definePageMeta({
   // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
-  layout: 'default'
+  layout: 'default',
+  scrollToTop: false
 })
 
 useHead({
@@ -109,8 +114,103 @@ const showAddQuoteDrawer = ref(false)
 // Mark as ready only after Nuxt has fully hydrated to avoid layout switching during hydration
 const hydrated = ref(false)
 
+const saveCurrentQuotesState = () => {
+  if (typeof window === 'undefined') return
+
+  quotesFeedStore.saveSnapshot({
+    ...feed.exportSnapshot(),
+    sourcePath: restoreSourcePath,
+    scrollY: lastKnownScrollY.value
+  })
+}
+
+const debouncedSaveScrollState = useDebounceFn(() => {
+  saveCurrentQuotesState()
+}, 100)
+
+const cloneSnapshot = (snapshot: typeof quotesFeedStore.snapshot) => {
+  if (!snapshot) return null
+
+  return {
+    ...snapshot,
+    additionalQuotes: [...snapshot.additionalQuotes],
+    lastSuccessfulQuotes: [...snapshot.lastSuccessfulQuotes],
+    lastSuccessfulMeta: { ...snapshot.lastSuccessfulMeta }
+  }
+}
+
+const restoreScrollPosition = async (scrollY: number) => {
+  if (typeof window === 'undefined' || scrollY <= 0) return
+
+  for (let attempt = 0; attempt < 12; attempt++) {
+    await nextTick()
+
+    const scrollingElement = document.scrollingElement || document.documentElement
+    const hasEnoughHeight = scrollingElement.scrollHeight >= scrollY + window.innerHeight
+    if (hasEnoughHeight || attempt === 11) {
+      window.scrollTo({ top: scrollY, behavior: 'auto' })
+
+      await new Promise(resolve => window.setTimeout(resolve, 50))
+
+      if (Math.abs(window.scrollY - scrollY) <= 4 || attempt === 11) {
+        return
+      }
+    }
+
+    await new Promise(resolve => window.setTimeout(resolve, 50))
+  }
+}
+
+const getRestorableSnapshot = () => {
+  const snapshot = quotesFeedStore.restoreSnapshot ?? quotesFeedStore.snapshot
+
+  if (!quotesFeedStore.shouldRestore || snapshot?.sourcePath !== restoreSourcePath) {
+    return null
+  }
+
+  return cloneSnapshot(snapshot)
+}
+
+const restoreFeedFromSnapshot = async () => {
+  const snapshot = getRestorableSnapshot()
+  if (!snapshot) return false
+
+  feed.hydrateFromSnapshot(snapshot)
+  await restoreScrollPosition(snapshot.scrollY)
+  quotesFeedStore.clearRestoreRequest()
+  quotesFeedStore.clearRestoreSnapshot()
+  return true
+}
+
 onMounted(() => {
-  feed.init()
+  const snapshot = getRestorableSnapshot()
+
+  void (async () => {
+    await feed.init(snapshot)
+
+    if (snapshot) {
+      await restoreScrollPosition(snapshot.scrollY)
+      quotesFeedStore.clearRestoreRequest()
+    } else if (quotesFeedStore.shouldRestore) {
+      quotesFeedStore.clearRestoreRequest()
+    }
+
+    if (typeof window !== 'undefined') {
+      lastKnownScrollY.value = window.scrollY
+
+      const onScroll = () => {
+        lastKnownScrollY.value = window.scrollY
+        debouncedSaveScrollState()
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true })
+      removeScrollListener = () => window.removeEventListener('scroll', onScroll)
+    }
+  })()
+})
+
+onActivated(async () => {
+  await restoreFeedFromSnapshot()
 })
 
 onNuxtReady(() => {
@@ -130,8 +230,30 @@ const handleClickAuthor = (authorId: number) => {
   navigateTo(`/authors/${authorId}`)
 }
 
+onBeforeRouteLeave((to) => {
+  if (typeof window === 'undefined') return
+
+  saveCurrentQuotesState()
+
+  if (to.path.startsWith('/quotes/')) {
+    quotesFeedStore.stageRestoreSnapshot({
+      ...feed.exportSnapshot(),
+      sourcePath: restoreSourcePath,
+      scrollY: lastKnownScrollY.value
+    })
+    quotesFeedStore.requestRestore()
+  } else {
+    quotesFeedStore.clearRestoreRequest()
+    quotesFeedStore.clearRestoreSnapshot()
+  }
+})
+
 watch(currentLayout, (newLayout) => {
   if (hydrated.value) setPageLayout(newLayout)
+})
+
+onUnmounted(() => {
+  removeScrollListener?.()
 })
 </script>
 

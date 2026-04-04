@@ -324,6 +324,7 @@
 </template>
 
 <script lang="ts" setup>import { useJsonLd } from '../../composables/useSeo'
+import { useReferencesListStore } from '~/stores/references'
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
 
@@ -334,8 +335,10 @@ const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
 const { user } = useUserSession()
+const router = useRouter()
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
+const referencesListStore = useReferencesListStore()
 type langCode = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh'
 
 const id = String(route.params.id || '')
@@ -734,8 +737,19 @@ const scrollToTop = () => {
 }
 
 const navigateToReferencesList = async () => {
+  if (typeof window !== 'undefined' && referencesListStore.shouldRestore && window.history.length > 1) {
+    await router.back()
+    return
+  }
+
   await navigateTo('/references')
 }
+
+onBeforeRouteLeave((to) => {
+  if (!to.path.startsWith('/references')) {
+    referencesListStore.clearRestoreRequest()
+  }
+})
 
 const showReportDialog = ref(false)
 const reportReference = () => { showReportDialog.value = true }

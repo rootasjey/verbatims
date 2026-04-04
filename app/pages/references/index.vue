@@ -114,9 +114,12 @@
 <script lang="ts" setup>
 import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
 import { useDebounceFn } from '@vueuse/core'
+import { useReferencesListStore } from '~/stores/references'
+import type { ReferencesListSnapshot } from '~/stores/references'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const referencesListStore = useReferencesListStore()
 
 definePageMeta({
   layout: false
@@ -149,12 +152,49 @@ const infiniteScrollTrigger = ref<HTMLElement | null>(null)
 const isSearching = ref<boolean>(false)
 const mobileFiltersOpen = ref<boolean>(false)
 const isProgrammaticReset = ref<boolean>(false)
+const isRestoringState = ref<boolean>(false)
 
 // Inverted pull-to-load-more (mobile)
 const pullDistance = ref<number>(0)
 const isPulling = ref<boolean>(false)
 const startY = ref<number>(0)
 const pullThreshold = 80
+
+let infiniteScrollCleanup: (() => void) | null = null
+
+const saveCurrentReferencesState = () => {
+  referencesListStore.saveSnapshot({
+    references: references.value,
+    allFetchedReferences: allFetchedReferences.value,
+    currentPage: currentPage.value,
+    hasMore: hasMore.value,
+    totalReferences: totalReferences.value,
+    searchQuery: searchQuery.value,
+    primaryType: primaryType.value,
+    sortBy: sortBy.value,
+    sortOrder: sortOrder.value,
+    scrollY: typeof window !== 'undefined' ? window.scrollY : 0
+  })
+}
+
+const restoreReferencesState = async (snapshot: ReferencesListSnapshot) => {
+  isRestoringState.value = true
+
+  searchQuery.value = snapshot.searchQuery
+  primaryType.value = snapshot.primaryType
+  sortBy.value = snapshot.sortBy
+  sortOrder.value = snapshot.sortOrder
+  references.value = [...snapshot.references]
+  allFetchedReferences.value = [...snapshot.allFetchedReferences]
+  currentPage.value = snapshot.currentPage
+  hasMore.value = snapshot.hasMore
+  totalReferences.value = snapshot.totalReferences
+  loading.value = false
+  loadingMore.value = false
+
+  await nextTick()
+  isRestoringState.value = false
+}
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,
@@ -407,16 +447,54 @@ const focusSearchInput = () => {
   })
 }
 
-let infiniteScrollCleanup: (() => void) | null = null
-
 onMounted(() => {
   setPageLayout(currentLayout.value)
-  loadReferences()
 
-  nextTick(() => {
-  // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
-  infiniteScrollCleanup = !isMobile.value ? (setupInfiniteScroll() ?? null) : null
-  })
+  if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', saveCurrentReferencesState, { passive: true })
+  }
+
+  const shouldRestore = referencesListStore.shouldRestore
+  const storedSnapshot = referencesListStore.snapshot
+  const snapshot = storedSnapshot
+    ? {
+        ...storedSnapshot,
+        references: [...storedSnapshot.references],
+        allFetchedReferences: [...storedSnapshot.allFetchedReferences]
+      }
+    : null
+
+  const initializePage = async () => {
+    if (shouldRestore && snapshot) {
+      await restoreReferencesState(snapshot)
+
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: snapshot.scrollY, behavior: 'auto' })
+      }
+
+      referencesListStore.clearRestoreRequest()
+    } else {
+      await loadReferences()
+    }
+
+    await nextTick()
+    // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
+    infiniteScrollCleanup = !isMobile.value ? (setupInfiniteScroll() ?? null) : null
+  }
+
+  void initializePage()
+})
+
+onBeforeRouteLeave((to) => {
+  if (typeof window === 'undefined') return
+
+  saveCurrentReferencesState()
+
+  if (to.path.startsWith('/references/')) {
+    referencesListStore.requestRestore()
+  } else {
+    referencesListStore.clearRestoreRequest()
+  }
 })
 
 watch(currentLayout, (newLayout) => {
@@ -424,12 +502,18 @@ watch(currentLayout, (newLayout) => {
 })
 
 onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('scroll', saveCurrentReferencesState)
+  }
+
   if (infiniteScrollCleanup) {
     infiniteScrollCleanup()
   }
 })
 
 watch([sortBy, primaryType], () => {
+  if (isRestoringState.value) return
+
   if (isProgrammaticReset.value) return
 
   if (searchQuery.value) {
@@ -440,6 +524,8 @@ watch([sortBy, primaryType], () => {
 })
 
 watch(searchQuery, (newQuery) => {
+  if (isRestoringState.value) return
+
   if (isProgrammaticReset.value) return
 
   debouncedSearch()

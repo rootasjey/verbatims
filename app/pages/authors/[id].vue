@@ -361,6 +361,7 @@ const { currentLayout } = useLayoutSwitching()
 definePageMeta({ layout: 'default' })
 
 const route = useRoute()
+const router = useRouter()
 const { user } = useUserSession()
 
 interface SortOption {
@@ -830,8 +831,20 @@ const scrollToTop = () => {
 }
 
 const navigateToAuthorsList = async () => {
+  if (typeof window !== 'undefined' && authorsListStore.shouldRestore && window.history.length > 1) {
+    await router.back()
+    return
+  }
+
   await navigateTo('/authors')
 }
+
+const authorsListStore = useAuthorsListStore()
+onBeforeRouteLeave((to) => {
+  if (!to.path.startsWith('/authors')) {
+    authorsListStore.clearRestoreRequest()
+  }
+})
 
 const showReportDialog = ref(false)
 const reportAuthor = () => { showReportDialog.value = true }
