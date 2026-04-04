@@ -49,10 +49,7 @@
 
     <!-- Quote Content (Main) -->
     <div class="flex-1 flex">
-      <!-- Client-only typewriter with SSR fallback -->
-      <ClientOnly>
         <blockquote
-          ref="containerRef"
           class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
           :class="{
             'text-sm': (quote.name || '').length > 200,
@@ -60,23 +57,8 @@
             'text-lg': (quote.name || '').length <= 100
           }"
         >
-          <span>{{ displayedText }}</span>
-          <span v-show="showCaret" class="caret align-[-0.1em]"></span>
+          {{ quote.name }}
         </blockquote>
-
-        <template #fallback>
-          <blockquote
-            class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
-            :class="{
-              'text-sm': (quote.name || '').length > 200,
-              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-              'text-lg': (quote.name || '').length <= 100
-            }"
-          >
-            {{ quote.name }}
-          </blockquote>
-        </template>
-      </ClientOnly>
     </div>
 
     <NBadge
@@ -136,10 +118,7 @@
 
     <!-- Quote Content (Main) -->
     <div class="flex-1 flex">
-      <!-- Client-only typewriter with SSR fallback -->
-      <ClientOnly>
         <blockquote
-          ref="containerRef"
           class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
           :class="{
             'text-sm': (quote.name || '').length > 200,
@@ -147,23 +126,8 @@
             'text-lg': (quote.name || '').length <= 100
           }"
         >
-          <span>{{ displayedText }}</span>
-          <span v-show="showCaret" class="caret align-[-0.1em]"></span>
+          {{ quote.name }}
         </blockquote>
-
-        <template #fallback>
-          <blockquote
-            class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
-            :class="{
-              'text-sm': (quote.name || '').length > 200,
-              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-              'text-lg': (quote.name || '').length <= 100
-            }"
-          >
-            {{ quote.name }}
-          </blockquote>
-        </template>
-      </ClientOnly>
     </div>
 
     <NBadge
@@ -201,76 +165,6 @@ const navigateToAuthor = (authorId: number | string) => {
   navigateTo(`/authors/${authorId}`)
 }
 
-// Typewriter animation when the card appears
-const containerRef = ref(null)
-const displayedText = ref('')
-const showCaret = ref(false)
-let hasTyped = false
-let observer: IntersectionObserver | undefined = undefined
-let intervalId: NodeJS.Timeout | undefined = undefined
-
-const startTyping = () => {
-  if (hasTyped) return
-  const text = (props.quote?.name || '').toString()
-  if (!text) return
-
-  hasTyped = true
-  displayedText.value = ''
-  showCaret.value = true
-
-  const maxDuration = 1200 // ms cap
-  const baseInterval = 18 // ms
-  const steps = Math.max(1, Math.ceil(maxDuration / baseInterval))
-  const stepChars = Math.max(1, Math.ceil(text.length / steps))
-  let i = 0
-
-  intervalId = setInterval(() => {
-    displayedText.value = text.slice(0, i)
-    i += stepChars
-    if (i >= text.length) {
-      displayedText.value = text
-      clearInterval(intervalId)
-      intervalId = undefined
-      setTimeout(() => (showCaret.value = false), 400)
-    }
-  }, baseInterval)
-}
-
-onMounted(async () => {
-  observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        startTyping()
-        if (observer && containerRef.value) observer.unobserve(containerRef.value)
-      }
-    }
-  }, { threshold: 0.2 })
-
-  // ensure the DOM ref is available (ClientOnly may render slightly later)
-  await nextTick()
-  if (containerRef.value && observer) {
-    observer.observe(containerRef.value)
-  } else {
-    // fallback: if we couldn't attach the observer, show the quote immediately
-    displayedText.value = (props.quote?.name || '').toString()
-    showCaret.value = false
-  }
-})
-
-onBeforeUnmount(() => {
-  if (observer && containerRef.value) observer.unobserve(containerRef.value)
-  if (observer) observer.disconnect()
-  observer = undefined
-  if (intervalId) clearInterval(intervalId)
-  intervalId = undefined
-})
-
-// Keep displayed text in sync when the quote content changes (e.g., after edit)
-watch(() => props.quote?.name, (newText) => {
-  const text = (newText || '').toString()
-  displayedText.value = text
-  showCaret.value = false
-})
 
 const { user } = useUserSession()
 const sharePending = ref(false)
@@ -383,18 +277,5 @@ const shareQuote = async () => {
   border-color: var(--topic-border-color);
   border-image-source: var(--topic-border-image, none);
   border-image-slice: var(--topic-border-image-slice, 1);
-}
-
-.caret {
-  display: inline-block;
-  width: 0.6ch;
-  border-right: 2px solid currentColor;
-  margin-left: 2px;
-  animation: caret-blink 1s steps(1, end) infinite;
-}
-
-@keyframes caret-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
 }
 </style>
