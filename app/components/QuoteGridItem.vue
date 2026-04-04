@@ -1,144 +1,165 @@
 <template>
-  <NLink
-    v-if="linkCard"
-    :to="`/quotes/${quote.id}`"
-    :style="topicBorderStyle"
-    :class="{ 'has-topic-border': hasTopicBorder }"
-    class="quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col 
-      dark:hover:border-gray-600 hover:scale-101 hover:z-2 hover:font-500 active:scale-99 hover:shadow-lg transition-all duration-300 "
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
+  <div
+    :style="cardContainerStyle"
+    :class="[
+      {'quote-grid-item-enter': animateEntrance}
+    ]"
   >
-    <div 
+    <NLink
+      v-if="linkCard"
+      :to="`/quotes/${quote.id}`"
+      :style="cardStyle"
       :class="[
-        'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
-        isHovered ? 'opacity-100' : 'opacity-50'
+        'quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
+        'dark:hover:border-gray-600 hover:z-2 hover:font-500 hover:shadow-lg transition-all duration-300',
+        'hover:scale-101 active:scale-99 active:shadow-none',
+        {
+          'has-topic-border': hasTopicBorder,
+        }
       ]"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
     >
-      <span
-        v-if="quote.author"
-        class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300 cursor-pointer"
-        @click.prevent.stop="navigateToAuthor(quote.author.id)"
-        @keyup.enter.prevent.stop="navigateToAuthor(quote.author.id)"
-        role="link"
-        tabindex="0"
-        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
-      >
-        {{ quote.author.name }}
-      </span>
-      <span
-        v-else
-        class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
-        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
-      >
-        Unknown Author
-      </span>
-      
-      <NDropdownMenu :items="menuItems">
-        <NButton
-          icon
-          btn="ghost-gray"
-          size="xs"
-          label="i-ph-dots-three-vertical"
-          class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
-          @click.stop
-          :title="'Quote actions'"
-        />
-      </NDropdownMenu>
-    </div>
-
-    <!-- Quote Content (Main) -->
-    <div class="flex-1 flex">
-        <blockquote
-          class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
-          :class="{
-            'text-sm': (quote.name || '').length > 200,
-            'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-            'text-lg': (quote.name || '').length <= 100
-          }"
+      <div class="quote-grid-item-body h-full flex flex-col">
+        <div 
+          :class="[
+            'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
+            isHovered ? 'opacity-100' : 'opacity-50'
+          ]"
         >
-          {{ quote.name }}
-        </blockquote>
-    </div>
+          <span
+            v-if="quote.author"
+            class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300 cursor-pointer"
+            @click.prevent.stop="navigateToAuthor(quote.author.id)"
+            @keyup.enter.prevent.stop="navigateToAuthor(quote.author.id)"
+            role="link"
+            tabindex="0"
+            :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+          >
+            {{ quote.author.name }}
+          </span>
+          <span
+            v-else
+            class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
+            :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+          >
+            Unknown Author
+          </span>
+          
+          <NDropdownMenu :items="menuItems">
+            <NButton
+              icon
+              btn="ghost-gray"
+              size="xs"
+              label="i-ph-dots-three-vertical"
+              class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
+              @click.stop
+              :title="'Quote actions'"
+            />
+          </NDropdownMenu>
+        </div>
 
-    <NBadge
-      v-if="quote.is_featured"
-      color="yellow"
-      badge="subtle"
-      size="xs"
-      class="absolute top-2 right-2"
-    >
-      Featured
-    </NBadge>
-  </NLink>
+        <!-- Quote Content (Main) -->
+        <div class="flex-1 flex">
+          <blockquote
+            class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+            :class="{
+              'text-sm': (quote.name || '').length > 200,
+              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-lg': (quote.name || '').length <= 100
+            }"
+          >
+            {{ quote.name }}
+          </blockquote>
+        </div>
 
-  <div v-else
-    :style="topicBorderStyle"
-    :class="{ 'has-topic-border': hasTopicBorder }"
-    class="quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col
-    dark:hover:border-gray-600 hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300 "
-    @click="navigateToQuote"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
-  >
-    <div 
+        <NBadge
+          v-if="quote.is_featured"
+          color="yellow"
+          badge="subtle"
+          size="xs"
+          class="absolute top-2 right-2"
+        >
+          Featured
+        </NBadge>
+      </div>
+    </NLink>
+
+    <div v-else
+      :style="cardStyle"
       :class="[
-        'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
-        isHovered ? 'opacity-100' : 'opacity-50'
+        'quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
+        'dark:hover:border-gray-600 hover:shadow-lg transition-all duration-300',
+        'hover:scale-101 active:scale-99 active:shadow-none',
+        {
+          'has-topic-border': hasTopicBorder,
+        }
       ]"
+      @click="navigateToQuote"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
     >
-      <NLink
-        v-if="quote.author"
-        :to="`/authors/${quote.author.id}`"
-        class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300"
-        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
-      >
-        {{ quote.author.name }}
-      </NLink>
-      <span
-        v-else
-        class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
-        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
-      >
-        Unknown Author
-      </span>
-      
-      <NDropdownMenu :items="menuItems">
-        <NButton
-          icon
-          btn="ghost-gray"
-          size="xs"
-          label="i-ph-dots-three-vertical"
-          class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
-          @click.stop
-          :title="'Quote actions'"
-        />
-      </NDropdownMenu>
-    </div>
-
-    <!-- Quote Content (Main) -->
-    <div class="flex-1 flex">
-        <blockquote
-          class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
-          :class="{
-            'text-sm': (quote.name || '').length > 200,
-            'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-            'text-lg': (quote.name || '').length <= 100
-          }"
+      <div class="quote-grid-item-body h-full flex flex-col">
+        <div 
+          :class="[
+            'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
+            isHovered ? 'opacity-100' : 'opacity-50'
+          ]"
         >
-          {{ quote.name }}
-        </blockquote>
-    </div>
+          <NLink
+            v-if="quote.author"
+            :to="`/authors/${quote.author.id}`"
+            class="text-gray-900 dark:text-gray-100 truncate transition-opacity duration-300"
+            :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+          >
+            {{ quote.author.name }}
+          </NLink>
+          <span
+            v-else
+            class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
+            :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
+          >
+            Unknown Author
+          </span>
+          
+          <NDropdownMenu :items="menuItems">
+            <NButton
+              icon
+              btn="ghost-gray"
+              size="xs"
+              label="i-ph-dots-three-vertical"
+              class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
+              @click.stop
+              :title="'Quote actions'"
+            />
+          </NDropdownMenu>
+        </div>
 
-    <NBadge
-      v-if="quote.is_featured"
-      color="yellow"
-      badge="subtle"
-      size="xs"
-      class="absolute top-2 right-2"
-    >
-      Featured
-    </NBadge>
+        <!-- Quote Content (Main) -->
+        <div class="flex-1 flex">
+          <blockquote
+            class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+            :class="{
+              'text-sm': (quote.name || '').length > 200,
+              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-lg': (quote.name || '').length <= 100
+            }"
+          >
+            {{ quote.name }}
+          </blockquote>
+        </div>
+
+        <NBadge
+          v-if="quote.is_featured"
+          color="yellow"
+          badge="subtle"
+          size="xs"
+          class="absolute top-2 right-2"
+        >
+          Featured
+        </NBadge>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -146,7 +167,16 @@
 import type { ProcessedQuoteResult } from '~~/server/types';
 import { getTopicBorderStyle } from '~/utils/tagAccent'
 
-const props = defineProps<{ quote: ProcessedQuoteResult; linkCard?: boolean }>()
+const props = withDefaults(defineProps<{
+  quote: ProcessedQuoteResult
+  linkCard?: boolean
+  animateEntrance?: boolean
+  entranceDelay?: number
+}>(), {
+  linkCard: false,
+  animateEntrance: false,
+  entranceDelay: 0
+})
 const emit = defineEmits<{
   (e: 'edit', quote: ProcessedQuoteResult): void
   (e: 'delete', quote: ProcessedQuoteResult): void
@@ -156,6 +186,20 @@ const emit = defineEmits<{
 const isHovered = ref(false)
 const topicBorderStyle = computed(() => getTopicBorderStyle(props.quote.tags))
 const hasTopicBorder = computed(() => (props.quote.tags?.length ?? 0) > 0)
+
+const cardContainerStyle = computed(() => {
+  if (!props.animateEntrance) return {}
+
+  return {
+    '--quote-card-enter-delay': `${props.entranceDelay}ms`
+  }
+})
+
+const cardStyle = computed(() => {
+  return {
+    ...(topicBorderStyle.value || {}),
+  }
+})
 
 const navigateToQuote = () => {
   navigateTo(`/quotes/${props.quote.id}`)
@@ -277,5 +321,32 @@ const shareQuote = async () => {
   border-color: var(--topic-border-color);
   border-image-source: var(--topic-border-image, none);
   border-image-slice: var(--topic-border-image-slice, 1);
+}
+
+.quote-grid-item-enter {
+  animation: quote-grid-item-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--quote-card-enter-delay, 0ms);
+  will-change: transform, opacity;
+}
+
+@keyframes quote-grid-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-grid-item-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
 }
 </style>

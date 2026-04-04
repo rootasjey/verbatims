@@ -32,10 +32,12 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
       <QuoteGridItem 
-        v-for="q in feed.quotes.value"
+        v-for="(q, index) in feed.quotes.value"
         link-card 
         :key="q.id" 
         :quote="q" 
+        animate-entrance
+        :entrance-delay="Math.min(index, 8) * 60"
         @edit="openEdit" 
         @delete="openDelete"
         @report="openReport" 
