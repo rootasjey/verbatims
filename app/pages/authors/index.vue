@@ -20,8 +20,6 @@
         :sort-options="sortOptions"
         v-model:mobile-filters-open="mobileFiltersOpen"
         @toggle-sort-order="toggleSortOrder"
-        @change-sort="loadAuthors"
-        @search-input="debouncedSearch"
       />
 
       <!-- Loading State -->
@@ -105,8 +103,12 @@
 </template>
 
 <script lang="ts" setup>
+import { useAuthorsListStore } from '~/stores/authors'
+import type { AuthorsListSnapshot } from '~/stores/authors'
+
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const authorsListStore = useAuthorsListStore()
 
 definePageMeta({
   layout: false
@@ -141,6 +143,27 @@ const startY = ref(0)
 const pullThreshold = 80
 const isSearching = ref(false)
 const mobileFiltersOpen = ref(false)
+const isRestoringState = ref(false)
+let cleanupInfiniteScroll: (() => void) | undefined
+
+const saveCurrentAuthorsState = () => {
+  authorsListStore.saveSnapshot({
+    authors: authors.value,
+    allFetchedAuthors: allFetchedAuthors.value,
+    currentPage: currentPage.value,
+    hasMore: hasMore.value,
+    totalAuthors: totalAuthors.value,
+    searchQuery: searchQuery.value,
+    sortBy: sortBy.value,
+    sortOrder: sortOrder.value,
+    scrollY: typeof window !== 'undefined' ? window.scrollY : 0
+  })
+}
+
+const debouncedSaveScrollState = useDebounceFn(() => {
+  if (isRestoringState.value) return
+  saveCurrentAuthorsState()
+}, 100)
 
 const sortOptions = [
   { label: 'Name', value: 'name' },
@@ -162,6 +185,24 @@ const openSubmitModal = () => { showSubmitModal.value = true }
 const clearFilters = async () => {
   searchQuery.value = ''
   await loadAuthors()
+}
+
+const restoreAuthorsState = async (snapshot: AuthorsListSnapshot) => {
+  isRestoringState.value = true
+
+  searchQuery.value = snapshot.searchQuery
+  sortBy.value = snapshot.sortBy
+  sortOrder.value = snapshot.sortOrder
+  authors.value = [...snapshot.authors]
+  allFetchedAuthors.value = [...snapshot.allFetchedAuthors]
+  currentPage.value = snapshot.currentPage
+  hasMore.value = snapshot.hasMore
+  totalAuthors.value = snapshot.totalAuthors
+  loading.value = false
+  loadingMore.value = false
+
+  await nextTick()
+  isRestoringState.value = false
 }
 
 const loadAuthors = async (reset = true) => {
@@ -296,6 +337,15 @@ const setupInfiniteScroll = () => {
   }
 }
 
+onUnmounted(() => {
+  cleanupInfiniteScroll?.()
+  cleanupInfiniteScroll = undefined
+
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('scroll', debouncedSaveScrollState)
+  }
+})
+
 // Helpers and handlers for mobile pull-up
 const atBottom = () => {
   const scrollEl = document.scrollingElement || document.documentElement
@@ -343,16 +393,53 @@ const onPullEnd = async () => {
 
 onMounted(() => {
   setPageLayout(currentLayout.value)
-  loadAuthors()
 
-  nextTick(() => {
-  // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
-  const cleanup = !isMobile.value ? setupInfiniteScroll() : undefined
+  if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', debouncedSaveScrollState, { passive: true })
+  }
 
-    onUnmounted(() => {
-      if (cleanup) cleanup()
-    })
-  })
+  const shouldRestore = authorsListStore.shouldRestore
+  const storedSnapshot = authorsListStore.snapshot
+  const snapshot = storedSnapshot
+    ? {
+        ...storedSnapshot,
+        authors: [...storedSnapshot.authors],
+        allFetchedAuthors: [...storedSnapshot.allFetchedAuthors]
+      }
+    : null
+
+  const initializePage = async () => {
+    if (shouldRestore && snapshot) {
+      await restoreAuthorsState(snapshot)
+      await nextTick()
+
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: snapshot.scrollY, behavior: 'auto' })
+      }
+
+      authorsListStore.clearRestoreRequest()
+    } else {
+      await loadAuthors()
+    }
+
+    await nextTick()
+    // Only enable auto infinite-scroll on desktop; mobile uses pull-up interaction
+    cleanupInfiniteScroll = !isMobile.value ? setupInfiniteScroll() : undefined
+  }
+
+  void initializePage()
+})
+
+onBeforeRouteLeave((to) => {
+  if (typeof window === 'undefined') return
+
+  saveCurrentAuthorsState()
+
+  if (to.path.startsWith('/authors/')) {
+    authorsListStore.requestRestore()
+  } else {
+    authorsListStore.clearRestoreRequest()
+  }
 })
 
 watch(currentLayout, (newLayout) => {
@@ -360,6 +447,8 @@ watch(currentLayout, (newLayout) => {
 })
 
 watch([sortBy], () => {
+  if (isRestoringState.value) return
+
   if (searchQuery.value) {
     performSearch(searchQuery.value)
   } else {
@@ -368,10 +457,24 @@ watch([sortBy], () => {
 })
 
 watch(searchQuery, (newQuery) => {
+  if (isRestoringState.value) return
+
   if (!newQuery || newQuery.trim().length === 0) {
     loadAuthors()
+    return
   }
+
+  debouncedSearch()
 })
+
+watch(
+  [authors, allFetchedAuthors, currentPage, hasMore, totalAuthors, searchQuery, sortBy, sortOrder],
+  () => {
+    if (isRestoringState.value) return
+    saveCurrentAuthorsState()
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>

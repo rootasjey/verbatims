@@ -17,6 +17,7 @@
         @share="shareQuote"
         @add-to-collection="addToCollection"
         @copy-link="copyLink"
+        @navigate-back="navigateToQuotesList"
       />
     </ClientOnly>
 
@@ -209,11 +210,13 @@
 </template>
 
 <script setup>import { useJsonLd } from '../../composables/useSeo'
+import { useQuotesFeedStore } from '~/stores/quotes'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
 const { user } = useUserSession()
 const copyState = ref('idle')
+const quotesFeedStore = useQuotesFeedStore()
 
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
@@ -609,6 +612,12 @@ const copyLink = async () => {
   }
 }
 
+const navigateToQuotesList = async () => {
+  const restorePath = quotesFeedStore.snapshot?.sourcePath || '/quotes'
+
+  await navigateTo(restorePath)
+}
+
 // Delay layout switch until Nuxt is fully hydrated to avoid hydration mismatch
 const hydrated = ref(false)
 
@@ -619,6 +628,19 @@ onMounted(() => {
 
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
+  }
+})
+
+onBeforeRouteLeave((to) => {
+  const restorePath = quotesFeedStore.snapshot?.sourcePath
+
+  if (to.path.startsWith('/quotes/') || (restorePath && to.path === restorePath)) {
+    return
+  }
+
+  if (!to.path.startsWith('/quotes')) {
+    quotesFeedStore.clearRestoreRequest()
+    quotesFeedStore.clearRestoreSnapshot()
   }
 })
 

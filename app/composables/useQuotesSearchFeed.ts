@@ -1,4 +1,5 @@
 import type { ProcessedQuoteResult, QuotesSearchPayload } from "~~/server/types"
+import type { QuoteFeedSnapshot } from '~/stores/quotes'
 
 type SortMode = 'relevance' | 'recent' | 'popular'
 
@@ -63,6 +64,8 @@ export function useQuoteSearchFeed() {
   }, 250)
 
   watch(searchQuery, () => {
+    currentPage.value = 1
+    additionalQuotes.value = []
     applyDebounce()
   })
 
@@ -70,6 +73,7 @@ export function useQuoteSearchFeed() {
     () => selectedSortBy.value?.value,
     () => {
       currentPage.value = 1
+      additionalQuotes.value = []
       applyDebounce()
     }
   )
@@ -77,6 +81,7 @@ export function useQuoteSearchFeed() {
     () => selectedSortOrder.value?.value,
     () => {
       currentPage.value = 1
+      additionalQuotes.value = []
       applyDebounce()
     }
   )
@@ -89,7 +94,7 @@ export function useQuoteSearchFeed() {
         q: debouncedQuery.value || undefined,
         sort,
         sortOrder: isAscending ? 'asc' : 'desc',
-        page: currentPage.value,
+        page: 1,
         limit,
         ...languageStore.getLanguageQuery()
       }
@@ -98,9 +103,9 @@ export function useQuoteSearchFeed() {
       () => languageStore.currentLanguageValue,
       () => selectedSortBy.value?.value,
       () => selectedSortOrder.value?.value,
-      () => debouncedQuery.value,
-      () => currentPage.value
+      () => debouncedQuery.value
     ],
+    immediate: false,
     server: false,
     default: () => ({
       success: true,
@@ -117,11 +122,6 @@ export function useQuoteSearchFeed() {
         hasMore: false
       }
     })
-  })
-
-  // Keep previous data during refetch and mark initial loading off after first success
-  watch(searchQuery, () => {
-    currentPage.value = 1
   })
 
   watch(quotesData, (val) => {
@@ -144,10 +144,6 @@ export function useQuoteSearchFeed() {
       if (initialLoading.value) initialLoading.value = false
     }
   }, { immediate: true })
-
-  watch(debouncedQuery, () => {
-    currentPage.value = 1
-  })
 
   const searchData = computed<QuotesSearchPayload | undefined>(() => {
     const data = quotesData.value?.data as any
@@ -214,8 +210,22 @@ export function useQuoteSearchFeed() {
       const response = await $fetch('/api/quotes/search', { query })
 
       if (response.data?.quotes) {
+        const responseData = response.data as QuotesSearchPayload
+
         additionalQuotes.value = [...additionalQuotes.value, ...(response.data.quotes as ProcessedQuoteResult[] || [])]
         currentPage.value = nextPage
+        lastSuccessfulMeta.value = {
+          total: typeof responseData.total === 'number' ? responseData.total : lastSuccessfulMeta.value.total,
+          page: typeof responseData.page === 'number' ? responseData.page : nextPage,
+          limit: typeof responseData.limit === 'number' ? responseData.limit : lastSuccessfulMeta.value.limit,
+          offset: typeof responseData.offset === 'number' ? responseData.offset : lastSuccessfulMeta.value.offset,
+          pageCount: typeof responseData.pageCount === 'number' ? responseData.pageCount : lastSuccessfulMeta.value.pageCount,
+          sort: responseData.sort || lastSuccessfulMeta.value.sort,
+          q: responseData.q ?? lastSuccessfulMeta.value.q,
+          hasMore: typeof (responseData as QuotesSearchPayload & { hasMore?: boolean }).hasMore === 'boolean'
+            ? Boolean((responseData as QuotesSearchPayload & { hasMore?: boolean }).hasMore)
+            : lastSuccessfulMeta.value.hasMore,
+        }
       }
     } catch (error) {
       console.error('Failed to load more quotes:', error)
@@ -259,10 +269,41 @@ export function useQuoteSearchFeed() {
     }
   }
 
-  const init = async () => {
+  const init = async (snapshot?: QuoteFeedSnapshot | null) => {
     await waitForLanguageStore()
+    if (snapshot) {
+      hydrateFromSnapshot(snapshot)
+      return
+    }
+
     await refresh()
   }
+
+  const hydrateFromSnapshot = (snapshot: QuoteFeedSnapshot) => {
+    searchQuery.value = snapshot.searchQuery
+    selectedSortBy.value = snapshot.selectedSortBy
+    selectedSortOrder.value = snapshot.selectedSortOrder
+    currentPage.value = snapshot.currentPage
+    additionalQuotes.value = [...snapshot.additionalQuotes]
+    lastSuccessfulQuotes.value = [...snapshot.lastSuccessfulQuotes]
+    lastSuccessfulMeta.value = { ...snapshot.lastSuccessfulMeta }
+    debouncedQuery.value = snapshot.searchQuery.trim()
+    initialLoading.value = false
+  }
+
+  const exportSnapshot = (): QuoteFeedSnapshot => ({
+    sourcePath: '',
+    searchQuery: searchQuery.value,
+    selectedSortBy: { ...selectedSortBy.value },
+    selectedSortOrder: { ...selectedSortOrder.value },
+    isAsc: isAsc.value,
+    currentPage: currentPage.value,
+    additionalQuotes: [...additionalQuotes.value],
+    lastSuccessfulQuotes: [...lastSuccessfulQuotes.value],
+    lastSuccessfulMeta: { ...lastSuccessfulMeta.value },
+    initialLoading: initialLoading.value,
+    scrollY: typeof window !== 'undefined' ? window.scrollY : 0
+  })
 
   return {
     // state
@@ -285,6 +326,8 @@ export function useQuoteSearchFeed() {
     refresh,
     loadMore,
     onLanguageChange,
+    hydrateFromSnapshot,
+    exportSnapshot,
 
     // options
     sortByOptions,

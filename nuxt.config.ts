@@ -150,7 +150,7 @@ export default defineNuxtConfig({
       appVersion: computeVersion(),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc',
       // Bump to invalidate all previously rendered OG images
-      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '1'
+      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '2'
     }
   },
 

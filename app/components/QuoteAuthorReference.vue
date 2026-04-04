@@ -8,11 +8,8 @@
           :alt="quote.author.name"
           size="xl"
           :class="[
-            'border-1 b-transparent shadow-sm hover:scale-105 active:scale-99 transition-transform',
-            quote.author.is_fictional
-              ? 'shadow-pink-500/75 hover:shadow-pink-500 active:shadow-none'
-              : 'shadow-blue-500/75 hover:shadow-blue-500 active:shadow-none',
-            quote.author.is_fictional ? 'hover:b-pink-500' : 'hover:b-blue-600'
+            'border-1 b-transparent shadow-sm hover:scale-105 active:scale-99 hover:shadow-lg active:shadow-none transition-transform',
+            quote.author.is_fictional ? 'hover:b-purple' : 'hover:b-blue-600'
           ]"
         />
       </NuxtLink>

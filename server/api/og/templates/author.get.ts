@@ -39,8 +39,7 @@ export default defineEventHandler(async (event) => {
       body {
         width: 1200px;
         height: 630px;
-        background: radial-gradient(1200px 630px at 100% 0, rgba(60, 130, 246, 0.22), transparent 55%),
-                    linear-gradient(180deg, var(--bg-start), var(--bg-end));
+        background: #000000;
         color: var(--fg);
         font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         display: flex;
