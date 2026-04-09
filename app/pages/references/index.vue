@@ -96,6 +96,7 @@
 import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
 import { useDebounceFn } from '@vueuse/core'
 import { useReferencesListStore } from '~/stores/references'
+import { useJsonLd } from '~/composables/useSeo'
 import type { ReferencesListSnapshot } from '~/stores/references'
 
 const { isMobile } = useMobileDetection()
@@ -113,6 +114,15 @@ useHead({
       name: 'description', 
       content: 'Browse quote references and discover the sources behind inspiring quotes. From books and films to speeches and more.',
     }
+  ]
+})
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: 'References', item: 'https://verbatims.cc/references' }
   ]
 })
 

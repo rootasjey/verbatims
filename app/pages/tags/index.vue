@@ -80,6 +80,7 @@
 
 <script lang="ts" setup>
 import { useDebounceFn } from '@vueuse/core'
+import { useJsonLd } from '~/composables/useSeo'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
@@ -95,6 +96,15 @@ useHead({
       name: 'description',
       content: 'Browse tags and explore quote topics across Verbatims.'
     }
+  ]
+})
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: 'Tags', item: 'https://verbatims.cc/tags' }
   ]
 })
 

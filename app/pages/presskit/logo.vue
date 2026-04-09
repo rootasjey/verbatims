@@ -79,6 +79,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useVerbatimsSeo } from '~/composables/useSeo'
+
+useVerbatimsSeo({
+  title: 'Press Kit & Logo - Verbatims',
+  description: 'Download Verbatims brand assets: logos, bar variants, and visual identity resources for press and media use.',
+  type: 'website'
+})
 
 type Format = 'png' | 'jpeg' | 'svg'
 

@@ -30,6 +30,9 @@ export default defineNuxtConfig({
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { property: 'og:url', content: 'https://verbatims.cc' },
+        { property: 'og:locale', content: 'en_US' },
+        { property: 'og:locale:alternate', content: 'fr_FR' },
+        { property: 'og:locale:alternate', content: 'la_VA' },
         
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
@@ -38,11 +41,16 @@ export default defineNuxtConfig({
         { name: 'twitter:image', content: `${normalizedSiteUrl}/api/og/default.png` },
         
         // Additional meta tags
-        { name: 'theme-color', content: '#0BA6DF' }
+        { name: 'theme-color', content: '#0BA6DF' },
+        
+        // Search engine verification (set via env vars)
+        ...(process.env.NUXT_PUBLIC_GSC_VERIFICATION ? [{ name: 'google-site-verification', content: process.env.NUXT_PUBLIC_GSC_VERIFICATION }] : []),
+        ...(process.env.NUXT_PUBLIC_BING_VERIFICATION ? [{ name: 'msvalidate.01', content: process.env.NUXT_PUBLIC_BING_VERIFICATION }] : [])
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/images/favicon-192.png' },
+        { rel: 'manifest', href: '/manifest.json' },
         { rel: 'canonical', href: 'https://verbatims.cc' }
       ]
     }
@@ -150,7 +158,10 @@ export default defineNuxtConfig({
       appVersion: computeVersion(),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc',
       // Bump to invalidate all previously rendered OG images
-      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '2'
+      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '2',
+      // Search engine verification (leave empty to skip)
+      gscVerification: process.env.NUXT_PUBLIC_GSC_VERIFICATION || '',
+      bingVerification: process.env.NUXT_PUBLIC_BING_VERIFICATION || ''
     }
   },
 
@@ -178,7 +189,11 @@ export default defineNuxtConfig({
     '/login': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/signup': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/onboarding/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
-    '/api/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } }
+    '/api/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/about': { swr: 3600 },
+    '/terms': { swr: 86400 },
+    '/privacy': { swr: 86400 },
+    '/presskit/**': { swr: 86400 }
   },  // Image optimization
   image: {
     provider: 'cloudflare',

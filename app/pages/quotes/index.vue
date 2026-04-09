@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { useJsonLd } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const quotesFeedStore = useQuotesFeedStore()
@@ -40,6 +41,15 @@ useHead({
       name: 'description',
       content: 'Discover the most recently added quotes on Verbatims.'
     }
+  ]
+})
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: 'Quotes', item: 'https://verbatims.cc/quotes' }
   ]
 })
 
