@@ -269,6 +269,7 @@
 import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
 import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+import { useVerbatimsSeo } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
@@ -280,14 +281,10 @@ definePageMeta({
   keepalive: true
 })
 
-useHead({
-  title: 'verbatims - search',
-  meta: [
-    {
-      name: 'description',
-      content: 'Search quotes, authors, and references on Verbatims. Find inspiring quotes from books, films, and more.',
-    }
-  ]
+useVerbatimsSeo({
+  title: 'Search - Verbatims',
+  description: 'Search quotes, authors, and references on Verbatims. Find inspiring quotes from books, films, games, and more.',
+  type: 'website'
 })
 
 const suggestions = ref(searchStore.getRandomSuggestedSearch(5))
