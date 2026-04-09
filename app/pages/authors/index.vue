@@ -84,6 +84,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useJsonLd } from '~/composables/useSeo'
 import { useAuthorsListStore } from '~/stores/authors'
 import type { AuthorsListSnapshot } from '~/stores/authors'
 
@@ -102,6 +103,15 @@ useHead({
       name: 'description', 
       content: 'Browse authors and discover their most inspiring quotes. From historical figures to fictional characters.',
     }
+  ]
+})
+
+useJsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: 'Authors', item: 'https://verbatims.cc/authors' }
   ]
 })
 
