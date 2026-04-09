@@ -19,7 +19,7 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'A comprehensive, user-generated quotes service' },
+        { name: 'description', content: 'Discover inspiring quotes from films, books, games, and more. Verbatims is a comprehensive, user-generated quotes database.' },
         
         // Open Graph / Facebook
         { property: 'og:type', content: 'website' },
@@ -155,8 +155,30 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    // The module will auto-generate routes based on the pages directory.
-    // For dynamic routes, you can provide a custom function if needed.
+    sources: [
+      '/api/_sitemap-urls'
+    ],
+    exclude: [
+      '/admin/**',
+      '/dashboard/**',
+      '/login',
+      '/signup',
+      '/onboarding/**',
+      '/api/**'
+    ],
+    defaults: {
+      changefreq: 'weekly',
+      priority: 0.5
+    }
+  },
+
+  routeRules: {
+    '/admin/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/dashboard/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/login': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/signup': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/onboarding/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/api/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } }
   },  // Image optimization
   image: {
     provider: 'cloudflare',

@@ -156,6 +156,8 @@
 </template>
 
 <script setup lang="ts">
+import { useVerbatimsSeo } from '~/composables/useSeo'
+
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
@@ -262,18 +264,24 @@ const onLanguageChange = async () => {
   await loadQuotes(true)
 }
 
+useVerbatimsSeo(() => {
+  const tagName = tag.value?.name
+  if (!tagName) {
+    return {
+      title: 'Tag - Verbatims',
+      description: 'Browse quotes by tag on Verbatims.',
+      type: 'website'
+    }
+  }
+  return {
+    title: `#${tagName} - Verbatims`,
+    description: tag.value?.description || `Browse quotes tagged with ${tagName} on Verbatims.`,
+    type: 'website'
+  }
+})
+
 watch(tag, (value) => {
   if (value?.name) {
-    useHead({
-      title: `#${value.name} - Verbatims`,
-      meta: [
-        {
-          name: 'description',
-          content: value.description || `Browse quotes tagged with ${value.name} on Verbatims.`
-        }
-      ]
-    })
-
     loadQuotes()
   }
 }, { immediate: true })
