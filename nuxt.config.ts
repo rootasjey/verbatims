@@ -150,6 +150,8 @@ export default defineNuxtConfig({
     dataVerificationAuthorStaleDays: process.env.NUXT_DATA_VERIFICATION_AUTHOR_STALE_DAYS || '180',
     dataVerificationReferenceStaleDays: process.env.NUXT_DATA_VERIFICATION_REFERENCE_STALE_DAYS || '365',
     dataVerificationReviewGraceDays: process.env.NUXT_DATA_VERIFICATION_REVIEW_GRACE_DAYS || '14',
+    resendApiKey: process.env.NUXT_RESEND_API_KEY || '',
+    emailFromAddress: process.env.NUXT_EMAIL_FROM_ADDRESS || 'Verbatims <noreply@verbatims.cc>',
 
     // Public keys (exposed to client-side)
     public: {
