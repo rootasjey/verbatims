@@ -3,6 +3,7 @@ import { db, schema } from 'hub:db'
 import { eq, or } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { validLanguages } from '../../utils/validation/reference'
+import { sendVerificationEmail } from '../../utils/email'
 
 const bodySchema = z.object({
   name: z.string().min(2).max(50),
@@ -70,6 +71,20 @@ export default defineEventHandler(async (event) => {
     }
 
     await setUserSession(event, { user })
+
+    // Send email verification (best effort — don't block registration)
+    try {
+      const verificationToken = crypto.randomUUID()
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+      await db.insert(schema.emailVerificationTokens).values({
+        userId: result.id,
+        token: verificationToken,
+        expiresAt,
+      })
+      await sendVerificationEmail(event, email, verificationToken)
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError)
+    }
 
     return {
       message: 'Account created successfully',

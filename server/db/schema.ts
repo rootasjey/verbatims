@@ -284,6 +284,32 @@ export const collectionQuotes = sqliteTable('collection_quotes', {
   pk: primaryKey({ columns: [table.collectionId, table.quoteId] }),
 }))
 
+export const passwordResetTokens = sqliteTable('password_reset_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  tokenIdx: index('idx_password_reset_tokens_token').on(table.token),
+  userIdx: index('idx_password_reset_tokens_user').on(table.userId),
+  expiresIdx: index('idx_password_reset_tokens_expires').on(table.expiresAt),
+}))
+
+export const emailVerificationTokens = sqliteTable('email_verification_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  tokenIdx: index('idx_email_verification_tokens_token').on(table.token),
+  userIdx: index('idx_email_verification_tokens_user').on(table.userId),
+  expiresIdx: index('idx_email_verification_tokens_expires').on(table.expiresAt),
+}))
+
 export const userSessions = sqliteTable('user_sessions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
