@@ -66,7 +66,7 @@ export const QuoteSchema = z.object({
       return s === '' ? null : s
     }
     return v
-  }, z.enum(['draft','pending','approved','rejected'])).nullable().optional(),
+  }, z.enum(['harvested','draft','pending','approved','rejected'])).nullable().optional(),
   moderator_id: z.number().int().positive().nullable().optional(),
   moderated_at: z.string().nullable().optional(),
   rejection_reason: z.string().nullable().optional(),
