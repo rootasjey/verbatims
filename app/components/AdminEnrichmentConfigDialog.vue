@@ -1,5 +1,5 @@
 <template>
-  <NDialog v-model:open="isOpen" scrollable>
+  <NDialog v-model:open="isOpen" scrollable :una="{ dialogContent: 'md:max-w-3xl' }">
     <template #header>
       <div class="p-2 space-y-1">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
