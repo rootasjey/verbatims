@@ -83,6 +83,9 @@ export default defineNuxtConfig({
       wasm: true,
       tasks: true
     },
+    rollupConfig: {
+      external: [/^@react-email/]
+    },
     scheduledTasks: {
       // 08:08 Europe/Paris during daylight saving time (UTC+2)
       '8 6 * * *': ['social:autopost'],
