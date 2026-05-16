@@ -337,6 +337,17 @@
     @apply="applySelectedEnrichment"
   />
 
+  <AdminEnrichmentConfigDialog
+    :open="showEnrichmentConfigDialog"
+    :loading="enrichmentConfigLoading"
+    :saving="enrichmentConfigSaving"
+    :updated-at="enrichmentConfigUpdatedAt"
+    :form="enrichmentConfigForm"
+    :sources="enrichmentConfigSources"
+    @update:open="showEnrichmentConfigDialog = $event"
+    @save="saveEnrichmentConfig"
+  />
+
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
     <NCard>
@@ -388,6 +399,24 @@ const enrichmentReferenceTarget = ref<QuoteReferenceWithMetadata | null>(null)
 const enrichmentPreview = ref<any | null>(null)
 const enrichmentJobId = ref<number | null>(null)
 const selectedEnrichmentFields = ref<string[]>([])
+
+const showEnrichmentConfigDialog = ref(false)
+const enrichmentConfigLoading = ref(false)
+const enrichmentConfigSaving = ref(false)
+const enrichmentConfigUpdatedAt = ref<string | null>(null)
+const enrichmentConfigSources = ref<Record<string, 'kv' | 'env' | 'default' | 'none'>>({})
+const enrichmentConfigForm = reactive({
+  scheduleEnabled: true,
+  processEnabled: true,
+  scheduleBatchSize: '25',
+  processBatchSize: '3',
+  authorStaleDays: '180',
+  referenceStaleDays: '365',
+  reviewGraceDays: '14',
+  authorMatchMinScore: '60',
+  referenceMatchMinScore: '58',
+  ambiguousMatchGap: '5',
+})
 
 // Bulk selection state
 const selectionMode = ref(false)
@@ -502,6 +531,11 @@ const headerActions = computed(() => {
     onclick: () => { showAddReferenceDialog.value = true }
   })
   actions.push({})
+  actions.push({
+    label: 'Enrichment settings',
+    leading: 'i-ph-sliders-horizontal',
+    onclick: () => openEnrichmentConfigDialog()
+  })
   actions.push({
     label: 'Refresh',
     leading: 'i-ph-arrows-clockwise',
@@ -827,6 +861,89 @@ const applySelectedEnrichment = async () => {
     })
   } finally {
     enrichmentApplying.value = false
+  }
+}
+
+const openEnrichmentConfigDialog = async () => {
+  enrichmentConfigLoading.value = true
+  showEnrichmentConfigDialog.value = true
+
+  try {
+    const configUrl = '/api/admin/enrichment/config' as string
+    const response = await ($fetch as any)(configUrl) as {
+      data?: {
+        updatedAt: string | null
+        values: Record<string, string | number | boolean>
+        sources: Record<string, 'kv' | 'env' | 'default' | 'none'>
+      }
+    }
+
+    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null
+    enrichmentConfigSources.value = response.data?.sources || {}
+    enrichmentConfigForm.scheduleEnabled = Boolean(response.data?.values?.scheduleEnabled)
+    enrichmentConfigForm.processEnabled = Boolean(response.data?.values?.processEnabled)
+    enrichmentConfigForm.scheduleBatchSize = String(response.data?.values?.scheduleBatchSize || '25')
+    enrichmentConfigForm.processBatchSize = String(response.data?.values?.processBatchSize || '3')
+    enrichmentConfigForm.authorStaleDays = String(response.data?.values?.authorStaleDays || '180')
+    enrichmentConfigForm.referenceStaleDays = String(response.data?.values?.referenceStaleDays || '365')
+    enrichmentConfigForm.reviewGraceDays = String(response.data?.values?.reviewGraceDays || '14')
+    enrichmentConfigForm.authorMatchMinScore = String(response.data?.values?.authorMatchMinScore || '60')
+    enrichmentConfigForm.referenceMatchMinScore = String(response.data?.values?.referenceMatchMinScore || '58')
+    enrichmentConfigForm.ambiguousMatchGap = String(response.data?.values?.ambiguousMatchGap || '5')
+  } catch (error: any) {
+    useToast().toast({
+      title: 'Failed to load settings',
+      description: error?.data?.statusMessage || error?.message || 'Could not load enrichment settings.',
+      toast: 'error'
+    })
+    showEnrichmentConfigDialog.value = false
+  } finally {
+    enrichmentConfigLoading.value = false
+  }
+}
+
+const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
+  enrichmentConfigSaving.value = true
+  try {
+    const configUrl = '/api/admin/enrichment/config' as string
+    const response = await ($fetch as any)(configUrl, {
+      method: 'POST',
+      body: {
+        scheduleEnabled: form.scheduleEnabled,
+        processEnabled: form.processEnabled,
+        scheduleBatchSize: Number(form.scheduleBatchSize),
+        processBatchSize: Number(form.processBatchSize),
+        authorStaleDays: Number(form.authorStaleDays),
+        referenceStaleDays: Number(form.referenceStaleDays),
+        reviewGraceDays: Number(form.reviewGraceDays),
+        authorMatchMinScore: Number(form.authorMatchMinScore),
+        referenceMatchMinScore: Number(form.referenceMatchMinScore),
+        ambiguousMatchGap: Number(form.ambiguousMatchGap),
+      }
+    }) as {
+      data?: {
+        updatedAt: string | null
+        values: Record<string, string | number | boolean>
+        sources: Record<string, 'kv' | 'env' | 'default' | 'none'>
+      }
+    }
+
+    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null
+    enrichmentConfigSources.value = response.data?.sources || {}
+    useToast().toast({
+      title: 'Enrichment settings saved',
+      description: 'KV overrides are now active for the enrichment scheduler and processor.',
+      toast: 'success'
+    })
+    showEnrichmentConfigDialog.value = false
+  } catch (error: any) {
+    useToast().toast({
+      title: 'Save failed',
+      description: error?.data?.statusMessage || error?.message || 'Could not save enrichment settings.',
+      toast: 'error'
+    })
+  } finally {
+    enrichmentConfigSaving.value = false
   }
 }
 
