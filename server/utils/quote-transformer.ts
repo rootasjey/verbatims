@@ -17,6 +17,8 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
     likes_count: quote.likes_count,
     shares_count: quote.shares_count,
     is_featured: quote.is_featured,
+    source_type: (quote as any).source_type,
+    source_url: (quote as any).source_url,
     created_at: quote.created_at,
     updated_at: quote.updated_at,
     author: quote.author_id ? {

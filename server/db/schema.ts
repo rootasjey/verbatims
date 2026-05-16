@@ -9,6 +9,7 @@ import {
   ENRICHMENT_TRIGGER_SOURCES,
   ENRICHMENT_VERIFICATION_STATUSES,
 } from '#shared/constants/enrichment'
+import { HARVEST_SOURCE_TYPES, HARVEST_LOG_STATUSES } from '#shared/constants/harvest'
 
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -176,7 +177,9 @@ export const quotes = sqliteTable('quotes', {
   authorId: integer('author_id').references(() => authors.id),
   referenceId: integer('reference_id').references(() => quoteReferences.id),
   userId: integer('user_id').notNull().references(() => users.id),
-  status: text('status', { enum: ['draft', 'pending', 'approved', 'rejected'] }).default('draft'),
+  status: text('status', { enum: ['harvested', 'draft', 'pending', 'approved', 'rejected'] }).default('draft'),
+  sourceType: text('source_type', { enum: HARVEST_SOURCE_TYPES }),
+  sourceUrl: text('source_url'),
   moderatorId: integer('moderator_id').references(() => users.id),
   moderatedAt: integer('moderated_at', { mode: 'timestamp' }),
   rejectionReason: text('rejection_reason'),
@@ -194,6 +197,7 @@ export const quotes = sqliteTable('quotes', {
   createdIdx: index('idx_quotes_created').on(table.createdAt),
   featuredIdx: index('idx_quotes_featured').on(table.isFeatured),
   languageIdx: index('idx_quotes_language').on(table.language),
+  sourceTypeIdx: index('idx_quotes_source_type').on(table.sourceType),
 }))
 
 export const socialQueue = sqliteTable('social_queue', {
@@ -441,6 +445,49 @@ export const importLogs = sqliteTable('import_logs', {
   importIdx: index('idx_import_logs_import_id').on(table.importId),
   statusIdx: index('idx_import_logs_status').on(table.status),
   createdIdx: index('idx_import_logs_created').on(table.createdAt),
+}))
+
+export const harvestSources = sqliteTable('harvest_sources', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  type: text('type', { enum: HARVEST_SOURCE_TYPES }).notNull(),
+  baseUrl: text('base_url').notNull(),
+  language: text('language').default('en'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  config: text('config').default('{}'),
+  lastHarvestedAt: integer('last_harvested_at', { mode: 'timestamp' }),
+  totalHarvested: integer('total_harvested').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  slugIdx: uniqueIndex('idx_harvest_sources_slug').on(table.slug),
+  typeIdx: index('idx_harvest_sources_type').on(table.type),
+  activeIdx: index('idx_harvest_sources_active').on(table.isActive),
+}))
+
+export const harvestLogs = sqliteTable('harvest_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  sourceId: integer('source_id').references(() => harvestSources.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  status: text('status', { enum: HARVEST_LOG_STATUSES }).notNull().default('pending'),
+  sourceType: text('source_type', { enum: HARVEST_SOURCE_TYPES }).notNull(),
+  sourcePageSlug: text('source_page_slug'),
+  sourcePageUrl: text('source_page_url'),
+  quotesFound: integer('quotes_found').default(0),
+  quotesImported: integer('quotes_imported').default(0),
+  quotesSkipped: integer('quotes_skipped').default(0),
+  authorsCreated: integer('authors_created').default(0),
+  referencesCreated: integer('references_created').default(0),
+  errorMessage: text('error_message'),
+  startedAt: integer('started_at', { mode: 'timestamp' }),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  sourceIdx: index('idx_harvest_logs_source').on(table.sourceId),
+  userIdx: index('idx_harvest_logs_user').on(table.userId),
+  statusIdx: index('idx_harvest_logs_status').on(table.status),
+  createdIdx: index('idx_harvest_logs_created').on(table.createdAt),
 }))
 
 export const backupFiles = sqliteTable('backup_files', {

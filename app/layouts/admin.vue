@@ -205,6 +205,24 @@
                 </NuxtLink>
               </NTooltip>
 
+              <NTooltip :content="sidebarCollapsed ? 'Harvest Quotes' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/harvest"
+                  :class="[
+                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    $route.path === '/admin/harvest'
+                      ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-dashed border-violet-200 dark:border-violet-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <NIcon name="i-ph-plant" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Harvest Quotes</span>
+                  <NBadge v-if="!sidebarCollapsed && harvestedCount > 0" :label="`${harvestedCount}`" badge="solid-purple" size="xs" class="ml-auto" />
+                </NuxtLink>
+              </NTooltip>
+
               <!-- Tags -->
               <NTooltip :content="sidebarCollapsed ? 'Tags' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
@@ -376,6 +394,7 @@ const sidebarCollapsed = ref(false)
 const publishedCount = ref(0)
 const pendingCount = ref(0)
 const draftCount = ref(0)
+const harvestedCount = ref(0)
 
 const pageHeader = usePageHeader()
 
@@ -394,6 +413,7 @@ const loadQuoteCounts = async () => {
       publishedCount.value = stats.data.quotes.approved || 0
       pendingCount.value = stats.data.quotes.pending || 0
       draftCount.value = stats.data.quotes.draft || 0
+      harvestedCount.value = stats.data.quotes.harvested || 0
     }
   } catch (error) {
     console.error('Failed to load admin quote counts:', error)
