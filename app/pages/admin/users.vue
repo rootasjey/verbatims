@@ -1,8 +1,8 @@
 <template>
   <div class="group flex flex-col h-full">
     <!-- Table View -->
-    <div class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
-      <div class="users-table-container flex-1 overflow-auto">
+    <div class="flex-1 flex flex-col">
+      <div class="users-table-container flex-1 overflow-auto border rounded-2">
         <NTable
           :columns="tableColumns"
           :data="users"
@@ -10,6 +10,12 @@
           manual-pagination
           empty-text="No users found"
           empty-icon="i-ph-users"
+          :una="{
+            tableRoot: '!overflow-visible border-none',
+            scrollAreaRoot: '!overflow-visible',
+            tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableBody: 'bg-white dark:bg-[#0C0A09]'
+          }"
         >
           <template #select-header>
             <div>
@@ -192,7 +198,7 @@
           :sibling-count="2"
           show-edges
           size="sm"
-          pagination-selected="solid-indigo" 
+          pagination-selected="solid-indigo"
         />
       </div>
     </div>
@@ -362,7 +368,7 @@ const headerActions = computed(() => {
     })
     actions.push({})
   }
-  
+
   if (actions.length > 0) actions.push({})
   actions.push({
     label: 'Add New User',
@@ -527,5 +533,17 @@ onMounted(() => {
 <style scoped>
 .users-table-container {
   max-height: calc(100vh - 20rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.users-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.users-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 </style>

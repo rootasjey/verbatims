@@ -1,7 +1,5 @@
 <template>
   <div class="frame flex flex-col h-full">
-
-
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
       <!-- First-load Skeleton State -->
@@ -34,13 +32,19 @@
       </div>
 
       <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+      <div v-else class="flex-1 flex flex-col">
         <!-- Scrollable Table Container -->
-        <div class="group quotes-table-container flex-1 overflow-auto">
+        <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
           <NTable
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
+            :una="{
+              tableRoot: '!overflow-visible border-none',
+              scrollAreaRoot: '!overflow-visible',
+              tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+              tableBody: 'bg-white dark:bg-[#0C0A09]'
+            }"
             manual-pagination
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
@@ -278,7 +282,7 @@ const pageSize = ref(50)
 const totalQuotes = ref(0)
 
 const languageStore = useLanguageStore()
-const languageOptions = computed(() => 
+const languageOptions = computed(() =>
   languageStore.availableLanguages.map((lang: LanguageOption) => ({
     label: lang.display,
     value: lang.value === 'all' ? '' : lang.value // Map 'all' to empty string for filter logic
@@ -658,6 +662,19 @@ watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () =>
 <style scoped>
 .quotes-table-container {
   max-height: calc(100vh - 11rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+
+.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 
 .frame {

@@ -31,13 +31,19 @@
       </div>
 
       <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+      <div v-else class="flex-1 flex flex-col">
         <!-- Scrollable Table Container -->
-        <div class="group quotes-table-container flex-1 overflow-auto">
+        <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
           <NTable
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
+            :una="{
+              tableRoot: '!overflow-visible border-none',
+              scrollAreaRoot: '!overflow-visible',
+              tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+              tableBody: 'bg-white dark:bg-[#0C0A09]'
+            }"
             manual-pagination
             empty-text="No draft quotes found"
             empty-icon="i-ph-file-dashed"
@@ -203,7 +209,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+        <div class="flex-shrink-0 flex items-center justify-between p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
@@ -220,8 +226,8 @@
       </div>
     </div>
 
-    <AdminQuoteDetailDialog 
-      v-model:open="showQuoteDialog" 
+    <AdminQuoteDetailDialog
+      v-model:open="showQuoteDialog"
       :quote="selectedQuote"
       @edit="editQuote"
     />
@@ -287,7 +293,7 @@ const selectedQuotes = computed<number[]>(() => Object
   .map(([k]) => Number(k)))
 
 // Get actual quote data for selected quotes
-const selectedQuotesData = computed<AdminQuote[]>(() => 
+const selectedQuotesData = computed<AdminQuote[]>(() =>
   quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
 )
 
@@ -498,7 +504,7 @@ const loadQuotes = async (page = currentPage.value) => {
         language: selectedLanguage.value.value || undefined
       }
     })
-    
+
     quotes.value = (response.data as any) || []
     totalQuotes.value = response.pagination?.total || 0
     // clear any multi‑selection when data refreshes
@@ -604,7 +610,7 @@ const deleteDraft = async () => {
     quotes.value = quotes.value.filter(q => q.id !== selectedQuote.value?.id)
     showDeleteModal.value = false
     selectedQuote.value = null
-    
+
     useToast().toast({
       toast: 'success',
       title: 'Draft Deleted',
@@ -699,7 +705,19 @@ onBeforeUnmount(() => {
 <style scoped>
 .quotes-table-container {
   min-height: 400px;
-  max-height: calc(100vh - 22rem);
+  max-height: calc(100vh - 11rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 
 .frame {
