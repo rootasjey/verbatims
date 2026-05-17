@@ -139,13 +139,15 @@
         </div>
       </div>
 
-      <AddToCollectionDrawer
-        v-if="selectedQuote && isMobile"
-        :open="showAddToCollectionDrawer"
-        :quote="selectedQuote"
-        @update:open="val => (showAddToCollectionDrawer = val)"
-        @added="handleAddedToCollection"
-      />
+      <ClientOnly>
+        <AddToCollectionDrawer
+          v-if="selectedQuote && isMobile"
+          :open="showAddToCollectionDrawer"
+          :quote="selectedQuote"
+          @update:open="val => (showAddToCollectionDrawer = val)"
+          @added="handleAddedToCollection"
+        />
+      </ClientOnly>
     </div>
 
     <!-- Desktop: existing table UI -->
@@ -388,19 +390,23 @@
         </div>
       </div>
 
-      <AddToCollectionModal
-        v-if="selectedQuote && !isMobile"
-        v-model="showAddToCollectionModal"
-        :quote="selectedQuote"
-        @added="handleAddedToCollection"
-      />
+      <ClientOnly>
+        <AddToCollectionModal
+          v-if="selectedQuote && !isMobile"
+          v-model="showAddToCollectionModal"
+          :quote="selectedQuote"
+          @added="handleAddedToCollection"
+        />
+      </ClientOnly>
 
-      <AddToCollectionBulkModal
-        v-if="selectedQuotes.length > 0"
-        v-model="showBulkAddToCollection"
-        :quote-ids="selectedQuotes"
-        @added="handleBulkAddedToCollection"
-      />
+      <ClientOnly>
+        <AddToCollectionBulkModal
+          v-if="selectedQuotes.length > 0"
+          v-model="showBulkAddToCollection"
+          :quote-ids="selectedQuotes"
+          @added="handleBulkAddedToCollection"
+        />
+      </ClientOnly>
     </div>
   </div>
 </template>
@@ -416,7 +422,7 @@ interface DashboardQuote extends QuoteWithRelations {
 }
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 

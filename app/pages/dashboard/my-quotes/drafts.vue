@@ -380,37 +380,44 @@
       </div>
     </div>
 
-    <DeleteDraftDialog
-      v-model:open="showDeleteModal"
-      :deleting="deleting"
-      @delete-draft="deleteDraft"
-    />
+    <ClientOnly>
+      <DeleteDraftDialog
+        v-model:open="showDeleteModal"
+        :deleting="deleting"
+        @delete-draft="deleteDraft"
+      />
+    </ClientOnly>
 
-    <DeleteQuoteInBulkDialog
-      v-model:open="showBulkDeleteModal"
-      :deleting="bulkProcessing"
-      :selected-quotes="selectedQuotesData"
-      @bulk-delete="bulkDelete"
-    />
+    <ClientOnly>
+      <DeleteQuoteInBulkDialog
+        v-model:open="showBulkDeleteModal"
+        :deleting="bulkProcessing"
+        :selected-quotes="selectedQuotesData"
+        @bulk-delete="bulkDelete"
+      />
+    </ClientOnly>
 
-    <AddQuoteDialog
-      v-model="showEditQuoteDialog"
-      :edit-quote="selectedQuote"
-      @quote-updated="onQuoteUpdated"
-    />
+    <ClientOnly>
+      <AddQuoteDialog
+        v-model="showEditQuoteDialog"
+        :edit-quote="selectedQuote"
+        @quote-updated="onQuoteUpdated"
+      />
+    </ClientOnly>
 
-    <EditQuoteDrawer
-      v-model:open="showEditQuoteDrawer"
-      :edit-quote="selectedQuote"
-      @submitted="onQuoteUpdated"
-    />
+    <ClientOnly>
+      <EditQuoteDrawer
+        v-model:open="showEditQuoteDrawer"
+        :edit-quote="selectedQuote"
+        @submitted="onQuoteUpdated"
+      />
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
 import { formatDate, getDateTimestamp } from '~/utils/time-formatter'
-import { useQuoteSubmissionEligibility } from '~/composables/useQuotePostingEligibility';
 
 // Extended interface for dashboard quotes with additional fields
 interface DashboardQuote extends QuoteWithRelations {
@@ -419,7 +426,7 @@ interface DashboardQuote extends QuoteWithRelations {
 }
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 
@@ -473,7 +480,25 @@ const selectedQuotesData = computed<DashboardQuote[]>(() =>
   quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
 )
 
-const { canSubmitForReview, restrictionMessage: submissionRestrictionMessage } = useQuoteSubmissionEligibility(user)
+// Defer eligibility check until user is available (avoids SSR hydration issues)
+const canSubmitForReview = computed(() => {
+  if (!user.value) return true
+  if (user.value.role !== 'user') return true
+  if (!user.value.email_verified) return false
+
+  const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
+  const createdAtMs = new Date(user.value.created_at || '').getTime()
+  if (!Number.isFinite(createdAtMs)) return false
+
+  return Date.now() - createdAtMs >= ONE_WEEK_MS
+})
+
+const submissionRestrictionMessage = computed(() => {
+  if (canSubmitForReview.value) return ''
+  if (!user.value || user.value.role !== 'user') return ''
+  if (!user.value.email_verified) return 'Verify your email before submitting drafts for review.'
+  return 'Your account must be at least 7 days old before submitting drafts for review.'
+})
 
 // Visible ids based on current filteredQuotes page
 const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
