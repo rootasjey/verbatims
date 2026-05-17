@@ -90,10 +90,17 @@ import type { AuthorsListSnapshot } from '~/stores/authors'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
 const authorsListStore = useAuthorsListStore()
 
 definePageMeta({
-  layout: false
+  layout: 'default'
 })
 
 useHead({
@@ -307,8 +314,6 @@ onUnmounted(() => {
 
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
-
   if (typeof window !== 'undefined') {
     window.addEventListener('scroll', debouncedSaveScrollState, { passive: true })
   }
@@ -357,7 +362,7 @@ onBeforeRouteLeave((to) => {
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch([sortBy], () => {

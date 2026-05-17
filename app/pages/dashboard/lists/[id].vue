@@ -186,7 +186,7 @@ const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 

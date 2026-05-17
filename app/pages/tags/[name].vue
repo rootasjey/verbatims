@@ -160,6 +160,12 @@ import { useVerbatimsSeo } from '~/composables/useSeo'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
 
 definePageMeta({ layout: 'default' })
 
@@ -291,11 +297,7 @@ watch(sortBy, () => {
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
-})
-
-onMounted(() => {
-  setPageLayout(currentLayout.value)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 </script>
 

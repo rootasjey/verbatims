@@ -363,7 +363,7 @@ interface DashboardCollection extends CollectionWithStats {
 }
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 

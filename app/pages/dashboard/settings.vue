@@ -609,7 +609,7 @@ const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 
@@ -736,7 +736,7 @@ const deleteAccount = async () => {
 
 onMounted(async () => {
   try {
-  setPageLayout(currentLayout.value)
+    setPageLayout(currentLayout.value)
     const [notificationData, privacyData] = await Promise.all([
       $fetch('/api/user/notifications'),
       $fetch('/api/user/privacy')
