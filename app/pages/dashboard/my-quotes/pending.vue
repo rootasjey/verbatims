@@ -368,10 +368,12 @@
       </div>
 
       <!-- Quote details dialog -->
-      <AdminQuoteDetailDialog
-        :quote="selectedDialogQuote"
-        v-model:open="showQuoteDialog"
-      />
+      <ClientOnly>
+        <AdminQuoteDetailDialog
+          :quote="selectedDialogQuote"
+          v-model:open="showQuoteDialog"
+        />
+      </ClientOnly>
     </div>
   </div>
 </template>
@@ -387,7 +389,7 @@ interface DashboardQuote extends QuoteWithRelations {
 }
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 
