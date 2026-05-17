@@ -272,12 +272,19 @@ import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileD
 import { useVerbatimsSeo } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
 const route = useRoute()
 const router = useRouter()
 const searchStore = useSearchStore()
 
 definePageMeta({
-  layout: false,
+  layout: 'default',
   keepalive: true
 })
 
@@ -309,20 +316,8 @@ const debouncedSearch = useDebounceFn(async () => {
   await searchStore.search({ limit: 20 })
 }, 300)
 
-onMounted(async () => {
-  setPageLayout(currentLayout.value)
-
-  const q = typeof route.query.q === 'string' ? route.query.q : ''
-  if (q && q !== searchStore.query) {
-    searchStore.setQuery(q)
-  }
-  if (searchStore.query && (searchStore.results.total === 0 || searchStore.isStale())) {
-    await searchStore.search({ limit: 20 })
-  }
-})
-
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 // Keep store in sync when user navigates back/forward
@@ -365,8 +360,6 @@ function goToReferences() {
 }
 
 onMounted(async () => {
-  setPageLayout(currentLayout.value)
-
   const q = typeof route.query.q === 'string' ? route.query.q : ''
   if (q && q !== searchStore.query) {
     searchStore.setQuery(q)

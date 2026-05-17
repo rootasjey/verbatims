@@ -220,7 +220,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false,
+  layout: 'default',
   middleware: 'auth'
 })
 
@@ -236,6 +236,12 @@ useHead({
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
 
 const { user } = useUserSession()
 const showAddQuote = ref(false)
@@ -284,12 +290,11 @@ const handleQuoteAdded = () => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadUserStats()
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 </script>
 

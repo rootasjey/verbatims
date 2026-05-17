@@ -24,13 +24,20 @@
 import { useJsonLd } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
 const quotesFeedStore = useQuotesFeedStore()
 const restoreSourcePath = '/quotes'
 let removeScrollListener: (() => void) | null = null
 const lastKnownScrollY = ref(0)
 
 definePageMeta({
-  layout: false,
+  layout: 'default',
   scrollToTop: false
 })
 
@@ -124,8 +131,6 @@ const restoreFeedFromSnapshot = async () => {
 }
 
 onMounted(async () => {
-  setPageLayout(currentLayout.value)
-
   const snapshot = getRestorableSnapshot()
 
   if (!snapshot) {
@@ -179,7 +184,7 @@ onBeforeRouteLeave((to) => {
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 onUnmounted(() => {

@@ -101,10 +101,17 @@ import type { ReferencesListSnapshot } from '~/stores/references'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
+
 const referencesListStore = useReferencesListStore()
 
 definePageMeta({
-  layout: false
+  layout: 'default'
 })
 
 useHead({
@@ -370,8 +377,6 @@ const focusSearchInput = () => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
-
   if (typeof window !== 'undefined') {
     window.addEventListener('scroll', saveCurrentReferencesState, { passive: true })
   }
@@ -418,7 +423,7 @@ onBeforeRouteLeave((to) => {
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 onUnmounted(() => {

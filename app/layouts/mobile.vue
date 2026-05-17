@@ -118,10 +118,6 @@ const handleAppIconClick = (event: MouseEvent) => {
   scrollToTop()
 }
 
-// Set page meta to use mobile layout on mobile devices
-definePageMeta({
-  layout: false // We'll handle layout switching in the page components
-})
 </script>
 
 <style scoped>

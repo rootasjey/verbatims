@@ -382,10 +382,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'admin'
-})
-
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(false)

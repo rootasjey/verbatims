@@ -229,7 +229,7 @@ interface LikedQuote extends QuoteWithMetadata {
 }
 
 definePageMeta({
-  layout: false,
+  layout: 'dashboard',
   middleware: 'auth'
 })
 

@@ -84,9 +84,15 @@ import { useJsonLd } from '~/composables/useSeo'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
+const hydrated = ref(false)
+
+onNuxtReady(() => {
+  hydrated.value = true
+  setPageLayout(currentLayout.value)
+})
 
 definePageMeta({
-  layout: false
+  layout: 'default'
 })
 
 useHead({
@@ -201,12 +207,11 @@ const debouncedSearch = useDebounceFn(() => {
 }, 300)
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadTags()
 })
 
 watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
+  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch([sortBy], () => {
