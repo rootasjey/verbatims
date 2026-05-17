@@ -1,11 +1,17 @@
 <template>
   <div class="frame flex flex-col h-full">
     <div class="flex-1 flex flex-col">
-      <div class="group flex-1 overflow-auto">
+      <div class="group tags-table-container flex-1 overflow-auto border rounded-2">
         <NTable
           :columns="tableColumns"
           :data="tags"
           :loading="loading"
+          :una="{
+            tableRoot: '!overflow-visible border-none',
+            scrollAreaRoot: '!overflow-visible',
+            tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableBody: 'bg-white dark:bg-[#0C0A09]'
+          }"
           manual-pagination
           empty-text="No tags found"
           empty-icon="i-ph-hash"
@@ -48,7 +54,7 @@
                   @trailing="resetFilters"
                 />
               </div>
-              
+
               <div>
                 <NSelect
                   v-model="selectedSort"
@@ -230,7 +236,7 @@ watch(selectedIds, (ids) => { bulkOpen.value = ids.length > 0 }, { immediate: tr
 const clearSelection = () => {
   rowSelection.value = {}
   lastSelectedIndex.value = null
-} 
+}
 
 const sortOptions = [
   { label: 'Name A-Z', value: 'name_asc' },
@@ -460,5 +466,21 @@ onMounted(() => { loadTags() })
 </script>
 
 <style scoped>
+.tags-table-container {
+  max-height: calc(100vh - 11rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+:deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+:deep([data-reka-scroll-area-corner]) {
+  display: none !important;
+}
+
 .frame { min-height: calc(100vh - 8rem) }
 </style>

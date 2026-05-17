@@ -1,9 +1,5 @@
 <template>
   <div class="frame flex flex-col h-full">
-
-
-
-
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-h-0">
       <!-- First-load Skeleton State -->
@@ -13,12 +9,12 @@
         :col-classes="[
           'min-w-80 flex-1',
           'w-48',
-          'w-32',
+          'w-24',
           'w-32',
           'w-28',
           'w-6'
         ]"
-        :layout="['multi','multi','pill','pill','date','dot']"
+        :layout="['multi','multi','text','pill','date','dot']"
         :show-footer="true"
       />
 
@@ -34,13 +30,19 @@
       </div>
 
       <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col rounded-2 border border-gray-200 dark:border-gray-700">
+      <div v-else class="flex-1 flex flex-col">
         <!-- Scrollable Table Container -->
-        <div class="quotes-table-container flex-1 overflow-auto">
+        <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
           <NTable
             :columns="tableColumns"
             :data="filteredQuotes"
             :loading="loading"
+            :una="{
+              tableRoot: '!overflow-visible border-none',
+              scrollAreaRoot: '!overflow-visible',
+              tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+              tableBody: 'bg-white dark:bg-[#0C0A09]'
+            }"
             manual-pagination
             empty-text="No pending quotes found"
             empty-icon="i-ph-clock"
@@ -83,6 +85,19 @@
                     @trailing="resetFilters"
                   />
                 </div>
+              </div>
+            </template>
+
+            <template #language-header>
+              <div>
+                <NSelect
+                  v-model="selectedLanguage"
+                  :items="languageOptions"
+                  placeholder="All Languages"
+                  size="sm"
+                  item-key="label"
+                  value-key="label"
+                />
               </div>
             </template>
 
@@ -170,29 +185,10 @@
               </div>
             </template>
 
-            <!-- Tags Column -->
-            <template #tags-cell="{ cell }">
-              <div v-if="cell.row.original.tags && cell.row.original.tags.length > 0" class="flex flex-wrap gap-1">
-                <NBadge
-                  v-for="tag in cell.row.original.tags.slice(0, 2)"
-                  :key="tag.name"
-                  :style="{ backgroundColor: tag.color }"
-                  badge="soft"
-                  size="xs"
-                >
-                  {{ tag.name }}
-                </NBadge>
-                <NBadge
-                  v-if="cell.row.original.tags.length > 2"
-                  badge="soft"
-                  size="xs"
-                  color="gray"
-                >
-                  +{{ cell.row.original.tags.length - 2 }}
-                </NBadge>
-              </div>
-              <span v-else class="text-xs text-gray-400 dark:text-gray-600 italic">
-                No tags
+            <!-- Language Column -->
+            <template #language-cell="{ cell }">
+              <span class="text-sm text-gray-900 dark:text-white">
+                {{ cell.row.original.language || 'N/A' }}
               </span>
             </template>
 
@@ -231,7 +227,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+        <div class="flex-shrink-0 flex items-center justify-between p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
           </div>
@@ -248,8 +244,8 @@
       </div>
     </div>
 
-    <AdminQuoteDetailDialog 
-      v-model:open="showQuoteDialog" 
+    <AdminQuoteDetailDialog
+      v-model:open="showQuoteDialog"
       :quote="selectedQuote"
       @edit="editQuote"
     />
@@ -357,6 +353,7 @@
 
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
+import type { LanguageOption } from '~/stores/language'
 
 definePageMeta({
   layout: 'admin',
@@ -377,6 +374,7 @@ const totalQuotes = ref(0)
 const totalPages = ref(0)
 const searchQuery = ref('')
 const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
+const selectedLanguage = ref({ label: '', value: '' })
 // row selection map (multi-select)
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
@@ -395,6 +393,14 @@ const statusOptions = [
   { label: 'Approved', value: 'approved' },
   { label: 'Rejected', value: 'rejected' }
 ]
+
+const { availableLanguages } = useLanguageStore()
+const languageOptions = computed(() => [
+  ...((availableLanguages ?? []).map((lang: LanguageOption) => ({
+    label: lang.display,
+    value: lang.value
+  })))
+])
 
 // selection helpers & stats
 const pendingCount = computed(() => {
@@ -419,6 +425,9 @@ const filteredQuotes = computed(() => {
   }
   if (statusFilter.value.value) {
     filtered = filtered.filter(q => q.status === statusFilter.value.value)
+  }
+  if (selectedLanguage.value.value) {
+    filtered = filtered.filter(q => q.language === selectedLanguage.value.value)
   }
   return filtered
 })
@@ -543,13 +552,13 @@ const tableColumns = [
     }
   },
   {
-    header: 'Tags',
-    accessorKey: 'tags',
+    header: 'Language',
+    accessorKey: 'language',
     enableSorting: false,
     meta: {
       una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
+        tableHead: 'w-24',
+        tableCell: 'w-24'
       }
     }
   },
@@ -593,6 +602,10 @@ const loadQuotes = async (page = 1) => {
       params.search = searchQuery.value
     }
 
+    if (selectedLanguage.value.value) {
+      params.language = selectedLanguage.value.value
+    }
+
     const response = await $fetch('/api/admin/quotes/pending', { query: params })
 
     quotes.value = response.data || []
@@ -614,13 +627,14 @@ const loadQuotes = async (page = 1) => {
 const resetFilters = () => {
   searchQuery.value = ''
   statusFilter.value = { label: 'Pending Review', value: 'pending' }
+  selectedLanguage.value = { label: '', value: '' }
   currentPage.value = 1
   rowSelection.value = {}
   lastSelectedIndex.value = null
 }
 
 // Debounced search + filter reload
-watchDebounced([searchQuery, statusFilter], () => {
+watchDebounced([searchQuery, statusFilter, selectedLanguage], () => {
   currentPage.value = 1
   loadQuotes(1)
 }, { debounce: 300 })
@@ -639,7 +653,7 @@ const approveQuote = async (quote) => {
       method: 'POST',
       body: { action: 'approve' }
     })
-    
+
   // Remove from list if filtering by pending
   if (statusFilter.value?.value === 'pending') {
       quotes.value = quotes.value.filter(q => q.id !== quote.id)
@@ -698,7 +712,7 @@ const confirmRejectQuote = async () => {
 
 const bulkApprove = async () => {
   if (selectedQuotes.value.length === 0) return
-  
+
   try {
     bulkProcessing.value = true
     await $fetch('/api/admin/quotes/bulk-moderate', {
@@ -708,12 +722,12 @@ const bulkApprove = async () => {
         action: 'approve'
       }
     })
-    
+
   // Remove approved quotes from list if filtering by pending
   if (statusFilter.value?.value === 'pending') {
       quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
     }
-    
+
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk approve quotes:', error)
@@ -846,7 +860,19 @@ onMounted(() => {
 <style scoped>
 .quotes-table-container {
   min-height: 400px;
-  max-height: calc(100vh - 22rem);
+  max-height: calc(100vh - 11rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 
 .frame {

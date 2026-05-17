@@ -101,13 +101,19 @@
     </div>
 
     <!-- Table View -->
-    <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+    <div v-else class="flex-1 flex flex-col">
       <!-- Scrollable Table Container -->
-      <div class="group authors-table-container flex-1 overflow-auto">
+      <div class="group authors-table-container flex-1 overflow-auto border rounded-2">
         <NTable
           :columns="tableColumns"
           :data="filteredAuthors"
           :loading="loading"
+          :una="{
+            tableRoot: '!overflow-visible border-none',
+            scrollAreaRoot: '!overflow-visible',
+            tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableBody: 'bg-white dark:bg-[#0C0A09]'
+          }"
           manual-pagination
           empty-text="No authors found"
           empty-icon="i-ph-user"
@@ -303,6 +309,7 @@
           :sibling-count="2"
           show-edges
           size="sm"
+          pagination-selected="solid-indigo"
         />
       </div>
     </div>
@@ -314,7 +321,7 @@
     @author-added="onAuthorAdded"
     @author-updated="onAuthorUpdated"
   />
-  
+
   <DeleteAuthorDialog
     v-model="showDeleteAuthorDialog"
     :author="authorToDelete"
@@ -489,7 +496,7 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
   }
 
   lastSelectedIndex.value = index
-} 
+}
 
 const fictionalFilterOptions = [
   { label: 'All Types', value: '' },
@@ -958,5 +965,17 @@ const confirmBulkDelete = async () => {
 <style scoped>
 .authors-table-container {
   max-height: calc(100vh - 13rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.authors-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.authors-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 </style>

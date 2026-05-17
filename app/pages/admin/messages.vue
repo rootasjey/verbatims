@@ -10,9 +10,15 @@
         <p class="text-gray-500">Try adjusting your filters.</p>
       </div>
 
-      <div v-else class="flex-1 flex flex-col rounded-2 border border-gray-200 dark:border-gray-700">
-        <div class="group flex-1 overflow-auto">
-          <NTable :columns="columns" :data="messages" :loading="loading" manual-pagination>
+      <div v-else class="flex-1 flex flex-col rounded-2">
+        <div class="group messages-table-container flex-1 overflow-auto border rounded-2">
+          <NTable :columns="columns" :data="messages" :loading="loading" manual-pagination
+            :una="{
+              tableRoot: '!overflow-visible border-none',
+              scrollAreaRoot: '!overflow-visible',
+              tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+              tableBody: 'bg-white dark:bg-[#0C0A09]'
+            }">
             <template #select-header>
               <div>
                 <NCheckbox
@@ -40,13 +46,13 @@
               <div class="flex items-center gap-2">
                 <span>Messages</span>
                 <div class="flex-1">
-                  <NInput 
-                    v-model="searchQuery" 
-                    placeholder="Search name, email, or message..." 
+                  <NInput
+                    v-model="searchQuery"
+                    placeholder="Search name, email, or message..."
                     size="sm"
-                    leading="i-ph-magnifying-glass" 
-                    :loading="loading" 
-                    :trailing="searchQuery.length ? 'i-ph-x' : undefined" 
+                    leading="i-ph-magnifying-glass"
+                    :loading="loading"
+                    :trailing="searchQuery.length ? 'i-ph-x' : undefined"
                     :una="{
                       inputTrailing: 'pointer-events-auto cursor-pointer',
                     }"
@@ -413,5 +419,21 @@ onMounted(() => { loadMessages() })
 </script>
 
 <style scoped>
+.messages-table-container {
+  max-height: calc(100vh - 13rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+:deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+:deep([data-reka-scroll-area-corner]) {
+  display: none !important;
+}
+
 .frame { height: calc(100vh - 8rem); }
 </style>

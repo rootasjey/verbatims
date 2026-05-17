@@ -104,13 +104,19 @@
     </div>
 
     <!-- Table View -->
-    <div v-else class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09]">
+    <div v-else class="flex-1 flex flex-col">
       <!-- Scrollable Table Container -->
-      <div class="group references-table-container flex-1 overflow-auto">
+      <div class="group references-table-container flex-1 overflow-auto border rounded-2">
         <NTable
           :columns="tableColumns"
           :data="filteredReferences"
           :loading="loading"
+          :una="{
+            tableRoot: '!overflow-visible border-none',
+            scrollAreaRoot: '!overflow-visible',
+            tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableBody: 'bg-white dark:bg-[#0C0A09]'
+          }"
           manual-pagination
           empty-text="No references found"
           empty-icon="i-ph-book"
@@ -138,7 +144,7 @@
               />
             </div>
           </template>
-          
+
           <!-- Reference Column -->
           <template #reference-header>
             <div class="flex items-center gap-4">
@@ -276,7 +282,7 @@
               </NDropdownMenu>
             </div>
           </template>
-          
+
           <template #actions-cell="{ cell }">
             <NDropdownMenu :items="getReferenceActions(cell.row.original)">
               <NButton
@@ -314,7 +320,7 @@
     @reference-added="onReferenceAdded"
     @reference-updated="onReferenceUpdated"
   />
-  
+
   <DeleteReferenceDialog
     v-model="showDeleteReferenceDialog"
     :reference="referenceToDelete"
@@ -993,10 +999,10 @@ const confirmBulkDelete = async () => {
 // Utility function to convert QuoteReferenceWithMetadata to QuoteReference
 const convertToQuoteReference = (ref: QuoteReferenceWithMetadata | null | undefined): QuoteReference | undefined => {
   if (!ref) return undefined
-  
+
   // Extract only the properties that belong to QuoteReference
   const { quotes_count, is_liked, ...quoteReference } = ref;
-  
+
   return {
     ...quoteReference,
     urls: JSON.stringify(quoteReference.urls)
@@ -1021,5 +1027,17 @@ onMounted(() => {
 <style scoped>
 .references-table-container {
   max-height: calc(100vh - 13rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.references-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.references-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 </style>
