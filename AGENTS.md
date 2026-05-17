@@ -40,8 +40,8 @@ Key relationship: `quotes` belong to `users`, and may link to `authors` and `quo
 - **Type checking**: `bun run typecheck` or `npm run typecheck`
 - **Production build**: `bun run build` (requires explicit user request)
 - **Preview build**: `bun run preview`
-- **Version bump**: `bun run bump:patch`, `bun run bump:minor`, `bun run bump:major`, or `bun run bump:fix`
-- **Tag version**: `bun run version` (after bump)
+- **Version bump**: `bun run bump:version` (patch), `bun run bump:fix` (hotfix), `bun run bump:minor`, `bun run bump:major`
+- **Tag version**: `git tag -a v$(node -e "console.log(require('./package.json').version)") -m "Release v$(node -e "console.log(require('./package.json').version)")"` (after bump commit)
 - **Database sync**: `bun run db:sync-local` (sync local DB from Wrangler)
 - **Token generation**: `bun run facebook:token`, `bun run instagram:token` (and variants with `:write-env`)
 
@@ -212,7 +212,7 @@ Common commands include:
 
 - `bun run dev` / `nuxt dev`
 - `bun run typecheck`
-- version bump scripts (e.g., `bun run bump:patch`, `bun run version`)
+- version bump scripts (e.g., `bun run bump:version -- -c`)
 
 ### Long-running processes
 
@@ -251,14 +251,27 @@ Examples:
 
 ### Versioning
 
-Before committing a change that affects functionality, bump the project version appropriately:
+The version **must** be bumped on every commit that changes functionality.
+This is part of the commit workflow — do not skip it.
 
-- `patch` for small fixes, UI tweaks, non-breaking corrections
-- `minor` for new non-breaking features
-- `major` for breaking changes
-- `fix` for quick hotfixes (treated as patch)
+Bump type reference:
 
-Run the corresponding bump script (`bun run bump:patch`, etc.) and then `bun run version` to tag.
+- `patch` / `fix` — small fixes, UI tweaks, non-breaking corrections
+- `minor` — new non-breaking features
+- `major` — breaking changes
+
+Workflow (in order):
+
+1. Make your changes and stage them
+2. Commit with a proper message
+3. Run `bun run bump:version -- -c` (or `bun run bump:minor -- -c` / `bun run bump:major -- -c`)
+   This bumps the version, stages `package.json`, and commits it with the message `chore: bump version to x.y.z [skip ci]`
+4. Tag the release:
+   ```bash
+   git tag -a v$(node -e "console.log(require('./package.json').version)") -m "Release v$(node -e "console.log(require('./package.json').version)")"
+   ```
+
+Note: `bun run bump:version` bumps patch, `bun run bump:fix` bumps fix (same as patch), `bun run bump:minor` bumps minor.
 
 ### Pull requests
 
