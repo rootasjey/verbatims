@@ -358,34 +358,33 @@
 
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
-    <NCard>
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Author' : 'Authors' }}</h3>
-      </template>
-      <div class="space-y-3">
-        <p class="text-gray-600 dark:text-gray-400">
-          You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'author' : 'authors' }}. If they have related quotes, choose a strategy:
-        </p>
-        <NRadioGroup
-          v-model="bulkDeleteStrategy"
-          :items="[
-            { label: 'Anonymize related quotes (keep quotes, remove author link)', value: 'anonymize' },
-            { label: 'Delete related quotes (remove quotes and the author)', value: 'delete' }
-          ]"
-        />
+    <template #header>
+      <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Author' : 'Authors' }}</h3>
+    </template>
+    <div class="space-y-3">
+      <p class="text-gray-600 dark:text-gray-400">
+        You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'author' : 'authors' }}. If they have related quotes, choose a strategy:
+      </p>
+      <NRadioGroup
+        v-model="bulkDeleteStrategy"
+        :items="[
+          { label: 'Anonymize related quotes (keep quotes, remove author link)', value: 'anonymize' },
+          { label: 'Delete related quotes (remove quotes and the author)', value: 'delete' }
+        ]"
+      />
+    </div>
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
+        <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
       </div>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
-        </div>
-      </template>
-    </NCard>
+    </template>
   </NDialog>
 </template>
 
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({
   layout: 'admin',
@@ -480,6 +479,24 @@ const toggleAllSelection = (v: boolean | 'indeterminate') => {
 const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
+const isAnyDialogOpen = computed(() =>
+  showAddAuthorDialog.value || showDeleteAuthorDialog.value ||
+  showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onDelete: () => { showBulkDeleteDialog.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteDialog.value) confirmBulkDelete()
+    else if (showDeleteAuthorDialog.value) { /* handled by delete author dialog */ }
+  }
+})
+
 // shift‑click support
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
@@ -520,6 +537,7 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Delete Selected',
       leading: 'i-ph-trash',
+      shortcut: 'D',
       onclick: () => { showBulkDeleteDialog.value = true }
     })
   }

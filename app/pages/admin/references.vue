@@ -357,25 +357,24 @@
 
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
-    <NCard>
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3>
-      </template>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.
-      </p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
-        </div>
-      </template>
-    </NCard>
+    <template #header>
+      <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3>
+    </template>
+    <p class="text-gray-600 dark:text-gray-400 mb-4">
+      You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.
+    </p>
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
+        <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
+      </div>
+    </template>
   </NDialog>
 </template>
 
 <script setup lang="ts">
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({
   layout: 'admin',
@@ -475,6 +474,24 @@ const toggleAllSelection = (v: boolean | 'indeterminate') => {
 const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
 const clearSelection = () => { rowSelection.value = {}; selectionMode.value = false; lastSelectedIndex.value = null }
 
+const isAnyDialogOpen = computed(() =>
+  showAddReferenceDialog.value || showDeleteReferenceDialog.value ||
+  showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onDelete: () => { showBulkDeleteDialog.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteDialog.value) confirmBulkDelete()
+    else if (showDeleteReferenceDialog.value) { /* handled by delete reference dialog */ }
+  }
+})
+
 // handle shift‑click range selection on the table rows
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
@@ -528,6 +545,7 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Delete Selected',
       leading: 'i-ph-trash',
+      shortcut: 'D',
       onclick: () => { showBulkDeleteDialog.value = true }
     })
   }

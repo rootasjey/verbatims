@@ -264,11 +264,30 @@
     :selected-quotes="selectedQuotesData"
     @updated="onBulkEditComplete"
   />
+
+  <NDialog v-model:open="showBulkUnpublishModal">
+    <template #header>
+      <h3 class="text-lg font-semibold">Unpublish {{ selectedQuotes.length }} Quotes</h3>
+    </template>
+
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      Are you sure you want to unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
+      They will be moved back to drafts.
+    </p>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <NButton btn="ghost-gray" @click="showBulkUnpublishModal = false">Cancel</NButton>
+        <NButton btn="solid-orange" @click="bulkUnpublish(); showBulkUnpublishModal = false">Unpublish All</NButton>
+      </div>
+    </template>
+  </NDialog>
 </template>
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({
   layout: 'admin',
@@ -314,6 +333,7 @@ const selectedQuotesData = computed<AdminQuote[]>(() =>
 // Bulk modal
 const showBulkAddToCollection = ref(false)
 const showBulkEditDialog = ref(false)
+const showBulkUnpublishModal = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -595,6 +615,24 @@ const selectAllOnPage = () => {
   else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
 }
 
+const isAnyDialogOpen = computed(() =>
+  showEditQuoteDialog.value || showBulkAddToCollection.value ||
+  showBulkEditDialog.value || showBulkUnpublishModal.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onEdit: () => { showBulkEditDialog.value = true },
+  onDelete: () => { showBulkUnpublishModal.value = true },
+  onConfirmDialog: () => {
+    if (showBulkUnpublishModal.value) { bulkUnpublish(); showBulkUnpublishModal.value = false }
+  }
+})
+
 
 const headerActions = computed(() => {
   const actions: any[] = []
@@ -602,6 +640,7 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Edit Selected',
       leading: 'i-ph-pencil',
+      shortcut: 'E',
       onclick: () => { showBulkEditDialog.value = true }
     })
     actions.push({
@@ -612,6 +651,7 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Unpublish Selected',
       leading: 'i-ph-eye-slash',
+      shortcut: 'D',
       onclick: () => bulkUnpublish()
     })
   }

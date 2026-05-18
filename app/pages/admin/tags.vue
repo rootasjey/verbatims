@@ -180,25 +180,24 @@
 
   <!-- Bulk Delete Confirmation -->
   <NDialog v-model:open="showBulkDeleteDialog">
-    <NCard>
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Tag' : 'Tags' }}</h3>
-      </template>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'tag' : 'tags' }}. This will remove them from associated quotes.
-      </p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-          <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
-        </div>
-      </template>
-    </NCard>
+    <template #header>
+      <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Tag' : 'Tags' }}</h3>
+    </template>
+    <p class="text-gray-600 dark:text-gray-400 mb-4">
+      You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'tag' : 'tags' }}. This will remove them from associated quotes.
+    </p>
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
+        <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
+      </div>
+    </template>
   </NDialog>
 </template>
 
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Tags - Admin - Verbatims' })
@@ -239,6 +238,29 @@ const clearSelection = () => {
   lastSelectedIndex.value = null
 }
 
+const selectAllOnPage = () => {
+  const allSelected = tags.value.length > 0 && tags.value.every(t => !!rowSelection.value[t.id])
+  if (allSelected) rowSelection.value = {}
+  else tags.value.forEach(t => (rowSelection.value[t.id] = true))
+}
+
+const isAnyDialogOpen = computed(() =>
+  showAddDialog.value || showDeleteDialog.value || showBulkDeleteDialog.value || showBackfillDialog.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onDelete: () => { showBulkDeleteDialog.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteDialog.value) confirmBulkDelete()
+    else if (showDeleteDialog.value) { /* handled by delete dialog */ }
+  }
+})
+
 const sortOptions = [
   { label: 'Name A-Z', value: 'name_asc' },
   { label: 'Name Z-A', value: 'name_desc' },
@@ -272,6 +294,7 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Delete Selected',
       leading: 'i-ph-trash',
+      shortcut: 'D',
       onclick: () => { showBulkDeleteDialog.value = true }
     })
   }
