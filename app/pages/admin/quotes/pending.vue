@@ -254,95 +254,91 @@
 
     <!-- Reject Quote Modal -->
     <NDialog v-model:open="showRejectModal">
-      <NCard class="border-none shadow-none">
-        <template #header>
-          <h3 class="text-lg font-semibold">Reject Quote</h3>
-        </template>
+      <template #header>
+        <h3 class="text-lg font-semibold">Reject Quote</h3>
+      </template>
 
-        <div class="space-y-4">
-          <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <blockquote class="text-sm font-medium text-gray-900 dark:text-white">
-              "{{ selectedQuote.name }}"
-            </blockquote>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              by {{ selectedQuote.user_name }}
-            </p>
-          </div>
-
-          <NFormGroup label="Rejection Reason" required>
-            <NInput
-              type="textarea"
-              v-model="rejectionReason"
-              placeholder="Please provide a reason for rejecting this quote..."
-              :rows="3"
-              :disabled="processing.has(selectedQuote?.id)"
-            />
-          </NFormGroup>
+      <div class="space-y-4">
+        <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <blockquote class="text-sm font-medium text-gray-900 dark:text-white">
+            "{{ selectedQuote.name }}"
+          </blockquote>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            by {{ selectedQuote.user_name }}
+          </p>
         </div>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <NButton
-              btn="ghost"
-              @click="showRejectModal = false"
-              :disabled="processing.has(selectedQuote?.id)"
-            >
-              Cancel
-            </NButton>
-            <NButton
-              btn="soft-red"
-              :loading="processing.has(selectedQuote?.id)"
-              @click="confirmRejectQuote"
-            >
-              Reject Quote
-            </NButton>
-          </div>
-        </template>
-      </NCard>
+        <NFormGroup label="Rejection Reason" required>
+          <NInput
+            type="textarea"
+            v-model="rejectionReason"
+            placeholder="Please provide a reason for rejecting this quote..."
+            :rows="3"
+            :disabled="processing.has(selectedQuote?.id)"
+          />
+        </NFormGroup>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <NButton
+            btn="ghost"
+            @click="showRejectModal = false"
+            :disabled="processing.has(selectedQuote?.id)"
+          >
+            Cancel
+          </NButton>
+          <NButton
+            btn="soft-red"
+            :loading="processing.has(selectedQuote?.id)"
+            @click="confirmRejectQuote"
+          >
+            Reject Quote
+          </NButton>
+        </div>
+      </template>
     </NDialog>
 
     <!-- Bulk Reject Modal -->
     <NDialog v-model:open="showBulkRejectModal">
-      <NCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">Reject {{ selectedQuotes.length }} Quotes</h3>
-        </template>
+      <template #header>
+        <h3 class="text-lg font-semibold">Reject {{ selectedQuotes.length }} Quotes</h3>
+      </template>
 
-        <div class="space-y-4">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.
-          </p>
+      <div class="space-y-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.
+        </p>
 
-          <NFormGroup label="Rejection Reason" required>
-            <NInput
-              type="textarea"
-              v-model="bulkRejectionReason"
-              placeholder="Please provide a reason for rejecting these quotes..."
-              :rows="3"
-              :disabled="bulkProcessing"
-            />
-          </NFormGroup>
+        <NFormGroup label="Rejection Reason" required>
+          <NInput
+            type="textarea"
+            v-model="bulkRejectionReason"
+            placeholder="Please provide a reason for rejecting these quotes..."
+            :rows="3"
+            :disabled="bulkProcessing"
+          />
+        </NFormGroup>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <NButton
+            btn="ghost-gray"
+            @click="showBulkRejectModal = false"
+            :disabled="bulkProcessing"
+          >
+            Cancel
+          </NButton>
+          <NButton
+            btn="solid-indigo"
+            :loading="bulkProcessing"
+            @click="confirmBulkReject"
+          >
+            Reject All
+          </NButton>
         </div>
-
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <NButton
-              btn="ghost"
-              @click="showBulkRejectModal = false"
-              :disabled="bulkProcessing"
-            >
-              Cancel
-            </NButton>
-            <NButton
-              color="red"
-              :loading="bulkProcessing"
-              @click="confirmBulkReject"
-            >
-              Reject All
-            </NButton>
-          </div>
-        </template>
-      </NCard>
+      </template>
     </NDialog>
 
     <AddQuoteDialog
@@ -356,11 +352,29 @@
       :selected-quotes="selectedQuotesData"
       @updated="onBulkEditComplete"
     />
+
+    <NDialog v-model:open="showBulkApproveModal">
+      <template #header>
+        <h3 class="text-lg font-semibold">Approve {{ selectedQuotes.length }} Quotes</h3>
+      </template>
+
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Are you sure you want to approve {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
+      </p>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <NButton btn="ghost-gray" :disabled="bulkProcessing" @click="showBulkApproveModal = false">Cancel</NButton>
+          <NButton btn="solid-green" :loading="bulkProcessing" @click="bulkApprove(); showBulkApproveModal = false">Approve All</NButton>
+        </div>
+      </template>
+    </NDialog>
 </template>
 
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
 import type { LanguageOption } from '~/stores/language'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({
   layout: 'admin',
@@ -390,6 +404,7 @@ const processing = ref(new Set())
 const showRejectModal = ref(false)
 const showBulkRejectModal = ref(false)
 const showBulkEditDialog = ref(false)
+const showBulkApproveModal = ref(false)
 const showEditQuoteDialog = ref(false)
 const showQuoteDialog = ref(false)
 const selectedQuote = ref(null)
@@ -484,6 +499,29 @@ const selectAllOnPage = () => {
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
+const isAnyDialogOpen = computed(() =>
+  showQuoteDialog.value || showRejectModal.value || showBulkRejectModal.value ||
+  showBulkEditDialog.value || showEditQuoteDialog.value || showBulkApproveModal.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onEdit: () => { showBulkEditDialog.value = true },
+  customKeys: {
+    a: () => { showBulkApproveModal.value = true },
+    r: () => { showBulkRejectModal.value = true }
+  },
+  onConfirmDialog: () => {
+    if (showBulkRejectModal.value) confirmBulkReject()
+    else if (showBulkApproveModal.value) { bulkApprove(); showBulkApproveModal.value = false }
+    else if (showRejectModal.value) confirmRejectQuote()
+  }
+})
+
 // shift‑click support
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
@@ -517,16 +555,19 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Edit Selected',
       leading: 'i-ph-pencil',
+      shortcut: 'E',
       onclick: () => { showBulkEditDialog.value = true }
     })
     actions.push({
       label: 'Approve Selected',
       leading: 'i-ph-check',
+      shortcut: 'A',
       onclick: () => bulkApprove()
     })
     actions.push({
       label: 'Reject Selected',
       leading: 'i-ph-x',
+      shortcut: 'R',
       onclick: () => { showBulkRejectModal.value = true }
     })
   }

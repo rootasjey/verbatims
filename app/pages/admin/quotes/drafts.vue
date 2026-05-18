@@ -258,12 +258,30 @@
     :edit-quote="selectedQuote"
     @quote-updated="onQuoteUpdated"
   />
+
+  <NDialog v-model:open="showBulkSubmitModal">
+    <template #header>
+      <h3 class="text-lg font-semibold">Submit {{ selectedQuotes.length }} Drafts</h3>
+    </template>
+
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      Are you sure you want to submit {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} for review?
+    </p>
+
+    <template #footer>
+      <div class="flex justify-end gap-3">
+        <NButton btn="ghost-gray" :disabled="bulkProcessing" @click="showBulkSubmitModal = false">Cancel</NButton>
+        <NButton btn="solid-indigo" :loading="bulkProcessing" @click="bulkSubmit(); showBulkSubmitModal = false">Submit All</NButton>
+      </div>
+    </template>
+  </NDialog>
 </template>
 
 <script setup lang="ts">
 import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({
   layout: 'admin',
@@ -289,6 +307,7 @@ const totalQuotes = ref(0)
 const showDeleteModal = ref(false)
 const showBulkDeleteModal = ref(false)
 const showBulkEditDialog = ref(false)
+const showBulkSubmitModal = ref(false)
 const deleting = ref(false)
 const bulkProcessing = ref(false)
 
@@ -393,6 +412,27 @@ const selectAllOnPage = () => {
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
+const isAnyDialogOpen = computed(() =>
+  showQuoteDialog.value || showDeleteModal.value || showBulkDeleteModal.value ||
+  showBulkEditDialog.value || showEditQuoteDialog.value || showBulkSubmitModal.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onEdit: () => { showBulkEditDialog.value = true },
+  onSubmit: () => { showBulkSubmitModal.value = true },
+  onDelete: () => { showBulkDeleteModal.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteModal.value) bulkDelete()
+    else if (showBulkSubmitModal.value) { bulkSubmit(); showBulkSubmitModal.value = false }
+    else if (showDeleteModal.value) deleteDraft()
+  }
+})
+
 // handle shift‑click range selection
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
@@ -418,16 +458,19 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Edit Selected',
       leading: 'i-ph-pencil',
+      shortcut: 'E',
       onclick: () => { showBulkEditDialog.value = true }
     })
     actions.push({
       label: 'Submit Selected',
       leading: 'i-ph-paper-plane-tilt',
+      shortcut: 'S',
       onclick: () => bulkSubmit()
     })
     actions.push({
       label: 'Delete Selected',
       leading: 'i-ph-trash',
+      shortcut: 'D',
       onclick: () => { showBulkDeleteModal.value = true }
     })
   }

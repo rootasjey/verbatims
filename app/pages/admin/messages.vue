@@ -182,6 +182,7 @@
 
 <script lang="ts" setup>
 import { formatRelativeTime } from '~/utils/time-formatter'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 type MessageStatus = AdminUserMessage['status']
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -250,13 +251,13 @@ const headerActions = computed(() => {
   if (selectedMessages.value.length > 0) {
     const msgs = selectedMessages.value
     if (msgs.some(m => m.status !== 'triaged')) {
-      actions.push({ label: `Mark ${msgs.length} selected triaged`, leading: 'i-ph-play-duotone', onclick: () => bulkSetStatus('triaged') })
+      actions.push({ label: `Mark ${msgs.length} selected triaged`, leading: 'i-ph-play-duotone', shortcut: 'T', onclick: () => bulkSetStatus('triaged') })
     }
     if (msgs.some(m => m.status !== 'resolved')) {
-      actions.push({ label: `Mark ${msgs.length} selected resolved`, leading: 'i-ph-check', onclick: () => bulkSetStatus('resolved') })
+      actions.push({ label: `Mark ${msgs.length} selected resolved`, leading: 'i-ph-check', shortcut: 'R', onclick: () => bulkSetStatus('resolved') })
     }
     if (msgs.some(m => m.status !== 'spam')) {
-      actions.push({ label: `Mark ${msgs.length} selected spam`, leading: 'i-ph-warning', onclick: () => bulkSetStatus('spam') })
+      actions.push({ label: `Mark ${msgs.length} selected spam`, leading: 'i-ph-warning', shortcut: 'S', onclick: () => bulkSetStatus('spam') })
     }
     if (actions.length) actions.push({})
   }
@@ -412,6 +413,29 @@ const bulkSetStatus = async (status: MessageStatus) => {
     bulkLoading.value = false
   }
 }
+
+const selectAllOnPage = () => {
+  const allSelected = messages.value.length > 0 && messages.value.every(m => !!rowSelection.value[m.id])
+  if (allSelected) rowSelection.value = {}
+  else messages.value.forEach(m => (rowSelection.value[m.id] = true))
+}
+
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
+
+const isAnyDialogOpen = computed(() => false)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  customKeys: {
+    t: () => bulkSetStatus('triaged'),
+    r: () => bulkSetStatus('resolved'),
+    s: () => bulkSetStatus('spam')
+  }
+})
 
 const newCount = computed(() => messages.value.filter(m => m.status === 'new').length)
 const authenticatedCount = computed(() => messages.value.filter(m => !!m.user_id).length)

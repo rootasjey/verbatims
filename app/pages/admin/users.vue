@@ -233,6 +233,7 @@
 
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
+import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 
 definePageMeta({
   layout: 'admin',
@@ -311,6 +312,33 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
   lastSelectedIndex.value = index
 }
 
+const selectAllOnPage = () => {
+  const visibleIds = users.value.map(u => u.id)
+  const allSelected = visibleIds.length > 0 && visibleIds.every(id => !!rowSelection.value[id])
+  if (allSelected) rowSelection.value = {}
+  else visibleIds.forEach(id => (rowSelection.value[id] = true))
+}
+
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
+
+const isAnyDialogOpen = computed(() =>
+  showAddUserDialog.value || showEditUserDialog.value ||
+  showDeleteUserDialog.value || showBulkDeleteDialog.value
+)
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onDelete: () => { showBulkDeleteDialog.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteDialog.value) bulkDeleteUsers()
+    else if (showDeleteUserDialog.value) { /* handled by DeleteUserDialog */ }
+  }
+})
+
 // helper that returns selected user objects (may be useful later)
 const selectedUsers = computed(() => {
   const ids = selectedIds.value
@@ -365,6 +393,7 @@ const headerActions = computed(() => {
     actions.push({
       label: `Delete ${selectedIds.value.length} selected`,
       leading: 'i-ph-trash',
+      shortcut: 'D',
       onclick: () => { showBulkDeleteDialog.value = true }
     })
     actions.push({})
