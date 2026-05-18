@@ -184,7 +184,9 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     } catch (error: any) {
       console.error('Failed to add random quotes:', error)
       const serverMsg = error.data?.statusMessage || error.statusMessage || error.message || ''
-      options.showErrorToast('Error', serverMsg || 'Failed to add random quotes')
+      const debugDetail = error.data?.originalError || ''
+      const detail = [serverMsg, debugDetail].filter(Boolean).join(' | ')
+      options.showErrorToast('Error', detail || 'Failed to add random quotes')
     } finally {
       randomAdding.value = false
     }

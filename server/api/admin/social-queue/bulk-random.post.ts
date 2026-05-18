@@ -71,8 +71,13 @@ export default defineEventHandler(async (event) => {
       count: inserted.length
     }
   }
-  catch (err) {
+  catch (err: any) {
     console.error('Error adding random quotes to social queue:', err)
-    throwServer(500, 'Failed to add random quotes to social queue')
+    const originalMessage = err?.message || err?.statusMessage || ''
+    const detail = err?.cause?.message || err?.data?.message || ''
+    const combined = [originalMessage, detail].filter(Boolean).join(': ')
+    throwServer(500, combined || 'Failed to add random quotes to social queue', {
+      data: { originalError: err?.message || String(err) }
+    })
   }
 })
