@@ -58,14 +58,28 @@ export default defineEventHandler(async (event) => {
     createdBy: session.user!.id
   }))
 
-  const inserted = await db.insert(schema.socialQueue).values(values).returning({
-    id: schema.socialQueue.id,
-    quoteId: schema.socialQueue.quoteId,
-    sourceType: schema.socialQueue.sourceType,
-    sourceId: schema.socialQueue.sourceId,
-    position: schema.socialQueue.position,
-    status: schema.socialQueue.status
-  })
+  const BATCH_SIZE = 10
+  const inserted: Array<{
+    id: number
+    quoteId: number
+    sourceType: string
+    sourceId: number
+    position: number
+    status: string
+  }> = []
+
+  for (let i = 0; i < values.length; i += BATCH_SIZE) {
+    const batch = values.slice(i, i + BATCH_SIZE)
+    const result = await db.insert(schema.socialQueue).values(batch).returning({
+      id: schema.socialQueue.id,
+      quoteId: schema.socialQueue.quoteId,
+      sourceType: schema.socialQueue.sourceType,
+      sourceId: schema.socialQueue.sourceId,
+      position: schema.socialQueue.position,
+      status: schema.socialQueue.status
+    })
+    inserted.push(...result)
+  }
 
   return {
     success: true,
