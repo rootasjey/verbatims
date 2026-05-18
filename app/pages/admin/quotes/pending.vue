@@ -349,6 +349,12 @@
       :edit-quote="selectedQuote"
       @quote-updated="onQuoteUpdated"
     />
+
+    <BulkEditQuotesDialog
+      v-model:open="showBulkEditDialog"
+      :selected-quotes="selectedQuotesData"
+      @updated="onBulkEditComplete"
+    />
 </template>
 
 <script setup lang="ts">
@@ -382,6 +388,7 @@ const processing = ref(new Set())
 
 const showRejectModal = ref(false)
 const showBulkRejectModal = ref(false)
+const showBulkEditDialog = ref(false)
 const showEditQuoteDialog = ref(false)
 const showQuoteDialog = ref(false)
 const selectedQuote = ref(null)
@@ -499,9 +506,18 @@ const selectedQuotes = computed(() => Object
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
 
+const selectedQuotesData = computed(() =>
+  quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
+)
+
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Edit Selected',
+      leading: 'i-ph-pencil',
+      onclick: () => { showBulkEditDialog.value = true }
+    })
     actions.push({
       label: 'Approve Selected',
       leading: 'i-ph-check',
@@ -844,7 +860,13 @@ const editQuote = (quote) => {
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
   selectedQuote.value = null
-  // Refresh the quotes list to show updated data
+  loadQuotes()
+}
+
+const onBulkEditComplete = () => {
+  showBulkEditDialog.value = false
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
   loadQuotes()
 }
 

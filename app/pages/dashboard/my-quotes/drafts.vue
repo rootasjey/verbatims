@@ -185,6 +185,7 @@
               :una="{
                 tableRoot: '!overflow-visible border-none',
                 scrollAreaRoot: '!overflow-visible',
+                table: '!w-auto min-w-full',
                 tableHeader: 'sticky top-0 z-1 bg-gray-50 dark:bg-[#0C0A09]',
                 tableBody: 'bg-white dark:bg-[#0C0A09]'
               }"
@@ -404,6 +405,14 @@
     </ClientOnly>
 
     <ClientOnly>
+      <BulkEditQuotesDialog
+        v-model:open="showBulkEditDialog"
+        :selected-quotes="selectedQuotesData"
+        @updated="onBulkEditComplete"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
       <AddQuoteDialog
         v-model="showEditQuoteDialog"
         :edit-quote="selectedQuote"
@@ -468,6 +477,7 @@ const showHeaderElements = ref(true)
 
 const showDeleteModal = ref(false)
 const showBulkDeleteModal = ref(false)
+const showBulkEditDialog = ref(false)
 const showEditQuoteDialog = ref(false)
 const showEditQuoteDrawer = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
@@ -649,7 +659,13 @@ const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
   showEditQuoteDrawer.value = false
   selectedQuote.value = null
-  // Refresh the quotes list to show updated data
+  loadDrafts()
+}
+
+const onBulkEditComplete = () => {
+  showBulkEditDialog.value = false
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
   loadDrafts()
 }
 
@@ -780,6 +796,11 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Edit Selected',
+      leading: 'i-ph-pencil',
+      onclick: () => { showBulkEditDialog.value = true }
+    })
     actions.push({
       label: 'Submit Selected',
       leading: 'i-ph-paper-plane-tilt',

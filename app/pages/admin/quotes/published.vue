@@ -257,6 +257,12 @@
     :quote-ids="selectedQuotes"
     @added="handleBulkAddedToCollection"
   />
+
+  <BulkEditQuotesDialog
+    v-model:open="showBulkEditDialog"
+    :selected-quotes="selectedQuotesData"
+    @updated="onBulkEditComplete"
+  />
 </template>
 
 <script setup lang="ts">
@@ -300,8 +306,13 @@ const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
+
+const selectedQuotesData = computed<AdminQuote[]>(() =>
+  quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
+)
 // Bulk modal
 const showBulkAddToCollection = ref(false)
+const showBulkEditDialog = ref(false)
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -541,7 +552,13 @@ const editQuote = (quote: AdminQuote) => {
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
   selectedQuote.value = undefined
-  // Refresh the quotes list to show updated data
+  loadQuotes()
+}
+
+const onBulkEditComplete = () => {
+  showBulkEditDialog.value = false
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
   loadQuotes()
 }
 
@@ -581,6 +598,11 @@ const selectAllOnPage = () => {
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Edit Selected',
+      leading: 'i-ph-pencil',
+      onclick: () => { showBulkEditDialog.value = true }
+    })
     actions.push({
       label: 'Add to Collection',
       leading: 'i-ph-bookmark',
