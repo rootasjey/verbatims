@@ -251,7 +251,7 @@
         <h2 class="font-title text-2xl md:text-3xl font-600 text-center mb-8">
           Similar Authors
         </h2>
-        
+
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
           <div
             v-for="(similarAuthor, index) in similarAuthors"
@@ -261,9 +261,9 @@
             :style="{ transitionDelay: `${index * 60}ms` }"
             @click="navigateTo(`/authors/${similarAuthor.id}`)"
           >
-            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg 
-              border border-dashed border-gray-200 dark:border-gray-700 
-              hover:b-solid hover:border-primary-500 dark:hover:border-primary-400 
+            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg
+              border border-dashed border-gray-200 dark:border-gray-700
+              hover:b-solid hover:border-primary-500 dark:hover:border-primary-400
               active:scale-99
               transition-all duration-300 hover:shadow-md">
               <NAvatar
@@ -303,7 +303,7 @@
         </NButton>
       </div>
     </div>
-    
+
     <ClientOnly>
       <AddAuthorDialog
         v-model="showEditAuthorDialog"
@@ -727,7 +727,7 @@ const onLanguageChange = async () => {
 const checkLikeStatus = async () => {
   const currentAuthor = author.value
   if (!user.value || !currentAuthor) return
-  
+
   try {
     const { data } = await $fetch(`/api/authors/${currentAuthor.id}/like-status`)
     isLiked.value = data?.isLiked || false
@@ -739,13 +739,13 @@ const checkLikeStatus = async () => {
 const toggleLike = async () => {
   const currentAuthor = author.value
   if (!user.value || !currentAuthor || likePending.value) return
-  
+
   likePending.value = true
   try {
     const { data } = await $fetch(`/api/authors/${currentAuthor.id}/like`, {
       method: 'POST'
     })
-    
+
     isLiked.value = data.isLiked
     currentAuthor.likes_count = data.likesCount
   } catch (error) {
@@ -851,10 +851,10 @@ const reportAuthor = () => { showReportDialog.value = true }
 
 const formatLifeDates = (birthDate?: string | null, deathDate?: string | null): string => {
   if (!birthDate && !deathDate) return ''
-  
+
   const birth = birthDate ? new Date(birthDate).getFullYear() : '?'
   const death = deathDate ? new Date(deathDate).getFullYear() : 'present'
-  
+
   return `${birth} - ${death}`
 }
 
@@ -929,7 +929,7 @@ onMounted(async () => {
     loadQuotes()
     loadSimilarAuthors()
     if (user.value) checkLikeStatus()
-    
+
     // Trigger enter animation once content is available
     await triggerHeaderEnter()
   }
@@ -959,7 +959,7 @@ watch(author, (newAuthor) => {
     if (user.value) {
       checkLikeStatus()
     }
-    
+
     // retrigger header animation on author change
     triggerHeaderEnter()
     scheduleDescriptionOverflowCheck()
