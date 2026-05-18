@@ -246,6 +246,12 @@
     @bulk-delete="bulkDelete"
   />
 
+  <BulkEditQuotesDialog
+    v-model:open="showBulkEditDialog"
+    :selected-quotes="selectedQuotesData"
+    @updated="onBulkEditComplete"
+  />
+
   <AddQuoteDialog
     v-model="showEditQuoteDialog"
     :edit-quote="selectedQuote"
@@ -281,6 +287,7 @@ const pageSize = ref(50)
 const totalQuotes = ref(0)
 const showDeleteModal = ref(false)
 const showBulkDeleteModal = ref(false)
+const showBulkEditDialog = ref(false)
 const deleting = ref(false)
 const bulkProcessing = ref(false)
 
@@ -407,6 +414,11 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
+    actions.push({
+      label: 'Edit Selected',
+      leading: 'i-ph-pencil',
+      onclick: () => { showBulkEditDialog.value = true }
+    })
     actions.push({
       label: 'Submit Selected',
       leading: 'i-ph-paper-plane-tilt',
@@ -588,7 +600,13 @@ const submitForReview = async (quote: AdminQuote) => {
 const onQuoteUpdated = () => {
   showEditQuoteDialog.value = false
   selectedQuote.value = null
-  // Refresh the quotes list to show updated data
+  loadQuotes()
+}
+
+const onBulkEditComplete = () => {
+  showBulkEditDialog.value = false
+  rowSelection.value = {}
+  lastSelectedIndex.value = null
   loadQuotes()
 }
 
