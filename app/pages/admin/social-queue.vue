@@ -1,6 +1,6 @@
 <template>
   <div class="frame flex flex-col h-full">
-    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 pb-6 mb-6">
+    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09]">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col sm:flex-row gap-3">
           <div>
@@ -14,9 +14,30 @@
                 :key="opt.value"
                 :value="opt.value"
                 size="sm"
-                :class="toggleItemColorClass(opt.value)"
+                :class="[toggleItemColorClass(opt.value), {
+                  'w-auto px-4': opt.value === selectedPlatform,
+                  'max-w-full': opt.value === selectedPlatform
+                }]"
               >
                 <NIcon :name="opt.label" />
+                <div v-if="opt.value === selectedPlatform" class="flex items-center gap-2">
+                  <span class="font-medium">
+                    {{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}
+                  </span>
+
+                  <NTooltip>
+                    <div class="flex items-center bg-gray-50 dark:bg-gray-800 p-.5 rounded-1">
+                      <NIcon :name="getPlatformStatus(selectedPlatform).ok ? 'i-lucide-workflow' : 'i-lucide-traffic-cone'" />
+                    </div>
+                    <template #content>
+                      <div>
+                        {{ statusLabelFor(selectedPlatform) }}
+                      </div>
+                    </template>
+                  </NTooltip>
+
+                  <span>ID: {{ getPlatformStatus(selectedPlatform).account }}</span>
+                </div>
               </NToggleGroupItem>
             </NToggleGroup>
           </div>
@@ -34,31 +55,11 @@
             <NButton size="sm" btn="soft-gray" icon label="i-ph-dots-three-vertical" />
           </NDropdownMenu>
         </div>
-
-        <!-- provider info panel -->
-        <div class="flex flex-col lg:flex-row gap-4">
-          <div class="flex-1 bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex flex-col sm:flex-row items-center gap-2">
-              <span class="font-medium">
-                {{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}
-              </span>
-              <NBadge :color="statusColorFor(selectedPlatform)" badge="soft" size="xs">
-                {{ statusLabelFor(selectedPlatform) }}
-              </NBadge>
-              <span
-                v-if="getPlatformStatus(selectedPlatform).account"
-                class="text-xs text-gray-500"
-              >
-                ID: {{ getPlatformStatus(selectedPlatform).account }}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
-    <div class="flex-1 flex flex-col min-h-0 bg-white dark:bg-[#0C0A09]">
-      <div class="social-table-container flex-1 overflow-auto">
+    <div class="mt-2 flex-1 flex flex-col min-h-0">
+      <div class="group social-table-container flex-1 overflow-auto border rounded-2">
         <NTable
           :columns="tableColumns"
           :data="queueItems"
@@ -66,6 +67,12 @@
           manual-pagination
           empty-text="Queue is empty"
           empty-icon="i-ph-calendar"
+          :una="{
+            tableRoot: '!overflow-visible border-none',
+            scrollAreaRoot: '!overflow-visible',
+            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableBody: 'bg-white dark:bg-[#0C0A09]'
+          }"
         >
           <template #position-cell="{ cell }">
             <div class="flex items-center gap-1.5">
@@ -222,6 +229,7 @@
           :sibling-count="2"
           show-edges
           size="sm"
+          pagination-selected="solid-indigo"
         />
       </div>
     </div>
@@ -801,7 +809,7 @@ async function checkPlatform(platform: SocialPlatform, showToasts = true) {
   const status = providerStatus[platform]
   status.loading = true
   try {
-    const response = await $fetch<{    
+    const response = await $fetch<{
       success: boolean
       data?: {
         ok: boolean
@@ -1596,7 +1604,19 @@ onMounted(async () => {
 
 <style scoped>
 .social-table-container {
-  max-height: calc(100vh - 24rem);
+  max-height: calc(100vh - 11rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.social-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.social-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 
 .frame {
