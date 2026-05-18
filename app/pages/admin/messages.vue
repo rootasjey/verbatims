@@ -16,7 +16,7 @@
             :una="{
               tableRoot: '!overflow-visible border-none',
               scrollAreaRoot: '!overflow-visible',
-              tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+              tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
               tableBody: 'bg-white dark:bg-[#0C0A09]'
             }">
             <template #select-header>
@@ -172,7 +172,7 @@
 
         <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
           <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }} • {{ totalMessages }} total</div>
-          <NPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" />
+          <NPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" pagination-selected="solid-indigo" />
         </div>
       </div>
     </div>

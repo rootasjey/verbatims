@@ -3,13 +3,13 @@
     <!-- Mobile: Pending List -->
     <div v-if="isMobile" class="mobile-pending-page bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
       <!-- Header -->
-      <div 
+      <div
         class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
         :class="{ 'shadow-sm': !showHeaderElements }"
       >
         <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
           <div class="mt-4 transition-all duration-300 ease-in-out" :class="{ 'mb-2': showHeaderElements }">
-            <h1 
+            <h1
               class="overflow-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out"
               :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
             >
@@ -18,7 +18,7 @@
           </div>
 
           <!-- Search Bar with collapse animation -->
-          <div 
+          <div
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
           >
@@ -36,7 +36,7 @@
           </div>
 
           <!-- Filter Chips with collapse animation -->
-          <div 
+          <div
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
           >
@@ -125,9 +125,7 @@
     </div>
 
     <!-- Desktop: Existing Table View -->
-    <div v-else class="flex flex-col h-full">
-
-
+    <div v-else class="flex-1 flex flex-col min-h-0">
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-hidden">
         <!-- First-load Skeleton State -->
@@ -162,12 +160,18 @@
         </div>
 
         <!-- Quotes Table -->
-        <div v-else class="flex-1 flex flex-col dark:bg-[#0C0A09]">
-          <div class="quotes-table-container flex-1 overflow-auto">
+        <div v-else class="flex-1 flex flex-col">
+          <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
             <NTable
               :columns="tableColumns"
               :data="filteredQuotes"
               :loading="loading"
+              :una="{
+                tableRoot: '!overflow-visible border-none',
+                scrollAreaRoot: '!overflow-visible',
+                tableHeader: 'sticky top-0 z-1 bg-gray-50 dark:bg-[#0C0A09]',
+                tableBody: 'bg-white dark:bg-[#0C0A09]'
+              }"
               manual-pagination
               empty-text="No pending quotes found"
               empty-icon="i-ph-clock"
@@ -746,7 +750,20 @@ const loadMore = async () => {
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 13rem);
+  min-height: 400px;
+  max-height: calc(100vh - 12rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 
 .mobile-pending-page {

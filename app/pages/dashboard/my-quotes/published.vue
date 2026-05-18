@@ -3,13 +3,13 @@
     <!-- Mobile: Published List -->
     <div v-if="isMobile" class="mobile-published-page bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
       <!-- Header -->
-      <div 
+      <div
         class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
         :class="{ 'shadow-sm': !showHeaderElements }"
       >
         <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
           <div class="mt-4 transition-all duration-300 ease-in-out" :class="{ 'mb-4': showHeaderElements }">
-            <h1 
+            <h1
               class="overflow-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out"
               :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
             >
@@ -18,7 +18,7 @@
           </div>
 
           <!-- Search Bar with collapse animation -->
-          <div 
+          <div
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
           >
@@ -36,7 +36,7 @@
           </div>
 
           <!-- Filter Chips with collapse animation -->
-          <div 
+          <div
             class="transition-all duration-300 ease-in-out overflow-hidden"
             :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
           >
@@ -188,19 +188,22 @@
         </div>
 
         <!-- Quotes Table Container -->
-        <div v-else class="flex flex-col h-full">
+        <div v-else class="flex-1 flex flex-col min-h-0">
           <!-- Scrollable Table Container -->
-          <div class="quotes-table-container overflow-auto flex-1 max-w-screen">
+          <div class="group quotes-table-container overflow-auto border rounded-2 flex-1 max-w-screen">
             <NTable
               :columns="tableColumns"
               :data="filteredQuotes"
               :loading="loading"
+              :una="{
+                tableRoot: '!overflow-visible border-none',
+                scrollAreaRoot: '!overflow-visible',
+                tableHeader: 'sticky top-0 z-1 bg-gray-50 dark:bg-[#0C0A09]',
+                tableBody: 'bg-white dark:bg-[#0C0A09]'
+              }"
               manual-pagination
               empty-text="No published quotes found"
               empty-icon="i-ph-check-circle"
-              :una="{
-                tableBody: '',
-              }"
             >
               <template #select-header>
                 <div>
@@ -384,7 +387,7 @@
               :sibling-count="2"
               show-edges
               size="sm"
-              pagination-selected="solid-indigo" 
+              pagination-selected="solid-indigo"
             />
           </div>
         </div>
@@ -841,7 +844,20 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .quotes-table-container {
-  max-height: calc(100vh - 13rem);
+  min-height: 400px;
+  max-height: calc(100vh - 12rem);
+}
+
+:deep(.table-header tr) {
+  border-bottom: none;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
+  overflow: visible !important;
+}
+
+.quotes-table-container :deep([data-reka-scroll-area-corner]) {
+  display: none !important;
 }
 
 .mobile-published-page {

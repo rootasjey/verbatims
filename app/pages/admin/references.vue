@@ -114,7 +114,7 @@
           :una="{
             tableRoot: '!overflow-visible border-none',
             scrollAreaRoot: '!overflow-visible',
-            tableHeader: 'sticky top-0 z-4 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
             tableBody: 'bg-white dark:bg-[#0C0A09]'
           }"
           manual-pagination

@@ -26,9 +26,14 @@ export default defineEventHandler(async (event) => {
     const offset = (page - 1) * limit
     const search = query.search as string || ''
     const status = (query.status as string) || 'pending'
+    const language = query.language as string || ''
     
     // Build WHERE conditions
     const conditions = [`q.status = '${status}'`]
+    
+    if (language) {
+      conditions.push(`q.language = '${language}'`)
+    }
     
     if (search) {
       const searchPattern = `%${search}%`
