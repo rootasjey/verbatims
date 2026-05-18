@@ -254,7 +254,7 @@ Examples:
 The version **must** be bumped on every commit that changes functionality.
 This is part of the commit workflow — do not skip it.
 
-Bump type reference:
+Bump type reference (evaluate the change before choosing):
 
 - `patch` / `fix` — small fixes, UI tweaks, non-breaking corrections
 - `minor` — new non-breaking features
@@ -263,11 +263,12 @@ Bump type reference:
 Workflow (in order):
 
 1. Make your changes
-2. Run the bump script to update `package.json`:
+2. Choose the appropriate bump script and run it:
    ```bash
-   bun run bump:version
+   bun run bump:version   # patch — bugfixes, small tweaks
+   bun run bump:minor    # minor — new features, non-breaking
+   bun run bump:major    # major — breaking changes
    ```
-   (or `bun run bump:minor` / `bun run bump:major` as appropriate)
 3. Stage all files, including the updated `package.json`
 4. Commit with a proper message
 5. Tag the release:
