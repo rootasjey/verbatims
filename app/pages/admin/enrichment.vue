@@ -64,11 +64,18 @@
     </div>
 
     <div class="flex-1 flex flex-col bg-white dark:bg-[#0C0A09] min-h-0">
-      <div class="flex-1 overflow-auto">
+      <div class="enrichment-table-container flex-1 overflow-auto">
         <NTable
           :columns="tableColumns"
           :data="jobs"
           :loading="loading"
+          :una="{
+            tableRoot: '!overflow-visible border-none',
+            scrollAreaRoot: '!overflow-visible',
+            table: '!w-auto min-w-full',
+            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
+            tableBody: 'bg-white dark:bg-[#0C0A09]'
+          }"
           manual-pagination
           empty-text="No enrichment job found"
           empty-icon="i-ph-magic-wand"
@@ -513,3 +520,10 @@ watch(() => route.query, () => {
   loadQueue()
 })
 </script>
+
+<style scoped>
+.enrichment-table-container {
+  max-height: calc(100vh - 11rem);
+  max-width: calc(100vw - 8rem);
+}
+</style>
