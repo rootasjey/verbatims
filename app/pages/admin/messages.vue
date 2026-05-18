@@ -16,6 +16,7 @@
             :una="{
               tableRoot: '!overflow-visible border-none',
               scrollAreaRoot: '!overflow-visible',
+              table: '!w-auto min-w-full',
               tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
               tableBody: 'bg-white dark:bg-[#0C0A09]'
             }">
@@ -421,6 +422,7 @@ onMounted(() => { loadMessages() })
 <style scoped>
 .messages-table-container {
   max-height: calc(100vh - 13rem);
+  max-width: calc(100vw - 8rem);
 }
 
 :deep(.table-header tr) {

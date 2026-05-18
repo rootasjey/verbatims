@@ -847,6 +847,7 @@ onBeforeUnmount(() => {
 .quotes-table-container {
   min-height: 400px;
   max-height: calc(100vh - 12rem);
+  max-width: calc(100vw - 8rem);
 }
 
 :deep(.table-header tr) {
