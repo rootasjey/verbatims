@@ -9,8 +9,8 @@
       <span
         class="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
       ></span>
-      <span class="relative z-10 block px-6 py-3 rounded-xl bg-gray-950">
-        <div class="relative z-10 flex items-center space-x-2">
+      <span class="relative block px-6 py-3 rounded-xl bg-gray-950">
+        <div class="relative flex items-center space-x-2">
           <NIcon v-if="isLoading" name="i-ph-spinner" class="animate-spin" />
           <span class="transition-all duration-500 group-hover:translate-x-1">
             {{ isLoading ? loadingText : idleText }}
