@@ -41,7 +41,7 @@ Key relationship: `quotes` belong to `users`, and may link to `authors` and `quo
 - **Production build**: `bun run build` (requires explicit user request)
 - **Preview build**: `bun run preview`
 - **Version bump**: `bun run bump:version` (patch), `bun run bump:fix` (hotfix), `bun run bump:minor`, `bun run bump:major`
-- **Tag version**: `git tag -a v$(node -e "console.log(require('./package.json').version)") -m "Release v$(node -e "console.log(require('./package.json').version)")"` (after bump commit)
+- **Tag version**: `git tag -a v$(node -e "console.log(require('./package.json').version)") -m "Release v$(node -e "console.log(require('./package.json').version)")"` (after commit)
 - **Database sync**: `bun run db:sync-local` (sync local DB from Wrangler)
 - **Token generation**: `bun run facebook:token`, `bun run instagram:token` (and variants with `:write-env`)
 
@@ -212,7 +212,7 @@ Common commands include:
 
 - `bun run dev` / `nuxt dev`
 - `bun run typecheck`
-- version bump scripts (e.g., `bun run bump:version -- -c`)
+- version bump scripts (e.g., `bun run bump:version`)
 
 ### Long-running processes
 
@@ -262,11 +262,15 @@ Bump type reference:
 
 Workflow (in order):
 
-1. Make your changes and stage them
-2. Commit with a proper message
-3. Run `bun run bump:version -- -c` (or `bun run bump:minor -- -c` / `bun run bump:major -- -c`)
-   This bumps the version, stages `package.json`, and commits it with the message `chore: bump version to x.y.z [skip ci]`
-4. Tag the release:
+1. Make your changes
+2. Run the bump script to update `package.json`:
+   ```bash
+   bun run bump:version
+   ```
+   (or `bun run bump:minor` / `bun run bump:major` as appropriate)
+3. Stage all files, including the updated `package.json`
+4. Commit with a proper message
+5. Tag the release:
    ```bash
    git tag -a v$(node -e "console.log(require('./package.json').version)") -m "Release v$(node -e "console.log(require('./package.json').version)")"
    ```
