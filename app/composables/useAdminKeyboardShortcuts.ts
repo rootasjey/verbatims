@@ -17,6 +17,7 @@ interface AdminKeyboardShortcutsOptions {
   onSingleView?: () => void
   onSingleSubmit?: () => void
   onSingleDelete?: () => void
+  customSingleKeys?: Record<string, () => void>
 }
 
 export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions) {
@@ -92,6 +93,10 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
               options.onSingleSubmit()
             }
             break
+        }
+        if (options.customSingleKeys && key in options.customSingleKeys) {
+          e.preventDefault()
+          options.customSingleKeys[key]()
         }
       }
       return

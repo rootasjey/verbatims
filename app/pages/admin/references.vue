@@ -118,6 +118,25 @@
             tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
             tableBody: 'bg-white dark:bg-[#0C0A09]'
           }"
+          :_table-row="(row) => {
+            if (!row) return {}
+            const rowIdx = filteredReferences.findIndex(r => r.id === row.id)
+            const isHighlighted = rowIdx === highlightedRowIndex
+            const isSelected = !!rowSelection[row.id]
+            if (!isHighlighted && !isSelected) return {}
+            const classes = []
+            if (isHighlighted && isSelected) {
+              classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+            } else if (isHighlighted) {
+              classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+            } else if (isSelected) {
+              classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+            }
+            return {
+              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+              class: classes.join(' ')
+            }
+          }"
           manual-pagination
           empty-text="No references found"
           empty-icon="i-ph-book"
@@ -375,6 +394,7 @@
 <script setup lang="ts">
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 definePageMeta({
   layout: 'admin',
@@ -479,16 +499,44 @@ const isAnyDialogOpen = computed(() =>
   showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value
 )
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => filteredReferences.value.length,
+  onSelectRow: (index: number) => {
+    const ref = filteredReferences.value[index]
+    if (ref) {
+      rowSelection.value[ref.id] = !rowSelection.value[ref.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => isCardView.value
+})
+
+const highlightedReference = computed<QuoteReferenceWithMetadata | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return filteredReferences.value[highlightedRowIndex.value] ?? null
+})
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
   hasSelection: () => selectedIds.value.length > 0,
   isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false,
+  isDropdownOpen: () => isCardView.value,
   onDelete: () => { showBulkDeleteDialog.value = true },
   onConfirmDialog: () => {
     if (showBulkDeleteDialog.value) confirmBulkDelete()
     else if (showDeleteReferenceDialog.value) { /* handled by delete reference dialog */ }
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  onSingleEdit: () => {
+    if (highlightedReference.value) editReference(highlightedReference.value)
+  },
+  onSingleView: () => {
+    if (highlightedReference.value) viewReference(highlightedReference.value)
+  },
+  onSingleDelete: () => {
+    if (highlightedReference.value) deleteReference(highlightedReference.value)
   }
 })
 
@@ -702,9 +750,9 @@ const loadReferences = async () => {
 
     references.value = response.data || []
     totalReferences.value = response.pagination?.total || 0
-    // clear selection when data refreshes
     rowSelection.value = {}
     lastSelectedIndex.value = null
+    clearHighlight()
   } catch (error) {
     console.error('Failed to load references:', error)
     useToast().toast({

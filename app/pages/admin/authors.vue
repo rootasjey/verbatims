@@ -115,6 +115,25 @@
             tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
             tableBody: 'bg-white dark:bg-[#0C0A09]'
           }"
+          :_table-row="(row) => {
+            if (!row) return {}
+            const rowIdx = filteredAuthors.findIndex(a => a.id === row.id)
+            const isHighlighted = rowIdx === highlightedRowIndex
+            const isSelected = !!rowSelection[row.id]
+            if (!isHighlighted && !isSelected) return {}
+            const classes = []
+            if (isHighlighted && isSelected) {
+              classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+            } else if (isHighlighted) {
+              classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+            } else if (isSelected) {
+              classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+            }
+            return {
+              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+              class: classes.join(' ')
+            }
+          }"
           manual-pagination
           empty-text="No authors found"
           empty-icon="i-ph-user"
@@ -385,6 +404,7 @@
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 definePageMeta({
   layout: 'admin',
@@ -484,16 +504,44 @@ const isAnyDialogOpen = computed(() =>
   showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value
 )
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => filteredAuthors.value.length,
+  onSelectRow: (index: number) => {
+    const author = filteredAuthors.value[index]
+    if (author) {
+      rowSelection.value[author.id] = !rowSelection.value[author.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => isCardView.value
+})
+
+const highlightedAuthor = computed<Author | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return filteredAuthors.value[highlightedRowIndex.value] ?? null
+})
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
   hasSelection: () => selectedIds.value.length > 0,
   isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false,
+  isDropdownOpen: () => isCardView.value,
   onDelete: () => { showBulkDeleteDialog.value = true },
   onConfirmDialog: () => {
     if (showBulkDeleteDialog.value) confirmBulkDelete()
     else if (showDeleteAuthorDialog.value) { /* handled by delete author dialog */ }
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  onSingleEdit: () => {
+    if (highlightedAuthor.value) editAuthor(highlightedAuthor.value)
+  },
+  onSingleView: () => {
+    if (highlightedAuthor.value) viewAuthor(highlightedAuthor.value)
+  },
+  onSingleDelete: () => {
+    if (highlightedAuthor.value) deleteAuthor(highlightedAuthor.value)
   }
 })
 
@@ -650,9 +698,9 @@ const loadAuthors = async () => {
 
     authors.value = response.data || []
     totalAuthors.value = response.pagination?.total || 0
-    // clear selection when data refreshes
     rowSelection.value = {}
     lastSelectedIndex.value = null
+    clearHighlight()
   } catch (error) {
     console.error('Failed to load authors:', error)
     useToast().toast({

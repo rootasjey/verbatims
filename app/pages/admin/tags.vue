@@ -13,6 +13,25 @@
             tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
             tableBody: 'bg-white dark:bg-[#0C0A09]'
           }"
+          :_table-row="(row) => {
+            if (!row) return {}
+            const rowIdx = tags.findIndex(t => t.id === row.id)
+            const isHighlighted = rowIdx === highlightedRowIndex
+            const isSelected = !!rowSelection[row.id]
+            if (!isHighlighted && !isSelected) return {}
+            const classes = []
+            if (isHighlighted && isSelected) {
+              classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+            } else if (isHighlighted) {
+              classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+            } else if (isSelected) {
+              classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+            }
+            return {
+              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+              class: classes.join(' ')
+            }
+          }"
           manual-pagination
           empty-text="No tags found"
           empty-icon="i-ph-hash"
@@ -198,6 +217,7 @@
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Tags - Admin - Verbatims' })
@@ -248,6 +268,24 @@ const isAnyDialogOpen = computed(() =>
   showAddDialog.value || showDeleteDialog.value || showBulkDeleteDialog.value || showBackfillDialog.value
 )
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => tags.value.length,
+  onSelectRow: (index: number) => {
+    const tag = tags.value[index]
+    if (tag) {
+      rowSelection.value[tag.id] = !rowSelection.value[tag.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false
+})
+
+const highlightedTag = computed<any | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return tags.value[highlightedRowIndex.value] ?? null
+})
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
@@ -258,6 +296,16 @@ useAdminKeyboardShortcuts({
   onConfirmDialog: () => {
     if (showBulkDeleteDialog.value) confirmBulkDelete()
     else if (showDeleteDialog.value) { /* handled by delete dialog */ }
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  onSingleEdit: () => {
+    if (highlightedTag.value) { selectedTag.value = highlightedTag.value; showAddDialog.value = true }
+  },
+  onSingleView: () => {
+    if (highlightedTag.value) navigateTo(`/tags/${encodeURIComponent(highlightedTag.value.name)}`)
+  },
+  onSingleDelete: () => {
+    if (highlightedTag.value) { tagToDelete.value = highlightedTag.value; showDeleteDialog.value = true }
   }
 })
 
@@ -391,9 +439,9 @@ const loadTags = async () => {
     })
     tags.value = res.data || []
     totalTags.value = res.pagination?.total || 0
-    // clear any existing selection when data refreshes
     rowSelection.value = {}
     lastSelectedIndex.value = null
+    clearHighlight()
   } catch (e) {
     console.error('Failed to load tags', e)
     useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to load tags' })

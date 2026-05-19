@@ -441,3 +441,9 @@ watch(sidebarCollapsed, (val) => {
   } catch (e) {}
 })
 </script>
+
+<style>
+[data-highlighted="true"] {
+  scroll-margin-top: 5rem;
+}
+</style>
