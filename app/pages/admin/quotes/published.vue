@@ -54,11 +54,14 @@
               if (!isHighlighted && !isSelected) return {}
               const classes = []
               if (isHighlighted && isSelected) {
-                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
+                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
               } else if (isHighlighted) {
                 classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
               } else if (isSelected) {
-                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
+                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
               }
               return {
                 ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
