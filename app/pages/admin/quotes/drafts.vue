@@ -43,7 +43,29 @@
               scrollAreaRoot: '!overflow-visible',
               table: '!w-auto min-w-full',
               tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-              tableBody: 'bg-white dark:bg-[#0C0A09]'
+              tableBody: 'bg-white dark:bg-[#0C0A09]',
+            }"
+            :_table-row="(row) => {
+              if (!row) return {}
+              const rowIdx = filteredQuotes.findIndex(q => q.id === row.id)
+              const isHighlighted = rowIdx === highlightedRowIndex
+              const isSelected = !!rowSelection[row.id]
+              if (!isHighlighted && !isSelected) return {}
+              const classes = []
+              if (isHighlighted && isSelected) {
+                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
+                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
+              } else if (isHighlighted) {
+                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
+              } else if (isSelected) {
+                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
+                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
+              }
+              return {
+                ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+                class: classes.join(' ')
+              }
             }"
             manual-pagination
             empty-text="No draft quotes found"
@@ -65,9 +87,9 @@
                 'group-hover:flex',
               ]">
                 <NCheckbox
-                  checkbox="gray"
+                  :checkbox="Boolean(rowSelection[cell.row.original.id]) ? 'indigo' : 'gray'"
                   :model-value="!!rowSelection[cell.row.original.id]"
-                  @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
+                  @click="(e: any) => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
                 />
               </div>
             </template>
@@ -282,6 +304,7 @@ import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 definePageMeta({
   layout: 'admin',
@@ -417,6 +440,36 @@ const isAnyDialogOpen = computed(() =>
   showBulkEditDialog.value || showEditQuoteDialog.value || showBulkSubmitModal.value
 )
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => filteredQuotes.value.length,
+  onSelectRow: (index: number) => {
+    const quote = filteredQuotes.value[index]
+    if (quote) {
+      rowSelection.value[quote.id] = !rowSelection.value[quote.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false
+})
+
+const highlightedQuote = computed<AdminQuote | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return filteredQuotes.value[highlightedRowIndex.value] ?? null
+})
+
+function repositionHighlightAfterRemoval(previousIndex: number | null) {
+  if (previousIndex === null) return
+  nextTick(() => {
+    const count = filteredQuotes.value.length
+    if (count === 0) {
+      highlightedRowIndex.value = null
+    } else {
+      highlightedRowIndex.value = Math.min(Math.max(0, previousIndex - 1), count - 1)
+    }
+  })
+}
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
@@ -430,6 +483,19 @@ useAdminKeyboardShortcuts({
     if (showBulkDeleteModal.value) bulkDelete()
     else if (showBulkSubmitModal.value) { bulkSubmit(); showBulkSubmitModal.value = false }
     else if (showDeleteModal.value) deleteDraft()
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  onSingleEdit: () => {
+    if (highlightedQuote.value) editQuote(highlightedQuote.value)
+  },
+  onSingleView: () => {
+    if (highlightedQuote.value) viewQuote(highlightedQuote.value)
+  },
+  onSingleSubmit: () => {
+    if (highlightedQuote.value) submitForReview(highlightedQuote.value)
+  },
+  onSingleDelete: () => {
+    if (highlightedQuote.value) confirmDelete(highlightedQuote.value)
   }
 })
 
@@ -563,9 +629,9 @@ const loadQuotes = async (page = currentPage.value) => {
 
     quotes.value = (response.data as any) || []
     totalQuotes.value = response.pagination?.total || 0
-    // clear any multi‑selection when data refreshes
     rowSelection.value = {}
     lastSelectedIndex.value = null
+    clearHighlight()
     // Update current page and total pages
     currentPage.value = page
   } catch (error) {
@@ -625,12 +691,14 @@ const editQuote = (quote: AdminQuote) => {
 }
 
 const submitForReview = async (quote: AdminQuote) => {
+  const previousHighlightedIndex = highlightedRowIndex.value
   try {
     await $fetch(`/api/admin/quotes/${quote.id}/submit`, {
       method: 'POST'
     } as any)
 
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
+    repositionHighlightAfterRemoval(previousHighlightedIndex)
   } catch (error) {
     console.error('Failed to submit draft for review:', error)
     useToast().toast({
@@ -662,6 +730,8 @@ const confirmDelete = (quote: AdminQuote) => {
 const deleteDraft = async () => {
   if (!selectedQuote.value) return
 
+  const previousHighlightedIndex = highlightedRowIndex.value
+
   deleting.value = true
   try {
     await $fetch(`/api/quotes/${selectedQuote.value.id}`, {
@@ -672,6 +742,8 @@ const deleteDraft = async () => {
     quotes.value = quotes.value.filter(q => q.id !== selectedQuote.value?.id)
     showDeleteModal.value = false
     selectedQuote.value = null
+
+    repositionHighlightAfterRemoval(previousHighlightedIndex)
 
     useToast().toast({
       toast: 'success',
@@ -781,6 +853,10 @@ onBeforeUnmount(() => {
 
 .quotes-table-container :deep([data-reka-scroll-area-corner]) {
   display: none !important;
+}
+
+:deep([data-highlighted="true"]) {
+  scroll-margin-top: 5rem;
 }
 
 .frame {

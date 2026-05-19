@@ -11,6 +11,12 @@ interface AdminKeyboardShortcutsOptions {
   onConfirmDialog?: () => void
 
   customKeys?: Record<string, () => void>
+
+  highlightedRowIndex?: () => number | null
+  onSingleEdit?: () => void
+  onSingleView?: () => void
+  onSingleSubmit?: () => void
+  onSingleDelete?: () => void
 }
 
 export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions) {
@@ -57,7 +63,39 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
       }
     }
 
-    if (!options.hasSelection()) return
+    if (!options.hasSelection()) {
+      const highlightedIdx = options.highlightedRowIndex?.()
+      if (highlightedIdx !== null && highlightedIdx !== undefined) {
+        const key = e.key.toLowerCase()
+        switch (key) {
+          case 'e':
+            if (options.onSingleEdit) {
+              e.preventDefault()
+              options.onSingleEdit()
+            }
+            break
+          case 'd':
+            if (options.onSingleDelete) {
+              e.preventDefault()
+              options.onSingleDelete()
+            }
+            break
+          case 'v':
+            if (options.onSingleView) {
+              e.preventDefault()
+              options.onSingleView()
+            }
+            break
+          case 's':
+            if (options.onSingleSubmit) {
+              e.preventDefault()
+              options.onSingleSubmit()
+            }
+            break
+        }
+      }
+      return
+    }
 
     const key = e.key.toLowerCase()
 
