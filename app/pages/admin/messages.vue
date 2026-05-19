@@ -19,6 +19,25 @@
               table: '!w-auto min-w-full',
               tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
               tableBody: 'bg-white dark:bg-[#0C0A09]'
+            }"
+            :_table-row="(row) => {
+              if (!row) return {}
+              const rowIdx = messages.findIndex(m => m.id === row.id)
+              const isHighlighted = rowIdx === highlightedRowIndex
+              const isSelected = !!rowSelection[row.id]
+              if (!isHighlighted && !isSelected) return {}
+              const classes = []
+              if (isHighlighted && isSelected) {
+                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+              } else if (isHighlighted) {
+                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+              } else if (isSelected) {
+                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+              }
+              return {
+                ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+                class: classes.join(' ')
+              }
             }">
             <template #select-header>
               <div>
@@ -183,6 +202,7 @@
 <script lang="ts" setup>
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 type MessageStatus = AdminUserMessage['status']
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -321,6 +341,7 @@ const loadMessages = async (page = 1) => {
     pageSize.value = res.pagination?.limit || pageSize.value
     rowSelection.value = {}
     lastSelectedIndex.value = null
+    clearHighlight()
     currentPage.value = page
   } catch (err) {
     console.error('Failed to load messages', err)
@@ -424,6 +445,24 @@ const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value 
 
 const isAnyDialogOpen = computed(() => false)
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => messages.value.length,
+  onSelectRow: (index: number) => {
+    const msg = messages.value[index]
+    if (msg) {
+      rowSelection.value[msg.id] = !rowSelection.value[msg.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false
+})
+
+const highlightedMessage = computed<AdminUserMessage | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return messages.value[highlightedRowIndex.value] ?? null
+})
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
@@ -434,6 +473,12 @@ useAdminKeyboardShortcuts({
     t: () => bulkSetStatus('triaged'),
     r: () => bulkSetStatus('resolved'),
     s: () => bulkSetStatus('spam')
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  customSingleKeys: {
+    t: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'triaged') },
+    r: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'resolved') },
+    s: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'spam') }
   }
 })
 

@@ -17,6 +17,25 @@
             tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
             tableBody: 'bg-white dark:bg-[#0C0A09]'
           }"
+          :_table-row="(row) => {
+            if (!row) return {}
+            const rowIdx = users.findIndex(u => u.id === row.id)
+            const isHighlighted = rowIdx === highlightedRowIndex
+            const isSelected = !!rowSelection[row.id]
+            if (!isHighlighted && !isSelected) return {}
+            const classes = []
+            if (isHighlighted && isSelected) {
+              classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+            } else if (isHighlighted) {
+              classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+            } else if (isSelected) {
+              classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+            }
+            return {
+              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+              class: classes.join(' ')
+            }
+          }"
         >
           <template #select-header>
             <div>
@@ -234,6 +253,7 @@
 <script setup lang="ts">
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 definePageMeta({
   layout: 'admin',
@@ -326,6 +346,24 @@ const isAnyDialogOpen = computed(() =>
   showDeleteUserDialog.value || showBulkDeleteDialog.value
 )
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => users.value.length,
+  onSelectRow: (index: number) => {
+    const user = users.value[index]
+    if (user) {
+      rowSelection.value[user.id] = !rowSelection.value[user.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false
+})
+
+const highlightedUser = computed<AdminUser | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return users.value[highlightedRowIndex.value] ?? null
+})
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
@@ -336,6 +374,16 @@ useAdminKeyboardShortcuts({
   onConfirmDialog: () => {
     if (showBulkDeleteDialog.value) bulkDeleteUsers()
     else if (showDeleteUserDialog.value) { /* handled by DeleteUserDialog */ }
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  onSingleEdit: () => {
+    if (highlightedUser.value) editUser(highlightedUser.value)
+  },
+  onSingleView: () => {
+    if (highlightedUser.value) navigateTo(`/users/${highlightedUser.value.id}`)
+  },
+  onSingleDelete: () => {
+    if (highlightedUser.value) deleteUser(highlightedUser.value)
   }
 })
 
@@ -435,9 +483,9 @@ const loadUsers = async () => {
 
     users.value = response.data || []
     totalUsers.value = response.pagination?.total || 0
-    // clear any existing selection when data refreshes
     rowSelection.value = {}
     lastSelectedIndex.value = null
+    clearHighlight()
   } catch (error: any) {
     console.error('Failed to load users:', error)
     useToast().toast({ title: 'Error', description: 'Failed to load users', toast: 'error' })

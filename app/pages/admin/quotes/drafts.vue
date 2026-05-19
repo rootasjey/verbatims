@@ -855,10 +855,6 @@ onBeforeUnmount(() => {
   display: none !important;
 }
 
-:deep([data-highlighted="true"]) {
-  scroll-margin-top: 5rem;
-}
-
 .frame {
   height: calc(100vh - 8rem);
 }

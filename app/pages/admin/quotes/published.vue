@@ -46,6 +46,25 @@
               tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
               tableBody: 'bg-white dark:bg-[#0C0A09]'
             }"
+            :_table-row="(row) => {
+              if (!row) return {}
+              const rowIdx = filteredQuotes.findIndex(q => q.id === row.id)
+              const isHighlighted = rowIdx === highlightedRowIndex
+              const isSelected = !!rowSelection[row.id]
+              if (!isHighlighted && !isSelected) return {}
+              const classes = []
+              if (isHighlighted && isSelected) {
+                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-l-2 border-indigo-500 dark:border-indigo-400')
+              } else if (isHighlighted) {
+                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
+              } else if (isSelected) {
+                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-l-2 border-indigo-300 dark:border-indigo-700')
+              }
+              return {
+                ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
+                class: classes.join(' ')
+              }
+            }"
             manual-pagination
             empty-text="No published quotes found"
             empty-icon="i-ph-check-circle"
@@ -288,6 +307,7 @@
 import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
+import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 definePageMeta({
   layout: 'admin',
@@ -520,6 +540,7 @@ const loadQuotes = async () => {
     totalQuotes.value = response.pagination?.total || 0
     // Reset selection on new data
     rowSelection.value = {}
+    clearHighlight()
   } catch (error) {
     console.error('Failed to load published quotes:', error)
     useToast().toast({
@@ -620,6 +641,24 @@ const isAnyDialogOpen = computed(() =>
   showBulkEditDialog.value || showBulkUnpublishModal.value
 )
 
+const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
+  visibleRowCount: () => filteredQuotes.value.length,
+  onSelectRow: (index: number) => {
+    const quote = filteredQuotes.value[index]
+    if (quote) {
+      rowSelection.value[quote.id] = !rowSelection.value[quote.id]
+      lastSelectedIndex.value = null
+    }
+  },
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false
+})
+
+const highlightedQuote = computed<AdminQuote | null>(() => {
+  if (highlightedRowIndex.value === null) return null
+  return filteredQuotes.value[highlightedRowIndex.value] ?? null
+})
+
 useAdminKeyboardShortcuts({
   selectAllOnPage,
   clearSelection,
@@ -630,6 +669,16 @@ useAdminKeyboardShortcuts({
   onDelete: () => { showBulkUnpublishModal.value = true },
   onConfirmDialog: () => {
     if (showBulkUnpublishModal.value) { bulkUnpublish(); showBulkUnpublishModal.value = false }
+  },
+  highlightedRowIndex: () => highlightedRowIndex.value,
+  onSingleEdit: () => {
+    if (highlightedQuote.value) editQuote(highlightedQuote.value)
+  },
+  onSingleView: () => {
+    if (highlightedQuote.value) viewQuote(highlightedQuote.value)
+  },
+  onSingleDelete: () => {
+    if (highlightedQuote.value) unpublishQuote(highlightedQuote.value)
   }
 })
 
