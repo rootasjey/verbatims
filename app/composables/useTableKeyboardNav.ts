@@ -76,6 +76,20 @@ export function useTableKeyboardNav(options: TableKeyboardNavOptions) {
 
     if (highlightedRowIndex.value === null) return
 
+    if (e.shiftKey && key === 'ArrowUp') {
+      e.preventDefault()
+      moveHighlightUp()
+      options.onSelectRow(highlightedRowIndex.value)
+      return
+    }
+
+    if (e.shiftKey && key === 'ArrowDown') {
+      e.preventDefault()
+      moveHighlightDown()
+      options.onSelectRow(highlightedRowIndex.value)
+      return
+    }
+
     if (key === 'ArrowUp') {
       e.preventDefault()
       moveHighlightUp()
