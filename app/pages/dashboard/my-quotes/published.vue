@@ -719,6 +719,10 @@ const shareQuote = (quote: DashboardQuote) => {
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
+const isAnyDialogOpen = computed(() =>
+  showAddToCollectionModal.value || showAddToCollectionDrawer.value || showBulkAddToCollection.value
+)
+
 const allSelected = computed<boolean | 'indeterminate'>({
   get: () => {
     const total = filteredQuotes.value.length
@@ -772,12 +776,24 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
   lastSelectedIndex.value = index
 }
 
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  customKeys: {
+    c: () => { showBulkAddToCollection.value = true }
+  }
+})
+
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
     actions.push({
       label: 'Add to Collection',
       leading: 'i-ph-bookmark',
+      shortcut: 'C',
       onclick: () => { showBulkAddToCollection.value = true }
     })
   }
@@ -798,16 +814,6 @@ const headerActions = computed(() => {
   return actions
 })
 
-// Keyboard shortcut: Cmd/Ctrl + A to select all
-const onKeydown = (e: KeyboardEvent) => {
-  const isMac = navigator.platform.toLowerCase().includes('mac')
-  const metaPressed = isMac ? e.metaKey : e.ctrlKey
-  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
-    e.preventDefault()
-    selectAllOnPage()
-  }
-}
-
 const handleBulkAddedToCollection = () => {
   showBulkAddToCollection.value = false
   clearSelection()
@@ -823,7 +829,6 @@ onMounted(() => {
   setPageLayout(currentLayout.value)
   if (isMobile.value) loadPublishedMobile(1)
   else loadPublishedQuotes()
-  window.addEventListener('keydown', onKeydown)
   // Add mobile scroll listener
   if (isMobile.value) {
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -836,7 +841,6 @@ watch(currentLayout, (newLayout) => {
 
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
   if (isMobile.value) {
     window.removeEventListener('scroll', handleScroll)
   }

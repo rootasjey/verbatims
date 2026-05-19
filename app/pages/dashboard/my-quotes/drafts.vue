@@ -740,6 +740,11 @@ const deleteDraft = async () => {
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
+const isAnyDialogOpen = computed(() =>
+  showDeleteModal.value || showBulkDeleteModal.value ||
+  showBulkEditDialog.value || showEditQuoteDialog.value || showEditQuoteDrawer.value
+)
+
 const allSelected = computed<boolean | 'indeterminate'>({
   get: () => {
     const total = filteredQuotes.value.length
@@ -799,17 +804,20 @@ const headerActions = computed(() => {
     actions.push({
       label: 'Edit Selected',
       leading: 'i-ph-pencil',
+      shortcut: 'E',
       onclick: () => { showBulkEditDialog.value = true }
     })
     actions.push({
       label: 'Submit Selected',
       leading: 'i-ph-paper-plane-tilt',
+      shortcut: 'S',
       disabled: !canSubmitForReview.value,
       onclick: () => bulkSubmit()
     })
     actions.push({
       label: 'Delete Selected',
       leading: 'i-ph-trash',
+      shortcut: 'D',
       onclick: () => { showBulkDeleteModal.value = true }
     })
   }
@@ -826,15 +834,6 @@ const headerActions = computed(() => {
   })
   return actions
 })
-
-const onKeydown = (e: KeyboardEvent) => {
-  const isMac = navigator.platform.toLowerCase().includes('mac')
-  const metaPressed = isMac ? e.metaKey : e.ctrlKey
-  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
-    e.preventDefault()
-    selectAllOnPage()
-  }
-}
 
 const bulkSubmit = async () => {
   if (selectedQuotes.value.length === 0) return
@@ -888,6 +887,21 @@ const bulkDelete = async () => {
   }
 }
 
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onEdit: () => { showBulkEditDialog.value = true },
+  onSubmit: () => bulkSubmit(),
+  onDelete: () => { showBulkDeleteModal.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteModal.value) bulkDelete()
+    else if (showDeleteModal.value) deleteDraft()
+  }
+})
+
 const resetFilters = () => {
   searchQuery.value = ''
   sortBy.value.value = 'recent'
@@ -924,7 +938,6 @@ const handleScroll = () => {
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadDrafts()
-  window.addEventListener('keydown', onKeydown)
 
   // Add scroll listener for mobile
   if (isMobile.value) {
@@ -933,7 +946,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
 
   // Remove scroll listener
   if (isMobile.value) {

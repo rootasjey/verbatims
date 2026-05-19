@@ -511,16 +511,11 @@ const selectAllOnPage = () => {
   else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
 }
 
-const onKeydown = (e: KeyboardEvent) => {
-  const isMac = navigator.platform.toLowerCase().includes('mac')
-  const metaPressed = isMac ? e.metaKey : e.ctrlKey
-  if (metaPressed && (e.key === 'a' || e.key === 'A')) {
-    e.preventDefault()
-    selectAllOnPage()
-  }
-}
-
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
+
+const isAnyDialogOpen = computed(() =>
+  showQuoteDialog.value
+)
 
 // shift-click range selection
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
@@ -539,12 +534,24 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
   lastSelectedIndex.value = index
 }
 
+useAdminKeyboardShortcuts({
+  selectAllOnPage,
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  customKeys: {
+    w: () => bulkWithdraw()
+  }
+})
+
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
     actions.push({
       label: 'Withdraw Selected',
       leading: 'i-ph-arrow-counter-clockwise',
+      shortcut: 'W',
       onclick: () => bulkWithdraw()
     })
   }
@@ -725,7 +732,6 @@ watchDebounced([searchQuery, sortBy], () => {
 onMounted(() => {
   setPageLayout(currentLayout.value)
   loadPendingQuotes()
-  window.addEventListener('keydown', onKeydown)
   // Add mobile scroll listener
   if (isMobile.value) {
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -733,7 +739,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
   if (isMobile.value) {
     window.removeEventListener('scroll', handleScroll)
   }
