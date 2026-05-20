@@ -105,7 +105,9 @@ Conventions:
 
 - **Layouts** define major contexts such as `admin.vue`, `dashboard.vue`, `default.vue`.
 - **Pages** follow `/pages` conventions, including dynamic routes like `[id].vue`.
-- **Components** are generally auto-imported.
+- **Components** are generally auto-imported from `app/components/`.
+  - **Nested folders:** Components inside subdirectories (e.g. `app/components/home/`) are auto-imported with the folder name as prefix: `<HomeSpotlightQuote />`.
+  - **Alternative:** Explicitly import nested components in the page to use unprefixed names: `import SpotlightQuote from '~/components/home/SpotlightQuote.vue'` then use `<SpotlightQuote />`.
 - **Composable logic** belongs in `app/composables/`.
 - **Server utilities** under `~/server/utils/` are commonly reused across API handlers.
 
