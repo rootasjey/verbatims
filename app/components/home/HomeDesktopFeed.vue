@@ -96,14 +96,14 @@
               class="flex items-center gap-3 group"
             >
               <div
-                v-if="featuredQuote.author?.image_url"
+                v-if="featuredQuote.author?.image_url && !imageErrors[featuredQuote.author.id]"
                 class="w-10 h-10 rounded-full overflow-hidden grayscale"
               >
-                <img :src="featuredQuote.author.image_url" :alt="featuredQuote.author.name" class="w-full h-full object-cover" />
+                <img :src="featuredQuote.author.image_url" :alt="featuredQuote.author.name" class="w-full h-full object-cover" @error="authorAvatarFailed(featuredQuote.author.id)" />
               </div>
-              <div v-else class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <span class="font-serif text-sm font-bold text-gray-600 dark:text-gray-400">
-                  {{ featuredQuote.author?.name?.charAt(0) || '?' }}
+              <div v-else class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                <span class="font-serif text-xs text-gray-400 dark:text-gray-500">
+                  {{ getAuthorInitials(featuredQuote.author?.name) }}
                 </span>
               </div>
               <div>
@@ -142,7 +142,7 @@
           <NuxtLink :to="`/references/${spotlightReference.id}`" class="block group">
             <div class="mb-6 mx-8 overflow-hidden">
               <div
-                v-if="spotlightReference.image_url"
+                v-if="spotlightReference.image_url && !referenceImageErrors[spotlightReference.id]"
                 class="w-full bg-cover bg-center grayscale"
                 :style="{ backgroundImage: `url(${spotlightReference.image_url})`, aspectRatio: spotlightAspectRatio || undefined }"
               />
@@ -174,20 +174,20 @@
                 class="flex-shrink-0"
               >
                 <div
-                  v-if="item.author?.image_url"
+                  v-if="item.author?.image_url && !imageErrors[item.author.id]"
                   class="w-8 h-8 rounded-full overflow-hidden mt-1 grayscale"
                 >
-                  <img :src="item.author.image_url" :alt="item.author.name" class="w-full h-full object-cover" />
+                  <img :src="item.author.image_url" :alt="item.author.name" class="w-full h-full object-cover" @error="authorAvatarFailed(item.author.id)" />
                 </div>
-                <div v-else class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mt-1">
-                  <span class="font-serif text-xs font-bold text-gray-600 dark:text-gray-400">
-                    {{ item.author?.name?.charAt(0) || '?' }}
+                <div v-else class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center mt-1">
+                  <span class="font-serif text-[10px] text-gray-400 dark:text-gray-500">
+                    {{ getAuthorInitials(item.author.name) }}
                   </span>
                 </div>
               </NuxtLink>
               <div v-else class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 mt-1">
                 <span class="font-serif text-xs font-bold text-gray-600 dark:text-gray-400">
-                  {{ item.author?.name?.charAt(0) || '?' }}
+                  ?
                 </span>
               </div>
               <div class="min-w-0 flex-1">
@@ -261,7 +261,7 @@
       </div>
 
       <!-- Right sidebar: Featured references -->
-      <div class="lg:col-span-3 lg:border-l b-dashed border-gray-300 dark:border-gray-700">
+      <div class="lg:col-span-3 lg:border-l b-dashed border-gray-300 dark:border-gray-700 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
         <div class="px-4 md:px-8 mt-4 mb-6 pb-4 border-b b-dashed border-gray-300 dark:border-gray-700 flex items-center justify-between">
           <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
             Featured References
@@ -280,11 +280,13 @@
           >
             <div class="flex-shrink-0 w-16 h-22 overflow-hidden rounded-sm">
               <div
-                v-if="ref.image_url"
+                v-if="ref.image_url && !referenceImageErrors[ref.id]"
                 class="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105 grayscale"
                 :style="{ backgroundImage: `url(${ref.image_url})` }"
               />
-              <div v-else class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800" />
+              <div v-else class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                <NIcon name="i-ph-image" class="w-6 h-6 text-gray-400 dark:text-gray-500" />
+              </div>
             </div>
             <div class="min-w-0 flex-1">
               <h4 class="font-serif text-sm font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">
@@ -326,14 +328,14 @@
             >
               <div class="flex-shrink-0">
                 <div
-                  v-if="author.image_url"
+                  v-if="author.image_url && !imageErrors[author.id]"
                   class="w-10 h-10 rounded-full overflow-hidden grayscale"
                 >
-                  <img :src="author.image_url" :alt="author.name" class="w-full h-full object-cover" />
+                  <img :src="author.image_url" :alt="author.name" class="w-full h-full object-cover" @error="authorAvatarFailed(author.id)" />
                 </div>
-                <div v-else class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <span class="font-serif text-sm font-bold text-gray-600 dark:text-gray-400">
-                    {{ author.name?.charAt(0) || '?' }}
+                <div v-else class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                  <span class="font-serif text-xs text-gray-400 dark:text-gray-500">
+                    {{ getAuthorInitials(author.name) }}
                   </span>
                 </div>
               </div>
@@ -400,6 +402,7 @@ const spotlightReference = computed(() => {
 })
 
 const spotlightAspectRatio = ref<string | null>(null)
+const referenceImageErrors = reactive<Record<number, boolean>>({})
 
 watch(spotlightReference, (ref, _oldRef, onCleanup) => {
   if (!ref?.image_url) {
@@ -414,6 +417,11 @@ watch(spotlightReference, (ref, _oldRef, onCleanup) => {
   img.onload = () => {
     if (stale) return
     spotlightAspectRatio.value = `${img.naturalWidth} / ${img.naturalHeight}`
+  }
+  img.onerror = () => {
+    if (stale) return
+    referenceImageErrors[ref.id] = true
+    spotlightAspectRatio.value = null
   }
   img.src = ref.image_url
 }, { immediate: true })
@@ -436,9 +444,20 @@ const featuredReferences = computed(() => {
   return refs.slice(1)
 })
 
+watch(featuredReferences, (refs) => {
+  refs.forEach((ref) => {
+    if (!ref.image_url || referenceImageErrors[ref.id]) return
+    const img = new Image()
+    img.onerror = () => {
+      referenceImageErrors[ref.id] = true
+    }
+    img.src = ref.image_url
+  })
+}, { immediate: true })
+
 // Extract top authors for sidebar (most liked)
 const sidebarAuthors = computed(() => {
-  const auths = props.feed.authors.value || []
+  const auths = props.feed.authors?.value || []
   return auths.slice(0, 8)
 })
 
@@ -477,6 +496,20 @@ const formatReferenceType = (type: string) => {
     other: 'Other',
   }
   return map[type] || type
+}
+
+const getAuthorInitials = (name: string) => {
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
+
+// Track images that failed to load so we show the initials fallback
+const imageErrors = reactive<Record<number, boolean>>({})
+
+const authorAvatarFailed = (id: number) => {
+  imageErrors[id] = true
 }
 
 const openEdit = (quote: ProcessedQuoteResult) => {
