@@ -1,36 +1,39 @@
 <template>
   <!-- Desktop: Quotes Grid with Search -->
-  <div class="mt-6 px-8 pb-16">
-    <div class="flex gap-4 font-body mb-8">
-      <div class="flex-grow-2 font-600">
-        <NInput :model-value="feed.searchQuery?.value" @update:model-value="val => (feed.searchQuery.value = val)"
-          placeholder="Search quotes..." leading="i-ph-magnifying-glass" size="md"
-          :loading="feed.quotesLoading?.value" />
-      </div>
-      <div class="flex-1">
-        <LanguageSelector @language-changed="feed.onLanguageChange" />
-      </div>
+  <div class="px-8 pb-16">
+    <!-- Sticky controls bar -->
+    <div class="sticky top-16 z-3 -mx-8 px-8 py-3 bg-gray-50/80 dark:bg-[#0C0A09]/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50">
+      <div class="flex gap-4 font-body">
+        <div class="flex-grow-2 font-600">
+          <NInput :model-value="feed.searchQuery?.value" @update:model-value="val => (feed.searchQuery.value = val)"
+            placeholder="Search quotes..." leading="i-ph-magnifying-glass" size="md"
+            :loading="feed.quotesLoading?.value" />
+        </div>
+        <div class="flex-1">
+          <LanguageSelector @language-changed="feed.onLanguageChange" />
+        </div>
 
-      <div class="flex gap-4 items-center">
-        <NSelect 
-          :model-value="feed.selectedSortBy?.value"
-          @update:model-value="(val) => { feed.selectedSortBy.value = val }" 
-          :items="feed.sortByOptions"
-          placeholder="Sort by" 
-          size="sm" 
-          item-key="label"
-          value-key="label"
-        />
-        <!-- Order Toggle: OFF = Desc (↓), ON = Asc (↑) -->
-        <div class="flex items-center gap-2">
-          <NToggle :model-value="feed.isAsc?.value" @update:model-value="val => (feed.isAsc.value = val)" size="sm"
-            :label="feed.isAsc?.value ? 'i-ph-sort-descending-duotone' : 'i-ph-sort-ascending-duotone'"
-            :aria-label="feed.isAsc?.value ? 'Ascending' : 'Descending'" />
+        <div class="flex gap-4 items-center">
+          <NSelect
+            :model-value="feed.selectedSortBy?.value"
+            @update:model-value="(val) => { feed.selectedSortBy.value = val }"
+            :items="feed.sortByOptions"
+            placeholder="Sort by"
+            size="sm"
+            item-key="label"
+            value-key="label"
+          />
+          <!-- Order Toggle: OFF = Desc (↓), ON = Asc (↑) -->
+          <div class="flex items-center gap-2">
+            <NToggle :model-value="feed.isAsc?.value" @update:model-value="val => (feed.isAsc.value = val)" size="sm"
+              :label="feed.isAsc?.value ? 'i-ph-sort-descending-duotone' : 'i-ph-sort-ascending-duotone'"
+              :aria-label="feed.isAsc?.value ? 'Ascending' : 'Descending'" />
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8 mb-12">
       <QuoteGridItem 
         v-for="(q, index) in feed.quotes.value"
         link-card 

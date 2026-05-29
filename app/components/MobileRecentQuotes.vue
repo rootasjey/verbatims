@@ -39,8 +39,15 @@
 </template>
 
 <script setup lang="ts">
+interface FeedView {
+  quotes: Ref<any[]>
+  hasMore?: Ref<boolean>
+  loadingMore?: Ref<boolean>
+  loadMore: () => Promise<void>
+}
+
 const { feed } = defineProps<{
-  feed: UseQuoteSearchFeed
+  feed: FeedView
   limit?: number
 }>()
 </script>
