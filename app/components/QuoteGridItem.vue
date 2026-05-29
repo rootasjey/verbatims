@@ -10,9 +10,11 @@
       :to="`/quotes/${quote.id}`"
       :style="cardStyle"
       :class="[
-        'quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
-        'dark:hover:border-gray-600 hover:z-2 hover:font-500 hover:shadow-lg transition-all duration-300',
+        'quote-grid-item group relative p-6 cursor-pointer h-full flex flex-col',
+        'hover:z-2 hover:font-500 hover:shadow-lg transition-all duration-300',
         'hover:scale-101 active:scale-99 active:shadow-none',
+        'hover:bg-[#FAFAF9] dark:hover:bg-white/[0.02]',
+        'hover:border',
         {
           'has-topic-border': hasTopicBorder,
         }
@@ -23,7 +25,7 @@
       <div class="quote-grid-item-body h-full flex flex-col">
         <div 
           :class="[
-            'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
+            'border-b border-gray-200/60 dark:border-gray-700/40 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
             isHovered ? 'opacity-100' : 'opacity-50'
           ]"
         >
@@ -62,11 +64,11 @@
         <!-- Quote Content (Main) -->
         <div class="flex-1 flex">
           <blockquote
-            class="font-subtitle text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
+            class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
             :class="{
-              'text-sm': (quote.name || '').length > 200,
-              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-              'text-lg': (quote.name || '').length <= 100
+              'text-base': (quote.name || '').length > 200,
+              'text-lg': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-xl': (quote.name || '').length <= 100
             }"
           >
             {{ quote.name }}
@@ -88,9 +90,11 @@
     <div v-else
       :style="cardStyle"
       :class="[
-        'quote-grid-item group border relative p-6 cursor-pointer h-full flex flex-col',
-        'dark:hover:border-gray-600 hover:shadow-lg transition-all duration-300',
+        'quote-grid-item group relative p-6 cursor-pointer h-full flex flex-col',
+        'hover:shadow-lg transition-all duration-300',
         'hover:scale-101 active:scale-99 active:shadow-none',
+        'hover:bg-[#FAFAF9] dark:hover:bg-white/[0.02]',
+        'hover:border',
         {
           'has-topic-border': hasTopicBorder,
         }
@@ -102,7 +106,7 @@
       <div class="quote-grid-item-body h-full flex flex-col">
         <div 
           :class="[
-            'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
+            'border-b border-gray-200/60 dark:border-gray-700/40 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
             isHovered ? 'opacity-100' : 'opacity-50'
           ]"
         >
@@ -140,9 +144,9 @@
           <blockquote
             class="font-serif text-gray-800 dark:text-gray-200 leading-relaxed transition-opacity duration-300"
             :class="{
-              'text-sm': (quote.name || '').length > 200,
-              'text-base': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-              'text-lg': (quote.name || '').length <= 100
+              'text-base': (quote.name || '').length > 200,
+              'text-lg': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+              'text-xl': (quote.name || '').length <= 100
             }"
           >
             {{ quote.name }}
@@ -317,6 +321,14 @@ const shareQuote = async () => {
 </script>
 
 <style scoped>
+.quote-grid-item:hover {
+  border-color: rgb(209 213 219 / 0.6);
+}
+
+:where(.dark) .quote-grid-item:hover {
+  border-color: rgb(75 85 99 / 0.4);
+}
+
 .quote-grid-item.has-topic-border:hover {
   border-color: var(--topic-border-color);
   border-image-source: var(--topic-border-image, none);
