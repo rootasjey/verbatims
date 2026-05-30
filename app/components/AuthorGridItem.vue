@@ -1,135 +1,76 @@
 <template>
   <NuxtLink
-    :to="`/authors/${props.author.id}`"
-    :class="[
-      'author-grid-item group border relative p-6 cursor-pointer h-full flex flex-col no-underline',
-      borderHoverClass,
-      'hover:scale-101 active:scale-99 hover:shadow-lg transition-all duration-300',
-      'hover:z-2',
-    ]"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
+    :to="`/authors/${author.id}`"
+    class="group p-4 cursor-pointer flex flex-col no-underline rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-[0.99] transition-all duration-200"
   >
-    <!-- Author Type and Stats (Top) -->
-    <div 
-      :class="[
-        'border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 font-sans font-600 text-size-4 flex items-center justify-between mb-4 flex-shrink-0',
-        isHovered ? 'opacity-100' : 'opacity-50'
-      ]"
-    >
-      <!-- Author Type Badge -->
-      <NBadge 
-        :badge="author.is_fictional ? 'outline-purple' : 'outline-blue'" 
-        size="xs"
-        class="transition-opacity duration-300"
-        :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
-      >
-        {{ author.is_fictional ? 'Fictional' : 'Real' }}
-      </NBadge>
-      
-      <!-- Quote Count Icon -->
-      <NTooltip :content="`${author.quotes_count || 0} quotes`">
-        <NIcon
-          name="i-ph-quotes-bold"
-          :class="[
-            'opacity-0 group-hover:opacity-100',
-            'text-gray-600 dark:text-gray-400 flex-shrink-0 transition-opacity duration-300',
-            'hover:scale-125 hover:rotate-12 active:scale-99 ease-in-out transition-transform duration-300'
-          ]"
-        />
-    </NTooltip>
-    </div>
-
-    <!-- Author Name (Main) -->
-    <div class="flex-1 flex flex-col">
-      <!-- Author Name -->
-      <h3
-        class="font-serif text-gray-800 dark:text-gray-200 
-          break-words line-height-none
-          leading-relaxed transition-opacity duration-300 mb-2"
-        :class="{
-          'text-size-12 font-600': author.name.length > 30,
-          'text-size-15 font-600': author.name.length <= 30 && author.name.length > 15,
-          'text-6xl font-600': author.name.length <= 15
-        }"
-      >
-        {{ author.name }}
-      </h3>
-
-      <!-- Job Title -->
-      <p 
-        v-if="author.job" 
-        class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1"
-      >
-        {{ author.job }}
-      </p>
-
-      <!-- Description -->
-      <p 
-        v-if="author.description" 
-        class="font-sans text-sm text-gray-500 dark:text-gray-500 line-clamp-6 whitespace-pre-line flex-1"
-      >
-        {{ author.description }}
-      </p>
-
-      <!-- Life Dates for Real People -->
-      <p 
-        v-if="!author.is_fictional && (author.birth_date || author.death_date)" 
-        class="font-sans text-xs text-gray-400 dark:text-gray-600 mt-2"
-      >
-        {{ formatLifeDates(author.birth_date, author.death_date) }}
-      </p>
-    </div>
-
-    <!-- Stats Footer -->
-    <div 
-      class="border-t b-dashed b-gray-200 dark:border-gray-400 pt-3 mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 transition-opacity duration-300"
-      :class="{ 'opacity-50 group-hover:opacity-100': true }"
-    >
-      <div class="flex items-center space-x-3">
-        <span>{{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
-        <span>{{ formatNumber(author.views_count || 0) }} views</span>
+    <div class="flex items-start gap-3">
+      <NAvatar
+        :src="author.image_url || undefined"
+        :alt="author.name"
+        size="sm"
+        :fallback="getAuthorInitials(author.name)"
+        class="mt-0.5 shrink-0"
+      />
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h3 class="font-subtitle text-base font-600 text-gray-900 dark:text-white truncate">
+            {{ author.name }}
+          </h3>
+          <NBadge
+            v-if="author.is_fictional"
+            badge="outline-purple"
+            size="xs"
+            class="shrink-0"
+          >
+            Fictional
+          </NBadge>
+        </div>
+        <p v-if="author.job" class="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
+          {{ author.job }}
+        </p>
+        <p v-else-if="!author.is_fictional && (author.birth_date || author.death_date)" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          {{ formatLifeDates(author.birth_date, author.death_date) }}
+        </p>
       </div>
+    </div>
+    <div class="flex items-center gap-3 mt-3 pt-3 text-xs text-gray-400 dark:text-gray-500">
+      <span>{{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+      <span>·</span>
+      <span>{{ formatNumber(author.views_count || 0) }} views</span>
+      <span>·</span>
       <span>{{ formatNumber(author.likes_count || 0) }} likes</span>
     </div>
   </NuxtLink>
 </template>
 
-<script setup>
-const props = defineProps({
-  author: {
-    type: Object,
-    required: true
-  }
-})
+<script setup lang="ts">
+interface Props {
+  author: Author
+}
 
-// Hover state management
-const isHovered = ref(false)
+defineProps<Props>()
 
-// Utility functions
-const formatLifeDates = (birthDate, deathDate) => {
+const getAuthorInitials = (name: string): string => {
+  if (!name) return '??'
+  return name
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+const formatLifeDates = (birthDate?: string | null, deathDate?: string | null): string => {
   if (!birthDate && !deathDate) return ''
-  
   const birth = birthDate ? new Date(birthDate).getFullYear() : '?'
   const death = deathDate ? new Date(deathDate).getFullYear() : 'present'
-  
   return `${birth} - ${death}`
 }
 
-const formatNumber = (num) => {
+const formatNumber = (num?: number | null): string => {
   if (!num) return '0'
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M'
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K'
-  }
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
   return num.toString()
 }
-
-// Compute a Tailwind-like border class for author (purple for fictional, blue for real)
-const borderHoverClass = computed(() => {
-  const color = props.author && props.author.is_fictional ? 'purple' : 'blue'
-  return `dark:hover:b-${color}`
-})
 </script>
-
