@@ -2,7 +2,7 @@
 
 Quote service for discovering, curating, and sharing timeless words, with moderation and admin workflows.
 
-![verbatims screenshot](./public/images/life-is-a-snake.png)
+![verbatims screenshot](./public/images/verbatims-home.jpeg)
 
 ## Overview
 
