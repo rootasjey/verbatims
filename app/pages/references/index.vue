@@ -1,15 +1,15 @@
 <template>
   <div class="min-h-screen">
-    <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+    <header class="mt-10 md:mt-6 p-8">
+      <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
         References
       </h1>
-      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400">
+      <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
         Explore the sources behind your favorite quotes, from books and films to speeches and more.
       </p>
     </header>
 
-    <div class="px-8 pb-16 md:mt-8">
+    <div class="max-w-4xl mx-auto px-8 pb-16">
       <ReferencesSearch
         ref="searchInput"
         :visible-count="references.length"
@@ -24,20 +24,35 @@
         @open-mobile-filters="mobileFiltersOpen = true"
       />
 
-      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-        <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
-          <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
-            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          </div>
-          <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+      <!-- Letter Navigation -->
+      <div
+        v-if="!searchQuery && !primaryType && sortBy === 'name' && references.length > 0"
+        class="sticky top-14 z-3 flex items-center gap-1 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6"
+      >
+        <button
+          v-for="letter in ALPHABET"
+          :key="letter"
+          @click="scrollToLetter(letter)"
+          class="w-7 h-7 text-xs font-500 rounded transition-colors"
+          :class="availableLetters.has(letter)
+            ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer'
+            : 'text-gray-300 dark:text-gray-600 cursor-default'"
+        >
+          {{ letter }}
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="space-y-1">
+        <div v-for="i in 12" :key="i" class="flex items-center gap-3 px-4 py-2.5 animate-pulse">
+          <div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 shrink-0"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 ml-auto"></div>
         </div>
       </div>
 
       <ReferencesEmptyView
-        v-else-if="referencesForDisplay.length === 0"
+        v-else-if="references.length === 0"
         :search-query="searchQuery"
         :selected-type="primaryType"
         class="mt-24"
@@ -46,39 +61,41 @@
       />
 
       <div v-else>
-        <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-          <ReferenceGridItem
-            v-for="reference in referencesForDisplay"
-            :key="reference.id"
-            :reference="reference"
-            class="fade-in"
-          />
-        </div>
+        <!-- Directory: grouped by first letter -->
+        <template v-if="sortBy === 'name' && !searchQuery && !primaryType">
+          <div
+            v-for="(group, letter) in groupedReferences"
+            :key="letter"
+            :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
+            class="mb-6"
+          >
+            <div class="sticky top-[106px] z-2 flex items-center gap-3 bg-gray-100 dark:bg-[#0C0A09] py-2.5 px-4 rounded-2">
+              <span class="font-title text-xl font-600 text-gray-400 dark:text-gray-500">{{ letter }}</span>
+              <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            </div>
+            <ReferenceListEntry v-for="reference in group" :key="reference.id" :reference="reference" />
+          </div>
+        </template>
 
-        <!-- Mobile: use ReferenceCard -->
-        <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 px-2 mb-12">
-          <ReferenceCard
-            v-for="reference in referencesForDisplay"
-            :key="reference.id"
-            :reference="reference"
-            @click="navigateToReference(reference.id)"
-          />
-        </div>
+        <!-- Flat list: other sort modes or active search/type filter -->
+        <template v-else>
+          <div class="space-y-0.5">
+            <ReferenceListEntry v-for="reference in references" :key="reference.id" :reference="reference" />
+          </div>
+        </template>
       </div>
 
-      <div class="flex justify-center">
-        <LoadMoreButton 
-          v-if="referencesForDisplay.length > 0"
-          class="mb-4" 
-          idleText="Load More References" 
-          loadingText="Loading References..." 
-          :isLoading="loadingMore" 
+      <div v-if="references.length > 0 && hasMore" class="flex justify-center mt-8">
+        <LoadMoreButton
+          class="mb-4"
+          idleText="Load More References"
+          loadingText="Loading References..."
+          :isLoading="loadingMore"
           @load="loadMore"
         />
       </div>
     </div>
 
-    <!-- Mobile filters drawer -->
     <MobileSortReferences
       v-if="isMobile"
       v-model:open="mobileFiltersOpen"
@@ -117,8 +134,8 @@ definePageMeta({
 useHead({
   title: 'References - Verbatims',
   meta: [
-    { 
-      name: 'description', 
+    {
+      name: 'description',
       content: 'Browse quote references and discover the sources behind inspiring quotes. From books and films to speeches and more.',
     }
   ]
@@ -133,12 +150,14 @@ useJsonLd({
   ]
 })
 
+const ALPHABET = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
+
 const searchQuery = ref<string>('')
 const primaryType = ref<string>('')
 const sortBy = ref<string>('name')
 const sortOrder = ref<'ASC' | 'DESC'>('ASC')
 const references = ref<QuoteReferenceWithMetadata[]>([])
-const allFetchedReferences = ref<QuoteReferenceWithMetadata[]>([]) // Store all fetched references for local search
+const allFetchedReferences = ref<QuoteReferenceWithMetadata[]>([])
 const loading = ref<boolean>(true)
 const loadingMore = ref<boolean>(false)
 const hasMore = ref<boolean>(true)
@@ -150,6 +169,26 @@ const isSearching = ref<boolean>(false)
 const mobileFiltersOpen = ref<boolean>(false)
 const isProgrammaticReset = ref<boolean>(false)
 const isRestoringState = ref<boolean>(false)
+const letterRefs = reactive<Record<string, HTMLElement>>({})
+
+const groupedReferences = computed(() => {
+  const groups: Record<string, QuoteReferenceWithMetadata[]> = {}
+  for (const ref of references.value) {
+    const letter = (ref.name.charAt(0) || '').toUpperCase()
+    if (!letter || !ALPHABET.includes(letter)) continue
+    if (!groups[letter]) groups[letter] = []
+    groups[letter].push(ref)
+  }
+  return groups
+})
+
+const availableLetters = computed(() => new Set(Object.keys(groupedReferences.value)))
+
+const scrollToLetter = (letter: string) => {
+  const el = letterRefs[letter]
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const saveCurrentReferencesState = () => {
   referencesListStore.saveSnapshot({
@@ -187,7 +226,7 @@ const restoreReferencesState = async (snapshot: ReferencesListSnapshot) => {
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,
-  fallbackSelector: 'input[placeholder="Search references..."]'
+  fallbackSelector: 'input[placeholder*="Search"]'
 })
 
 type Option = { label: string; value: string }
@@ -229,7 +268,7 @@ const loadReferences = async (reset = true) => {
     const response: any = await $fetch('/api/references', {
       query: {
         page: currentPage.value,
-        limit: 20,
+        limit: 100,
         search: searchQuery.value || undefined,
         primary_type: primaryType.value || undefined,
         sort_by: sortBy.value,
@@ -237,7 +276,7 @@ const loadReferences = async (reset = true) => {
       }
     })
 
-  const referencesData = Array.isArray(response.data) ? response.data : []
+    const referencesData = Array.isArray(response.data) ? response.data : []
 
     if (reset) {
       references.value = referencesData
@@ -257,7 +296,7 @@ const loadReferences = async (reset = true) => {
       references.value = []
       allFetchedReferences.value = []
     }
-    
+
     hasMore.value = false
     totalReferences.value = 0
   } finally {
@@ -273,30 +312,17 @@ const loadMore = async () => {
   await loadReferences(false)
 }
 
-import { computed } from 'vue'
-
-// Ensure components that expect QuoteReference (which has urls: string)
-// receive the proper shape. Convert parsed urls back to JSON string when needed.
-const referencesForDisplay = computed(() => {
-  return references.value.map((r) => ({
-    ...r,
-    urls: typeof r.urls === 'string' ? r.urls : JSON.stringify(r.urls || {})
-  }))
-})
-
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'ASC' ? 'DESC' : 'ASC'
   loadReferences()
 }
 
-// Hybrid search function
 const performSearch = async (query: string) => {
   if (!query || query.trim().length === 0) {
-    // No search query, restore from cached references or load all
     if (allFetchedReferences.value.length > 0) {
       references.value = [...allFetchedReferences.value]
       totalReferences.value = allFetchedReferences.value.length
-      hasMore.value = allFetchedReferences.value.length >= 20 // Re-enable infinite scroll if we have enough items
+      hasMore.value = allFetchedReferences.value.length >= 20
     } else {
       await loadReferences()
     }
@@ -306,22 +332,19 @@ const performSearch = async (query: string) => {
   isSearching.value = true
   const searchTerm = query.trim().toLowerCase()
 
-  // First, search locally in already fetched references
   const localResults = allFetchedReferences.value.filter(reference =>
     reference.name.toLowerCase().includes(searchTerm) ||
     (reference.description && reference.description.toLowerCase().includes(searchTerm)) ||
     (reference.secondary_type && reference.secondary_type.toLowerCase().includes(searchTerm))
   )
 
-  // Show local results immediately
   references.value = localResults
 
-  // Then search API for additional results
   try {
     const response: any = await $fetch('/api/references', {
       query: {
         page: 1,
-        limit: 50, // Get more results for search
+        limit: 50,
         search: query,
         primary_type: primaryType.value || undefined,
         sort_by: sortBy.value,
@@ -329,19 +352,17 @@ const performSearch = async (query: string) => {
       }
     })
 
-  const apiResults = Array.isArray(response.data?.results) ? response.data.results :
-            Array.isArray(response.data) ? response.data : []
+    const apiResults = Array.isArray(response.data?.results) ? response.data.results :
+      Array.isArray(response.data) ? response.data : []
 
-    // Merge results, avoiding duplicates
-      const existingIds = new Set(localResults.map((r) => r.id))
-      const newResults = apiResults.filter((reference: QuoteReferenceWithMetadata) => !existingIds.has(reference.id))
+    const existingIds = new Set(localResults.map((r) => r.id))
+    const newResults = apiResults.filter((reference: QuoteReferenceWithMetadata) => !existingIds.has(reference.id))
 
     references.value = [...localResults, ...newResults]
     totalReferences.value = response.pagination?.total || references.value.length
-    hasMore.value = false // Disable infinite scroll during search
+    hasMore.value = false
   } catch (error) {
     console.error('Failed to search references:', error)
-    // Keep local results on API error
   } finally {
     isSearching.value = false
   }
@@ -366,7 +387,6 @@ const clearFilters = async () => {
 const navigateToReference = (referenceId: number | string) => {
   navigateTo(`/references/${referenceId}`)
 }
-
 
 const focusSearchInput = () => {
   nextTick(() => {
@@ -434,7 +454,6 @@ onUnmounted(() => {
 
 watch([sortBy, primaryType], () => {
   if (isRestoringState.value) return
-
   if (isProgrammaticReset.value) return
 
   if (searchQuery.value) {
@@ -446,25 +465,8 @@ watch([sortBy, primaryType], () => {
 
 watch(searchQuery, (newQuery) => {
   if (isRestoringState.value) return
-
   if (isProgrammaticReset.value) return
 
   debouncedSearch()
 })
 </script>
-
-<style scoped>
-header h1 {
-  font-size: 3.0rem;
-  transition: font-size 0.3s ease;
-
-  @media (min-width: 480px)   { font-size: 8.5rem;  }
-  @media (min-width: 768px)   { font-size: 10.0rem; }
-  @media (min-width: 854px)   { font-size: 11.0rem; }
-  @media (min-width: 912px)   { font-size: 12.0rem; }
-  @media (min-width: 1024px)  { font-size: 13.0rem; }
-  @media (min-width: 1124px)  { font-size: 15.0rem; }
-  @media (min-width: 1224px)  { font-size: 16.0rem; }
-  @media (min-width: 1424px)  { font-size: 18.0rem; }
-}
-</style>

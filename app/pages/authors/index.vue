@@ -25,7 +25,7 @@
       <!-- Letter Navigation -->
       <div
         v-if="!searchQuery && sortBy === 'name' && authors.length > 0"
-        class="sticky top-12 z-3 flex items-center gap-1 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6"
+        class="sticky top-14 z-3 flex items-center gap-1 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6"
       >
         <button
           v-for="letter in ALPHABET"
@@ -66,7 +66,7 @@
             :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
             class="mb-6"
           >
-            <div class="sticky top-[100px] z-2 flex items-center gap-3 bg-gray-100 dark:bg-[#0C0A09] py-2.5 px-4 rounded-2">
+            <div class="sticky top-[106px] z-2 flex items-center gap-3 bg-gray-100 dark:bg-[#0C0A09] py-2.5 px-4 rounded-2">
               <span class="font-title text-xl font-600 text-gray-400 dark:text-gray-500">{{ letter }}</span>
               <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
             </div>

@@ -1,19 +1,20 @@
 <template>
   <div class="mb-8">
-    <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400 mb-4">
-      Showing {{ visibleCount }} of {{ totalCount }} references
-    </span>
-
     <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
       <div class="flex-1">
         <NInput
           ref="searchInput"
           input="outline-gray"
           v-model="searchModel"
-          placeholder="Search references..."
+          :placeholder="`Search among ${totalCount || 0} references...`"
           leading="i-ph-magnifying-glass"
+          :trailing="searchModel ? 'i-ph-x' : null"
           size="md"
           class="focus:border-2 focus:border-lime-500"
+          @trailing="searchModel = ''; focus()"
+          :una="{
+            inputTrailing: 'pointer-events-auto cursor-pointer'
+          }"
         />
       </div>
       <div class="hidden md:flex gap-2">
@@ -23,6 +24,7 @@
           placeholder="All Types"
           item-key="label"
           value-key="label"
+          select="outline-gray"
         />
         <NSelect
           v-model="sortByModel"
@@ -30,6 +32,7 @@
           placeholder="Sort by"
           item-key="label"
           value-key="label"
+          select="outline-gray"
         />
         <NButton
           icon
@@ -39,7 +42,14 @@
         />
       </div>
       <div class="block md:hidden">
-        <NButton btn="soft-gray" icon label="i-ph-funnel-simple" @click="$emit('open-mobile-filters')" />
+        <NButton
+          icon
+          label="i-ph-faders"
+          size="sm"
+          btn="outline-gray"
+          class="rounded-full"
+          @click="$emit('open-mobile-filters')"
+        />
       </div>
     </div>
   </div>
@@ -118,4 +128,5 @@ defineExpose({
   focus,
   typeCharacter
 })
+
 </script>
