@@ -1,15 +1,15 @@
 <template>
   <div class="min-h-screen">
-    <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+    <header class="mt-10 md:mt-6 p-8">
+      <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
         Authors
       </h1>
-      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400">
+      <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
         Discover quotes from your favorite authors, both real and fictional.
       </p>
     </header>
 
-    <div class="px-8 pb-16">
+    <div class="max-w-4xl mx-auto px-8 pb-16">
       <AuthorsSearch
         ref="searchInput"
         :authors-count="authors.length"
@@ -22,16 +22,30 @@
         @toggle-sort-order="toggleSortOrder"
       />
 
+      <!-- Letter Navigation -->
+      <div
+        v-if="!searchQuery && sortBy === 'name' && authors.length > 0"
+        class="sticky top-12 z-3 flex items-center gap-1 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6"
+      >
+        <button
+          v-for="letter in ALPHABET"
+          :key="letter"
+          @click="scrollToLetter(letter)"
+          class="w-7 h-7 text-xs font-500 rounded transition-colors"
+          :class="availableLetters.has(letter)
+            ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer'
+            : 'text-gray-300 dark:text-gray-600 cursor-default'"
+        >
+          {{ letter }}
+        </button>
+      </div>
+
       <!-- Loading State -->
-      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-        <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
-          <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
-            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          </div>
-          <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+      <div v-if="loading" class="space-y-1">
+        <div v-for="i in 12" :key="i" class="flex items-center gap-3 px-4 py-2.5 animate-pulse">
+          <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 ml-auto"></div>
         </div>
       </div>
 
@@ -44,34 +58,42 @@
       />
 
       <div v-else>
-        <div v-if="!isMobile" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-          <AuthorGridItem
-            v-for="author in authors"
-            :key="author.id"
-            :author="author"
-            class="fade-in"
-          />
-        </div>
+        <!-- Directory: grouped by first letter -->
+        <template v-if="sortBy === 'name' && !searchQuery">
+          <div
+            v-for="(group, letter) in groupedAuthors"
+            :key="letter"
+            :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
+            class="mb-6"
+          >
+            <div class="sticky top-[100px] z-2 flex items-center gap-3 bg-gray-100 dark:bg-[#0C0A09] py-2.5 px-4 rounded-2">
+              <span class="font-title text-xl font-600 text-gray-400 dark:text-gray-500">{{ letter }}</span>
+              <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            </div>
+            <AuthorListEntry v-for="author in group" :key="author.id" :author="author" />
+          </div>
+        </template>
 
-        <!-- Mobile: small horizontal cards -->
-        <div v-else class="space-y-2 px-2 mb-12">
-          <AuthorCard v-for="author in authors" :key="author.id" :author="author" />
-        </div>
+        <!-- Flat list: other sort modes or active search -->
+        <template v-else>
+          <div class="space-y-0.5">
+            <AuthorListEntry v-for="author in authors" :key="author.id" :author="author" />
+          </div>
+        </template>
       </div>
 
-      <div class="flex justify-center">
-        <LoadMoreButton 
-          v-if="authors.length > 0 && hasMore"
-          class="mb-4" 
-          idleText="Load More Authors" 
-          loadingText="Loading Authors..." 
-          :isLoading="loadingMore" 
+      <div v-if="authors.length > 0 && hasMore" class="flex justify-center mt-8">
+        <LoadMoreButton
+          class="mb-4"
+          idleText="Load More Authors"
+          loadingText="Loading Authors..."
+          :isLoading="loadingMore"
           @load="loadMore"
           data-test="load-more-authors"
         />
       </div>
     </div>
-    
+
     <MobileSortAuthors
       v-if="isMobile"
       v-model:open="mobileFiltersOpen"
@@ -106,8 +128,8 @@ definePageMeta({
 useHead({
   title: 'Authors - Verbatims',
   meta: [
-    { 
-      name: 'description', 
+    {
+      name: 'description',
       content: 'Browse authors and discover their most inspiring quotes. From historical figures to fictional characters.',
     }
   ]
@@ -122,11 +144,13 @@ useJsonLd({
   ]
 })
 
+const ALPHABET = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
+
 const searchQuery = ref<string>('')
 const sortBy = ref<string>('name')
 const sortOrder = ref<'ASC' | 'DESC'>('ASC')
 const authors: Ref<Author[]> = ref([])
-const allFetchedAuthors: Ref<Author[]> = ref([]) // Store all fetched authors for local search
+const allFetchedAuthors: Ref<Author[]> = ref([])
 const loading = ref<boolean>(true)
 const loadingMore = ref<boolean>(false)
 const hasMore = ref<boolean>(true)
@@ -136,6 +160,26 @@ const searchInput = ref<any>(null)
 const isSearching = ref(false)
 const mobileFiltersOpen = ref(false)
 const isRestoringState = ref(false)
+const letterRefs = reactive<Record<string, HTMLElement>>({})
+
+const groupedAuthors = computed(() => {
+  const groups: Record<string, Author[]> = {}
+  for (const author of authors.value) {
+    const letter = (author.name.charAt(0) || '').toUpperCase()
+    if (!letter || !ALPHABET.includes(letter)) continue
+    if (!groups[letter]) groups[letter] = []
+    groups[letter].push(author)
+  }
+  return groups
+})
+
+const availableLetters = computed(() => new Set(Object.keys(groupedAuthors.value)))
+
+const scrollToLetter = (letter: string) => {
+  const el = letterRefs[letter]
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const saveCurrentAuthorsState = () => {
   authorsListStore.saveSnapshot({
@@ -168,11 +212,9 @@ useFocusOnTyping(searchInput, {
   fallbackSelector: 'input[placeholder="Search authors..."]'
 })
 
-// Optional page-level submit modal (keeps parity with references page)
 const showSubmitModal = ref<boolean>(false)
 const openSubmitModal = () => { showSubmitModal.value = true }
 
-// Clear filters helper used by the empty view
 const clearFilters = async () => {
   searchQuery.value = ''
   await loadAuthors()
@@ -215,7 +257,7 @@ const loadAuthors = async (reset = true) => {
     const response = await $fetch<AuthorsApiResponse>('/api/authors', {
       query: {
         page: currentPage.value,
-        limit: 20,
+        limit: 100,
         search: searchQuery.value || undefined,
         sort_by: sortBy.value,
         sort_order: sortOrder.value
@@ -254,7 +296,6 @@ const toggleSortOrder = () => {
   loadAuthors()
 }
 
-// Hybrid search function
 const performSearch = async (query: string) => {
   if (!query || query.trim().length === 0) {
     await loadAuthors()
@@ -270,15 +311,13 @@ const performSearch = async (query: string) => {
     (author.description && author.description.toLowerCase().includes(searchTerm))
   )
 
-  // Show local results immediately
   authors.value = localResults
 
-  // Then search API for additional results
   try {
     const response = await $fetch('/api/authors', {
       query: {
         page: 1,
-        limit: 50, // Get more results for search
+        limit: 50,
         search: query,
         sort_by: sortBy.value,
         sort_order: sortOrder.value
@@ -287,16 +326,14 @@ const performSearch = async (query: string) => {
 
     const apiResults = response.data || []
 
-    // Merge results, avoiding duplicates
     const existingIds = new Set(localResults.map(a => a.id))
     const newResults = apiResults.filter(author => !existingIds.has(author.id))
 
     authors.value = [...localResults, ...newResults]
     totalAuthors.value = response.pagination?.total || authors.value.length
-    hasMore.value = false // Disable infinite scroll during search
+    hasMore.value = false
   } catch (error) {
     console.error('Failed to search authors:', error)
-    // Keep local results on API error
   } finally {
     isSearching.value = false
   }
@@ -311,7 +348,6 @@ onUnmounted(() => {
     window.removeEventListener('scroll', debouncedSaveScrollState)
   }
 })
-
 
 onMounted(() => {
   if (typeof window !== 'undefined') {
@@ -343,7 +379,6 @@ onMounted(() => {
     }
 
     await nextTick()
-    // Pagination is button-driven only.
   }
 
   void initializePage()
@@ -395,18 +430,3 @@ watch(
   { deep: true }
 )
 </script>
-
-<style scoped>
-header h1 {
-  font-size: 4.0rem;
-  transition: font-size 0.3s ease;
-
-  @media (min-width: 480px)   { font-size: 8.0rem;  }
-  @media (min-width: 768px)   { font-size: 10.0rem; }
-  @media (min-width: 812px)   { font-size: 12.0rem; }
-  @media (min-width: 912px)   { font-size: 13.5rem; }
-  @media (min-width: 1024px)  { font-size: 15.0rem; }
-  @media (min-width: 1124px)  { font-size: 18.0rem; }
-  @media (min-width: 1224px)  { font-size: 20.5rem; }
-}
-</style>

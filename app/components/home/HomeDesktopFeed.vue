@@ -261,7 +261,7 @@
       </div>
 
       <!-- Right sidebar: Featured references -->
-      <div class="lg:col-span-3 lg:border-l b-dashed border-gray-300 dark:border-gray-700 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
+      <div class="lg:col-span-3 lg:border-l b-dashed border-gray-300 dark:border-gray-700 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto pb-12">
         <div class="px-4 md:px-8 mt-4 mb-6 pb-4 border-b b-dashed border-gray-300 dark:border-gray-700 flex items-center justify-between">
           <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
             Featured References
@@ -302,15 +302,18 @@
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-gray-300 dark:border-gray-700 text-center">
-          <a href="/references" class="font-sans text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-2">
-            <NIcon name="i-ph-arrow-right" class="w-4 h-4" />
-            See More
-          </a>
+        <div class="mt-8 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700 text-center">
+          <NButton
+            btn="link"
+            to="/references"
+            label="See More"
+            trailing="i-ph-arrow-right"
+            class="font-sans text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-2"
+          />
         </div>
 
         <!-- Related Authors -->
-        <div v-if="sidebarAuthors.length" class="px-4 md:px-8 mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
+        <div v-if="sidebarAuthors.length" class="px-4 md:px-8 mt-8 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700">
           <div class="mb-4 flex items-center justify-between">
             <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600">
               Related Authors
