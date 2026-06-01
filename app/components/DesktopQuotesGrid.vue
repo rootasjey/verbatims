@@ -8,6 +8,7 @@
         </div>
         <div class="flex-1">
           <NInput
+            ref="searchInput"
             :model-value="feed.searchQuery?.value"
             @update:model-value="val => (feed.searchQuery.value = val)"
             placeholder="Search quotes..."
@@ -99,6 +100,31 @@ const openReport = (quote: ProcessedQuoteResult) => {
   selectedQuote.value = quote
   showReportDialog.value = true
 }
+
+const searchInput = ref<any>(null)
+
+const focus = () => {
+  const inputComponent = searchInput.value
+
+  if (typeof inputComponent?.focus === 'function') {
+    inputComponent.focus()
+    return
+  }
+
+  const inputElement = inputComponent?.$el?.querySelector?.('input')
+  if (inputElement instanceof HTMLElement) {
+    inputElement.focus()
+  }
+}
+
+const typeCharacter = (key: string) => {
+  props.feed.searchQuery.value = `${props.feed.searchQuery.value || ''}${key}`
+  nextTick(() => {
+    focus()
+  })
+}
+
+defineExpose({ focus, typeCharacter })
 
 const closeEditAfterUpdate = async () => {
   showEditQuoteDialog.value = false
