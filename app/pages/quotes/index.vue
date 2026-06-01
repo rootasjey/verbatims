@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen">
-    <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title text-size-16 sm:text-size-28 md:text-size-54 lg:text-size-64 xl:text-size-70 hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+    <header class="mt-10 md:mt-6 p-8">
+      <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
         Quotes
       </h1>
-      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400 md:-mt-8">
+      <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
         Browse the latest quotes added by the community.
       </p>
     </header>
