@@ -19,25 +19,68 @@
         </span>
       </div>
 
-      <NNavigationMenu
-        :items="navMenuItems"
-        indicator
-      >
-        <template #item-content="{ items: menuItems }">
-          <ul class="grid gap-1 p-3 min-w-64 max-w-80">
-            <li v-for="child in menuItems" :key="child.label">
-              <NNavigationMenuContentItem v-bind="child" />
-            </li>
-          </ul>
-        </template>
-      </NNavigationMenu>
+      <div class="flex items-center gap-4">
+        <NNavigationMenu
+          :items="navMenuItems"
+          indicator
+        >
+          <template #item-content="{ items: menuItems }">
+            <ul class="grid gap-1 p-3 min-w-64 max-w-80">
+              <li v-for="child in menuItems" :key="child.label">
+                <NNavigationMenuContentItem v-bind="child" />
+              </li>
+            </ul>
+          </template>
+        </NNavigationMenu>
+
+        <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
+          <div class="flex">
+            <NTooltip content="Search (Ctrl/Cmd+K)" placement="bottom">
+              <NButton
+                icon
+                btn="ghost-gray"
+                label="i-ph-magnifying-glass-duotone"
+                @click="showSearch = true"
+              />
+            </NTooltip>
+
+            <UserMenu v-if="user" :user="user" />
+            <NButton v-else btn="light:soft" to="/login" rounded="4" class="font-800 relative left-2 dark:border hover:color-blue-6 hover:scale-102 active:scale-95 transition-transform">
+              Sign in
+            </NButton>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <SearchBox
+    :model-value="showSearch"
+    @update:model-value="showSearch = $event"
+    @action="handleSearchAction"
+  />
+
+  <AddQuoteDialog
+    v-model="showAddQuote"
+    @quote-added="handleQuoteAdded"
+  />
+
+  <ReportDialog
+    v-model="showReportDrawer"
+    :target-type="reportTargetType"
+    :category="reportCategory"
+  />
 </template>
 
 <script setup lang="ts">
 const route = useRoute()
+const { user } = useUserSession()
 const scrollY = ref(0)
+const showSearch = ref(false)
+const showAddQuote = ref(false)
+const showReportDrawer = ref(false)
+const reportTargetType: Ref<ReportTargetType> = ref('general')
+const reportCategory: Ref<ReportCategory> = ref('feedback')
 
 const currentDate = computed(() => {
   const now = new Date()
@@ -167,12 +210,48 @@ const handleLogoClick = (event: MouseEvent) => {
   })
 }
 
+const handleSearchAction = (action: string) => {
+  switch (action) {
+    case 'add-quote':
+      showAddQuote.value = true
+      break
+    case 'suggest-edit':
+      reportTargetType.value = 'quote'
+      reportCategory.value = 'content'
+      showReportDrawer.value = true
+      break
+    case 'report-bug':
+      reportCategory.value = 'bug'
+      showReportDrawer.value = true
+      break
+    case 'contact':
+      reportTargetType.value = 'general'
+      reportCategory.value = 'feedback'
+      showReportDrawer.value = true
+      break
+  }
+}
+
+const handleQuoteAdded = () => {
+  // Dialog shows a toast on success; nothing extra needed here
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   scrollY.value = window.scrollY
 
+  const handleKeydown = (e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault()
+      showSearch.value = true
+    }
+  }
+
+  window.addEventListener('keydown', handleKeydown)
+
   onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll)
+    window.removeEventListener('keydown', handleKeydown)
   })
 })
 </script>
