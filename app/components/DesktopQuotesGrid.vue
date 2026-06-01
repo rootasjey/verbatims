@@ -1,19 +1,27 @@
 <template>
-  <!-- Desktop: Quotes Grid with Search -->
-  <div class="px-8 pb-16">
+  <div class="max-w-4xl mx-auto px-8 pb-16">
     <!-- Sticky controls bar -->
-    <div class="sticky top-16 z-3 -mx-8 px-8 py-3 bg-gray-50/80 dark:bg-[#0C0A09]/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50">
-      <div class="flex gap-4 font-body">
-        <div class="flex-grow-2 font-600">
-          <NInput :model-value="feed.searchQuery?.value" @update:model-value="val => (feed.searchQuery.value = val)"
-            placeholder="Search quotes..." leading="i-ph-magnifying-glass" size="md"
-            :loading="feed.quotesLoading?.value" />
-        </div>
-        <div class="flex-1">
+    <div class="sticky top-14 z-3 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6">
+      <div class="flex gap-3 items-center">
+        <div class="hidden md:block">
           <LanguageSelector @language-changed="feed.onLanguageChange" />
         </div>
-
-        <div class="flex gap-4 items-center">
+        <div class="flex-1">
+          <NInput
+            :model-value="feed.searchQuery?.value"
+            @update:model-value="val => (feed.searchQuery.value = val)"
+            placeholder="Search quotes..."
+            leading="i-ph-magnifying-glass"
+            :trailing="feed.searchQuery?.value ? 'i-ph-x' : null"
+            size="md"
+            :loading="feed.quotesLoading?.value"
+            @trailing="feed.searchQuery.value = ''; feed.searchQuery.value = ''"
+            :una="{
+              inputTrailing: 'pointer-events-auto cursor-pointer'
+            }"
+          />
+        </div>
+        <div>
           <NSelect
             :model-value="feed.selectedSortBy?.value"
             @update:model-value="(val) => { feed.selectedSortBy.value = val }"
@@ -22,48 +30,47 @@
             size="sm"
             item-key="label"
             value-key="label"
+            select="outline-gray"
           />
-          <!-- Order Toggle: OFF = Desc (↓), ON = Asc (↑) -->
-          <div class="flex items-center gap-2">
-            <NToggle :model-value="feed.isAsc?.value" @update:model-value="val => (feed.isAsc.value = val)" size="sm"
-              :label="feed.isAsc?.value ? 'i-ph-sort-descending-duotone' : 'i-ph-sort-ascending-duotone'"
-              :aria-label="feed.isAsc?.value ? 'Ascending' : 'Descending'" />
-          </div>
         </div>
+        <NButton
+          icon
+          :label="feed.isAsc?.value ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+          btn="soft-gray"
+          size="sm"
+          @click="feed.isAsc.value = !feed.isAsc.value"
+        />
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8 mb-12">
-      <QuoteGridItem 
-        v-for="(q, index) in feed.quotes.value"
-        link-card 
-        :key="q.id" 
-        :quote="q" 
-        animate-entrance
-        :entrance-delay="Math.min(index, 8) * 60"
-        @edit="openEdit" 
+    <div class="flex flex-wrap gap-18 mt-16 mb-12">
+      <QuoteTextEntry
+        v-for="q in feed.quotes.value"
+        :key="q.id"
+        :quote="q"
+        @edit="openEdit"
         @delete="openDelete"
-        @report="openReport" 
+        @report="openReport"
       />
     </div>
 
-    <div v-if="feed.hasMore?.value" class="text-center">
-      <LoadMoreButton 
-        class="mb-4" 
-        idleText="Load More Quotes" 
-        loadingText="Loading Quotes..." 
-        :isLoading="feed.quotesLoading?.value" 
+    <div v-if="feed.hasMore?.value" class="flex justify-center">
+      <LoadMoreButton
+        class="mb-4"
+        idleText="Load More Quotes"
+        loadingText="Loading Quotes..."
+        :isLoading="feed.quotesLoading?.value"
         @load="feed.loadMore()"
       />
     </div>
+
+    <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote as any"
+      @quote-updated="closeEditAfterUpdate" />
+
+    <DeleteQuoteDialog v-model="showDeleteQuoteDialog" :quote="selectedQuote as any" @quote-deleted="onQuoteDeleted" />
+
+    <ReportDialog v-model="showReportDialog" targetType="quote" :targetId="selectedQuote?.id" />
   </div>
-
-  <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote as any"
-    @quote-updated="closeEditAfterUpdate" />
-
-  <DeleteQuoteDialog v-model="showDeleteQuoteDialog" :quote="selectedQuote as any" @quote-deleted="onQuoteDeleted" />
-
-  <ReportDialog v-model="showReportDialog" targetType="quote" :targetId="selectedQuote?.id" />
 </template>
 
 <script setup lang="ts">
@@ -95,8 +102,8 @@ const openReport = (quote: ProcessedQuoteResult) => {
 
 const closeEditAfterUpdate = async () => {
   showEditQuoteDialog.value = false
-  
-  try { // Fetch fresh data for the updated quote and patch it locally in the feed
+
+  try {
     if (!selectedQuote.value?.id) return
     const res = await $fetch<{ success: boolean; data: ProcessedQuoteResult }>(`/api/quotes/${selectedQuote.value.id}`)
     const updated = res.data
