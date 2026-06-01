@@ -12,7 +12,7 @@
     <!-- Content -->
     <div class="pb-16">
       <!-- Desktop grid with search/sort -->
-      <DesktopQuotesGrid v-if="!isMobile" :feed="feed" />
+      <DesktopQuotesGrid v-if="!isMobile" ref="searchInput" :feed="feed" />
 
       <!-- Mobile: list like MobileRecentQuotes -->
       <MobileRecentQuotes v-else :feed="feed" />
@@ -61,6 +61,12 @@ useJsonLd({
 })
 
 const feed = useQuoteSearchFeed()
+const searchInput = ref<any>(null)
+
+useFocusOnTyping(searchInput, {
+  skipOnMobile: true,
+  fallbackSelector: 'input[placeholder="Search quotes..."]'
+})
 
 const saveCurrentQuotesState = () => {
   if (typeof window === 'undefined') return
