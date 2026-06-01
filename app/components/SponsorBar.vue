@@ -55,7 +55,7 @@ const sponsors: SponsorItem[] = [
     leading: 'i-ph-star',
   },
   {
-    message: 'You can a love message here',
+    message: 'You can send a love message',
     leading: 'i-ph-star',
   },
   {

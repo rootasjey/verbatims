@@ -6,6 +6,9 @@
     :_combobox-input="{
       placeholder: 'Select language...',
     }"
+    :_combobox-trigger="{
+      class: 'bg-transparent',
+    }"
     data-testid="language-selector"
     @update:model-value="onLanguageChange"
   >
@@ -68,7 +71,7 @@ const onLanguageChange = async (newLanguage: LanguageOption) => {
   try {
     // Update the store
     await languageStore.setLanguage(newLanguage)
-    
+
     // Call custom callback if provided
     if (props.onLanguageChanged) {
       await props.onLanguageChanged(newLanguage)
