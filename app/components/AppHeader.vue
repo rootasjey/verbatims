@@ -75,6 +75,7 @@
   <SearchBox 
     :model-value="showSearch" 
     @update:model-value="showSearch = $event"
+    @action="handleSearchAction"
   />
 
   <AddQuoteDialog 
@@ -270,6 +271,28 @@ onMounted(() => {
 const handleQuoteAdded = () => {
   // Optionally refresh page data or show success message
   // The dialog already shows a toast, so we don't need to do anything here
+}
+
+const handleSearchAction = (action: string) => {
+  switch (action) {
+    case 'add-quote':
+      showAddQuote.value = true
+      break
+    case 'suggest-edit':
+      reportTargetType.value = 'quote'
+      reportCategory.value = 'content'
+      showReportDrawer.value = true
+      break
+    case 'report-bug':
+      reportCategory.value = 'bug'
+      showReportDrawer.value = true
+      break
+    case 'contact':
+      reportTargetType.value = 'general'
+      reportCategory.value = 'feedback'
+      showReportDrawer.value = true
+      break
+  }
 }
 
 onMounted(() => {
