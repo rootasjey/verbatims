@@ -20,12 +20,8 @@
 
     <div class="flex-1 flex flex-col">
       <h3
-        class="font-serif text-gray-800 dark:text-gray-200 break-words line-height-none leading-relaxed transition-opacity duration-300 mb-2"
-        :class="{
-          'text-size-12 font-600': props.tag.name.length > 30,
-          'text-size-15 font-600': props.tag.name.length <= 30 && props.tag.name.length > 15,
-          'text-6xl font-600': props.tag.name.length <= 15
-        }"
+        class="font-serif font-600 text-gray-800 dark:text-gray-200 truncate line-height-none leading-relaxed transition-all duration-300 mb-2"
+        :style="nameStyle"
       >
         #{{ props.tag.name }}
       </h3>
@@ -61,6 +57,12 @@ interface TagListItem {
 const props = defineProps<{
   tag: TagListItem
 }>()
+
+const nameStyle = computed(() => {
+  const len = props.tag.name.length
+  const size = Math.max(0.875, Math.min(3.75, 14 / len))
+  return { fontSize: `${size}rem` }
+})
 
 const formatDate = (date?: string) => {
   if (!date) return '—'

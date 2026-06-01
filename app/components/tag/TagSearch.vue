@@ -1,20 +1,21 @@
 <template>
   <div class="mb-8">
-    <span class="text-center font-sans font-600 block text-gray-600 dark:text-gray-400 mb-4">
-      Showing {{ tagsCount }} of {{ totalTags || 0 }} tags
-    </span>
-
     <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
       <div class="flex-1">
         <NInput
           ref="searchInput"
           input="outline-gray"
           v-model="searchQueryModel"
-          placeholder="Search tags..."
+          :placeholder="`Search among ${totalTags || 0} tags...`"
           leading="i-ph-magnifying-glass"
+          :trailing="searchQueryModel ? 'i-ph-x' : null"
           size="md"
-          @input="$emit('search-input')"
           class="focus:border-2 focus:border-lime-500"
+          @input="$emit('search-input')"
+          @trailing="searchQueryModel = ''; focus()"
+          :una="{
+            inputTrailing: 'pointer-events-auto cursor-pointer'
+          }"
         />
       </div>
       <div class="hidden md:flex gap-2">
@@ -24,6 +25,7 @@
           placeholder="Sort by"
           item-key="label"
           value-key="label"
+          select="outline-gray"
           @change="$emit('change-sort')"
         />
         <NButton
