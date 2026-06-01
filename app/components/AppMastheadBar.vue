@@ -131,19 +131,26 @@ const navMenuItems = computed(() => [
         label: 'Add Quote',
         leading: 'i-ph-quotes-duotone',
         description: 'Contribute a new quote',
-        onclick: () => { console.log('Add Quote') }
+        onclick: () => { showAddQuote.value = true }
       },
       {
         label: 'Suggest Edit',
         leading: 'i-ph-pencil-duotone',
         description: 'Suggest an edit to an existing quote',
-        onclick: () => { console.log('Suggest Edit') }
+        onclick: () => {
+          reportTargetType.value = 'quote'
+          reportCategory.value = 'content'
+          showReportDrawer.value = true
+        }
       },
       {
         label: 'Report Issue',
         leading: 'i-ph-bug-duotone',
         description: 'Report a problem or bug',
-        onclick: () => { console.log('Report Issue') }
+        onclick: () => {
+          reportCategory.value = 'bug'
+          showReportDrawer.value = true
+        }
       },
     ]
   },
