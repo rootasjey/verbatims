@@ -15,7 +15,7 @@
           </NBadge>
         </div>
 
-        <h1 class="font-title text-size-18 md:text-size-42 lg:text-size-54 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4">
+        <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4">
           #{{ tag.name }}
         </h1>
 

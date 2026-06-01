@@ -1,15 +1,15 @@
 <template>
   <div class="min-h-screen">
-    <header class="mt-12 md:mt-0 p-8">
-      <h1 class="font-title hyphens-auto overflow-hidden break-words font-600 text-center line-height-none uppercase">
+    <header class="mt-10 md:mt-6 p-8">
+      <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
         Tags
       </h1>
-      <p class="font-serif text-size-3 md:text-lg text-center text-gray-600 dark:text-gray-400">
+      <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
         Browse quote topics and discover the ideas that resonate most.
       </p>
     </header>
 
-    <div class="px-8 pb-16">
+    <div class="max-w-6xl mx-auto px-8 pb-16">
       <TagSearch
         ref="searchInput"
         :tags-count="tags.length"
@@ -35,14 +35,12 @@
         </div>
       </div>
 
-      <div v-else-if="tags.length === 0" class="text-center mt-24">
-        <NIcon name="i-ph-tag" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No tags found</h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-6">
-          {{ searchQuery ? 'Try adjusting your search terms.' : 'No tags are available yet.' }}
-        </p>
-        <NButton v-if="searchQuery" btn="outline-gray" @click="clearFilters">Clear search</NButton>
-      </div>
+      <TagEmptyView
+        v-else-if="tags.length === 0"
+        :search-query="searchQuery"
+        class="mt-24"
+        @clear-filters="clearFilters"
+      />
 
       <div v-else>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
@@ -81,10 +79,13 @@
 <script lang="ts" setup>
 import { useDebounceFn } from '@vueuse/core'
 import { useJsonLd } from '~/composables/useSeo'
+import { useTagsListStore } from '~/stores/tags'
+import type { TagsListSnapshot } from '~/stores/tags'
 
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const hydrated = ref(false)
+const tagsListStore = useTagsListStore()
 
 onNuxtReady(() => {
   hydrated.value = true
@@ -128,6 +129,7 @@ const searchQuery = ref<string>('')
 const sortBy = ref<string>('name')
 const sortOrder = ref<'ASC' | 'DESC'>('ASC')
 const tags = ref<TagListItem[]>([])
+const allFetchedTags = ref<TagListItem[]>([])
 const loading = ref<boolean>(true)
 const loadingMore = ref<boolean>(false)
 const hasMore = ref<boolean>(true)
@@ -135,6 +137,7 @@ const currentPage = ref<number>(1)
 const totalTags = ref<number>(0)
 const searchInput = ref<any>(null)
 const mobileFiltersOpen = ref(false)
+const isRestoringState = ref(false)
 
 const sortOptions = [
   { label: 'Name', value: 'name' },
@@ -144,8 +147,45 @@ const sortOptions = [
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,
-  fallbackSelector: 'input[placeholder="Search tags..."]'
+  fallbackSelector: 'input[placeholder*="Search"]'
 })
+
+const saveCurrentTagsState = () => {
+  tagsListStore.saveSnapshot({
+    tags: tags.value,
+    allFetchedTags: allFetchedTags.value,
+    currentPage: currentPage.value,
+    hasMore: hasMore.value,
+    totalTags: totalTags.value,
+    searchQuery: searchQuery.value,
+    sortBy: sortBy.value,
+    sortOrder: sortOrder.value,
+    scrollY: typeof window !== 'undefined' ? window.scrollY : 0
+  })
+}
+
+const debouncedSaveScrollState = useDebounceFn(() => {
+  if (isRestoringState.value) return
+  saveCurrentTagsState()
+}, 100)
+
+const restoreTagsState = async (snapshot: TagsListSnapshot) => {
+  isRestoringState.value = true
+
+  searchQuery.value = snapshot.searchQuery
+  sortBy.value = snapshot.sortBy
+  sortOrder.value = snapshot.sortOrder
+  tags.value = [...snapshot.tags]
+  allFetchedTags.value = [...snapshot.allFetchedTags]
+  currentPage.value = snapshot.currentPage
+  hasMore.value = snapshot.hasMore
+  totalTags.value = snapshot.totalTags
+  loading.value = false
+  loadingMore.value = false
+
+  await nextTick()
+  isRestoringState.value = false
+}
 
 const loadTags = async (reset = true) => {
   if (reset) {
@@ -171,8 +211,10 @@ const loadTags = async (reset = true) => {
 
     if (reset) {
       tags.value = tagsData
+      allFetchedTags.value = [...tagsData]
     } else {
       tags.value.push(...tagsData)
+      allFetchedTags.value.push(...tagsData)
     }
 
     hasMore.value = Boolean((response as any)?.pagination?.hasMore)
@@ -207,7 +249,55 @@ const debouncedSearch = useDebounceFn(() => {
 }, 300)
 
 onMounted(() => {
-  loadTags()
+  if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', debouncedSaveScrollState, { passive: true })
+  }
+
+  const shouldRestore = tagsListStore.shouldRestore
+  const storedSnapshot = tagsListStore.snapshot
+  const snapshot = storedSnapshot
+    ? {
+        ...storedSnapshot,
+        tags: [...storedSnapshot.tags],
+        allFetchedTags: [...storedSnapshot.allFetchedTags]
+      }
+    : null
+
+  const initializePage = async () => {
+    if (shouldRestore && snapshot) {
+      await restoreTagsState(snapshot)
+
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: snapshot.scrollY, behavior: 'auto' })
+      }
+
+      tagsListStore.clearRestoreRequest()
+    } else {
+      await loadTags()
+    }
+
+    await nextTick()
+  }
+
+  void initializePage()
+})
+
+onBeforeRouteLeave((to) => {
+  if (typeof window === 'undefined') return
+
+  saveCurrentTagsState()
+
+  if (to.path.startsWith('/tags/')) {
+    tagsListStore.requestRestore()
+  } else {
+    tagsListStore.clearRestoreRequest()
+  }
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('scroll', debouncedSaveScrollState)
+  }
 })
 
 watch(currentLayout, (newLayout) => {
@@ -215,10 +305,12 @@ watch(currentLayout, (newLayout) => {
 })
 
 watch([sortBy], () => {
+  if (isRestoringState.value) return
   loadTags()
 })
 
 watch(searchQuery, (newQuery) => {
+  if (isRestoringState.value) return
   if (!newQuery || newQuery.trim().length === 0) {
     loadTags()
   }
@@ -226,16 +318,4 @@ watch(searchQuery, (newQuery) => {
 </script>
 
 <style scoped>
-header h1 {
-  font-size: 4.0rem;
-  transition: font-size 0.3s ease;
-
-  @media (min-width: 480px)   { font-size: 8.0rem;  }
-  @media (min-width: 768px)   { font-size: 10.0rem; }
-  @media (min-width: 812px)   { font-size: 12.0rem; }
-  @media (min-width: 912px)   { font-size: 13.5rem; }
-  @media (min-width: 1024px)  { font-size: 15.0rem; }
-  @media (min-width: 1124px)  { font-size: 18.0rem; }
-  @media (min-width: 1224px)  { font-size: 20.5rem; }
-}
 </style>
