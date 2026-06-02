@@ -44,6 +44,8 @@
       </div>
     </div>
 
+    <ScrollableTags class="mb-2" />
+
     <div class="flex flex-wrap gap-2 mt-16 mb-12">
       <QuoteTextEntry
         v-for="q in feed.quotes.value"

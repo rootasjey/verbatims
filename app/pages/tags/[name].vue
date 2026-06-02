@@ -209,7 +209,9 @@ const tagBadgeStyle = computed(() => {
   const color = tag.value?.color?.trim()
   if (!color) return undefined
   return {
-    borderColor: `${color}66`
+    backgroundColor: `${color}20`,
+    color: color,
+    borderColor: `${color}40`
   }
 })
 
