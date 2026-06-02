@@ -165,8 +165,13 @@ const navMenuItems = computed(() => [
       },
       {
         label: 'Contact',
+        leading: 'i-ph-envelope-duotone',
         description: 'Get in touch with us',
-        onclick: () => { console.log('Contact') }
+        onclick: () => {
+          reportTargetType.value = 'general'
+          reportCategory.value = 'feedback'
+          showReportDrawer.value = true
+        }
       },
       {
         label: 'Privacy Policy',
