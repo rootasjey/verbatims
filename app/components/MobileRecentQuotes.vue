@@ -14,6 +14,8 @@
       </NButton>
     </div>
 
+    <ScrollableTags class="mb-2" />
+
     <div v-if="feed?.quotes?.value && feed.quotes.value.length > 0" class="space-y-4">
       <QuoteListItem
         v-for="quote in feed.quotes.value.slice(0, limit)"
