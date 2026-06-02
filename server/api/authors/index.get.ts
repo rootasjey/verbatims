@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100)
     const search = query.search as string
+    const startsWith = query.starts_with as string
     const sortBy = query.sort_by as string || 'name'
     const sortOrder = query.sort_order as string || 'ASC'
     
@@ -42,8 +43,11 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN ${schema.quotes} q ON a.id = q.author_id AND q.status = 'approved'
     `
     
-    if (search) {
-      authorsQuery = sql`${authorsQuery} WHERE a.name LIKE ${'%' + search + '%'}`
+    if (search || startsWith) {
+      const conds = []
+      if (search) conds.push(sql`a.name LIKE ${'%' + search + '%'}`)
+      if (startsWith) conds.push(sql`a.name LIKE ${startsWith + '%'}`)
+      authorsQuery = sql`${authorsQuery} WHERE ${sql.join(conds, sql` AND `)}`
     }
     
     authorsQuery = sql`${authorsQuery}
@@ -52,20 +56,34 @@ export default defineEventHandler(async (event) => {
       LIMIT ${limit} OFFSET ${offset}
     `
     
+    // Letter availability (ignores search/filters — always based on full DB)
+    const lettersQuery = sql`
+      SELECT DISTINCT UPPER(SUBSTR(name, 1, 1)) as letter
+      FROM ${schema.authors}
+      WHERE name IS NOT NULL AND name != ''
+      ORDER BY letter
+    `
+
     // Count query
     let countQuery = sql`
       SELECT COUNT(*) as total
       FROM ${schema.authors} a
     `
     
-    if (search) {
-      countQuery = sql`${countQuery} WHERE a.name LIKE ${'%' + search + '%'}`
+    if (search || startsWith) {
+      const conds = []
+      if (search) conds.push(sql`a.name LIKE ${'%' + search + '%'}`)
+      if (startsWith) conds.push(sql`a.name LIKE ${startsWith + '%'}`)
+      countQuery = sql`${countQuery} WHERE ${sql.join(conds, sql` AND `)}`
     }
     
-    const [authors, countResult] = await Promise.all([
+    const [authors, countResult, letterResults] = await Promise.all([
       db.all(authorsQuery),
-      db.get<{ total: number }>(countQuery)
+      db.get<{ total: number }>(countQuery),
+      db.all<{ letter: string }>(lettersQuery)
     ])
+    
+    const availableLetters = (letterResults as { letter: string }[]).map(r => r.letter)
     
     const total = Number(countResult?.total) || 0
     const totalPages = Math.ceil(total / limit)
@@ -74,6 +92,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: authors as unknown as Author[],
+      availableLetters,
       pagination: {
         page,
         limit,

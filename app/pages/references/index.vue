@@ -26,7 +26,7 @@
 
       <!-- Letter Navigation -->
       <div
-        v-if="!searchQuery && !primaryType && sortBy === 'name' && references.length > 0"
+        v-if="!searchQuery && !primaryType && sortBy === 'name' && dbLetters.size > 0"
         class="sticky top-14 z-3 flex items-center gap-1 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6"
       >
         <button
@@ -34,7 +34,7 @@
           :key="letter"
           @click="scrollToLetter(letter)"
           class="w-7 h-7 text-xs font-500 rounded transition-colors"
-          :class="availableLetters.has(letter)
+          :class="dbLetters.has(letter)
             ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer'
             : 'text-gray-300 dark:text-gray-600 cursor-default'"
         >
@@ -182,12 +182,47 @@ const groupedReferences = computed(() => {
   return groups
 })
 
-const availableLetters = computed(() => new Set(Object.keys(groupedReferences.value)))
+const dbLetters = ref<Set<string>>(new Set())
 
-const scrollToLetter = (letter: string) => {
+const scrollToLetter = async (letter: string) => {
   const el = letterRefs[letter]
-  if (!el) return
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  try {
+    const response: any = await $fetch('/api/references', {
+      query: {
+        page: 1,
+        limit: 100,
+        starts_with: letter,
+        sort_by: 'name',
+        sort_order: 'ASC'
+      }
+    })
+
+    const newRefs = (Array.isArray(response.data) ? response.data : []).filter(
+      (r: QuoteReferenceWithMetadata) => !references.value.some(existing => existing.id === r.id)
+    )
+    if (newRefs.length === 0) return
+
+    const insertIdx = references.value.findIndex(r => {
+      const l = (r.name.charAt(0) || '').toUpperCase()
+      return l > letter
+    })
+    if (insertIdx === -1) {
+      references.value.push(...newRefs)
+    } else {
+      references.value.splice(insertIdx, 0, ...newRefs)
+    }
+    allFetchedReferences.value.push(...newRefs)
+
+    await nextTick()
+    letterRefs[letter]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } catch (error) {
+    console.error(`Failed to load references for ${letter}:`, error)
+  }
 }
 
 const saveCurrentReferencesState = () => {
@@ -201,7 +236,8 @@ const saveCurrentReferencesState = () => {
     primaryType: primaryType.value,
     sortBy: sortBy.value,
     sortOrder: sortOrder.value,
-    scrollY: typeof window !== 'undefined' ? window.scrollY : 0
+    scrollY: typeof window !== 'undefined' ? window.scrollY : 0,
+    availableLetters: [...dbLetters.value]
   })
 }
 
@@ -219,6 +255,10 @@ const restoreReferencesState = async (snapshot: ReferencesListSnapshot) => {
   totalReferences.value = snapshot.totalReferences
   loading.value = false
   loadingMore.value = false
+
+  if (snapshot.availableLetters) {
+    dbLetters.value = new Set(snapshot.availableLetters)
+  }
 
   await nextTick()
   isRestoringState.value = false
@@ -290,6 +330,10 @@ const loadReferences = async (reset = true) => {
 
     hasMore.value = paginationInfo.hasMore || false
     totalReferences.value = paginationInfo.total || 0
+
+    if (response.availableLetters) {
+      dbLetters.value = new Set(response.availableLetters)
+    }
   } catch (error) {
     console.error('Failed to load references:', error)
     if (reset) {

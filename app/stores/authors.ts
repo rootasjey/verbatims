@@ -14,6 +14,7 @@ export interface AuthorsListSnapshot {
   sortBy: string
   sortOrder: 'ASC' | 'DESC'
   scrollY: number
+  availableLetters: string[]
 }
 
 export const useAuthorsListStore = defineStore('authorsList', () => {

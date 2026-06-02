@@ -15,6 +15,7 @@ export interface ReferencesListSnapshot {
   sortBy: string
   sortOrder: 'ASC' | 'DESC'
   scrollY: number
+  availableLetters: string[]
 }
 
 export const useReferencesListStore = defineStore('referencesList', () => {

@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 100)
     const search = query.search as string
+    const startsWith = query.starts_with as string
     const primaryType = query.primary_type as string
     const sortBy = query.sort_by as string || 'name'
     const sortOrder = query.sort_order as string || 'ASC'
@@ -24,6 +25,10 @@ export default defineEventHandler(async (event) => {
     
     if (search) {
       conditions.push(sql`r.name LIKE ${'%' + search + '%'}`)
+    }
+    
+    if (startsWith) {
+      conditions.push(sql`r.name LIKE ${startsWith + '%'}`)
     }
     
     if (primaryType) {
@@ -46,16 +51,27 @@ export default defineEventHandler(async (event) => {
       LIMIT ${limit} OFFSET ${offset}
     `
 
+    // Letter availability (ignores search/filters — always based on full DB)
+    const lettersQuery = sql`
+      SELECT DISTINCT UPPER(SUBSTR(name, 1, 1)) as letter
+      FROM ${schema.quoteReferences}
+      WHERE name IS NOT NULL AND name != ''
+      ORDER BY letter
+    `
+
     const countQuery = sql`
       SELECT COUNT(*) as total
       FROM ${schema.quoteReferences} r
       ${whereClause}
     `
     
-    const [references, countResult] = await Promise.all([
+    const [references, countResult, letterResults] = await Promise.all([
       db.all(referencesQuery),
-      db.get<{ total: number }>(countQuery)
+      db.get<{ total: number }>(countQuery),
+      db.all<{ letter: string }>(lettersQuery)
     ])
+    
+    const availableLetters = (letterResults as { letter: string }[]).map(r => r.letter)
     
     const total = Number(countResult?.total) || 0
     const totalPages = Math.ceil(total / limit)
@@ -64,6 +80,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: references as unknown as QuoteReference[],
+      availableLetters,
       pagination: {
         page,
         limit,
