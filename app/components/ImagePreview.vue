@@ -7,13 +7,12 @@
       dialogOverlay: 'bg-transparent'
     }"
   >
-    <div class="image-preview-root" @click.self="close">
+    <div :class="['image-preview-root', overlayClass]" @click.self="close">
       <img
         v-if="src"
         :src="src"
         :alt="alt || ''"
-        class="image-preview-img"
-        loading="lazy"
+        :class="['image-preview-img', imgClass]"
         @click="onImageClick"
       />
     </div>
@@ -27,6 +26,8 @@ const props = defineProps({
   modelValue: { type: Boolean, required: true },
   src: { type: String, required: true },
   alt: { type: String, default: '' },
+  imgClass: { type: String, default: '' },
+  overlayClass: { type: String, default: '' },
   closeOnScroll: { type: Boolean, default: true },
   maskClosable: { type: Boolean, default: true },
   closeOnImageClick: { type: Boolean, default: true }
@@ -79,15 +80,19 @@ onUnmounted(() => {
   background: rgba(12, 10, 9, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  animation: backdrop-in 300ms ease both;
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 }
 .image-preview-img {
   max-width: 96vw;
   max-height: 90vh;
   object-fit: contain;
   border-radius: 0.5rem;
-  box-shadow: 0 20px 40px rgba(2,6,23,0.5);
   cursor: zoom-out;
-  transition: transform 240ms cubic-bezier(.22,.61,.36,1);
 }
 .image-preview-img:active { transform: scale(0.98); }
 </style>
