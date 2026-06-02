@@ -186,55 +186,56 @@
         </div>
 
         <div v-if="quotesLoading" class="mb-12">
-          <MasonryGrid>
-            <div v-for="i in 12" :key="i" class="quote-skeleton animate-pulse">
-              <div class="border-b border-dashed border-gray-200 dark:border-gray-400 pb-2 mb-4">
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          <div class="max-w-4xl mx-auto space-y-5">
+            <div v-for="i in 6" :key="i" class="animate-pulse">
+              <div class="bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
               </div>
-              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
             </div>
-          </MasonryGrid>
+          </div>
         </div>
 
         <!-- Quotes Display -->
         <div v-else-if="authorQuotes.length > 0" class="mb-12">
-          <!-- Desktop: Masonry Grid -->
-          <div class="hidden md:block">
-            <MasonryGrid>
-              <QuoteMasonryItem
-                v-for="(quote, index) in authorQuotes"
-                :key="quote.id"
-                :quote="quote"
-                :index="index"
-                class="fade-in"
-              />
-            </MasonryGrid>
-          </div>
-
-          <!-- Mobile: List -->
-          <div class="md:hidden space-y-4">
-            <QuoteListItem
+          <div class="max-w-4xl mx-auto space-y-5">
+            <NLink
               v-for="quote in authorQuotes"
               :key="quote.id"
-              :quote="{
-                ...quote,
-                tags: [],
-                result_type: 'quote',
-                author: {
-                  id: quote.author?.id ?? 0,
-                  name: quote.author?.name ?? '',
-                  image_url: quote.author?.image_url ?? '',
-                  is_fictional: quote.author?.is_fictional ?? false
-                },
-                reference: {
-                  id: quote.reference?.id ?? 0,
-                  name: quote.reference?.name ?? '',
-                  type: quote.reference?.primary_type ?? '',
-                }
-              }"
-              class="border rounded-1 border-gray-100 dark:border-dark-400"
-            />
+              :to="`/quotes/${quote.id}`"
+              class="group block bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 transition-all duration-300 hover:shadow-lg hover:border-primary-400 dark:hover:border-primary-500 active:scale-[0.995]"
+            >
+              <blockquote
+                class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed"
+                :class="{
+                  'text-lg md:text-xl': (quote.name || '').length <= 100,
+                  'text-base md:text-lg': (quote.name || '').length > 100 && (quote.name || '').length <= 200,
+                  'text-sm md:text-base': (quote.name || '').length > 200
+                }"
+              >
+                {{ quote.name }}
+              </blockquote>
+
+              <div class="mt-5 flex items-center justify-between gap-4">
+                <div v-if="quote.reference" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 min-w-0">
+                  <span class="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-600 flex-shrink-0"></span>
+                  <span class="truncate">{{ quote.reference.name }}</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
+                  <span class="flex items-center gap-1">
+                    <NIcon name="i-ph-hand-heart" class="w-3.5 h-3.5" />
+                    {{ formatNumber(quote.likes_count) }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <NIcon name="i-ph-eye" class="w-3.5 h-3.5" />
+                    {{ formatNumber(quote.views_count) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-primary-500/20 to-transparent"></div>
+            </NLink>
           </div>
         </div>
 
@@ -258,55 +259,7 @@
         </div>
       </div>
 
-      <!-- Similar Authors Section -->
-      <div v-if="similarAuthors.length > 0" class="px-8 pb-16">
-        <div class="max-w-6xl mx-auto">
-          <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent mb-14"></div>
-        </div>
-
-        <h2 class="font-title text-2xl md:text-3xl font-200 mb-10 max-w-5xl mx-auto">
-          Similar Authors
-        </h2>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
-          <div
-            v-for="(similarAuthor, index) in similarAuthors"
-            :key="similarAuthor.id"
-            class="group cursor-pointer similar-item"
-            :class="{ 'in': similarAuthors.length > 0 }"
-            :style="{ transitionDelay: `${index * 60}ms` }"
-            @click="navigateTo(`/authors/${similarAuthor.id}`)"
-          >
-            <div class="flex flex-col items-center text-center p-5 rounded-xl
-              bg-white dark:bg-[#101010]
-              border border-gray-200 dark:border-gray-700
-              hover:border-primary-400 dark:hover:border-primary-500
-              hover:shadow-lg hover:shadow-primary-500/5
-              active:scale-99
-              transition-all duration-300">
-              <NAvatar
-                :src="similarAuthor.image_url || undefined"
-                :alt="similarAuthor.name"
-                size="lg"
-                :fallback="getAuthorInitials(similarAuthor.name)"
-                class="mb-3 group-hover:scale-110 transition-transform duration-300"
-              />
-              <div class="flex-1 w-full">
-                <p class="font-medium text-sm line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                  {{ similarAuthor.name }}
-                </p>
-                <p v-if="similarAuthor.job" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
-                  {{ similarAuthor.job }}
-                </p>
-                <div class="mt-3 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
-                  <NIcon name="i-ph-quotes" class="w-3 h-3" />
-                  {{ formatNumber(similarAuthor.quotes_count) }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SimilarAuthors :authors="similarAuthors" />
   </div>
 
     <!-- Error State -->
@@ -1099,16 +1052,6 @@ onUnmounted(() => {
   transform: rotate(180deg);
 }
 
-/* Subtle staggered fade-up for similar authors */
-.similar-item {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 420ms cubic-bezier(.22,.61,.36,1), transform 420ms cubic-bezier(.22,.61,.36,1);
-}
-.similar-item.in {
-  opacity: 1;
-  transform: translateY(0);
-}
 
 /* Avatar subtle scale on appear + hover
    reserve opacity transition so appearance doesn't cause a layout jump. */
