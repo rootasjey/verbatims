@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#FAFAFA] via-[#F5F5F5] to-[#F0F0F0] dark:from-[#0A0A0A] dark:via-[#0F0F0F] dark:to-[#0A0A0A]">
+  <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
     <!-- Sticky Header (client-only to avoid SSR hydration mismatch due to teleports/popovers) -->
     <ClientOnly>
       <QuoteStickyHeader
@@ -38,36 +38,23 @@
       </div>
     </div>
 
-    <div v-else-if="quote" class="mt-12 md:mt-16 px-4 md:px-8 py-8 md:py-16 animate-fade-in animate-duration-700 animate-ease-out">
+    <div v-else-if="quote" class="px-4 md:px-8 py-8 md:py-16">
       <div class="max-w-5xl mx-auto space-y-8">
-        <!-- Main Quote Card -->
-        <div class="min-h-70vh relative light:bg-white/60 dark:bg-[#0C0A09] md:dark:bg-transparent
-          backdrop-blur-lg rounded-3xl p-8 md:p-12 lg:p-16 
-          shadow-lg shadow-gray-200/50 dark:shadow-black/20 
-          border md:border-none border-gray-200/40 dark:border-gray-800 transition-all duration-300"
-        >
-          <!-- Decorative gradient orb -->
-          <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-gray-200/20 via-gray-300/20 to-gray-200/20 dark:from-gray-700/10 dark:via-gray-600/10 dark:to-gray-700/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-br from-gray-300/20 via-gray-200/20 to-gray-300/20 dark:from-gray-600/10 dark:via-gray-700/10 dark:to-gray-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div class="relative z-1">
-            <!-- Quote Text -->
-            <div class="text-center mt-4">
-              <div class="relative mb-6">
-                <blockquote class="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold leading-tight text-gray-900 dark:text-white">
-                  {{ quote.name }}
-                </blockquote>
-
-                <!-- Decorative quote marks -->
-                <div class="absolute -top-6 -left-2 md:-left-6 text-7xl md:text-8xl text-gray-300/30 dark:text-gray-700/30 font-serif leading-none">"</div>
-                <div class="absolute -bottom-6 -right-2 md:-right-6 text-7xl md:text-8xl text-gray-300/30 dark:text-gray-700/30 font-serif leading-none">"</div>
-              </div>
-            </div>
-
-            <!-- Author & Reference -->
-            <div class="text-center mb-8">
+        <!-- Quote Hero -->
+        <div class="py-20 md:py-32 relative overflow-hidden">
+          <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:20px_20px] opacity-80" />
+          <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
+          <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
+          <div class="relative px-4">
+            <blockquote
+              class="font-serif font-300 leading-tight text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
+              :class="[quoteTextSize, quoteTextIn ? 'opacity-100 blur-0' : 'opacity-0 blur-sm']">
+              {{ quote.name }}
+            </blockquote>
+            <div class="mt-12 transform-gpu transition-all duration-700 ease-out"
+              :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'">
               <MobileQuoteAuthorReference :quote="quote" v-if="isMobile" />
-              <QuoteAuthorReference :quote="quote" v-else />
+              <QuoteAuthorReference v-else :quote="quote" signature />
             </div>
           </div>
         </div>
@@ -96,9 +83,10 @@
         </div>
 
         <!-- Tags -->
-        <div v-if="quote.tags?.length" class="animate-fade-in animate-duration-500 animate-delay-200">
-          <div class="bg-white/50 dark:bg-transparent backdrop-blur-md rounded-2 p-6 md:p-8">
-            <div class="flex flex-wrap justify-center gap-2.5">
+        <div v-if="quote.tags?.length"
+          class="transform-gpu transition-all duration-700 ease-out"
+          :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+          <div class="flex flex-wrap justify-center gap-2.5">
               <NuxtLink
                 v-for="tag in quote.tags"
                 :key="tag.name"
@@ -113,17 +101,22 @@
                 <span class="inline-block w-3.5 h-3.5 mr-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: tag.color }" aria-hidden="true"></span>
                 {{ tag.name }}
               </NuxtLink>
-            </div>
           </div>
         </div>
 
         <!-- Quote Metadata -->
-        <div class="animate-fade-in animate-duration-500 animate-delay-250">
+        <div
+          class="transform-gpu transition-all duration-700 ease-out"
+          :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
           <QuoteMetadata :quote="quote" class="flex flex-col items-center md:mx-auto" />
         </div>
 
         <!-- Related Quotes -->
-        <RelatedQuotes :quote="quote" :related-quotes="relatedQuotes" class="animate-fade-in animate-duration-500 animate-delay-300" />
+        <div
+          class="transform-gpu transition-all duration-700 ease-out"
+          :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+          <RelatedQuotes :quote="quote" :related-quotes="relatedQuotes" />
+        </div>
       </div>
     </div>
 
@@ -224,6 +217,14 @@ definePageMeta({ layout: 'default' })
 const { data: quoteData, pending } = await useFetch(`/api/quotes/${route.params.id}`)
 const quote = computed(() => quoteData.value?.data)
 
+const quoteTextSize = computed(() => {
+  const length = quote.value?.name?.length || 0
+  if (length <= 60) return 'text-5xl sm:text-6xl lg:text-7xl xl:text-8xl'
+  if (length <= 120) return 'text-4xl sm:text-5xl lg:text-6xl xl:text-7xl'
+  if (length <= 200) return 'text-3xl sm:text-4xl lg:text-5xl xl:text-6xl'
+  return 'text-2xl sm:text-3xl lg:text-4xl xl:text-5xl'
+})
+
 const { data: relatedData } = await useFetch(`/api/quotes/${route.params.id}/related`)
 const relatedQuotes = computed(() => relatedData.value?.data || [])
 
@@ -300,6 +301,25 @@ const sharePending = ref(false)
 const savedState = ref('idle') // 'idle' | 'saved'
 let savedTimeoutId
 
+const quoteTextIn = ref(false)
+const signatureIn = ref(false)
+
+const triggerStagger = async () => {
+  quoteTextIn.value = false
+  signatureIn.value = false
+  await nextTick()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      quoteTextIn.value = true
+    })
+  })
+}
+
+watch(quoteTextIn, (val) => {
+  if (val) {
+    setTimeout(() => { signatureIn.value = true }, 400)
+  }
+})
 
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
@@ -323,6 +343,12 @@ const handleGlobalKeydown = (e) => {
   const key = e.key.toLowerCase()
 
   // handle single-letter shortcuts
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    navigateToQuotesList()
+    return
+  }
+
   switch (key) {
     case 'a':
       if (user.value) {
@@ -626,8 +652,18 @@ onMounted(() => {
     checkLikeStatus()
   }
 
+  if (quote.value) {
+    triggerStagger()
+  }
+
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
+  }
+})
+
+watch(pending, (now, prev) => {
+  if (prev && !now && quote.value) {
+    triggerStagger()
   }
 })
 
