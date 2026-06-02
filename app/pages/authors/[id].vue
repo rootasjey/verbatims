@@ -96,17 +96,18 @@
           </span>
 
           <div v-if="author.description"
-            class="mt-28 max-w-4xl w-full mx-auto mb-6 border-t border-b border-dashed border-gray-300 dark:border-gray-600 transform-gpu transition-all duration-700 ease-out"
+            class="mt-28 max-w-4xl w-full mx-auto mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(3)"
           >
-            <div class="p-6">
+            <div class="relative pl-7 md:pl-9">
+              <div class="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-primary-500 via-primary-400 to-primary-500/10"></div>
               <div
                 ref="descriptionEl"
                 class="description-clip overflow-hidden"
                 :class="[descriptionExpanded ? 'expanded' : 'collapsed', (!descriptionExpanded && (isDescriptionOverflowing || isDescriptionLong(author.description))) ? 'has-ellipsis' : '']"
               >
-                <p class="text-justify font-serif text-base md:text-size-8 font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                <p class="font-serif text-base md:text-lg font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                   {{ author.description }}
                 </p>
               </div>
@@ -141,8 +142,19 @@
         <ExternalLinksBadges :links="author.socials" />
       </div>
 
+      <!-- Section divider -->
+      <div class="px-8">
+        <div class="max-w-6xl mx-auto">
+          <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+        </div>
+      </div>
+
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
+        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mt-14 mb-8">
+          Quotes
+        </h2>
+
         <!-- Sort / Filters -->
         <div class="font-body mb-8">
           <!-- Desktop controls -->
@@ -248,11 +260,15 @@
 
       <!-- Similar Authors Section -->
       <div v-if="similarAuthors.length > 0" class="px-8 pb-16">
-        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mb-8">
+        <div class="max-w-6xl mx-auto">
+          <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent mb-14"></div>
+        </div>
+
+        <h2 class="font-title text-2xl md:text-3xl font-200 mb-10 max-w-5xl mx-auto">
           Similar Authors
         </h2>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
           <div
             v-for="(similarAuthor, index) in similarAuthors"
             :key="similarAuthor.id"
@@ -261,28 +277,31 @@
             :style="{ transitionDelay: `${index * 60}ms` }"
             @click="navigateTo(`/authors/${similarAuthor.id}`)"
           >
-            <div class="flex flex-col items-center text-center space-y-2 p-4 rounded-lg
-              border border-dashed border-gray-200 dark:border-gray-700
-              hover:b-solid hover:border-primary-500 dark:hover:border-primary-400
+            <div class="flex flex-col items-center text-center p-5 rounded-xl
+              bg-white dark:bg-[#101010]
+              border border-gray-200 dark:border-gray-700
+              hover:border-primary-400 dark:hover:border-primary-500
+              hover:shadow-lg hover:shadow-primary-500/5
               active:scale-99
-              transition-all duration-300 hover:shadow-md">
+              transition-all duration-300">
               <NAvatar
                 :src="similarAuthor.image_url || undefined"
                 :alt="similarAuthor.name"
-                size="md"
+                size="lg"
                 :fallback="getAuthorInitials(similarAuthor.name)"
-                class="group-hover:scale-110 transition-transform duration-300"
+                class="mb-3 group-hover:scale-110 transition-transform duration-300"
               />
-              <div class="flex-1">
+              <div class="flex-1 w-full">
                 <p class="font-medium text-sm line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {{ similarAuthor.name }}
                 </p>
                 <p v-if="similarAuthor.job" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
                   {{ similarAuthor.job }}
                 </p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  {{ formatNumber(similarAuthor.quotes_count) }} quotes
-                </p>
+                <div class="mt-3 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
+                  <NIcon name="i-ph-quotes" class="w-3 h-3" />
+                  {{ formatNumber(similarAuthor.quotes_count) }}
+                </div>
               </div>
             </div>
           </div>
@@ -1061,12 +1080,11 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 3.2rem; /* covers the bottom area */
+  height: 3.2rem;
   pointer-events: none;
   z-index: 1;
-  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 85%);
+  background: linear-gradient(180deg, rgba(250,250,249,0), #FAFAF9 85%);
 }
-/* Dark mode variants */
 .dark .description-clip.collapsed.has-ellipsis::after {
   background: linear-gradient(180deg, rgba(12,10,9,0), #0C0A09 85%);
 }
