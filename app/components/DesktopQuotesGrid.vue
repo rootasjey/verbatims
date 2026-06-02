@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-18 mt-16 mb-12">
+    <div class="flex flex-wrap gap-2 mt-16 mb-12">
       <QuoteTextEntry
         v-for="q in feed.quotes.value"
         :key="q.id"
