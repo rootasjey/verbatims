@@ -1,5 +1,5 @@
 <template>
-  <div class="sticky top-[60px] md:top-[68px] z-2 border-y border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+  <div class="sticky top-[60px] z-2 border-b border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact reference title and context -->
@@ -26,9 +26,9 @@
                 :aria-label="`Open poster preview`"
                 :src="props.posterUrl"
                 :alt="props.posterAlt || ''"
-                class="w-6 h-6 object-cover rounded cursor-pointer 
-                  hover:scale-105 hover:shadow-xl 
-                  active:scale-99 active:shadow-none 
+                class="w-6 h-6 object-cover rounded cursor-pointer
+                  hover:scale-105 hover:shadow-xl
+                  active:scale-99 active:shadow-none
                   transition-transform duration-200"
                 @click.stop="emit('open-poster')"
                 @keyup.enter.prevent="emit('open-poster')"

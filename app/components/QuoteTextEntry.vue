@@ -38,7 +38,7 @@
     </div>
 
     <!-- Thin separator -->
-    <div class="h-px bg-gradient-to-r from-gray-200 via-gray-100 to-transparent dark:from-gray-700 dark:via-gray-800" />
+    <div class="h-px my-12 bg-gradient-to-r from-gray-200 via-gray-100 to-transparent dark:from-gray-700 dark:via-gray-800" />
   </div>
 </template>
 
