@@ -38,9 +38,9 @@
           @open-poster="openPosterPreview"
         />
       </ClientOnly>
-      
+
       <header class="mt-12 p-8">
-    
+
         <!-- Reference Type Badge -->
         <div class="flex items-center justify-center gap-4 min-h-8">
           <Transition name="fade-up" appear>
@@ -66,7 +66,7 @@
             {{ reference.name }}
           </h1>
 
-          <span v-if="reference.release_date" 
+          <span v-if="reference.release_date"
             class="block font-serif text-lg font-500 text-gray-500 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(1)"
@@ -133,12 +133,8 @@
 
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
-        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mt-14 mb-8">
-          Quotes
-        </h2>
-
         <!-- Sort / Filters -->
-        <div class="font-body mb-8">
+        <div class="mt-8 font-body mb-8">
           <!-- Desktop controls -->
           <div class="hidden md:flex gap-4 max-w-2xl mx-auto items-center justify-center">
             <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
@@ -903,7 +899,7 @@ onMounted(async () => {
 
   await waitForLanguageStore()
   if (!reference.value) return
-  
+
   try { // Track view (dedup handled server-side)
     const res = await $fetch(`/api/references/${route.params.id}/view`, { method: 'POST' })
     if (res?.recorded) {
@@ -930,7 +926,7 @@ watch(currentLayout, (newLayout) => {
 
 watch(reference, (newReference) => {
   if (!newReference) return
-  
+
   loadQuotes()
   loadSimilarReferences()
   if (user.value) checkLikeStatus()
