@@ -84,17 +84,18 @@
           </p>
 
           <div v-if="reference.description"
-            class="mt-28 max-w-4xl w-full mx-auto mb-6 border-t border-b border-dashed border-gray-300 dark:border-gray-600 transform-gpu transition-all duration-700 ease-out"
+            class="mt-28 max-w-4xl w-full mx-auto mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(2)"
           >
-            <div class="p-6">
+            <div class="relative pl-7 md:pl-9">
+              <div class="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-primary-500 via-primary-400 to-primary-500/10"></div>
               <div
                 ref="descriptionEl"
                 class="description-clip overflow-hidden"
                 :class="[descriptionExpanded ? 'expanded' : 'collapsed', (!descriptionExpanded && (isDescriptionOverflowing || isDescriptionLong(reference.description))) ? 'has-ellipsis' : '']"
               >
-                <p class="text-justify font-serif text-base md:text-size-8 font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                <p class="font-serif text-base md:text-lg font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                   {{ reference.description }}
                 </p>
               </div>
@@ -122,9 +123,20 @@
       <div v-if="reference?.urls" class="px-8 mb-16">
         <ExternalLinksBadges :links="reference.urls" />
       </div>
-      
+
+      <!-- Section divider -->
+      <div class="px-8">
+        <div class="max-w-6xl mx-auto">
+          <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+        </div>
+      </div>
+
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
+        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mt-14 mb-8">
+          Quotes
+        </h2>
+
         <!-- Sort / Filters -->
         <div class="font-body mb-8">
           <!-- Desktop controls -->
@@ -156,44 +168,61 @@
         </div>
 
         <div v-if="quotesLoading" class="mb-12">
-          <MasonryGrid>
-            <div v-for="i in 12" :key="i" class="quote-skeleton animate-pulse">
-              <div class="border-b border-dashed border-gray-200 dark:border-gray-400 pb-2 mb-4">
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          <div class="max-w-4xl mx-auto space-y-5">
+            <div v-for="i in 6" :key="i" class="animate-pulse">
+              <div class="bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
               </div>
-              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
             </div>
-          </MasonryGrid>
+          </div>
         </div>
 
         <!-- Quotes Display -->
         <div v-else-if="referenceQuotes.length > 0" class="mb-12">
-          <!-- Desktop: Masonry Grid -->
-          <div class="hidden md:block">
-            <MasonryGrid>
-              <QuoteMasonryItem
-                v-for="(quote, index) in referenceQuotes"
-                :key="quote.id"
-                :quote="quote"
-                :index="index"
-                class="fade-in"
-              />
-            </MasonryGrid>
-          </div>
-
-          <!-- Mobile: List -->
-          <div class="md:hidden space-y-4">
-            <QuoteListItem
+          <div class="max-w-4xl mx-auto space-y-5">
+            <NLink
               v-for="quote in referenceQuotes"
               :key="quote.id"
-              :quote="{
-                  ...quote,
-                  tags: [],
-                  result_type: 'quote',
+              :to="`/quotes/${quote.id}`"
+              class="group block bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 transition-all duration-300 hover:shadow-lg hover:border-primary-400 dark:hover:border-primary-500 active:scale-[0.995]"
+            >
+              <blockquote
+                class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed"
+                :class="{
+                  'text-lg md:text-xl': (quote.name || '').length <= 100,
+                  'text-base md:text-lg': (quote.name || '').length > 100 && (quote.name || '').length <= 200,
+                  'text-sm md:text-base': (quote.name || '').length > 200
                 }"
-              class="border rounded-1 border-gray-100 dark:border-dark-400"
-            />
+              >
+                {{ quote.name }}
+              </blockquote>
+
+              <div class="mt-5 flex items-center justify-between gap-4">
+                <div v-if="quote.author" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 min-w-0">
+                  <NAvatar
+                    :src="quote.author.image_url || undefined"
+                    :alt="quote.author.name"
+                    size="xs"
+                    class="flex-shrink-0"
+                  />
+                  <span class="truncate">{{ quote.author.name }}</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
+                  <span class="flex items-center gap-1">
+                    <NIcon name="i-ph-hand-heart" class="w-3.5 h-3.5" />
+                    {{ formatNumber(quote.likes_count) }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <NIcon name="i-ph-eye" class="w-3.5 h-3.5" />
+                    {{ formatNumber(quote.views_count) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-primary-500/20 to-transparent"></div>
+            </NLink>
           </div>
         </div>
 
@@ -216,44 +245,7 @@
         </div>
       </div>
 
-      <!-- Similar References Section -->
-      <div v-if="similarReferences.length > 0" class="px-8 pb-16">
-        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mb-8">
-          Similar References
-        </h2>
-        
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
-          <div
-            v-for="(similarRef, index) in similarReferences"
-            :key="similarRef.id"
-            class="group cursor-pointer similar-item"
-            :class="{ 'in': similarReferences.length > 0 }"
-            :style="{ transitionDelay: `${index * 60}ms` }"
-            @click="navigateTo(`/references/${similarRef.id}`)"
-          >
-            <div class="flex flex-col items-center text-center space-y-2 p-2 rounded-lg">
-              <div v-if="similarRef.image_url" class="w-full h-54 mb-2">
-                <img
-                  :src="similarRef.image_url"
-                  :alt="similarRef.name"
-                  class="w-full h-full object-cover rounded group-hover:scale-105 group-hover:shadow-xl group-active:shadow-none group-active:scale-99 transition-all duration-300"
-                />
-              </div>
-              <div class="flex-1">
-                <p class="font-medium text-sm line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                  {{ similarRef.name }}
-                </p>
-                <p v-if="similarRef.primary_type" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
-                  {{ formatReferenceType(similarRef.primary_type) }}
-                </p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  {{ formatNumber(similarRef.quotes_count) }} quotes
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SimilarReferences :references="similarReferences" />
     </div>
 
     <div v-else class="p-8">
@@ -1049,14 +1041,5 @@ onUnmounted(() => {
   transform: rotate(180deg);
 }
 
-/* Subtle staggered fade-up for similar references */
-.similar-item {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 420ms cubic-bezier(.22,.61,.36,1), transform 420ms cubic-bezier(.22,.61,.36,1);
-}
-.similar-item.in {
-  opacity: 1;
-  transform: translateY(0);
-}
+
 </style>
