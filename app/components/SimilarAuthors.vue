@@ -4,8 +4,8 @@
       <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent mb-14"></div>
     </div>
 
-    <h2 class="font-title text-2xl md:text-3xl font-600 text-center mb-10">
-      Similar Authors
+    <h2 class="font-title text-2xl md:text-3xl font-200 text-center mb-10">
+      Take a look at
     </h2>
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">

@@ -151,12 +151,8 @@
 
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
-        <h2 class="font-title text-2xl md:text-3xl font-600 text-center mt-14 mb-8">
-          Quotes
-        </h2>
-
         <!-- Sort / Filters -->
-        <div class="font-body mb-8">
+        <div class="mt-8 font-body mb-8">
           <!-- Desktop controls -->
           <div class="hidden md:flex gap-4 max-w-2xl mx-auto items-center justify-center">
             <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
