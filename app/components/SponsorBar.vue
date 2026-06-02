@@ -11,21 +11,37 @@
     >
       <!-- First set of sponsors -->
       <div class="sponsor-set">
-        <div v-for="(sponsor, index) in sponsors" :key="`a-${index}`" class="sponsor-item">
+        <a
+          v-for="(sponsor, index) in sponsors"
+          :key="`a-${index}`"
+          :href="sponsor.url || undefined"
+          :target="sponsor.url ? '_blank' : undefined"
+          :rel="sponsor.url ? 'noopener noreferrer' : undefined"
+          class="sponsor-item"
+          :class="{ 'cursor-pointer hover:opacity-80': sponsor.url }"
+        >
           <NIcon v-if="sponsor.leading" :name="sponsor.leading" class="w-4 h-4 text-gray-400" />
           <span class="text-sm text-gray-300 whitespace-nowrap">{{ sponsor.message }}</span>
           <NIcon v-if="sponsor.trailing" :name="sponsor.trailing" class="w-4 h-4 text-gray-400" />
-        </div>
+        </a>
         <div class="sponsor-gap" />
       </div>
 
       <!-- Duplicate set for seamless loop -->
       <div class="sponsor-set">
-        <div v-for="(sponsor, index) in sponsors" :key="`b-${index}`" class="sponsor-item">
+        <a
+          v-for="(sponsor, index) in sponsors"
+          :key="`b-${index}`"
+          :href="sponsor.url || undefined"
+          :target="sponsor.url ? '_blank' : undefined"
+          :rel="sponsor.url ? 'noopener noreferrer' : undefined"
+          class="sponsor-item"
+          :class="{ 'cursor-pointer hover:opacity-80': sponsor.url }"
+        >
           <NIcon v-if="sponsor.leading" :name="sponsor.leading" class="w-4 h-4 text-gray-400" />
           <span class="text-sm text-gray-300 whitespace-nowrap">{{ sponsor.message }}</span>
           <NIcon v-if="sponsor.trailing" :name="sponsor.trailing" class="w-4 h-4 text-gray-400" />
-        </div>
+        </a>
         <div class="sponsor-gap" />
       </div>
     </div>
