@@ -28,6 +28,16 @@ export default defineEventHandler(async (event) => {
 
     const transformedReference = {
       ...reference,
+      primary_type: reference.primaryType,
+      secondary_type: reference.secondaryType,
+      release_date: reference.releaseDate,
+      original_language: reference.originalLanguage,
+      image_url: reference.imageUrl,
+      views_count: reference.viewsCount,
+      likes_count: reference.likesCount,
+      shares_count: reference.sharesCount,
+      created_at: reference.createdAt,
+      updated_at: reference.updatedAt,
       urls: reference.urls ? JSON.parse(reference.urls as string) : [],
       quotes_count: quotesCount
     }

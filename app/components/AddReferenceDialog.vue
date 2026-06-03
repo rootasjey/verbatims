@@ -490,12 +490,6 @@ const submitReference = async () => {
         body: payload
       })
 
-      useToast().toast({
-        toast: 'success',
-        title: 'Reference Updated',
-        description: 'The reference has been updated successfully.'
-      })
-
       emit('reference-updated')
     } else {
       // Create new reference
