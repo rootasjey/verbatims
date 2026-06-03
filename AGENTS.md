@@ -224,6 +224,24 @@ Dev servers are long-running processes. Do not block your workflow on them unnec
 
 Do **not** run production build commands such as `npm run build`, `bun run build`, or `nuxt build` unless the user explicitly asks for them.
 
+## Database migrations
+
+Schema changes are tracked in `server/db/migrations/sqlite/` as numbered SQL files (e.g. `0009_add_reference_id_filter.sql`). The consolidated `server/db/migrations/schema.sql` and Drizzle `server/db/schema.ts` are also updated for fresh deploys.
+
+**Production**: migration files are applied against Cloudflare D1 via wrangler:
+
+```bash
+wrangler d1 execute verbatims-db --file server/db/migrations/sqlite/0009_add_reference_id_filter.sql
+```
+
+To preview locally first:
+
+```bash
+wrangler d1 execute verbatims-db --file server/db/migrations/sqlite/0009_add_reference_id_filter.sql --local
+```
+
+Always create a new numbered migration file when altering existing tables (adding columns, changing constraints, etc.). New tables that don't exist yet can rely on `schema.sql` being applied on fresh deploys.
+
 ## Key files to inspect first
 
 - `/nuxt.config.ts`

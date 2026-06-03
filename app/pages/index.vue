@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen" :style="themeVars">
     <!-- Mobile: Hero + sections -->
     <div v-if="isMobile">
       <MobileHeroSection :quote="feed.quotes?.value?.[0]" @new-quote="handleNewQuote" @on-click-quote="handleClickQuote" @on-click-author="handleClickAuthor" />
@@ -21,7 +21,7 @@
     <HomeEmptyView v-else-if="(stats.quotes === 0 || needsOnboarding) && !feed.quotesLoading?.value"
       :needs-onboarding="needsOnboarding" :onboarding-status="onboardingStatus" :stats="stats" />
 
-    <HomeDesktopFeed v-else-if="!isMobile" :feed="feed" :stats="stats" />
+    <HomeDesktopFeed v-if="!isMobile && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :stats="stats" :theme="themeData" />
     <MobileRecentQuotes v-if="isMobile" :feed="feed" :limit="5" />
 
     <AddQuoteDrawer v-if="isMobile" v-model:open="showAddQuoteDrawer" @submitted="feed.refresh()" />
@@ -42,26 +42,51 @@ definePageMeta({
   scrollToTop: false
 })
 
-useHead({
-  title: 'Verbatims • A flow of quotes',
-  meta: [
-    {
-      name: 'description',
-      content: `Discover inspiring quotes from authors, films, books, and more. 
-        A comprehensive, user-generated quotes database with moderation capabilities.`,
-    },
-    // Page-specific Open Graph tags
-    { property: 'og:title', content: 'Verbatims • A flow of quotes' },
-    { property: 'og:description', content: 'Discover inspiring quotes from authors, films, books, and more. A comprehensive, user-generated quotes database with moderation capabilities.' },
-    { property: 'og:url', content: 'https://verbatims.cc' },
-    
-    // Page-specific Twitter tags  
-    { name: 'twitter:title', content: 'Verbatims • A flow of quotes' },
-    { name: 'twitter:description', content: 'Discover inspiring quotes from authors, films, books, and more. A comprehensive, user-generated quotes database with moderation capabilities.' }
-  ]
+import { useJsonLd } from '../composables/useSeo'
+
+type StatsResponse = { quotes: number; authors: number; references: number; users: number }
+type OnboardingResponse = { needsOnboarding?: boolean; step?: string; hasAdminUser?: boolean; hasData?: boolean }
+
+const { isLanguageReady } = useLanguageReady()
+const feed = useHomeFeed()
+
+const themeData = ref<{
+  slug: string
+  name: string
+  description: string | null
+  image_url: string | null
+  config: Record<string, any> | null
+} | null>(null)
+
+const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
+const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
+
+const { data: activeThemeData } = await useFetch<{ data?: typeof themeData.value }>('/api/themes/active')
+if (activeThemeData.value?.data) {
+  themeData.value = activeThemeData.value.data
+}
+
+const pageTitle = computed(() => {
+  if (themeData.value) return `${themeData.value.name} — Verbatims`
+  return 'Verbatims • A flow of quotes'
 })
 
-import { useJsonLd } from '../composables/useSeo'
+const pageDescription = computed(() => {
+  if (themeData.value?.description) return themeData.value.description
+  return 'Discover inspiring quotes from authors, films, books, and more.'
+})
+
+useHead({
+  title: pageTitle,
+  meta: [
+    { name: 'description', content: pageDescription },
+    { property: 'og:title', content: pageTitle },
+    { property: 'og:description', content: pageDescription },
+    { property: 'og:url', content: 'https://verbatims.cc' },
+    { name: 'twitter:title', content: pageTitle },
+    { name: 'twitter:description', content: pageDescription },
+  ],
+})
 
 useJsonLd({
   '@context': 'https://schema.org',
@@ -75,19 +100,20 @@ useJsonLd({
     'query-input': 'required name=search_term_string'
   }
 })
-type StatsResponse = { quotes: number; authors: number; references: number; users: number }
-type OnboardingResponse = { needsOnboarding?: boolean; step?: string; hasAdminUser?: boolean; hasData?: boolean }
-
-const { isLanguageReady } = useLanguageReady()
-const feed = useHomeFeed()
-
-const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
-const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
 
 // Ensure the computed values always match the shapes expected by child components
 const stats = computed<StatsResponse>(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
 const onboardingStatus = computed<OnboardingResponse>(() => onboardingData.value?.data || { needsOnboarding: false, step: undefined, hasAdminUser: false, hasData: false })
 const needsOnboarding = computed(() => !!onboardingStatus.value?.needsOnboarding)
+
+const themeVars = computed(() => {
+  if (!themeData.value?.config) return {}
+  const cfg = themeData.value.config
+  return {
+    '--theme-primary': cfg.color_primary || '#6366f1',
+    '--theme-secondary': cfg.color_secondary || '#FAB95B',
+  }
+})
 
 const showAddQuoteDrawer = ref(false)
 // Mark as ready only after Nuxt has fully hydrated to avoid layout switching during hydration
@@ -165,9 +191,13 @@ onMounted(() => {
   const snapshot = getRestorableSnapshot()
 
   void (async () => {
-    await feed.init(snapshot)
+    if (themeData.value) {
+      await feed.setTheme(themeData.value)
+    } else {
+      await feed.init(snapshot)
+    }
 
-    if (snapshot) {
+    if (snapshot && !themeData.value) {
       await restoreScrollPosition(snapshot.scrollY)
       quotesFeedStore.clearRestoreRequest()
     } else if (quotesFeedStore.shouldRestore) {

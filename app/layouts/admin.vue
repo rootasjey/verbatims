@@ -240,6 +240,24 @@
                   <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Tags</span>
                 </NuxtLink>
               </NTooltip>
+
+              <!-- Themes -->
+              <NTooltip :content="sidebarCollapsed ? 'Themes' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/themes"
+                  :class="[
+                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start',
+                    $route.path === '/admin/themes'
+                      ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 border border-dashed border-rose-200 dark:border-rose-700'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-700 dark:hover:text-rose-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <NIcon name="i-ph-palette" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Themes</span>
+                </NuxtLink>
+              </NTooltip>
             </div>
 
             <div class="pt-4">

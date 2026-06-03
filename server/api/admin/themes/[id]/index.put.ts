@@ -1,0 +1,93 @@
+import { db, schema } from 'hub:db'
+import { eq, ne, sql } from 'drizzle-orm'
+
+export default defineEventHandler(async (event) => {
+  const session = await requireUserSession(event)
+  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
+    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+  }
+
+  try {
+    const id = getRouterParam(event, 'id')
+    if (!id || isNaN(parseInt(id))) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid theme ID' })
+    }
+    const themeId = parseInt(id)
+    const body = await readBody(event)
+
+    const existing = await db.select()
+      .from(schema.themes)
+      .where(eq(schema.themes.id, themeId))
+      .limit(1)
+
+    if (!existing || existing.length === 0) {
+      throw createError({ statusCode: 404, statusMessage: 'Theme not found' })
+    }
+
+    if (typeof body.slug === 'string' && body.slug.trim()) {
+      const slug = body.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+      const conflict = await db.select({ id: schema.themes.id })
+        .from(schema.themes)
+        .where(sql`${schema.themes.slug} = ${slug} AND ${schema.themes.id} != ${themeId}`)
+        .limit(1)
+
+      if (conflict.length > 0) {
+        throw createError({ statusCode: 409, statusMessage: 'Theme with this slug already exists' })
+      }
+    }
+
+    const updates: any = {}
+    if (typeof body.slug === 'string' && body.slug.trim()) {
+      updates.slug = body.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
+    }
+    if (typeof body.name === 'string' && body.name.trim()) {
+      updates.name = body.name.trim()
+    }
+    if (body.description !== undefined) {
+      updates.description = body.description
+    }
+    if (body.image_url !== undefined) {
+      updates.imageUrl = body.image_url
+    }
+    if (body.is_active !== undefined) {
+      updates.isActive = body.is_active === true
+    }
+    if (body.is_default !== undefined) {
+      updates.isDefault = body.is_default === true
+    }
+    if (body.scheduled_date !== undefined) {
+      updates.scheduledDate = body.scheduled_date
+    }
+    if (body.scheduled_start !== undefined) {
+      updates.scheduledStart = body.scheduled_start ? new Date(body.scheduled_start) : null
+    }
+    if (body.scheduled_end !== undefined) {
+      updates.scheduledEnd = body.scheduled_end ? new Date(body.scheduled_end) : null
+    }
+    if (body.priority !== undefined) {
+      updates.priority = parseInt(body.priority, 10) || 0
+    }
+    if (body.config !== undefined) {
+      updates.config = typeof body.config === 'string' ? body.config : JSON.stringify(body.config)
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return { success: true, data: existing[0] }
+    }
+
+    await db.update(schema.themes)
+      .set(updates)
+      .where(eq(schema.themes.id, themeId))
+
+    const updated = await db.select()
+      .from(schema.themes)
+      .where(eq(schema.themes.id, themeId))
+      .limit(1)
+
+    return { success: true, data: updated[0] }
+  } catch (error: any) {
+    if ((error as any).statusCode) throw error
+    console.error('Error updating theme:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Failed to update theme' })
+  }
+})

@@ -73,11 +73,27 @@
 
       <!-- Center content -->
       <div class="mt-8 lg:col-span-7">
+        <!-- Theme header -->
+        <div v-if="props.theme" class="lg:px-8 border-b b-dashed border-gray-300 dark:border-gray-700 pb-6 mb-6">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-primary, #6366f1)` }" />
+            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ color: `var(--theme-primary, #6366f1)` }">
+              Theme
+            </p>
+          </div>
+          <h2 class="font-serif text-2xl font-300 text-gray-900 dark:text-gray-100">
+            {{ props.theme.name }}
+          </h2>
+          <p v-if="props.theme.description" class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ props.theme.description }}
+          </p>
+        </div>
+
         <!-- Featured quote (Philosophy section) -->
         <div v-if="featuredQuote" class="mb-8 pb-8 border-b b-dashed border-gray-300 dark:border-gray-700">
           <div class="lg:px-8 flex items-center gap-2 mb-4">
-            <span class="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
-            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-secondary, #FAB95B)` }" />
+            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ backgroundColor: `var(--theme-secondary, #FAB95B)` }" >
               Featured
             </p>
           </div>
@@ -97,17 +113,17 @@
             >
               <div
                 v-if="featuredQuote.author?.image_url && !imageErrors[featuredQuote.author.id]"
-                class="w-10 h-10 rounded-full overflow-hidden grayscale"
+                class="w-6 h-6 rounded-full overflow-hidden grayscale"
               >
                 <img :src="featuredQuote.author.image_url" :alt="featuredQuote.author.name" class="w-full h-full object-cover" @error="authorAvatarFailed(featuredQuote.author.id)" />
               </div>
-              <div v-else class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+              <div v-else class="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
                 <span class="font-serif text-xs text-gray-400 dark:text-gray-500">
                   {{ getAuthorInitials(featuredQuote.author?.name) }}
                 </span>
               </div>
               <div>
-                <p class="font-serif text-sm font-600 text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                <p class="font-subtitle text-2xl font-600 text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {{ featuredQuote.author?.name || 'Unknown Author' }}
                 </p>
                 <p v-if="featuredQuote.reference" class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -216,7 +232,7 @@
 
         <!-- Stories section -->
         <div class="mb-8">
-          <div class="flex items-center gap-3 mb-6 mx-6">
+          <div class="flex justify-center items-center gap-3 mb-6 mx-6">
             <span class="flex-1 max-w-3 h-px bg-gray-200 dark:bg-gray-700" />
             <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0">
               Stories
@@ -289,7 +305,7 @@
               </div>
             </div>
             <div class="min-w-0 flex-1">
-              <h4 class="font-serif text-sm font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">
+              <h4 class="font-title text-md font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">
                 {{ ref.name }}
               </h4>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -337,13 +353,13 @@
                   <img :src="author.image_url" :alt="author.name" class="w-full h-full object-cover" @error="authorAvatarFailed(author.id)" />
                 </div>
                 <div v-else class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-                  <span class="font-serif text-xs text-gray-400 dark:text-gray-500">
+                  <span class="font-subtitle text-xs text-gray-400 dark:text-gray-500">
                     {{ getAuthorInitials(author.name) }}
                   </span>
                 </div>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="font-serif text-sm font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {{ author.name || 'Unknown' }}
                 </p>
                 <p v-if="author.quotes_count" class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -381,10 +397,18 @@ import type { UseHomeFeed } from '~/composables/useHomeFeed'
 interface Props {
   feed: UseHomeFeed
   stats?: { quotes: number; authors: number; references: number }
+  theme?: {
+    slug: string
+    name: string
+    description: string | null
+    image_url: string | null
+    config: Record<string, any> | null
+  } | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  stats: () => ({ quotes: 0, authors: 0, references: 0 })
+  stats: () => ({ quotes: 0, authors: 0, references: 0 }),
+  theme: null
 })
 
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
@@ -435,10 +459,10 @@ const opinionQuotes = computed(() => {
   return quotes.slice(1, 7)
 })
 
-// Extract story quotes (next 6 quotes after opinion)
+// Extract story quotes (next 9 quotes after opinion)
 const storyQuotes = computed(() => {
   const quotes = props.feed.quotes.value || []
-  return quotes.slice(7, 13)
+  return quotes.slice(7, 16)
 })
 
 // Extract featured references (all after spotlight)

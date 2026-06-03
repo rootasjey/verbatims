@@ -518,3 +518,35 @@ export const backupFiles = sqliteTable('backup_files', {
   expiresIdx: index('idx_backup_files_expires').on(table.expiresAt),
   pathIdx: index('idx_backup_files_path').on(table.filePath),
 }))
+
+export const themes = sqliteTable('themes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  config: text('config').default('{}'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(false),
+  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+  scheduledDate: text('scheduled_date'),
+  scheduledStart: integer('scheduled_start', { mode: 'timestamp' }),
+  scheduledEnd: integer('scheduled_end', { mode: 'timestamp' }),
+  priority: integer('priority').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  slugIdx: uniqueIndex('idx_themes_slug').on(table.slug),
+  activeIdx: index('idx_themes_active').on(table.isActive),
+  defaultIdx: index('idx_themes_default').on(table.isDefault),
+  scheduledIdx: index('idx_themes_scheduled').on(table.scheduledDate),
+}))
+
+export const themeContentFilters = sqliteTable('theme_content_filters', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),
+  type: text('type', { enum: ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id'] }).notNull(),
+  value: text('value').notNull(),
+  matchMode: text('match_mode', { enum: ['any', 'all'] }).default('any'),
+}, (table) => ({
+  themeIdx: index('idx_theme_filters_theme').on(table.themeId),
+}))
