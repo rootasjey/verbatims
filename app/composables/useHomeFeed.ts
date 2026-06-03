@@ -20,8 +20,28 @@ export function useHomeFeed() {
   const references = ref<QuoteReference[]>([])
   const curatedLoading = ref(true)
 
+  const activeTheme = ref<{
+    slug: string
+    name: string
+    description: string | null
+    image_url: string | null
+    config: Record<string, any> | null
+  } | null>(null)
+
+  const isThemed = computed(() => !!activeTheme.value)
+
+  // When themed, replace the quotes feed with a simple ref
+  const themedQuotes = ref<ProcessedQuoteResult[]>([])
+  const themedLoading = ref(false)
+
+  // Expose a unified quotes ref that switches based on theme mode
+  const quotes = computed<ProcessedQuoteResult[]>(() =>
+    isThemed.value ? themedQuotes.value : (quotesFeed.quotes.value || [])
+  )
+
   // Fetch a curated batch of authors and references for the home feed
   const fetchCurated = async () => {
+    if (isThemed.value) return
     curatedLoading.value = true
     try {
       const [authorsRes, refsRes] = await Promise.all([
@@ -54,21 +74,39 @@ export function useHomeFeed() {
     }
   }
 
+  const fetchThemedFeed = async () => {
+    const theme = activeTheme.value
+    if (!theme) return
+    themedLoading.value = true
+    try {
+      const res = await $fetch(`/api/themes/${theme.slug}/feed`)
+      if (res.success && res.data) {
+        themedQuotes.value = res.data.quotes || []
+        authors.value = res.data.authors || []
+        references.value = res.data.references || []
+      }
+    } catch (error) {
+      console.error('Failed to fetch themed feed:', error)
+    } finally {
+      themedLoading.value = false
+    }
+  }
+
   // Interleave quotes with authors and references to break linearity
   const mixedItems = computed<HomeFeedItem[]>(() => {
-    const quotes = quotesFeed.quotes.value || []
+    const q = quotes.value || []
     const auths = authors.value || []
     const refs = references.value || []
 
-    if (!quotes.length) return []
+    if (!q.length) return []
 
     const items: HomeFeedItem[] = []
     let authorIndex = 0
     let refIndex = 0
 
     // Insert an author every 6th slot and a reference every 12th slot
-    for (let i = 0; i < quotes.length; i++) {
-      items.push({ type: 'quote', data: quotes[i] })
+    for (let i = 0; i < q.length; i++) {
+      items.push({ type: 'quote', data: q[i] })
 
       if ((i + 1) % 6 === 0 && authorIndex < auths.length) {
         items.push({ type: 'author', data: auths[authorIndex] })
@@ -94,7 +132,24 @@ export function useHomeFeed() {
     return items
   })
 
+  const setTheme = async (theme: {
+    slug: string
+    name: string
+    description: string | null
+    image_url: string | null
+    config: Record<string, any> | null
+  } | null) => {
+    activeTheme.value = theme
+    if (theme) {
+      await fetchThemedFeed()
+    }
+  }
+
   const init = async (snapshot?: QuoteFeedSnapshot | null) => {
+    if (isThemed.value) {
+      await fetchThemedFeed()
+      return
+    }
     // Init quotes feed first (it handles language store readiness)
     await quotesFeed.init(snapshot)
     // Then fetch curated content
@@ -102,18 +157,26 @@ export function useHomeFeed() {
   }
 
   const refresh = async () => {
+    if (isThemed.value) {
+      await fetchThemedFeed()
+      return
+    }
     await quotesFeed.refresh()
     await fetchCurated()
   }
 
   return {
-    // Quotes feed passthrough
-    quotes: quotesFeed.quotes,
+    activeTheme,
+    isThemed,
+    setTheme,
+
+    // Unified quotes (themed or search feed)
+    quotes,
     hasMore: quotesFeed.hasMore,
     loadMore: quotesFeed.loadMore,
-    quotesLoading: quotesFeed.quotesLoading,
+    quotesLoading: computed(() => isThemed.value ? themedLoading.value : quotesFeed.quotesLoading.value),
     loadingMore: quotesFeed.loadingMore,
-    initialLoading: quotesFeed.initialLoading,
+    initialLoading: computed(() => isThemed.value ? themedLoading.value : quotesFeed.initialLoading.value),
 
     // Curated content
     authors,
