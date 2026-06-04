@@ -1,7 +1,8 @@
 <template>
   <!-- Compact footer aligned with the home page spacing and typography -->
   <footer
-    class="pt-8 border-t border-gray-3/80 dark:border-gray-8/80"
+    class="pt-8 border-gray-3/20 dark:border-gray-8/80"
+    :class="{ 'border-t': $route.path !== '/' }"
     role="contentinfo"
     aria-label="Site footer"
     data-testid="footer"
@@ -75,7 +76,7 @@
           <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">Privacy & Policy</NuxtLink>
           <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">Terms & Condition</NuxtLink>
           <span class="color-gray-500 font-600">Version: {{ version }}</span>
-          
+
           <ThemeSelector />
         </div>
       </div>

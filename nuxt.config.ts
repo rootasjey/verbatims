@@ -20,7 +20,7 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Discover inspiring quotes from films, books, games, and more. Verbatims is a comprehensive, user-generated quotes database.' },
-        
+
         // Open Graph / Facebook
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Verbatims' },
@@ -33,16 +33,16 @@ export default defineNuxtConfig({
         { property: 'og:locale', content: 'en_US' },
         { property: 'og:locale:alternate', content: 'fr_FR' },
         { property: 'og:locale:alternate', content: 'la_VA' },
-        
+
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Verbatims - Modern Quotes Service' },
         { name: 'twitter:description', content: 'Discover inspiring quotes from films, books, games, and more. A comprehensive, user-generated quotes database with moderation capabilities.' },
         { name: 'twitter:image', content: `${normalizedSiteUrl}/api/og/default.png` },
-        
+
         // Additional meta tags
         { name: 'theme-color', content: '#0BA6DF' },
-        
+
         // Search engine verification (set via env vars)
         ...(process.env.NUXT_PUBLIC_GSC_VERIFICATION ? [{ name: 'google-site-verification', content: process.env.NUXT_PUBLIC_GSC_VERIFICATION }] : []),
         ...(process.env.NUXT_PUBLIC_BING_VERIFICATION ? [{ name: 'msvalidate.01', content: process.env.NUXT_PUBLIC_BING_VERIFICATION }] : [])
@@ -63,7 +63,8 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     'nuxt-auth-utils',
     '@una-ui/nuxt',
-    '@vueuse/nuxt',    '@nuxtjs/sitemap',
+    '@vueuse/nuxt',
+    '@nuxtjs/sitemap',
   ],
 
   typescript: {
@@ -206,7 +207,7 @@ export default defineNuxtConfig({
       baseURL: 'https://verbatims.cc'
     }
   },
-  
+
   unocss: {
     preflight: true,
     icons: {
