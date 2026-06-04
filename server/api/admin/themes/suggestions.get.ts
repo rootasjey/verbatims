@@ -10,6 +10,49 @@ function slugify(text: string): string {
     || 'theme'
 }
 
+function toTitle(text: string): string {
+  return text.replace(/\w+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase())
+}
+
+function pick<T>(items: T[], index: number, key: string): T {
+  let hash = 0
+  for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash) + key.charCodeAt(i) | 0
+  return items[Math.abs(hash + index * 7) % items.length]
+}
+
+const tagPatterns = [
+  { name: (s: string) => s, desc: (s: string) => `A curated journey through quotes about ${s}` },
+  { name: (s: string) => `Visions of ${s}`, desc: (s: string) => `Exploring the many facets of ${s} through unforgettable words` },
+  { name: (s: string) => `The World of ${s}`, desc: (s: string) => `Discover perspectives on ${s} from thinkers and creatives` },
+  { name: (s: string) => `Through the Lens of ${s}`, desc: (s: string) => `Seeing ${s} differently — one quote at a time` },
+  { name: (s: string) => `Echoes of ${s}`, desc: (s: string) => `Quotes that capture the lasting resonance of ${s}` },
+  { name: (s: string) => `Beyond ${s}`, desc: (s: string) => `Thoughts that push the boundaries of ${s}` },
+  { name: (s: string) => `Reflections on ${s}`, desc: (s: string) => `Wisdom and musings on the theme of ${s}` },
+  { name: (s: string) => `The ${s} Collection`, desc: (s: string) => `A handpicked selection of quotes about ${s}` },
+]
+
+const authorPatterns = [
+  { name: (s: string) => `In the Words of ${s}`, desc: (s: string) => `The most memorable quotes by ${s}, collected in one place` },
+  { name: (s: string) => s, desc: (s: string) => `A celebration of the wit, wisdom, and words of ${s}` },
+  { name: (s: string) => `The World According to ${s}`, desc: (s: string) => `Exploring ${s}'s unique perspective through their quotes` },
+  { name: (s: string) => `Voices of ${s}`, desc: (s: string) => `The most striking and insightful quotes from ${s}` },
+  { name: (s: string) => `Reflections by ${s}`, desc: (s: string) => `A curated set of thoughts and observations by ${s}` },
+  { name: (s: string) => `${s}: A Portrait in Quotes`, desc: (s: string) => `Understanding ${s} through their own words` },
+  { name: (s: string) => `The Wit of ${s}`, desc: (s: string) => `Sharp, wise, and unforgettable — the best of ${s}` },
+  { name: (s: string) => `Quoting ${s}`, desc: (s: string) => `A rich collection of quotes attributed to ${s}` },
+]
+
+const referencePatterns = [
+  { name: (s: string) => `From the Pages of ${s}`, desc: (s: string) => `Iconic lines and unforgettable moments from ${s}` },
+  { name: (s: string) => `Inside ${s}`, desc: (s: string) => `The quotes that define ${s} and its legacy` },
+  { name: (s: string) => s, desc: (s: string) => `A curated selection of quotes drawn from ${s}` },
+  { name: (s: string) => `Beyond ${s}`, desc: (s: string) => `Exploring the themes and ideas found in ${s}` },
+  { name: (s: string) => `Moments from ${s}`, desc: (s: string) => `The most memorable lines and passages from ${s}` },
+  { name: (s: string) => `The World of ${s}`, desc: (s: string) => `Quotes that capture the spirit of ${s}` },
+  { name: (s: string) => `Revisiting ${s}`, desc: (s: string) => `Timeless quotes from ${s}, rediscovered` },
+  { name: (s: string) => `Lessons from ${s}`, desc: (s: string) => `What ${s} teaches us, one quote at a time` },
+]
+
 const colorPairs = [
   ['indigo', 'amber'],
   ['emerald', 'yellow'],
@@ -87,138 +130,92 @@ export default defineEventHandler(async (event) => {
       if (suggestions.length >= MAX_SUGGESTIONS) return
       const pair = colorPairs[colorIndex % colorPairs.length]
       colorIndex++
-      suggestions.push({
-        type,
-        name,
-        slug: slugify(name),
-        description: desc,
-        color_primary: pair[0],
-        color_secondary: pair[1],
-        filters,
-      })
+      suggestions.push({ type, name, slug: slugify(name), description: desc, color_primary: pair[0], color_secondary: pair[1], filters })
     }
 
-    // --- Tag suggestions with co-occurring tags ---
-    for (const tag of topTags) {
+    // --- Tag suggestions ---
+    for (let i = 0; i < topTags.length; i++) {
       if (suggestions.length >= MAX_SUGGESTIONS) break
-      if (existingSlugs.has(slugify(`#${tag.name}`))) continue
+      const tag = topTags[i]
       if (tag.count < MIN_QUOTES) continue
 
-      const filters: any[] = [
-        { type: 'tag_name', value: tag.name, match_mode: 'any' },
-      ]
+      const title = toTitle(tag.name)
+      const pattern = pick(tagPatterns, i, tag.name)
+      const name = pattern.name(title)
+      if (existingSlugs.has(slugify(name))) continue
 
-      const coTags = await db.select({
-        name: schema.tags.name,
-        count: count(schema.quoteTags.quoteId),
-      })
+      const filters: any[] = [{ type: 'tag_name', value: tag.name, match_mode: 'any' }]
+
+      const coTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
         .from(schema.quoteTags)
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-        .where(
-          and(
-            inArray(schema.quoteTags.quoteId,
-              db.select({ id: schema.quoteTags.quoteId })
-                .from(schema.quoteTags)
-                .where(eq(schema.quoteTags.tagId, tag.id))
-            ),
-            ne(schema.quoteTags.tagId, tag.id),
-          )
-        )
+        .where(and(
+          inArray(schema.quoteTags.quoteId,
+            db.select({ id: schema.quoteTags.quoteId }).from(schema.quoteTags).where(eq(schema.quoteTags.tagId, tag.id))),
+          ne(schema.quoteTags.tagId, tag.id),
+        ))
         .groupBy(schema.tags.id, schema.tags.name)
         .orderBy(desc(count(schema.quoteTags.quoteId)))
         .limit(2)
         .all()
 
-      for (const ct of coTags) {
-        filters.push({ type: 'tag_name', value: ct.name, match_mode: 'any' })
-      }
+      for (const ct of coTags) filters.push({ type: 'tag_name', value: ct.name, match_mode: 'any' })
 
-      addSuggestion(
-        'tag',
-        `#${tag.name}`,
-        `A curated collection of quotes tagged with ${tag.name}`,
-        filters,
-      )
+      addSuggestion('tag', name, pattern.desc(title), filters)
     }
 
-    // --- Author suggestions with their top tags ---
-    for (const author of topAuthors) {
+    // --- Author suggestions ---
+    for (let i = 0; i < topAuthors.length; i++) {
       if (suggestions.length >= MAX_SUGGESTIONS) break
-      if (existingSlugs.has(slugify(author.name))) continue
+      const author = topAuthors[i]
       if (author.count < MIN_QUOTES) continue
 
-      const filters: any[] = [
-        { type: 'author_name', value: author.name, match_mode: 'any' },
-      ]
+      const pattern = pick(authorPatterns, i, author.name)
+      const name = pattern.name(author.name)
+      if (existingSlugs.has(slugify(name))) continue
 
-      const authorTags = await db.select({
-        name: schema.tags.name,
-        count: count(schema.quoteTags.quoteId),
-      })
+      const filters: any[] = [{ type: 'author_name', value: author.name, match_mode: 'any' }]
+
+      const authorTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
         .from(schema.quoteTags)
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .where(
-          and(
-            eq(schema.quotes.authorId, author.id),
-            eq(schema.quotes.status, 'approved'),
-          )
-        )
+        .where(and(eq(schema.quotes.authorId, author.id), eq(schema.quotes.status, 'approved')))
         .groupBy(schema.tags.id, schema.tags.name)
         .orderBy(desc(count(schema.quoteTags.quoteId)))
         .limit(2)
         .all()
 
-      for (const t of authorTags) {
-        filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
-      }
+      for (const t of authorTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
 
-      addSuggestion(
-        'author',
-        author.name,
-        `Featuring quotes by ${author.name}`,
-        filters,
-      )
+      addSuggestion('author', name, pattern.desc(author.name), filters)
     }
 
-    // --- Reference suggestions with their top tags ---
-    for (const ref of topReferences) {
+    // --- Reference suggestions ---
+    for (let i = 0; i < topReferences.length; i++) {
       if (suggestions.length >= MAX_SUGGESTIONS) break
-      if (existingSlugs.has(slugify(ref.name))) continue
+      const ref = topReferences[i]
       if (ref.count < MIN_QUOTES) continue
 
-      const filters: any[] = [
-        { type: 'reference_name', value: ref.name, match_mode: 'any' },
-      ]
+      const pattern = pick(referencePatterns, i, ref.name)
+      const name = pattern.name(ref.name)
+      if (existingSlugs.has(slugify(name))) continue
 
-      const refTags = await db.select({
-        name: schema.tags.name,
-        count: count(schema.quoteTags.quoteId),
-      })
+      const filters: any[] = [{ type: 'reference_name', value: ref.name, match_mode: 'any' }]
+
+      const refTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
         .from(schema.quoteTags)
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .where(
-          and(
-            eq(schema.quotes.referenceId, ref.id),
-            eq(schema.quotes.status, 'approved'),
-          )
-        )
+        .where(and(eq(schema.quotes.referenceId, ref.id), eq(schema.quotes.status, 'approved')))
         .groupBy(schema.tags.id, schema.tags.name)
         .orderBy(desc(count(schema.quoteTags.quoteId)))
         .limit(2)
         .all()
 
-      for (const t of refTags) {
-        filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
-      }
+      for (const t of refTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
 
-      addSuggestion(
-        'reference',
-        ref.name,
-        `Quotes from ${ref.name}`,
-        filters,
-      )
+      addSuggestion('reference', name, pattern.desc(ref.name), filters)
     }
 
     return { success: true, data: suggestions }
