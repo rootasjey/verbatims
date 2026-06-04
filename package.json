@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.57.2",
+  "version": "0.57.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.0.6",
+    "@dayflow/blossom-color-picker-vue": "^1.2.1",
     "@libsql/client": "^0.17.0",
     "@noble/hashes": "^2.0.1",
     "@nuxt/image": "1.11.0",

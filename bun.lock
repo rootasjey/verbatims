@@ -6,6 +6,7 @@
       "name": "verbatims",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.0.6",
+        "@dayflow/blossom-color-picker-vue": "^1.2.1",
         "@libsql/client": "^0.17.0",
         "@noble/hashes": "^2.0.1",
         "@nuxt/image": "1.11.0",
@@ -134,6 +135,10 @@
     "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20251205.0", "", {}, "sha512-7pup7fYkuQW5XD8RUS/vkxF9SXlrGyCXuZ4ro3uVQvca/GTeSa+8bZ8T4wbq1Aea5lmLIGSlKbhl2msME7bRBA=="],
 
     "@cspotcode/source-map-support": ["@cspotcode/source-map-support@0.8.1", "", { "dependencies": { "@jridgewell/trace-mapping": "0.3.9" } }, "sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw=="],
+
+    "@dayflow/blossom-color-picker": ["@dayflow/blossom-color-picker@2.2.1", "", {}, "sha512-V3CdtY3qLMVDxhtbtAEIyN4wWQEN+vIj6gVkBZY1O2HX4hq+6mwLRZ/A13jEG2PN8WBQmfRw1cgzGx+Pjvd/PQ=="],
+
+    "@dayflow/blossom-color-picker-vue": ["@dayflow/blossom-color-picker-vue@1.2.1", "", { "dependencies": { "@dayflow/blossom-color-picker": "^2.2.1" }, "peerDependencies": { "vue": ">=3.3.0" } }, "sha512-wc3p1VzfLTNm3tcZVuJeGOB3J01pzSwKaXctbYhoUZFNKAxFDrW5ly1/oaJmdXW6Sr5FRzZWGmFa512IiyBcuQ=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
 

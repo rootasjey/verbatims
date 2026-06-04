@@ -125,7 +125,7 @@
     <template #header>
       <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
     </template>
-    <div class="max-h-[70vh] overflow-y-auto">
+    <div class="max-h-[55vh] overflow-y-auto">
       <div class="space-y-6 px-4">
         <div v-if="!editMode" class="pb-2">
           <div v-if="suggestions.length === 0 && !loadingSuggestions">
@@ -203,6 +203,38 @@
           <NInput type="textarea" v-model="form.description" :rows="2" placeholder="Short theme description" :disabled="submitting" />
         </div>
 
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-2 px-18 py-6">
+          <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">Theme Colors</h4>
+          <div class="flex gap-16">
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white">Primary</label>
+              <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_primary }}</span>
+              <div class="flex items-center gap-3">
+                <BlossomColorPicker
+                  :value="primaryPickerValue"
+                  @change="onPrimaryChange"
+                  :show-alpha-slider="false"
+                  :core-size="28"
+                  :petal-size="28"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white">Secondary</label>
+              <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_secondary }}</span>
+              <div class="flex items-center gap-3">
+                <BlossomColorPicker
+                  :value="secondaryPickerValue"
+                  @change="onSecondaryChange"
+                  :show-alpha-slider="false"
+                  :core-size="28"
+                  :petal-size="28"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Image URL</label>
           <NInput v-model="form.image_url" placeholder="https://..." :disabled="submitting" />
@@ -231,20 +263,6 @@
           <div class="flex items-end gap-4 pb-1">
             <NCheckbox v-model="form.is_active" label="Active" />
             <NCheckbox v-model="form.is_default" label="Default fallback" />
-          </div>
-        </div>
-
-        <div class="border-t pt-4">
-          <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Theme Colors</h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Primary</label>
-              <NSelect v-model="form.color_primary" :items="colorOptions" size="sm" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Secondary</label>
-              <NSelect v-model="form.color_secondary" :items="colorOptions" size="sm" />
-            </div>
           </div>
         </div>
 
@@ -282,6 +300,7 @@
         </div>
       </div>
     </div>
+
     <template #footer>
       <div class="mt-6 flex justify-end gap-3 px-4 pb-2">
         <NButton btn="ghost-gray" :disabled="submitting" @click="showEditDialog = false">Cancel</NButton>
@@ -310,6 +329,9 @@
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
+import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
+import { ensureHexColor, hexToBlossomValue } from '~/utils/color'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Themes - Admin - Verbatims' })
@@ -363,8 +385,9 @@ const applySuggestion = (index: number) => {
   form.value.name = s.name
   form.value.slug = s.slug
   form.value.description = s.description
-  form.value.color_primary = s.color_primary
-  form.value.color_secondary = s.color_secondary
+  form.value.color_primary = ensureHexColor(s.color_primary, '#6366f1')
+  form.value.color_secondary = ensureHexColor(s.color_secondary, '#f59e0b')
+  initPickerValues(form.value.color_primary, form.value.color_secondary)
   filters.value = s.filters.map((f: any) => ({ id: undefined, type: f.type, value: f.value }))
 }
 
@@ -379,15 +402,31 @@ const form = ref({
   scheduled_start: '',
   scheduled_end: '',
   priority: 0,
-  color_primary: 'indigo' as string,
-  color_secondary: 'amber' as string,
+  color_primary: '#6366f1' as string,
+  color_secondary: '#f59e0b' as string,
 })
+
+const primaryPickerValue = ref(hexToBlossomValue('#6366f1'))
+const secondaryPickerValue = ref(hexToBlossomValue('#f59e0b'))
+
+function onPrimaryChange(color: BlossomColorPickerColor) {
+  form.value.color_primary = color.hex
+  primaryPickerValue.value = { hue: color.hue, saturation: color.saturation, alpha: color.alpha, layer: color.layer }
+}
+
+function onSecondaryChange(color: BlossomColorPickerColor) {
+  form.value.color_secondary = color.hex
+  secondaryPickerValue.value = { hue: color.hue, saturation: color.saturation, alpha: color.alpha, layer: color.layer }
+}
+
+function initPickerValues(primary: string, secondary: string) {
+  primaryPickerValue.value = hexToBlossomValue(primary)
+  secondaryPickerValue.value = hexToBlossomValue(secondary)
+}
 
 const filters = ref<any[]>([])
 
 const filterTypeOptions = ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id']
-
-const colorOptions = ['rose', 'pink', 'fuchsia', 'purple', 'violet', 'indigo', 'blue', 'sky', 'cyan', 'teal', 'emerald', 'green', 'lime', 'yellow', 'amber', 'orange', 'red', 'slate', 'gray', 'zinc', 'neutral', 'stone']
 
 // multi-select state
 const rowSelection = ref<Record<number, boolean>>({})
@@ -521,7 +560,8 @@ const resetFilters = () => {
 }
 
 const resetForm = () => {
-  form.value = { slug: '', name: '', description: '', image_url: '', is_active: false, is_default: false, scheduled_date: '', scheduled_start: '', scheduled_end: '', priority: 0, color_primary: 'indigo', color_secondary: 'amber' }
+  form.value = { slug: '', name: '', description: '', image_url: '', is_active: false, is_default: false, scheduled_date: '', scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b' }
+  initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
   editingThemeId.value = null
@@ -545,6 +585,8 @@ const openEdit = async (theme: any) => {
     if (data.config) {
       try { themeConfig = typeof data.config === 'string' ? JSON.parse(data.config) : data.config } catch { themeConfig = {} }
     }
+    const colorPrimary = ensureHexColor(themeConfig.color_primary, '#6366f1')
+    const colorSecondary = ensureHexColor(themeConfig.color_secondary, '#f59e0b')
     form.value = {
       slug: data.slug || '',
       name: data.name || '',
@@ -556,9 +598,10 @@ const openEdit = async (theme: any) => {
       scheduled_start: data.scheduledStart ? formatDatetimeForInput(data.scheduledStart) : '',
       scheduled_end: data.scheduledEnd ? formatDatetimeForInput(data.scheduledEnd) : '',
       priority: data.priority || 0,
-      color_primary: themeConfig.color_primary || 'indigo',
-      color_secondary: themeConfig.color_secondary || 'amber',
+      color_primary: colorPrimary,
+      color_secondary: colorSecondary,
     }
+    initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
   } catch (e) {
     console.error('Failed to load theme details', e)

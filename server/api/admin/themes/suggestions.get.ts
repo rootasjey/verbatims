@@ -54,16 +54,16 @@ const referencePatterns = [
 ]
 
 const colorPairs = [
-  ['indigo', 'amber'],
-  ['emerald', 'yellow'],
-  ['violet', 'pink'],
-  ['blue', 'cyan'],
-  ['rose', 'slate'],
-  ['teal', 'orange'],
-  ['fuchsia', 'lime'],
-  ['sky', 'indigo'],
-  ['purple', 'emerald'],
-  ['amber', 'stone'],
+  ['#6366f1', '#f59e0b'],
+  ['#10b981', '#eab308'],
+  ['#8b5cf6', '#ec4899'],
+  ['#3b82f6', '#06b6d4'],
+  ['#f43f5e', '#64748b'],
+  ['#14b8a6', '#f97316'],
+  ['#d946ef', '#84cc16'],
+  ['#0ea5e9', '#6366f1'],
+  ['#a855f7', '#10b981'],
+  ['#f59e0b', '#78716c'],
 ]
 
 const MIN_QUOTES = 5
