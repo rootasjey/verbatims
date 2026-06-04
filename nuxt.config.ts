@@ -104,7 +104,7 @@ export default defineNuxtConfig({
     }
   },
 
-  // css: ['~/assets/css/main.css'],
+  css: ['@dayflow/blossom-color-picker/styles.css'],
 
   runtimeConfig: {
     // Private keys (only available on server-side)
@@ -253,6 +253,12 @@ export default defineNuxtConfig({
     // (we also remove the explicit NIcon alias later to avoid a naming collision)
     prefix: "N",
     themeable: true,
+  },
+
+  vite: {
+    ssr: {
+      noExternal: ['@dayflow/blossom-color-picker', '@dayflow/blossom-color-picker-vue'],
+    },
   },
 
   components: {
