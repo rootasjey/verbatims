@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, or, like, count, desc, asc, sql } from 'drizzle-orm'
+import { eq, or, like, count, desc, asc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -54,13 +54,12 @@ export default defineEventHandler(async (event) => {
       priority: schema.themes.priority,
       createdAt: schema.themes.createdAt,
       updatedAt: schema.themes.updatedAt,
-      filters_count: sql<number>`(
-        SELECT COUNT(*) FROM ${schema.themeContentFilters}
-        WHERE ${schema.themeContentFilters.themeId} = ${schema.themes.id}
-      )`.as('filters_count'),
+      filters_count: count(schema.themeContentFilters.id).as('filters_count'),
     })
       .from(schema.themes)
+      .leftJoin(schema.themeContentFilters, eq(schema.themes.id, schema.themeContentFilters.themeId))
       .where(whereCondition)
+      .groupBy(schema.themes.id)
       .orderBy(sortOrder(sortColumn))
       .limit(limit)
       .offset(offset)
