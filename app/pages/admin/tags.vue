@@ -447,7 +447,7 @@ const loadTags = async () => {
     clearHighlight()
   } catch (e) {
     console.error('Failed to load tags', e)
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to load tags' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load tags' })
   } finally {
     loading.value = false
   }
@@ -486,9 +486,9 @@ const confirmBulkDelete = async () => {
     const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/tags/${id}`, { method: 'DELETE' })))
     const failed = results.filter(r => r.status === 'rejected').length
     const succeeded = results.length - failed
-    useToast().toast({ toast: failed ? 'warning' : 'success', title: `Deleted ${succeeded} tag${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
+    useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} tag${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
   } catch (e) {
-    useToast().toast({ toast: 'error', title: 'Bulk delete failed' })
+    useToast().toast({ toast: 'soft-error', title: 'Bulk delete failed' })
   } finally {
     bulkProcessing.value = false
     showBulkDeleteDialog.value = false
@@ -517,7 +517,7 @@ const triggerBackfill = async () => {
     const linksAttempted = response?.results?.links_attempted ?? 0
 
     useToast().toast({
-      toast: 'success',
+      toast: 'soft-success',
       title: backfillDryRun.value ? 'Backfill dry-run complete' : 'Backfill completed',
       description: `${scanned} scanned · ${matched} matched · ${linksAttempted} link attempts`
     })
@@ -527,7 +527,7 @@ const triggerBackfill = async () => {
   } catch (error) {
     console.error('Backfill trigger failed', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Backfill failed',
       description: 'Unable to run tag backfill.'
     })

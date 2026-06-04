@@ -498,12 +498,6 @@ const submitReference = async () => {
         body: payload
       })
 
-      useToast().toast({
-        toast: 'success',
-        title: 'Reference Created',
-        description: 'The reference has been created successfully.'
-      })
-
       emit('reference-added')
     }
 
@@ -511,7 +505,7 @@ const submitReference = async () => {
   } catch (error) {
     console.error('Error submitting reference:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error',
       description: isEditMode.value ? 'Failed to update reference. Please try again.' : 'Failed to create reference. Please try again.'
     })

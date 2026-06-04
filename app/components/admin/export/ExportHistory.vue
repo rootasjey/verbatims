@@ -398,7 +398,7 @@ const bulkDelete = async () => {
   } catch (error) {
     console.error('Failed to bulk delete export history entries:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Bulk Delete Failed',
       description: 'Please try again.'
     })
@@ -445,9 +445,10 @@ const bulkDownload = async () => {
   if (skipped) parts.push(`${skipped} skipped`)
   if (failed) parts.push(`${failed} failed`)
 
-  toast({
+  useToast().toast({
     title: 'Bulk download complete',
     description: parts.join(', ') + '.',
+    toast: 'outline-success',
   })
   
   bulkDownloading.value = false

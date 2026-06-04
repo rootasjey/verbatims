@@ -307,6 +307,15 @@ Note: `bun run bump:version` bumps patch, `bun run bump:fix` bumps fix (same as 
 - Keep PRs focused and reasonably sized.
 
 
+## Toast notification rules
+
+When using `useToast().toast({...})`:
+
+- **Valid `toast` values**: use prefixed variants for visible backgrounds: `soft-success`, `solid-error`, `outline-warning`, `outline-success`, `outline-error`, `outline-gray`, etc. Bare values like `'success'`, `'error'`, `'warning'` make the background transparent.
+- **Don't toast immediately visible changes**: if the user can see the result right away (item removed from list, status toggled, dialog closed), skip the toast.
+- **Don't toast after dialog close**: closing a dialog is feedback enough. Only toast if the action is not observable in the current UI (background process, settings saved for another context).
+- **Do toast errors**: always show a toast on failure, using `soft-error` or `outline-error`.
+
 ## Working principles for agents
 
 - Follow established patterns for authentication, data access, typing, and UI consistency

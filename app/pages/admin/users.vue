@@ -491,7 +491,7 @@ const loadUsers = async () => {
     clearHighlight()
   } catch (error: any) {
     console.error('Failed to load users:', error)
-    useToast().toast({ title: 'Error', description: 'Failed to load users', toast: 'error' })
+    useToast().toast({ title: 'Error', description: 'Failed to load users', toast: 'soft-error' })
   } finally {
     loading.value = false
   }
@@ -570,7 +570,7 @@ const bulkDeleteUsers = async () => {
     const skippedNotFound = payload.skipped?.notFound || 0
 
     useToast().toast({
-      toast: skippedSelf || skippedAdmins || skippedNotFound ? 'warning' : 'success',
+      toast: skippedSelf || skippedAdmins || skippedNotFound ? 'outline-warning' : 'soft-success',
       title: deletedCount > 0
         ? `Deleted ${deletedCount} ${deletedCount === 1 ? 'user' : 'users'}`
         : 'No users deleted',
@@ -593,7 +593,7 @@ const bulkDeleteUsers = async () => {
   } catch (error: any) {
     console.error('Bulk delete users failed:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Bulk delete failed',
       description: error?.data?.statusMessage || 'Failed to delete selected users'
     })

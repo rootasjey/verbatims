@@ -98,9 +98,9 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    toast({ title: 'Link copied' })
+    toast({ title: 'Link copied', toast: 'outline-success' })
   } catch {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.' })
+    toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'soft-error' })
   }
 }
 
@@ -109,9 +109,9 @@ const copyQuoteText = async () => {
   try {
     const text = `"${props.quote.name}"${props.quote.author ? ` — ${props.quote.author.name}` : ''}${props.quote.reference ? ` (${props.quote.reference.name})` : ''}`
     await navigator.clipboard.writeText(text)
-    toast({ title: 'Text copied' })
+    toast({ title: 'Text copied', toast: 'outline-success' })
   } catch {
-    toast({ title: 'Copy failed', description: 'Clipboard is not available.' })
+    toast({ title: 'Copy failed', description: 'Clipboard is not available.', toast: 'soft-error' })
   }
 }
 
@@ -127,13 +127,13 @@ const shareQuote = async () => {
     }
     if (navigator.share) {
       await navigator.share(shareData as any)
-      toast({ title: 'Quote shared!' })
+      toast({ title: 'Quote shared!', toast: 'outline-success' })
     } else {
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
-      toast({ title: 'Quote link copied' })
+      toast({ title: 'Quote link copied', toast: 'outline-success' })
     }
   } catch {
-    toast({ title: 'Failed to share', description: 'Please try again.' })
+    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'soft-error' })
   } finally {
     sharePending.value = false
   }

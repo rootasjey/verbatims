@@ -137,7 +137,7 @@
                 <NBadge v-if="cell.row.original.status === 'new'" badge="solid-blue" size="xs">{{ cell.row.original.status }}</NBadge>
                 <NBadge v-else-if="cell.row.original.status === 'triaged'" badge="solid-indigo" size="xs">{{ cell.row.original.status }}</NBadge>
                 <NBadge v-else-if="cell.row.original.status === 'resolved'" badge="solid-green" size="xs">{{ cell.row.original.status }}</NBadge>
-                <NBadge v-else-if="cell.row.original.status === 'spam'" badge="solid-error" size="xs">{{ cell.row.original.status }}</NBadge>
+                <NBadge v-else-if="cell.row.original.status === 'spam'" badge="soft-error" size="xs">{{ cell.row.original.status }}</NBadge>
                 <NDropdownMenu :items="statusItems(cell.row.original)">
                   <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
                 </NDropdownMenu>

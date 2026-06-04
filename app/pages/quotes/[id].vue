@@ -409,7 +409,7 @@ const onQuoteUpdated = async () => {
 
   } catch (error) {
     console.error('Failed to refresh quote after update:', error)
-    useToast().toast({ title: 'Update failed', description: 'Could not refresh quote.' })
+    useToast().toast({ title: 'Update failed', description: 'Could not refresh quote.', toast: 'soft-error' })
   } finally {
     showEditQuoteDialog.value = false
   }
@@ -525,14 +525,14 @@ const shareQuote = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
       // native share succeeded
-      useToast().toast({ title: 'Quote shared!' })
+      useToast().toast({ title: 'Quote shared!', toast: 'outline-success' })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
       // fallback copy succeeded
-      useToast().toast({ title: 'Quote link copied' })
+      useToast().toast({ title: 'Quote link copied', toast: 'outline-success' })
     }
 
     // Track share
@@ -543,6 +543,7 @@ const shareQuote = async () => {
     useToast().toast({
       title: 'Failed to share quote',
       description: 'Please try again.',
+      toast: 'soft-error',
     })
   } finally {
     sharePending.value = false
@@ -596,7 +597,7 @@ const copyQuoteText = async () => {
   } catch (error) {
     useToast().toast({
       title: 'Copy failed',
-      description: 'Clipboard is not available.', variant: 'error',
+      description: 'Clipboard is not available.', toast: 'soft-error',
     })
   }
 }
@@ -620,7 +621,7 @@ const copyTextAndLink = async () => {
   } catch (error) {
     useToast().toast({
       title: 'Copy failed',
-      description: 'Clipboard is not available.', variant: 'error',
+      description: 'Clipboard is not available.', toast: 'soft-error',
     })
   }
 }
@@ -634,7 +635,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.' })
+    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'soft-error' })
   }
 }
 

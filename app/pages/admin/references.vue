@@ -761,7 +761,7 @@ const loadReferences = async () => {
     useToast().toast({
       title: 'Error',
       description: 'Failed to load references',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     loading.value = false
@@ -855,18 +855,18 @@ const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata, pref
       ?.map((proposal: any) => proposal.field) || []
 
     if (!enrichmentPreview.value) {
-      useToast().toast({
-        title: 'No preview available',
-        description: 'This reference could not be enriched automatically right now.',
-        toast: 'warning'
-      })
+    useToast().toast({
+      title: 'No preview available',
+      description: 'This reference could not be enriched automatically right now.',
+      toast: 'outline-warning'
+    })
     }
   } catch (error: any) {
     console.error('Failed to build enrichment preview:', error)
     useToast().toast({
       title: 'Enrichment preview failed',
       description: error?.data?.statusMessage || error?.message || 'Could not build the reference preview.',
-      toast: 'error'
+      toast: 'soft-error'
     })
     showEnrichmentDialog.value = false
   } finally {
@@ -920,12 +920,6 @@ const applySelectedEnrichment = async () => {
       }
     })
 
-    useToast().toast({
-      title: 'Enrichment applied',
-      description: `${selectedEnrichmentFields.value.length} field(s) were updated on the reference record.`,
-      toast: 'success'
-    })
-
     closeEnrichmentDialog()
     loadReferences()
   } catch (error: any) {
@@ -933,7 +927,7 @@ const applySelectedEnrichment = async () => {
     useToast().toast({
       title: 'Apply failed',
       description: error?.data?.statusMessage || error?.message || 'Could not apply the selected fields.',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     enrichmentApplying.value = false
@@ -970,7 +964,7 @@ const openEnrichmentConfigDialog = async () => {
     useToast().toast({
       title: 'Failed to load settings',
       description: error?.data?.statusMessage || error?.message || 'Could not load enrichment settings.',
-      toast: 'error'
+      toast: 'soft-error'
     })
     showEnrichmentConfigDialog.value = false
   } finally {
@@ -1009,14 +1003,14 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     useToast().toast({
       title: 'Enrichment settings saved',
       description: 'KV overrides are now active for the enrichment scheduler and processor.',
-      toast: 'success'
+      toast: 'soft-success'
     })
     showEnrichmentConfigDialog.value = false
   } catch (error: any) {
     useToast().toast({
       title: 'Save failed',
       description: error?.data?.statusMessage || error?.message || 'Could not save enrichment settings.',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     enrichmentConfigSaving.value = false
@@ -1054,9 +1048,9 @@ const confirmBulkDelete = async () => {
     )
     const failed = results.filter(r => r.status === 'rejected').length
     const succeeded = results.length - failed
-    useToast().toast({ toast: failed ? 'warning' : 'success', title: `Deleted ${succeeded} reference${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
+    useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} reference${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
   } catch (e) {
-    useToast().toast({ toast: 'error', title: 'Bulk delete failed' })
+    useToast().toast({ toast: 'soft-error', title: 'Bulk delete failed' })
   } finally {
     bulkProcessing.value = false
     showBulkDeleteDialog.value = false

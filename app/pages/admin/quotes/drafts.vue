@@ -637,7 +637,7 @@ const loadQuotes = async (page = currentPage.value) => {
   } catch (error) {
     console.error('Failed to load draft quotes:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error Loading Draft Quotes',
       description: 'Failed to load draft quotes. Please try again later.'
     })
@@ -702,7 +702,7 @@ const submitForReview = async (quote: AdminQuote) => {
   } catch (error) {
     console.error('Failed to submit draft for review:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Submission Failed',
       description: 'Could not submit the draft. Please try again.'
     })
@@ -745,15 +745,11 @@ const deleteDraft = async () => {
 
     repositionHighlightAfterRemoval(previousHighlightedIndex)
 
-    useToast().toast({
-      toast: 'success',
-      title: 'Draft Deleted',
-      description: 'The draft has been successfully deleted.'
-    })
+
   } catch (error) {
     console.error('Failed to delete draft:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error Deleting Draft',
       description: 'Failed to delete the draft. Please try again.'
     })
@@ -777,11 +773,11 @@ const bulkDelete = async () => {
     quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
     rowSelection.value = {}
     showBulkDeleteModal.value = false
-    toast({ title: 'Deleted', description: 'Selected drafts deleted.' })
+
   } catch (error) {
     console.error('Failed to bulk delete:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Bulk Delete Failed',
       description: 'Please try again.'
     })
@@ -805,11 +801,11 @@ const bulkSubmit = async () => {
     quotes.value = quotes.value.filter(q => !ids.includes(q.id))
     rowSelection.value = {}
 
-    toast({ title: 'Submitted', description: 'Selected drafts submitted for review.' })
+
   } catch (error) {
     console.error('Failed to bulk submit drafts:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Bulk Submit Failed',
       description: 'Please try again.'
     })

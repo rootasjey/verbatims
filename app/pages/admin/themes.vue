@@ -350,7 +350,7 @@ const loadSuggestions = async () => {
     const res = await $fetch('/api/admin/themes/suggestions')
     suggestions.value = res.data || []
   } catch {
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to load suggestions' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load suggestions' })
   } finally {
     loadingSuggestions.value = false
   }
@@ -507,7 +507,7 @@ const loadThemes = async () => {
     clearHighlight()
   } catch (e) {
     console.error('Failed to load themes', e)
-    useToast().toast({ toast: 'solid-error', title: 'Error', description: 'Failed to load themes' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load themes' })
   } finally {
     loading.value = false
   }
@@ -562,7 +562,7 @@ const openEdit = async (theme: any) => {
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
   } catch (e) {
     console.error('Failed to load theme details', e)
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to load theme details' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load theme details' })
     return
   }
   showEditDialog.value = true
@@ -752,7 +752,7 @@ const removeFilter = async (idx: number) => {
     try {
       await $fetch(`/api/admin/themes/${editingThemeId.value}/filters/${filter.id}`, { method: 'DELETE' })
     } catch {
-      useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to delete filter' })
+      useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to delete filter' })
       return
     }
   }
@@ -791,7 +791,7 @@ const saveTheme = async () => {
         }
       }
 
-      useToast().toast({ toast: 'success', title: 'Theme updated' })
+
     } else {
       const res = await $fetch('/api/admin/themes', { method: 'POST', body: payload })
       const newId = res.data?.id
@@ -829,12 +829,12 @@ const confirmDelete = async () => {
   try {
     if (themeToDelete.value) {
       await $fetch(`/api/admin/themes/${themeToDelete.value.id}`, { method: 'DELETE' })
-      useToast().toast({ toast: 'success', title: 'Theme deleted' })
+
     } else {
       const ids = [...selectedIds.value]
       const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/themes/${id}`, { method: 'DELETE' })))
       const failed = results.filter(r => r.status === 'rejected').length
-      useToast().toast({ toast: failed ? 'warning' : 'success', title: `Deleted ${ids.length - failed} theme${ids.length - failed !== 1 ? 's' : ''}` })
+      useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${ids.length - failed} theme${ids.length - failed !== 1 ? 's' : ''}` })
     }
     showDeleteDialog.value = false
     themeToDelete.value = null
@@ -842,7 +842,7 @@ const confirmDelete = async () => {
     await loadThemes()
   } catch (e) {
     console.error('Failed to delete theme', e)
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to delete theme' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to delete theme' })
   } finally {
     submitting.value = false
   }
@@ -851,20 +851,18 @@ const confirmDelete = async () => {
 const toggleActive = async (theme: any, isActive: boolean) => {
   try {
     await $fetch(`/api/admin/themes/${theme.id}/activate`, { method: 'PUT', body: { is_active: isActive } })
-    useToast().toast({ toast: 'success', title: isActive ? 'Theme activated' : 'Theme deactivated' })
     await loadThemes()
   } catch {
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to toggle theme' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to toggle theme' })
   }
 }
 
 const toggleDefault = async (theme: any, isDefault: boolean) => {
   try {
     await $fetch(`/api/admin/themes/${theme.id}/default`, { method: 'PUT', body: { is_default: isDefault } })
-    useToast().toast({ toast: 'success', title: isDefault ? 'Theme set as default' : 'Default removed' })
     await loadThemes()
   } catch {
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to toggle default' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to toggle default' })
   }
 }
 

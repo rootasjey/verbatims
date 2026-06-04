@@ -368,7 +368,7 @@ const fetchProgress = async (): Promise<void> => {
       toast().toast({
         title: 'Import Not Found',
         description: 'This import may have finished or expired.',
-        toast: 'warning',
+        toast: 'outline-warning',
       })
     } else {
       console.error('Failed to fetch progress:', error)
@@ -502,10 +502,10 @@ watch(
     if (previousStatus.value === newStatus) return
     previousStatus.value = newStatus
     if (newStatus === 'completed') {
-      toast().toast({ title: 'Import Completed', description: 'Your data import has finished successfully.', toast: 'success' })
+      toast().toast({ title: 'Import Completed', description: 'Your data import has finished successfully.', toast: 'soft-success' })
       emit('finished', { status: 'completed' })
     } else if (newStatus === 'failed') {
-      toast().toast({ title: 'Import Failed', description: 'The import encountered errors and stopped.', toast: 'error' })
+      toast().toast({ title: 'Import Failed', description: 'The import encountered errors and stopped.', toast: 'soft-error' })
       emit('finished', { status: 'failed' })
     }
   }

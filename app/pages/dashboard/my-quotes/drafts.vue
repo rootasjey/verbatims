@@ -679,7 +679,8 @@ const handleSubmitQuote = async (quote: ProcessedQuoteResult) => {
   if (!canSubmitForReview.value) {
     useToast().toast({
       title: 'Submission unavailable',
-      description: submissionRestrictionMessage.value
+      description: submissionRestrictionMessage.value,
+      toast: 'outline-warning'
     })
     return
   }
@@ -709,7 +710,8 @@ const submitQuote = async (quote: DashboardQuote) => {
     console.error('Failed to submit quote:', error)
     useToast().toast({
       title: 'Failed to submit quote',
-      description: error?.data?.message || 'Please try again.'
+      description: error?.data?.message || 'Please try again.',
+      toast: 'soft-error'
     })
   }
 }
@@ -840,7 +842,8 @@ const bulkSubmit = async () => {
   if (!canSubmitForReview.value) {
     useToast().toast({
       title: 'Submission unavailable',
-      description: submissionRestrictionMessage.value
+      description: submissionRestrictionMessage.value,
+      toast: 'outline-warning'
     })
     return
   }
@@ -859,7 +862,7 @@ const bulkSubmit = async () => {
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk submit:', error)
-    useToast().toast({ title: 'Bulk submit failed', description: 'Please try again.' })
+    useToast().toast({ title: 'Bulk submit failed', description: 'Please try again.', toast: 'soft-error' })
   } finally {
     bulkProcessing.value = false
   }
@@ -881,7 +884,7 @@ const bulkDelete = async () => {
     showBulkDeleteModal.value = false
   } catch (error) {
     console.error('Failed to bulk delete:', error)
-    useToast().toast({ title: 'Bulk delete failed', description: 'Please try again.' })
+    useToast().toast({ title: 'Bulk delete failed', description: 'Please try again.', toast: 'soft-error' })
   } finally {
     bulkProcessing.value = false
   }

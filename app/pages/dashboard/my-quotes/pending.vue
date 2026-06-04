@@ -675,7 +675,7 @@ const withdrawQuote = async (quote: DashboardQuote) => {
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error) {
     console.error('Failed to withdraw quote:', error)
-    toast({ title: 'Withdraw failed', description: 'Please try again.' })
+    toast({ title: 'Withdraw failed', description: 'Please try again.', toast: 'soft-error' })
   } finally {
     withdrawingId.value = null
   }
@@ -699,7 +699,7 @@ const bulkWithdraw = async () => {
   } catch (error) {
     console.error('Failed to bulk withdraw:', error)
     const { toast } = useToast()
-    toast({ title: 'Bulk withdraw failed', description: 'Please try again.' })
+    toast({ title: 'Bulk withdraw failed', description: 'Please try again.', toast: 'soft-error' })
   } finally {
     bulkProcessing.value = false
   }

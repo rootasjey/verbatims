@@ -270,7 +270,7 @@ const loadQueue = async () => {
     useToast().toast({
       title: 'Queue load failed',
       description: error?.data?.statusMessage || error?.message || 'Could not load enrichment jobs.',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     loading.value = false
@@ -311,7 +311,7 @@ const openJob = async (job: any) => {
     useToast().toast({
       title: 'Job load failed',
       description: error?.data?.statusMessage || error?.message || 'Could not load this enrichment job.',
-      toast: 'error'
+      toast: 'soft-error'
     })
     showJobDialog.value = false
   } finally {
@@ -330,7 +330,7 @@ const processQueuedJobs = async () => {
     useToast().toast({
       title: 'Processing started',
       description: 'Queued enrichment jobs were processed.',
-      toast: 'success'
+      toast: 'soft-success'
     })
 
     await loadQueue()
@@ -338,7 +338,7 @@ const processQueuedJobs = async () => {
     useToast().toast({
       title: 'Process failed',
       description: error?.data?.statusMessage || error?.message || 'Could not process queued jobs.',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     processing.value = false
@@ -374,18 +374,12 @@ const applySelectedFields = async () => {
       }
     })
 
-    useToast().toast({
-      title: 'Changes applied',
-      description: `${selectedFields.value.length} field(s) were applied.`,
-      toast: 'success'
-    })
-
     await Promise.all([loadQueue(), openJob(selectedJob.value)])
   } catch (error: any) {
     useToast().toast({
       title: 'Apply failed',
       description: error?.data?.statusMessage || error?.message || 'Could not apply selected fields.',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     jobApplying.value = false
@@ -431,7 +425,7 @@ const openEnrichmentConfigDialog = async () => {
     useToast().toast({
       title: 'Failed to load settings',
       description: error?.data?.statusMessage || error?.message || 'Could not load enrichment settings.',
-      toast: 'error'
+      toast: 'soft-error'
     })
     showEnrichmentConfigDialog.value = false
   } finally {
@@ -470,14 +464,14 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     useToast().toast({
       title: 'Enrichment settings saved',
       description: 'KV overrides are now active for the enrichment scheduler and processor.',
-      toast: 'success'
+      toast: 'soft-success'
     })
     showEnrichmentConfigDialog.value = false
   } catch (error: any) {
     useToast().toast({
       title: 'Save failed',
       description: error?.data?.statusMessage || error?.message || 'Could not save enrichment settings.',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     enrichmentConfigSaving.value = false
