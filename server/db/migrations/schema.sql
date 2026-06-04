@@ -627,6 +627,12 @@ CREATE TABLE IF NOT EXISTS theme_content_filters (
 );
 CREATE INDEX IF NOT EXISTS idx_theme_filters_theme ON theme_content_filters(theme_id);
 
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL,
+  updated_at INTEGER DEFAULT (CAST(unixepoch() AS INTEGER))
+);
+
 -- ============================================================================
 -- END OF SCHEMA
 -- ============================================================================

@@ -125,14 +125,18 @@
     <template #header>
       <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
     </template>
-    <div class="max-h-[55vh] overflow-y-auto">
+    <div class="max-h-[75vh] overflow-y-auto">
       <div class="space-y-6 px-4">
         <div v-if="!editMode" class="pb-2">
-          <div v-if="suggestions.length === 0 && !loadingSuggestions">
+          <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
             <NButton size="xs" btn="soft-indigo" leading="i-ph-lightbulb" @click="loadSuggestions">
               Generate Suggestions
             </NButton>
-            <p class="text-xs text-gray-400 mt-1">Auto-generate from top tags, authors, and references</p>
+            <NButton size="xs" btn="soft-purple" leading="i-ph-sparkle" @click="loadAISuggestions">
+              AI Suggestions
+            </NButton>
+            <NButton size="xs" btn="ghost-gray" icon label="i-ph-gear" class="ml-auto" @click="showAISettings = true; loadAISettings()" />
+            <p class="w-full text-xs text-gray-400 mt-1">Auto-generate from top tags, authors, and references</p>
           </div>
           <div v-else-if="loadingSuggestions && suggestions.length === 0">
             <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -143,9 +147,12 @@
           <div v-else-if="suggestions.length > 0">
             <div class="flex items-center justify-between mb-3">
               <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Theme Suggestions</h4>
-              <NButton size="xs" btn="ghost-gray" leading="i-ph-arrows-clockwise" :loading="loadingSuggestions" @click="loadSuggestions">
-                Refresh
-              </NButton>
+              <div class="flex items-center gap-1">
+                <NButton size="xs" btn="ghost-gray" icon label="i-ph-gear" @click="showAISettings = true; loadAISettings()" />
+                <NButton size="xs" btn="ghost-gray" leading="i-ph-arrows-clockwise" :loading="loadingSuggestions" @click="loadSuggestions">
+                  Refresh
+                </NButton>
+              </div>
             </div>
             <div class="relative">
               <div ref="suggestionScrollRef" class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth">
@@ -302,7 +309,7 @@
     </div>
 
     <template #footer>
-      <div class="mt-6 flex justify-end gap-3 px-4 pb-2">
+      <div class="flex justify-end gap-3 px-4 pb-2">
         <NButton btn="ghost-gray" :disabled="submitting" @click="showEditDialog = false">Cancel</NButton>
         <NButton btn="solid-indigo" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
           {{ editMode ? 'Update Theme' : 'Create Theme' }}
@@ -322,6 +329,35 @@
         <NButton btn="soft-red" :loading="submitting" @click="confirmDelete">Delete</NButton>
       </div>
     </div>
+  </NDialog>
+
+  <NDialog v-model:open="showAISettings" :una="{ dialogContent: 'md:max-w-md' }">
+    <template #header>
+      <h3 class="font-title uppercase text-size-4 font-600 ml-4">AI Suggestions Settings</h3>
+    </template>
+    <div class="space-y-4 px-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
+        <NInput v-model="aiSettings.base_url" placeholder="https://openrouter.ai/api/v1" size="sm" />
+        <p class="text-xs text-gray-400 mt-1">The base URL for the AI provider API (e.g., OpenRouter, OpenAI, OpenCode)</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
+        <NInput v-model="aiSettings.model" placeholder="openai/gpt-4o-mini" size="sm" />
+        <p class="text-xs text-gray-400 mt-1">The model to use for generating suggestions</p>
+      </div>
+      <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          <span class="font-medium">API Key</span> is set via the <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code> environment variable for security. It cannot be changed from this UI.
+        </p>
+      </div>
+    </div>
+    <template #footer>
+      <div class="flex justify-end gap-3 px-4 pb-2">
+        <NButton btn="ghost-gray" @click="showAISettings = false">Cancel</NButton>
+        <NButton btn="solid-indigo" :loading="savingAISettings" @click="saveAISettings">Save Settings</NButton>
+      </div>
+    </template>
   </NDialog>
 </template>
 
@@ -352,6 +388,43 @@ const submitting = ref(false)
 const showDeleteDialog = ref(false)
 const themeToDelete = ref<any>(null)
 
+const showAISettings = ref(false)
+const aiSettings = ref({ base_url: '', model: '' })
+const savingAISettings = ref(false)
+
+const loadAISettings = async () => {
+  try {
+    const res = await $fetch<{ data: Record<string, string> }>('/api/admin/settings')
+    aiSettings.value = {
+      base_url: res.data?.ai_base_url || '',
+      model: res.data?.ai_model || '',
+    }
+  } catch {
+    aiSettings.value = { base_url: '', model: '' }
+  }
+}
+
+const saveAISettings = async () => {
+  savingAISettings.value = true
+  try {
+    await $fetch('/api/admin/settings', {
+      method: 'PUT',
+      body: {
+        settings: {
+          ai_base_url: aiSettings.value.base_url,
+          ai_model: aiSettings.value.model,
+        },
+      },
+    })
+    showAISettings.value = false
+    useToast().toast({ toast: 'outline-success', title: 'AI settings saved' })
+  } catch {
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to save AI settings' })
+  } finally {
+    savingAISettings.value = false
+  }
+}
+
 const suggestions = ref<any[]>([])
 const loadingSuggestions = ref(false)
 const selectedSuggestionIndex = ref<number | null>(null)
@@ -373,6 +446,22 @@ const loadSuggestions = async () => {
     suggestions.value = res.data || []
   } catch {
     useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load suggestions' })
+  } finally {
+    loadingSuggestions.value = false
+  }
+}
+
+const loadAISuggestions = async () => {
+  loadingSuggestions.value = true
+  selectedSuggestionIndex.value = null
+  try {
+    const res = await $fetch('/api/admin/themes/suggestions?ai=true')
+    if (!res.data || !res.data.length) {
+      useToast().toast({ toast: 'outline-warning', title: 'No AI suggestions', description: 'AI returned no results. Check your AI settings or fallback to regular suggestions.' })
+    }
+    suggestions.value = res.data || []
+  } catch {
+    useToast().toast({ toast: 'soft-error', title: 'AI Error', description: 'Failed to generate AI suggestions. Check your AI settings.' })
   } finally {
     loadingSuggestions.value = false
   }
