@@ -270,7 +270,15 @@
               <NButton icon btn="ghost-red" size="xs" label="i-ph-x" @click="removeFilter(idx)" />
             </div>
           </div>
-          <NButton size="xs" btn="ghost-blue" leading="i-ph-plus" @click="addFilter">Add Filter</NButton>
+          <div class="flex items-center gap-2 flex-wrap">
+            <NButton size="xs" btn="soft-blue" leading="i-ph-plus" @click="addFilter">Add Filter</NButton>
+            <template v-if="filterRecommendations.length">
+              <span class="text-2xs text-gray-400">Suggestions:</span>
+              <button v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" class="text-2xs px-2 py-0.5 rounded-full border border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" @click="applyFilterRecommendation(r)">
+                {{ r.label }}
+              </button>
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -515,6 +523,7 @@ const resetFilters = () => {
 const resetForm = () => {
   form.value = { slug: '', name: '', description: '', image_url: '', is_active: false, is_default: false, scheduled_date: '', scheduled_start: '', scheduled_end: '', priority: 0, color_primary: 'indigo', color_secondary: 'amber' }
   filters.value = []
+  filterRecommendations.value = []
   editingThemeId.value = null
   editMode.value = false
 }
@@ -530,7 +539,7 @@ const openEdit = async (theme: any) => {
   editMode.value = true
   editingThemeId.value = theme.id
   try {
-    const res = await $fetch(`/api/admin/themes/${theme.id}`)
+    const res = await $fetch<{ data: any }>(`/api/admin/themes/${theme.id}`)
     const data = res.data
     let themeConfig: Record<string, any> = {}
     if (data.config) {
@@ -694,6 +703,44 @@ const hideFilterSuggestions = () => {
     activeFilterIndex.value = null
   }, 150)
 }
+
+const filterRecommendations = ref<{ type: string; value: string; label: string }[]>([])
+let recommendTimeout: ReturnType<typeof setTimeout> | undefined
+
+const fetchFilterRecommendations = async () => {
+  const active = filters.value.filter(f => f.value.trim())
+  if (!active.length && !form.value.name.trim()) {
+    filterRecommendations.value = []
+    return
+  }
+
+  try {
+    const res = await $fetch<{ data: { type: string; value: string; label: string }[] }>('/api/admin/themes/filter-recommendations', {
+      method: 'POST',
+      body: {
+        name: form.value.name,
+        filters: active.map(f => ({ type: f.type, value: f.value })),
+      },
+    })
+    filterRecommendations.value = res.data || []
+  } catch {
+    filterRecommendations.value = []
+  }
+}
+
+const scheduleFilterRecommendations = () => {
+  clearTimeout(recommendTimeout)
+  recommendTimeout = setTimeout(fetchFilterRecommendations, 400)
+}
+
+const applyFilterRecommendation = (r: { type: string; value: string; label: string }) => {
+  filters.value.push({ id: undefined, type: r.type, value: r.value })
+  filterRecommendations.value = filterRecommendations.value.filter(
+    rec => !(rec.type === r.type && rec.value === r.value)
+  )
+}
+
+watch([filters, () => form.value.name], scheduleFilterRecommendations, { deep: true })
 
 const addFilter = () => {
   filters.value.push({ id: undefined, type: 'keyword', value: '' })
