@@ -797,7 +797,7 @@ const approveQuote = async (quote) => {
   } catch (error) {
     console.error('Failed to approve quote:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error',
       description: 'Failed to approve quote'
     })
@@ -831,7 +831,7 @@ const confirmRejectQuote = async () => {
   } catch (error) {
     console.error('Failed to reject quote:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error',
       description: 'Failed to reject quote'
     })
@@ -852,7 +852,7 @@ const quickRejectQuote = async (quote: AdminQuote) => {
     repositionHighlightAfterRemoval(previousIndex)
   } catch (error) {
     console.error('Failed to reject quote:', error)
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to reject quote' })
+    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to reject quote' })
   } finally {
     processing.value.delete(quote.id)
   }
@@ -880,7 +880,7 @@ const bulkApprove = async () => {
   } catch (error) {
     console.error('Failed to bulk approve quotes:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error',
       description: 'Failed to bulk approve quotes'
     })
@@ -909,7 +909,7 @@ const confirmBulkReject = async () => {
   } catch (error) {
     console.error('Failed to bulk reject quotes:', error)
     useToast().toast({
-      toast: 'error',
+      toast: 'soft-error',
       title: 'Error',
       description: 'Failed to bulk reject quotes'
     })

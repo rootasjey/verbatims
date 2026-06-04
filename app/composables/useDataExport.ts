@@ -451,7 +451,7 @@ export const useDataExport = () => {
     }
 
     useToast().toast({
-      toast: "error",
+      toast: 'soft-error',
       title: 'Download Export Failed',
       description: 'Failed to start download (no content or download URL available)',
     })
@@ -500,6 +500,7 @@ export const useDataExport = () => {
         useToast().toast({
           title: 'Export Failed',
           description: state.errorMessage,
+          toast: 'soft-error',
         })
         return
       }
@@ -511,7 +512,8 @@ export const useDataExport = () => {
         title: 'Export Generated',
         description: shouldDownload
           ? `Successfully exported ${response.data.record_count} records. Download started.`
-          : `Export is ready. You can download it from the history panel.`
+          : `Export is ready. You can download it from the history panel.`,
+        toast: 'soft-success',
       })
 
       state.previewData = null
@@ -525,6 +527,7 @@ export const useDataExport = () => {
       useToast().toast({
         title: 'Export Failed',
         description: errorMsg,
+        toast: 'soft-error',
       })
     } finally {
       state.isExporting = false
@@ -789,10 +792,11 @@ export const useDataExport = () => {
       console.error('Failed to download export:', error)
       state.errorMessage = 'Failed to download export'
 
-      useToast().toast({
-        title: 'Download Failed',
-        description: 'Failed to start export download'
-      })
+    useToast().toast({
+      title: 'Failed to Export',
+      description: 'Failed to start export download',
+      toast: 'soft-error',
+    })
     }
   }
 
@@ -820,8 +824,9 @@ export const useDataExport = () => {
       state.errorMessage = error.data?.message || 'Failed to delete export history entry'
 
       useToast().toast({
-        title: 'Delete Failed',
-        description: 'Failed to delete export history entry'
+        title: 'Clear Failed',
+        description: 'Failed to clear export history',
+        toast: 'soft-error',
       })
     }
   }
@@ -848,8 +853,9 @@ export const useDataExport = () => {
       state.errorMessage = error.data?.message || 'Failed to clear export history'
 
       useToast().toast({
-        title: 'Clear Failed',
-        description: 'Failed to clear export history'
+        title: 'Download Failed',
+        description: 'Failed to start export download',
+        toast: 'soft-error',
       })
     }
   }

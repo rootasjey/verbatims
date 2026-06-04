@@ -312,6 +312,7 @@ const handleUnlike = async (quote: LikedQuote) => {
     console.error('Failed to unlike:', e)
     useToast().toast({ 
       title: 'Failed to remove from favourites',
+      toast: 'soft-error',
     })
   }
 }
@@ -321,7 +322,7 @@ const handleShareQuote = (quote: LikedQuote) => {
     navigator.share({ title: 'Quote from Verbatims', text: quote.name, url: `${window.location.origin}/quotes/${quote.id}` })
   } else {
     navigator.clipboard.writeText(`"${quote.name}" - ${quote.author?.name || ''}`)
-    useToast().toast({ title: 'Copied to clipboard' })
+    useToast().toast({ title: 'Copied to clipboard', toast: 'outline-success' })
   }
 }
 

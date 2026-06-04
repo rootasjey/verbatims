@@ -663,11 +663,9 @@ const loadQuotes = async (reset = true) => {
 }
 
 const onAuthorUpdated = async () => {
-  const { toast } = useToast()
   try {
     const fresh = await $fetch<ApiResponse<AuthorWithSocials>>(`/api/authors/${route.params.id}`)
     authorData.value = fresh
-    toast({ title: 'Author updated' })
   } catch (error) {
     console.error('Failed to refresh author after update:', error)
   } finally {
@@ -739,20 +737,20 @@ const shareAuthor = async () => {
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
-      toast({ title: 'Author shared successfully!' })
+      toast({ title: 'Author shared successfully!', toast: 'outline-success' })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
-      toast({ title: 'Author link copied to clipboard!' })
+      toast({ title: 'Author link copied to clipboard!', toast: 'outline-success' })
     }
 
     // Optimistically increment local share count (no server endpoint yet)
     currentAuthor.shares_count = (currentAuthor.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share author:', error)
-    toast({ title: 'Failed to share', description: 'Please try again.' })
+    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'soft-error' })
   } finally {
     sharePending.value = false
   }
@@ -772,7 +770,7 @@ const copyTextAndLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({ title: 'Copy failed', description: 'Clipboard not available.' })
+    useToast().toast({ title: 'Copy failed', description: 'Clipboard not available.', toast: 'soft-error' })
   }
 }
 
@@ -788,7 +786,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.' })
+    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'soft-error' })
   }
 }
 

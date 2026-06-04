@@ -549,7 +549,7 @@ const loadQuotes = async () => {
     useToast().toast({
       title: 'Error',
       description: 'Failed to load published quotes',
-      toast: 'error'
+      toast: 'soft-error'
     })
   } finally {
     loading.value = false
@@ -613,18 +613,13 @@ const unpublishQuote = async (quote: AdminQuote) => {
       method: 'POST',
       body: { id: quote.id }
     })
-    useToast().toast({
-      title: 'Quote unpublished',
-      description: `Quote #${quote.id} moved back to draft`,
-      toast: 'success'
-    })
     await loadQuotes()
   } catch (e) {
     console.error('Unpublish failed:', e)
     useToast().toast({
       title: 'Error',
       description: 'Failed to unpublish quote',
-      toast: 'error'
+      toast: 'soft-error'
     })
   }
 }
@@ -750,11 +745,6 @@ const bulkUnpublish = async () => {
       method: 'POST',
       body: { ids: selectedQuotes.value }
     })
-    useToast().toast({
-      title: 'Unpublished',
-      description: `Unpublished ${selectedQuotes.value.length} quote(s)`,
-      toast: 'success'
-    })
     clearSelection()
     await loadQuotes()
   } catch (e) {
@@ -762,7 +752,7 @@ const bulkUnpublish = async () => {
     useToast().toast({
       title: 'Error',
       description: 'Failed to unpublish selected quotes',
-      toast: 'error'
+      toast: 'soft-error'
     })
   }
 }

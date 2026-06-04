@@ -297,7 +297,7 @@ const shareCollection = async () => {
       useToast().toast({
         title: 'Collection Shared',
         description: 'The collection link has been copied to your clipboard.',
-        toast: 'success',
+        toast: 'soft-success',
       })
     }
   } catch (error) {
@@ -312,7 +312,7 @@ const collectionActions = computed(() => ([
     onclick: async () => {
       try {
         await navigator.clipboard.writeText(window.location.href)
-        useToast().toast({ title: 'Link copied', description: 'URL copied to clipboard', toast: 'success' })
+        useToast().toast({ title: 'Link copied', description: 'URL copied to clipboard', toast: 'soft-success' })
       } catch (error) {
         console.error('Failed to copy link:', error)
       }
@@ -341,7 +341,7 @@ const handleShareQuote = (quote: any) => {
     })
   } else {
     navigator.clipboard.writeText(`"${quote.name}" - ${quote.author?.name || ''}`)
-    useToast().toast({ title: 'Copied to clipboard' })
+    useToast().toast({ title: 'Copied to clipboard', toast: 'outline-success' })
   }
 }
 
@@ -361,15 +361,13 @@ const handleRemoveFromCollection = async (quote: any) => {
       }
     }
     
-    useToast().toast({ 
-      title: 'Quote removed',
-      description: 'Quote removed from collection'
-    })
+
   } catch (error) {
     console.error('Failed to remove quote:', error)
     useToast().toast({ 
       title: 'Failed to remove quote',
-      description: 'Please try again'
+      description: 'Please try again',
+      toast: 'soft-error'
     })
   }
 }
