@@ -346,10 +346,10 @@
         <NInput v-model="aiSettings.model" placeholder="openai/gpt-4o-mini" size="sm" />
         <p class="text-xs text-gray-400 mt-1">The model to use for generating suggestions</p>
       </div>
-      <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          <span class="font-medium">API Key</span> is set via the <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code> environment variable for security. It cannot be changed from this UI.
-        </p>
+      <div>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Key</label>
+        <NInput v-model="aiSettings.api_key" placeholder="sk-..." size="sm" type="password" />
+        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to the <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code> env var if empty.</p>
       </div>
     </div>
     <template #footer>
@@ -389,7 +389,7 @@ const showDeleteDialog = ref(false)
 const themeToDelete = ref<any>(null)
 
 const showAISettings = ref(false)
-const aiSettings = ref({ base_url: '', model: '' })
+const aiSettings = ref({ base_url: '', model: '', api_key: '' })
 const savingAISettings = ref(false)
 
 const loadAISettings = async () => {
@@ -398,9 +398,10 @@ const loadAISettings = async () => {
     aiSettings.value = {
       base_url: res.data?.ai_base_url || '',
       model: res.data?.ai_model || '',
+      api_key: res.data?.ai_api_key || '',
     }
   } catch {
-    aiSettings.value = { base_url: '', model: '' }
+    aiSettings.value = { base_url: '', model: '', api_key: '' }
   }
 }
 
@@ -413,6 +414,7 @@ const saveAISettings = async () => {
         settings: {
           ai_base_url: aiSettings.value.base_url,
           ai_model: aiSettings.value.model,
+          ai_api_key: aiSettings.value.api_key,
         },
       },
     })

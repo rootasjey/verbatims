@@ -70,9 +70,7 @@ const MIN_QUOTES = 5
 const MAX_SUGGESTIONS = 6
 
 async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: string } | null> {
-  const apiKey = process.env.AI_API_KEY
-  if (!apiKey) return null
-
+  let apiKey = process.env.AI_API_KEY || ''
   let baseUrl = process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1'
   let model = process.env.AI_MODEL || 'openai/gpt-4o-mini'
 
@@ -82,7 +80,10 @@ async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: 
     for (const r of rows) map[r.key] = r.value
     if (map.ai_base_url) baseUrl = map.ai_base_url
     if (map.ai_model) model = map.ai_model
+    if (map.ai_api_key) apiKey = map.ai_api_key
   } catch {}
+
+  if (!apiKey) return null
 
   return { baseUrl, apiKey, model }
 }
