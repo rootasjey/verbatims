@@ -550,3 +550,9 @@ export const themeContentFilters = sqliteTable('theme_content_filters', {
 }, (table) => ({
   themeIdx: index('idx_theme_filters_theme').on(table.themeId),
 }))
+
+export const settings = sqliteTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+})

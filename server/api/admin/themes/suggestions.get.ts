@@ -20,6 +20,19 @@ function pick<T>(items: T[], index: number, key: string): T {
   return items[Math.abs(hash + index * 7) % items.length]
 }
 
+const colorPairs = [
+  ['indigo', 'amber'],
+  ['emerald', 'yellow'],
+  ['violet', 'pink'],
+  ['blue', 'cyan'],
+  ['rose', 'slate'],
+  ['teal', 'orange'],
+  ['fuchsia', 'lime'],
+  ['sky', 'indigo'],
+  ['purple', 'emerald'],
+  ['amber', 'stone'],
+]
+
 const tagPatterns = [
   { name: (s: string) => s, desc: (s: string) => `A curated journey through quotes about ${s}` },
   { name: (s: string) => `Visions of ${s}`, desc: (s: string) => `Exploring the many facets of ${s} through unforgettable words` },
@@ -53,21 +66,107 @@ const referencePatterns = [
   { name: (s: string) => `Lessons from ${s}`, desc: (s: string) => `What ${s} teaches us, one quote at a time` },
 ]
 
-const colorPairs = [
-  ['#6366f1', '#f59e0b'],
-  ['#10b981', '#eab308'],
-  ['#8b5cf6', '#ec4899'],
-  ['#3b82f6', '#06b6d4'],
-  ['#f43f5e', '#64748b'],
-  ['#14b8a6', '#f97316'],
-  ['#d946ef', '#84cc16'],
-  ['#0ea5e9', '#6366f1'],
-  ['#a855f7', '#10b981'],
-  ['#f59e0b', '#78716c'],
-]
-
 const MIN_QUOTES = 5
 const MAX_SUGGESTIONS = 6
+
+async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: string } | null> {
+  const apiKey = process.env.AI_API_KEY
+  if (!apiKey) return null
+
+  let baseUrl = process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1'
+  let model = process.env.AI_MODEL || 'openai/gpt-4o-mini'
+
+  try {
+    const rows = await db.select().from(schema.settings).all()
+    const map: Record<string, string> = {}
+    for (const r of rows) map[r.key] = r.value
+    if (map.ai_base_url) baseUrl = map.ai_base_url
+    if (map.ai_model) model = map.ai_model
+  } catch {}
+
+  return { baseUrl, apiKey, model }
+}
+
+async function generateAISuggestions(topTags: { name: string; count: number }[], topAuthors: { name: string; count: number }[], topReferences: { name: string; count: number }[], suggestionCount: number): Promise<any[] | null> {
+  const config = await getAIConfig()
+  if (!config) return null
+
+  try {
+    const tagList = topTags.slice(0, 5).map(t => t.name).join(', ')
+    const authorList = topAuthors.slice(0, 5).map(a => a.name).join(', ')
+    const refList = topReferences.slice(0, 5).map(r => r.name).join(', ')
+
+    const prompt = `You are a creative curator. Generate ${suggestionCount} original theme suggestions for a quote collection app.
+
+Top tags: ${tagList || 'none'}
+Top authors: ${authorList || 'none'}
+Top references: ${refList || 'none'}
+
+For each suggestion, pick a primary focus (tag, author, or reference) and optionally combine related tags/authors for a richer theme.
+
+Return a JSON array of objects with these fields:
+- type: "tag" | "author" | "reference" (the primary focus)
+- name: creative, original theme name (not just the tag name — be imaginative)
+- description: a compelling one-sentence description
+- color_primary: one of ${colorPairs.map(c => c[0]).join(', ')}
+- color_secondary: one of ${colorPairs.map(c => c[1]).join(', ')}
+- filters: array of { type: "tag_name" | "author_name" | "reference_name", value: string, match_mode: "any" }
+
+Rules:
+- Each suggestion should have 2-4 filters for rich content
+- Never combine incompatible filters (e.g., two different author_names)
+- Combine related tags with a tag or author for richer themes
+- Names must be unique and not just raw tag/author names
+- Make the descriptions evocative and specific`
+
+    const res = await fetch(`${config.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.model,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+        max_tokens: 2000,
+      }),
+    })
+
+    if (!res.ok) {
+      console.error('AI API error:', res.status, await res.text().catch(() => ''))
+      return null
+    }
+
+    const json = await res.json()
+    const choices = json.choices
+    if (!choices?.length) return null
+
+    const content = choices[0].message?.content
+    if (!content) return null
+
+    const parsed = JSON.parse(content)
+    const suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || [])
+
+    // Validate and filter suggestions
+    return suggestions.slice(0, MAX_SUGGESTIONS).map((s: any, i: number) => {
+      const pair = colorPairs[i % colorPairs.length]
+      return {
+        type: s.type || 'tag',
+        name: s.name || 'Untitled',
+        slug: slugify(s.name || 'untitled'),
+        description: s.description || '',
+        color_primary: s.color_primary || pair[0],
+        color_secondary: s.color_secondary || pair[1],
+        filters: (s.filters || []).slice(0, 4),
+      }
+    })
+  } catch (error) {
+    console.error('Error generating AI suggestions:', error)
+    return null
+  }
+}
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -76,6 +175,9 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const q = getQuery(event)
+    const useAI = q.ai === 'true'
+
     const existingRows = await db.select({ slug: schema.themes.slug })
       .from(schema.themes)
       .all()
@@ -122,6 +224,11 @@ export default defineEventHandler(async (event) => {
         .limit(6)
         .all(),
     ])
+
+    if (useAI) {
+      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS)
+      if (aiSuggestions) return { success: true, data: aiSuggestions }
+    }
 
     const suggestions: any[] = []
     let colorIndex = 0
