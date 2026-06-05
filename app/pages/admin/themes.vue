@@ -64,13 +64,10 @@
           </template>
 
           <template #name-cell="{ cell }">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="font-medium text-sm">{{ cell.row.original.name }}</span>
+            <div class="min-w-0">
+              <div class="font-medium text-sm">{{ cell.row.original.name }}</div>
+              <code class="text-xs text-gray-400 dark:text-gray-500">{{ cell.row.original.slug }}</code>
             </div>
-          </template>
-
-          <template #slug-cell="{ cell }">
-            <code class="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">{{ cell.row.original.slug }}</code>
           </template>
 
           <template #status-cell="{ cell }">
@@ -644,7 +641,6 @@ const sortOptions = [
 
 const tableColumns = [
   { header: 'Name', accessorKey: 'name', enableSorting: false, meta: { una: { tableHead: 'min-w-40', tableCell: 'min-w-40' } } },
-  { header: 'Slug', accessorKey: 'slug', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
   { header: 'Status', accessorKey: 'status', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
   { header: 'Schedule', accessorKey: 'schedule', enableSorting: false, meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } } },
   { header: 'Filters', accessorKey: 'filters', enableSorting: false, meta: { una: { tableHead: 'w-16', tableCell: 'w-16 text-center' } } },
