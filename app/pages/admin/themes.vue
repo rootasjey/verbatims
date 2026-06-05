@@ -349,36 +349,7 @@
           @update:model-value="(v) => setProviderSetting('api_key', v)"
           placeholder="sk-..." size="sm" type="password"
         />
-        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to provider-specific env vars (<code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENROUTER_API_KEY</code>, <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENCODE_API_KEY</code>, etc.) or <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code>.</p>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
-        <NInput
-          :model-value="activeProviderSettings.model"
-          @update:model-value="(v) => setProviderSetting('model', v)"
-          placeholder="e.g. gpt-4o-mini" size="sm"
-        />
-      </div>
-
-      <div v-if="aiSettings.provider === 'custom'">
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
-        <NInput v-model="aiSettings.custom_base_url" placeholder="https://..." size="sm" />
-      </div>
-      <div v-else>
-        <p class="text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-          Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
-        </p>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Key ({{ aiSettings.provider === 'custom' ? 'Custom' : aiSettings.provider }})</label>
-        <NInput
-          :model-value="activeProviderSettings.apiKey"
-          @update:model-value="(v) => setProviderSetting('api_key', v)"
-          placeholder="sk-..." size="sm" type="password"
-        />
-        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to provider-specific env vars (<code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENROUTER_API_KEY</code>, <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENCODE_API_KEY</code>, etc.) or <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code>.</p>
+        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'OPENROUTER_API_KEY' : aiSettings.provider === 'opencode' ? 'OPENCODE_API_KEY' : aiSettings.provider === 'openai' ? 'OPENAI_API_KEY' : 'AI_API_KEY' }}</code> env var.</p>
       </div>
 
       <div>
