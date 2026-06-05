@@ -337,19 +337,67 @@
     </template>
     <div class="space-y-4 px-4">
       <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
-        <NInput v-model="aiSettings.base_url" placeholder="https://openrouter.ai/api/v1" size="sm" />
-        <p class="text-xs text-gray-400 mt-1">The base URL for the AI provider API (e.g., OpenRouter, OpenAI, OpenCode)</p>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Provider</label>
+        <NSelect v-model="aiSettings.provider" :items="providerOptions" size="sm" />
+        <p class="text-xs text-gray-400 mt-1 capitalize">Selected: {{ aiSettings.provider }}</p>
       </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2 capitalize">API Key ({{ aiSettings.provider }})</label>
+        <NInput
+          :model-value="activeProviderSettings.apiKey"
+          @update:model-value="(v) => setProviderSetting('api_key', v)"
+          placeholder="sk-..." size="sm" type="password"
+        />
+        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to provider-specific env vars (<code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENROUTER_API_KEY</code>, <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENCODE_API_KEY</code>, etc.) or <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code>.</p>
+      </div>
+
       <div>
         <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
-        <NInput v-model="aiSettings.model" placeholder="openai/gpt-4o-mini" size="sm" />
-        <p class="text-xs text-gray-400 mt-1">The model to use for generating suggestions</p>
+        <NInput
+          :model-value="activeProviderSettings.model"
+          @update:model-value="(v) => setProviderSetting('model', v)"
+          placeholder="e.g. gpt-4o-mini" size="sm"
+        />
       </div>
+
+      <div v-if="aiSettings.provider === 'custom'">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
+        <NInput v-model="aiSettings.custom_base_url" placeholder="https://..." size="sm" />
+      </div>
+      <div v-else>
+        <p class="text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+          Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
+        </p>
+      </div>
+
       <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Key</label>
-        <NInput v-model="aiSettings.api_key" placeholder="sk-..." size="sm" type="password" />
-        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to the <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code> env var if empty.</p>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Key ({{ aiSettings.provider === 'custom' ? 'Custom' : aiSettings.provider }})</label>
+        <NInput
+          :model-value="activeProviderSettings.apiKey"
+          @update:model-value="(v) => setProviderSetting('api_key', v)"
+          placeholder="sk-..." size="sm" type="password"
+        />
+        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to provider-specific env vars (<code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENROUTER_API_KEY</code>, <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">OPENCODE_API_KEY</code>, etc.) or <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">AI_API_KEY</code>.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
+        <NInput
+          :model-value="activeProviderSettings.model"
+          @update:model-value="(v) => setProviderSetting('model', v)"
+          placeholder="e.g. gpt-4o-mini" size="sm"
+        />
+      </div>
+
+      <div v-if="aiSettings.provider === 'custom'">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
+        <NInput v-model="aiSettings.custom_base_url" placeholder="https://..." size="sm" />
+      </div>
+      <div v-else>
+        <p class="text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+          Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
+        </p>
       </div>
     </div>
     <template #footer>
@@ -389,32 +437,81 @@ const showDeleteDialog = ref(false)
 const themeToDelete = ref<any>(null)
 
 const showAISettings = ref(false)
-const aiSettings = ref({ base_url: '', model: '', api_key: '' })
 const savingAISettings = ref(false)
+
+const providerOptions = ['openrouter', 'opencode', 'openai', 'custom']
+
+const aiSettings = ref({
+  provider: 'openrouter' as string,
+  openrouter_api_key: '',
+  opencode_api_key: '',
+  openai_api_key: '',
+  custom_api_key: '',
+  openrouter_model: '',
+  opencode_model: '',
+  openai_model: '',
+  custom_model: '',
+  custom_base_url: '',
+})
+
+const activeProviderSettings = computed(() => {
+  const p = aiSettings.value.provider
+  const key = p === 'custom' ? 'custom' : p
+  return {
+    apiKey: (aiSettings.value as any)[`${key}_api_key`] as string,
+    model: (aiSettings.value as any)[`${key}_model`] as string,
+  }
+})
+
+const setProviderSetting = (field: 'api_key' | 'model', value: string) => {
+  const k = aiSettings.value.provider === 'custom' ? 'custom' : aiSettings.value.provider
+  if (field === 'api_key') (aiSettings.value as any)[`${k}_api_key`] = value
+  else (aiSettings.value as any)[`${k}_model`] = value
+}
 
 const loadAISettings = async () => {
   try {
     const res = await $fetch<{ data: Record<string, string> }>('/api/admin/settings')
+    const d = res.data || {}
     aiSettings.value = {
-      base_url: res.data?.ai_base_url || '',
-      model: res.data?.ai_model || '',
-      api_key: res.data?.ai_api_key || '',
+      provider: d.ai_provider || 'openrouter',
+      openrouter_api_key: d.openrouter_api_key || '',
+      opencode_api_key: d.opencode_api_key || '',
+      openai_api_key: d.openai_api_key || '',
+      custom_api_key: d.custom_api_key || '',
+      openrouter_model: d.openrouter_model || '',
+      opencode_model: d.opencode_model || '',
+      openai_model: d.openai_model || '',
+      custom_model: d.custom_model || '',
+      custom_base_url: d.custom_base_url || '',
     }
   } catch {
-    aiSettings.value = { base_url: '', model: '', api_key: '' }
+    aiSettings.value = {
+      provider: 'openrouter', openrouter_api_key: '', opencode_api_key: '',
+      openai_api_key: '', custom_api_key: '', openrouter_model: '',
+      opencode_model: '', openai_model: '', custom_model: '', custom_base_url: '',
+    }
   }
 }
 
 const saveAISettings = async () => {
   savingAISettings.value = true
   try {
+    const s = aiSettings.value
     await $fetch('/api/admin/settings', {
       method: 'PUT',
       body: {
         settings: {
-          ai_base_url: aiSettings.value.base_url,
-          ai_model: aiSettings.value.model,
-          ai_api_key: aiSettings.value.api_key,
+          ai_provider: s.provider,
+          openrouter_api_key: s.openrouter_api_key,
+          opencode_api_key: s.opencode_api_key,
+          openai_api_key: s.openai_api_key,
+          custom_api_key: s.custom_api_key,
+          openrouter_model: s.openrouter_model,
+          opencode_model: s.opencode_model,
+          openai_model: s.openai_model,
+          custom_model: s.custom_model,
+          custom_base_url: s.custom_base_url,
         },
       },
     })
