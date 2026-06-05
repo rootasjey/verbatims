@@ -88,6 +88,7 @@ function buildThemeQuoteConditions(filters: FilterRow[]) {
   const authorNameFilters = filters.filter(f => f.type === 'author_name')
   const referenceNameFilters = filters.filter(f => f.type === 'reference_name')
   const referenceIdFilters = filters.filter(f => f.type === 'reference_id')
+  const languageFilters = filters.filter(f => f.type === 'language')
 
   const conditions: any[] = []
 
@@ -137,6 +138,11 @@ function buildThemeQuoteConditions(filters: FilterRow[]) {
     if (ids.length) {
       conditions.push(inArray(schema.quotes.referenceId, ids))
     }
+  }
+
+  if (languageFilters.length) {
+    const languages = languageFilters.map(f => f.value)
+    conditions.push(inArray(schema.quotes.language, languages as any[]))
   }
 
   if (!conditions.length) return null

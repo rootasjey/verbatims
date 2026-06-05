@@ -544,7 +544,7 @@ export const themes = sqliteTable('themes', {
 export const themeContentFilters = sqliteTable('theme_content_filters', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),
-  type: text('type', { enum: ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id'] }).notNull(),
+  type: text('type', { enum: ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id', 'language'] }).notNull(),
   value: text('value').notNull(),
   matchMode: text('match_mode', { enum: ['any', 'all'] }).default('any'),
 }, (table) => ({
