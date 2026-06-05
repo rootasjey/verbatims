@@ -69,19 +69,44 @@ const referencePatterns = [
 const MIN_QUOTES = 5
 const MAX_SUGGESTIONS = 6
 
-async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: string } | null> {
-  let apiKey = process.env.AI_API_KEY || ''
-  let baseUrl = process.env.AI_BASE_URL || 'https://openrouter.ai/api/v1'
-  let model = process.env.AI_MODEL || 'openai/gpt-4o-mini'
+const providerDefaults: Record<string, { baseUrl: string; defaultModel: string }> = {
+  openrouter: { baseUrl: 'https://openrouter.ai/api/v1', defaultModel: 'openai/gpt-4o-mini' },
+  opencode: { baseUrl: 'https://opencode.ai/zen/go/v1', defaultModel: 'gpt-4o-mini' },
+  openai: { baseUrl: 'https://api.openai.com/v1', defaultModel: 'gpt-4o-mini' },
+  custom: { baseUrl: '', defaultModel: '' },
+}
 
+async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: string } | null> {
+  let provider = 'openrouter'
+  const dbSettings: Record<string, string> = {}
   try {
     const rows = await db.select().from(schema.settings).all()
-    const map: Record<string, string> = {}
-    for (const r of rows) map[r.key] = r.value
-    if (map.ai_base_url) baseUrl = map.ai_base_url
-    if (map.ai_model) model = map.ai_model
-    if (map.ai_api_key) apiKey = map.ai_api_key
+    for (const r of rows) dbSettings[r.key] = r.value
+    if (dbSettings.ai_provider) provider = dbSettings.ai_provider
   } catch {}
+
+  const defaults = providerDefaults[provider] || providerDefaults.openrouter
+  let baseUrl = defaults.baseUrl || process.env.AI_BASE_URL || providerDefaults.openrouter.baseUrl
+  let model = defaults.defaultModel || process.env.AI_MODEL || providerDefaults.openrouter.defaultModel
+
+  // Per-provider overrides from DB
+  const providerKey = provider === 'custom' ? 'custom' : provider
+  const dbKey = dbSettings[`${providerKey}_api_key`] || ''
+  const dbModel = dbSettings[`${providerKey}_model`] || ''
+  if (provider === 'custom' && dbSettings.custom_base_url) baseUrl = dbSettings.custom_base_url
+  if (dbModel) model = dbModel
+
+  let apiKey = dbKey
+
+  // Fallback to provider-specific env vars
+  if (!apiKey) {
+    const envMap: Record<string, string> = {
+      openrouter: process.env.OPENROUTER_API_KEY || '',
+      opencode: process.env.OPENCODE_API_KEY || '',
+      openai: process.env.OPENAI_API_KEY || '',
+    }
+    apiKey = envMap[provider] || process.env.AI_API_KEY || ''
+  }
 
   if (!apiKey) return null
 
