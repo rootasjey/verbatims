@@ -621,7 +621,7 @@ CREATE INDEX IF NOT EXISTS idx_themes_scheduled ON themes(scheduled_date);
 CREATE TABLE IF NOT EXISTS theme_content_filters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   theme_id INTEGER NOT NULL REFERENCES themes(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id')),
+  type TEXT NOT NULL CHECK (type IN ('keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id', 'language')),
   value TEXT NOT NULL,
   match_mode TEXT DEFAULT 'any' CHECK (match_mode IN ('any', 'all'))
 );

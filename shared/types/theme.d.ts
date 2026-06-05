@@ -19,7 +19,7 @@ export interface Theme {
 export interface ThemeContentFilter {
   id: number
   theme_id: number
-  type: 'keyword' | 'tag_name' | 'author_name' | 'reference_name' | 'author_id' | 'reference_id'
+  type: 'keyword' | 'tag_name' | 'author_name' | 'reference_name' | 'author_id' | 'reference_id' | 'language'
   value: string
   match_mode: 'any' | 'all'
 }

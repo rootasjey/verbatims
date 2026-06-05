@@ -89,6 +89,17 @@ export default defineEventHandler(async (event) => {
         results = Array.from(words).slice(0, 10).map(w => ({ label: w, value: w }))
         break
       }
+      case 'language': {
+        const languageMap: Record<string, string> = {
+          en: 'English', fr: 'French', es: 'Spanish', de: 'German',
+          it: 'Italian', pt: 'Portuguese', ru: 'Russian', ja: 'Japanese',
+          zh: 'Chinese', la: 'Latin',
+        }
+        results = Object.entries(languageMap)
+          .filter(([code, label]) => code.includes(q.toLowerCase()) || label.toLowerCase().includes(q.toLowerCase()))
+          .map(([code, label]) => ({ label: `${label} (${code})`, value: code }))
+        break
+      }
     }
 
     return { success: true, data: results }

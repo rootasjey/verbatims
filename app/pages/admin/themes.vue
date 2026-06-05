@@ -517,7 +517,7 @@ function initPickerValues(primary: string, secondary: string) {
 
 const filters = ref<any[]>([])
 
-const filterTypeOptions = ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id']
+const filterTypeOptions = ['keyword', 'tag_name', 'author_name', 'reference_name', 'author_id', 'reference_id', 'language']
 
 // multi-select state
 const rowSelection = ref<Record<number, boolean>>({})
