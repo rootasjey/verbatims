@@ -284,10 +284,10 @@
                 class="w-full"
                 @update:model-value="onFilterValueInput(idx)"
               />
-              <div class="relative min-w-0 transition-all duration-300" :class="fetchingSuggestions ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
-                <NInput v-model="filter.value" placeholder="Value" size="sm" class="w-full filter-value-input" :loading="fetchingSuggestions" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
+              <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
+                <NInput v-model="filter.value" placeholder="Value" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
                 <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                  <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
+                  <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                       :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
                     {{ s.label }}
                   </div>
                 </div>
@@ -705,18 +705,25 @@ const openEdit = async (theme: any) => {
 const activeFilterIndex = ref<number | null>(null)
 const filterSuggestions = ref<{ label: string; value: string }[]>([])
 const highlightedIndex = ref(-1)
-const fetchingSuggestions = ref(false)
+const fetchingFilterIndex = ref<number | null>(null)
 let fetchFilterTimeout: ReturnType<typeof setTimeout> | undefined
+
+const scrollHighlightedIntoView = () => {
+  nextTick(() => {
+    const el = document.querySelector('[data-highlighted-suggestion]')
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  })
+}
 
 const onFilterValueInput = (idx: number) => {
   clearTimeout(fetchFilterTimeout)
   highlightedIndex.value = -1
-  fetchingSuggestions.value = true
+  fetchingFilterIndex.value = idx
   const filter = filters.value[idx]
   if (!filter || !filter.value.trim()) {
     filterSuggestions.value = []
     activeFilterIndex.value = null
-    fetchingSuggestions.value = false
+    fetchingFilterIndex.value = null
     return
   }
   fetchFilterTimeout = setTimeout(() => searchFilterSuggestions(idx), 200)
@@ -725,7 +732,7 @@ const onFilterValueInput = (idx: number) => {
 const searchFilterSuggestions = async (idx: number) => {
   const filter = filters.value[idx]
   if (!filter || !filter.value.trim()) {
-    fetchingSuggestions.value = false
+    fetchingFilterIndex.value = null
     return
   }
 
@@ -736,18 +743,12 @@ const searchFilterSuggestions = async (idx: number) => {
     filterSuggestions.value = res.data || []
     activeFilterIndex.value = filterSuggestions.value.length > 0 ? idx : null
     highlightedIndex.value = -1
-    if (filterSuggestions.value.length > 0) {
-      nextTick(() => {
-        const el = document.querySelector('[data-suggestions-dropdown]')
-        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-      })
-    }
   } catch {
     filterSuggestions.value = []
     activeFilterIndex.value = null
     highlightedIndex.value = -1
   } finally {
-    fetchingSuggestions.value = false
+    fetchingFilterIndex.value = null
   }
 }
 
@@ -789,12 +790,14 @@ const onFilterKeydown = async (idx: number, e: KeyboardEvent) => {
     if (!filterSuggestions.value.length) return
     e.preventDefault()
     highlightedIndex.value = (highlightedIndex.value + 1) % filterSuggestions.value.length
+    scrollHighlightedIntoView()
   } else if (e.key === 'ArrowUp') {
     if (!filterSuggestions.value.length) return
     e.preventDefault()
     highlightedIndex.value = highlightedIndex.value <= 0
       ? filterSuggestions.value.length - 1
       : highlightedIndex.value - 1
+    scrollHighlightedIntoView()
   } else if (e.key === 'Escape') {
     filterSuggestions.value = []
     activeFilterIndex.value = null
