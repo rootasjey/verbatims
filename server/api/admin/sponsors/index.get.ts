@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, or, like, count, desc, asc, sql } from 'drizzle-orm'
+import { eq, and, or, like, count, desc, asc, lte, gte, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -52,10 +52,25 @@ export default defineEventHandler(async (event) => {
     const total = Number(totalResult[0]?.total || 0)
     const totalPages = Math.ceil(total / limit)
 
+    // Count currently active messages (isActive + within date range)
+    const now = new Date().toISOString().slice(0, 16)
+    const activeResult = await db.select({ activeCount: count() })
+      .from(schema.sponsorMessages)
+      .where(
+        and(
+          eq(schema.sponsorMessages.isActive, true),
+          or(sql`${schema.sponsorMessages.startsAt} IS NULL`, lte(schema.sponsorMessages.startsAt, now)),
+          or(sql`${schema.sponsorMessages.endsAt} IS NULL`, gte(schema.sponsorMessages.endsAt, now))
+        )
+      )
+
+    const activeCount = Number(activeResult[0]?.activeCount || 0)
+
     return {
       success: true,
       data: rows,
-      pagination: { page, limit, total, totalPages, hasMore: page < totalPages }
+      pagination: { page, limit, total, totalPages, hasMore: page < totalPages },
+      activeCount
     }
   } catch (error) {
     console.error('Error fetching admin sponsors:', error)
