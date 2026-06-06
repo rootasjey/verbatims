@@ -65,6 +65,14 @@
           </div>
         </div>
 
+        <div v-if="showActiveWarning" class="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+          <span class="i-ph-warning-circle w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div class="text-sm text-amber-700 dark:text-amber-300">
+            <strong>{{ activeCount }} messages are currently active</strong> — only the top 10 by priority will appear on the site.
+            Consider lowering the priority or scheduling with future dates.
+          </div>
+        </div>
+
         <NCheckbox v-model="form.is_active" label="Active" />
       </form>
 
@@ -77,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-interface Props { modelValue: boolean; editMessage?: any | null }
+interface Props { modelValue: boolean; editMessage?: any | null; activeCount?: number }
 interface Emits { (e: 'update:modelValue', v: boolean): void; (e: 'saved'): void }
 
 const props = defineProps<Props>()
@@ -85,6 +93,10 @@ const emit = defineEmits<Emits>()
 
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 const isEdit = computed(() => !!props.editMessage)
+const showActiveWarning = computed(() => {
+  // Warn if there are already 10+ active messages and the form is marked active
+  return (props.activeCount || 0) >= 10 && form.is_active
+})
 const dialogTitle = computed(() => isEdit.value ? 'Edit Sponsor Message' : 'Create Sponsor Message')
 const submitText = computed(() => isEdit.value ? 'Update Message' : 'Create Message')
 

@@ -72,7 +72,7 @@ const fallbackSponsors: SponsorItem[] = [
 ]
 
 const items = ref<SponsorItem[]>(fallbackSponsors)
-const duration = 30
+const duration = computed(() => Math.max(15, Math.min(60, items.value.length * 4)))
 const trackRef = ref<HTMLElement>()
 const setWidth = ref(0)
 const isPaused = useStorage('sponsor-paused', false)

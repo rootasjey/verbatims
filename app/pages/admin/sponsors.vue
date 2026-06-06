@@ -89,15 +89,19 @@
       </div>
 
       <div class="flex-shrink-0 flex items-center justify-between p-4">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }} • {{ total }} total messages
+        <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <span>Page {{ currentPage }} of {{ totalPages }} • {{ total }} total messages</span>
+          <span v-if="activeCount > 10" class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            <span class="i-ph-warning-circle w-4 h-4" />
+            {{ activeCount }} active — only top 10 shown on site
+          </span>
         </div>
         <NPagination v-model:page="currentPage" :total="total" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" pagination-selected="solid-indigo" />
       </div>
     </div>
   </div>
 
-  <AddSponsorMessageDialog v-model="showDialog" :edit-message="editingMessage" @saved="reload" />
+  <AddSponsorMessageDialog v-model="showDialog" :edit-message="editingMessage" :active-count="activeCount" @saved="reload" />
   <DeleteSponsorMessageDialog v-model="showDeleteDialog" :message="deletingMessage" @deleted="handleDeleted" />
 
   <!-- Bulk Delete Dialog -->
@@ -124,6 +128,7 @@ useHead({ title: 'Sponsors - Admin - Verbatims' })
 const loading = ref(false)
 const messages = ref<any[]>([])
 const total = ref(0)
+const activeCount = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(50)
 const searchQuery = ref('')
@@ -250,6 +255,7 @@ const loadMessages = async () => {
     })
     messages.value = res.data || []
     total.value = res.pagination?.total || 0
+    activeCount.value = res.activeCount || 0
     rowSelection.value = {}
     lastSelectedIndex.value = null
   } catch (e) {

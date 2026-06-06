@@ -16,7 +16,6 @@ export default defineEventHandler(async () => {
     .from(schema.sponsorMessages)
     .where(eq(schema.sponsorMessages.isActive, true))
     .orderBy(desc(schema.sponsorMessages.priority), sql`RANDOM()`)
-    .limit(50)
 
   const now = Date.now()
   const active = rows.filter((r) => {
@@ -25,5 +24,5 @@ export default defineEventHandler(async () => {
     return true
   })
 
-  return { data: active }
+  return { data: active.slice(0, 10) }
 })
