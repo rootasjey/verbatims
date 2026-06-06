@@ -551,6 +551,32 @@ export const themeContentFilters = sqliteTable('theme_content_filters', {
   themeIdx: index('idx_theme_filters_theme').on(table.themeId),
 }))
 
+export const sponsorMessages = sqliteTable('sponsor_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  message: text('message').notNull(),
+  leadingIcon: text('leading_icon'),
+  trailingIcon: text('trailing_icon'),
+  url: text('url'),
+  type: text('type', { enum: ['internal', 'sponsored'] }).notNull().default('internal'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  priority: integer('priority').notNull().default(0),
+  startsAt: text('starts_at'),
+  endsAt: text('ends_at'),
+  maxViews: integer('max_views'),
+  viewsCount: integer('views_count').default(0),
+  clicksCount: integer('clicks_count').default(0),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  paid: integer('paid', { mode: 'boolean' }).default(false),
+  paymentRef: text('payment_ref'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  activeIdx: index('idx_sponsor_messages_active').on(table.isActive),
+  priorityIdx: index('idx_sponsor_messages_priority').on(table.priority),
+  datesIdx: index('idx_sponsor_messages_dates').on(table.startsAt, table.endsAt),
+  typeIdx: index('idx_sponsor_messages_type').on(table.type),
+}))
+
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
