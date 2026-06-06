@@ -1,8 +1,9 @@
-# verbatims
 
-Quote service for discovering, curating, and sharing timeless words, with moderation and admin workflows.
+![verbatims screenshot](./public/images/verbatims-home-v2-light.jpeg)
 
-![verbatims screenshot](./public/images/verbatims-home.jpeg)
+> ### verbatims is a quote platform and service for discovering, curating, and sharing timeless words, with moderation and admin workflows.
+
+💬 [verbatims.cc](https://verbatims.cc)
 
 ## Overview
 
@@ -142,6 +143,9 @@ This project includes an admin-managed social queue and a daily scheduled autopo
 
 ### Environment variables
 
+<details>
+<summary>Click to expand the list</summary>
+
 - `NUXT_X_POST_ENABLED` (default: `true`)
 - `NUXT_X_POST_ACCESS_TOKEN` (OAuth 2.0 User Context access token, preferred)
 - `NUXT_X_POST_BEARER_TOKEN` (legacy alias for `NUXT_X_POST_ACCESS_TOKEN`, deprecated)
@@ -182,6 +186,8 @@ This project includes an admin-managed social queue and a daily scheduled autopo
 - `NUXT_PINTEREST_POST_BOARD_ID` (required default Pinterest board id for automatic posting)
 - `NUXT_SOCIAL_DAILY_TIMEZONE` (default: `Europe/Paris`)
 - `NUXT_SOCIAL_DAILY_TIME` (default: `08:08`)
+
+</details>
 
 ### Meta reconnect flow (Instagram + Threads + Facebook)
 
