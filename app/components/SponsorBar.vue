@@ -1,5 +1,5 @@
 <template>
-  <div class="sponsor-bar">
+  <div v-if="items.length > 0" class="sponsor-bar">
     <div
       ref="trackRef"
       class="sponsor-track"
@@ -9,38 +9,36 @@
         animationDuration: `${duration}s`
       }"
     >
-      <!-- First set of sponsors -->
       <div class="sponsor-set">
         <a
-          v-for="(sponsor, index) in sponsors"
+          v-for="(item, index) in items"
           :key="`a-${index}`"
-          :href="sponsor.url || undefined"
-          :target="sponsor.url ? '_blank' : undefined"
-          :rel="sponsor.url ? 'noopener noreferrer' : undefined"
+          :href="item.url || undefined"
+          :target="item.url ? '_blank' : undefined"
+          :rel="item.url ? 'noopener noreferrer' : undefined"
           class="sponsor-item"
-          :class="{ 'cursor-pointer hover:opacity-80': sponsor.url }"
+          :class="{ 'cursor-pointer hover:opacity-80': item.url }"
         >
-          <NIcon v-if="sponsor.leading" :name="sponsor.leading" class="w-4 h-4 text-gray-400" />
-          <span class="text-sm text-gray-300 whitespace-nowrap">{{ sponsor.message }}</span>
-          <NIcon v-if="sponsor.trailing" :name="sponsor.trailing" class="w-4 h-4 text-gray-400" />
+          <NIcon v-if="item.leading" :name="item.leading" class="w-4 h-4 text-gray-400" />
+          <span class="text-sm text-gray-300 whitespace-nowrap">{{ item.message }}</span>
+          <NIcon v-if="item.trailing" :name="item.trailing" class="w-4 h-4 text-gray-400" />
         </a>
         <div class="sponsor-gap" />
       </div>
 
-      <!-- Duplicate set for seamless loop -->
       <div class="sponsor-set">
         <a
-          v-for="(sponsor, index) in sponsors"
+          v-for="(item, index) in items"
           :key="`b-${index}`"
-          :href="sponsor.url || undefined"
-          :target="sponsor.url ? '_blank' : undefined"
-          :rel="sponsor.url ? 'noopener noreferrer' : undefined"
+          :href="item.url || undefined"
+          :target="item.url ? '_blank' : undefined"
+          :rel="item.url ? 'noopener noreferrer' : undefined"
           class="sponsor-item"
-          :class="{ 'cursor-pointer hover:opacity-80': sponsor.url }"
+          :class="{ 'cursor-pointer hover:opacity-80': item.url }"
         >
-          <NIcon v-if="sponsor.leading" :name="sponsor.leading" class="w-4 h-4 text-gray-400" />
-          <span class="text-sm text-gray-300 whitespace-nowrap">{{ sponsor.message }}</span>
-          <NIcon v-if="sponsor.trailing" :name="sponsor.trailing" class="w-4 h-4 text-gray-400" />
+          <NIcon v-if="item.leading" :name="item.leading" class="w-4 h-4 text-gray-400" />
+          <span class="text-sm text-gray-300 whitespace-nowrap">{{ item.message }}</span>
+          <NIcon v-if="item.trailing" :name="item.trailing" class="w-4 h-4 text-gray-400" />
         </a>
         <div class="sponsor-gap" />
       </div>
@@ -65,29 +63,15 @@ interface SponsorItem {
   url?: string
 }
 
-const sponsors: SponsorItem[] = [
-  {
-    message: 'You can display your brand here',
-    leading: 'i-ph-star',
-  },
-  {
-    message: 'You can send a love message',
-    leading: 'i-ph-star',
-  },
-  {
-    message: 'This is the best quotes platform',
-    trailing: 'i-ph-heart',
-  },
-  {
-    message: 'You can submit your own quotes',
-    leading: 'i-ph-quotes',
-  },{
-    message: 'Visit zima blue to discover beautiful illustrations',
-    leading: 'i-ph-palette',
-    url: 'https://zimablue.cc',
-  },
+const fallbackSponsors: SponsorItem[] = [
+  { message: 'You can display your brand here', leading: 'i-ph-star' },
+  { message: 'You can send a love message', leading: 'i-ph-star' },
+  { message: 'This is the best quotes platform', trailing: 'i-ph-heart' },
+  { message: 'You can submit your own quotes', leading: 'i-ph-quotes' },
+  { message: 'Visit zima blue to discover beautiful illustrations', leading: 'i-ph-palette', url: 'https://zimablue.cc' },
 ]
 
+const items = ref<SponsorItem[]>(fallbackSponsors)
 const duration = 30
 const trackRef = ref<HTMLElement>()
 const setWidth = ref(0)
@@ -97,7 +81,26 @@ const togglePause = () => {
   isPaused.value = !isPaused.value
 }
 
+const fetchSponsors = async () => {
+  try {
+    const res: any = await $fetch('/api/sponsors')
+    if (res?.data && res.data.length > 0) {
+      items.value = res.data.map((s: any) => ({
+        message: s.message,
+        leading: s.leadingIcon || undefined,
+        trailing: s.trailingIcon || undefined,
+        url: s.url || undefined,
+      }))
+    } else {
+      items.value = fallbackSponsors
+    }
+  } catch {
+    items.value = fallbackSponsors
+  }
+}
+
 onMounted(() => {
+  fetchSponsors()
   measureSetWidth()
   window.addEventListener('resize', measureSetWidth)
 })
