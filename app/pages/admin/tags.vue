@@ -92,25 +92,36 @@
           </template>
 
           <template #name-cell="{ cell }">
-            <div class="flex items-center gap-2 min-w-0">
-              <BlossomColorPicker
-                :value="hexToBlossomValue(cell.row.original.color)"
-                @change="(color) => updateTagColor(cell.row.original, color)"
-                :colors="BLOSSOM_PALETTE"
-                :show-alpha-slider="false"
-                :core-size="18"
-                :petal-size="18"
-              />
-              <span
-                class="truncate text-sm font-medium cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shrink min-w-0"
-                @click="editTag(cell.row.original)"
-              >#{{ cell.row.original.name }}</span>
+            <div>
+              <div class="flex items-center gap-2 min-w-0">
+                <BlossomColorPicker
+                  :value="hexToBlossomValue(cell.row.original.color)"
+                  @change="(color) => updateTagColor(cell.row.original, color)"
+                  :colors="BLOSSOM_PALETTE"
+                  :show-alpha-slider="false"
+                  :core-size="18"
+                  :petal-size="18"
+                  class="relative top-0.6"
+                />
+                <span
+                  class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0"
+                  :style="{ '--hover-text': getContrastColor(cell.row.original.color) === 'white' ? '#FAFAF9' : '#0C0A09' }"
+                  @click="editTag(cell.row.original)"
+                >
+                  <span class="tag-name relative z-1 truncate text-sm font-medium transition-colors duration-300">
+                    #{{ cell.row.original.name }}
+                  </span>
+                  <span
+                    class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0"
+                    :style="{ backgroundColor: cell.row.original.color }"
+                  />
+                </span>
+              </div>
               <NButton
-                icon
-                btn="ghost-gray"
+                btn="linkg-gray"
                 size="xs"
-                label="i-ph-arrow-square-out"
-                class="shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+                label="See the tag page"
+                class="ml-3 hover:underline decoration-offset-4 shrink-0 opacity-50 hover:opacity-100 transition-opacity"
                 @click.stop="navigateTo(`/tags/${encodeURIComponent(cell.row.original.name)}`)"
               />
             </div>
@@ -241,7 +252,7 @@ import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcu
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
 import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
-import { hexToBlossomValue, BLOSSOM_PALETTE } from '~/utils/color'
+import { hexToBlossomValue, getContrastColor, BLOSSOM_PALETTE } from '~/utils/color'
 import { useColorPickerEscape } from '~/composables/useColorPickerEscape'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -493,7 +504,6 @@ const getTagActions = (tag: any) => [
   { label: 'Delete Tag', leading: 'i-ph-trash', onclick: () => { tagToDelete.value = tag; showDeleteDialog.value = true } }
 ]
 
-const openCreate = () => { selectedTag.value = null; showAddDialog.value = true }
 const editTag = (tag: any) => { selectedTag.value = tag; showAddDialog.value = true }
 
 const updateTagColor = async (tag: any, color: BlossomColorPickerColor) => {
@@ -596,4 +606,6 @@ onMounted(() => { loadTags() })
 }
 
 .frame { min-height: calc(100vh - 8rem) }
+
+.group\/tag:hover .tag-name { color: var(--hover-text); }
 </style>

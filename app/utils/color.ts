@@ -103,6 +103,16 @@ export function hexToHsl(hex: string): { h: number; s: number; l: number } {
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
 }
 
+export function getContrastColor(hex: string): 'black' | 'white' {
+  const clean = hex.replace('#', '')
+  if (clean.length < 3) return 'black'
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  const y = 0.299 * r + 0.587 * g + 0.114 * b
+  return y > 128 ? 'black' : 'white'
+}
+
 export function hexToBlossomValue(hex: string): { hue: number; saturation: number; alpha: number; layer: 'inner' | 'outer' } {
   const hsl = hexToHsl(ensureHexColor(hex, '#6366f1'))
   return { hue: hsl.h, saturation: 30, alpha: 100, layer: 'outer' }
