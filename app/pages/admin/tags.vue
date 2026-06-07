@@ -93,8 +93,26 @@
 
           <template #name-cell="{ cell }">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="inline-block w-3 h-3 rounded border border-gray-200 dark:border-gray-700" :style="{ backgroundColor: cell.row.original.color }" />
-              <span class="truncate text-sm font-medium">#{{ cell.row.original.name }}</span>
+              <BlossomColorPicker
+                :value="hexToBlossomValue(cell.row.original.color)"
+                @change="(color) => updateTagColor(cell.row.original, color)"
+                :colors="BLOSSOM_PALETTE"
+                :show-alpha-slider="false"
+                :core-size="18"
+                :petal-size="18"
+              />
+              <span
+                class="truncate text-sm font-medium cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shrink min-w-0"
+                @click="editTag(cell.row.original)"
+              >#{{ cell.row.original.name }}</span>
+              <NButton
+                icon
+                btn="ghost-gray"
+                size="xs"
+                label="i-ph-arrow-square-out"
+                class="shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+                @click.stop="navigateTo(`/tags/${encodeURIComponent(cell.row.original.name)}`)"
+              />
             </div>
           </template>
 
@@ -221,6 +239,10 @@
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
+import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
+import { hexToBlossomValue, BLOSSOM_PALETTE } from '~/utils/color'
+import { useColorPickerEscape } from '~/composables/useColorPickerEscape'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Tags - Admin - Verbatims' })
@@ -232,6 +254,8 @@ const currentPage = ref(1)
 const pageSize = ref(50)
 const searchQuery = ref('')
 const selectedSort = ref({ label: 'Name A-Z', value: 'name_asc' })
+
+useColorPickerEscape()
 
 const showAddDialog = ref(false)
 const selectedTag = ref<Tag | null>(null)
@@ -470,6 +494,19 @@ const getTagActions = (tag: any) => [
 ]
 
 const openCreate = () => { selectedTag.value = null; showAddDialog.value = true }
+const editTag = (tag: any) => { selectedTag.value = tag; showAddDialog.value = true }
+
+const updateTagColor = async (tag: any, color: BlossomColorPickerColor) => {
+  const prev = tag.color
+  tag.color = color.hex
+  try {
+    await $fetch(`/api/admin/tags/${tag.id}`, { method: 'PUT', body: { color: color.hex } })
+  } catch (e) {
+    tag.color = prev
+    useToast().toast({ toast: 'soft-error', title: 'Failed to update color' })
+  }
+}
+
 const reloadAfterModal = () => { showAddDialog.value = false; selectedTag.value = null; loadTags() }
 const reloadAfterDelete = () => {
   showDeleteDialog.value = false
