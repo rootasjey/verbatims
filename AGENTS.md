@@ -111,6 +111,26 @@ Conventions:
 - **Composable logic** belongs in `app/composables/`.
 - **Server utilities** under `~/server/utils/` are commonly reused across API handlers.
 
+### ⚠️ SSR awareness (common gotcha)
+
+Nuxt runs composables, components, and pages on **both server (SSR) and client** during the initial render.
+
+- `localStorage`, `sessionStorage`, `window`, `document`, and other browser-only APIs are **not available on the server**.
+- Any code relying on these must be deferred to `onMounted()`, placed in a `watch()` that only fires client-side, or guarded with `import.meta.client`.
+- **Hydration mismatches** happen when server-rendered HTML differs from the first client render. This shows as class/attribute mismatches in console warnings and can cause visual glitches (wrong button selected, stale data).
+- **Safe pattern for persisted state**: keep the composable SSR-safe (default value), then read/write browser APIs in the **page's** `onMounted` / `watch`. This ensures SSR and first client render match exactly.
+
+```ts
+// ❌ Bad - composable runs on server, localStorage is undefined
+const saved = localStorage.getItem('key')  // crashes or returns wrong value
+
+// ✅ Good - page runs onMounted client-only, composable stays SSR-safe
+onMounted(() => {
+  const saved = localStorage.getItem('key')
+  if (saved) selectedPlatform.value = saved
+})
+```
+
 ## Admin UI conventions
 
 Admin pages usually follow this shape:
