@@ -16,6 +16,7 @@ export interface SocialQueueItem {
   reference_name: string | null
   status: SocialQueueStatus
   position: number
+  error_message: string | null
   published_post_url: string | null
   published_external_post_id: string | null
   published_posted_at: string | null
@@ -70,6 +71,15 @@ interface RunNowResponse {
   data?: RunNowResult
 }
 
+interface RequeueFailedResponse {
+  success: boolean
+  data?: {
+    requeued: boolean
+    platform: SocialPlatform
+    requeuedCount: number
+  }
+}
+
 interface ClearQueueResponse {
   success: boolean
   data?: {
@@ -117,6 +127,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   const pickerLoaded = ref(false)
   const clearingAll = ref(false)
   const clearingFinished = ref(false)
+  const requeueFailedLoading = ref(false)
 
   const queueItems = ref<SocialQueueItem[]>([])
   const currentPage = ref(1)
@@ -358,6 +369,49 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     }
   }
 
+  async function requeueFailedPosts() {
+    requeueFailedLoading.value = true
+    try {
+      const response = await $fetch<RequeueFailedResponse>('/api/admin/social-queue/requeue-failed', {
+        method: 'POST',
+        body: { platform: selectedPlatform.value }
+      })
+      const requeuedCount = Number(response?.data?.requeuedCount || 0)
+      if (requeuedCount > 0) {
+        useToast().toast({
+          title: 'Re-queued',
+          description: requeuedCount === 1 ? '1 failed item re-queued' : `${requeuedCount} failed items re-queued`,
+          toast: 'outline-success'
+        })
+      } else {
+        useToast().toast({
+          title: 'Nothing to re-queue',
+          description: 'No failed items found for this platform',
+          toast: 'outline-gray'
+        })
+      }
+      await loadQueue()
+    } catch (error) {
+      console.error('Failed to re-queue items:', error)
+      options.showErrorToast('Error', 'Failed to re-queue failed items')
+    } finally {
+      requeueFailedLoading.value = false
+    }
+  }
+
+  async function requeueSingleFailedItem(id: number) {
+    try {
+      await $fetch('/api/admin/social-queue/requeue-single', {
+        method: 'POST',
+        body: { id }
+      })
+      await loadQueue()
+    } catch (error) {
+      console.error('Failed to re-queue item:', error)
+      options.showErrorToast('Error', 'Failed to re-queue item')
+    }
+  }
+
   watchDebounced([searchQuery, selectedStatus, selectedPlatform], () => {
     const pageChanged = currentPage.value !== 1
     currentPage.value = 1
@@ -385,6 +439,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     pickerLoaded,
     clearingAll,
     clearingFinished,
+    requeueFailedLoading,
     queueItems,
     currentPage,
     pageSize,
@@ -407,6 +462,8 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     moveQueueItem,
     removeQueueItem,
     clearAllQueue,
-    clearFinishedQueue
+    clearFinishedQueue,
+    requeueFailedPosts,
+    requeueSingleFailedItem
   }
 }

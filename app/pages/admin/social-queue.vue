@@ -187,8 +187,17 @@
           </template>
 
           <template #status-cell="{ cell }">
-            <NBadge :color="statusColor(cell.row.original.status)" badge="soft" size="xs">
+            <NBadge
+              :color="statusColor(cell.row.original.status)"
+              badge="soft"
+              size="xs"
+              :class="{ 'cursor-pointer': cell.row.original.status === 'failed' && cell.row.original.error_message }"
+              @click="copyErrorIfFailed(cell.row.original)"
+            >
               {{ cell.row.original.status }}
+              <template v-if="cell.row.original.status === 'failed' && cell.row.original.error_message">
+                &middot; {{ briefError(cell.row.original.error_message) }}
+              </template>
             </NBadge>
           </template>
 
@@ -370,6 +379,7 @@ const {
   pickerLoaded,
   clearingAll,
   clearingFinished,
+  requeueFailedLoading,
   queueItems,
   currentPage,
   pageSize,
@@ -392,7 +402,9 @@ const {
   moveQueueItem,
   removeQueueItem,
   clearAllQueue: clearAllQueueRequest,
-  clearFinishedQueue: clearFinishedQueueRequest
+  clearFinishedQueue: clearFinishedQueueRequest,
+  requeueFailedPosts,
+  requeueSingleFailedItem
 } = useAdminSocialQueue({
   showErrorToast
 })
@@ -671,7 +683,7 @@ const tableColumns = [
     header: 'Status',
     accessorKey: 'status',
     enableSorting: false,
-    meta: { una: { tableHead: 'w-28', tableCell: 'w-28 text-center' } }
+    meta: { una: { tableHead: 'w-52', tableCell: 'w-52 text-center' } }
   },
   {
     header: 'Posted Count',
@@ -741,6 +753,28 @@ function openPublishedPost(item: SocialQueueItem) {
   }
 
   window.open(item.published_post_url!, '_blank', 'noopener,noreferrer')
+}
+
+function briefError(message: string) {
+  return message.length > 40 ? message.slice(0, 40) + '…' : message
+}
+
+async function copyErrorIfFailed(item: SocialQueueItem) {
+  if (item.status !== 'failed' || !item.error_message) return
+  try {
+    await navigator.clipboard.writeText(item.error_message)
+    useToast().toast({
+      title: 'Copied',
+      description: 'Error message copied to clipboard',
+      toast: 'outline-success'
+    })
+  } catch {
+    useToast().toast({
+      title: 'Copy failed',
+      description: 'Could not copy to clipboard',
+      toast: 'outline-warning'
+    })
+  }
 }
 
 function showErrorToast(title: string, description: string) {
@@ -867,6 +901,7 @@ async function refreshAllStatuses() {
 
 watch(selectedPlatform, (val) => {
   if (!isSocialPlatform(val)) return
+  localStorage.setItem('admin_social_queue_platform', val)
   checkPlatform(val, false)
 })
 
@@ -901,6 +936,8 @@ const actionMenuItems = computed(() => {
   }
   items.push({ label: 'Run now', leading: 'i-ph-play', onclick: runNow })
   items.push({})
+  items.push({ label: 'Re-queue failed', leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
+  items.push({})
   items.push({ label: 'Add random (15)', leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
   items.push({ label: 'Add random (custom)', leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
   items.push({ label: 'Manually add quotes', leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
@@ -912,6 +949,7 @@ const tableHeaderMenuItems = computed(() => {
   const items: DropdownMenuItem[] = []
   items.push({ label: 'Clear all', onclick: () => { showClearAllDialog.value = true } })
   items.push({ label: 'Clear finished', onclick: () => { showClearFinishedDialog.value = true } })
+  items.push({ label: 'Re-queue failed', leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
   items.push({})
   items.push({ label: 'Add random (15)', leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
   items.push({ label: 'Add random (custom)', leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
@@ -955,6 +993,14 @@ function rowActionItems(item: SocialQueueItem) {
     disabled,
     onclick: () => moveQueueItem(item.id, 'down')
   })
+  if (item.status === 'failed') {
+    actions.push({})
+    actions.push({
+      label: 'Re-queue',
+      leading: 'i-ph-arrow-counter-clockwise',
+      onclick: () => requeueSingleFailedItem(item.id)
+    })
+  }
   actions.push({})
   actions.push({
     label: 'Remove',
@@ -1550,6 +1596,11 @@ async function clearFinishedQueue() {
 }
 
 onMounted(async () => {
+  const savedPlatform = localStorage.getItem('admin_social_queue_platform')
+  if (savedPlatform && isSocialPlatform(savedPlatform)) {
+    selectedPlatform.value = savedPlatform
+  }
+
   await loadQueue()
   await loadMetaStatus()
   await refreshAllStatuses()

@@ -181,6 +181,7 @@ export default defineEventHandler(async (event) => {
   ).values())
 
   const latestPostsByQueue = new Map<number, LatestQueuePostRow>()
+  const failedPostsByQueue = new Map<number, { error_message: string | null, posted_at: Date | null }>()
   if (queueIds.length) {
     const latestQueuePosts = await db.select({
       queue_id: schema.socialPosts.queueId,
@@ -202,6 +203,30 @@ export default defineEventHandler(async (event) => {
       }
 
       latestPostsByQueue.set(post.queue_id, post)
+    }
+
+    const failedPosts = await db.select({
+      queue_id: schema.socialPosts.queueId,
+      error_message: schema.socialPosts.errorMessage,
+      posted_at: schema.socialPosts.postedAt,
+      id: schema.socialPosts.id
+    })
+      .from(schema.socialPosts)
+      .where(and(
+        eq(schema.socialPosts.status, 'failed'),
+        inArray(schema.socialPosts.queueId, queueIds)
+      ))
+      .orderBy(desc(schema.socialPosts.postedAt), desc(schema.socialPosts.id))
+
+    for (const post of failedPosts) {
+      if (post.queue_id === null || failedPostsByQueue.has(post.queue_id)) {
+        continue
+      }
+
+      failedPostsByQueue.set(post.queue_id, {
+        error_message: post.error_message,
+        posted_at: post.posted_at
+      })
     }
   }
 
@@ -251,6 +276,7 @@ export default defineEventHandler(async (event) => {
       sourceId: row.source_id
     })] as VerbatimsResolvedSourceDisplay | undefined
     const latestQueuePost = latestPostsByQueue.get(row.id)
+    const failedPost = failedPostsByQueue.get(row.id)
     const sourceStats = sourcePostStats.get(getSourcePlatformKey(row))
 
     return {
@@ -258,6 +284,7 @@ export default defineEventHandler(async (event) => {
       published_post_url: latestQueuePost?.post_url || null,
       published_external_post_id: latestQueuePost?.external_post_id || null,
       published_posted_at: toResponseTimestamp(latestQueuePost?.posted_at || null),
+      error_message: failedPost?.error_message || null,
       quote_posts_count: sourceStats?.count || 0,
       last_posted_at: toResponseTimestamp(sourceStats?.lastPostedAt || null),
       quote_text: resolvedDisplay?.quoteText || null,
