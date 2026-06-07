@@ -1,22 +1,26 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'border-2 max-w-sm' }">
-    <div ref="contentRef">
-      <div class="mb-3 pb-3 border-b b-dashed border-gray-200">
+  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'border-2 max-w-sm' }" :show-close="false">
+    <template #header>
+      <div class=" flex justify-between items-center mb-1 pb-2 border-b b-dashed border-gray-200">
         <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
+        <NTooltip :content="'Close'">
+          <NButton btn="~" @click="closeDialog" size="xs" label="i-ph-x-bold" icon class="dialog-close-btn hover:scale-110 active:scale-99 transition-[transform,color] duration-300" />
+        </NTooltip>
       </div>
-
+    </template>
+    <div ref="contentRef">
       <form @submit.prevent="submitTag" @keydown.ctrl.enter.prevent="submitTag" @keydown.meta.enter.prevent="submitTag" class="space-y-6">
         <div>
           <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Name *</label>
-          <NInput v-model="form.name" class="bg-white b-none shadow-none" placeholder="e.g., inspiration" :disabled="submitting" required autofocus />
+          <NInput v-model="form.name" class="bg-white dark:bg-gray-900 b-none shadow-none" placeholder="e.g., inspiration" :disabled="submitting" required autofocus />
         </div>
         <div>
           <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Category</label>
-          <NInput v-model="form.category" class="bg-white b-none shadow-none" placeholder="e.g., emotion, philosophy" :disabled="submitting" />
+          <NInput v-model="form.category" class="bg-white dark:bg-gray-900 b-none shadow-none" placeholder="e.g., emotion, philosophy" :disabled="submitting" />
         </div>
         <div>
           <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Description</label>
-          <NInput type="textarea" v-model="form.description" class="bg-white b-none shadow-none" :rows="3" placeholder="Short description" :disabled="submitting" />
+          <NInput type="textarea" v-model="form.description" class="bg-white dark:bg-gray-900 b-none shadow-none" :rows="3" placeholder="Short description" :disabled="submitting" />
         </div>
         <div>
           <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Color</label>
@@ -32,7 +36,7 @@
               />
             </div>
             <div class="max-w-[100px]">
-              <NInput v-model="form.color" class="bg-white b-none shadow-none" placeholder="#687FE5" :disabled="submitting" />
+              <NInput v-model="form.color" class="bg-white dark:bg-gray-900 b-none shadow-none" placeholder="#687FE5" :disabled="submitting" />
             </div>
           </div>
         </div>
@@ -40,7 +44,12 @@
 
       <div class="mt-6 pt-3 border-t b-dashed border-gray-200 flex justify-end gap-3">
         <NButton btn="link-gray" class="font-600" :disabled="submitting" @click="closeDialog">Cancel</NButton>
-        <NButton btn="~" class="font-600 hover:bg-black hover:color-white" rounded="0" :loading="submitting" :disabled="!form.name.trim()" @click="submitTag">{{ submitButtonText }}</NButton>
+        <PrimaryButton :disabled="!form.name.trim()" :loading="submitting" @click="submitTag" class="rounded-0 px-3">
+          <span class="flex items-center gap-2">
+            {{ submitButtonText }}
+            <NIcon v-if="!submitting" name="i-ph-check" class="inline-block" />
+          </span>
+        </PrimaryButton>
       </div>
     </div>
   </NDialog>
@@ -99,6 +108,36 @@ function applyDialogColors() {
   const existing = getComputedStyle(el).boxShadow
   const tint = `inset 0 0 0 1000px ${form.value.color}0C`
   el.style.boxShadow = existing && existing !== 'none' ? `${tint}, ${existing}` : tint
+
+  const closeBtn = el.querySelector<HTMLElement>('.dialog-close-btn')
+  if (closeBtn) {
+    closeBtn.style.color = form.value.color
+    closeBtn.style.backgroundColor = `${form.value.color}15`
+    closeBtn.dataset.tagTinted = 'true'
+
+    const styleId = 'tag-dialog-close-hover'
+    let styleEl = document.getElementById(styleId)
+    if (!styleEl) {
+      styleEl = document.createElement('style')
+      styleEl.id = styleId
+      document.head.appendChild(styleEl)
+    }
+    styleEl.textContent = `[data-tag-tinted]:hover { background-color: ${form.value.color}30 !important; }`
+  }
+
+  const inputs = el.querySelectorAll<HTMLElement>('input, textarea')
+  inputs.forEach(input => {
+    input.dataset.tagInput = 'true'
+  })
+
+  const inputStyleId = 'tag-dialog-input-focus'
+  let inputStyleEl = document.getElementById(inputStyleId)
+  if (!inputStyleEl) {
+    inputStyleEl = document.createElement('style')
+    inputStyleEl.id = inputStyleId
+    document.head.appendChild(inputStyleEl)
+  }
+  inputStyleEl.textContent = `[data-tag-input]:focus { box-shadow: inset 0 0 0 1px ${form.value.color}60; }`
 }
 
 watch(isOpen, (open) => {
