@@ -1,23 +1,27 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-sm' }">
-    <div>
-      <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">Delete Tag</h3>
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-        Are you sure you want to delete <span class="font-medium">#{{ tag?.name }}</span>? This will remove it from all quotes.
-      </p>
-      <p v-if="usageLoading" class="text-xs text-gray-500 dark:text-gray-400 mb-6">Loading usage…</p>
-      <p v-else class="text-xs text-gray-500 dark:text-gray-400 mb-6">
-        Usage: <span class="font-medium">{{ usageCount }}</span> quote<span v-if="usageCount !== 1">s</span>.
-      </p>
-      <div v-if="usageCount >= highUsageThreshold" class="mb-4">
-        <NCheckbox v-model="confirmHighUsage" label="I understand this will remove the tag from many quotes" />
-      </div>
-      <div class="flex justify-end gap-3">
-        <NButton btn="light:soft dark:soft-white" :disabled="submitting" @click="close">Cancel</NButton>
-        <NButton btn="soft-red" :loading="submitting" :disabled="usageCount >= highUsageThreshold && !confirmHighUsage" @click="confirmDelete">Delete</NButton>
-      </div>
+  <AppDialog
+    v-model="isOpen"
+    title="Delete Tag"
+    submit-text="Delete"
+    :submitting="submitting"
+    :can-submit="usageCount < highUsageThreshold || confirmHighUsage"
+    @submit="confirmDelete"
+  >
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+      Are you sure you want to delete <span class="font-medium">#{{ tag?.name }}</span>? This will remove it from all quotes.
+    </p>
+    <p v-if="usageLoading" class="text-xs text-gray-500 dark:text-gray-400 mb-6">Loading usage…</p>
+    <p v-else class="text-xs text-gray-500 dark:text-gray-400 mb-6">
+      Usage: <span class="font-medium">{{ usageCount }}</span> quote<span v-if="usageCount !== 1">s</span>.
+    </p>
+    <div v-if="usageCount >= highUsageThreshold" class="mb-4">
+      <NCheckbox v-model="confirmHighUsage" label="I understand this will remove the tag from many quotes" />
     </div>
-  </NDialog>
+
+    <template #submit>
+      <NButton btn="soft-red" :loading="submitting" :disabled="usageCount >= highUsageThreshold && !confirmHighUsage" @click="confirmDelete">Delete</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -33,7 +37,6 @@ const usageLoading = ref(false)
 const confirmHighUsage = ref(false)
 const highUsageThreshold = 20
 
-const close = () => { isOpen.value = false }
 const confirmDelete = async () => {
   if (!props.tag) return
   submitting.value = true
@@ -41,7 +44,7 @@ const confirmDelete = async () => {
     await $fetch(`/api/admin/tags/${props.tag.id}`, { method: 'DELETE' })
     useToast().toast({ toast: 'success', title: 'Tag Deleted' })
     emit('tag-deleted')
-    close()
+    isOpen.value = false
   } catch (error) {
     console.error('Failed to delete tag', error)
     useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to delete tag' })

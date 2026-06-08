@@ -1,24 +1,29 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <NCard class="border-none">
-      <template #header>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Add random quotes</h3>
+  <AppDialog
+    v-model="isOpen"
+    title="Add random quotes"
+    submit-text="Add"
+    :submitting="loading"
+    @submit="emit('confirm')"
+  >
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Specify how many random approved quotes to enqueue.</p>
+
+    <NInput
+      v-model="countModel"
+      type="number"
+      min="1"
+      class="w-28 bg-white dark:bg-gray-900 b-none shadow-none"
+      :una="{ inputTrailingWrapper: 'pr-1.5' }"
+    >
+      <template #trailing>
+        <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Count</NBadge>
       </template>
-      <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">Specify how many random approved quotes to enqueue.</p>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Count</label>
-          <NInput v-model="countModel" type="number" min="1" class="w-28" />
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <NButton btn="link-gray" @click="isOpen = false">Cancel</NButton>
-          <NButton btn="soft-blue" :loading="loading" @click="emit('confirm')">Add</NButton>
-        </div>
-      </template>
-    </NCard>
-  </NDialog>
+    </NInput>
+
+    <template #submit>
+      <NButton btn="soft-blue" :loading="loading" @click="emit('confirm')">Add</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

@@ -1,60 +1,100 @@
 <template>
-  <NDialog v-model:open="isOpen" scrollable :una="{ dialogContent: 'md:max-w-3xl' }">
-    <template #header>
-      <div class="p-2 space-y-1">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Enrichment settings
-        </h3>
-        <p class="text-sm text-gray-400 dark:text-gray-400">
-          Saved values are stored in KV and override env variables. Cron expressions still require a deploy to change.
-        </p>
-      </div>
-    </template>
+  <AppDialog
+    v-model="isOpen"
+    title="Enrichment settings"
+    :submitting="saving"
+    scrollable
+    @submit="emit('save', localForm)"
+  >
+    <p class="text-sm text-gray-400 dark:text-gray-400 mb-6">
+      Saved values are stored in KV and override env variables. Cron expressions still require a deploy to change.
+    </p>
 
-    <div class="p-2 space-y-4">
+    <div class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="space-y-2">
+        <div>
           <NCheckbox v-model="localForm.scheduleEnabled" label="Enable scheduling task" checkbox="blue" />
           <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleEnabled') }}</p>
         </div>
-
-        <div class="space-y-2">
+        <div>
           <NCheckbox v-model="localForm.processEnabled" label="Enable processing task" checkbox="blue" />
           <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processEnabled') }}</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Schedule batch size</label>
-          <NInput v-model="localForm.scheduleBatchSize" input="outline-gray" type="number" min="1" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleBatchSize') }}</p>
+        <div>
+          <NInput
+            v-model="localForm.scheduleBatchSize"
+            type="number"
+            min="1"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Schedule batch size</NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleBatchSize') }}</p>
         </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Process batch size</label>
-          <NInput v-model="localForm.processBatchSize" input="outline-gray" type="number" min="1" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processBatchSize') }}</p>
+        <div>
+          <NInput
+            v-model="localForm.processBatchSize"
+            type="number"
+            min="1"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Process batch size</NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processBatchSize') }}</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Author stale days</label>
-          <NInput v-model="localForm.authorStaleDays" input="outline-gray" type="number" min="1" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('authorStaleDays') }}</p>
+        <div>
+          <NInput
+            v-model="localForm.authorStaleDays"
+            type="number"
+            min="1"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author stale days</NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('authorStaleDays') }}</p>
         </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Reference stale days</label>
-          <NInput v-model="localForm.referenceStaleDays" input="outline-gray" type="number" min="1" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('referenceStaleDays') }}</p>
+        <div>
+          <NInput
+            v-model="localForm.referenceStaleDays"
+            type="number"
+            min="1"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference stale days</NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('referenceStaleDays') }}</p>
         </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Review grace days</label>
-          <NInput v-model="localForm.reviewGraceDays" input="outline-gray" type="number" min="1" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('reviewGraceDays') }}</p>
+        <div>
+          <NInput
+            v-model="localForm.reviewGraceDays"
+            type="number"
+            min="1"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Review grace days</NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('reviewGraceDays') }}</p>
         </div>
       </div>
 
@@ -67,24 +107,51 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Author min score</label>
-            <NInput v-model="localForm.authorMatchMinScore" input="outline-gray" type="number" min="1" max="100" />
-            <p class="text-xs text-gray-500 dark:text-gray-400">Raise this to reject more weak author matches. Lower it only if valid people are skipped too often.</p>
+          <div>
+            <NInput
+              v-model="localForm.authorMatchMinScore"
+              type="number"
+              min="1"
+              max="100"
+              class="bg-white dark:bg-gray-900 b-none shadow-none"
+              :una="{ inputTrailingWrapper: 'pr-1.5' }"
+            >
+              <template #trailing>
+                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author min score</NBadge>
+              </template>
+            </NInput>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Raise this to reject more weak author matches.</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('authorMatchMinScore') }}</p>
           </div>
-
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Reference min score</label>
-            <NInput v-model="localForm.referenceMatchMinScore" input="outline-gray" type="number" min="1" max="100" />
-            <p class="text-xs text-gray-500 dark:text-gray-400">Raise this to reject ambiguous title or media matches more aggressively.</p>
+          <div>
+            <NInput
+              v-model="localForm.referenceMatchMinScore"
+              type="number"
+              min="1"
+              max="100"
+              class="bg-white dark:bg-gray-900 b-none shadow-none"
+              :una="{ inputTrailingWrapper: 'pr-1.5' }"
+            >
+              <template #trailing>
+                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference min score</NBadge>
+              </template>
+            </NInput>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Raise this to reject ambiguous matches more aggressively.</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('referenceMatchMinScore') }}</p>
           </div>
-
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Ambiguous score gap</label>
-            <NInput v-model="localForm.ambiguousMatchGap" input="outline-gray" type="number" min="1" />
-            <p class="text-xs text-gray-500 dark:text-gray-400">If the best score is too close to the next candidate, the preview stays ambiguous and shows alternatives.</p>
+          <div>
+            <NInput
+              v-model="localForm.ambiguousMatchGap"
+              type="number"
+              min="1"
+              class="bg-white dark:bg-gray-900 b-none shadow-none"
+              :una="{ inputTrailingWrapper: 'pr-1.5' }"
+            >
+              <template #trailing>
+                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Ambiguous score gap</NBadge>
+              </template>
+            </NInput>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">If the best score is too close to the next candidate, the preview stays ambiguous.</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('ambiguousMatchGap') }}</p>
           </div>
         </div>
@@ -95,13 +162,10 @@
       </p>
     </div>
 
-    <template #footer>
-      <div class="p-2 flex justify-end gap-2">
-        <NButton btn="link-gray" :disabled="saving" @click="isOpen = false">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="loading || saving" @click="emit('save', localForm)">Save settings</NButton>
-      </div>
+    <template #submit>
+      <NButton btn="soft-blue" :loading="loading || saving" @click="emit('save', localForm)">Save settings</NButton>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

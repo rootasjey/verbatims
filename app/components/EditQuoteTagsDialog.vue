@@ -1,139 +1,132 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-3 border-b b-dashed border-gray-200 dark:border-gray-700 pb-3">
-        <h3 class="font-title uppercase text-size-4 font-600">Edit Tags</h3>
+  <AppDialog
+    v-model="isOpen"
+    title="Edit Tags"
+    hide-footer
+    @close="closeDialog"
+  >
+    <div class="space-y-6">
+      <div>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Add Tag</label>
+
+        <div class="flex gap-2">
+          <div ref="suggestionAreaRef" class="flex-1 relative">
+            <NInput
+              ref="tagInputRef"
+              v-model="tagQuery"
+              placeholder="Type to search or create a tag…"
+              :disabled="submitting"
+              class="bg-white dark:bg-gray-900 b-none shadow-none"
+              :una="{ inputTrailingWrapper: 'pr-1.5' }"
+              @input="searchTags"
+              @focus="handleInputFocus"
+              @keydown="handleKeydown"
+            >
+              <template #trailing>
+                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Search</NBadge>
+              </template>
+            </NInput>
+            <div
+              v-if="showSuggestions && (safeSuggestions.length > 0 || tagQuery)"
+              ref="suggestionsRef"
+              class="mt-2 flex flex-wrap gap-2"
+              tabindex="-1"
+              @keydown="handleKeydown"
+            >
+              <div
+                v-for="(tag, index) in safeSuggestions"
+                :key="tag.id"
+                :class="[
+                  'inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer border',
+                  selectedIndex === index
+                    ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/50'
+                    : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                ]"
+                @click="addExistingTag(tag)"
+                @mouseenter="selectedIndex = index"
+              >
+                <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: tag.color }" />
+                <span class="text-sm">#{{ tag.name }}</span>
+                <NTooltip v-if="tag.reason === 'popular'" content="Popular tag" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
+                  <NIcon name="i-ph-shooting-star" class="w-4 h-4 text-yellow-500" />
+                </NTooltip>
+                <NTooltip v-else-if="tag.reason === 'keyword'" content="Keyword match" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
+                  <NIcon name="i-ph-stack-simple-duotone" class="w-4 h-4 text-green-500" />
+                </NTooltip>
+              </div>
+              <div
+                v-if="tagQuery && !safeSuggestions.some(s => s.name.toLowerCase() === tagQuery.toLowerCase())"
+                :class="[
+                  'inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer border',
+                  selectedIndex === safeSuggestions.length
+                    ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/50'
+                    : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
+                ]"
+                @click="createAndAddTag()"
+                @mouseenter="selectedIndex = safeSuggestions.length"
+              >
+                <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Create "{{ tagQuery }}"</span>
+                <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: defaultColor }" />
+              </div>
+            </div>
+          </div>
+          <NButton
+            btn="soft-blue"
+            size="sm"
+            label="i-ph-check"
+            icon
+            :disabled="!tagQuery.trim() || submitting"
+            @click="quickAddOrCreate"
+          />
+        </div>
+
+        <div class="mt-2 flex items-center gap-2">
+          <span v-if="error" class="text-xs text-red-500">{{ error }}</span>
+        </div>
       </div>
 
-      <div class="space-y-6">
-        <!-- Add tag input with suggestions -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Add Tag
-          </label>
-
-          <div class="flex gap-2">
-            <div ref="suggestionAreaRef" class="flex-1 relative">
-              <NInput
-                ref="tagInputRef"
-                v-model="tagQuery"
-                input="outline-gray"
-                placeholder="Type to search or create a tag…"
-                :disabled="submitting"
-                @input="searchTags"
-                @focus="handleInputFocus"
-                @keydown="handleKeydown"
-              />
-              <!-- Suggestions rendered as inline chips -->
-              <div
-                v-if="showSuggestions && (safeSuggestions.length > 0 || tagQuery)"
-                ref="suggestionsRef"
-                class="mt-2 flex flex-wrap gap-2"
-                tabindex="-1"
-                @keydown="handleKeydown"
-              >
-                <div
-                  v-for="(tag, index) in safeSuggestions"
-                  :key="tag.id"
-                  :class="[
-                    'inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer border',
-                    selectedIndex === index
-                      ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/50'
-                      : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                  ]"
-                  @click="addExistingTag(tag)"
-                  @mouseenter="selectedIndex = index"
-                >
-                  <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: tag.color }" />
-                  <span class="text-sm">#{{ tag.name }}</span>
-                  <NTooltip v-if="tag.reason === 'popular'" content="Popular tag" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
-                    <NIcon
-                      name="i-ph-shooting-star"
-                      class="w-4 h-4 text-yellow-500"
-                    />
-                  </NTooltip>
-                  <NTooltip v-else-if="tag.reason === 'keyword'" content="Keyword match" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
-                    <NIcon
-                      name="i-ph-stack-simple-duotone"
-                      class="w-4 h-4 text-green-500"
-                    />
-                  </NTooltip>
-                </div>
-                <div
-                  v-if="tagQuery && !safeSuggestions.some(s => s.name.toLowerCase() === tagQuery.toLowerCase())"
-                  :class="[
-                    'inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer border',
-                    selectedIndex === safeSuggestions.length
-                      ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/50'
-                      : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                  ]"
-                  @click="createAndAddTag()"
-                  @mouseenter="selectedIndex = safeSuggestions.length"
-                >
-                  <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Create "{{ tagQuery }}"</span>
-                  <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: defaultColor }" />
-                </div>
-              </div>
+      <div>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Current Tags</label>
+        <div v-if="loading" class="text-sm text-gray-500">Loading…</div>
+        <div v-else>
+          <div v-if="safeQuoteTags.length" class="flex flex-wrap gap-2">
+            <div
+              v-for="t in safeQuoteTags"
+              :key="t.id"
+              class="inline-flex items-center gap-1"
+            >
+              <NBadge
+                badge="solid"
+                size="sm"
+                rounded="2"
+                class="pl-4"
+                :style="{ backgroundColor: t.color + '22', color: t.color }">
+                <span class="text-sm">{{ t.name }}</span>
+                <NButton
+                  rounded="full"
+                  size="2"
+                  btn="ghost-gray"
+                  icon
+                  class="p-0 m-0 min-w-0 min-h-0"
+                  label="i-ph-x"
+                  :aria-label="`Remove ${t.name}`"
+                  @click="removeTag(t)"
+                />
+              </NBadge>
             </div>
-            <NButton 
-              btn="soft-blue" 
-              size="sm" 
-              label="i-ph-check" 
-              icon 
-              :disabled="!tagQuery.trim() || submitting" 
-              @click="quickAddOrCreate" 
-            />
           </div>
-
-          <div class="mt-2 flex items-center gap-2">
-            <span v-if="error" class="text-xs text-red-500">{{ error }}</span>
-          </div>
-        </div>
-
-        <!-- Existing tags on the quote -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Current Tags
-          </label>
-          <div v-if="loading" class="text-sm text-gray-500">Loading…</div>
-          <div v-else>
-            <div v-if="safeQuoteTags.length" class="flex flex-wrap gap-2">
-              <div
-                v-for="t in safeQuoteTags"
-                :key="t.id"
-                class="inline-flex items-center gap-1"
-              >
-                <NBadge 
-                  badge="solid" 
-                  size="sm" 
-                  rounded="2"
-                  class="pl-4"
-                  :style="{ backgroundColor: t.color + '22', color: t.color }">
-                  <span class="text-sm">{{ t.name }}</span>
-                  <NButton 
-                    rounded="full" 
-                    size="2" 
-                    btn="ghost-gray" 
-                    icon 
-                    class="p-0 m-0 min-w-0 min-h-0"
-                    label="i-ph-x" 
-                    :aria-label="`Remove ${t.name}`"
-                    @click="removeTag(t)" 
-                  />
-                </NBadge>
-              </div>
-            </div>
-            <div v-else class="text-sm text-gray-500">No tags yet.</div>
-          </div>
-        </div>
-
-        <div class="mt-2 flex justify-end gap-3">
-          <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">Close</NButton>
+          <div v-else class="text-sm text-gray-500">No tags yet.</div>
         </div>
       </div>
     </div>
-  </NDialog>
-  </template>
+
+    <template #footer>
+      <div class="flex justify-end">
+        <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">Close</NButton>
+      </div>
+    </template>
+  </AppDialog>
+</template>
 
 <script setup lang="ts">
 interface Props {
@@ -162,13 +155,10 @@ const error = ref('')
 type TagLite = Pick<Tag, 'id' | 'name' | 'color'> & Partial<{ reason: 'popular' | 'keyword' }>
 
 const quoteTags = ref<TagLite[]>([])
-// Template-safe wrapper — always an array
 const safeQuoteTags = computed(() => Array.isArray(quoteTags.value) ? quoteTags.value : [])
 
-// Suggestion state
 const tagQuery = ref('')
 const tagSuggestions = ref<TagLite[]>([])
-// Template-safe wrapper — always an array
 const safeSuggestions = computed(() => Array.isArray(tagSuggestions.value) ? tagSuggestions.value : [])
 const showSuggestions = ref(false)
 const selectedIndex = ref(-1)
@@ -244,9 +234,9 @@ const loadInitialSuggestions = async () => {
 const loadQuoteTags = async () => {
   loading.value = true
   try {
-  const res: any = await $fetch(`/api/quotes/${props.quoteId}/tags`)
-  const payload = res?.data?.results ?? res?.results ?? res?.data ?? []
-  quoteTags.value = Array.isArray(payload) ? payload : []
+    const res: any = await $fetch(`/api/quotes/${props.quoteId}/tags`)
+    const payload = res?.data?.results ?? res?.results ?? res?.data ?? []
+    quoteTags.value = Array.isArray(payload) ? payload : []
   } catch (e) {
     console.error('Failed to load quote tags', e)
   } finally {
@@ -294,8 +284,6 @@ const scrollToSelected = () => {
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (!showSuggestions.value) return
-  // Defensive guards: ensure we're operating on an array here to avoid
-  // runtime TypeError when an unexpected shape arrives.
   const suggestionsArray = Array.isArray(tagSuggestions.value) ? tagSuggestions.value : []
   const total = suggestionsArray.length + (tagQuery.value && !suggestionsArray.some(s => s.name.toLowerCase() === tagQuery.value.toLowerCase()) ? 1 : 0)
   switch (event.key) {
@@ -334,7 +322,6 @@ const addExistingTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
       method: 'POST',
       body: { tagId: tag.id }
     })
-    // Optimistically update — be defensive when `quoteTags.value` isn't an array
     if (!Array.isArray(quoteTags.value)) {
       quoteTags.value = [tag]
     } else if (!quoteTags.value.some(t => t.id === tag.id)) {
@@ -392,7 +379,6 @@ const removeTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
   error.value = ''
   try {
     await $fetch(`/api/quotes/${props.quoteId}/tags/${tag.id}`, { method: 'DELETE' })
-    // Ensure .filter is only called on arrays
     if (Array.isArray(quoteTags.value)) {
       quoteTags.value = quoteTags.value.filter(t => t.id !== tag.id)
     } else {
@@ -400,7 +386,6 @@ const removeTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
     }
     emit('tags-updated')
 
-    // if we've fallen below threshold, re-open suggestions
     if (safeQuoteTags.value.length <= FEW_TAGS_THRESHOLD) {
       await loadInitialSuggestions()
       showSuggestions.value = !!tagSuggestions.value.length

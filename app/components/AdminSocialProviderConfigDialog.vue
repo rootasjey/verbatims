@@ -1,33 +1,41 @@
 <template>
-  <NDialog v-model:open="isOpen" scrollable>
-    <template #header>
-      <div class="p-2 space-y-1">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ platformLabels[selectedPlatform] || selectedPlatform }} provider settings
-        </h3>
-        <p class="text-sm text-gray-400 dark:text-gray-400">
-          Saved values are stored in KV and override env variables. Leave a field empty to fall back to env / default.
-        </p>
-      </div>
-    </template>
+  <AppDialog
+    v-model="isOpen"
+    :title="platformLabels[selectedPlatform] || selectedPlatform + ' provider settings'"
+    :submitting="saving"
+    :can-submit="editable"
+    scrollable
+    @submit="emit('save')"
+  >
+    <p class="text-sm text-gray-400 dark:text-gray-400 mb-6">
+      Saved values are stored in KV and override env variables. Leave a field empty to fall back to env / default.
+    </p>
 
-    <div v-if="editable" class="p-2 space-y-4">
-      <div class="space-y-2">
+    <div class="space-y-6">
+      <div>
         <NCheckbox
           v-model="form.enabled"
           :label="`Enable ${platformLabels[selectedPlatform] || selectedPlatform} posting`"
           checkbox="blue"
         />
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          Source: {{ sourceLabel('enabled') }}
-        </p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('enabled') }}</p>
       </div>
 
       <template v-if="selectedPlatform === 'x'">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">OAuth 2.0 User Access Token</label>
-          <NInput input="outline-gray" v-model="form.oauth2AccessToken" type="password" placeholder="x-user-access-token" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth2AccessToken') }}</p>
+        <div>
+          <NInput
+            input="outline-gray"
+            v-model="form.oauth2AccessToken"
+            type="password"
+            placeholder="x-user-access-token"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputLeadingWrapper: 'pl-1.5' }"
+          >
+            <template #leading>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 2.0 Access Token</NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth2AccessToken') }}</p>
         </div>
 
         <NCollapsible v-model:open="providerAdvancedOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
@@ -39,35 +47,35 @@
           </NCollapsibleTrigger>
           <NCollapsibleContent>
             <div class="space-y-3 px-2 pb-2 pt-4 mt-2 border-t b-dashed border-gray-200 dark:border-gray-700">
-              <NCheckbox
-                v-model="form.requireMedia"
-                label="Require image upload (fail if media upload fails)"
-                checkbox="blue"
-              />
+              <NCheckbox v-model="form.requireMedia" label="Require image upload (fail if media upload fails)" checkbox="blue" />
               <p class="text-xs text-gray-500 dark:text-gray-400">Require media source: {{ sourceLabel('requireMedia') }}</p>
 
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">OAuth 1.0a Consumer Key</label>
-                <NInput v-model="form.oauth1ConsumerKey" placeholder="consumer-key" />
-                <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1ConsumerKey') }}</p>
+              <div>
+                <NInput v-model="form.oauth1ConsumerKey" placeholder="consumer-key" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+                  <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Consumer Key</NBadge></template>
+                </NInput>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1ConsumerKey') }}</p>
               </div>
 
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">OAuth 1.0a Consumer Secret</label>
-                <NInput v-model="form.oauth1ConsumerSecret" type="password" placeholder="consumer-secret" />
-                <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1ConsumerSecret') }}</p>
+              <div>
+                <NInput v-model="form.oauth1ConsumerSecret" type="password" placeholder="consumer-secret" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
+                  <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Consumer Secret</NBadge></template>
+                </NInput>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1ConsumerSecret') }}</p>
               </div>
 
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">OAuth 1.0a Access Token</label>
-                <NInput v-model="form.oauth1AccessToken" type="password" placeholder="access-token" />
-                <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1AccessToken') }}</p>
+              <div>
+                <NInput v-model="form.oauth1AccessToken" type="password" placeholder="access-token" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
+                  <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Access Token</NBadge></template>
+                </NInput>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1AccessToken') }}</p>
               </div>
 
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">OAuth 1.0a Access Token Secret</label>
-                <NInput v-model="form.oauth1AccessTokenSecret" type="password" placeholder="access-token-secret" />
-                <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1AccessTokenSecret') }}</p>
+              <div>
+                <NInput v-model="form.oauth1AccessTokenSecret" type="password" placeholder="access-token-secret" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
+                  <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Token Secret</NBadge></template>
+                </NInput>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1AccessTokenSecret') }}</p>
               </div>
             </div>
           </NCollapsibleContent>
@@ -75,22 +83,23 @@
       </template>
 
       <template v-else-if="selectedPlatform === 'bluesky'">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Identifier</label>
-          <NInput v-model="form.identifier" placeholder="handle.bsky.social" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('identifier') }}</p>
+        <NInput v-model="form.identifier" placeholder="handle.bsky.social" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+          <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Identifier</NBadge></template>
+        </NInput>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('identifier') }}</p>
+
+        <div>
+          <NInput v-model="form.password" type="password" placeholder="bluesky-app-password" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
+            <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">App Password</NBadge></template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('password') }}</p>
         </div>
 
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">App Password</label>
-          <NInput v-model="form.password" type="password" placeholder="bluesky-app-password" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('password') }}</p>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Hashtags</label>
-          <NInput v-model="form.hashtags" placeholder="#quotes #verbatims" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('hashtags') }}</p>
+        <div>
+          <NInput v-model="form.hashtags" placeholder="#quotes #verbatims" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+            <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Hashtags</NBadge></template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('hashtags') }}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">Optional. Space or comma separated. Only the first 3 valid hashtags are used.</p>
         </div>
 
@@ -103,19 +112,21 @@
           </NCollapsibleTrigger>
           <NCollapsibleContent>
             <div class="space-y-2 px-2 pb-2 pt-2 mt-2 border-t b-dashed border-gray-200 dark:border-gray-700">
-              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">ATProto Service URL</label>
-              <NInput v-model="form.service" placeholder="https://bsky.social" />
-              <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('service') }}</p>
+              <NInput v-model="form.service" placeholder="https://bsky.social" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+                <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">ATProto Service URL</NBadge></template>
+              </NInput>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('service') }}</p>
             </div>
           </NCollapsibleContent>
         </NCollapsible>
       </template>
 
       <template v-else-if="selectedPlatform === 'pinterest'">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Access Token</label>
-          <NInput v-model="form.accessToken" type="password" placeholder="pinterest-access-token" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('accessToken') }}</p>
+        <div>
+          <NInput v-model="form.accessToken" type="password" placeholder="pinterest-access-token" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
+            <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Access Token</NBadge></template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('accessToken') }}</p>
         </div>
 
         <NCollapsible v-model:open="providerAccountOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
@@ -127,9 +138,10 @@
           </NCollapsibleTrigger>
           <NCollapsibleContent>
             <div class="space-y-2 px-2 pb-2 pt-2 mt-2 border-t b-dashed border-gray-200 dark:border-gray-700">
-              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Board ID</label>
-              <NInput v-model="form.boardId" placeholder="123456789012345678" />
-              <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('boardId') }}</p>
+              <NInput v-model="form.boardId" placeholder="123456789012345678" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+                <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Board ID</NBadge></template>
+              </NInput>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('boardId') }}</p>
             </div>
           </NCollapsibleContent>
         </NCollapsible>
@@ -143,17 +155,15 @@
           </NCollapsibleTrigger>
           <NCollapsibleContent>
             <div class="space-y-3 px-2 pb-2 pt-4 mt-2 border-t b-dashed border-gray-200 dark:border-gray-700">
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Base URL</label>
-                <NInput v-model="form.baseUrl" placeholder="https://api.pinterest.com" />
-                <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('baseUrl') }}</p>
-              </div>
+              <NInput v-model="form.baseUrl" placeholder="https://api.pinterest.com" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+                <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Base URL</NBadge></template>
+              </NInput>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('baseUrl') }}</p>
 
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">API Version</label>
-                <NInput v-model="form.apiVersion" placeholder="v5" />
-                <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('apiVersion') }}</p>
-              </div>
+              <NInput v-model="form.apiVersion" placeholder="v5" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
+                <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">API Version</NBadge></template>
+              </NInput>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('apiVersion') }}</p>
             </div>
           </NCollapsibleContent>
         </NCollapsible>
@@ -164,17 +174,10 @@
       </p>
     </div>
 
-    <template #footer>
-      <div class="p-2 flex justify-end gap-2">
-        <NButton btn="link-gray" :disabled="saving" @click="isOpen = false">
-          Cancel
-        </NButton>
-        <NButton btn="soft-blue" :loading="saving || loading" :disabled="!editable" @click="emit('save')">
-          Save settings
-        </NButton>
-      </div>
+    <template #submit>
+      <NButton btn="soft-blue" :loading="saving || loading" :disabled="!editable" @click="emit('save')">Save settings</NButton>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

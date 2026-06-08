@@ -1,13 +1,12 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'border-2 max-w-sm' }" :show-close="false">
-    <template #header>
-      <div class=" flex justify-between items-center mb-1 pb-2 border-b b-dashed border-gray-200">
-        <h3 class="font-title uppercase text-size-4 font-600">{{ dialogTitle }}</h3>
-        <NTooltip :content="'Close'">
-          <NButton btn="~" @click="closeDialog" size="xs" label="i-ph-x-bold" icon class="dialog-close-btn hover:scale-110 active:scale-99 transition-[transform,color] duration-300" />
-        </NTooltip>
-      </div>
-    </template>
+  <AppDialog
+    v-model="isOpen"
+    :title="dialogTitle"
+    :submit-text="submitButtonText"
+    :submitting="submitting"
+    :can-submit="!!form.name.trim()"
+    @submit="submitTag"
+  >
     <div ref="contentRef">
       <form @submit.prevent="submitTag" @keydown.ctrl.enter.prevent="submitTag" @keydown.meta.enter.prevent="submitTag" class="space-y-6">
         <div>
@@ -84,18 +83,8 @@
           </div>
         </div>
       </form>
-
-      <div class="mt-6 pt-3 border-t b-dashed border-gray-200 flex justify-end gap-3">
-        <NButton btn="link-gray" class="font-600" :disabled="submitting" @click="closeDialog">Cancel</NButton>
-        <PrimaryButton :disabled="!form.name.trim()" :loading="submitting" @click="submitTag" class="rounded-0 px-3">
-          <span class="flex items-center gap-2">
-            {{ submitButtonText }}
-            <NIcon v-if="!submitting" name="i-ph-check" class="inline-block" />
-          </span>
-        </PrimaryButton>
-      </div>
     </div>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

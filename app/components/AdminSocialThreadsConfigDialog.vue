@@ -1,37 +1,51 @@
 <template>
-  <NDialog v-model:open="isOpen" scrollable>
-    <template #header>
-      <div class="p-2 space-y-1">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Threads API credentials</h3>
-        <p class="text-sm text-gray-400 dark:text-gray-400">
-          Store a Threads access token and user ID in KV so the provider can post without environment variables.
-        </p>
-      </div>
-    </template>
+  <AppDialog
+    v-model="isOpen"
+    title="Threads API credentials"
+    submit-text="Save credentials"
+    :submitting="saving"
+    scrollable
+    @submit="emit('save')"
+  >
+    <p class="text-sm text-gray-400 dark:text-gray-400 mb-6">
+      Store a Threads access token and user ID in KV so the provider can post without environment variables.
+    </p>
 
-    <div class="p-2 space-y-4">
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Threads Access Token</label>
-        <NInput v-model="form.accessToken" type="password" placeholder="Leave blank to keep current token" />
-        <p class="text-xs text-gray-500 dark:text-gray-400">
+    <div class="space-y-6">
+      <div>
+        <NInput
+          v-model="form.accessToken"
+          type="password"
+          placeholder="Leave blank to keep current token"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputLeadingWrapper: 'pl-1.5' }"
+        >
+          <template #leading>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Threads Access Token</NBadge>
+          </template>
+        </NInput>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
           Current token: {{ state.hasAccessToken ? 'configured' : 'not configured' }} (source: {{ state.sources.accessToken }})
         </p>
       </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Threads User ID</label>
-        <NInput v-model="form.userId" placeholder="Leave empty to auto-detect from the token" />
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          Source: {{ state.sources.userId }}
-        </p>
-      </div>
+      <NInput
+        v-model="form.userId"
+        placeholder="Leave empty to auto-detect from the token"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Threads User ID</NBadge>
+        </template>
+      </NInput>
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-3">
           <p class="text-xs text-gray-500 dark:text-gray-400">Token status</p>
           <div class="mt-1 flex items-center gap-2">
             <NTooltip :content="state.hasAccessToken ? 'Token detected' : 'No token configured'">
-            <NBadge :badge="'solid-' + tokenStatusColor" size="xs">{{ tokenStatusLabel }}</NBadge>
+              <NBadge :badge="'solid-' + tokenStatusColor" size="xs">{{ tokenStatusLabel }}</NBadge>
             </NTooltip>
           </div>
         </div>
@@ -81,17 +95,10 @@
       </p>
     </div>
 
-    <template #footer>
-      <div class="flex justify-end gap-2">
-        <NButton btn="link-gray" :disabled="saving" @click="isOpen = false">
-          Cancel
-        </NButton>
-        <NButton btn="soft-blue" :loading="saving" @click="emit('save')">
-          Save credentials
-        </NButton>
-      </div>
+    <template #submit>
+      <NButton btn="soft-blue" :loading="saving" @click="emit('save')">Save credentials</NButton>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

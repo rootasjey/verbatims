@@ -1,8 +1,12 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-3xl' }">
+  <AppDialog
+    v-model="isOpen"
+    title="Download as image"
+    :submitting="downloading"
+    @submit="download"
+  >
     <div class="flex flex-col gap-5">
-      <div class="flex items-start gap-5">
-        <!-- Live Preview -->
+      <div class="flex items-start gap-5 flex-wrap">
         <div class="shrink-0">
           <div
             class="bg-transparent"
@@ -36,42 +40,36 @@
           </div>
         </div>
 
-        <!-- Options -->
-        <div class="flex-1">
-          <h3 class="font-title uppercase text-size-4 font-600">Download as image</h3>
+        <div class="flex-1 min-w-[200px] space-y-4">
+          <div>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Theme</label>
+            <NSelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
+          </div>
 
-          <div class="mt-4 space-y-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">Theme</label>
-              <NSelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
-            </div>
+          <div>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Size</label>
+            <NSelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
+            <p class="mt-1 text-xs text-gray-500">Export is always square; 1080px is good for most socials.</p>
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium mb-1">Size</label>
-              <NSelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
-              <p class="mt-1 text-xs text-gray-500">Export is always square; 1080px is good for most socials.</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium mb-1">Background</label>
-              <NSelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
-            </div>
+          <div>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Background</label>
+            <NSelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
           </div>
         </div>
       </div>
-
-      <div class="flex justify-end gap-2">
-        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="downloading">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="downloading" @click="download">Download</NButton>
-      </div>
     </div>
-  </NDialog>
+
+    <template #submit>
+      <NButton btn="soft-blue" :loading="downloading" @click="download">Download</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import { toPng } from 'html-to-image'
 import QuoteImageCard from './QuoteImageCard.vue'
-import { createApp, onMounted } from 'vue'
+import { createApp } from 'vue'
 import { ensurePilcrowFont, injectPilcrowInlineInto } from '~/utils/pilcrowFont'
 import { loadDownloadImageSettings, saveDownloadImageSettings } from '~/utils/downloadImageSettings'
 
@@ -90,7 +88,7 @@ const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 
 const previewRef = ref<HTMLElement | null>(null)
-const previewSize = 360 // visible preview bounds
+const previewSize = 360
 
 interface ThemeOption {
   label: string
@@ -124,7 +122,6 @@ const downloading = ref(false)
 const renderSize = computed(() => sizeOption.value.value)
 const previewScale = computed(() => Math.max(0.1, Math.min(3, previewSize / renderSize.value)))
 const close = () => { isOpen.value = false }
-// Inline @font-face + FontFace API ensuring capture by html-to-image
 const fontsReady = ref(false)
 
 watch(isOpen, async open => {
@@ -153,7 +150,6 @@ onMounted(async () => {
   }
 })
 
-// Persist changes as user tweaks controls
 watch(() => [form.theme.value, form.background.value, sizeOption.value.value] as const, ([theme, background, size]) => {
   saveDownloadImageSettings({ theme, background, size })
 })
@@ -163,7 +159,6 @@ const download = async () => {
   try {
     downloading.value = true
     await ensurePilcrowFont()
-    // Render an offscreen full-size card for best quality
     const container = document.createElement('div')
     container.style.position = 'fixed'
     container.style.left = '-10000px'
@@ -182,13 +177,10 @@ const download = async () => {
     })
     app.mount(mount)
 
-    // Wait next frame for render
     await new Promise(r => requestAnimationFrame(() => r(null)))
 
-    // Save settings on download as well (redundant safety)
     saveDownloadImageSettings({ theme: form.theme.value, background: form.background.value, size: renderSize.value })
 
-    // Prepend inline @font-face inside the rendered root so html-to-image captures it without scanning external CSS
     const rootEl = mount.firstElementChild as HTMLElement
     if (rootEl) await injectPilcrowInlineInto(rootEl)
 
@@ -196,11 +188,9 @@ const download = async () => {
       cacheBust: true,
       pixelRatio: 2,
       backgroundColor: form.background.value === 'transparent' ? 'transparent' : undefined,
-      // Avoid scanning cross-origin stylesheets; use FontFace-loaded font instead
       skipFonts: true,
     })
 
-    // Cleanup
     app.unmount()
     container.remove()
 

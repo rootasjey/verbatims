@@ -1,71 +1,56 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <div>
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold">Create New Collection</h3>
-      </div>
-
-      <NForm
-        :schema="schema"
-        :state="state"
-        @submit="createCollection"
-        class="space-y-4"
+  <AppDialog
+    v-model="isOpen"
+    title="Create New Collection"
+    submit-text="Create Collection"
+    :submitting="loading"
+    :can-submit="!!state.name.trim()"
+    @submit="createCollection"
+  >
+    <form @submit.prevent="createCollection" @keydown.ctrl.enter.prevent="createCollection" @keydown.meta.enter.prevent="createCollection" class="space-y-6">
+      <NInput
+        v-model="state.name"
+        placeholder="Enter collection name"
+        :disabled="loading"
+        required
+        autofocus
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
       >
-        <NFormGroup label="Collection Name" name="name" required>
-          <NInput
-            class="mt-2"
-            v-model="state.name"
-            placeholder="Enter collection name"
-            :disabled="loading"
-          />
-        </NFormGroup>
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Collection Name *
+          </NBadge>
+        </template>
+      </NInput>
 
-        <NFormGroup label="Description" name="description">
-          <NInput
-            class="mt-2"
-            type="textarea"
-            v-model="state.description"
-            placeholder="Optional description for your collection"
-            :rows="3"
-            :disabled="loading"
-          />
-        </NFormGroup>
+      <NInput
+        type="textarea"
+        v-model="state.description"
+        placeholder="Optional description for your collection"
+        :rows="3"
+        :disabled="loading"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Description
+          </NBadge>
+        </template>
+      </NInput>
 
-        <NFormGroup name="is_public">
-          <NCheckbox
-            v-model="state.is_public"
-            label="Make this collection public"
-            help="Public collections can be viewed by anyone"
-            :disabled="loading"
-          />
-        </NFormGroup>
-
-        <div>
-          <div class="flex justify-end gap-3">
-            <NButton
-              btn="ghost"
-              @click="closeModal"
-              :disabled="loading"
-            >
-              Cancel
-            </NButton>
-            <NButton
-              btn="soft-blue"
-              type="submit"
-              :loading="loading"
-            >
-              Create Collection
-            </NButton>
-          </div>
-        </div>
-      </NForm>
-    </div>
-  </NDialog>
+      <NCheckbox
+        v-model="state.is_public"
+        label="Make this collection public"
+        help="Public collections can be viewed by anyone"
+        :disabled="loading"
+      />
+    </form>
+  </AppDialog>
 </template>
 
 <script lang="ts" setup>
-import { z } from 'zod'
-
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -87,28 +72,18 @@ const state = ref({
   is_public: false
 })
 
-// Validation schema
-const schema = z.object({
-  name: z.string()
-    .min(2, 'Collection name must be at least 2 characters')
-    .max(100, 'Collection name must be less than 100 characters'),
-  description: z.string()
-    .max(500, 'Description must be less than 500 characters')
-    .optional(),
-  is_public: z.boolean().optional()
-})
-
 const createCollection = async () => {
   try {
     loading.value = true
-    
+
     const response = await $fetch('/api/collections', {
       method: 'POST',
       body: state.value
     })
-    
+
     emit('created', response.data)
-    closeModal()
+    isOpen.value = false
+    state.value = { name: '', description: '', is_public: false }
   } catch (error: any) {
     console.error('Failed to create collection:', error)
     useToast().toast({
@@ -121,24 +96,10 @@ const createCollection = async () => {
   }
 }
 
-const closeModal = () => {
-  isOpen.value = false
-  state.value = {
-    name: '',
-    description: '',
-    is_public: false
-  }
-}
-
-// Reset form when modal closes
-watch(isOpen, (newValue) => {
-  if (!newValue) {
+watch(isOpen, (open) => {
+  if (!open) {
     nextTick(() => {
-      state.value = {
-        name: '',
-        description: '',
-        is_public: false
-      }
+      state.value = { name: '', description: '', is_public: false }
     })
   }
 })

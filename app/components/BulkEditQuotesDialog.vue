@@ -1,19 +1,19 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <template #header>
-      <h3 class="text-lg font-semibold">Edit {{ selectedCount }} {{ selectedCount === 1 ? 'Draft' : 'Drafts' }}</h3>
-    </template>
-
-    <div class="space-y-5">
+  <AppDialog
+    v-model="isOpen"
+    :title="'Edit ' + selectedCount + ' ' + (selectedCount === 1 ? 'Draft' : 'Drafts')"
+    :submit-text="'Update ' + (selectedCount > 1 ? 'All' : '')"
+    :submitting="submitting"
+    :can-submit="canSubmit"
+    @submit="submitEdit"
+  >
+    <div class="space-y-6">
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Fields you leave untouched will keep their current values on all selected quotes.
       </p>
 
-      <!-- Language -->
       <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-          Language
-        </label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Language</label>
         <NSelect
           v-model="selectedLanguage"
           :items="languageItems"
@@ -24,23 +24,25 @@
         />
       </div>
 
-      <!-- Author -->
       <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-          Author
-        </label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Author</label>
         <div class="relative">
           <NInput
             ref="authorInputRef"
             v-model="authorQuery"
             placeholder="Search for an author or enter a new one..."
             :disabled="submitting"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
             @input="onAuthorInput"
             @focus="handleAuthorInputFocus"
             @blur="handleAuthorInputBlur"
             @keydown="handleAuthorKeydown"
-          />
-          <!-- Author Suggestions -->
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author</NBadge>
+            </template>
+          </NInput>
           <div
             v-if="showAuthorSuggestions && (authorSuggestions.length > 0 || authorQuery)"
             ref="authorSuggestionsRef"
@@ -77,45 +79,38 @@
               @click="onCreateNewAuthor"
               @mouseenter="selectedAuthorIndex = authorSuggestions.length"
             >
-              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                Create new author: "{{ authorQuery }}"
-              </div>
+              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">Create new author: "{{ authorQuery }}"</div>
             </div>
           </div>
         </div>
-        <!-- Selected Author Display -->
         <div v-if="form.selectedAuthor" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between">
           <div>
             <span class="text-sm font-medium">{{ form.selectedAuthor.name }}</span>
             <span v-if="form.selectedAuthor.job" class="text-xs text-gray-500 ml-2">{{ form.selectedAuthor.job }}</span>
           </div>
-          <NButton
-            size="xs"
-            btn="ghost"
-            icon
-            label="i-ph-x"
-            @click="onClearAuthor"
-          />
+          <NButton size="xs" btn="ghost" icon label="i-ph-x" @click="onClearAuthor" />
         </div>
       </div>
 
-      <!-- Reference -->
       <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-          Reference
-        </label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Reference</label>
         <div class="relative">
           <NInput
             ref="referenceInputRef"
             v-model="referenceQuery"
             placeholder="Search for a reference or enter a new one..."
             :disabled="submitting"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{ inputTrailingWrapper: 'pr-1.5' }"
             @input="onReferenceInput"
             @focus="handleReferenceInputFocus"
             @blur="handleReferenceInputBlur"
             @keydown="handleReferenceKeydown"
-          />
-          <!-- Reference Suggestions -->
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference</NBadge>
+            </template>
+          </NInput>
           <div
             v-if="showReferenceSuggestions && (referenceSuggestions.length > 0 || referenceQuery)"
             ref="referenceSuggestionsRef"
@@ -152,44 +147,31 @@
               @click="onCreateNewReference"
               @mouseenter="selectedReferenceIndex = referenceSuggestions.length"
             >
-              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                Create new reference: "{{ referenceQuery }}"
-              </div>
+              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">Create new reference: "{{ referenceQuery }}"</div>
             </div>
           </div>
         </div>
-        <!-- Selected Reference Display -->
         <div v-if="form.selectedReference" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between">
           <div>
             <span class="text-sm font-medium">{{ form.selectedReference.name }}</span>
             <span v-if="form.selectedReference.primary_type" class="text-xs text-gray-500 ml-2 capitalize">{{ form.selectedReference.primary_type.replace('_', ' ') }}</span>
           </div>
-          <NButton
-            size="xs"
-            btn="ghost"
-            icon
-            label="i-ph-x"
-            @click="onClearReference"
-          />
+          <NButton size="xs" btn="ghost" icon label="i-ph-x" @click="onClearReference" />
         </div>
       </div>
 
-      <!-- Summary -->
       <div v-if="summary.length > 0" class="bg-gray-50 dark:bg-gray-800/50 rounded-md p-3 text-sm space-y-1">
         <p class="font-medium text-gray-700 dark:text-gray-300">Changes to apply:</p>
         <p v-for="item in summary" :key="item" class="text-gray-600 dark:text-gray-400">{{ item }}</p>
       </div>
     </div>
 
-    <template #footer>
-      <div class="flex justify-end space-x-3">
-        <NButton btn="ghost-gray" @click="closeDialog" :disabled="submitting">Cancel</NButton>
-        <NButton btn="solid-indigo" class="px-6" :loading="submitting" :disabled="!canSubmit" @click="submitEdit">
-          Update {{ selectedCount > 1 ? 'All' : '' }}
-        </NButton>
-      </div>
+    <template #submit>
+      <NButton btn="solid-indigo" class="px-6" :loading="submitting" :disabled="!canSubmit" @click="submitEdit">
+        {{ 'Update ' + (selectedCount > 1 ? 'All' : '') }}
+      </NButton>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -247,26 +229,22 @@ const {
   resetForm
 } = useQuoteForm()
 
-// Track which fields the user has touched
 const languageTouched = ref(false)
 const authorTouched = ref(false)
 const referenceTouched = ref(false)
 
-// Language managed separately (not from useQuoteForm's form.language)
 const selectedLanguage = ref<{ label: string, value: string } | null>(null)
 const languageItems = computed(() => [
   { label: 'Do not change', value: '' },
   ...languageOptions
 ])
 
-// Watch for language changes
 watch(selectedLanguage, (opt) => {
   if (opt && opt.value !== '') {
     languageTouched.value = true
   }
 })
 
-// Wrapped selection handlers that mark field as touched
 const onSelectAuthor = (author: Author) => {
   selectAuthor(author)
   authorTouched.value = true
@@ -297,7 +275,6 @@ const onCreateNewReference = () => {
   referenceTouched.value = true
 }
 
-// Search input handlers
 const onAuthorInput = () => {
   void searchAuthors($fetch, { limit: 5, minLength: 1 })
 }
@@ -306,7 +283,6 @@ const onReferenceInput = () => {
   void searchReferences($fetch, { limit: 5, minLength: 1 })
 }
 
-// Summary of changes
 const summary = computed(() => {
   const items: string[] = []
   if (languageTouched.value && selectedLanguage.value?.value) {
@@ -330,7 +306,7 @@ const summary = computed(() => {
 })
 
 const canSubmit = computed(() => {
-  return (languageTouched.value && selectedLanguage.value?.value) || authorTouched.value || referenceTouched.value
+  return !!((languageTouched.value && selectedLanguage.value?.value) || authorTouched.value || referenceTouched.value)
 })
 
 const submitt = async () => {
@@ -383,7 +359,7 @@ const submitt = async () => {
     })
 
     emit('updated')
-    closeDialog()
+    isOpen.value = false
   } catch (error) {
     console.error('Failed to bulk edit quotes:', error)
     useToast().toast({
@@ -404,7 +380,6 @@ const closeDialog = () => {
   isOpen.value = false
 }
 
-// Click outside to close suggestions
 const handleClickOutside = (event: Event) => {
   const target = event.target as HTMLElement
   if (!target.closest('.relative')) {
@@ -415,7 +390,6 @@ const handleClickOutside = (event: Event) => {
   }
 }
 
-// Reset form when dialog opens/closes
 watch(isOpen, (open) => {
   if (open) {
     resetForm()

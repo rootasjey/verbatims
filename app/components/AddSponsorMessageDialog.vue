@@ -1,87 +1,130 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ dialogTitle }}</h3>
+  <AppDialog
+    v-model="isOpen"
+    :title="dialogTitle"
+    :submit-text="submitText"
+    :submitting="submitting"
+    :can-submit="!!form.message.trim()"
+    max-width="md"
+    @submit="submit"
+  >
+    <form @submit.prevent="submit" @keydown.ctrl.enter.prevent="submit" @keydown.meta.enter.prevent="submit" class="space-y-6">
+      <div>
+        <NInput
+          v-model="form.message"
+          placeholder="e.g., Check out our new collection!"
+          :disabled="submitting"
+          required
+          autofocus
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputTrailingWrapper: 'pr-1.5' }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+              Message *
+            </NBadge>
+          </template>
+        </NInput>
       </div>
 
-      <form @submit.prevent="submit" @keydown.ctrl.enter.prevent="submit" @keydown.meta.enter.prevent="submit" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Message *</label>
-          <NInput v-model="form.message" placeholder="e.g., Check out our new collection!" :disabled="submitting" required autofocus />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Leading Icon</label>
-            <NInput v-model="form.leading_icon" placeholder="i-ph-star" :disabled="submitting" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Trailing Icon</label>
-            <NInput v-model="form.trailing_icon" placeholder="i-ph-heart" :disabled="submitting" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">URL (optional)</label>
-          <NInput v-model="form.url" placeholder="https://example.com" :disabled="submitting" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Priority</label>
-            <NInput v-model.number="form.priority" type="number" placeholder="0" :disabled="submitting" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Type</label>
-            <NSelect
-              v-model="form.type"
-              :items="['internal', 'sponsored']"
-              size="sm"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Start Date</label>
-            <input
-              v-model="form.starts_at"
-              type="datetime-local"
-              class="input !inline-flex !w-full"
-              :disabled="submitting"
-              @change="onStartsAtChange"
-            >
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">End Date</label>
-            <input
-              v-model="form.ends_at"
-              type="datetime-local"
-              class="input !inline-flex !w-full"
-              :disabled="submitting"
-              @change="onEndsAtChange"
-            >
-          </div>
-        </div>
-
-        <div v-if="showActiveWarning" class="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-          <span class="i-ph-warning-circle w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-          <div class="text-sm text-amber-700 dark:text-amber-300">
-            <strong>{{ activeCount }} messages are currently active</strong> — only the top 10 by priority will appear on the site.
-            Consider lowering the priority or scheduling with future dates.
-          </div>
-        </div>
-
-        <NCheckbox v-model="form.is_active" label="Active" />
-      </form>
-
-      <div class="mt-6 flex justify-end gap-3">
-        <NButton btn="light:soft dark:soft-white" :disabled="submitting" @click="close">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="submitting" :disabled="!form.message.trim()" @click="submit">{{ submitText }}</NButton>
+      <div class="grid grid-cols-2 gap-3">
+        <NInput
+          v-model="form.leading_icon"
+          placeholder="i-ph-star"
+          :disabled="submitting"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputTrailingWrapper: 'pr-1.5' }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+              Leading Icon
+            </NBadge>
+          </template>
+        </NInput>
+        <NInput
+          v-model="form.trailing_icon"
+          placeholder="i-ph-heart"
+          :disabled="submitting"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputTrailingWrapper: 'pr-1.5' }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+              Trailing Icon
+            </NBadge>
+          </template>
+        </NInput>
       </div>
-    </div>
-  </NDialog>
+
+      <NInput
+        v-model="form.url"
+        placeholder="https://example.com"
+        :disabled="submitting"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            URL
+          </NBadge>
+        </template>
+      </NInput>
+
+      <div class="grid grid-cols-2 gap-3">
+        <NInput
+          v-model.number="form.priority"
+          type="number"
+          placeholder="0"
+          :disabled="submitting"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputTrailingWrapper: 'pr-1.5' }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+              Priority
+            </NBadge>
+          </template>
+        </NInput>
+        <div>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Type</label>
+          <NSelect v-model="form.type" :items="['internal', 'sponsored']" size="sm" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Start Date</label>
+          <input
+            v-model="form.starts_at"
+            type="datetime-local"
+            class="input !inline-flex !w-full"
+            :disabled="submitting"
+            @change="onStartsAtChange"
+          >
+        </div>
+        <div>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">End Date</label>
+          <input
+            v-model="form.ends_at"
+            type="datetime-local"
+            class="input !inline-flex !w-full"
+            :disabled="submitting"
+            @change="onEndsAtChange"
+          >
+        </div>
+      </div>
+
+      <div v-if="showActiveWarning" class="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+        <span class="i-ph-warning-circle w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div class="text-sm text-amber-700 dark:text-amber-300">
+          <strong>{{ activeCount }} messages are currently active</strong> — only the top 10 by priority will appear on the site.
+          Consider lowering the priority or scheduling with future dates.
+        </div>
+      </div>
+
+      <NCheckbox v-model="form.is_active" label="Active" />
+    </form>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -94,7 +137,6 @@ const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 const isEdit = computed(() => !!props.editMessage)
 const showActiveWarning = computed(() => {
-  // Warn if there are already 10+ active messages and the form is marked active
   return (props.activeCount || 0) >= 10 && form.is_active
 })
 const dialogTitle = computed(() => isEdit.value ? 'Edit Sponsor Message' : 'Create Sponsor Message')

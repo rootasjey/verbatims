@@ -1,199 +1,214 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <template #header>
-      <div class="border-b border-dashed border-gray-200 dark:border-gray-700 pb-2">
-        <h2 class="text-xl font-title uppercase text-gray-900 dark:text-white">{{ dialogTitle }}</h2>
-      </div>
-    </template>
-    
-    <div class="mt-2 overflow-auto max-h-[70vh] px-2">
-      <form @submit.prevent="submitAuthor" @keydown="handleFormKeydown" class="space-y-6">
-        <!-- Author Name -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Author Name *
-          </label>
-          <div class="relative">
-            <NInput
-              ref="nameInputRef"
-              v-model="nameQuery"
-              placeholder="Enter author name..."
-              :disabled="submitting"
-              @input="searchAuthors"
-              @focus="handleNameInputFocus"
-              @blur="handleNameInputBlur"
-              @keydown="handleNameKeydown"
-              required
-              autofocus
-            />
-            <!-- Author Name Suggestions -->
+  <AppDialog
+    v-model="isOpen"
+    :title="dialogTitle"
+    :submit-text="submitButtonText"
+    :submitting="submitting"
+    :can-submit="!!nameQuery.trim()"
+    max-width="md"
+    scrollable
+    @submit="submitAuthor"
+  >
+    <form @submit.prevent="submitAuthor" @keydown.ctrl.enter.prevent="submitAuthor" @keydown.meta.enter.prevent="submitAuthor" class="space-y-6">
+      <div>
+        <div class="relative">
+          <NInput
+            ref="nameInputRef"
+            v-model="nameQuery"
+            placeholder="Enter author name..."
+            :disabled="submitting"
+            required
+            autofocus
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{
+              inputTrailingWrapper: 'pr-1.5'
+            }"
+            @input="searchAuthors"
+            @focus="handleNameInputFocus"
+            @blur="handleNameInputBlur"
+            @keydown="handleNameKeydown"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Author Name *
+              </NBadge>
+            </template>
+          </NInput>
+          <div
+            v-if="showNameSuggestions && (nameSuggestions.length > 0 || nameQuery)"
+            ref="nameSuggestionsRef"
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-auto"
+            tabindex="-1"
+            @blur="handleNameSuggestionsBlur"
+            @keydown="handleNameKeydown"
+          >
             <div
-              v-if="showNameSuggestions && (nameSuggestions.length > 0 || nameQuery)"
-              ref="nameSuggestionsRef"
-              class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-auto"
-              tabindex="-1"
-              @blur="handleNameSuggestionsBlur"
-              @keydown="handleNameKeydown"
+              v-for="(author, index) in nameSuggestions"
+              :key="author.id"
+              :class="[
+                'px-3 py-2 cursor-pointer flex items-center space-x-2',
+                selectedNameIndex === index
+                  ? 'bg-blue-100 dark:bg-blue-900/50'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+              ]"
+              @click="selectExistingAuthor(author)"
+              @mouseenter="selectedNameIndex = index"
             >
-              <div
-                v-for="(author, index) in nameSuggestions"
-                :key="author.id"
-                :class="[
-                  'px-3 py-2 cursor-pointer flex items-center space-x-2',
-                  selectedNameIndex === index
-                    ? 'bg-blue-100 dark:bg-blue-900/50'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                ]"
-                @click="selectExistingAuthor(author)"
-                @mouseenter="selectedNameIndex = index"
-              >
-                <div class="flex-1">
-                  <div class="text-sm font-medium">{{ author.name }}</div>
-                  <div v-if="author.job" class="text-xs text-gray-500">{{ author.job }}</div>
-                </div>
+              <div class="flex-1">
+                <div class="text-sm font-medium">{{ author.name }}</div>
+                <div v-if="author.job" class="text-xs text-gray-500">{{ author.job }}</div>
               </div>
-              <div
-                v-if="nameQuery && !nameSuggestions.some(a => a.name.toLowerCase() === nameQuery.toLowerCase())"
-                :class="[
-                  'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
-                  selectedNameIndex === nameSuggestions.length
-                    ? 'bg-blue-100 dark:bg-blue-900/50'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                ]"
-                @click="useNewAuthorName"
-                @mouseenter="selectedNameIndex = nameSuggestions.length"
-              >
-                <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  Create new author: "{{ nameQuery }}"
-                </div>
+            </div>
+            <div
+              v-if="nameQuery && !nameSuggestions.some(a => a.name.toLowerCase() === nameQuery.toLowerCase())"
+              :class="[
+                'px-3 py-2 cursor-pointer border-t border-gray-200 dark:border-gray-700',
+                selectedNameIndex === nameSuggestions.length
+                  ? 'bg-blue-100 dark:bg-blue-900/50'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+              ]"
+              @click="useNewAuthorName"
+              @mouseenter="selectedNameIndex = nameSuggestions.length"
+            >
+              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
+                Create new author: "{{ nameQuery }}"
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Job/Title -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+      <NInput
+        v-model="form.job"
+        placeholder="e.g., Writer, Philosopher, Actor..."
+        :disabled="submitting"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{
+          inputTrailingWrapper: 'pr-1.5'
+        }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
             Job/Title
-          </label>
-          <NInput
-            v-model="form.job"
-            placeholder="e.g., Writer, Philosopher, Actor..."
-            :disabled="submitting"
-          />
-        </div>
+          </NBadge>
+        </template>
+      </NInput>
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <NInput
+          v-model="form.birth_date"
+          type="date"
+          :disabled="submitting"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{
+            inputTrailingWrapper: 'pr-1.5'
+          }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
               Birth Date
-            </label>
-            <NInput
-              v-model="form.birth_date"
-              type="date"
-              :disabled="submitting"
-            />
-          </div>
+            </NBadge>
+          </template>
+        </NInput>
 
+        <div>
+          <NInput
+            v-model="form.death_date"
+            type="date"
+            :disabled="submitting"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{
+              inputTrailingWrapper: 'pr-1.5'
+            }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Death Date
+              </NBadge>
+            </template>
+          </NInput>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Leave empty if the author is still alive
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <NInput
+          v-model="form.image_url"
+          type="url"
+          placeholder="https://example.com/image.jpg"
+          :disabled="submitting"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{
+            inputTrailingWrapper: 'pr-1.5'
+          }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+              Avatar/Image URL
+            </NBadge>
+          </template>
+        </NInput>
+
+        <div class="mt-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3">
+          <div class="flex items-center gap-3">
+            <div class="h-14 w-14 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+              <img
+                v-if="authorPreviewUrl && !authorPreviewErrored"
+                :src="authorPreviewUrl"
+                alt="Author avatar preview"
+                class="h-full w-full object-cover"
+                @error="authorPreviewErrored = true"
+              />
+              <NIcon v-else name="i-ph-user" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-gray-900 dark:text-white">Avatar preview</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ authorPreviewUrl && !authorPreviewErrored ? 'Image loaded from the provided URL.' : 'Paste an accessible image URL to preview it here.' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 px-4 py-3">
+        <label class="flex items-center justify-between gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-              Death Date
-            </label>
-            <NInput
-              v-model="form.death_date"
-              type="date"
-              :disabled="submitting"
-            />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Leave empty if the author is still alive
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              This is a fictional character
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Enable this for invented people or characters from fictional worlds.
             </p>
           </div>
-        </div>
-
-        <!-- Avatar/Image URL -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Avatar/Image URL
-          </label>
-          <NInput
-            v-model="form.image_url"
-            type="url"
-            placeholder="https://example.com/image.jpg"
+          <NSwitch
+            v-model="form.is_fictional"
             :disabled="submitting"
           />
-
-          <div class="mt-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3">
-            <div class="flex items-center gap-3">
-              <div class="h-14 w-14 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-                <img
-                  v-if="authorPreviewUrl && !authorPreviewErrored"
-                  :src="authorPreviewUrl"
-                  alt="Author avatar preview"
-                  class="h-full w-full object-cover"
-                  @error="authorPreviewErrored = true"
-                />
-                <NIcon v-else name="i-ph-user" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">Avatar preview</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ authorPreviewUrl && !authorPreviewErrored ? 'Image loaded from the provided URL.' : 'Paste an accessible image URL to preview it here.' }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Is Fictional -->
-        <div class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 px-4 py-3">
-          <label class="flex items-center justify-between gap-4">
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                This is a fictional character
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                Enable this for invented people or characters from fictional worlds.
-              </p>
-            </div>
-            <NSwitch
-              v-model="form.is_fictional"
-              :disabled="submitting"
-            />
-          </label>
-        </div>
-
-        <!-- Description -->
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Description
-          </label>
-          <NInput
-            type="textarea"
-            v-model="form.description"
-            placeholder="Brief biographical description..."
-            :rows="6"
-            :disabled="submitting"
-          />
-        </div>
-      </form>
-    </div>
-
-    <template #footer>
-      <div class="flex justify-end space-x-3">
-        <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">
-          Cancel
-        </NButton>
-        <NButton
-          btn="solid-blue"
-          :loading="submitting"
-          @click="submitAuthor"
-          :disabled="!nameQuery.trim() || submitting"
-        >
-          {{ submitButtonText }}
-        </NButton>
+        </label>
       </div>
-    </template>
-  </NDialog>
+
+      <NInput
+        type="textarea"
+        v-model="form.description"
+        placeholder="Brief biographical description..."
+        :rows="6"
+        :disabled="submitting"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{
+          inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial'
+        }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Description
+          </NBadge>
+        </template>
+      </NInput>
+    </form>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -220,7 +235,6 @@ const isEditMode = computed(() => !!props.editAuthor)
 const dialogTitle = computed(() => isEditMode.value ? 'Edit Author' : 'Add New Author')
 const submitButtonText = computed(() => isEditMode.value ? 'Update Author' : 'Create Author')
 
-// Form state
 const form = ref({
   name: '',
   job: '',
@@ -231,16 +245,13 @@ const form = ref({
   description: ''
 })
 
-// Search state
 const nameQuery = ref('')
 const nameSuggestions = ref<Author[]>([])
 const showNameSuggestions = ref(false)
 const submitting = ref(false)
 
-// Keyboard navigation state
 const selectedNameIndex = ref(-1)
 
-// Template refs
 const nameInputRef = ref()
 const nameSuggestionsRef = ref()
 const authorPreviewErrored = ref(false)
@@ -250,7 +261,6 @@ const authorPreviewUrl = computed(() => {
   return value || ''
 })
 
-// Search debounced function
 const searchAuthors = useDebounceFn(async () => {
   if (!nameQuery.value.trim() || nameQuery.value.trim().length < 2) {
     nameSuggestions.value = []
@@ -268,7 +278,6 @@ const searchAuthors = useDebounceFn(async () => {
   }
 }, 300)
 
-// Name input focus and keyboard navigation functions
 const handleNameInputFocus = () => {
   showNameSuggestions.value = true
   selectedNameIndex.value = -1
@@ -331,16 +340,6 @@ const handleNameKeydown = (event: KeyboardEvent) => {
   }
 }
 
-const handleFormKeydown = (event: KeyboardEvent) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-    event.preventDefault()
-    if (nameQuery.value.trim() && !submitting.value) {
-      submitAuthor()
-    }
-  }
-}
-
-// Auto-scroll function for keyboard navigation
 const scrollToSelectedNameItem = () => {
   nextTick(() => {
     if (selectedNameIndex.value >= 0 && nameSuggestionsRef.value) {
@@ -357,9 +356,7 @@ const scrollToSelectedNameItem = () => {
   })
 }
 
-// Selection functions
 const selectExistingAuthor = (author: Author) => {
-  // Fill form with existing author data for editing
   form.value = {
     name: author.name,
     job: author.job || '',
@@ -420,7 +417,6 @@ watch(() => form.value.image_url, () => {
   authorPreviewErrored.value = false
 })
 
-// Watch for editAuthor changes to initialize form
 watch(() => props.editAuthor, (newAuthor) => {
   if (newAuthor) {
     initializeFormForEdit()
@@ -434,7 +430,6 @@ const submitAuthor = async () => {
 
   submitting.value = true
   try {
-    // Update form name with current query
     form.value.name = nameQuery.value.trim()
 
     const payload: CreateAuthorData | UpdateAuthorData = {
@@ -448,7 +443,6 @@ const submitAuthor = async () => {
     }
 
     if (isEditMode.value && props.editAuthor) {
-      // Update existing author
       await $fetch(`/api/admin/authors/${props.editAuthor.id}`, {
         method: 'PUT',
         body: payload
@@ -462,7 +456,6 @@ const submitAuthor = async () => {
 
       emit('author-updated')
     } else {
-      // Create new author
       await $fetch('/api/admin/authors', {
         method: 'POST',
         body: payload
@@ -490,7 +483,6 @@ const submitAuthor = async () => {
   }
 }
 
-// Click outside to close suggestions
 const handleClickOutside = (event: Event) => {
   const target = event.target as HTMLElement
   if (!target.closest('.relative')) {
