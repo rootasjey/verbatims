@@ -1,27 +1,18 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <div>
-      <h3 class="text-lg font-semibold">Delete Draft</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        Are you sure you want to delete this draft? This action cannot be undone.
-      </p>
-    </div>
-    <template #footer>
-      <div class="flex justify-end space-x-3">
-        <NButton btn="link" @click="closeDialog">
-          Cancel
-        </NButton>
-        <NButton
-          btn="solid-red"
-          :loading="deleting"
-          class="px-8"
-          @click="emit('delete-draft')"
-        >
-          Delete
-        </NButton>
-      </div>
+  <AppDialog
+    v-model="isOpen"
+    title="Delete Draft"
+    :submitting="deleting"
+    @submit="emit('delete-draft')"
+  >
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      Are you sure you want to delete this draft? This action cannot be undone.
+    </p>
+
+    <template #submit>
+      <NButton btn="soft-red" class="px-8" :loading="deleting" @click="emit('delete-draft')">Delete</NButton>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -42,8 +33,4 @@ const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v)
 })
-
-const closeDialog = () => {
-  isOpen.value = false
-}
 </script>

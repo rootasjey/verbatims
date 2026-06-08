@@ -1,9 +1,11 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <template #header>
-      <h3 class="text-lg font-semibold">Delete {{ selectedCount }} {{ selectedCount === 1 ? 'Draft' : 'Drafts' }}</h3>
-    </template>
-
+  <AppDialog
+    v-model="isOpen"
+    :title="'Delete ' + selectedCount + ' ' + (selectedCount === 1 ? 'Draft' : 'Drafts')"
+    submit-text="Delete All"
+    :submitting="deleting"
+    @submit="confirmDeletion"
+  >
     <div class="space-y-4">
       <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-3 flex items-start">
         <NIcon name="i-ph-warning" class="w-5 h-5 text-indigo-600 mt-0.5 mr-2" />
@@ -26,13 +28,10 @@
       </div>
     </div>
 
-    <template #footer>
-      <div class="flex justify-end space-x-3">
-        <NButton btn="ghost-gray" @click="closeDialog" :disabled="deleting">Cancel</NButton>
-        <NButton btn="solid-indigo" class="px-6" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
-      </div>
+    <template #submit>
+      <NButton btn="soft-red" class="px-6" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -58,13 +57,8 @@ const isOpen = computed({
 const selectedCount = computed(() => props.selectedQuotes.length)
 
 const quotesToShow = computed(() => {
-  // Show up to 3 quotes for preview
   return props.selectedQuotes.slice(0, 3)
 })
-
-const closeDialog = () => {
-  isOpen.value = false
-}
 
 const confirmDeletion = () => {
   emit('bulk-delete')

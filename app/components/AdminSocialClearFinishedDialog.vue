@@ -1,24 +1,20 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <NCard class="shadow-none border-none">
-      <template #header>
-        <h3 class="text-lg font-semibold text-red-600">Clear finished queue items</h3>
-      </template>
-      <div class="space-y-4">
-        <p class="text-gray-600 dark:text-gray-400">
-          Remove all items with status <em>posted</em> or <em>failed</em> for
-          {{ platformLabels[selectedPlatform] || selectedPlatform }}? This will
-          keep queued and processing entries intact.
-        </p>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <NButton btn="text-gray-600" @click="isOpen = false">Cancel</NButton>
-          <NButton btn="link-red" :loading="loading" @click="emit('confirm')">Clear finished</NButton>
-        </div>
-      </template>
-    </NCard>
-  </NDialog>
+  <AppDialog
+    v-model="isOpen"
+    title="Clear finished queue items"
+    :submitting="loading"
+    @submit="emit('confirm')"
+  >
+    <p class="text-gray-600 dark:text-gray-400">
+      Remove all items with status <em>posted</em> or <em>failed</em> for
+      {{ platformLabels[selectedPlatform] || selectedPlatform }}? This will
+      keep queued and processing entries intact.
+    </p>
+
+    <template #submit>
+      <NButton btn="soft-red" :loading="loading" @click="emit('confirm')">Clear finished</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

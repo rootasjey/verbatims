@@ -1,137 +1,93 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <template #header>
-      <div class="flex items-center gap-3">
-        <h3 class="text-size-4">Edit <u class="decoration-dashed">{{ collection.name }}</u> Collection</h3>
-      </div>
-    </template>
+  <AppDialog
+    v-model="isOpen"
+    :title="dialogTitle"
+    submit-text="Update Collection"
+    :submitting="loading"
+    :can-submit="!!state.name.trim()"
+    @submit="updateCollection"
+  >
+    <form @submit.prevent="updateCollection" @keydown.ctrl.enter.prevent="updateCollection" @keydown.meta.enter.prevent="updateCollection" class="space-y-6">
+      <NInput
+        v-model="state.name"
+        placeholder="Enter collection name"
+        :disabled="loading"
+        required
+        autofocus
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Collection Name *
+          </NBadge>
+        </template>
+      </NInput>
 
-    <NForm
-      :schema="schema"
-      :state="state"
-      @submit="updateCollection"
-      class="space-y-4 mb-8"
-    >
-      <NFormGroup label="Collection Name" name="name" required>
-        <NInput
-          v-model="state.name"
-          placeholder="Enter collection name"
-          :disabled="loading"
-        />
-      </NFormGroup>
+      <NInput
+        type="textarea"
+        v-model="state.description"
+        placeholder="Optional description for your collection"
+        :rows="3"
+        :disabled="loading"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Description
+          </NBadge>
+        </template>
+      </NInput>
 
-      <NFormGroup label="Description" name="description">
-        <NInput
-          type="textarea"
-          v-model="state.description"
-          placeholder="Optional description for your collection"
-          :rows="3"
-          :disabled="loading"
-        />
-      </NFormGroup>
-
-      <NFormGroup name="is_public">
-        <NCheckbox
-          v-model="state.is_public"
-          label="Make this collection public"
-          help="Public collections can be viewed by anyone"
-          :disabled="loading"
-        />
-      </NFormGroup>
-    </NForm>
-
-    <template #footer>
-      <div class="flex justify-end gap-3">
-        <NButton
-          btn="text-gray"
-          @click="closeModal"
-          :disabled="loading"
-        >
-          Cancel
-        </NButton>
-        <NButton
-          btn="solid-black"
-          type="submit"
-          :loading="loading"
-        >
-          Update Collection
-        </NButton>
-      </div>
-    </template>
-  </NDialog>
+      <NCheckbox
+        v-model="state.is_public"
+        label="Make this collection public"
+        help="Public collections can be viewed by anyone"
+        :disabled="loading"
+      />
+    </form>
+  </AppDialog>
 </template>
 
 <script setup>
-import { z } from 'zod'
-
 const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false
-  },
-  collection: {
-    type: Object,
-    default: null
-  }
+  modelValue: { type: Boolean, default: false },
+  collection: { type: Object, default: null }
 })
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
-// Modal state
+const dialogTitle = computed(() => `Edit "${props.collection?.name || ''}" Collection`)
+
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-// Form state
 const loading = ref(false)
-const state = ref({
-  name: '',
-  description: '',
-  is_public: false
-})
+const state = ref({ name: '', description: '', is_public: false })
 
-// Validation schema
-const schema = z.object({
-  name: z.string()
-    .min(2, 'Collection name must be at least 2 characters')
-    .max(100, 'Collection name must be less than 100 characters'),
-  description: z.string()
-    .max(500, 'Description must be less than 500 characters')
-    .optional(),
-  is_public: z.boolean().optional()
-})
-
-// Update collection
 const updateCollection = async () => {
   if (!props.collection) return
-  
+
   try {
     loading.value = true
-    
+
     const response = await $fetch(`/api/collections/${props.collection.id}`, {
       method: 'PUT',
       body: state.value
     })
-    
+
     emit('updated', response.data)
-    closeModal()
-    
-    // TODO: Show success toast
+    isOpen.value = false
   } catch (error) {
     console.error('Failed to update collection:', error)
-    // TODO: Show error toast
   } finally {
     loading.value = false
   }
 }
 
-// Close modal
-const closeModal = () => {
-  isOpen.value = false
-}
-
-// Initialize form when collection changes
 watch(() => props.collection, (newCollection) => {
   if (newCollection) {
     state.value = {
@@ -142,9 +98,8 @@ watch(() => props.collection, (newCollection) => {
   }
 }, { immediate: true })
 
-// Reset form when modal opens
-watch(isOpen, (newValue) => {
-  if (newValue && props.collection) {
+watch(isOpen, (open) => {
+  if (open && props.collection) {
     state.value = {
       name: props.collection.name || '',
       description: props.collection.description || '',

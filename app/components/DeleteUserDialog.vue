@@ -1,34 +1,33 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-2">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">Delete User</h3>
-      </div>
-
-      <div class="px-1 space-y-4">
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-          <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
-          <div class="text-sm text-red-800 dark:text-red-300">
-            <p class="font-medium">This action is permanent.</p>
-            <p class="mt-1">You're about to delete the user <span class="font-semibold">{{ user?.name }}</span>.</p>
-          </div>
-        </div>
-
-        <div class="text-sm text-gray-700 dark:text-gray-300">
-          <ul class="list-disc ml-5 space-y-1">
-            <li>The user will lose access to their account.</li>
-            <li>Quotes authored by the user will remain linked to their user ID.</li>
-            <li>You cannot delete your own account, nor the last remaining admin.</li>
-          </ul>
+  <AppDialog
+    v-model="isOpen"
+    title="Delete User"
+    submit-text="Delete User"
+    :submitting="submitting"
+    @submit="confirm"
+  >
+    <div class="space-y-4">
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
+        <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
+        <div class="text-sm text-red-800 dark:text-red-300">
+          <p class="font-medium">This action is permanent.</p>
+          <p class="mt-1">You're about to delete the user <span class="font-semibold">{{ user?.name }}</span>.</p>
         </div>
       </div>
 
-      <div class="mt-6 flex justify-end gap-3">
-        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
-        <NButton btn="soft-red" :loading="submitting" @click="confirm">Delete User</NButton>
+      <div class="text-sm text-gray-700 dark:text-gray-300">
+        <ul class="list-disc ml-5 space-y-1">
+          <li>The user will lose access to their account.</li>
+          <li>Quotes authored by the user will remain linked to their user ID.</li>
+          <li>You cannot delete your own account, nor the last remaining admin.</li>
+        </ul>
       </div>
     </div>
-  </NDialog>
+
+    <template #submit>
+      <NButton btn="soft-red" :loading="submitting" @click="confirm">Delete User</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -41,8 +40,6 @@ const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 const user = computed(() => props.user)
 const submitting = ref(false)
-
-const close = () => { isOpen.value = false }
 
 const confirm = async () => {
   if (!user.value) return

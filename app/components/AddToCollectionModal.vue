@@ -1,149 +1,108 @@
 <template>
-  <NDialog v-model:open="isOpen">
-    <NCard class="border-none shadow-none">
-      <template #header>
-        <h3 class="text-lg font-semibold">Add to Collection</h3>
-      </template>
-
-      <div class="space-y-4">
-        <!-- Create New Collection -->
-        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <NCollapsible v-model:open="createOpen">
-            <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
-              <NButton btn="ghost-gray" size="xs">
-                <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
-                <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
-              </NButton>
-            </NCollapsibleTrigger>
-            <NCollapsibleContent>
-              <div class="m-2 mt-3 space-y-3">
-                <NInput
-                  v-model="newCollectionName"
-                  placeholder="Collection name"
+  <AppDialog
+    v-model="isOpen"
+    title="Add to Collection"
+    hide-footer
+    @close="closeModal"
+  >
+    <div class="space-y-4">
+      <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <NCollapsible v-model:open="createOpen">
+          <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
+            <NButton btn="ghost-gray" size="xs">
+              <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
+              <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
+            </NButton>
+          </NCollapsibleTrigger>
+          <NCollapsibleContent>
+            <div class="m-2 mt-3 space-y-3">
+              <NInput
+                v-model="newCollectionName"
+                placeholder="Collection name"
+                :disabled="creating"
+              />
+              <NInput
+                type="textarea"
+                v-model="newCollectionDescription"
+                placeholder="Optional description"
+                :rows="2"
+                :disabled="creating"
+              />
+              <div class="flex items-center justify-between">
+                <NCheckbox
+                  v-model="newCollectionPublic"
+                  label="Make public"
                   :disabled="creating"
                 />
-                <NInput
-                  type="textarea"
-                  v-model="newCollectionDescription"
-                  placeholder="Optional description"
-                  :rows="2"
-                  :disabled="creating"
-                />
-                <div class="flex items-center justify-between">
-                  <NCheckbox
-                    v-model="newCollectionPublic"
-                    label="Make public"
-                    :disabled="creating"
-                  />
-                  <NButton
-                    size="xs"
-                    :loading="creating"
-                    :disabled="!newCollectionName.trim() || creating"
-                    @click="createAndAddToCollection"
-                  >
-                    Create & Add
-                  </NButton>
-                </div>
+                <NButton
+                  size="xs"
+                  :loading="creating"
+                  :disabled="!newCollectionName.trim() || creating"
+                  @click="createAndAddToCollection"
+                >
+                  Create & Add
+                </NButton>
               </div>
-            </NCollapsibleContent>
-          </NCollapsible>
+            </div>
+          </NCollapsibleContent>
+        </NCollapsible>
+      </div>
+
+      <div>
+        <h4 class="font-medium text-gray-900 dark:text-white mb-3">Your Collections</h4>
+
+        <div v-if="loading" class="space-y-2">
+          <div v-for="i in 3" :key="i" class="animate-pulse">
+            <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
+          </div>
         </div>
 
-        <!-- Existing Collections -->
-        <div>
-          <h4 class="font-medium text-gray-900 dark:text-white mb-3">Your Collections</h4>
-          
-          <!-- Loading State -->
-          <div v-if="loading" class="space-y-2">
-            <div v-for="i in 3" :key="i" class="animate-pulse">
-              <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div v-else-if="collections.length > 0" class="space-y-2 max-h-64 overflow-y-auto">
+          <button
+            v-for="collection in collections"
+            :key="collection.id"
+            type="button"
+            class="w-full flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+            :class="{ 'opacity-50 pointer-events-none': addingToCollections.has(collection.id) }"
+            @click="addToCollection(collection)"
+          >
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
+                <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">Public</NBadge>
+              </div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} quotes</p>
             </div>
-          </div>
+            <div class="mr-2">
+              <NIcon v-if="!addingToCollections.has(collection.id)" name="i-ph-plus-bold" class="w-4 h-4 text-gray-400" />
+              <NIcon v-else name="i-ph-spinner" class="w-4 h-4 animate-spin text-primary-500" />
+            </div>
+          </button>
+        </div>
 
-          <!-- Collections List -->
-          <div v-else-if="collections.length > 0" class="space-y-2 max-h-64 overflow-y-auto">
-            <button
-              v-for="collection in collections"
-              :key="collection.id"
-              type="button"
-              class="w-full flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
-              :class="{ 'opacity-50 pointer-events-none': addingToCollections.has(collection.id) }"
-              @click="addToCollection(collection)"
-            >
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                  <NBadge
-                    v-if="collection.is_public"
-                    color="green"
-                    badge="soft"
-                    size="xs"
-                  >
-                    Public
-                  </NBadge>
-                </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ collection.quotes_count }} quotes
-                </p>
-              </div>
-              <div class="mr-2">
-                <NIcon
-                  v-if="!addingToCollections.has(collection.id)"
-                  name="i-ph-plus-bold"
-                  class="w-4 h-4 text-gray-400"
-                />
-                <NIcon
-                  v-else
-                  name="i-ph-spinner"
-                  class="w-4 h-4 animate-spin text-primary-500"
-                />
-              </div>
-            </button>
-          </div>
-
-          <!-- Empty State -->
-          <div v-else class="text-center py-8">
-            <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p class="text-gray-500 dark:text-gray-400 mb-4">
-              You don't have any collections yet
-            </p>
-            <NButton
-              size="sm"
-              btn="soft"
-              @click="createOpen = true"
-            >
-              Create Your First Collection
-            </NButton>
-          </div>
+        <div v-else class="text-center py-8">
+          <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p class="text-gray-500 dark:text-gray-400 mb-4">You don't have any collections yet</p>
+          <NButton size="sm" btn="soft" @click="createOpen = true">Create Your First Collection</NButton>
         </div>
       </div>
-    </NCard>
+    </div>
 
     <template #footer>
       <div class="flex justify-end">
-        <NButton
-          btn="solid-gray"
-          @click="closeModal"
-        >
-          Close
-        </NButton>
+        <NButton btn="link-gray" @click="closeModal">Close</NButton>
       </div>
     </template>
-  </NDialog>
+  </AppDialog>
 </template>
 
 <script lang="ts" setup>
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false
-  },
-  quote: {
-    type: Object,
-    required: true
-  }
-})
+interface Props {
+  modelValue: boolean
+  quote: { id: number }
+}
 
+const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'added'])
 
 const isOpen = computed({
@@ -163,11 +122,10 @@ const newCollectionPublic = ref(false)
 const loadCollections = async () => {
   try {
     loading.value = true
-  // The API returns { data: { results: [...] }, pagination: {...} }
-  const response: any = await $fetch('/api/dashboard/collections', {
+    const response: any = await $fetch('/api/dashboard/collections', {
       query: { limit: 50 }
     })
-  collections.value = (response?.data?.results ?? response?.data ?? []) as CollectionWithStats[]
+    collections.value = (response?.data?.results ?? response?.data ?? []) as CollectionWithStats[]
   } catch (error) {
     console.error('Failed to load collections:', error)
   } finally {
@@ -186,13 +144,13 @@ const createAndAddToCollection = async () => {
     const createResponse = await $fetch<{ success: boolean; data: CollectionWithStats }>(
       '/api/collections',
       {
-      method: 'POST',
-      body: {
-        name: newCollectionName.value.trim(),
-        description: newCollectionDescription.value.trim() || null,
-        is_public: newCollectionPublic.value
-      }
-    })
+        method: 'POST',
+        body: {
+          name: newCollectionName.value.trim(),
+          description: newCollectionDescription.value.trim() || null,
+          is_public: newCollectionPublic.value
+        }
+      })
 
     await $fetch(`/api/collections/${createResponse.data.id}/quotes`, {
       method: 'POST',
@@ -225,13 +183,12 @@ const addToCollection = async (collection: CollectionWithStats) => {
 
     emit('added', collection)
     closeModal()
-
   } catch (error) {
     console.error('Failed to add quote to collection:', error)
 
     const err = error as any
     if (err && err.statusCode === 409) {
-      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.`, })
+      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.` })
     } else {
       toast({ title: 'Failed to add quote', description: 'Please try again.', toast: 'error' })
     }
@@ -249,12 +206,12 @@ const closeModal = () => {
   addingToCollections.value.clear()
 }
 
-watch(isOpen, (newValue) => {
-  if (newValue) {
+watch(isOpen, (open) => {
+  if (open) {
     loadCollections()
   } else {
     nextTick(() => {
-  createOpen.value = false
+      createOpen.value = false
       newCollectionName.value = ''
       newCollectionDescription.value = ''
       newCollectionPublic.value = false

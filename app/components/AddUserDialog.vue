@@ -1,53 +1,97 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-6">
-        <h3 class="font-title uppercase text-size-4 font-600">Create User</h3>
+  <AppDialog
+    v-model="isOpen"
+    title="Create User"
+    submit-text="Create User"
+    :submitting="submitting"
+    :can-submit="canSubmit"
+    @submit="submit"
+  >
+    <form @submit.prevent="submit" @keydown.ctrl.enter.prevent="submit" @keydown.meta.enter.prevent="submit" class="space-y-6">
+      <NInput
+        v-model="form.name"
+        placeholder="Jane Doe"
+        :disabled="submitting"
+        required
+        autofocus
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Name *
+          </NBadge>
+        </template>
+      </NInput>
+
+      <NInput
+        v-model="form.email"
+        type="email"
+        placeholder="jane@example.com"
+        :disabled="submitting"
+        required
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Email *
+          </NBadge>
+        </template>
+      </NInput>
+
+      <div>
+        <NInput
+          v-model="form.password"
+          type="password"
+          placeholder="••••••••"
+          :disabled="submitting"
+          required
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputLeadingWrapper: 'pl-1.5' }"
+        >
+          <template #leading>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+              Password *
+            </NBadge>
+          </template>
+        </NInput>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">At least 8 characters</p>
       </div>
 
-      <form @submit.prevent="submit" class="space-y-4">
-        <NFormGroup label="Name" required>
-          <NInput v-model="form.name" :disabled="submitting" placeholder="Jane Doe" />
-        </NFormGroup>
-
-        <NFormGroup label="Email" required>
-          <NInput v-model="form.email" :disabled="submitting" type="email" placeholder="jane@example.com" />
-        </NFormGroup>
-
-        <NFormGroup label="Password" required>
-          <NInput v-model="form.password" :disabled="submitting" type="password" placeholder="••••••••" />
-          <template #help>
-            <span class="text-xs text-gray-500">At least 8 characters</span>
-          </template>
-        </NFormGroup>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-          <NFormGroup label="Role" required>
-            <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
-          </NFormGroup>
-          <div class="flex gap-4 justify-around items-center">
-            <NFormGroup :label="form.is_active ? 'Active' : 'Inactive'">
-              <NSwitch v-model="form.is_active" :disabled="submitting" />
-            </NFormGroup>
-            <NFormGroup :label="form.email_verified ? 'Verified' : 'Unverified'">
-              <NSwitch v-model="form.email_verified" :disabled="submitting" />
-            </NFormGroup>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+        <div>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Role *</label>
+          <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
+        </div>
+        <div class="flex gap-4 justify-around items-center">
+          <div>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.is_active ? 'Active' : 'Inactive' }}</label>
+            <NSwitch v-model="form.is_active" :disabled="submitting" />
+          </div>
+          <div>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.email_verified ? 'Verified' : 'Unverified' }}</label>
+            <NSwitch v-model="form.email_verified" :disabled="submitting" />
           </div>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <NFormGroup label="Avatar URL">
-            <NInput v-model="form.avatar_url" :disabled="submitting" type="url" placeholder="https://…" />
-          </NFormGroup>
-        </div>
-      </form>
-
-      <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!canSubmit">Create User</NButton>
       </div>
-    </div>
-  </NDialog>
+
+      <NInput
+        v-model="form.avatar_url"
+        type="url"
+        placeholder="https://…"
+        :disabled="submitting"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+            Avatar URL
+          </NBadge>
+        </template>
+      </NInput>
+    </form>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

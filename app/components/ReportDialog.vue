@@ -1,54 +1,79 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md' }">
-    <div>
-      <h3 class="font-title uppercase text-size-4 font-600">{{ title }}</h3>
-
-      <form class="mt-6 space-y-4" @submit.prevent="onSubmit">
-        <div>
-          <label class="block text-sm font-medium mb-1">Category</label>
-          <NSelect
-            v-model="form.category"
-            :items="categories"
-            item-key="label"
-            value-key="label"
-          />
-        </div>
-
-        <div v-if="!isAuthenticated">
-          <label class="block text-sm font-medium mb-1">Name</label>
-          <NInput v-model="form.name" placeholder="Your name" />
-        </div>
-
-        <div v-if="!isAuthenticated">
-          <label class="block text-sm font-medium mb-1">Email</label>
-          <NInput v-model="form.email" type="email" placeholder="you@example.com" />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-1">Message</label>
-          <NInput
-            autofocus
-            type="textarea"
-            v-model="form.message"
-            :rows="5"
-            placeholder="Tell us what you found, what to improve, or your suggestion..."
-            required
-          />
-          <div class="mt-1 text-right text-xs text-gray-500">{{ form.message.length }}/4000</div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-1">Tags (optional)</label>
-          <NInput v-model="tagsInput" placeholder="Comma-separated (e.g. UI, accessibility)" />
-        </div>
-      </form>
-
-      <div class="mt-6 flex justify-end gap-2">
-        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="pending">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</NButton>
+  <AppDialog
+    v-model="isOpen"
+    :title="title"
+    submit-text="Submit"
+    :submitting="pending"
+    :can-submit="canSubmit"
+    @submit="onSubmit"
+  >
+    <form class="space-y-6" @submit.prevent="onSubmit" @keydown.ctrl.enter.prevent="onSubmit" @keydown.meta.enter.prevent="onSubmit">
+      <div>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Category</label>
+        <NSelect v-model="form.category" :items="categories" item-key="label" value-key="label" />
       </div>
-    </div>
-  </NDialog>
+
+      <template v-if="!isAuthenticated">
+        <NInput
+          v-model="form.name"
+          placeholder="Your name"
+          :disabled="pending"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputTrailingWrapper: 'pr-1.5' }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Name</NBadge>
+          </template>
+        </NInput>
+
+        <NInput
+          v-model="form.email"
+          type="email"
+          placeholder="you@example.com"
+          :disabled="pending"
+          class="bg-white dark:bg-gray-900 b-none shadow-none"
+          :una="{ inputTrailingWrapper: 'pr-1.5' }"
+        >
+          <template #trailing>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Email</NBadge>
+          </template>
+        </NInput>
+      </template>
+
+      <NInput
+        autofocus
+        type="textarea"
+        v-model="form.message"
+        :rows="5"
+        placeholder="Tell us what you found, what to improve, or your suggestion..."
+        required
+        :disabled="pending"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Message</NBadge>
+        </template>
+      </NInput>
+      <div class="-mt-4 text-right text-xs text-gray-500">{{ form.message.length }}/4000</div>
+
+      <NInput
+        v-model="tagsInput"
+        placeholder="Comma-separated (e.g. UI, accessibility)"
+        :disabled="pending"
+        class="bg-white dark:bg-gray-900 b-none shadow-none"
+        :una="{ inputTrailingWrapper: 'pr-1.5' }"
+      >
+        <template #trailing>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Tags</NBadge>
+        </template>
+      </NInput>
+    </form>
+
+    <template #submit>
+      <NButton btn="soft-blue" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">

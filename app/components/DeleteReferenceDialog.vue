@@ -1,56 +1,53 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-2">
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">Delete Reference</h3>
-      </div>
-
-      <div class="px-1 space-y-4">
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-          <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
-          <div class="text-sm text-red-800 dark:text-red-300">
-            <p class="font-medium">This action is permanent.</p>
-            <p class="mt-1">You're about to delete the reference <span class="font-semibold">{{ props.reference?.name }}</span>.</p>
-          </div>
-        </div>
-
-        <div v-if="quotesCount > 0" class="space-y-3">
-          <p class="text-sm text-gray-700 dark:text-gray-300">
-            This reference is linked to <span class="font-semibold">{{ quotesCount }}</span> quote(s).
-            Choose how to handle them:
-          </p>
-
-          <NRadioGroup v-model="strategy" class="space-y-2">
-            <NRadioGroupItem value="delete" class="flex items-start gap-3">
-              <div class="w-4 h-4 mt-1" />
-              <div>
-                <div class="text-sm font-medium text-gray-900 dark:text-white">Delete related quotes</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Remove all {{ quotesCount }} quote(s) referencing {{ props.reference?.name }}.</div>
-              </div>
-            </NRadioGroupItem>
-            <NRadioGroupItem value="anonymize" class="flex items-start gap-3">
-              <div class="w-4 h-4 mt-1" />
-              <div>
-                <div class="text-sm font-medium text-gray-900 dark:text-white">Anonymize related quotes</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Keep the quotes but remove the reference (set source to unknown).</div>
-              </div>
-            </NRadioGroupItem>
-          </NRadioGroup>
-        </div>
-
-        <div v-else class="text-sm text-gray-700 dark:text-gray-300">
-          No related quotes were found. You can safely delete this reference.
+  <AppDialog
+    v-model="isOpen"
+    title="Delete Reference"
+    submit-text="Delete Reference"
+    :submitting="submitting"
+    @submit="confirmDeletion"
+  >
+    <div class="space-y-4">
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
+        <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
+        <div class="text-sm text-red-800 dark:text-red-300">
+          <p class="font-medium">This action is permanent.</p>
+          <p class="mt-1">You're about to delete the reference <span class="font-semibold">{{ props.reference?.name }}</span>.</p>
         </div>
       </div>
 
-      <div class="mt-6 flex justify-end gap-3">
-        <NButton btn="light:soft dark:soft-white" @click="closeDialog" :disabled="submitting">Cancel</NButton>
-        <NButton btn="soft-red" :loading="submitting" @click="confirmDeletion">
-          Delete Reference
-        </NButton>
+      <div v-if="quotesCount > 0" class="space-y-3">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          This reference is linked to <span class="font-semibold">{{ quotesCount }}</span> quote(s).
+          Choose how to handle them:
+        </p>
+
+        <NRadioGroup v-model="strategy" class="space-y-2">
+          <NRadioGroupItem value="delete" class="flex items-start gap-3">
+            <div class="w-4 h-4 mt-1" />
+            <div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">Delete related quotes</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Remove all {{ quotesCount }} quote(s) referencing {{ props.reference?.name }}.</div>
+            </div>
+          </NRadioGroupItem>
+          <NRadioGroupItem value="anonymize" class="flex items-start gap-3">
+            <div class="w-4 h-4 mt-1" />
+            <div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">Anonymize related quotes</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Keep the quotes but remove the reference (set source to unknown).</div>
+            </div>
+          </NRadioGroupItem>
+        </NRadioGroup>
+      </div>
+
+      <div v-else class="text-sm text-gray-700 dark:text-gray-300">
+        No related quotes were found. You can safely delete this reference.
       </div>
     </div>
-  </NDialog>
+
+    <template #submit>
+      <NButton btn="soft-red" :loading="submitting" @click="confirmDeletion">Delete Reference</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -86,10 +83,6 @@ watch(() => props.reference?.id, async (newId) => {
     console.error('Failed to fetch reference details', e)
   }
 }, { immediate: true })
-
-const closeDialog = () => {
-  isOpen.value = false
-}
 
 const confirmDeletion = async () => {
   if (!props.reference) return

@@ -1,45 +1,45 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <div class="mb-3">
-        <h3 class="font-title uppercase text-size-4 font-600">Edit User</h3>
+  <AppDialog
+    v-model="isOpen"
+    title="Edit User"
+    submit-text="Update"
+    :submitting="submitting"
+    :can-submit="!!user"
+    max-width="md"
+    @submit="submit"
+  >
+    <div v-if="user" class="space-y-6">
+      <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+        <NAvatar :src="user.avatar_url" :alt="user.name" size="sm" />
+        <div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ user.name }}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email || '—' }}</div>
+        </div>
       </div>
 
-      <div v-if="user" class="space-y-4">
-        <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-          <NAvatar :src="user.avatar_url" :alt="user.name" size="sm" />
-          <div>
-            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ user.name }}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email || '—' }}</div>
-          </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Role *</label>
+          <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting || isSelf" item-key="label" value-key="label" />
+          <p v-if="isSelf" class="text-amber-600 text-xs mt-1">You cannot change your own role.</p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <NFormGroup label="Role" required>
-            <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting || isSelf" item-key="label" value-key="label" />
-            <template #help>
-              <span v-if="isSelf" class="text-amber-600 text-xs">You cannot change your own role.</span>
-            </template>
-          </NFormGroup>
-          <NFormGroup label="Active">
-            <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />
-            <template #help>
-              <span v-if="isSelf" class="text-amber-600 text-xs">You cannot deactivate your own account.</span>
-            </template>
-          </NFormGroup>
+        <div>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Active</label>
+          <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />
+          <p v-if="isSelf" class="text-amber-600 text-xs mt-1">You cannot deactivate your own account.</p>
         </div>
-
-        <NFormGroup label="Email Verified">
-          <NSwitch v-model="form.email_verified" :disabled="submitting" />
-        </NFormGroup>
       </div>
 
-      <div class="mt-6 flex justify-end space-x-3">
-        <NButton btn="light:soft dark:soft-white" @click="close" :disabled="submitting">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="submitting" @click="submit" :disabled="!user">Update</NButton>
+      <div>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Email Verified</label>
+        <NSwitch v-model="form.email_verified" :disabled="submitting" />
       </div>
     </div>
-  </NDialog>
+
+    <template #submit>
+      <NButton btn="soft-blue" :loading="submitting" :disabled="!user" @click="submit">Update</NButton>
+    </template>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
