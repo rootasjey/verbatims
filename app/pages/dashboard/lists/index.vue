@@ -87,7 +87,7 @@
         <p class="text-gray-600 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Create a list from any quote by tapping \'Add to collection\'.' }}
         </p>
-        <NButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
+        <NButton v-if="!searchQuery" btn="solid-black" @click="openCreateModal">
           <NIcon name="i-ph-plus" />
           Create List
         </NButton>
@@ -183,7 +183,7 @@
           <NButton
             size="sm"
             btn="solid-dark dark:solid-white"
-            @click="showCreateModal = true"
+            @click="openCreateModal"
           >
             <NIcon name="i-ph-plus" />
             Create List
@@ -205,9 +205,9 @@
         <p class="text-gray-500 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search terms.' : 'Create your first list to organize your favorite quotes.' }}
         </p>
-        <NButton v-if="!searchQuery" btn="solid-black" @click="showCreateModal = true">
+        <NButton v-if="!searchQuery" btn="solid-black" @click="openCreateModal">
           <NIcon name="i-ph-plus" />
-          <span>Create Your First List</span>
+          Create List
         </NButton>
       </div>
 
@@ -297,18 +297,12 @@
       </div>
     </div>
 
-    <!-- Create Collection Modal -->
-    <CreateCollectionModal
-      v-model="showCreateModal"
-      @created="handleCollectionCreated"
-    />
-
-    <!-- Edit Collection Modal -->
-    <EditCollectionModal
-      v-if="selectedCollection"
-      v-model="showEditModal"
+    <!-- Create / Edit Collection Modal -->
+    <CollectionFormModal
+      :key="formModalKey"
+      v-model="showFormModal"
       :collection="selectedCollection"
-      @updated="handleCollectionUpdated"
+      @saved="handleCollectionSaved"
     />
 
     <!-- Delete Confirmation -->
@@ -380,8 +374,8 @@ const visibilityFilter = ref({ label: 'All Lists', value: 'all' })
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
+const showFormModal = ref(false)
+const formModalKey = ref(0)
 const showDeleteModal = ref(false)
 const showActionsDrawer = ref(false)
 const selectedCollection = ref<DashboardCollection | null>(null)
@@ -499,9 +493,15 @@ const getMobileCollectionActions = (collection: DashboardCollection) => [
   },
 ]
 
+const openCreateModal = () => {
+  selectedCollection.value = null
+  showFormModal.value = true
+}
+
 const editCollection = (collection: DashboardCollection) => {
   selectedCollection.value = collection
-  showEditModal.value = true
+  formModalKey.value++
+  showFormModal.value = true
 }
 
 const confirmDelete = (collection: DashboardCollection) => {
@@ -528,17 +528,14 @@ const deleteCollection = async () => {
   }
 }
 
-const handleCollectionCreated = (newCollection: DashboardCollection) => {
-  collections.value.unshift(newCollection)
-  showCreateModal.value = false
-}
-
-const handleCollectionUpdated = (updatedCollection: DashboardCollection) => {
-  const index = collections.value.findIndex(c => c.id === updatedCollection.id)
+const handleCollectionSaved = (collection: DashboardCollection) => {
+  const index = collections.value.findIndex(c => c.id === collection.id)
   if (index !== -1) {
-    collections.value[index] = updatedCollection
+    collections.value[index] = collection
+  } else {
+    collections.value.unshift(collection)
   }
-  showEditModal.value = false
+  showFormModal.value = false
   selectedCollection.value = null
 }
 
@@ -556,7 +553,8 @@ const handleViewFromDrawer = () => {
 }
 
 const handleEditFromDrawer = () => {
-  showEditModal.value = true
+  formModalKey.value++
+  showFormModal.value = true
 }
 
 const handleDeleteFromDrawer = () => {

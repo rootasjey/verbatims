@@ -10,7 +10,12 @@
     </p>
 
     <template #submit>
-      <NButton btn="soft-red" class="px-8" :loading="deleting" @click="emit('delete-draft')">Delete</NButton>
+      <PrimaryButton :disabled="deleting" :loading="deleting" @click="emit('delete-draft')" class="rounded-0 px-3">
+        <span class="flex items-center gap-2">
+          Delete
+          <NIcon v-if="!deleting" name="i-tabler-trash-filled" class="inline-block" />
+        </span>
+      </PrimaryButton>
     </template>
   </AppDialog>
 </template>

@@ -9,7 +9,7 @@
     scrollable
     @submit="submitReference"
   >
-    <form @submit.prevent="submitReference" @keydown.ctrl.enter.prevent="submitReference" @keydown.meta.enter.prevent="submitReference" class="space-y-6">
+    <form @submit.prevent="submitReference" @keydown.ctrl.enter.prevent="submitReference" @keydown.meta.enter.prevent="submitReference" class="space-y-6 m-1">
       <div>
         <div class="relative">
           <NInput
@@ -107,25 +107,26 @@
         </template>
       </NInput>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <NInput
-          v-model="form.release_date"
-          type="date"
-          :disabled="submitting"
-          class="bg-white dark:bg-gray-900 b-none shadow-none"
-          :una="{
-            inputTrailingWrapper: 'pr-1.5'
-          }"
-        >
-          <template #trailing>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-              Release Date
-            </NBadge>
-          </template>
-        </NInput>
+      <div class="flex items-start gap-4">
+        <div class="grow-2">
+          <NInput
+            v-model="form.release_date"
+            type="date"
+            :disabled="submitting"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{
+              inputTrailingWrapper: 'pr-1.5'
+            }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Release Date
+              </NBadge>
+            </template>
+          </NInput>
+        </div>
 
-        <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Original Language</label>
+        <div class="grow-1">
           <NSelect
             v-model="form.original_language"
             :items="languageOptions"
@@ -134,6 +135,7 @@
             item-key="label"
             value-key="label"
           />
+          <label class="mt-1 pl-1 block text-xs font-600 text-gray-900 dark:text-white">Original Language</label>
         </div>
       </div>
 

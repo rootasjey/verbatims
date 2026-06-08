@@ -9,7 +9,7 @@
     scrollable
     @submit="submitAuthor"
   >
-    <form @submit.prevent="submitAuthor" @keydown.ctrl.enter.prevent="submitAuthor" @keydown.meta.enter.prevent="submitAuthor" class="space-y-6">
+    <form @submit.prevent="submitAuthor" @keydown.ctrl.enter.prevent="submitAuthor" @keydown.meta.enter.prevent="submitAuthor" class="space-y-6 m-1">
       <div>
         <div class="relative">
           <NInput
@@ -94,22 +94,25 @@
         </template>
       </NInput>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <NInput
-          v-model="form.birth_date"
-          type="date"
-          :disabled="submitting"
-          class="bg-white dark:bg-gray-900 b-none shadow-none"
-          :una="{
-            inputTrailingWrapper: 'pr-1.5'
-          }"
-        >
-          <template #trailing>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-              Birth Date
-            </NBadge>
-          </template>
-        </NInput>
+      <div class="flex items-start gap-4">
+        <div class="flex-1">
+
+          <NInput
+            v-model="form.birth_date"
+            type="date"
+            :disabled="submitting"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :una="{
+              inputTrailingWrapper: 'pr-1.5'
+            }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Birth Date
+              </NBadge>
+            </template>
+          </NInput>
+        </div>
 
         <div>
           <NInput

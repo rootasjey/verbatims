@@ -23,18 +23,7 @@
 
       <template v-if="selectedPlatform === 'x'">
         <div>
-          <NInput
-            input="outline-gray"
-            v-model="form.oauth2AccessToken"
-            type="password"
-            placeholder="x-user-access-token"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{ inputLeadingWrapper: 'pl-1.5' }"
-          >
-            <template #leading>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 2.0 Access Token</NBadge>
-            </template>
-          </NInput>
+          <PasswordInput v-model="form.oauth2AccessToken" placeholder="x-user-access-token" />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth2AccessToken') }}</p>
         </div>
 
@@ -47,7 +36,7 @@
           </NCollapsibleTrigger>
           <NCollapsibleContent>
             <div class="space-y-3 px-2 pb-2 pt-4 mt-2 border-t b-dashed border-gray-200 dark:border-gray-700">
-              <NCheckbox v-model="form.requireMedia" label="Require image upload (fail if media upload fails)" checkbox="blue" />
+              <CheckboxBadge v-model="form.requireMedia" label="Require image upload" />
               <p class="text-xs text-gray-500 dark:text-gray-400">Require media source: {{ sourceLabel('requireMedia') }}</p>
 
               <div>
@@ -58,23 +47,17 @@
               </div>
 
               <div>
-                <NInput v-model="form.oauth1ConsumerSecret" type="password" placeholder="consumer-secret" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
-                  <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Consumer Secret</NBadge></template>
-                </NInput>
+                <PasswordInput v-model="form.oauth1ConsumerSecret" placeholder="consumer-secret" />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1ConsumerSecret') }}</p>
               </div>
 
               <div>
-                <NInput v-model="form.oauth1AccessToken" type="password" placeholder="access-token" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
-                  <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Access Token</NBadge></template>
-                </NInput>
+                <PasswordInput v-model="form.oauth1AccessToken" placeholder="access-token" />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1AccessToken') }}</p>
               </div>
 
               <div>
-                <NInput v-model="form.oauth1AccessTokenSecret" type="password" placeholder="access-token-secret" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
-                  <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">OAuth 1.0a Token Secret</NBadge></template>
-                </NInput>
+                <PasswordInput v-model="form.oauth1AccessTokenSecret" placeholder="access-token-secret" />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('oauth1AccessTokenSecret') }}</p>
               </div>
             </div>
@@ -89,9 +72,7 @@
         <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('identifier') }}</p>
 
         <div>
-          <NInput v-model="form.password" type="password" placeholder="bluesky-app-password" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
-            <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">App Password</NBadge></template>
-          </NInput>
+          <PasswordInput v-model="form.password" placeholder="bluesky-app-password" />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('password') }}</p>
         </div>
 
@@ -123,9 +104,7 @@
 
       <template v-else-if="selectedPlatform === 'pinterest'">
         <div>
-          <NInput v-model="form.accessToken" type="password" placeholder="pinterest-access-token" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputLeadingWrapper: 'pl-1.5' }">
-            <template #leading><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Access Token</NBadge></template>
-          </NInput>
+          <PasswordInput v-model="form.accessToken" placeholder="pinterest-access-token" />
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('accessToken') }}</p>
         </div>
 
