@@ -13,11 +13,11 @@
     <div class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <NCheckbox v-model="localForm.scheduleEnabled" label="Enable scheduling task" checkbox="blue" />
+          <CheckboxBadge v-model="localForm.scheduleEnabled" label="Enable scheduling task" />
           <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleEnabled') }}</p>
         </div>
         <div>
-          <NCheckbox v-model="localForm.processEnabled" label="Enable processing task" checkbox="blue" />
+          <CheckboxBadge v-model="localForm.processEnabled" label="Enable processing task" />
           <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processEnabled') }}</p>
         </div>
       </div>

@@ -14,10 +14,12 @@
       </div>
     </template>
 
-    <div v-if="scrollable" class="overflow-auto max-h-[70vh]">
+    <div v-if="scrollable" ref="dialogContentRef" class="overflow-auto max-h-[70vh]">
       <slot />
     </div>
-    <slot v-else />
+    <div v-else ref="dialogContentRef">
+      <slot />
+    </div>
 
     <template v-if="!hideFooter" #footer>
       <slot name="footer">
@@ -70,6 +72,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const DIALOG_COLOR = '#687FE5'
+const dialogContentRef = ref<HTMLElement | null>(null)
+
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
@@ -92,4 +97,27 @@ function close() {
   emit('close')
   isOpen.value = false
 }
+
+function applyDialogColor() {
+  const el = dialogContentRef.value?.closest<HTMLElement>('[role="dialog"]')
+  if (!el) return
+  el.style.borderColor = DIALOG_COLOR
+  const existing = getComputedStyle(el).boxShadow
+  const tint = `inset 0 0 0 1000px ${DIALOG_COLOR}0C`
+  el.style.boxShadow = existing && existing !== 'none' ? `${tint}, ${existing}` : tint
+
+  const closeBtn = el.querySelector<HTMLElement>('.dialog-close-btn')
+  if (closeBtn) {
+    closeBtn.style.color = DIALOG_COLOR
+    closeBtn.style.backgroundColor = `${DIALOG_COLOR}15`
+  }
+}
+
+watch(isOpen, (open) => {
+  if (open) nextTick(applyDialogColor)
+})
+
+onMounted(() => {
+  if (isOpen.value) nextTick(applyDialogColor)
+})
 </script>

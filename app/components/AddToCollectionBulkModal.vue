@@ -75,10 +75,12 @@
             <NButton
               v-if="!addingToCollections.has(collection.id)"
               size="xs"
+              btn="soft-blue"
               :disabled="processing"
               @click="addAllToCollection(collection)"
             >
-              Add All
+              <span class="sr-only">Add All</span>
+              <NIcon name="i-ph-plus" />
             </NButton>
             <NIcon
               v-else

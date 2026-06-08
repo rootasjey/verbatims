@@ -30,7 +30,12 @@
     </div>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="submitting" :disabled="!canDelete" @click="confirmDeletion">Delete Quote</NButton>
+      <PrimaryButton :disabled="!canDelete" :loading="submitting" @click="confirmDeletion" class="rounded-0 px-3">
+        <span class="flex items-center gap-2">
+          Delete Quote
+          <NIcon v-if="!submitting" name="i-tabler-trash-filled" class="inline-block" />
+        </span>
+      </PrimaryButton>
     </template>
   </AppDialog>
 </template>

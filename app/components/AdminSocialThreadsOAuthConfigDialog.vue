@@ -24,17 +24,7 @@
       </NInput>
 
       <div>
-        <NInput
-          v-model="form.appSecret"
-          type="password"
-          placeholder="Leave blank to keep current secret"
-          class="bg-white dark:bg-gray-900 b-none shadow-none"
-          :una="{ inputLeadingWrapper: 'pl-1.5' }"
-        >
-          <template #leading>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Threads App Secret</NBadge>
-          </template>
-        </NInput>
+        <PasswordInput v-model="form.appSecret" placeholder="Leave blank to keep current secret" />
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
           Current secret: {{ state.hasAppSecret ? 'configured' : 'not configured' }} (source: {{ state.sources.appSecret }})
         </p>

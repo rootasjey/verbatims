@@ -13,7 +13,6 @@
         placeholder="Jane Doe"
         :disabled="submitting"
         required
-        autofocus
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{ inputTrailingWrapper: 'pr-1.5' }"
       >
@@ -41,37 +40,23 @@
       </NInput>
 
       <div>
-        <NInput
-          v-model="form.password"
-          type="password"
-          placeholder="••••••••"
-          :disabled="submitting"
-          required
-          class="bg-white dark:bg-gray-900 b-none shadow-none"
-          :una="{ inputLeadingWrapper: 'pl-1.5' }"
-        >
-          <template #leading>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-              Password *
-            </NBadge>
-          </template>
-        </NInput>
+        <PasswordInput v-model="form.password" placeholder="••••••••" :disabled="submitting" required />
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">At least 8 characters</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
         <div>
           <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Role *</label>
-          <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting" item-key="label" value-key="label" />
+          <NSelect v-model="roleModel" :items="roleOptions" select="soft-blue" select-item="blue" :disabled="submitting" item-key="label" value-key="label" />
         </div>
         <div class="flex gap-4 justify-around items-center">
           <div>
             <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.is_active ? 'Active' : 'Inactive' }}</label>
-            <NSwitch v-model="form.is_active" :disabled="submitting" />
+            <NSwitch v-model="form.is_active" switch-checked="blue" :disabled="submitting" />
           </div>
           <div>
             <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.email_verified ? 'Verified' : 'Unverified' }}</label>
-            <NSwitch v-model="form.email_verified" :disabled="submitting" />
+            <NSwitch v-model="form.email_verified" switch-checked="blue" :disabled="submitting" />
           </div>
         </div>
       </div>

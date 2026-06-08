@@ -70,7 +70,7 @@
         </template>
       </NInput>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div class="flex items-start gap-3">
         <NInput
           v-model.number="form.priority"
           type="number"
@@ -85,9 +85,9 @@
             </NBadge>
           </template>
         </NInput>
-        <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Type</label>
-          <NSelect v-model="form.type" :items="['internal', 'sponsored']" size="sm" />
+        <div class="grow-1">
+          <NSelect v-model="form.type" select="soft-blue" select-item="blue" :items="['internal', 'sponsored']" size="sm" />
+          <label class="ml-1 block text-xs font-600 text-gray-600 dark:text-gray-200">Type</label>
         </div>
       </div>
 
@@ -122,7 +122,7 @@
         </div>
       </div>
 
-      <NCheckbox v-model="form.is_active" label="Active" />
+      <CheckboxBadge v-model="form.is_active" label="Active" />
     </form>
   </AppDialog>
 </template>

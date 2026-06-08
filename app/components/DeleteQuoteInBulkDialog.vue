@@ -18,7 +18,7 @@
       <div v-if="selectedCount > 0 && selectedCount <= 3" class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
         <p class="font-medium mb-2">Quotes to be deleted:</p>
         <div v-for="quote in quotesToShow" :key="quote.id" class="border-l-2 border-gray-300 dark:border-gray-600 pl-3">
-          <p class="italic font-serif text-xs">"{{ truncateText(quote.name, 100) }}"</p>
+          <p class="italic font-body text-xs">"{{ truncateText(quote.name, 100) }}"</p>
           <p v-if="quote.author || quote.reference" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
             <span v-if="quote.author">— {{ quote.author.name }}</span>
             <span v-if="quote.author && quote.reference" class="mx-1">•</span>
@@ -29,7 +29,12 @@
     </div>
 
     <template #submit>
-      <NButton btn="soft-red" class="px-6" :loading="deleting" @click="confirmDeletion">Delete All</NButton>
+      <PrimaryButton :disabled="deleting" :loading="deleting" @click="confirmDeletion" class="rounded-0 px-3">
+        <span class="flex items-center gap-2">
+          Delete All
+          <NIcon v-if="!deleting" name="i-tabler-trash-filled" class="inline-block" />
+        </span>
+      </PrimaryButton>
     </template>
   </AppDialog>
 </template>
