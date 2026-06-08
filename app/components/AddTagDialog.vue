@@ -11,16 +11,59 @@
     <div ref="contentRef">
       <form @submit.prevent="submitTag" @keydown.ctrl.enter.prevent="submitTag" @keydown.meta.enter.prevent="submitTag" class="space-y-6">
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Name *</label>
-          <NInput v-model="form.name" class="bg-white dark:bg-gray-900 b-none shadow-none" placeholder="e.g., inspiration" :disabled="submitting" required autofocus />
+          <NInput
+            v-model="form.name"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            placeholder="e.g., inspiration"
+            :disabled="submitting"
+            required
+            autofocus
+            :una="{
+              inputTrailingWrapper: 'pr-1.5'
+            }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Name *
+              </NBadge>
+            </template>
+          </NInput>
         </div>
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Category</label>
-          <NInput v-model="form.category" class="bg-white dark:bg-gray-900 b-none shadow-none" placeholder="e.g., emotion, philosophy" :disabled="submitting" />
+          <NInput
+            v-model="form.category"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            placeholder="e.g., emotion, philosophy"
+            :disabled="submitting"
+            :una="{
+              inputTrailingWrapper: 'pr-1.5'
+            }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Category
+              </NBadge>
+            </template>
+          </NInput>
         </div>
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Description</label>
-          <NInput type="textarea" v-model="form.description" class="bg-white dark:bg-gray-900 b-none shadow-none" :rows="3" placeholder="Short description" :disabled="submitting" />
+          <NInput
+            type="textarea"
+            v-model="form.description"
+            class="bg-white dark:bg-gray-900 b-none shadow-none"
+            :rows="3"
+            placeholder="Short description"
+            :disabled="submitting"
+            :una="{
+              inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial'
+            }"
+          >
+            <template #trailing>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
+                Description
+              </NBadge>
+            </template>
+          </NInput>
         </div>
         <div>
           <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Color</label>
