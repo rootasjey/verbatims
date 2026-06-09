@@ -446,14 +446,14 @@ const enrichmentConfigSources = ref<Record<string, 'kv' | 'env' | 'default' | 'n
 const enrichmentConfigForm = reactive({
   scheduleEnabled: true,
   processEnabled: true,
-  scheduleBatchSize: '25',
-  processBatchSize: '3',
-  authorStaleDays: '180',
-  referenceStaleDays: '365',
-  reviewGraceDays: '14',
-  authorMatchMinScore: '60',
-  referenceMatchMinScore: '58',
-  ambiguousMatchGap: '5',
+  scheduleBatchSize: 25,
+  processBatchSize: 3,
+  authorStaleDays: 180,
+  referenceStaleDays: 365,
+  reviewGraceDays: 14,
+  authorMatchMinScore: 60,
+  referenceMatchMinScore: 58,
+  ambiguousMatchGap: 5,
 })
 
 // Bulk selection state (multi‑select column)
@@ -882,14 +882,14 @@ const openEnrichmentConfigDialog = async () => {
     enrichmentConfigSources.value = response.data?.sources || {}
     enrichmentConfigForm.scheduleEnabled = Boolean(response.data?.values?.scheduleEnabled)
     enrichmentConfigForm.processEnabled = Boolean(response.data?.values?.processEnabled)
-    enrichmentConfigForm.scheduleBatchSize = String(response.data?.values?.scheduleBatchSize || '25')
-    enrichmentConfigForm.processBatchSize = String(response.data?.values?.processBatchSize || '3')
-    enrichmentConfigForm.authorStaleDays = String(response.data?.values?.authorStaleDays || '180')
-    enrichmentConfigForm.referenceStaleDays = String(response.data?.values?.referenceStaleDays || '365')
-    enrichmentConfigForm.reviewGraceDays = String(response.data?.values?.reviewGraceDays || '14')
-    enrichmentConfigForm.authorMatchMinScore = String(response.data?.values?.authorMatchMinScore || '60')
-    enrichmentConfigForm.referenceMatchMinScore = String(response.data?.values?.referenceMatchMinScore || '58')
-    enrichmentConfigForm.ambiguousMatchGap = String(response.data?.values?.ambiguousMatchGap || '5')
+    enrichmentConfigForm.scheduleBatchSize = Number(response.data?.values?.scheduleBatchSize ?? 25)
+    enrichmentConfigForm.processBatchSize = Number(response.data?.values?.processBatchSize ?? 3)
+    enrichmentConfigForm.authorStaleDays = Number(response.data?.values?.authorStaleDays ?? 180)
+    enrichmentConfigForm.referenceStaleDays = Number(response.data?.values?.referenceStaleDays ?? 365)
+    enrichmentConfigForm.reviewGraceDays = Number(response.data?.values?.reviewGraceDays ?? 14)
+    enrichmentConfigForm.authorMatchMinScore = Number(response.data?.values?.authorMatchMinScore ?? 60)
+    enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58)
+    enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
   } catch (error: any) {
     useToast().toast({
       title: 'Failed to load settings',

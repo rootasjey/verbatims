@@ -45,7 +45,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum usage</label>
-        <NInput v-model.number="model.min_usage" type="number" min="0" placeholder="0" />
+        <NNumberField v-model="model.min_usage" :min="0" />
       </div>
     </div>
 
