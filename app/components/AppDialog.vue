@@ -47,7 +47,8 @@ interface Props {
   cancelText?: string
   submitting?: boolean
   canSubmit?: boolean
-  maxWidth?: 'sm' | 'md' | 'lg'
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
+  maxHeight?: 'none' | 'sm' | 'md' | 'lg'
   hideFooter?: boolean
   scrollable?: boolean
   una?: Record<string, string>
@@ -65,6 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
   submitting: false,
   canSubmit: true,
   maxWidth: 'sm',
+  maxHeight: 'none',
   hideFooter: false,
   scrollable: false,
   una: () => ({})
@@ -85,12 +87,23 @@ const maxWidthClass = computed(() => {
     case 'sm': return 'max-w-sm'
     case 'md': return 'md:max-w-md lg:max-w-lg'
     case 'lg': return 'md:max-w-lg lg:max-w-xl'
+    case 'xl': return 'md:max-w-xl lg:max-w-5xl'
     default: return 'max-w-sm'
   }
 })
 
+const maxHeightClass = computed(() => {
+  switch (props.maxHeight) {
+    case 'none': return ''
+    case 'sm': return 'max-h-[50vh]'
+    case 'md': return 'max-h-[70vh]'
+    case 'lg': return 'max-h-[90vh]'
+    default: return ''
+  }
+})
+
 const unaConfig = computed(() => ({
-  dialogContent: `border-2 ${maxWidthClass.value}`
+  dialogContent: `border-2 ${maxWidthClass.value} ${maxHeightClass.value}`
 }))
 
 function close() {
