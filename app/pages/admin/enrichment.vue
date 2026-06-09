@@ -82,7 +82,14 @@
         >
           <template #entity-cell="{ cell }">
             <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ cell.row.original.entityName }}</p>
+              <p
+                class="text-sm font-medium text-gray-900 dark:text-white cursor-pointer transition-colors
+                 hover:text-indigo-600 dark:hover:text-indigo-400"
+                @click="openJob(cell.row.original)"
+                :title="cell.row.original.entityName"
+              >
+                {{ cell.row.original.entityName }}
+              </p>
               <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">
                 {{ cell.row.original.entityType }} #{{ cell.row.original.entityId }}
               </p>
@@ -131,6 +138,8 @@
           :total="totalItems"
           :items-per-page="pageSize"
           :sibling-count="2"
+          pagination-selected="solid-indigo"
+          pagination-unselected="soft-gray"
           show-edges
           size="sm"
         />

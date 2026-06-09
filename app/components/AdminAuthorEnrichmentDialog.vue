@@ -2,6 +2,8 @@
   <AppDialog
     v-model="isOpen"
     title=""
+    max-width="xl"
+    scrollable
     @close="emit('update:open', false)"
   >
     <template #title>
@@ -41,25 +43,33 @@
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p v-if="preview.match" class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                Match: <b>{{ preview.match.label }}</b>
+                <b>{{ preview.match.label }}</b>
                 <span class="text-gray-400 dark:text-gray-500">•</span>
                 score <b>{{ preview.match.score }}</b>
               </p>
+              <p v-if="preview.match?.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ preview.match.description }}</p>
+              <div v-if="preview.match?.signals?.length" class="mt-3 space-y-1">
+                <p v-for="signal in preview.match.signals" :key="signal" class="text-xs text-pink-600 dark:text-pink-300">{{ signal }}</p>
+              </div>
+
               <div v-if="preview.match" class="mt-2 flex flex-wrap items-center gap-2">
                 <NBadge :badge="matchConfidenceBadge(preview.match.confidence)" size="xs">{{ matchConfidenceLabel(preview.match.confidence) }} confidence</NBadge>
-                <NBadge v-if="preview.match.selected_manually" badge="soft-orange" size="xs">selected manually</NBadge>
+                <NBadge v-if="preview.match.selected_manually" badge="soft-pink" size="xs">selected manually</NBadge>
                 <NBadge v-if="typeof preview.match.score_gap === 'number'" badge="soft-gray" size="xs">score gap {{ preview.match.score_gap }}</NBadge>
                 <NBadge v-if="typeof preview.match.competing_score === 'number'" badge="soft-gray" size="xs">runner-up {{ preview.match.competing_score }}</NBadge>
               </div>
-              <p v-if="preview.match?.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ preview.match.description }}</p>
-              <div v-if="preview.match?.signals?.length" class="mt-3 space-y-1">
-                <p v-for="signal in preview.match.signals" :key="signal" class="text-xs text-orange-600 dark:text-orange-300">{{ signal }}</p>
-              </div>
             </div>
             <div class="flex flex-wrap gap-2">
-              <NBadge badge="soft-blue" size="sm">{{ preview.summary.proposed_count }} proposals</NBadge>
-              <NBadge badge="soft-green" size="sm">{{ preview.summary.recommended_count }} recommended</NBadge>
-              <NBadge :badge="preview.review_required ? 'soft-orange' : 'soft-gray'" size="sm">{{ preview.review_required ? 'Review required' : 'Safe to apply' }}</NBadge>
+              <NTooltip :content="`${preview.summary.proposed_count} proposals`">
+                <NBadge badge="soft-blue" size="xs" icon="i-tabler-search"></NBadge>
+              </NTooltip>
+              <NTooltip :content="`${preview.summary.recommended_count} recommended`">
+                <NBadge badge="soft-green" size="xs" icon="i-tabler-thumb-up"></NBadge>
+              </NTooltip>
+
+              <NTooltip :content="preview.review_required ? 'Review required' : 'Safe to apply'">
+                <NBadge :badge="preview.review_required ? 'solid-pink' : 'soft-gray'" size="xs" icon="i-tabler-zoom-exclamation"></NBadge>
+              </NTooltip>
             </div>
           </div>
 
@@ -67,8 +77,8 @@
             <p v-for="note in preview.notes" :key="note" class="text-xs text-gray-500 dark:text-gray-400">{{ note }}</p>
           </div>
 
-          <div v-if="preview.alternative_matches?.length" class="mt-4 rounded-lg border border-dashed border-orange-200 dark:border-orange-900/60 p-3 bg-orange-50/60 dark:bg-orange-950/10">
-            <p class="text-xs font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">Other plausible candidates</p>
+          <div v-if="preview.alternative_matches?.length" class="mt-4 rounded-lg border border-dashed border-pink-200 dark:border-pink-900/60 p-3 bg-pink-50/60 dark:bg-pink-950/10">
+            <p class="text-xs font-semibold uppercase tracking-wide text-pink-700 dark:text-pink-300">Other plausible candidates</p>
             <div class="mt-2 space-y-2">
               <div v-for="candidate in preview.alternative_matches" :key="candidate.external_id" class="rounded-md bg-white/70 dark:bg-gray-950/30 p-3">
                 <div class="flex flex-wrap items-center gap-2">
@@ -77,12 +87,21 @@
                 </div>
                 <p v-if="candidate.description" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ candidate.description }}</p>
                 <div v-if="candidate.signals?.length" class="mt-2 space-y-1">
-                  <p v-for="signal in candidate.signals" :key="signal" class="text-xs text-orange-700 dark:text-orange-300">{{ signal }}</p>
+                  <p v-for="signal in candidate.signals" :key="signal" class="text-xs text-pink-700 dark:text-pink-300">{{ signal }}</p>
                 </div>
-                <div class="mt-2 flex flex-wrap gap-2">
-                  <NButton btn="soft-orange" size="xs" @click="emit('promote-candidate', candidate.external_id)">Use this candidate</NButton>
-                  <a :href="candidate.wikidata_url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">Wikidata</a>
-                  <a v-if="candidate.wikipedia_url" :href="candidate.wikipedia_url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">Wikipedia</a>
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+                  <NButton btn="soft-pink" size="xs" @click="emit('promote-candidate', candidate.external_id)">Use this candidate</NButton>
+
+                  <NTooltip :content="`Wikidata: ${candidate.wikidata_url}`">
+                    <NLink :to="candidate.wikidata_url" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-600 hover:text-blue-700 dark:hover:text-blue-200 hover:underline">
+                      <NIcon name="i-tabler-database" />
+                    </NLink>
+                  </NTooltip>
+                  <NTooltip :content="`Wikipedia: ${candidate.wikipedia_url}`">
+                    <NLink v-if="candidate.wikipedia_url" :to="candidate.wikipedia_url" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-600 hover:text-blue-700 dark:hover:text-blue-200 hover:underline">
+                      <NIcon name="i-tabler-brand-wikipedia" />
+                    </NLink>
+                  </NTooltip>
                 </div>
               </div>
             </div>
@@ -97,12 +116,18 @@
           <div v-for="proposal in preview.proposals" :key="proposal.field" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-3 min-w-0">
-                <NCheckbox checkbox="gray" :model-value="selectedFields.includes(proposal.field)" @update:model-value="emit('toggle-field', proposal.field, $event)" />
+                <NCheckbox checkbox="blue" class="mt-1 p-2.4" rounded="1" size="xs" :model-value="selectedFields.includes(proposal.field)" @update:model-value="emit('toggle-field', proposal.field, $event)" />
                 <div class="min-w-0">
                   <div class="flex flex-wrap items-center gap-2">
                     <h5 class="text-sm font-medium text-gray-900 dark:text-white">{{ proposal.label }}</h5>
-                    <NBadge :badge="proposal.recommended ? 'soft-green' : 'soft-gray'" size="xs">{{ proposal.recommended ? 'Recommended' : 'Optional' }}</NBadge>
-                    <NBadge :badge="proposal.overwrite ? 'soft-orange' : 'soft-blue'" size="xs">{{ proposal.overwrite ? 'Overwrite' : 'Fill missing' }}</NBadge>
+
+                    <NTooltip :content="proposal.recommended ? 'Recommended' : 'Optional'">
+                      <NBadge :badge="proposal.recommended ? 'soft-green' : 'solid-gray'" size="xs">
+                        <NIcon v-if="proposal.recommended" name="i-tabler-thumb-up" />
+                        <NIcon v-else name="i-tabler-question-mark" />
+                      </NBadge>
+                    </NTooltip>
+                    <NBadge :badge="proposal.overwrite ? 'solid-pink' : 'soft-blue'" size="xs">{{ proposal.overwrite ? 'Overwrite' : 'Fill missing' }}</NBadge>
                   </div>
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Confidence {{ proposal.confidence }} · {{ proposal.rationale }}</p>
                 </div>
@@ -110,7 +135,7 @@
               <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ proposal.source_labels.join(' / ') }}</div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-              <div class="rounded-md bg-gray-50 dark:bg-gray-900/40 p-3">
+              <div class="rounded-md bg-white dark:bg-gray-900/40 p-3">
                 <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Current</p>
                 <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ proposal.current_value || 'Empty' }}</pre>
               </div>
@@ -120,7 +145,18 @@
               </div>
             </div>
             <div v-if="proposal.source_urls?.length" class="mt-3 flex flex-wrap gap-2">
-              <a v-for="url in proposal.source_urls" :key="url" :href="url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">{{ url }}</a>
+              <div class="w-full p-3 bg-white dark:bg-gray-800 rounded-2">
+                <h3 class="text-xs font-600 text-gray-600 dark:text-gray-300 mb-2">Source URLs</h3>
+                <div class="flex flex-wrap gap-2">
+                  <NTooltip v-for="url in proposal.source_urls" :key="url"  :content="url">
+                    <NButton icon link btn="soft-blue" :to="url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">
+                      <NIcon v-if="url.includes('wikipedia')" name="i-tabler-brand-wikipedia" />
+                      <NIcon v-else-if="url.includes('wikidata')" name="i-tabler-database" />
+                      <NIcon v-else name="i-tabler-link" />
+                    </NButton>
+                  </NTooltip>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -128,14 +164,14 @@
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-between gap-3">
+      <div class="w-full flex items-center justify-between gap-3 border-t b-dashed px-4 py-3">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           {{ selectedFields.length }} field{{ selectedFields.length !== 1 ? 's' : '' }} selected
         </div>
         <div class="flex gap-3">
           <NButton btn="link-gray" @click="emit('update:open', false)">Close</NButton>
-          <NButton btn="ghost-gray" :disabled="!preview?.proposals?.length" @click="emit('select-recommended')">Select recommended</NButton>
-          <NButton btn="soft-blue" :loading="applying" :disabled="selectedFields.length === 0 || !jobId" @click="emit('apply')">Apply selected</NButton>
+          <NButton btn="text-gray" :disabled="!preview?.proposals?.length" @click="emit('select-recommended')">Select recommended</NButton>
+          <PrimaryButton class="px-4" :loading="applying" :disabled="selectedFields.length === 0 || !jobId" @click="emit('apply')">Apply selected</PrimaryButton>
         </div>
       </div>
     </template>
@@ -181,6 +217,6 @@ function matchConfidenceBadge(confidence?: string | null) {
   if (confidence === 'high') return 'soft-green'
   if (confidence === 'medium') return 'soft-blue'
   if (confidence === 'low') return 'soft-gray'
-  return 'soft-orange'
+  return 'soft-pink'
 }
 </script>

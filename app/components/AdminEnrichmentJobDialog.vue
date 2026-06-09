@@ -2,6 +2,7 @@
   <AppDialog
     v-model="isOpen"
     title=""
+    max-width="md"
     @close="emit('update:open', false)"
   >
     <template #title>
@@ -12,16 +13,11 @@
             <span class="font-300"> → {{ job?.entityType === 'reference' ? 'Reference' : 'Author' }} review</span>
           </span>
         </div>
-        <div class="flex flex-wrap gap-2 justify-end">
-          <NBadge v-if="job" :badge="statusBadge(job.status)" size="sm">{{ job.status }}</NBadge>
-          <NBadge v-if="job?.triggerSource" badge="soft-gray" size="sm">{{ job.triggerSource }}</NBadge>
-          <NBadge v-if="job?.reason" badge="soft-blue" size="sm">{{ job.reason }}</NBadge>
-        </div>
       </div>
     </template>
 
     <div>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ jobSummary }}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">{{ jobSummary }}</p>
 
       <div class="min-h-0 overflow-y-auto space-y-4">
         <div v-if="loading" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -53,15 +49,26 @@
               <pre class="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words pr-2 text-xs text-red-700 dark:text-red-200">{{ job.errorMessage }}</pre>
             </div>
           </div>
+          <div class="ml-2 flex flex-wrap gap-2">
+            <NBadge v-if="job" :badge="statusBadge(job.status)" size="xs">{{ job.status }}</NBadge>
+            <NBadge v-if="job?.triggerSource" badge="soft-gray" size="xs">{{ job.triggerSource }}</NBadge>
+            <NBadge v-if="job?.reason" badge="soft-blue" size="xs">{{ job.reason }}</NBadge>
+          </div>
 
           <div v-if="preview?.notes?.length" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4 space-y-1">
             <p v-for="note in preview.notes" :key="note" class="text-xs text-gray-500 dark:text-gray-400">{{ note }}</p>
           </div>
 
           <div>
-            <div class="flex items-center justify-between gap-3 mb-3">
-              <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Suggested changes</h4>
-              <NButton btn="ghost-gray" size="sm" :disabled="!proposalList.length" @click="emit('select-recommended')">Select recommended</NButton>
+            <div class="pt-3 flex items-start justify-between gap-3 mb-3">
+              <div class="flex-col items-center gap-2">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Suggested changes</h4>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ selectedFields.length }} field{{ selectedFields.length !== 1 ? 's' : '' }} selected
+                </div>
+              </div>
+
+              <NButton btn="text-gray" size="sm" :disabled="!proposalList.length" @click="emit('select-recommended')">Select recommended</NButton>
             </div>
 
             <div v-if="proposalList.length === 0" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -131,12 +138,9 @@
 
     <template #footer>
       <div class="flex items-center justify-between gap-3">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          {{ selectedFields.length }} field{{ selectedFields.length !== 1 ? 's' : '' }} selected
-        </div>
         <div class="flex gap-3">
           <NButton btn="link-gray" @click="emit('update:open', false)">Close</NButton>
-          <NButton btn="soft-blue" :loading="applying" :disabled="Boolean(job?.appliedAt) || selectedFields.length === 0 || !job?.id || !proposalList.length" @click="emit('apply')">Apply selected</NButton>
+          <PrimaryButton :loading="applying" :disabled="Boolean(job?.appliedAt) || selectedFields.length === 0 || !job?.id || !proposalList.length" trailing="i-tabler-check" class="px-4" @click="emit('apply')">Apply selected</PrimaryButton>
         </div>
       </div>
     </template>
