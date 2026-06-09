@@ -395,9 +395,9 @@
       </div>
 
       <ClientOnly>
-        <AddToCollectionModal
+        <AddQuoteToCollectionModal
           v-if="selectedQuote && !isMobile"
-          v-model="showAddToCollectionModal"
+          v-model="showAddQuoteToCollectionModal"
           :quote="selectedQuote"
           @added="handleAddedToCollection"
         />
@@ -480,7 +480,7 @@ const selectedQuotes = computed<number[]>(() => Object
   .map(([k]) => Number(k)))
 
 const showAddToCollectionDrawer = ref(false)
-const showAddToCollectionModal = ref(false)
+const showAddQuoteToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 const showBulkAddToCollection = ref(false)
 
@@ -709,7 +709,7 @@ const getQuoteActions = (quote: DashboardQuote) => [
 const addToCollection = (quote: DashboardQuote) => {
   selectedQuote.value = quote
   if (isMobile.value) showAddToCollectionDrawer.value = true
-  else showAddToCollectionModal.value = true
+  else showAddQuoteToCollectionModal.value = true
 }
 
 const shareQuote = (quote: DashboardQuote) => {
@@ -720,7 +720,7 @@ const shareQuote = (quote: DashboardQuote) => {
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const isAnyDialogOpen = computed(() =>
-  showAddToCollectionModal.value || showAddToCollectionDrawer.value || showBulkAddToCollection.value
+  showAddQuoteToCollectionModal.value || showAddToCollectionDrawer.value || showBulkAddToCollection.value
 )
 
 const allSelected = computed<boolean | 'indeterminate'>({
@@ -821,7 +821,7 @@ const handleBulkAddedToCollection = () => {
 
 const handleAddedToCollection = () => {
   showAddToCollectionDrawer.value = false
-  showAddToCollectionModal.value = false
+  showAddQuoteToCollectionModal.value = false
   selectedQuote.value = null
 }
 

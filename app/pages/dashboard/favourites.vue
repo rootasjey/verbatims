@@ -200,9 +200,9 @@
     </div>
 
     <!-- Add to Collection Modal (desktop only for now) -->
-    <AddToCollectionModal
+    <AddQuoteToCollectionModal
       v-if="selectedQuote"
-      v-model="showAddToCollectionModal"
+      v-model="showAddQuoteToCollectionModal"
       :quote="selectedQuote"
       @added="handleAddedToCollection"
     />
@@ -265,7 +265,7 @@ const handleScroll = () => {
   lastScrollY.value = scrollY.value
 }
 
-const showAddToCollectionModal = ref(false)
+const showAddQuoteToCollectionModal = ref(false)
 const selectedQuote = ref<LikedQuote | null>(null)
 const editQuoteDrawerOpen = ref(false)
 const actionsOpen = ref(false)
@@ -414,11 +414,11 @@ const handleLikeToggled = (quote: LikedQuote) => {
 
 const handleAddToCollection = (quote: LikedQuote) => {
   selectedQuote.value = quote
-  showAddToCollectionModal.value = true
+  showAddQuoteToCollectionModal.value = true
 }
 
 const handleAddedToCollection = () => {
-  showAddToCollectionModal.value = false
+  showAddQuoteToCollectionModal.value = false
   selectedQuote.value = null
 }
 

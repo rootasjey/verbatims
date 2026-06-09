@@ -140,9 +140,9 @@
   </div>
 
   <ClientOnly>
-    <AddToCollectionModal
+    <AddQuoteToCollectionModal
       v-if="quote"
-      v-model="showAddToCollectionModal"
+      v-model="showAddQuoteToCollectionModal"
       :quote="quote"
       @added="onAddedToCollection"
     />
@@ -353,7 +353,7 @@ const handleGlobalKeydown = (e) => {
     case 'a':
       if (user.value) {
         e.preventDefault()
-        showAddToCollectionModal.value = true
+        showAddQuoteToCollectionModal.value = true
       }
       break
     case 'c':
@@ -550,10 +550,10 @@ const shareQuote = async () => {
   }
 }
 
-const showAddToCollectionModal = ref(false)
+const showAddQuoteToCollectionModal = ref(false)
 
 const addToCollection = () => {
-  showAddToCollectionModal.value = true
+  showAddQuoteToCollectionModal.value = true
 }
 
 const onAddedToCollection = (collection) => {
