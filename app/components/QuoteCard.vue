@@ -151,8 +151,8 @@
   </NCard>
 
   <!-- Add to Collection Modal -->
-  <AddToCollectionModal
-    v-model="showAddToCollectionModal"
+  <AddQuoteToCollectionModal
+    v-model="showAddQuoteToCollectionModal"
     :quote="quote"
     @added="onAddedToCollection"
   />
@@ -234,14 +234,14 @@ const shareQuote = async () => {
   }
 }
 
-const showAddToCollectionModal = ref(false)
+const showAddQuoteToCollectionModal = ref(false)
 
 const addToCollection = () => {
   if (!user.value) {
     navigateTo('/login')
     return
   }
-  showAddToCollectionModal.value = true
+  showAddQuoteToCollectionModal.value = true
 }
 
 const onAddedToCollection = (collection) => {
