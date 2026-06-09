@@ -8,16 +8,16 @@
     @submit="confirmDeletion"
   >
     <div class="space-y-4">
-      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
-        <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
-        <div class="text-sm text-red-800 dark:text-red-300">
+      <div class="bg-pink-50 dark:bg-blue-800/20 border border-pink-200 dark:border-blue-800 rounded-md p-3 flex items-start">
+        <NIcon name="i-ph-warning" class="w-5 h-5 text-pink-600 dark:text-blue-600 mt-0.5 mr-2" />
+        <div class="text-sm text-pink-800 dark:text-blue-300">
           <p class="font-medium">This action is permanent.</p>
           <p class="mt-1">You're about to delete this quote.</p>
         </div>
       </div>
 
       <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-        <p class="italic font-serif">"{{ props.quote?.name }}"</p>
+        <p class="italic font-body font-600">"{{ props.quote?.name }}"</p>
         <p v-if="props.quote?.author || props.quote?.reference" class="text-gray-500 dark:text-gray-400">
           <span v-if="props.quote?.author">— {{ props.quote?.author?.name }}</span>
           <span v-if="props.quote?.author && props.quote?.reference" class="mx-1">•</span>
