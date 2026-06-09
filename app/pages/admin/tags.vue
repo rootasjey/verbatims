@@ -214,7 +214,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <NInput v-model="backfillLimit" type="number" min="1" max="5000" placeholder="Limit (1-5000)" />
+        <NNumberField v-model="backfillLimit" :min="1" :max="5000" />
         <NCheckbox v-model="backfillResetExisting" label="Reset existing tags first" />
       </div>
     </div>
@@ -285,7 +285,7 @@ const backfillProcessing = ref(false)
 const backfillDryRun = ref(true)
 const backfillOnlyUntagged = ref(true)
 const backfillResetExisting = ref(false)
-const backfillLimit = ref('2000')
+const backfillLimit = ref(2000)
 const backfillStatus = ref({ label: 'Approved quotes', value: 'approved' })
 
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
@@ -555,7 +555,7 @@ const triggerBackfill = async () => {
         status: backfillStatus.value.value,
         onlyUntagged: backfillOnlyUntagged.value,
         resetExisting: backfillResetExisting.value,
-        limit: Math.min(Math.max(parseInt(backfillLimit.value || '2000') || 2000, 1), 5000)
+        limit: Math.min(Math.max(backfillLimit.value ?? 2000, 1), 5000)
       }
     })
 

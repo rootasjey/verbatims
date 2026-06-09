@@ -4,6 +4,7 @@
     title="Enrichment settings"
     :submitting="saving"
     scrollable
+    max-width="lg"
     @submit="emit('save', localForm)"
   >
     <p class="text-sm text-gray-400 dark:text-gray-400 mb-6">
@@ -14,87 +15,89 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <CheckboxBadge v-model="localForm.scheduleEnabled" label="Enable scheduling task" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleEnabled') }}</p>
+          <p class="ml-9 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleEnabled') }}</p>
         </div>
         <div>
           <CheckboxBadge v-model="localForm.processEnabled" label="Enable processing task" />
-          <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processEnabled') }}</p>
+          <p class="ml-9 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processEnabled') }}</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <NInput
+          <NNumberField
             v-model="localForm.scheduleBatchSize"
-            type="number"
-            min="1"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{ inputTrailingWrapper: 'pr-1.5' }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Schedule batch size</NBadge>
-            </template>
-          </NInput>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleBatchSize') }}</p>
+            :min="1"
+            class="bg-white dark:bg-gray-900"
+          />
+
+          <div class="ml-1 mt-2 flex gap-2">
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Schedule batch size</NBadge>
+            <NTooltip content="Current source">
+              <NBadge badge="soft-blue">{{ sourceLabel('scheduleBatchSize') }}</NBadge>
+            </NTooltip>
+          </div>
         </div>
         <div>
-          <NInput
+          <NNumberField
             v-model="localForm.processBatchSize"
-            type="number"
-            min="1"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{ inputTrailingWrapper: 'pr-1.5' }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Process batch size</NBadge>
-            </template>
-          </NInput>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processBatchSize') }}</p>
+            :min="1"
+            class="bg-white dark:bg-gray-900"
+          />
+          <div class="ml-1 mt-2 flex gap-2">
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Process batch size</NBadge>
+            <NTooltip content="Current source">
+              <NBadge badge="soft-blue">{{ sourceLabel('processBatchSize') }}</NBadge>
+            </NTooltip>
+          </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <NInput
+          <NNumberField
             v-model="localForm.authorStaleDays"
-            type="number"
-            min="1"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{ inputTrailingWrapper: 'pr-1.5' }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author stale days</NBadge>
-            </template>
-          </NInput>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('authorStaleDays') }}</p>
+            :min="1"
+            class="bg-white dark:bg-gray-900"
+          />
+          <div class="ml-1 mt-2 flex gap-2">
+            <NTooltip content="Author stale days">
+              <NBadge size="xs" icon="i-tabler-user" badge="soft-gray" rounded="1" class="py-0.5 text-xs">stale days</NBadge>
+            </NTooltip>
+            <NTooltip content="Current source">
+              <NBadge badge="soft-blue">{{ sourceLabel('authorStaleDays') }}</NBadge>
+            </NTooltip>
+          </div>
         </div>
         <div>
-          <NInput
+          <NNumberField
             v-model="localForm.referenceStaleDays"
-            type="number"
-            min="1"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{ inputTrailingWrapper: 'pr-1.5' }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference stale days</NBadge>
-            </template>
-          </NInput>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('referenceStaleDays') }}</p>
+            :min="1"
+            class="bg-white dark:bg-gray-900"
+          />
+          <div class="ml-1 mt-2 flex gap-2">
+            <NTooltip content="Reference stale days">
+              <NBadge size="xs" icon="i-tabler-book" badge="soft-gray" rounded="1" class="py-0.5 text-xs">stale days</NBadge>
+            </NTooltip>
+            <NTooltip content="Current source">
+              <NBadge badge="soft-blue">{{ sourceLabel('referenceStaleDays') }}</NBadge>
+            </NTooltip>
+          </div>
         </div>
         <div>
-          <NInput
+          <NNumberField
             v-model="localForm.reviewGraceDays"
-            type="number"
-            min="1"
-            class="bg-white dark:bg-gray-900 b-none shadow-none"
-            :una="{ inputTrailingWrapper: 'pr-1.5' }"
-          >
-            <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Review grace days</NBadge>
-            </template>
-          </NInput>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('reviewGraceDays') }}</p>
+            :min="1"
+            class="bg-white dark:bg-gray-900"
+          />
+          <div class="ml-1 mt-2 flex gap-2">
+            <NTooltip content="Review grace days">
+              <NBadge size="xs" icon="i-tabler-calendar" badge="soft-gray" rounded="1" class="py-0.5 text-xs">grace days</NBadge>
+            </NTooltip>
+            <NTooltip content="Current source">
+              <NBadge badge="soft-blue">{{ sourceLabel('reviewGraceDays') }}</NBadge>
+            </NTooltip>
+          </div>
         </div>
       </div>
 
@@ -108,51 +111,43 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <NInput
+            <NNumberField
               v-model="localForm.authorMatchMinScore"
-              type="number"
-              min="1"
-              max="100"
-              class="bg-white dark:bg-gray-900 b-none shadow-none"
-              :una="{ inputTrailingWrapper: 'pr-1.5' }"
-            >
-              <template #trailing>
-                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author min score</NBadge>
-              </template>
-            </NInput>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Raise this to reject more weak author matches.</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('authorMatchMinScore') }}</p>
+              :min="1"
+              :max="100"
+              class="bg-white dark:bg-gray-900"
+            />
+
+            <div class="mt-2 space-y-2">
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author min score</NBadge>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Raise this to reject more weak author matches.</p>
+              <NBadge badge="soft-blue">{{ sourceLabel('authorMatchMinScore') }}</NBadge>
+            </div>
           </div>
           <div>
-            <NInput
+            <NNumberField
               v-model="localForm.referenceMatchMinScore"
-              type="number"
-              min="1"
-              max="100"
-              class="bg-white dark:bg-gray-900 b-none shadow-none"
-              :una="{ inputTrailingWrapper: 'pr-1.5' }"
-            >
-              <template #trailing>
-                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference min score</NBadge>
-              </template>
-            </NInput>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Raise this to reject ambiguous matches more aggressively.</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('referenceMatchMinScore') }}</p>
+              :min="1"
+              :max="100"
+              class="bg-white dark:bg-gray-900"
+            />
+            <div class="mt-2 space-y-2">
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference min score</NBadge>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Raise this to reject ambiguous matches more aggressively.</p>
+              <NBadge badge="soft-blue">{{ sourceLabel('referenceMatchMinScore') }}</NBadge>
+            </div>
           </div>
           <div>
-            <NInput
+            <NNumberField
               v-model="localForm.ambiguousMatchGap"
-              type="number"
-              min="1"
-              class="bg-white dark:bg-gray-900 b-none shadow-none"
-              :una="{ inputTrailingWrapper: 'pr-1.5' }"
-            >
-              <template #trailing>
-                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Ambiguous score gap</NBadge>
-              </template>
-            </NInput>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">If the best score is too close to the next candidate, the preview stays ambiguous.</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('ambiguousMatchGap') }}</p>
+              :min="1"
+              class="bg-white dark:bg-gray-900"
+            />
+            <div class="mt-2 space-y-2">
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Ambiguous score gap</NBadge>
+              <p class="text-xs text-gray-500 dark:text-gray-400">If the best score is too close to the next candidate, the preview stays ambiguous.</p>
+              <NBadge badge="soft-blue">{{ sourceLabel('ambiguousMatchGap') }}</NBadge>
+            </div>
           </div>
         </div>
       </div>
@@ -163,7 +158,7 @@
     </div>
 
     <template #submit>
-      <NButton btn="soft-blue" :loading="loading || saving" @click="emit('save', localForm)">Save settings</NButton>
+      <PrimaryButton :loading="loading || saving" @click="emit('save', localForm)" class="px-4">Save settings</PrimaryButton>
     </template>
   </AppDialog>
 </template>
@@ -174,14 +169,14 @@ import { formatDateTime } from '~/utils/time-formatter'
 interface EnrichmentConfigForm {
   scheduleEnabled: boolean
   processEnabled: boolean
-  scheduleBatchSize: string
-  processBatchSize: string
-  authorStaleDays: string
-  referenceStaleDays: string
-  reviewGraceDays: string
-  authorMatchMinScore: string
-  referenceMatchMinScore: string
-  ambiguousMatchGap: string
+  scheduleBatchSize: number
+  processBatchSize: number
+  authorStaleDays: number
+  referenceStaleDays: number
+  reviewGraceDays: number
+  authorMatchMinScore: number
+  referenceMatchMinScore: number
+  ambiguousMatchGap: number
 }
 
 interface Props {
@@ -207,14 +202,14 @@ const isOpen = computed({
 const localForm = reactive<EnrichmentConfigForm>({
   scheduleEnabled: true,
   processEnabled: true,
-  scheduleBatchSize: '25',
-  processBatchSize: '3',
-  authorStaleDays: '180',
-  referenceStaleDays: '365',
-  reviewGraceDays: '14',
-  authorMatchMinScore: '60',
-  referenceMatchMinScore: '58',
-  ambiguousMatchGap: '5',
+  scheduleBatchSize: 25,
+  processBatchSize: 3,
+  authorStaleDays: 180,
+  referenceStaleDays: 365,
+  reviewGraceDays: 14,
+  authorMatchMinScore: 60,
+  referenceMatchMinScore: 58,
+  ambiguousMatchGap: 5,
 })
 
 watch(() => props.form, (value) => {

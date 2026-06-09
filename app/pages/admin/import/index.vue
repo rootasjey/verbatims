@@ -109,7 +109,7 @@
                       <NCheckbox v-model="importOptions.preserveIds" label="Preserve explicit IDs when present" help="Insert records using provided id fields and realign sequences. Use with caution." />
                       <div>
                         <label class="block text-sm font-medium mb-1">Batch Size</label>
-                        <NInput v-model.number="importOptions.batchSize" type="number" min="1" max="1000" placeholder="50" />
+                        <NNumberField v-model="importOptions.batchSize" :min="1" :max="1000" />
                         <p class="mt-1 text-xs text-gray-500">Number of records to process at once (1-1000)</p>
                       </div>
                     </div>

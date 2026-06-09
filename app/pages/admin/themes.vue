@@ -247,7 +247,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Priority</label>
-            <NInput v-model.number="form.priority" type="number" min="0" :disabled="submitting" />
+            <NNumberField v-model="form.priority" :min="0" :disabled="submitting" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Date</label>
