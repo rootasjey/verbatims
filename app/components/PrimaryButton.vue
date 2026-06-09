@@ -9,7 +9,7 @@
       <slot />
       <span v-if="loading" class="i-ph-circle-notch animate-spin inline-block" />
     </span>
-    <span class="absolute inset-0 w-0 group-hover:w-full transition-all duration-300 ease-out -z-0 bg-[#0C0A09] dark:bg-[#FAFAF9]" />
+    <span class="absolute inset-0 w-0 group-hover:w-full group-active:scale-96 transition-all duration-300 ease-out -z-0 bg-[#0C0A09] dark:bg-[#FAFAF9]" />
   </button>
 </template>
 
