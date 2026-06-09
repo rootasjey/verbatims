@@ -20,9 +20,6 @@
       </template>
     </NInput>
 
-    <template #submit>
-      <NButton btn="soft-blue" :loading="loading" @click="emit('confirm')">Add</NButton>
-    </template>
   </AppDialog>
 </template>
 

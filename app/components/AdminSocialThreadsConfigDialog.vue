@@ -5,6 +5,7 @@
     submit-text="Save credentials"
     :submitting="saving"
     scrollable
+    max-width="lg"
     @submit="emit('save')"
   >
     <p class="text-sm text-gray-400 dark:text-gray-400 mb-6">
@@ -85,9 +86,6 @@
       </p>
     </div>
 
-    <template #submit>
-      <NButton btn="soft-blue" :loading="saving" @click="emit('save')">Save credentials</NButton>
-    </template>
   </AppDialog>
 </template>
 

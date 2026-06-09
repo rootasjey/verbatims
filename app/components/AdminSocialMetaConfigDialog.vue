@@ -46,9 +46,6 @@
       </p>
     </div>
 
-    <template #submit>
-      <NButton btn="soft-blue" :loading="saving" @click="emit('save')">Save settings</NButton>
-    </template>
   </AppDialog>
 </template>
 

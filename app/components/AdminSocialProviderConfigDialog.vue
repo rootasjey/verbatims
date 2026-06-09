@@ -11,14 +11,10 @@
       Saved values are stored in KV and override env variables. Leave a field empty to fall back to env / default.
     </p>
 
-    <div class="space-y-6">
+    <div class="mx-1 space-y-6">
       <div>
-        <NCheckbox
-          v-model="form.enabled"
-          :label="`Enable ${platformLabels[selectedPlatform] || selectedPlatform} posting`"
-          checkbox="blue"
-        />
-        <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('enabled') }}</p>
+        <CheckboxBadge v-model="form.enabled" :label="'Enable ' + (platformLabels[selectedPlatform] || selectedPlatform) + ' posting'" />
+        <p class="mt-1 ml-9 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('enabled') }}</p>
       </div>
 
       <template v-if="selectedPlatform === 'x'">
@@ -29,15 +25,17 @@
 
         <NCollapsible v-model:open="providerAdvancedOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
           <NCollapsibleTrigger as-child class="w-full">
-            <NButton btn="ghost-gray" class="px-2 w-full justify-between">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Advanced API params</span>
+            <NButton btn="ghost-blue" class="px-2 w-full justify-between">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Advanced API Params</span>
               <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': providerAdvancedOpen }" />
             </NButton>
           </NCollapsibleTrigger>
           <NCollapsibleContent>
             <div class="space-y-3 px-2 pb-2 pt-4 mt-2 border-t b-dashed border-gray-200 dark:border-gray-700">
-              <CheckboxBadge v-model="form.requireMedia" label="Require image upload" />
-              <p class="text-xs text-gray-500 dark:text-gray-400">Require media source: {{ sourceLabel('requireMedia') }}</p>
+              <div>
+                <CheckboxBadge v-model="form.requireMedia" label="Require image upload" />
+                <p class="ml-9 mt-1 text-xs text-gray-500 dark:text-gray-400">Require media source: {{ sourceLabel('requireMedia') }}</p>
+              </div>
 
               <div>
                 <NInput v-model="form.oauth1ConsumerKey" placeholder="consumer-key" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
@@ -69,11 +67,11 @@
         <NInput v-model="form.identifier" placeholder="handle.bsky.social" class="bg-white dark:bg-gray-900 b-none shadow-none" :una="{ inputTrailingWrapper: 'pr-1.5' }">
           <template #trailing><NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Identifier</NBadge></template>
         </NInput>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('identifier') }}</p>
+        <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('identifier') }}</span>
 
         <div>
           <PasswordInput v-model="form.password" placeholder="bluesky-app-password" />
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('password') }}</p>
+          <p class="mt-1 ml-1 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('password') }}</p>
         </div>
 
         <div>
@@ -86,8 +84,8 @@
 
         <NCollapsible v-model:open="providerAdvancedOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
           <NCollapsibleTrigger as-child class="w-full">
-            <NButton btn="ghost-gray" class="px-2 w-full justify-between">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Advanced API params</span>
+            <NButton btn="ghost-blue" class="px-2 w-full justify-between">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Advanced API Params</span>
               <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': providerAdvancedOpen }" />
             </NButton>
           </NCollapsibleTrigger>
@@ -110,7 +108,7 @@
 
         <NCollapsible v-model:open="providerAccountOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
           <NCollapsibleTrigger as-child class="w-full">
-            <NButton btn="ghost-gray" class="px-2 w-full justify-between">
+            <NButton btn="ghost-blue" class="px-2 w-full justify-between">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Account targeting</span>
               <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': providerAccountOpen }" />
             </NButton>
@@ -127,8 +125,8 @@
 
         <NCollapsible v-model:open="providerAdvancedOpen" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-2">
           <NCollapsibleTrigger as-child class="w-full">
-            <NButton btn="ghost-gray" class="px-2 w-full justify-between">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Advanced API params</span>
+            <NButton btn="ghost-blue" class="px-2 w-full justify-between">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Advanced API Params</span>
               <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': providerAdvancedOpen }" />
             </NButton>
           </NCollapsibleTrigger>
@@ -152,10 +150,6 @@
         Last updated {{ formatDate(state.updatedAt) }}
       </p>
     </div>
-
-    <template #submit>
-      <NButton btn="soft-blue" :loading="saving || loading" :disabled="!editable" @click="emit('save')">Save settings</NButton>
-    </template>
   </AppDialog>
 </template>
 
