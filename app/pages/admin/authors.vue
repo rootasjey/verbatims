@@ -45,13 +45,14 @@
                 <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {{ author.name }}
                 </h3>
-                <button
-                  v-if="hasPendingEnrichment(author)"
-                  type="button"
-                  class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-200 dark:ring-amber-900/60"
-                  :title="`${author.enrichment_pending_count} pending enrichment suggestion(s)`"
-                  @click="goToAuthorEnrichmentQueue(author)"
-                />
+
+                <NTooltip v-if="hasPendingEnrichment(author)" :content="`${author.enrichment_pending_count} pending enrichment suggestion(s)`">
+                  <button
+                    type="button"
+                    class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/60"
+                    @click="goToAuthorEnrichmentQueue(author)"
+                  />
+                </NTooltip>
               </div>
               <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {{ author.job }}
@@ -60,7 +61,7 @@
                 <span v-if="author.is_fictional" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300">
                   Fictional
                 </span>
-                <span v-if="hasPendingEnrichment(author)" class="text-xs font-medium text-amber-700 dark:text-amber-300">
+                <span v-if="hasPendingEnrichment(author)" class="text-xs font-medium text-indigo-700 dark:text-indigo-300">
                   {{ author.enrichment_pending_count }} suggestion{{ author.enrichment_pending_count !== 1 ? 's' : '' }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -277,20 +278,21 @@
                   <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {{ cell.row.original.name }}
                   </p>
-                  <button
-                    v-if="hasPendingEnrichment(cell.row.original)"
-                    type="button"
-                    class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-200 dark:ring-amber-900/60"
-                    :title="`${cell.row.original.enrichment_pending_count} pending enrichment suggestion(s)`"
-                    @click="goToAuthorEnrichmentQueue(cell.row.original)"
-                  />
+
+                  <NTooltip v-if="hasPendingEnrichment(cell.row.original)" :content="`${cell.row.original.enrichment_pending_count} pending enrichment suggestion(s)`">
+                    <button
+                      type="button"
+                      class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/60"
+                      @click="goToAuthorEnrichmentQueue(cell.row.original)"
+                    />
+                  </NTooltip>
                 </div>
                 <p v-if="cell.row.original.job" class="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {{ cell.row.original.job }}
                 </p>
-                <p v-if="hasPendingEnrichment(cell.row.original)" class="text-xs font-medium text-amber-700 dark:text-amber-300 truncate">
+                <button v-if="hasPendingEnrichment(cell.row.original)" type="button" class="text-xs font-medium text-indigo-700 dark:text-indigo-300 truncate hover:underline cursor-pointer text-left" @click="openEnrichmentPreview(cell.row.original)">
                   {{ cell.row.original.enrichment_pending_count }} pending suggestion{{ cell.row.original.enrichment_pending_count !== 1 ? 's' : '' }}
-                </p>
+                </button>
               </div>
             </div>
           </template>
