@@ -325,6 +325,7 @@ async function findBestAuthorCandidate(
       description: getDescription(entity),
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
+      image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
       score: Math.min(100, best.score),
       confidence,
       competing_score: second?.score ?? null,
@@ -533,6 +534,7 @@ async function findBestReferenceCandidate(
       description: getDescription(entity),
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
+      image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
       score: Math.min(100, best.score),
       confidence,
       competing_score: second?.score ?? null,
@@ -1085,6 +1087,7 @@ function toAlternativeMatch(candidate: ScoredWikidataCandidate): EnrichmentAlter
   const label = getLabel(candidate.entity) || candidate.result.label || candidate.result.id
   const description = getDescription(candidate.entity) || candidate.result.description || null
   const wikipediaUrl = candidate.entity ? buildWikipediaUrl(candidate.entity) : null
+  const imageFileName = candidate.entity ? getCommonsImageFileName(candidate.entity.claims?.P18) : null
 
   return {
     source: 'wikidata',
@@ -1093,6 +1096,7 @@ function toAlternativeMatch(candidate: ScoredWikidataCandidate): EnrichmentAlter
     description,
     wikipedia_url: wikipediaUrl,
     wikidata_url: `https://www.wikidata.org/wiki/${candidate.result.id}`,
+    image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
     score: Math.min(100, candidate.score),
     signals: candidate.signals,
   }

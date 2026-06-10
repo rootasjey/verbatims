@@ -48,7 +48,7 @@
                 <button
                   v-if="hasPendingEnrichment(reference)"
                   type="button"
-                  class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-200 dark:ring-amber-900/60"
+                  class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/60"
                   :title="`${reference.enrichment_pending_count} pending enrichment suggestion(s)`"
                   @click="goToReferenceEnrichmentQueue(reference)"
                 />
@@ -60,7 +60,7 @@
                 {{ reference.secondary_type }}
               </p>
               <div class="flex items-center space-x-2 mt-1">
-                <span v-if="hasPendingEnrichment(reference)" class="text-xs font-medium text-amber-700 dark:text-amber-300">
+                <span v-if="hasPendingEnrichment(reference)" class="text-xs font-medium text-indigo-700 dark:text-indigo-300">
                   {{ reference.enrichment_pending_count }} suggestion{{ reference.enrichment_pending_count !== 1 ? 's' : '' }}
                 </span>
                 <span v-if="reference.release_date" class="text-xs text-gray-500 dark:text-gray-400">
@@ -220,20 +220,20 @@
                   <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {{ cell.row.original.name }}
                   </p>
-                  <button
-                    v-if="hasPendingEnrichment(cell.row.original)"
-                    type="button"
-                    class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-200 dark:ring-amber-900/60"
-                    :title="`${cell.row.original.enrichment_pending_count} pending enrichment suggestion(s)`"
-                    @click="goToReferenceEnrichmentQueue(cell.row.original)"
-                  />
+                  <NTooltip v-if="hasPendingEnrichment(cell.row.original)" :content="`${cell.row.original.enrichment_pending_count} pending enrichment suggestion(s)`">
+                    <button
+                      type="button"
+                      class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/60"
+                      @click="goToReferenceEnrichmentQueue(cell.row.original)"
+                    />
+                  </NTooltip>
                 </div>
                 <p v-if="cell.row.original.secondary_type" class="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {{ cell.row.original.secondary_type }}
                 </p>
-                <p v-if="hasPendingEnrichment(cell.row.original)" class="text-xs font-medium text-amber-700 dark:text-amber-300 truncate">
+                <button v-if="hasPendingEnrichment(cell.row.original)" type="button" class="text-xs font-medium text-indigo-700 dark:text-indigo-300 truncate hover:underline cursor-pointer text-left" @click="openEnrichmentPreview(cell.row.original)">
                   {{ cell.row.original.enrichment_pending_count }} pending suggestion{{ cell.row.original.enrichment_pending_count !== 1 ? 's' : '' }}
-                </p>
+                </button>
               </div>
             </div>
           </template>

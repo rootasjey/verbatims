@@ -2,7 +2,7 @@
   <AppDialog
     v-model="isOpen"
     title=""
-    max-width="xl"
+    max-width="md"
     scrollable
     @close="emit('update:open', false)"
   >
@@ -26,135 +26,220 @@
     </template>
 
     <div>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Review the proposed changes before applying them to the author record.
-      </p>
-
-      <div v-if="loading" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+      <div v-if="loading && !preview" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
         Building enrichment preview from Wikidata and Wikimedia Commons...
       </div>
 
-      <div v-else-if="!preview" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+      <div v-else-if="!preview && !loading" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
         No preview data available.
       </div>
 
-      <div v-else class="space-y-4">
-        <div class="rounded-lg border border-gray-200 dark:border-gray-900 p-4 bg-gray-50/60 dark:bg-gray-900/20">
-          <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p v-if="preview.match" class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                <b>{{ preview.match.label }}</b>
-                <span class="text-gray-400 dark:text-gray-500">•</span>
-                score <b>{{ preview.match.score }}</b>
-              </p>
-              <p v-if="preview.match?.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ preview.match.description }}</p>
-              <div v-if="preview.match?.signals?.length" class="mt-3 space-y-1">
-                <p v-for="signal in preview.match.signals" :key="signal" class="text-xs text-pink-600 dark:text-pink-300">{{ signal }}</p>
+      <div v-else ref="contentWrapper" class="pt-2 space-y-6" style="transition: height .3s ease; overflow: hidden">
+        <!-- AVATAR STRIP — step 1 only -->
+        <div v-if="view === 'candidate'">
+          <div class="flex justify-center items-center gap-4 overflow-x-auto pb-1">
+            <div
+              v-for="candidate in candidates"
+              :key="candidate.id"
+              class="flex flex-col items-center gap-2 min-w-[88px] cursor-pointer group"
+              :class="selectedCandidateId === candidate.id ? '' : 'opacity-65 hover:opacity-90 transition-opacity'"
+              @click="selectCandidate(candidate.id)"
+            >
+              <div class="relative w-16 h-16 hover:scale-105 active:scale-95 transition-transform">
+                <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36" fill="none">
+                  <circle cx="18" cy="18" r="15.5" stroke="currentColor" stroke-width="1.8" class="text-gray-200 dark:text-gray-700" />
+                  <circle
+                    cx="18" cy="18" r="15.5"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    :stroke-dasharray="97.39"
+                    :stroke-dashoffset="97.39 - (candidate.score / 100) * 97.39"
+                    :class="scoreRingColor(candidate.score)"
+                  />
+                </svg>
+                <div class="absolute inset-[9px] rounded-full overflow-hidden bg-white dark:bg-gray-800 flex items-center justify-center">
+                  <img
+                    v-if="candidate.image_url && !failedImages[candidate.id]"
+                    :src="candidate.image_url"
+                    :alt="candidate.label"
+                    class="w-full h-full object-cover"
+                    @error="onImageError(candidate.id)"
+                  />
+                  <NIcon v-else name="i-ph-user" class="w-6 h-6 text-gray-400" />
+                </div>
+                <div
+                  v-if="selectedCandidateId === candidate.id"
+                  class="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm"
+                >
+                  <NIcon name="i-ph-check-circle" class="w-4 h-4 text-blue-500" />
+                </div>
               </div>
-
-              <div v-if="preview.match" class="mt-2 flex flex-wrap items-center gap-2">
-                <NBadge :badge="matchConfidenceBadge(preview.match.confidence)" size="xs">{{ matchConfidenceLabel(preview.match.confidence) }} confidence</NBadge>
-                <NBadge v-if="preview.match.selected_manually" badge="soft-pink" size="xs">selected manually</NBadge>
-                <NBadge v-if="typeof preview.match.score_gap === 'number'" badge="soft-gray" size="xs">score gap {{ preview.match.score_gap }}</NBadge>
-                <NBadge v-if="typeof preview.match.competing_score === 'number'" badge="soft-gray" size="xs">runner-up {{ preview.match.competing_score }}</NBadge>
+              <div class="text-center min-w-0">
+                <p class="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[80px]">{{ candidate.label }}</p>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ candidate.score }}% match</p>
               </div>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <NTooltip :content="`${preview.summary.proposed_count} proposals`">
-                <NBadge badge="soft-blue" size="xs" icon="i-tabler-search"></NBadge>
-              </NTooltip>
-              <NTooltip :content="`${preview.summary.recommended_count} recommended`">
-                <NBadge badge="soft-green" size="xs" icon="i-tabler-thumb-up"></NBadge>
-              </NTooltip>
-
-              <NTooltip :content="preview.review_required ? 'Review required' : 'Safe to apply'">
-                <NBadge :badge="preview.review_required ? 'solid-pink' : 'soft-gray'" size="xs" icon="i-tabler-zoom-exclamation"></NBadge>
-              </NTooltip>
             </div>
           </div>
 
-          <div v-if="preview.notes?.length" class="mt-3 space-y-1">
+          <div v-if="preview.notes?.length" class="mt-4 space-y-1">
             <p v-for="note in preview.notes" :key="note" class="text-xs text-gray-500 dark:text-gray-400">{{ note }}</p>
           </div>
+        </div>
 
-          <div v-if="preview.alternative_matches?.length" class="mt-4 rounded-lg border border-dashed border-pink-200 dark:border-pink-900/60 p-3 bg-pink-50/60 dark:bg-pink-950/10">
-            <p class="text-xs font-semibold uppercase tracking-wide text-pink-700 dark:text-pink-300">Other plausible candidates</p>
-            <div class="mt-2 space-y-2">
-              <div v-for="candidate in preview.alternative_matches" :key="candidate.external_id" class="rounded-md bg-white/70 dark:bg-gray-950/30 p-3">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">{{ candidate.label }}</span>
-                  <NBadge badge="soft-gray" size="xs">score {{ candidate.score }}</NBadge>
-                </div>
-                <p v-if="candidate.description" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ candidate.description }}</p>
-                <div v-if="candidate.signals?.length" class="mt-2 space-y-1">
-                  <p v-for="signal in candidate.signals" :key="signal" class="text-xs text-pink-700 dark:text-pink-300">{{ signal }}</p>
-                </div>
-                <div class="mt-2 flex flex-wrap items-center gap-2">
-                  <NButton btn="soft-pink" size="xs" @click="emit('promote-candidate', candidate.external_id)">Use this candidate</NButton>
-
-                  <NTooltip :content="`Wikidata: ${candidate.wikidata_url}`">
-                    <NLink :to="candidate.wikidata_url" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-600 hover:text-blue-700 dark:hover:text-blue-200 hover:underline">
-                      <NIcon name="i-tabler-database" />
-                    </NLink>
-                  </NTooltip>
-                  <NTooltip :content="`Wikipedia: ${candidate.wikipedia_url}`">
-                    <NLink v-if="candidate.wikipedia_url" :to="candidate.wikipedia_url" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-600 hover:text-blue-700 dark:hover:text-blue-200 hover:underline">
-                      <NIcon name="i-tabler-brand-wikipedia" />
-                    </NLink>
-                  </NTooltip>
-                </div>
+        <!-- STEP 1: Candidate detail & signal review -->
+        <div v-if="view === 'candidate'" class="space-y-4">
+          <Transition name="panel" mode="out-in">
+            <!-- Promoting shimmer -->
+            <div v-if="promoting" key="shimmer" class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-950/30">
+              <div class="space-y-3 animate-pulse">
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
               </div>
             </div>
+
+            <!-- Real content -->
+            <div v-else-if="selectedCandidateData" key="content" class="">
+              <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-950/30">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">{{ selectedCandidateData.label }}</p>
+                    <p v-if="selectedCandidateData.description" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{{ selectedCandidateData.description }}</p>
+
+                    <div v-if="selectedCandidateData.signals.length" class="mt-3 space-y-1.5">
+                      <p v-for="signal in selectedCandidateData.signals" :key="signal" class="flex items-start gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                        <NIcon name="i-ph-check-circle" class="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" />
+                        <span>{{ formatSignalForDetail(signal) }}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <NTooltip :content="`Wikidata: ${selectedCandidateData.wikidata_url}`">
+                      <NLink :to="selectedCandidateData.wikidata_url" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        <NIcon name="i-tabler-database" class="w-4 h-4" />
+                      </NLink>
+                    </NTooltip>
+                    <NTooltip v-if="selectedCandidateData.wikipedia_url" :content="`Wikipedia: ${selectedCandidateData.wikipedia_url}`">
+                      <NLink :to="selectedCandidateData.wikipedia_url" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        <NIcon name="i-tabler-brand-wikipedia" class="w-4 h-4" />
+                      </NLink>
+                    </NTooltip>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 mx-1 mt-2">
+                <NBadge :badge="matchConfidenceBadge(selectedCandidateData.confidence)" size="xs">{{ matchConfidenceLabel(selectedCandidateData.confidence) }} confidence</NBadge>
+                <NBadge v-if="preview?.match?.selected_manually" badge="soft-pink" size="xs">selected manually</NBadge>
+                <NBadge v-if="typeof preview?.match?.score_gap === 'number'" badge="soft-gray" size="xs">Score Gap {{ preview.match.score_gap }}</NBadge>
+                <NBadge v-if="typeof preview?.match?.competing_score === 'number'" badge="soft-gray" size="xs">Runner-up {{ preview.match.competing_score }}</NBadge>
+                <NBadge v-if="!selectedCandidateData.isPrimary" badge="soft-blue" size="xs">alternative candidate</NBadge>
+                <NTooltip :content="`${preview.summary.proposed_count} proposals`">
+                  <NBadge badge="soft-blue" size="xs" icon="i-tabler-search">{{ preview.summary.proposed_count }}</NBadge>
+                </NTooltip>
+                <NTooltip :content="`${preview.summary.recommended_count} recommended`">
+                  <NBadge badge="soft-green" size="xs" icon="i-tabler-thumb-up">{{ preview.summary.recommended_count }}</NBadge>
+                </NTooltip>
+                <NTooltip :content="preview.review_required ? 'Review required' : 'Safe to apply'">
+                  <NBadge :badge="preview.review_required ? 'solid-pink' : 'soft-gray'" size="xs" icon="i-tabler-zoom-exclamation"></NBadge>
+                </NTooltip>
+              </div>
+            </div>
+          </Transition>
+
+          <div v-if="!promoting && !selectedCandidateData && candidates.length > 0" class="text-center text-xs text-gray-400 dark:text-gray-500 py-2">
+            Click a candidate above to review their matching signals.
+          </div>
+
+          <div class="flex justify-center">
+            <PrimaryButton class="py-2 px-6" :disabled="promoting" @click="view = 'proposals'">
+              <template v-if="promoting">
+                <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
+                Regenerating proposals…
+              </template>
+              <template v-else>
+                Continue to field proposals
+                <NIcon name="i-ph-arrow-right" />
+              </template>
+            </PrimaryButton>
           </div>
         </div>
 
-        <div v-if="preview.proposals.length === 0" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          No field update is currently recommended for this author.
-        </div>
+        <!-- STEP 2: Field proposals -->
+        <div v-else class="space-y-4">
+          <div class="flex items-center gap-3">
+            <NButton btn="text-gray" size="xs" class="!p-0 shrink-0" @click="view = 'candidate'">
+              <NIcon name="i-ph-arrow-left" class="w-4 h-4" />
+            </NButton>
 
-        <div v-else class="space-y-3 max-h-[55vh] overflow-auto pr-1">
-          <div v-for="proposal in preview.proposals" :key="proposal.field" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex items-start gap-3 min-w-0">
-                <NCheckbox checkbox="blue" class="mt-1 p-2.4" rounded="1" size="xs" :model-value="selectedFields.includes(proposal.field)" @update:model-value="emit('toggle-field', proposal.field, $event)" />
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h5 class="text-sm font-medium text-gray-900 dark:text-white">{{ proposal.label }}</h5>
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                <img
+                  v-if="selectedCandidateData?.image_url && !failedImages[selectedCandidateData.id]"
+                  :src="selectedCandidateData.image_url"
+                  :alt="selectedCandidateData.label"
+                  class="w-full h-full object-cover"
+                  @error="onImageError(selectedCandidateData.id)"
+                />
+                <NIcon v-else name="i-ph-user" class="w-4 h-4 text-gray-400" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ selectedCandidateData?.label }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ selectedCandidateData?.score }}% match</p>
+              </div>
+            </div>
+          </div>
 
-                    <NTooltip :content="proposal.recommended ? 'Recommended' : 'Optional'">
-                      <NBadge :badge="proposal.recommended ? 'soft-green' : 'solid-gray'" size="xs">
-                        <NIcon v-if="proposal.recommended" name="i-tabler-thumb-up" />
-                        <NIcon v-else name="i-tabler-question-mark" />
-                      </NBadge>
-                    </NTooltip>
-                    <NBadge :badge="proposal.overwrite ? 'solid-pink' : 'soft-blue'" size="xs">{{ proposal.overwrite ? 'Overwrite' : 'Fill missing' }}</NBadge>
+          <div v-if="preview.proposals.length === 0" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            No field update is currently recommended for this author.
+          </div>
+
+          <div v-else class="space-y-3">
+            <div v-for="proposal in preview.proposals" :key="proposal.field" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3 min-w-0">
+                  <NCheckbox checkbox="blue" class="mt-1 p-2.4" rounded="1" size="xs" :model-value="selectedFields.includes(proposal.field)" @update:model-value="emit('toggle-field', proposal.field, $event)" />
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h5 class="text-sm font-medium text-gray-900 dark:text-white">{{ proposal.label }}</h5>
+
+                      <NTooltip :content="proposal.recommended ? 'Recommended' : 'Optional'">
+                        <NBadge :badge="proposal.recommended ? 'soft-green' : 'solid-gray'" size="xs">
+                          <NIcon v-if="proposal.recommended" name="i-tabler-thumb-up" />
+                          <NIcon v-else name="i-tabler-question-mark" />
+                        </NBadge>
+                      </NTooltip>
+                      <NBadge :badge="proposal.overwrite ? 'solid-pink' : 'soft-blue'" size="xs">{{ proposal.overwrite ? 'Overwrite' : 'Fill missing' }}</NBadge>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Confidence {{ proposal.confidence }} · {{ proposal.rationale }}</p>
                   </div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Confidence {{ proposal.confidence }} · {{ proposal.rationale }}</p>
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ proposal.source_labels.join(' / ') }}</div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <div class="rounded-md bg-white dark:bg-gray-900/40 p-3">
+                  <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Current</p>
+                  <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ proposal.current_value || 'Empty' }}</pre>
+                </div>
+                <div class="rounded-md bg-blue-50/70 dark:bg-blue-950/20 p-3 border border-dashed border-blue-200 dark:border-blue-800/60">
+                  <p class="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-300 mb-2">Proposed</p>
+                  <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ proposal.proposed_value || 'Empty' }}</pre>
                 </div>
               </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ proposal.source_labels.join(' / ') }}</div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-              <div class="rounded-md bg-white dark:bg-gray-900/40 p-3">
-                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Current</p>
-                <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ proposal.current_value || 'Empty' }}</pre>
-              </div>
-              <div class="rounded-md bg-blue-50/70 dark:bg-blue-950/20 p-3 border border-dashed border-blue-200 dark:border-blue-800/60">
-                <p class="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-300 mb-2">Proposed</p>
-                <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ proposal.proposed_value || 'Empty' }}</pre>
-              </div>
-            </div>
-            <div v-if="proposal.source_urls?.length" class="mt-3 flex flex-wrap gap-2">
-              <div class="w-full p-3 bg-white dark:bg-gray-800 rounded-2">
-                <h3 class="text-xs font-600 text-gray-600 dark:text-gray-300 mb-2">Source URLs</h3>
-                <div class="flex flex-wrap gap-2">
-                  <NTooltip v-for="url in proposal.source_urls" :key="url"  :content="url">
-                    <NButton icon link btn="soft-blue" :to="url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">
-                      <NIcon v-if="url.includes('wikipedia')" name="i-tabler-brand-wikipedia" />
-                      <NIcon v-else-if="url.includes('wikidata')" name="i-tabler-database" />
-                      <NIcon v-else name="i-tabler-link" />
-                    </NButton>
-                  </NTooltip>
+              <div v-if="proposal.source_urls?.length" class="mt-3 flex flex-wrap gap-2">
+                <div class="w-full p-3 bg-white dark:bg-gray-800 rounded-2">
+                  <h3 class="text-xs font-600 text-gray-600 dark:text-gray-300 mb-2">Source URLs</h3>
+                  <div class="flex flex-wrap gap-2">
+                    <NTooltip v-for="url in proposal.source_urls" :key="url"  :content="url">
+                      <NButton icon link btn="soft-blue" :to="url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">
+                        <NIcon v-if="url.includes('wikipedia')" name="i-tabler-brand-wikipedia" />
+                        <NIcon v-else-if="url.includes('wikidata')" name="i-tabler-database" />
+                        <NIcon v-else name="i-tabler-link" />
+                      </NButton>
+                    </NTooltip>
+                  </div>
                 </div>
               </div>
             </div>
@@ -164,7 +249,10 @@
     </div>
 
     <template #footer>
-      <div class="w-full flex items-center justify-between gap-3 border-t b-dashed px-4 py-3">
+      <div v-if="view === 'candidate'" class="w-full flex items-center justify-end gap-3 border-t b-dashed px-4 py-3">
+        <NButton btn="link-gray" @click="emit('update:open', false)">Close</NButton>
+      </div>
+      <div v-else class="w-full flex items-center justify-between gap-3 border-t b-dashed px-4 py-3">
         <div class="text-sm text-gray-500 dark:text-gray-400">
           {{ selectedFields.length }} field{{ selectedFields.length !== 1 ? 's' : '' }} selected
         </div>
@@ -218,5 +306,133 @@ function matchConfidenceBadge(confidence?: string | null) {
   if (confidence === 'medium') return 'soft-blue'
   if (confidence === 'low') return 'soft-gray'
   return 'soft-pink'
+}
+
+interface DisplayCandidate {
+  id: string
+  label: string
+  description: string | null
+  score: number
+  image_url: string | null
+  signals: string[]
+  isPrimary: boolean
+  confidence?: string | null
+  wikidata_url: string
+  wikipedia_url: string | null | undefined
+}
+
+const view = ref<'candidate' | 'proposals'>('candidate')
+const selectedCandidateId = ref<string | null>(null)
+const failedImages = ref<Record<string, boolean>>({})
+const promoting = ref(false)
+const candidates = ref<DisplayCandidate[]>([])
+
+const contentWrapper = ref<HTMLElement | null>(null)
+
+function animateHeight() {
+  const el = contentWrapper.value
+  if (!el) return
+  el.style.height = el.scrollHeight + 'px'
+}
+
+onMounted(() => {
+  nextTick(animateHeight)
+})
+
+function buildCandidatesFromPreview(preview: any) {
+  const list: DisplayCandidate[] = []
+  if (preview.match) {
+    const m = preview.match
+    list.push({
+      id: m.external_id,
+      label: m.label,
+      description: m.description ?? null,
+      score: m.score,
+      image_url: m.image_url ?? null,
+      signals: m.signals ?? [],
+      isPrimary: true,
+      confidence: m.confidence,
+      wikidata_url: m.wikidata_url,
+      wikipedia_url: m.wikipedia_url ?? null,
+    })
+  }
+  if (preview.alternative_matches) {
+    for (const alt of preview.alternative_matches) {
+      list.push({
+        id: alt.external_id,
+        label: alt.label,
+        description: alt.description ?? null,
+        score: alt.score,
+        image_url: alt.image_url ?? null,
+        signals: alt.signals ?? [],
+        isPrimary: false,
+        wikidata_url: alt.wikidata_url,
+        wikipedia_url: alt.wikipedia_url ?? null,
+      })
+    }
+  }
+  return list
+}
+
+const selectedCandidateData = computed<DisplayCandidate | null>(() => {
+  if (!selectedCandidateId.value) return null
+  return candidates.value.find(c => c.id === selectedCandidateId.value) || null
+})
+
+watch(() => props.preview, (preview) => {
+  if (preview?.match && candidates.value.length === 0) {
+    candidates.value = buildCandidatesFromPreview(preview)
+  }
+  if (preview?.match) {
+    selectedCandidateId.value = preview.match.external_id
+    const primaryId = preview.match.external_id
+    for (const c of candidates.value) {
+      if (c.isPrimary !== (c.id === primaryId)) {
+        c.isPrimary = c.id === primaryId
+      }
+    }
+  }
+  view.value = 'candidate'
+  promoting.value = false
+  nextTick(animateHeight)
+}, { immediate: true })
+
+watch([view, () => promoting.value, selectedCandidateId], () => {
+  nextTick(animateHeight)
+})
+
+function selectCandidate(id: string) {
+  if (view.value === 'proposals') {
+    view.value = 'candidate'
+  }
+  selectedCandidateId.value = id
+
+  const candidate = candidates.value.find(c => c.id === id)
+  if (candidate && !candidate.isPrimary) {
+    promoting.value = true
+    emit('promote-candidate', id)
+  }
+}
+
+function onImageError(id: string) {
+  failedImages.value[id] = true
+}
+
+function scoreRingColor(score: number) {
+  if (score >= 80) return 'text-blue-500'
+  if (score >= 60) return 'text-indigo-500'
+  if (score >= 40) return 'text-amber-500'
+  return 'text-pink-500'
+}
+
+function formatSignalForDetail(signal: string) {
+  if (/^Name match/i.test(signal)) return 'The name matches the selected Wikidata entry.'
+  if (/^Description overlap/i.test(signal)) return 'Existing biography context overlaps with the selected Wikidata description.'
+  if (/^Occupation match/i.test(signal)) return 'Existing profession aligns with the selected Wikidata occupation.'
+  if (/^Birth year/i.test(signal)) return 'Existing birth details match Wikidata records.'
+  if (/^Death year/i.test(signal)) return 'Existing death details align with Wikidata records.'
+  if (/^Birth location/i.test(signal)) return 'Existing birth location matches Wikidata records.'
+  if (/^Death location/i.test(signal)) return 'Existing death location matches Wikidata records.'
+  return signal
 }
 </script>

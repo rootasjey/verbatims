@@ -38,6 +38,7 @@ export interface EnrichmentMatchSummary {
   description?: string | null
   wikipedia_url?: string | null
   wikidata_url: string
+  image_url?: string | null
   score: number
   confidence?: EnrichmentMatchConfidence
   competing_score?: number | null
@@ -53,6 +54,7 @@ export interface EnrichmentAlternativeMatch {
   description?: string | null
   wikipedia_url?: string | null
   wikidata_url: string
+  image_url?: string | null
   score: number
   signals?: string[]
 }
