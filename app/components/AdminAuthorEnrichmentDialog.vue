@@ -2,7 +2,7 @@
   <AppDialog
     v-model="isOpen"
     title=""
-    max-width="md"
+    :max-width="view === 'candidate' ? 'md' : 'xl'"
     scrollable
     @close="emit('update:open', false)"
   >
@@ -79,10 +79,6 @@
               </div>
             </div>
           </div>
-
-          <div v-if="preview.notes?.length" class="mt-4 space-y-1">
-            <p v-for="note in preview.notes" :key="note" class="text-xs text-gray-500 dark:text-gray-400">{{ note }}</p>
-          </div>
         </div>
 
         <!-- STEP 1: Candidate detail & signal review -->
@@ -100,7 +96,7 @@
             </div>
 
             <!-- Real content -->
-            <div v-else-if="selectedCandidateData" key="content" class="">
+            <div v-else-if="selectedCandidateData" key="content">
               <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-950/30">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
@@ -130,20 +126,32 @@
                 </div>
               </div>
 
+              <div
+                v-if="enrichmentStatus && selectedCandidateData?.isPrimary"
+                class="flex items-start gap-2 px-3 py-2.5 mx-1 mt-2 rounded-lg border text-xs"
+                :class="enrichmentStatus.variantClass"
+              >
+                <NIcon :name="enrichmentStatus.icon" class="w-4 h-4 mt-0.5 shrink-0" />
+                <div>
+                  <p class="font-medium">{{ enrichmentStatus.title }}</p>
+                  <p v-if="enrichmentStatus.description" class="mt-0.5 opacity-80 leading-relaxed">{{ enrichmentStatus.description }}</p>
+                </div>
+              </div>
+
               <div class="flex flex-wrap items-center gap-3 mx-1 mt-2">
-                <NBadge :badge="matchConfidenceBadge(selectedCandidateData.confidence)" size="xs">{{ matchConfidenceLabel(selectedCandidateData.confidence) }} confidence</NBadge>
                 <NBadge v-if="preview?.match?.selected_manually" badge="soft-pink" size="xs">selected manually</NBadge>
-                <NBadge v-if="typeof preview?.match?.score_gap === 'number'" badge="soft-gray" size="xs">Score Gap {{ preview.match.score_gap }}</NBadge>
-                <NBadge v-if="typeof preview?.match?.competing_score === 'number'" badge="soft-gray" size="xs">Runner-up {{ preview.match.competing_score }}</NBadge>
+                <NTooltip v-if="typeof preview?.match?.score_gap === 'number'" content="Difference in match score between the primary candidate and the runner-up. A small gap means both candidates are nearly tied.">
+                  <NBadge badge="soft-gray" size="xs">Score Gap {{ preview.match.score_gap }}</NBadge>
+                </NTooltip>
+                <NTooltip v-if="typeof preview?.match?.competing_score === 'number'" content="Match score of the second-best candidate. A high runner-up score close to the primary means the selection is less certain.">
+                  <NBadge badge="soft-gray" size="xs">Runner-up {{ preview.match.competing_score }}</NBadge>
+                </NTooltip>
                 <NBadge v-if="!selectedCandidateData.isPrimary" badge="soft-blue" size="xs">alternative candidate</NBadge>
                 <NTooltip :content="`${preview.summary.proposed_count} proposals`">
                   <NBadge badge="soft-blue" size="xs" icon="i-tabler-search">{{ preview.summary.proposed_count }}</NBadge>
                 </NTooltip>
                 <NTooltip :content="`${preview.summary.recommended_count} recommended`">
                   <NBadge badge="soft-green" size="xs" icon="i-tabler-thumb-up">{{ preview.summary.recommended_count }}</NBadge>
-                </NTooltip>
-                <NTooltip :content="preview.review_required ? 'Review required' : 'Safe to apply'">
-                  <NBadge :badge="preview.review_required ? 'solid-pink' : 'soft-gray'" size="xs" icon="i-tabler-zoom-exclamation"></NBadge>
                 </NTooltip>
               </div>
             </div>
@@ -294,20 +302,6 @@ const isOpen = computed({
   set: (value: boolean) => emit('update:open', value)
 })
 
-function matchConfidenceLabel(confidence?: string | null) {
-  if (confidence === 'high') return 'High'
-  if (confidence === 'medium') return 'Medium'
-  if (confidence === 'low') return 'Low'
-  return 'Ambiguous'
-}
-
-function matchConfidenceBadge(confidence?: string | null) {
-  if (confidence === 'high') return 'soft-green'
-  if (confidence === 'medium') return 'soft-blue'
-  if (confidence === 'low') return 'soft-gray'
-  return 'soft-pink'
-}
-
 interface DisplayCandidate {
   id: string
   label: string
@@ -378,6 +372,68 @@ const selectedCandidateData = computed<DisplayCandidate | null>(() => {
   if (!selectedCandidateId.value) return null
   return candidates.value.find(c => c.id === selectedCandidateId.value) || null
 })
+
+interface EnrichmentStatus {
+  variantClass: string
+  icon: string
+  title: string
+  description: string | null
+}
+
+const enrichmentStatus = computed<EnrichmentStatus | null>(() => {
+  if (!props.preview?.match) return null
+
+  const confidence = props.preview.match.confidence
+  const reviewRequired = props.preview.review_required
+  const notes = props.preview.notes?.filter(Boolean).join(' ') || null
+
+  if (confidence === 'high' && !reviewRequired) {
+    return {
+      variantClass: 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
+      icon: 'i-ph-check-circle',
+      title: 'High confidence — safe to apply',
+      description: null,
+    }
+  }
+
+  if (confidence === 'ambiguous' || reviewRequired) {
+    const label = matchConfidenceLabel(confidence)
+    return {
+      variantClass: 'bg-amber-50 dark:bg-pink-950/20 text-amber-700 dark:text-pink-300 border-amber-200 dark:border-amber-800',
+      icon: 'i-ph-warning',
+      title: `${label} confidence — review required`,
+      description: notes,
+    }
+  }
+
+  if (confidence === 'low') {
+    const label = matchConfidenceLabel(confidence)
+    return {
+      variantClass: 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+      icon: 'i-ph-warning',
+      title: `${label} confidence — review recommended`,
+      description: notes,
+    }
+  }
+
+  if (confidence === 'medium') {
+    return {
+      variantClass: 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+      icon: 'i-ph-info',
+      title: 'Medium confidence',
+      description: notes,
+    }
+  }
+
+  return null
+})
+
+function matchConfidenceLabel(confidence?: string | null) {
+  if (confidence === 'high') return 'High'
+  if (confidence === 'medium') return 'Medium'
+  if (confidence === 'low') return 'Low'
+  return 'Ambiguous'
+}
 
 watch(() => props.preview, (preview) => {
   if (preview?.match && candidates.value.length === 0) {
