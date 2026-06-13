@@ -74,7 +74,9 @@
                 </div>
               </div>
               <div class="text-center min-w-0">
-                <p class="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[80px]">{{ candidate.label }}</p>
+                <NTooltip :content="candidate.label">
+                  <p class="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[80px]">{{ candidate.label }}</p>
+                </NTooltip>
                 <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ candidate.score }}% match</p>
               </div>
             </div>
@@ -141,17 +143,17 @@
               <div class="flex flex-wrap items-center gap-3 mx-1 mt-2">
                 <NBadge v-if="preview?.match?.selected_manually" badge="soft-pink" size="xs">selected manually</NBadge>
                 <NTooltip v-if="typeof preview?.match?.score_gap === 'number'" content="Difference in match score between the primary candidate and the runner-up. A small gap means both candidates are nearly tied.">
-                  <NBadge badge="soft-gray" size="xs">Score Gap {{ preview.match.score_gap }}</NBadge>
+                  <span class="inline-flex"><NBadge badge="soft-gray" size="xs">Score Gap {{ preview.match.score_gap }}</NBadge></span>
                 </NTooltip>
                 <NTooltip v-if="typeof preview?.match?.competing_score === 'number'" content="Match score of the second-best candidate. A high runner-up score close to the primary means the selection is less certain.">
-                  <NBadge badge="soft-gray" size="xs">Runner-up {{ preview.match.competing_score }}</NBadge>
+                  <span class="inline-flex"><NBadge badge="soft-gray" size="xs">Runner-up {{ preview.match.competing_score }}</NBadge></span>
                 </NTooltip>
                 <NBadge v-if="!selectedCandidateData.isPrimary" badge="soft-blue" size="xs">alternative candidate</NBadge>
                 <NTooltip :content="`${preview.summary.proposed_count} proposals`">
-                  <NBadge badge="soft-blue" size="xs" icon="i-tabler-search">{{ preview.summary.proposed_count }}</NBadge>
+                  <span class="inline-flex"><NBadge badge="soft-blue" size="xs" icon="i-tabler-search">{{ preview.summary.proposed_count }}</NBadge></span>
                 </NTooltip>
                 <NTooltip :content="`${preview.summary.recommended_count} recommended`">
-                  <NBadge badge="soft-green" size="xs" icon="i-tabler-thumb-up">{{ preview.summary.recommended_count }}</NBadge>
+                  <span class="inline-flex"><NBadge badge="soft-green" size="xs" icon="i-tabler-thumb-up">{{ preview.summary.recommended_count }}</NBadge></span>
                 </NTooltip>
               </div>
             </div>
@@ -159,6 +161,13 @@
 
           <div v-if="!promoting && !selectedCandidateData && candidates.length > 0" class="text-center text-xs text-gray-400 dark:text-gray-500 py-2">
             Click a candidate above to review their matching signals.
+          </div>
+
+          <div v-if="!promoting && candidates.length === 0 && preview" class="text-center text-sm py-4 space-y-2">
+            <p class="font-medium text-amber-600 dark:text-amber-400">No matching Wikidata candidate found</p>
+            <p v-if="preview.notes?.length" class="text-xs text-gray-500 dark:text-gray-400">
+              {{ preview.notes.join(' ') }}
+            </p>
           </div>
 
           <div class="flex justify-center">
@@ -435,18 +444,23 @@ function matchConfidenceLabel(confidence?: string | null) {
   return 'Ambiguous'
 }
 
+const previousAuthorId = ref<number | null>(null)
+
 watch(() => props.preview, (preview) => {
-  if (preview?.match && candidates.value.length === 0) {
-    candidates.value = buildCandidatesFromPreview(preview)
-  }
-  if (preview?.match) {
-    selectedCandidateId.value = preview.match.external_id
+  const authorChanged = props.author?.id != null && previousAuthorId.value !== props.author.id
+  previousAuthorId.value = props.author?.id ?? null
+
+  if (authorChanged || candidates.value.length === 0 || !preview?.match) {
+    candidates.value = preview?.match ? buildCandidatesFromPreview(preview) : []
+  } else {
     const primaryId = preview.match.external_id
     for (const c of candidates.value) {
-      if (c.isPrimary !== (c.id === primaryId)) {
-        c.isPrimary = c.id === primaryId
-      }
+      c.isPrimary = c.id === primaryId
     }
+  }
+
+  if (preview?.match) {
+    selectedCandidateId.value = preview.match.external_id
   }
   view.value = 'candidate'
   promoting.value = false

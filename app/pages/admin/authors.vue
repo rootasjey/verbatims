@@ -806,6 +806,8 @@ const openEnrichmentPreview = async (author: Author, preferredExternalId?: strin
       body: preferredExternalId ? { preferredExternalId } : undefined,
     }) as { data?: { job?: any, preview?: any } }
 
+    if (enrichmentAuthorTarget.value?.id !== author.id) return
+
     enrichmentPreview.value = response.data?.preview || null
     enrichmentJobId.value = response.data?.job?.id || null
     selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
@@ -820,6 +822,8 @@ const openEnrichmentPreview = async (author: Author, preferredExternalId?: strin
     })
     }
   } catch (error: any) {
+    if (enrichmentAuthorTarget.value?.id !== author.id) return
+
     console.error('Failed to build enrichment preview:', error)
     useToast().toast({
       title: 'Enrichment preview failed',

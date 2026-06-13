@@ -311,14 +311,22 @@ async function findBestAuthorCandidate(
     getOfficialWebsite(entity.claims?.P856),
   ])
   const confidence = resolveMatchConfidence(best.score, second?.score ?? null, best.signals, matching.ambiguousMatchGap)
-  const alternativeMatches = buildAlternativeMatches(scoredResults, best.result.id)
+  const alternativeMatches = buildAlternativeMatches(
+    scoredResults.filter(candidate => {
+      if (!candidate.entity) return true
+      const ids = extractEntityIds(candidate.entity.claims?.P31)
+      return ids.length === 0 || ids.includes('Q5')
+    }),
+    best.result.id,
+  )
 
   if (confidence === 'ambiguous') {
     notes.push('Multiple Wikidata candidates are still close for this author; review carefully before applying changes.')
   }
 
   return {
-    match: {
+    match:
+ {
       source: 'wikidata',
       external_id: entity.id,
       label: getLabel(entity),

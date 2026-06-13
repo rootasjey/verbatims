@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, asc, desc, eq, lte } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm'
 import type { EntityEnrichmentPreview, EnrichmentProposalField } from '#shared/types/enrichment'
 import { buildAuthorEnrichmentPreview, buildReferenceEnrichmentPreview } from './wikidata'
 import { getEnrichmentPolicy, scheduleVerificationJobs } from './scheduler'
@@ -96,8 +96,14 @@ export async function processEnrichmentJobs(options: ProcessOptions = {}) {
     results,
   }
 }
-
 export async function previewAuthorEnrichment(authorId: number, createdBy?: number | null, preferredExternalId?: string | null) {
+  if (!preferredExternalId) {
+    const existingJob = await getLatestCompletedAuthorJob(authorId)
+    if (existingJob) {
+      return existingJob
+    }
+  }
+
   await scheduleVerificationJobs({
     entityTypes: ['author'],
     entityIdsByType: { author: [authorId] },
@@ -116,7 +122,15 @@ export async function previewAuthorEnrichment(authorId: number, createdBy?: numb
   return await getLatestAuthorJob(authorId)
 }
 
+
 export async function previewReferenceEnrichment(referenceId: number, createdBy?: number | null, preferredExternalId?: string | null) {
+  if (!preferredExternalId) {
+    const existingJob = await getLatestCompletedReferenceJob(referenceId)
+    if (existingJob) {
+      return existingJob
+    }
+  }
+
   await scheduleVerificationJobs({
     entityTypes: ['reference'],
     entityIdsByType: { reference: [referenceId] },
@@ -434,12 +448,38 @@ export async function getLatestAuthorJob(authorId: number) {
     .get()
 }
 
+async function getLatestCompletedAuthorJob(authorId: number) {
+  return await db.select()
+    .from(schema.entityEnrichmentJobs)
+    .where(and(
+      eq(schema.entityEnrichmentJobs.entityType, 'author'),
+      eq(schema.entityEnrichmentJobs.entityId, authorId),
+      eq(schema.entityEnrichmentJobs.status, 'completed'),
+      sql`${schema.entityEnrichmentJobs.appliedAt} IS NULL`,
+    ))
+    .orderBy(desc(schema.entityEnrichmentJobs.createdAt), desc(schema.entityEnrichmentJobs.id))
+    .get()
+}
+
 export async function getLatestReferenceJob(referenceId: number) {
   return await db.select()
     .from(schema.entityEnrichmentJobs)
     .where(and(
       eq(schema.entityEnrichmentJobs.entityType, 'reference'),
       eq(schema.entityEnrichmentJobs.entityId, referenceId),
+    ))
+    .orderBy(desc(schema.entityEnrichmentJobs.createdAt), desc(schema.entityEnrichmentJobs.id))
+    .get()
+}
+
+async function getLatestCompletedReferenceJob(referenceId: number) {
+  return await db.select()
+    .from(schema.entityEnrichmentJobs)
+    .where(and(
+      eq(schema.entityEnrichmentJobs.entityType, 'reference'),
+      eq(schema.entityEnrichmentJobs.entityId, referenceId),
+      eq(schema.entityEnrichmentJobs.status, 'completed'),
+      sql`${schema.entityEnrichmentJobs.appliedAt} IS NULL`,
     ))
     .orderBy(desc(schema.entityEnrichmentJobs.createdAt), desc(schema.entityEnrichmentJobs.id))
     .get()
@@ -532,6 +572,29 @@ async function completeEnrichmentJob(
         .values(proposalBatch)
         .run()
     }
+  }
+
+  const staleJobIds = await db.select({ id: schema.entityEnrichmentJobs.id })
+    .from(schema.entityEnrichmentJobs)
+    .where(and(
+      eq(schema.entityEnrichmentJobs.entityType, entityType),
+      eq(schema.entityEnrichmentJobs.entityId, entityId),
+      eq(schema.entityEnrichmentJobs.status, 'completed'),
+      sql`${schema.entityEnrichmentJobs.appliedAt} IS NULL`,
+      sql`${schema.entityEnrichmentJobs.id} != ${jobId}`,
+    ))
+
+  if (staleJobIds.length > 0) {
+    await db.update(schema.entityEnrichmentFieldProposals)
+      .set({
+        decisionStatus: 'skipped',
+        updatedAt: now,
+      })
+      .where(and(
+        inArray(schema.entityEnrichmentFieldProposals.jobId, staleJobIds.map(j => j.id)),
+        eq(schema.entityEnrichmentFieldProposals.decisionStatus, 'pending'),
+      ))
+      .run()
   }
 
   await db.insert(schema.entityVerificationState)
