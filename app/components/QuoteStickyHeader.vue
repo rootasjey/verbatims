@@ -2,15 +2,15 @@
   <!-- Sticky Top Header: compact title + stats/actions -->
   <div v-if="quote" class="sticky top-[60px] md:top-[61px] z-1 border-b border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-      <div class="flex items-center justify-between gap-3">
-        <!-- Left: compact quote title and context -->
-        <div class="min-w-0 flex items-center gap-3">
+      <div class="flex flex-wrap items-center justify-between gap-1.5 md:gap-3">
+        <!-- Left: compact quote title and context (hidden on mobile — visible in hero below) -->
+        <div class="hidden md:flex min-w-0 items-center gap-3">
           <NTooltip content="Back to quotes list" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               icon
               btn="ghost-gray"
               size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
+              class="hidden sm:inline min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
               @click.stop="$emit('navigate-back')"
             >
               <NIcon name="i-ph-arrow-left-bold" />
@@ -44,11 +44,11 @@
         </div>
 
         <!-- Middle: stats chips -->
-        <div class="hidden md:flex items-center gap-2">
+        <div class="flex items-center gap-1 md:gap-2">
           <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
-            <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
-              <NIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
-              <span class="font-medium">{{ formatNumber(quote.views_count || 0) }}</span>
+            <div class="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1 rounded-2 bg-gray-100 text-gray-600 dark:text-gray-300">
+              <NIcon name="i-ph-eye-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5" />
+              <span class="text-xs md:text-xs font-500">{{ formatNumber(quote.views_count || 0) }}</span>
             </div>
           </NTooltip>
 
@@ -57,11 +57,11 @@
               btn="~"
               size="xs"
               :disabled="sharePending"
-              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
+              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-2 text-gray-600 hover:text-primary-600 bg-gray-100 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
               @click="$emit('share')"
             >
-              <NIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
-              <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(quote.shares_count || 0) }}</span>
+              <NIcon name="i-ph-share-network-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5 mr-0.5 md:mr-1" />
+              <span class="text-2xs md:text-xs" :class="[sharePending && 'animate-pulse']">{{ formatNumber(quote.shares_count || 0) }}</span>
             </NButton>
           </NTooltip>
 
@@ -71,27 +71,27 @@
               size="xs"
               :disabled="!user || likePending"
               :class="[
-                'min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full',
+                'min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full',
                 isLiked
                   ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
-                  : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
+                  : 'bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
                 !user && 'cursor-not-allowed opacity-50'
               ]"
               @click="$emit('toggle-like')"
             >
-              <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
-              <span>{{ formatNumber(quote.likes_count || 0) }}</span>
+              <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart-duotone'" :class="['w-3 md:w-3.5 h-3 md:h-3.5 mr-0.5 md:mr-1', likePending && 'animate-pulse']" />
+              <span class="text-2xs md:text-xs">{{ formatNumber(quote.likes_count || 0) }}</span>
             </NButton>
           </NTooltip>
         </div>
 
         <!-- Right: quick actions -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 md:gap-2">
           <NTooltip content="Copy link to quote" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
               size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full"
               @click="$emit('copy-link')"
             >
               <NIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
@@ -104,7 +104,7 @@
               :btn="savedState === 'saved' ? 'soft-green' : 'soft-blue'"
               size="xs"
               :disabled="!user"
-              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full"
               @click="$emit('add-to-collection')"
             >
               <NIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-folder-plus'" class="w-3.5 h-3.5 mr-1" />
@@ -118,7 +118,7 @@
               btn="ghost-gray"
               label="i-ph-dots-three-vertical-bold"
               size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+              class="min-w-0 min-h-0 h-auto w-auto p-1 md:px-2.5 md:py-1 rounded-full"
               title="More actions"
             />
           </NDropdownMenu>
