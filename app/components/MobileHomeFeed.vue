@@ -4,8 +4,8 @@
     <div class="bg-gray-100 dark:bg-gray-800 px-6 pt-8 pb-2">
       <div v-if="featuredQuote" class="mb-2">
         <div @click="handleClickAuthor(quoteAuthor?.id)" class="flex items-center gap-3 cursor-pointer group">
-          <div v-if="quoteAuthor?.image_url" class="w-6 h-6 rounded-full overflow-hidden grayscale flex-shrink-0 ring-2" :style="{ '--un-ring-color': `var(--theme-primary, #6366f1)` }">
-            <img :src="quoteAuthor.image_url" :alt="quoteAuthor.name" class="w-full h-full object-cover" />
+          <div v-if="quoteAuthor?.image_url" class="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 p-.5" :style="{ '--un-ring-color': `var(--theme-primary, #6366f1)` }">
+            <img :src="quoteAuthor.image_url" :alt="quoteAuthor.name" class="w-full h-full grayscale object-cover rounded-full" />
           </div>
           <div v-else class="w-6 h-6 rounded-full ring-2 flex items-center justify-center flex-shrink-0" :style="{ '--un-ring-color': `var(--theme-primary, #6366f1)` }">
             <span class="font-serif text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(quoteAuthor?.name) }}</span>
@@ -60,7 +60,7 @@
     <div v-if="allAuthors.length > 0 || curatedLoading" class="px-6 py-6">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-primary, #6366f1)` }" />
+          <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-secondary, #6366f1)` }" />
           <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
             Authors
           </p>
@@ -176,14 +176,11 @@
 
     <!-- ── Recent Quotes Section ── -->
     <div v-if="quotesList.length > 0" class="border-t border-dashed border-gray-300 dark:border-gray-700" />
-    <div v-if="quotesList.length > 0" class="px-6 py-6">
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-primary, #6366f1)` }" />
-          <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-            Recent Quotes
-          </p>
-        </div>
+    <div v-if="quotesList.length > 0" class="px-6 py-5">
+      <div class="flex items-center justify-between mb-8">
+        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
+          Recent Quotes
+        </p>
 
         <NuxtLink
           to="/quotes"
@@ -197,42 +194,72 @@
         </NuxtLink>
       </div>
 
-      <ScrollableTags class="mb-5" />
-
-      <div class="space-y-5">
+      <div class="space-y-8">
         <div
-          v-for="quote in quotesList"
+          v-for="quote in quotesList.slice(0, 5)"
           :key="quote.id"
-          class="pb-5 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+          class="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
         >
           <NuxtLink
             :to="`/quotes/${quote.id}`"
             class="block group"
           >
-            <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-              {{ truncateText(quote.name, 140) }}
+            <blockquote class="font-body text-lg font-600 text-gray-700 dark:text-gray-300 italic leading-relaxed group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+              {{ quote.name }}
             </blockquote>
-            <div class="mt-2 flex items-center gap-2 flex-wrap">
-              <span class="font-sans text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                {{ quote.author?.name || 'Unknown' }}
-              </span>
+            <p class="mt-1.5 font-sans text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors flex items-center gap-1.5 flex-wrap">
+              <span>{{ quote.author?.name || 'Unknown' }}</span>
+              <template v-if="quote.tags && quote.tags.length > 0">
+                <span v-for="tag in quote.tags.slice(0, 3)" :key="tag.name" class="w-2 h-2 rounded-full inline-block" :style="{ backgroundColor: tag.color || '#6366f1' }" />
+              </template>
               <span v-if="quote.reference" class="text-gray-300 dark:text-gray-600">·</span>
-              <span v-if="quote.reference" class="font-sans text-xs text-gray-400 dark:text-gray-500 truncate group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                {{ quote.reference.name }}
-              </span>
-            </div>
+              <span v-if="quote.reference" class="text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">{{ quote.reference.name }}</span>
+            </p>
           </NuxtLink>
         </div>
       </div>
 
-      <div v-if="hasMore" class="mt-8 flex justify-center">
+      <div v-if="hasMore" class="mt-6 flex justify-center">
         <LoadMoreButton
           :isLoading="loadingMore"
-          idleText="Load More Quotes"
-          loadingText="Loading Quotes..."
+          idleText="Load More"
+          loadingText="Loading..."
           @load="handleLoadMore"
         />
       </div>
+    </div>
+
+    <!-- ── Spotlight Section ── -->
+    <div v-if="spotlightReference" class="border-t border-dashed border-gray-300 dark:border-gray-700" />
+    <div v-if="spotlightReference" class="px-6 py-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0">
+          Spotlight
+        </p>
+        <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+      </div>
+      <NuxtLink :to="`/references/${spotlightReference.id}`" class="block group">
+        <div class="mb-3 overflow-hidden rounded-sm">
+          <div
+            v-if="spotlightReference.image_url"
+            class="w-full bg-cover bg-center grayscale"
+            :style="{ backgroundImage: `url(${spotlightReference.image_url})`, aspectRatio: '3 / 2' }"
+          />
+          <div v-else class="w-full h-40 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800" />
+        </div>
+        <h3 class="font-serif text-xl font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+          {{ spotlightReference.name }}
+        </h3>
+      </NuxtLink>
+      <span class="font-body text-sm font-600 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-2">
+        {{ formatReferenceType(spotlightReference.primary_type) }}
+      </span>
+    </div>
+
+    <!-- ── Version ── -->
+    <div class="px-6 py-4 text-center border-y b-dashed border-gray-200 dark:border-gray-700">
+      <NuxtLink to="/about" class="font-sans text-sm font-600 text-gray-400 dark:text-gray-500">v{{ config.public.appVersion }}</NuxtLink>
     </div>
 
     <!-- ── Empty state when no quotes ── -->
@@ -245,6 +272,8 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types'
+
+const config = useRuntimeConfig()
 
 interface Props {
   feed: {
@@ -292,6 +321,10 @@ const allAuthors = computed(() => props.feed.authors?.value || [])
 const allReferences = computed(() => props.feed.references?.value || [])
 const quotesList = computed(() => props.feed.quotes.value || [])
 const curatedLoading = computed(() => props.feed.curatedLoading?.value || false)
+const spotlightReference = computed(() => {
+  const refs = props.feed.references?.value || []
+  return refs[0] || null
+})
 const hasMore = computed(() => props.feed.hasMore?.value || false)
 const loadingMore = computed(() => props.feed.loadingMore?.value || false)
 
