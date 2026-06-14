@@ -343,3 +343,29 @@ When using `useToast().toast({...})`:
 - Prefer existing abstractions before introducing new ones
 - Validate the specific area you changed with the most relevant check available
 - If you find a better approach than the documented pattern, improve it carefully rather than copying a weak pattern blindly
+
+## Design Context
+
+### Users
+General audience: quote lovers, casual browsers, content sharers, and curators. The app serves anyone who enjoys discovering, saving, and sharing attributed quotes from films, books, games, speeches, and more. Users interact both on desktop (full-featured browsing) and mobile (quick check-ins, diary, sharing).
+
+### Brand Personality
+- **3 words**: Refined, premium, timeless
+- **Tone**: Elegant, restrained, classic — like a well-designed publication or a personal library
+- **Emotion**: Trustworthy, curated, intentional. The interface should feel like a thoughtfully edited collection, not a firehose of content.
+- **Voice**: Confident but warm. The writing should be clear and human, not corporate or hype-driven.
+
+### Aesthetic Direction
+- **Current direction**: Homepage was recently revamped in a newspaper/editorial style (desktop + mobile). The diary page (mobile) is now being aligned with that direction.
+- **References**: Think editorial design — typography-forward, generous whitespace, intentional hierarchy, muted tones with measured accent color.
+- **Anti-references**: Generic AI-era design (gradient text, glassmorphism, purple/blue glow, Inter/Roboto fonts, hero metric cards, overused card grids).
+- **Theme**: Both light and dark modes supported. Background: `#FAFAF9` (light) / `#0C0A09` (dark).
+- **Font stack**: Nunito (body), General Sans (sans), Gambetta (serif), Pilcrow Rounded (subtitle), Khand (title) — all served via Fontshare.
+
+### Design Principles
+1. **Typography leads**: Hierarchy should be unmistakable. Size, weight, and spacing — not color or decoration — should communicate importance. The serif (Gambetta) signals editorials/headlines; sans (General Sans) signals body/interfaces.
+2. **Whitespace is structural**: Use generous negative space to create breathing room and signal section boundaries. Crowded = cheap. Spacious = premium.
+3. **Color with restraint**: Primary blue (`#3C82F6`) and secondary orange (`#FAA533`) should be used sparingly and purposefully. The palette should feel quiet, letting content take center stage.
+4. **Motion that serves**: Animations should feel like paper moving — subtle, purposeful, never gratuitous. Staggered reveals and gentle fades support the reading rhythm.
+5. **Do not look AI-generated**: Avoid every anti-pattern in the frontend-design skill. The interface should feel human-crafted, intentional, and specific to the content it serves.
+6. **Editorial over dashboard**: Favor reading layouts over data-dashboard layouts. Stats and metrics should be tucked into the design, not leading with them.

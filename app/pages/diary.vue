@@ -1,212 +1,139 @@
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
     <!-- Mobile Diary Interface -->
     <div v-if="isMobile" class="mobile-diary-page">
-      <div class="p-4 pt-6">
-        <div class="text-center mb-6">
-          <h1 class="font-title text-2xl font-200 text-gray-900 dark:text-white">
-            {{ dayGreeting }}, <b class="font-600">{{ user?.name || 'User' }}</b>.
-          </h1>
-          <p class="text-gray-600 dark:text-gray-600">Let's take a look at...</p>
+      <!-- Greeting -->
+      <div class="px-6 pt-10 pb-6 animate-fade-in-up" style="animation-delay: 0s">
+        <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-2">
+          {{ formattedDate }}
+        </p>
+        <h1 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
+          {{ dayGreeting }}, <span class="font-600">{{ user?.name || 'you' }}</span>.
+        </h1>
+      </div>
+
+      <!-- Recent Quote (diary entry moment) -->
+      <div v-if="recentQuote" class="px-6 pb-5 animate-fade-in-up" style="animation-delay: 0.05s">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-sm px-5 py-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Your latest</p>
+          </div>
+          <NuxtLink :to="`/quotes/${recentQuote.id}`" class="block group">
+            <blockquote class="font-serif text-xl font-200 text-gray-900 dark:text-gray-100 leading-tight group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+              &ldquo;{{ recentQuote.name }}&rdquo;
+            </blockquote>
+            <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+              {{ recentQuote.author?.name || 'Unknown' }}
+              <template v-if="recentQuote.reference"> &mdash; {{ recentQuote.reference.name }}</template>
+            </p>
+          </NuxtLink>
+        </div>
+      </div>
+      <div v-else-if="recentQuoteLoading" class="px-6 pb-5 animate-fade-in-up" style="animation-delay: 0.05s">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-sm px-5 py-5">
+          <div class="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+          <div class="space-y-2">
+            <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full" />
+            <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-4/5" />
+          </div>
+          <div class="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2" />
         </div>
       </div>
 
-      <MobileProgressSection
-        :drafted="userStats.draft"
-        :published="userStats.approved"
-        :pending="userStats.pending"
-        :likes="userStats.likes"
-        :likes-given="userStats.likes_given"
-        :views="userStats.views"
-        @show-details="navigateTo('/dashboard')"
-        @main-action="navigateTo('/')"
-        @secondary-action="navigateTo('/dashboard/stats')"
-        @tertiary-action="navigateTo('/dashboard/settings')"
-      />
-      
-      <!-- Navigation Menu -->
-      <div class="px-4 space-y-9">
-        <div class="flex gap-2">
-          <button
-            @click="showAddQuote = true"
-            class="flex items-center justify-between w-full p-4 bg-amber-50 dark:bg-amber-900/20 border border-dashed border-amber-200 dark:border-amber-700 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-          >
-            <div class="flex items-center space-x-3">
-              <div class="text-left">
-                <NIcon name="i-ph-megaphone-simple-duotone" class="w-6 h-6 text-amber dark:text-amber-400" />
-                <h3 class="font-600 text-gray-900 dark:text-white">Share Feedback</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Provide your thoughts on the app</p>
-              </div>
-            </div>
-          </button>
-          <button
-            @click="showAddQuote = true"
-            class="flex items-center justify-between w-full p-4 bg-blue-50 dark:bg-blue-900/20 border border-dashed border-blue-200 dark:border-blue-700 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-          >
-            <div class="flex items-center space-x-3">
-              <div class="text-left">
-                <NIcon name="i-ph-quotes" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                <h3 class="font-600 text-gray-900 dark:text-white">Add a Quote</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Share an inspiring quote</p>
-              </div>
-            </div>
-          </button>
+      <!-- Stats (editorial inline pill) -->
+      <div v-if="!statsLoading" class="px-6 pb-6 animate-fade-in-up" style="animation-delay: 0.1s">
+        <div v-if="totalQuotes > 0" class="overflow-x-auto inline-flex items-center gap-2.5 border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-3 py-2">
+          <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">{{ totalQuotes }}</span>
+          <span class="font-sans text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">quotes</span>
+          <span class="text-gray-200 dark:text-gray-700">·</span>
+          <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">{{ userStats.approved }}</span>
+          <span class="font-sans text-xs text-gray-400 dark:text-gray-500">published</span>
+          <span class="text-gray-200 dark:text-gray-700">·</span>
+          <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">{{ userStats.pending }}</span>
+          <span class="font-sans text-xs text-gray-400 dark:text-gray-500">pending</span>
+        </div>
+        <p v-else class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">
+          Start building your collection
+        </p>
+      </div>
+      <div v-else class="px-6 pb-6 animate-fade-in-up" style="animation-delay: 0.1s">
+        <div class="h-8 w-56 bg-gray-100 dark:bg-gray-800 rounded-sm animate-pulse" />
+      </div>
+
+      <div class="border-t border-dashed border-gray-200 dark:border-gray-700" />
+
+      <!-- Quick Action: Add Quote (single editorial row) -->
+      <div class="px-6 py-5 animate-fade-in-up" style="animation-delay: 0.15s">
+        <button
+          @click="showAddQuote = true"
+          class="w-full flex items-center gap-3 group cursor-pointer"
+        >
+          <span class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+            <NIcon name="i-ph-quotes" class="w-4 h-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+          </span>
+          <div class="text-left">
+            <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">Add a quote</p>
+            <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Share a line that moved you</p>
+          </div>
+          <span class="ml-auto font-sans text-sm text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+        </button>
+      </div>
+
+      <div class="border-t border-dashed border-gray-200 dark:border-gray-700" />
+
+      <!-- Library (full-width list, no card wrapper) -->
+      <div class="px-6 py-5 animate-fade-in-up" style="animation-delay: 0.2s">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+          <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Your Library</p>
         </div>
 
-        <div class="space-y-3">
+        <div class="-mx-6">
           <NuxtLink
-            to="/dashboard/favourites"
-            class="flex items-center justify-between w-full px-4 py-2
-            bg-[#F5F5F4] dark:bg-gray-900
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
+            v-for="item in libraryItems"
+            :key="item.to"
+            :to="item.to"
+            class="flex items-center justify-between px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group border-b border-dashed border-gray-100 dark:border-gray-800 last:border-b-0"
           >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-heart-duotone" class="group-hover:text-red-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">Favourites</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Your liked quotes</p>
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="min-w-0">
+                <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors truncate">{{ item.label }}</p>
+                <p class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ item.description }}</p>
               </div>
             </div>
-            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-          </NuxtLink>
-
-          <NuxtLink
-            to="/dashboard/lists"
-            class="flex items-center justify-between w-full  px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-900
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-          >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-bookmark-duotone" class="group-hover:text-blue-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">Collections</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Organize your quotes</p>
-              </div>
-            </div>
-            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-          </NuxtLink>
-
-          <NuxtLink
-            to="/dashboard/my-quotes/drafts"
-            class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-900
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-          >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-pencil-duotone" class="text-gray-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">Drafts</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Unfinished quotes</p>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <NBadge v-if="userStats.draft > 0" color="gray" badge="soft" size="xs">
-                {{ userStats.draft }}
+            <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+              <NBadge v-if="item.badge && userStats[item.badge.key] > 0" :badge="item.badge.variant" size="xs">
+                {{ userStats[item.badge.key] }}
               </NBadge>
-              <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
+              <NIcon name="i-ph-caret-right" class="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors" />
             </div>
-          </NuxtLink>
-
-          <NuxtLink
-            to="/dashboard/my-quotes/pending"
-            class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-900
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-          >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-clock-duotone" class="group-hover:text-yellow-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">Pending</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Awaiting review</p>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <NBadge v-if="userStats.pending > 0" color="yellow" badge="soft" size="xs">
-                {{ userStats.pending }}
-              </NBadge>
-              <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-            </div>
-          </NuxtLink>
-
-          <NuxtLink
-            to="/dashboard/my-quotes/published"
-            class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-900
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-          >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-check-circle-duotone" class="group-hover:text-green-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">Published</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Live quotes</p>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <NBadge v-if="userStats.approved > 0" color="green" badge="soft" size="xs">
-                {{ userStats.approved }}
-              </NBadge>
-              <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-            </div>
-          </NuxtLink>
-
-          <NuxtLink
-            to="/dashboard/settings"
-            class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-          >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-gear-duotone" class="text-gray-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">Settings</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Account preferences</p>
-              </div>
-            </div>
-            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
-          </NuxtLink>
-
-          <NuxtLink
-            to="/about"
-            class="flex items-center justify-between w-full px-4 py-2 
-            bg-[#F5F5F4] dark:bg-gray-800
-            rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
-          >
-            <div class="flex items-center space-x-5">
-              <div class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                <NIcon name="i-ph-info-duotone" class="group-hover:text-blue-500" />
-              </div>
-              <div class="text-left">
-                <h3 class="font-600 text-gray-900 dark:text-white">About</h3>
-                <p class="-mt-1 text-sm text-gray-400 dark:text-gray-400">Learn more about Verbatims</p>
-              </div>
-            </div>
-            <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
           </NuxtLink>
         </div>
+      </div>
+
+      <div class="border-t border-dashed border-gray-200 dark:border-gray-700" />
+
+      <!-- Version -->
+      <div class="px-6 py-6 text-center animate-fade-in-up" style="animation-delay: 0.35s">
+        <NButton btn="~" link to="/about" class="font-body font-600 text-gray-500 dark:text-gray-400 rounded-2 bg-gray-100 dark:bg-gray-900 py-3">
+          v{{ config.public.appVersion }}
+        </NButton>
       </div>
     </div>
 
-    <!-- Desktop: Redirect to dashboard -->
-    <div v-else class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <NIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">Desktop Dashboard</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Access your full dashboard on desktop</p>
+    <!-- Desktop: Editorial placeholder -->
+    <div v-else class="flex items-center justify-center min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
+      <div class="text-center max-w-sm px-6">
+        <div class="w-12 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-8" />
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-3 leading-tight">Diary is for moments on the go</h2>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+          Your personal diary is designed for quick check-ins wherever you are. Open it on your phone to add quotes, review your collection, and track your contributions.
+        </p>
         <NButton btn="solid-black" @click="navigateTo('/dashboard')">
           Go to Dashboard
         </NButton>
+        <div class="w-12 h-px bg-gray-300 dark:bg-gray-600 mx-auto mt-8" />
       </div>
     </div>
 
@@ -234,6 +161,7 @@ useHead({
   ]
 })
 
+const config = useRuntimeConfig()
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
 const hydrated = ref(false)
@@ -246,19 +174,36 @@ onNuxtReady(() => {
 const { user } = useUserSession()
 const showAddQuote = ref(false)
 
+const libraryItems = [
+  { to: '/dashboard/favourites', icon: 'i-ph-heart-duotone', label: 'Favourites', description: 'Your liked quotes' },
+  { to: '/dashboard/lists', icon: 'i-ph-bookmark-duotone', label: 'Collections', description: 'Organize your quotes' },
+  { to: '/dashboard/my-quotes/drafts', icon: 'i-ph-pencil-duotone', label: 'Drafts', description: 'Unfinished quotes', badge: { key: 'draft' as const, variant: 'soft-gray' as const } },
+  { to: '/dashboard/my-quotes/pending', icon: 'i-ph-clock-duotone', label: 'Pending', description: 'Awaiting review', badge: { key: 'pending' as const, variant: 'soft-orange' as const } },
+  { to: '/dashboard/my-quotes/published', icon: 'i-ph-check-circle-duotone', label: 'Published', description: 'Live quotes', badge: { key: 'approved' as const, variant: 'soft-blue' as const } },
+  { to: '/dashboard/settings', icon: 'i-ph-gear-duotone', label: 'Settings', description: 'Account preferences' },
+  { to: '/about', icon: 'i-ph-info-duotone', label: 'About', description: 'Learn more about Verbatims' },
+]
+
 const dayGreetings: Record<string, string> = {
-  Monday: 'Happy Monday',
-  Tuesday: 'Great Tuesday',
-  Wednesday: 'Wonderful Wednesday',
-  Thursday: 'Thriving Thursday',
-  Friday: 'Fantastic Friday',
-  Saturday: 'Superb Saturday',
-  Sunday: 'Serene Sunday',
+  Monday: 'Bright Monday',
+  Tuesday: 'Clear Tuesday',
+  Wednesday: 'Gentle Wednesday',
+  Thursday: 'Steady Thursday',
+  Friday: 'Warm Friday',
+  Saturday: 'Slow Saturday',
+  Sunday: 'Quiet Sunday',
 }
 
 const today = new Date()
 const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
 const dayGreeting = dayGreetings[dayName] || 'Welcome back'
+
+const formattedDate = today.toLocaleDateString('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric'
+})
 
 const userStats = ref({
   approved: 0,
@@ -271,9 +216,40 @@ const userStats = ref({
   submitted: 0,
 })
 
+const totalQuotes = computed(() => userStats.value.approved + userStats.value.pending + userStats.value.draft)
+const statsLoading = ref(true)
+
+interface DiaryQuote {
+  id: number
+  name: string
+  status: string
+  createdAt: string
+  author: { name: string; is_fictional: boolean } | null
+  reference: { name: string; primary_type: string } | null
+}
+
+const recentQuote = ref<DiaryQuote | null>(null)
+const recentQuoteLoading = ref(true)
+
+const fetchRecentQuote = async () => {
+  if (!user.value) return
+  recentQuoteLoading.value = true
+  try {
+    const response = await $fetch('/api/dashboard/submissions?limit=1&status=approved')
+    if (response.data && response.data.length > 0) {
+      recentQuote.value = response.data[0]
+    }
+  } catch (error) {
+    console.error('Failed to load recent quote:', error)
+  } finally {
+    recentQuoteLoading.value = false
+  }
+}
+
 const loadUserStats = async () => {
   if (!user.value) return
-  
+
+  statsLoading.value = true
   try {
     const response = await $fetch('/api/dashboard/stats')
     if (response.data) {
@@ -281,16 +257,20 @@ const loadUserStats = async () => {
     }
   } catch (error) {
     console.error('Failed to load user stats:', error)
+  } finally {
+    statsLoading.value = false
   }
 }
 
 const handleQuoteAdded = () => {
   showAddQuote.value = false
-  loadUserStats() // Refresh stats
+  loadUserStats()
+  fetchRecentQuote()
 }
 
 onMounted(() => {
   loadUserStats()
+  fetchRecentQuote()
 })
 
 watch(currentLayout, (newLayout) => {
@@ -300,8 +280,22 @@ watch(currentLayout, (newLayout) => {
 
 <style scoped>
 .mobile-diary-page {
-  /* Ensure proper spacing for mobile layout */
-  min-height: calc(100vh - 80px); /* Account for bottom navigation */
+  min-height: calc(100vh - 80px);
   padding-bottom: 2rem;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
 }
 </style>
