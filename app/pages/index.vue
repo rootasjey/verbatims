@@ -1,13 +1,67 @@
 <template>
   <div class="min-h-screen" :style="themeVars">
-    <!-- Initial-only loading: render identically on SSR and during hydration -->
-    <div v-if="!hydrated || !isLanguageReady || feed.initialLoading?.value"
-      class="flex items-center justify-center py-16">
-      <div class="flex items-center gap-3">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-        <span class="text-gray-600 dark:text-gray-400">
-          {{ !hydrated ? 'Loading...' : (!isLanguageReady ? 'Initializing...' : 'Loading feed...') }}
-        </span>
+    <!-- Initial-only loading: shimmer skeleton matching the home page layout -->
+    <div v-if="!hydrated || !isLanguageReady || feed.initialLoading?.value">
+      <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
+        <!-- Featured section skeleton -->
+        <div class="px-6 pt-10 pb-6 animate-pulse">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28" />
+          </div>
+          <div class="space-y-3 mb-6">
+            <div class="h-7 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+            <div class="h-7 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+          </div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+        </div>
+
+        <div class="border-t border-dashed border-gray-200 dark:border-gray-700 mx-6" />
+
+        <!-- Authors section skeleton -->
+        <div class="px-6 py-6 animate-pulse">
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+          </div>
+          <div class="flex gap-4 overflow-hidden">
+            <div v-for="i in 4" :key="i" class="flex-shrink-0 flex gap-3">
+              <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div class="space-y-2">
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+                <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded w-14" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-dashed border-gray-200 dark:border-gray-700 mx-6" />
+
+        <!-- References section skeleton -->
+        <div class="px-6 py-6 animate-pulse">
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-5" />
+          <div class="flex gap-4 overflow-hidden">
+            <div v-for="i in 3" :key="i" class="flex-shrink-0 w-36">
+              <div class="h-48 bg-gray-200 dark:bg-gray-700 rounded-sm mb-2" />
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-1" />
+              <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-dashed border-gray-200 dark:border-gray-700 mx-6" />
+
+        <!-- Recent quotes section skeleton -->
+        <div class="px-6 py-6 animate-pulse">
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-6" />
+          <div class="space-y-5">
+            <div v-for="i in 3" :key="i" class="space-y-2 pb-5 border-b border-gray-100 dark:border-gray-800">
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5" />
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 mt-2" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

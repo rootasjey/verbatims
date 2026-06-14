@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-home-feed bg-[#FAFAF9] dark:bg-[#0C0A09]">
     <!-- ── Featured Quote ── -->
-    <div class="bg-gray-100 dark:bg-gray-800 px-6 pt-8 pb-2">
+    <div class="bg-gray-100 dark:bg-gray-800 px-6 pt-8 pb-2 animate-fade-in-up" style="animation-delay: 0s">
       <div v-if="featuredQuote" class="mb-2">
         <div @click="handleClickAuthor(quoteAuthor?.id)" class="flex items-center gap-3 cursor-pointer group">
           <div v-if="quoteAuthor?.image_url" class="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 p-.5" :style="{ '--un-ring-color': `var(--theme-primary, #6366f1)` }">
@@ -33,7 +33,7 @@
     </div>
 
     <!-- ── Theme Section ── -->
-    <div v-if="theme" class="bg-gray-100 dark:bg-gray-800 px-6 pt-8 pb-8 border-t b-dashed border-gray-200 dark:border-gray-700">
+    <div v-if="theme" class="bg-gray-100 dark:bg-gray-800 px-6 pt-8 pb-8 border-t b-dashed border-gray-200 dark:border-gray-700 animate-fade-in-up" style="animation-delay: 0.05s">
       <div class="flex items-center gap-2 mb-3">
         <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-primary, #6366f1)` }" />
         <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ color: `var(--theme-primary, #6366f1)` }">
@@ -57,7 +57,7 @@
 
     <!-- ── Authors Section ── -->
     <!-- <div v-if="allAuthors.length > 0 || curatedLoading" class="border-t border-dashed border-gray-300 dark:border-gray-700" /> -->
-    <div v-if="allAuthors.length > 0 || curatedLoading" class="px-6 py-6">
+    <div v-if="allAuthors.length > 0 || curatedLoading" class="px-6 py-6 animate-fade-in-up" style="animation-delay: 0.1s">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-secondary, #6366f1)` }" />
@@ -118,7 +118,7 @@
 
     <!-- ── References Section ── -->
     <div v-if="allReferences.length > 0 || curatedLoading" class="border-t border-dashed border-gray-300 dark:border-gray-700" />
-    <div v-if="allReferences.length > 0 || curatedLoading" class="px-6 py-6">
+    <div v-if="allReferences.length > 0 || curatedLoading" class="px-6 py-6 animate-fade-in-up" style="animation-delay: 0.15s">
       <div class="flex items-center justify-between mb-5">
         <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
           References
@@ -176,7 +176,7 @@
 
     <!-- ── Recent Quotes Section ── -->
     <div v-if="quotesList.length > 0" class="border-t border-dashed border-gray-300 dark:border-gray-700" />
-    <div v-if="quotesList.length > 0" class="px-6 py-5">
+    <div v-if="quotesList.length > 0" class="px-6 py-5 animate-fade-in-up" style="animation-delay: 0.2s">
       <div class="flex items-center justify-between mb-8">
         <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
           Recent Quotes
@@ -196,9 +196,10 @@
 
       <div class="space-y-8">
         <div
-          v-for="quote in quotesList.slice(0, 5)"
+          v-for="(quote, qi) in quotesList.slice(0, 5)"
           :key="quote.id"
-          class="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+          class="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0 animate-fade-in-up"
+          :style="{ animationDelay: `${0.25 + qi * 0.05}s` }"
         >
           <NuxtLink
             :to="`/quotes/${quote.id}`"
@@ -231,7 +232,7 @@
 
     <!-- ── Spotlight Section ── -->
     <div v-if="spotlightReference" class="border-t border-dashed border-gray-300 dark:border-gray-700" />
-    <div v-if="spotlightReference" class="px-6 py-6">
+    <div v-if="spotlightReference" class="px-6 py-6 animate-fade-in-up" style="animation-delay: 0.5s">
       <div class="flex items-center gap-3 mb-4">
         <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0">
@@ -258,7 +259,7 @@
     </div>
 
     <!-- ── Version ── -->
-    <div class="px-6 py-4 text-center border-y b-dashed border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-4 text-center border-y b-dashed border-gray-200 dark:border-gray-700 animate-fade-in-up" style="animation-delay: 0.55s">
       <NuxtLink to="/about" class="font-sans text-sm font-600 text-gray-400 dark:text-gray-500">v{{ config.public.appVersion }}</NuxtLink>
     </div>
 
@@ -373,6 +374,21 @@ const formatReferenceType = (type?: string): string => {
 <style scoped>
 .mobile-home-feed {
   padding-bottom: 1rem;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
 }
 
 .scrollbar-hide {
