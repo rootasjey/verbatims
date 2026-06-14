@@ -10,7 +10,7 @@
               icon
               btn="ghost-gray"
               size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
+              class="hidden md:flex min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
               @click.stop="$emit('navigate-back')"
             >
               <NIcon name="i-ph-arrow-left-bold" />
