@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen mobile-layout">
+  <div class="min-h-screen mobile-layout bg-[#FAFAF9] dark:bg-[#0C0A09]">
     <header
       class="fixed top-0 left-0 right-0 z-40 bg-gray-100 dark:bg-gray-800 backdrop-blur-md px-4 py-3 safe-area-pt border-b border-dashed border-gray-200 dark:border-gray-800"
     >
