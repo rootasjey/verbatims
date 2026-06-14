@@ -115,21 +115,43 @@
       <div class="border-t border-dashed border-gray-200 dark:border-gray-700" />
 
       <!-- Version -->
-      <div class="px-6 py-6 text-center animate-fade-in-up" style="animation-delay: 0.35s">
+      <div class="px-6 py-6 text-center animate-fade-in-up" style="animation-delay: 0.5s">
         <NButton btn="~" link to="/about" class="font-body font-600 text-gray-500 dark:text-gray-400 rounded-2 bg-gray-100 dark:bg-gray-900 py-3">
           v{{ config.public.appVersion }}
         </NButton>
       </div>
     </div>
 
-    <!-- Desktop: Editorial placeholder -->
+    <!-- Desktop: Editorial placeholder with teaser -->
     <div v-else class="flex items-center justify-center min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
       <div class="text-center max-w-sm px-6">
         <div class="w-12 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-8" />
         <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-3 leading-tight">Diary is for moments on the go</h2>
-        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
           Your personal diary is designed for quick check-ins wherever you are. Open it on your phone to add quotes, review your collection, and track your contributions.
         </p>
+
+        <!-- Latest quote teaser -->
+        <div v-if="recentQuote" class="text-left bg-gray-100 dark:bg-gray-800 rounded-sm px-4 py-4 mb-6">
+          <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-2">Your latest</p>
+          <blockquote class="font-serif text-base font-200 text-gray-900 dark:text-gray-100 leading-snug">
+            &ldquo;{{ recentQuote.name }}&rdquo;
+          </blockquote>
+          <p class="mt-1.5 font-sans text-xs text-gray-500 dark:text-gray-400">
+            {{ recentQuote.author?.name || 'Unknown' }}
+            <template v-if="recentQuote.reference"> &mdash; {{ recentQuote.reference.name }}</template>
+          </p>
+        </div>
+
+        <!-- Stats teaser -->
+        <div v-if="totalQuotes > 0" class="inline-flex items-center gap-2.5 border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-3 py-2 mb-6">
+          <span class="font-serif text-base font-600 text-gray-900 dark:text-gray-100 tabular-nums">{{ totalQuotes }}</span>
+          <span class="font-sans text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">quotes</span>
+          <span class="text-gray-200 dark:text-gray-700">·</span>
+          <span class="font-serif text-base font-600 text-gray-900 dark:text-gray-100 tabular-nums">{{ userStats.approved }}</span>
+          <span class="font-sans text-xs text-gray-400 dark:text-gray-500">published</span>
+        </div>
+
         <NButton btn="solid-black" @click="navigateTo('/dashboard')">
           Go to Dashboard
         </NButton>
