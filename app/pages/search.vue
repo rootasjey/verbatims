@@ -1,7 +1,63 @@
 <template>
   <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
+    <!-- Loading skeleton (SSR/hydration) -->
+    <div v-if="!hydrated" class="mobile-search-page">
+      <!-- Search bar skeleton -->
+      <div class="sticky top-14 bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
+        <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+      </div>
+
+      <div class="p-6 animate-pulse">
+        <!-- Suggested searches skeleton -->
+        <div class="py-6">
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4" />
+          <div class="flex flex-wrap gap-2">
+            <div v-for="i in 4" :key="i" class="h-7 bg-gray-200 dark:bg-gray-700 rounded-full" :class="i % 2 === 0 ? 'w-24' : 'w-28'" />
+          </div>
+        </div>
+
+        <div class="border-t border-dashed border-gray-300 dark:border-gray-700" />
+
+        <!-- Authors skeleton -->
+        <div class="py-6">
+          <div class="flex items-center justify-between mb-5">
+            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-14" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div v-for="i in 4" :key="i" class="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full shrink-0" />
+              <div class="space-y-2 flex-1 min-w-0">
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-dashed border-gray-300 dark:border-gray-700" />
+
+        <!-- References skeleton -->
+        <div class="py-6">
+          <div class="flex items-center justify-between mb-5">
+            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-14" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div v-for="i in 4" :key="i" class="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
+              <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded shrink-0" />
+              <div class="space-y-2 flex-1 min-w-0">
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Mobile Search Interface -->
-    <div v-if="isMobile" class="mobile-search-page">
+    <div v-else-if="isMobile" class="mobile-search-page">
       <!-- Search Header -->
       <div class="sticky top-14 bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
         <NInput
@@ -68,7 +124,7 @@
                 :key="s.text"
                 rounded="full"
                 badge="soft-gray"
-                class="cursor-pointer hover:scale-102 active:scale-99 transition-transform animate-bounce-in"
+                class="cursor-pointer hover:scale-102 active:scale-99 transition-transform"
                 @click="searchQuery = s.text"
               >
                 <NIcon :name="s.icon" size="4" />
