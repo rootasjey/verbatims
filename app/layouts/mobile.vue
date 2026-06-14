@@ -1,65 +1,44 @@
 <template>
-  <div class="min-h-screen light:bg-gradient-to-br light:from-gray-50 light:to-white mobile-layout">
+  <div class="min-h-screen mobile-layout">
     <header
-      class="fixed top-0 left-0 right-0 z-40 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur-md px-4 py-3 safe-area-pt"
+      class="fixed top-0 left-0 right-0 z-40 bg-gray-100 dark:bg-gray-800 backdrop-blur-md px-4 py-3 safe-area-pt border-b border-dashed border-gray-200 dark:border-gray-800"
     >
-      <div 
+      <div
         @click.self="scrollToTop"
-        class="flex items-center justify-between">
+        class="flex items-center justify-between"
+      >
         <div class="flex items-center">
-          <NTooltip v-if="canGoBack" content="Go back">
-            <NButton
-              v-if="canGoBack"
-              icon
-              btn="ghost-gray"
-              label="i-ph-arrow-left-bold"
-              @click="handleBackClick"
-              class="mr-3"
-              size="sm"
-            />
-          </NTooltip>
+          <NButton
+            v-if="canGoBack"
+            icon
+            btn="ghost-gray"
+            label="i-ph-arrow-left-bold"
+            @click="handleBackClick"
+            class="mr-2"
+            size="sm"
+          />
 
           <div class="flex items-center space-x-2">
             <NButton
-              icon
               btn="~"
               @click="handleAppIconClick"
               size="sm"
-              class="text-gray-600 dark:text-gray-400"
+              class="m-0 p-3"
             >
-              <AppIcon icon :size="24" />
+              <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl relative z-1 transition-colors duration-300 group-hover:text-white dark:group-hover:text-[#0C0A09]">verbatims</span>
             </NButton>
           </div>
         </div>
 
-        <div class="flex items-center space-x-2">
-          <NTooltip content="Add a quote">
-            <NButton
-              icon
-              btn="ghost-gray"
-              label="i-ph-quotes-duotone"
-              size="sm"
-              class="text-gray-600 dark:text-gray-400"
-              @click="showAddQuote = true"
-            />
-          </NTooltip>
-
-          <NTooltip content="Report an issue">
-            <NButton
-              icon
-              btn="ghost-gray"
-              label="i-ph-flag-duotone"
-              size="sm"
-              class="text-gray-600 dark:text-gray-400"
-              @click="showReportDrawer = true"
-            />
-          </NTooltip>
-        </div>
+         <div class="h-2 w-2 rounded-full bg-gray-200 block" />
+        <span class="inline font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+          {{ currentDate }}
+        </span>
       </div>
     </header>
-    
+
     <!-- Main Content with proper spacing for fixed header and bottom nav -->
-    <main class="mt-12 pb-24 min-h-screen">
+    <main class="mt-14 pb-28 min-h-screen">
       <slot />
     </main>
 
@@ -118,13 +97,23 @@ const handleAppIconClick = (event: MouseEvent) => {
   scrollToTop()
 }
 
+const currentDate = computed(() => {
+  const now = new Date()
+  return now.toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: '2-digit',
+    month: 'short',
+    day: 'numeric'
+  })
+})
+
 </script>
 
 <style scoped>
 /* Mobile-specific styles */
 .mobile-layout {
   /* Ensure proper spacing for fixed elements */
-  --header-height: 64px;
+  --header-height: 56px;
   --bottom-nav-height: 80px;
 }
 
