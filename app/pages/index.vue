@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen" :style="themeVars">
-    <!-- Initial-only loading: shimmer skeleton matching the home page layout -->
-    <div v-if="!hydrated || !isLanguageReady || feed.initialLoading?.value">
+    <!-- Skeleton: shown during SSR/hydration/data loading, delayed on client nav -->
+    <div v-if="showSkeleton">
       <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
         <!-- Featured section skeleton -->
         <div class="px-6 pt-10 pb-6 animate-pulse">
@@ -68,8 +68,8 @@
     <HomeEmptyView v-else-if="(stats.quotes === 0 || needsOnboarding) && !feed.quotesLoading?.value"
       :needs-onboarding="needsOnboarding" :onboarding-status="onboardingStatus" :stats="stats" />
 
-    <HomeDesktopFeed v-if="!isMobile && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :stats="stats" :theme="themeData" />
-    <MobileHomeFeed v-if="hydrated && isMobile && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :theme="themeData" :stats="stats" @new-quote="showAddQuoteDrawer = true" />
+    <HomeDesktopFeed v-if="hydrated && !showMobileFeed && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :stats="stats" :theme="themeData" />
+    <MobileHomeFeed v-if="hydrated && showMobileFeed && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :theme="themeData" :stats="stats" @new-quote="showAddQuoteDrawer = true" />
 
     <ClientOnly>
       <AddQuoteDrawer v-model:open="showAddQuoteDrawer" @submitted="feed.refresh()" />
@@ -165,8 +165,29 @@ const themeVars = computed(() => {
 })
 
 const showAddQuoteDrawer = ref(false)
-// Mark as ready only after Nuxt has fully hydrated to avoid layout switching during hydration
-const hydrated = ref(false)
+const appReady = useState('app-ready', () => false)
+// On first SSR/hydration: hydrated starts false (matching SSR). On client nav: starts true.
+const hydrated = ref(appReady.value)
+
+// Eager mobile detection so MobileHomeFeed renders immediately on client nav
+const isMobileClient = ref(import.meta.client ? window.innerWidth < 768 : false)
+const showMobileFeed = computed(() => isMobileClient.value || isMobile.value)
+
+// Skeleton: shown during SSR/hydration. On client nav, hidden initially, shown after 300ms if still loading.
+const showSkeleton = ref(!appReady.value)
+onMounted(() => {
+  const timer = setTimeout(() => {
+    const stillLoading = !hydrated.value || !isLanguageReady.value || !!feed.initialLoading?.value
+    if (stillLoading) showSkeleton.value = true
+  }, 300)
+  const stop = watch([hydrated, isLanguageReady, () => feed.initialLoading?.value], () => {
+    if (hydrated.value && isLanguageReady.value && !feed.initialLoading?.value) {
+      clearTimeout(timer)
+      showSkeleton.value = false
+      stop()
+    }
+  })
+})
 
 const saveCurrentQuotesState = () => {
   if (typeof window === 'undefined') return

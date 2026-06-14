@@ -13,4 +13,9 @@
 import '@una-ui/preset/una.css'
 import '@/styles/main.css'
 import MobileBottomNavigation from '~/components/MobileBottomNavigation.vue'
+
+const appReady = useState('app-ready', () => false)
+onNuxtReady(() => {
+  appReady.value = true
+})
 </script>

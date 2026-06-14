@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
-    <!-- Loading skeleton (SSR/hydration) -->
-    <div v-if="!hydrated" class="mobile-search-page">
+    <!-- Loading skeleton (SSR/hydration) — skip when store already has data -->
+    <div v-if="!hydrated && !searchStore.hasResults" class="mobile-search-page">
       <!-- Search bar skeleton -->
       <div class="sticky top-14 bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
         <div class="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
@@ -356,7 +356,8 @@ import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileD
 import { useVerbatimsSeo } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
+const appReady = useState('app-ready', () => false)
+const hydrated = ref(appReady.value)
 
 onNuxtReady(() => {
   hydrated.value = true
