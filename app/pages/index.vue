@@ -1,12 +1,5 @@
 <template>
   <div class="min-h-screen" :style="themeVars">
-    <!-- Mobile: Hero + sections -->
-    <div v-if="isMobile">
-      <MobileHeroSection :quote="feed.quotes?.value?.[0]" @new-quote="handleNewQuote" @on-click-quote="handleClickQuote" @on-click-author="handleClickAuthor" />
-      <MobileRecentAuthors @show-more="navigateTo('/authors')" />
-      <MobileRecentReferences @show-more="navigateTo('/references')" />
-    </div>
-
     <!-- Initial-only loading: render identically on SSR and during hydration -->
     <div v-if="!hydrated || !isLanguageReady || feed.initialLoading?.value"
       class="flex items-center justify-center py-16">
@@ -22,9 +15,11 @@
       :needs-onboarding="needsOnboarding" :onboarding-status="onboardingStatus" :stats="stats" />
 
     <HomeDesktopFeed v-if="!isMobile && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :stats="stats" :theme="themeData" />
-    <MobileRecentQuotes v-if="isMobile" :feed="feed" :limit="5" />
+    <MobileHomeFeed v-if="hydrated && isMobile && !(stats.quotes === 0 || needsOnboarding)" :feed="feed" :theme="themeData" :stats="stats" @new-quote="showAddQuoteDrawer = true" />
 
-    <AddQuoteDrawer v-if="isMobile" v-model:open="showAddQuoteDrawer" @submitted="feed.refresh()" />
+    <ClientOnly>
+      <AddQuoteDrawer v-model:open="showAddQuoteDrawer" @submitted="feed.refresh()" />
+    </ClientOnly>
   </div>
 </template>
 
@@ -226,18 +221,6 @@ onNuxtReady(() => {
   hydrated.value = true
   setPageLayout(currentLayout.value)
 })
-
-const handleNewQuote = () => {
-  showAddQuoteDrawer.value = true
-}
-
-const handleClickQuote = (quoteId: number) => {
-  navigateTo(`/quotes/${quoteId}`)
-}
-
-const handleClickAuthor = (authorId: number) => {
-  navigateTo(`/authors/${authorId}`)
-}
 
 onBeforeRouteLeave((to) => {
   if (typeof window === 'undefined') return

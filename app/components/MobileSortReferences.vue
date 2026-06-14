@@ -1,15 +1,15 @@
 <template>
   <NDrawer v-model:open="internalOpen" direction="bottom">
     <template #body>
-      <div class="p-4 space-y-5">
+      <div class="p-5 space-y-5">
         <div class="flex items-center justify-between">
-          <h3 class="font-serif text-lg font-600">Filters & Sort</h3>
+          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Filters & Sort</h3>
           <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
         </div>
 
         <!-- Primary Type -->
         <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Type</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</label>
           <NSelect
             v-model="internalPrimaryType"
             :items="typeOptions"
@@ -21,7 +21,7 @@
 
         <!-- Sort By -->
         <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Sort by</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sort by</label>
           <NSelect
             v-model="internalSortBy"
             :items="sortOptions"
@@ -33,7 +33,7 @@
 
         <!-- Order -->
         <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Order</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order</label>
           <div class="flex items-center gap-2">
             <NButton
               icon
@@ -43,12 +43,12 @@
               class="rounded-full"
               @click="$emit('toggle-sort-order')"
             />
-            <span class="text-sm text-gray-600 dark:text-gray-300">{{ sortOrder === 'ASC' ? 'Ascending' : 'Descending' }}</span>
+            <span class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ sortOrder === 'ASC' ? 'Ascending' : 'Descending' }}</span>
           </div>
         </div>
 
         <div class="pt-1">
-          <NButton btn="solid-black" class="w-full rounded-3" size="sm" @click="internalOpen = false">
+          <NButton btn="solid-black" class="w-full rounded-sm" size="sm" @click="internalOpen = false">
             Done
           </NButton>
         </div>

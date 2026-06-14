@@ -1,14 +1,14 @@
 <template>
   <NDrawer v-model:open="openModel" direction="bottom">
     <template #body>
-      <div class="p-4 space-y-4">
+      <div class="p-5 space-y-5">
         <div class="flex items-center justify-between">
-          <h3 class="font-serif text-lg font-600">Filters</h3>
+          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Filters</h3>
           <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="openModel = false" />
         </div>
 
         <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Sort by</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sort by</label>
           <NSelect
             v-model="sortByModel"
             :items="sortOptions"
@@ -19,12 +19,12 @@
         </div>
 
         <div class="space-y-3">
-          <label class="block text-sm text-gray-600 dark:text-gray-300">Language</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Language</label>
           <LanguageSelector @language-changed="$emit('language-changed')" />
         </div>
 
         <div class="pt-2">
-          <NButton btn="solid-black" class="w-full rounded-3" size="sm" @click="openModel = false">
+          <NButton btn="solid-black" class="w-full rounded-sm" size="sm" @click="openModel = false">
             Apply
           </NButton>
         </div>

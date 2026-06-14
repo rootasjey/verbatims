@@ -1,32 +1,58 @@
 <template>
-  <div class="px-6 pt-8 pb-16 rounded-b-8 bg-gradient-to-br from-green-50 to-purple-50 dark:from-#0B0A09 dark:to-black dark:rounded-b-0">
-    <div @click="handleClickAuthor" class="mb-2">
-      <p class="text-size-6 font-300 line-height-tight text-gray-600 dark:text-gray-400 tracking-wide">
-        {{ quote?.author?.name || 'Featured Author' }}
+  <div class="px-6 pt-8 pb-6">
+    <!-- Featured label -->
+    <div v-if="quote" class="flex items-center gap-2 mb-4">
+      <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: 'var(--theme-secondary, #FAB95B)' }" />
+      <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
+        Featured
       </p>
     </div>
 
-    <div @click="handleClickQuote" class="mb-6">
-      <p class="font-serif text-size-8 line-height-tight text-gray-800 dark:text-gray-200 leading-relaxed">
-        {{ getHeroQuoteText() }}
-      </p>
-    </div>
-
-    <div class="relative">
-      <div 
-        class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer transition-all duration-300 hover:bg-white/90 dark:hover:bg-gray-800/90 hover:shadow-lg"
-        @click="handleNewQuote"
+    <!-- Author row -->
+    <div v-if="quote?.author" @click="handleClickAuthor" class="flex items-center gap-3 mb-4 cursor-pointer group">
+      <div
+        v-if="quote.author.image_url"
+        class="w-8 h-8 rounded-full overflow-hidden grayscale"
       >
-        <div class="flex items-center justify-between">
-          <span class="text-gray-500 dark:text-gray-400 text-sm">
-            Share my quotes...
-          </span>
-          <NIcon 
-            name="i-ph-arrow-right-bold" 
-            class="w-5 h-5 text-gray-400 dark:text-gray-500"
-          />
-        </div>
+        <img :src="quote.author.image_url" :alt="quote.author.name" class="w-full h-full object-cover" />
       </div>
+      <div v-else class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+        <span class="font-serif text-xs text-gray-400 dark:text-gray-500">
+          {{ getAuthorInitials(quote.author.name) }}
+        </span>
+      </div>
+      <div>
+        <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+          {{ quote.author.name }}
+        </p>
+        <p v-if="quote.reference" class="font-sans text-xs text-gray-500 dark:text-gray-400">
+          {{ quote.reference.name }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Quote text -->
+    <div @click="handleClickQuote" class="mb-6 cursor-pointer group">
+      <blockquote class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100 leading-tight group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+        {{ getHeroQuoteText() }}
+      </blockquote>
+    </div>
+
+    <!-- Dashed divider -->
+    <div class="border-b border-dashed border-gray-300 dark:border-gray-700 mb-6" />
+
+    <!-- Share prompt -->
+    <div
+      class="flex items-center justify-between cursor-pointer group"
+      @click="handleNewQuote"
+    >
+      <span class="font-sans text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+        Share my quotes
+      </span>
+      <NIcon
+        name="i-ph-arrow-right-bold"
+        class="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors"
+      />
     </div>
   </div>
 </template>
@@ -37,7 +63,6 @@ import type { ProcessedQuoteResult } from '~~/server/types';
 interface Props {
   quote?: ProcessedQuoteResult
 }
-
 
 const props = withDefaults(defineProps<Props>(), {
   quote: undefined
@@ -53,12 +78,19 @@ const getHeroQuoteText = (): string => {
   if (!props.quote?.name) {
     return 'How do you feel about discovering inspiring quotes today?'
   }
-  
+
   const text = props.quote.name
   if (text.length > 120) {
     return text.slice(0, 120) + '...'
   }
   return text
+}
+
+const getAuthorInitials = (name: string): string => {
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
 }
 
 const handleClickQuote = () => {
@@ -79,19 +111,13 @@ const handleNewQuote = () => {
 </script>
 
 <style scoped>
-/* Add subtle animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.grayscale {
+  filter: grayscale(100%);
+  transition: filter 0.3s ease, transform 0.3s ease;
 }
 
-.hero-section {
-  animation: fadeInUp 0.6s ease-out;
+.group:hover .grayscale {
+  filter: grayscale(0%);
+  transform: scale(1.05);
 }
 </style>
