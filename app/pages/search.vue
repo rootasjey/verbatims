@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
     <!-- Mobile Search Interface -->
     <div v-if="isMobile" class="mobile-search-page">
       <!-- Search Header -->
-      <div class="sticky top-14 bg-white dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
+      <div class="sticky top-14 bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
         <NInput
           v-model="searchQuery"
           placeholder="Search quotes, authors, references..."
@@ -23,12 +23,13 @@
 
       <div class="p-6">
         <!-- Empty State Start Page -->
-        <div v-if="!searchQuery.trim()" class="space-y-12">
-          <div v-if="recentSearches.length > 0">
-            <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white mt-3 mb-3">Recent searches</h3>
+        <div v-if="!searchQuery.trim()" class="space-y-0">
+          <!-- Recent searches -->
+          <div v-if="recentSearches.length > 0" class="pb-6 animate-fade-in-up" style="animation-delay: 0s">
+            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-3">Recent searches</p>
             <div class="flex flex-wrap gap-2">
-              <NBadge 
-                v-for="search in recentSearches" 
+              <NBadge
+                v-for="search in recentSearches"
                 :key="search"
                 rounded="full"
                 badge="solid-gray"
@@ -37,9 +38,9 @@
               <NIcon name="i-ph-magnifying-glass-bold" @click="searchQuery = search" />
               <span class="font-400 font-size-3.5" @click="searchQuery = search">{{ search }}</span>
               <NTooltip :content="`Remove ${search} from recent searches`">
-                <NIcon 
-                  name="i-ph-x-circle-duotone" 
-                  @click="searchStore.removeRecent(search)" 
+                <NIcon
+                  name="i-ph-x-circle-duotone"
+                  @click="searchStore.removeRecent(search)"
                   class="ml-1"
                 />
               </NTooltip>
@@ -47,11 +48,14 @@
             </div>
           </div>
 
-          <div>
-            <div class="flex justify-between items-center">
-              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white mb-3">Suggested searches</h3>
+          <div v-if="recentSearches.length > 0" class="border-t border-dashed border-gray-300 dark:border-gray-700" />
+
+          <!-- Suggested searches -->
+          <div class="py-6 animate-fade-in-up" style="animation-delay: 0.12s">
+            <div class="flex items-center justify-between mb-4">
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Suggested searches</p>
               <NTooltip content="Refresh suggestions">
-                <NButton 
+                <NButton
                   @click="refreshSuggestions()"
                   icon
                   label="i-ph-arrows-clockwise"
@@ -60,7 +64,7 @@
               </NTooltip>
             </div>
             <div class="flex flex-wrap gap-3">
-              <NBadge v-for="s in suggestions" 
+              <NBadge v-for="s in suggestions"
                 :key="s.text"
                 rounded="full"
                 badge="soft-gray"
@@ -73,29 +77,41 @@
             </div>
           </div>
 
-          <div class="pt-2">
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white" @click="goToAuthors()">
-                Random authors
-              </h3>
+          <div class="border-t border-dashed border-gray-300 dark:border-gray-700" />
 
-              <NTooltip content="Fetch new random authors">
-                <NButton 
-                  @click="fetchRandomAuthors()"
-                  icon
-                  label="i-ph-arrows-clockwise"
-                  btn="ghost-gray"
-                />
-              </NTooltip>
+          <!-- Random authors -->
+          <div class="py-6 animate-fade-in-up" style="animation-delay: 0.24s">
+            <div class="flex items-center justify-between mb-5">
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Authors</p>
+              <div class="flex items-center gap-2">
+                <NTooltip content="Fetch new random authors">
+                  <NButton
+                    @click="fetchRandomAuthors()"
+                    icon
+                    label="i-ph-arrows-clockwise"
+                    btn="ghost-gray"
+                  />
+                </NTooltip>
+                <NuxtLink
+                  to="/authors"
+                  class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-4
+                    font-sans text-xs font-600 tracking-[0.1em] text-gray-400
+                    dark:text-gray-400
+                    hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
+                    hover:scale-105 active:scale-99
+                    transition-[colors,transform]">
+                  See All
+                </NuxtLink>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <NuxtLink
                 v-for="author in randomAuthors"
                 :key="author.id"
                 :to="`/authors/${author.id}`"
-                class="flex items-center gap-3 p-3 
-                bg-white dark:bg-gray-800 rounded-lg 
-                hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
+                class="flex items-center gap-3 p-3
+                bg-white dark:bg-gray-800 rounded-lg
+                hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-99 transition-all"
               >
                 <NAvatar :src="author.image_url">
                   <template #fallback>
@@ -115,31 +131,43 @@
             </div>
           </div>
 
-          <div class="pt-2">
-            <div class="flex justify-between items-center">
-              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-white" @click="goToReferences()">
-                Random references
-              </h3>
+          <div class="border-t border-dashed border-gray-300 dark:border-gray-700" />
 
-              <NTooltip content="Fetch new random references">
-                <NButton 
-                  @click="fetchRandomReferences()"
-                  icon
-                  label="i-ph-arrows-clockwise"
-                  btn="ghost-gray"
-                />
-              </NTooltip>
+          <!-- Random references -->
+          <div class="py-6 animate-fade-in-up" style="animation-delay: 0.36s">
+            <div class="flex items-center justify-between mb-5">
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">References</p>
+              <div class="flex items-center gap-2">
+                <NTooltip content="Fetch new random references">
+                  <NButton
+                    @click="fetchRandomReferences()"
+                    icon
+                    label="i-ph-arrows-clockwise"
+                    btn="ghost-gray"
+                  />
+                </NTooltip>
+                <NuxtLink
+                  to="/references"
+                  class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-4
+                    font-sans text-xs font-600 tracking-[0.1em] text-gray-400
+                    dark:text-gray-400
+                    hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
+                    hover:scale-105 active:scale-99
+                    transition-[colors,transform]">
+                  See All
+                </NuxtLink>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <NuxtLink
                 v-for="reference in randomReferences"
                 :key="reference.id"
                 :to="`/references/${reference.id}`"
-                class="flex items-center gap-3 p-3 
-                bg-white dark:bg-gray-800 rounded-lg 
-                hover:shadow-md active:scale-99 active:shadow-none transition-all animate-fade-in"
+                class="flex items-center gap-3 p-3
+                bg-white dark:bg-gray-800 rounded-lg
+                hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-99 transition-all"
               >
-                <NAvatar :src="reference.image_url" rounded="2" class="shrink-0 shadow">
+                <NAvatar :src="reference.image_url" rounded="2" class="shrink-0">
                   <template #fallback>
                     <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
                       <NIcon name="i-ph-book-duotone" class="w-6 h-6" />
@@ -151,7 +179,7 @@
                     <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ reference.name }}</div>
                   </NTooltip>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatReferenceType(reference.primary_type) }} • 
+                    {{ formatReferenceType(reference.primary_type) }} •
                     <NTooltip :content="`${reference.quotes_count} quotes`">
                       <span>{{ reference.quotes_count }} <NIcon name="i-ph-quotes-duotone" /></span>
                     </NTooltip>
@@ -387,7 +415,22 @@ onMounted(async () => {
   font-size: 0.8rem;
 
   @media screen and (min-width: 460px) {
-    font-size: 1.125rem; /* 18px on sm and up */    
+    font-size: 1.125rem; /* 18px on sm and up */
   }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
 }
 </style>
