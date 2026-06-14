@@ -59,29 +59,6 @@
           </div>
         </div>
 
-        <!-- Action Bar for Mobile -->
-        <div v-if="isMobile" class="mt-8">
-          <ClientOnly>
-            <MobileQuoteActionBar
-              class="animate-fade-in animate-duration-500 animate-delay-150"
-              :is-liked="isLiked"
-              :like-pending="likePending"
-              :share-pending="sharePending"
-              :saved-state="savedState"
-              :like-count="quote.likes_count || 0"
-              :share-count="quote.shares_count || 0"
-              :view-count="quote.views_count || 0"
-              :can-interact="!!user"
-              @toggle-like="toggleLike"
-              @save="addToCollection"
-              @share="shareQuote"
-              @copy-link="copyLink"
-              @copy-text="copyQuoteText"
-              @download-image="downloadQuote"
-            />
-          </ClientOnly>
-        </div>
-
         <!-- Tags -->
         <div v-if="quote.tags?.length"
           class="transform-gpu transition-all duration-700 ease-out"
