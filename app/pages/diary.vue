@@ -185,13 +185,6 @@ useHead({
 
 const config = useRuntimeConfig()
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
 
 const { user } = useUserSession()
 const showAddQuote = ref(false)
@@ -295,9 +288,6 @@ onMounted(() => {
   fetchRecentQuote()
 })
 
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
-})
 </script>
 
 <style scoped>

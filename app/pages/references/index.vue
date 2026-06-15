@@ -110,20 +110,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+import { useMobileDetection } from '~/composables/useMobileDetection'
 import { useDebounceFn } from '@vueuse/core'
 import { useReferencesListStore } from '~/stores/references'
 import { useJsonLd } from '~/composables/useSeo'
 import type { ReferencesListSnapshot } from '~/stores/references'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
 
 const referencesListStore = useReferencesListStore()
 
@@ -484,10 +477,6 @@ onBeforeRouteLeave((to) => {
   } else {
     referencesListStore.clearRestoreRequest()
   }
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 onUnmounted(() => {

@@ -159,14 +159,6 @@
 import { useVerbatimsSeo } from '~/composables/useSeo'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
 definePageMeta({ layout: 'default' })
 
 const route = useRoute()
@@ -298,9 +290,6 @@ watch(sortBy, () => {
   if (tag.value?.name) loadQuotes()
 })
 
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
-})
 </script>
 
 <style scoped>

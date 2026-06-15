@@ -297,8 +297,6 @@
 <script setup lang="ts">
 const config = useRuntimeConfig()
 const version = config.public.appVersion
-import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
-
 definePageMeta({
   layout: 'default'
 })
@@ -309,20 +307,6 @@ useHead({
     { name: 'robots', content: 'index,follow' },
     { name: 'description', content: 'Learn about Verbatims, its purpose, history, community, and the tech stack behind it.' },
   ],
-})
-
-const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 const showProfilePreview = ref(false)

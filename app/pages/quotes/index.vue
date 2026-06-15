@@ -23,13 +23,6 @@
 <script setup lang="ts">
 import { useJsonLd } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
 
 const quotesFeedStore = useQuotesFeedStore()
 const restoreSourcePath = '/quotes'
@@ -187,10 +180,6 @@ onBeforeRouteLeave((to) => {
     quotesFeedStore.clearRestoreRequest()
     quotesFeedStore.clearRestoreSnapshot()
   }
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 onUnmounted(() => {

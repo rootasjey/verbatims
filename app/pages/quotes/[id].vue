@@ -182,7 +182,6 @@
 <script setup>import { useJsonLd } from '../../composables/useSeo'
 import { useQuotesFeedStore } from '~/stores/quotes'
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
 const { user } = useUserSession()
 const copyState = ref('idle')
@@ -656,15 +655,6 @@ onBeforeRouteLeave((to) => {
     quotesFeedStore.clearRestoreRequest()
     quotesFeedStore.clearRestoreSnapshot()
   }
-})
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch(user, (newUser) => {
