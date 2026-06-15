@@ -11,7 +11,7 @@ const projectRoot = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   app: {
     head: {

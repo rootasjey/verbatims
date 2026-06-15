@@ -16,7 +16,7 @@
         <NuxtLink
           v-if="quote.reference"
           :to="`/references/${quote.reference.id}`"
-          class="mt-0.5 font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          class="mt-0.5 text-center font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
           {{ quote.reference.name }}
         </NuxtLink>
@@ -54,7 +54,7 @@
           :class="{'-ml-4': quote.author?.is_fictional}">
           <NuxtLink
             :to="`/references/${quote.reference.id}`"
-            class="font-title text-size-6 font-600 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            class="font-subtitle text-center text-size-6 font-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
           >
             {{ quote.reference.name }}
           </NuxtLink>

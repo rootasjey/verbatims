@@ -8,16 +8,6 @@
         class="flex items-center justify-between"
       >
         <div class="flex items-center">
-          <NButton
-            v-if="canGoBack"
-            icon
-            btn="ghost-gray"
-            label="i-ph-arrow-left-bold"
-            @click="handleBackClick"
-            class="mr-2"
-            size="sm"
-          />
-
           <div class="flex items-center space-x-2">
             <NButton
               btn="~"
@@ -59,21 +49,6 @@ const route = useRoute()
 const router = useRouter()
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
-
-// Check if we can go back in navigation history
-const canGoBack = computed(() => {
-  // Check if there's navigation history or if we're not on the home page
-  return route.path !== '/' && (import.meta.client ? window.history.length > 1 : false)
-})
-
-const handleBackClick = () => {
-  if (import.meta.client && window.history.length > 1) {
-    router.back()
-  } else {
-    // Fallback to home if no history
-    navigateTo('/')
-  }
-}
 
 const handleQuoteAdded = () => {
   // Handle quote added - could refresh data or show toast

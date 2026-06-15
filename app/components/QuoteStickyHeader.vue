@@ -44,7 +44,18 @@
         </div>
 
         <!-- Middle: stats chips -->
-        <div class="flex items-center gap-1 md:gap-2">
+        <div class="flex items-center gap-2 md:gap-2">
+          <NTooltip content="Back to quotes list" :_tooltip-content="{ side: 'bottom' }">
+            <NButton
+              icon
+              btn="soft-gray"
+              size="xs"
+              label="i-lucide-chevron-left"
+              class="bg-gray-100 min-w-0 min-h-0 p-1 h-auto w-auto rounded-2"
+              @click.stop="$emit('navigate-back')"
+            />
+          </NTooltip>
+
           <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
             <div class="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1 rounded-2 bg-gray-100 text-gray-600 dark:text-gray-300">
               <NIcon name="i-ph-eye-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5" />

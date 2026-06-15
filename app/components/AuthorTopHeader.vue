@@ -10,14 +10,13 @@
               icon
               btn="ghost-gray"
               size="xs"
-              class="hidden md:flex min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
+              class="flex min-w-0 min-h-0 h-auto w-auto p-1 rounded-full"
               @click.stop="$emit('navigate-back')"
             >
-              <NIcon name="i-ph-arrow-left-bold" />
+              <NIcon name="i-lucide-chevron-left" />
             </NButton>
           </NTooltip>
 
-          <NIcon name="i-ph-person-simple-hike-duotone" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
             <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
             <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">

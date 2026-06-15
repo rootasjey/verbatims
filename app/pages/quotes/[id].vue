@@ -69,10 +69,10 @@
                 :key="tag.name"
                 :to="`/tags/${encodeURIComponent(tag.name)}`"
                 :style="{ '--tag-color': tag.color }"
-                class="inline-flex items-center px-4 py-2 rounded-12 text-sm 
-                  font-medium font-sans transition-all hover:scale-102 active:scale-99 
-                  bg-white/60 dark:bg-gray-800/60 border border-gray-200/60 
-                  dark:border-gray-700/60 text-gray-700 dark:text-gray-300 
+                class="inline-flex items-center px-4 py-2 rounded-12 text-sm
+                  font-medium font-sans transition-all hover:scale-102 active:scale-99
+                  bg-white/60 dark:bg-gray-800/60 border border-gray-200/60
+                  dark:border-gray-700/60 text-gray-700 dark:text-gray-300
                   tag-chip"
               >
                 <span class="inline-block w-3.5 h-3.5 mr-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: tag.color }" aria-hidden="true"></span>
@@ -460,7 +460,7 @@ const headerMenuItems = computed(() => {
 
 const checkLikeStatus = async () => {
   if (!user.value || !quote.value) return
-  
+
   try {
     const { data } = await $fetch(`/api/quotes/${route.params.id}/like-status`)
     isLiked.value = data?.isLiked || false
@@ -471,13 +471,13 @@ const checkLikeStatus = async () => {
 
 const toggleLike = async () => {
   if (!user.value || !quote.value || likePending.value) return
-  
+
   likePending.value = true
   try {
     const { data } = await $fetch(`/api/quotes/${route.params.id}/like`, {
       method: 'POST'
     })
-    
+
     isLiked.value = data.isLiked
     quote.value.likes_count = data.likesCount
   } catch (error) {
@@ -546,7 +546,7 @@ const showDownloadDrawer = ref(false)
 
 const downloadQuote = () => {
   if (!quote.value) return
-  isMobile.value 
+  isMobile.value
     ? showDownloadDrawer.value = true
     : showDownloadDialog.value = true
 }
@@ -566,7 +566,7 @@ const copyQuoteText = async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
       throw new Error('clipboard-unavailable')
     }
-    
+
     const authorName = quote.value.author?.name ? ` — ${quote.value.author.name}` : ''
     const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
     await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}`)
@@ -607,7 +607,7 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    
+
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
