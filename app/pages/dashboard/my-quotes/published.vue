@@ -436,7 +436,6 @@ useHead({
 
 const languageStore = useLanguageStore()
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
@@ -826,7 +825,6 @@ const handleAddedToCollection = () => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   if (isMobile.value) loadPublishedMobile(1)
   else loadPublishedQuotes()
   // Add mobile scroll listener
@@ -835,9 +833,6 @@ onMounted(() => {
   }
 })
 
-watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
-})
 
 
 onBeforeUnmount(() => {

@@ -403,7 +403,6 @@ useHead({
 })
 const languageStore = useLanguageStore()
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 
 const loading = ref(true)
 const loadingMore = ref(false)
@@ -730,7 +729,6 @@ watchDebounced([searchQuery, sortBy], () => {
 }, { debounce: 300 })
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadPendingQuotes()
   // Add mobile scroll listener
   if (isMobile.value) {
@@ -744,9 +742,7 @@ onBeforeUnmount(() => {
   }
 })
 
-watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
-})
+
 
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return

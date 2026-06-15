@@ -348,7 +348,6 @@
 import { formatDate } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 
 // Extended interface for dashboard collections with additional fields
 interface DashboardCollection extends CollectionWithStats {
@@ -562,14 +561,13 @@ const handleDeleteFromDrawer = () => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadCollections()
   if (isMobile.value) {
     window.addEventListener('scroll', handleScroll, { passive: true })
   }
 })
 
-watch(currentLayout, (newLayout) => setPageLayout(newLayout))
+
 
 onBeforeUnmount(() => {
   if (isMobile.value) {

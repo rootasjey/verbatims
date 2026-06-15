@@ -183,7 +183,6 @@ import type { ProcessedQuoteResult } from '~~/server/types'
 import { formatDate } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 
 definePageMeta({
   layout: 'dashboard',
@@ -373,7 +372,6 @@ const handleRemoveFromCollection = async (quote: any) => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadCollection()
   // Add mobile scroll listener
   if (isMobile.value) {
@@ -381,7 +379,7 @@ onMounted(() => {
   }
 })
 
-watch(currentLayout, (newLayout) => setPageLayout(newLayout))
+
 
 onBeforeUnmount(() => {
   if (isMobile.value) {

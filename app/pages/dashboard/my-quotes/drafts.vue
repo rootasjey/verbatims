@@ -450,7 +450,6 @@ useHead({
 })
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 const { user } = useUserSession()
 
 const languageStore = useLanguageStore()
@@ -939,7 +938,6 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadDrafts()
 
   // Add scroll listener for mobile
@@ -956,9 +954,6 @@ onBeforeUnmount(() => {
   }
 })
 
-watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
-})
 
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
