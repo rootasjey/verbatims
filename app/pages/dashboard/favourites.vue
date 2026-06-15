@@ -214,7 +214,6 @@ import type { ProcessedQuoteResult } from '~~/server/types'
 import { getDateTimestamp } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 
 interface LikedQuote extends QuoteWithMetadata {
   liked_at: string
@@ -423,7 +422,6 @@ const handleAddedToCollection = () => {
 }
 
 onMounted(() => {
-  setPageLayout(currentLayout.value)
   loadFavourites()
   // Add mobile scroll listener
   if (isMobile.value) {
@@ -431,9 +429,7 @@ onMounted(() => {
   }
 })
 
-watch(currentLayout, (newLayout) => {
-  setPageLayout(newLayout)
-})
+
 
 onBeforeUnmount(() => {
   if (isMobile.value) {

@@ -230,7 +230,7 @@
       />
 
       <!-- Main Content -->
-      <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
+      <main :class="['flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
         <div class="lg:hidden bg-white dark:bg-[#0C0A09]/70 border-b b-dashed border-gray-200 dark:border-gray-800 px-4 py-3">
           <div class="flex items-center justify-between">
@@ -253,6 +253,12 @@
         </div>
       </main>
     </div>
+
+    <!-- Mobile-only drawers -->
+    <ClientOnly>
+      <AddQuoteDrawer v-model:open="showAddQuote" @submitted="handleQuoteAdded" />
+      <ReportDrawer v-model:open="showReportDrawer" :target-type="'general'" />
+    </ClientOnly>
   </div>
 </template>
 
@@ -260,6 +266,8 @@
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(false)
+const showAddQuote = ref(false)
+const showReportDrawer = ref(false)
 const { user } = useUserSession()
 
 // Quote counts for badges
@@ -288,6 +296,10 @@ const loadQuoteCounts = async () => {
   } catch (error) {
     console.error('Failed to load quote counts:', error)
   }
+}
+
+const handleQuoteAdded = () => {
+  showAddQuote.value = false
 }
 
 // Close sidebar when route changes (mobile)
