@@ -358,6 +358,10 @@ const { isMobile } = useMobileDetection()
 const appReady = useState('app-ready', () => false)
 const hydrated = ref(appReady.value)
 
+onNuxtReady(() => {
+  hydrated.value = true
+})
+
 const route = useRoute()
 const router = useRouter()
 const searchStore = useSearchStore()

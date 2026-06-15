@@ -887,6 +887,10 @@ const loadSimilarReferences = async () => {
 
 const hydrated = ref(false)
 
+onNuxtReady(() => {
+  hydrated.value = true
+})
+
 onMounted(async () => {
   // Attach global shortcut as soon as component mounts
   if (typeof window !== 'undefined') {
