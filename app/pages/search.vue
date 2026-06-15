@@ -352,17 +352,11 @@
 <script setup lang="ts">
 import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
-import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+import { useMobileDetection } from '~/composables/useMobileDetection'
 import { useVerbatimsSeo } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 const appReady = useState('app-ready', () => false)
 const hydrated = ref(appReady.value)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
 
 const route = useRoute()
 const router = useRouter()
@@ -400,10 +394,6 @@ const debouncedSearch = useDebounceFn(async () => {
   router.replace({ path: '/search', query: q ? { q } : {} })
   await searchStore.search({ limit: 20 })
 }, 300)
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
-})
 
 // Keep store in sync when user navigates back/forward
 watch(() => route.query.q, (newQ) => {

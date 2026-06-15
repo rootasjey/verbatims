@@ -155,18 +155,6 @@ definePageMeta({
   layout: 'default'
 })
 
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
-})
-
 const effectiveDate = new Date().toLocaleDateString('fr-FR', {
   year: 'numeric',
   month: 'long',

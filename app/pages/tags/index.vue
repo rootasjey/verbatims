@@ -83,14 +83,7 @@ import { useTagsListStore } from '~/stores/tags'
 import type { TagsListSnapshot } from '~/stores/tags'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
 const tagsListStore = useTagsListStore()
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
 
 definePageMeta({
   layout: 'default'
@@ -298,10 +291,6 @@ onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('scroll', debouncedSaveScrollState)
   }
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch([sortBy], () => {

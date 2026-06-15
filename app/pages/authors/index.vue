@@ -111,13 +111,6 @@ import { useAuthorsListStore } from '~/stores/authors'
 import type { AuthorsListSnapshot } from '~/stores/authors'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
 
 const authorsListStore = useAuthorsListStore()
 
@@ -442,10 +435,6 @@ onBeforeRouteLeave((to) => {
   } else {
     authorsListStore.clearRestoreRequest()
   }
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch([sortBy], () => {

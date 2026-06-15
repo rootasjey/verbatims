@@ -320,7 +320,6 @@ import type { Quote, QuoteReferenceWithMetadata } from '~/types'
 import { ofetch } from 'ofetch'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 const route = useRoute()
 const { user } = useUserSession()
 const router = useRouter()
@@ -913,15 +912,6 @@ onMounted(async () => {
 
   // Trigger enter animation and delayed type badge
   await triggerHeaderEnter()
-})
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch(reference, (newReference) => {

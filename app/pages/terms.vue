@@ -333,21 +333,10 @@ useJsonLd({
   description: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.',
   datePublished: new Date().toISOString().split('T')[0]
 })
-import { useMobileDetection, useLayoutSwitching } from '~/composables/useMobileDetection'
+
+import { useMobileDetection } from '~/composables/useMobileDetection'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
-
-const hydrated = ref(false)
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
-})
 
 const toc = [
   { num: 1, id: 'introduction-and-acceptance', title: 'Introduction and Acceptance' },

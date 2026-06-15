@@ -79,7 +79,7 @@
 
 <script lang="ts" setup>
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
+
 const quotesFeedStore = useQuotesFeedStore()
 const restoreSourcePath = '/'
 let removeScrollListener: (() => void) | null = null
@@ -294,7 +294,6 @@ onActivated(async () => {
 
 onNuxtReady(() => {
   hydrated.value = true
-  setPageLayout(currentLayout.value)
 })
 
 onBeforeRouteLeave((to) => {
@@ -313,10 +312,6 @@ onBeforeRouteLeave((to) => {
     quotesFeedStore.clearRestoreRequest()
     quotesFeedStore.clearRestoreSnapshot()
   }
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 onUnmounted(() => {

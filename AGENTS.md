@@ -119,6 +119,7 @@ Nuxt runs composables, components, and pages on **both server (SSR) and client**
 - Any code relying on these must be deferred to `onMounted()`, placed in a `watch()` that only fires client-side, or guarded with `import.meta.client`.
 - **Hydration mismatches** happen when server-rendered HTML differs from the first client render. This shows as class/attribute mismatches in console warnings and can cause visual glitches (wrong button selected, stale data).
 - **Safe pattern for persisted state**: keep the composable SSR-safe (default value), then read/write browser APIs in the **page's** `onMounted` / `watch`. This ensures SSR and first client render match exactly.
+- **Layout switching masks SSR issues**: Components rendered only in layouts that are switched to client-side via `setPageLayout()` (e.g. `mobile.vue`) never run during SSR. If you remove layout switching and put them in a default SSR layout, wrap them in `<ClientOnly>` or ensure they're SSR-safe.
 
 ```ts
 // ❌ Bad - composable runs on server, localStorage is undefined

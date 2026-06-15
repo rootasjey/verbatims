@@ -324,7 +324,6 @@
 import type { ComputedRef, Ref } from 'vue'
 
 const { isMobile } = useMobileDetection()
-const { currentLayout } = useLayoutSwitching()
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
 
@@ -907,15 +906,6 @@ onMounted(async () => {
     reconnectDescriptionObserver()
     window.addEventListener('resize', checkDescriptionOverflow)
   }
-})
-
-onNuxtReady(() => {
-  hydrated.value = true
-  setPageLayout(currentLayout.value)
-})
-
-watch(currentLayout, (newLayout) => {
-  if (hydrated.value) setPageLayout(newLayout)
 })
 
 watch(author, (newAuthor) => {
