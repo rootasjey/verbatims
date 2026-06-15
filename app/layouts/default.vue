@@ -1,9 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
     <!-- Desktop header: hidden on screens < 768px -->
-    <div class="hidden md:block">
-      <AppMastheadBar />
-    </div>
+    <AppMastheadBar />
 
     <!-- Mobile header: hidden on screens >= 768px -->
     <header

@@ -1,11 +1,10 @@
 <template>
   <div
-    :class="[
-      'sticky top-0 z-4 w-full border-b b-dashed transition-all duration-300',
-      scrollY === 0
-        ? 'bg-[#FAFAF9] dark:bg-[#0C0A09]'
-        : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md'
-    ]"
+    class="sticky top-0 z-4 w-full hidden md:block border-b b-dashed transition-all duration-300"
+    :class="scrollY === 0
+      ? 'bg-[#FAFAF9] dark:bg-[#0C0A09]'
+      : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md'
+    "
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
       <div class="flex items-center gap-1">
