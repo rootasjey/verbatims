@@ -32,11 +32,12 @@
       </ClientOnly>
 
       <header class="mt-12 p-8">
-        <!-- Avatar centered above badge (reserve space to prevent layout jump) -->
-        <div class="flex items-center justify-center mb-4 min-h-[56px]">
-          <Transition name="fade-up" appear>
+        <!-- Avatar with colored ring indicating type -->
+        <div class="flex justify-center items-center mb-4 min-h-[56px]">
+          <div class="rounded-full flex justify-center items-center ring-2 p-0.5 transition-all duration-420"
+            :class="author.is_fictional ? 'ring-purple-500/60' : 'ring-blue-500/60'"
+          >
             <NAvatar
-              v-if="showTypeBadge"
               ref="avatarRef"
               role="button"
               tabindex="0"
@@ -49,23 +50,11 @@
               size="lg"
               :fallback="getAuthorInitials(author.name)"
               class="shadow-lg avatar-entrance cursor-pointer"
-              :class="headerIn ? 'scale-in' : 'scale-out'"
+              :class="[
+                headerIn ? 'scale-in' : 'scale-out',
+              ]"
             />
-          </Transition>
-        </div>
-
-        <!-- Author Type (appears after header content animates) -->
-        <div class="flex items-center justify-center gap-4 min-h-8">
-          <Transition name="fade-up" appear>
-            <NBadge
-              v-if="showTypeBadge"
-              :color="author.is_fictional ? 'purple' : 'blue'"
-              size="sm"
-              class="font-600"
-            >
-              {{ author.is_fictional ? 'Fictional Character' : 'Real Person' }}
-            </NBadge>
-          </Transition>
+          </div>
         </div>
 
         <div class="text-center w-full">
@@ -96,32 +85,14 @@
           </span>
 
           <div v-if="author.description"
-            class="mt-28 max-w-4xl w-full mx-auto mb-6 transform-gpu transition-all duration-700 ease-out"
+            class="mt-28 max-w-2xl w-full mx-auto text-align-justify mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(3)"
           >
-            <div class="relative pl-7 md:pl-9">
-              <div class="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-primary-500 via-primary-400 to-primary-500/10"></div>
-              <div
-                ref="descriptionEl"
-                class="description-clip overflow-hidden"
-                :class="[descriptionExpanded ? 'expanded' : 'collapsed', (!descriptionExpanded && (isDescriptionOverflowing || isDescriptionLong(author.description))) ? 'has-ellipsis' : '']"
-              >
-                <p class="font-serif text-base md:text-lg font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                  {{ author.description }}
-                </p>
-              </div>
-
-              <NButton
-                v-if="isDescriptionOverflowing || isDescriptionLong(author.description)"
-                btn="ghost-gray"
-                size="sm"
-                class="mt-3 text-xs font-medium"
-                @click="descriptionExpanded = !descriptionExpanded"
-              >
-                <NIcon name="i-ph-caret-down" class="mr-1 icon-rotate" :class="{ rotated: descriptionExpanded }" />
-                {{ descriptionExpanded ? 'Show Less' : 'Read More' }}
-              </NButton>
+            <div>
+              <p class="font-serif text-base md:text-xl font-500 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                {{ author.description }}
+              </p>
             </div>
           </div>
 
@@ -152,30 +123,30 @@
       <!-- Quotes Section -->
       <div class="px-8 pb-16">
         <!-- Sort / Filters -->
-        <div class="mt-8 font-body mb-8">
+        <div class="mt-8 mb-10">
           <!-- Desktop controls -->
-          <div class="hidden md:flex gap-4 max-w-2xl mx-auto items-center justify-center">
-            <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
-            <span>•</span>
-            <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
-              sorted by
-            </span>
-            <NSelect
-              v-model="sortBy"
-              :items="sortOptions"
-              placeholder="Sort by"
-              item-key="label"
-              value-key="label"
-              @change="loadQuotes"
-            />
+          <div class="hidden md:flex items-center justify-center gap-3">
+            <span class="text-sm font-500 text-gray-400 dark:text-gray-500">{{ authorQuotes.length }} quotes</span>
+            <span class="w-px h-3 bg-gray-300 dark:bg-gray-600"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500">Sort</span>
+              <NSelect
+                v-model="sortBy"
+                :items="sortOptions"
+                placeholder="Sort"
+                item-key="label"
+                value-key="label"
+                @change="loadQuotes"
+              />
+            </div>
             <LanguageSelector class="hidden md:block" @language-changed="onLanguageChange" />
           </div>
 
           <!-- Mobile controls: filter button opens drawer -->
           <div class="md:hidden flex items-center justify-between max-w-xl mx-auto">
-            <p class="font-600 text-gray-600 dark:text-gray-300">{{ authorQuotes.length }} quotes</p>
-            <NButton size="sm" btn="outline-gray" class="rounded-full" @click="mobileFiltersOpen = true">
-              <NIcon name="i-ph-faders" class="w-4 h-4 mr-1" />
+            <p class="text-sm font-500 text-gray-500 dark:text-gray-400">{{ authorQuotes.length }} quotes</p>
+            <NButton size="sm" btn="ghost-gray" class="rounded-full text-xs" @click="mobileFiltersOpen = true">
+              <NIcon name="i-ph-faders" class="w-3.5 h-3.5 mr-1" />
               Filters
             </NButton>
           </div>
@@ -193,29 +164,29 @@
           </div>
         </div>
 
-        <!-- Quotes Display -->
+        <!-- Quotes Display — editorial entries -->
         <div v-else-if="authorQuotes.length > 0" class="mb-12">
-          <div class="max-w-4xl mx-auto space-y-5">
+          <div class="max-w-3xl mx-auto divide-y divide-gray-200 dark:divide-gray-800">
             <NLink
               v-for="quote in authorQuotes"
               :key="quote.id"
               :to="`/quotes/${quote.id}`"
-              class="group block bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 transition-all duration-300 hover:shadow-lg hover:border-primary-400 dark:hover:border-primary-500 active:scale-[0.995]"
+              class="group block py-8 first:pt-0 transition-all duration-300"
             >
               <blockquote
-                class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed"
+                class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors"
                 :class="{
-                  'text-lg md:text-xl': (quote.name || '').length <= 100,
-                  'text-base md:text-lg': (quote.name || '').length > 100 && (quote.name || '').length <= 200,
-                  'text-sm md:text-base': (quote.name || '').length > 200
+                  'text-xl md:text-2xl font-300': (quote.name || '').length <= 100,
+                  'text-lg md:text-xl font-300': (quote.name || '').length > 100 && (quote.name || '').length <= 200,
+                  'text-base md:text-lg font-300': (quote.name || '').length > 200
                 }"
               >
                 {{ quote.name }}
               </blockquote>
 
-              <div class="mt-5 flex items-center justify-between gap-4">
+              <div class="mt-4 flex items-center justify-between gap-4">
                 <div v-if="quote.reference" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 min-w-0">
-                  <span class="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-600 flex-shrink-0"></span>
+                  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0"></span>
                   <span class="truncate">{{ quote.reference.name }}</span>
                 </div>
                 <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
@@ -229,8 +200,6 @@
                   </span>
                 </div>
               </div>
-
-              <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-primary-500/20 to-transparent"></div>
             </NLink>
           </div>
         </div>
@@ -429,7 +398,6 @@ const sortBy = ref<SortOption>(sortOptions[0])
 const mobileFiltersOpen = ref<boolean>(false)
 
 const headerIn = ref(false)
-const showTypeBadge = ref(false)
 
 const isLiked = ref(false)
 const likePending = ref(false)
@@ -437,77 +405,11 @@ const sharePending = ref(false)
 const copyState = ref<'idle' | 'copying' | 'copied'>('idle')
 const showEditAuthorDialog = ref(false)
 const showDeleteAuthorDialog = ref(false)
-const descriptionExpanded = ref(false)
-const descriptionEl = ref<HTMLElement | null>(null)
-const isDescriptionOverflowing = ref(false)
-let descriptionResizeObserver: ResizeObserver | null = null
 const similarAuthors = ref<any[]>([])
-
-const scheduleDescriptionOverflowCheck = () => {
-  nextTick(() => {
-    checkDescriptionOverflow()
-    requestAnimationFrame(() => {
-      checkDescriptionOverflow()
-      setTimeout(checkDescriptionOverflow, 160)
-    })
-
-    if (typeof document !== 'undefined' && 'fonts' in document) {
-      document.fonts.ready.then(() => {
-        checkDescriptionOverflow()
-      }).catch(() => {})
-    }
-  })
-}
-
-const reconnectDescriptionObserver = () => {
-  if (descriptionResizeObserver) {
-    descriptionResizeObserver.disconnect()
-    descriptionResizeObserver = null
-  }
-
-  if (typeof ResizeObserver === 'undefined' || !descriptionEl.value) {
-    return
-  }
-
-  descriptionResizeObserver = new ResizeObserver(() => {
-    checkDescriptionOverflow()
-  })
-  descriptionResizeObserver.observe(descriptionEl.value)
-}
 
 // Avatar preview state (opened when clicking the avatar)
 const avatarPreviewOpen = ref(false)
 const avatarRef = ref<any>(null)
-
-const checkDescriptionOverflow = () => {
-  const el = descriptionEl.value
-  if (!el) {
-    isDescriptionOverflowing.value = false
-    return
-  }
-  // Use the collapsed max-height (6.5rem) as a stable threshold so
-  // CSS transitions and intermediate clientHeight values don't
-  // cause temporary false negatives.
-  const rootFontSize = typeof window !== 'undefined'
-    ? parseFloat(getComputedStyle(document.documentElement).fontSize || '16')
-    : 16
-  const collapsedHeightPx = 6.5 * rootFontSize
-  isDescriptionOverflowing.value = el.scrollHeight > collapsedHeightPx
-}
-
-watch(() => author.value?.description, () => {
-  descriptionExpanded.value = false
-  scheduleDescriptionOverflowCheck()
-})
-
-watch(() => descriptionExpanded.value, () => {
-  scheduleDescriptionOverflowCheck()
-})
-
-watch(descriptionEl, () => {
-  reconnectDescriptionObserver()
-  scheduleDescriptionOverflowCheck()
-})
 
 // Convert AuthorWithSocials to Author for AddAuthorDialog
 const authorAsEditAuthor = computed(() => {
@@ -852,24 +754,6 @@ const getAuthorInitials = (name: string): string => {
     .slice(0, 2)
 }
 
-const getDescriptionPreview = (description: string): string => {
-  if (!description) return ''
-  const lines = description.split('\n').filter(line => line.trim())
-  // Show first 2 lines or first 200 characters, whichever is shorter
-  const preview = lines.slice(0, 2).join('\n')
-  if (preview.length > 200) {
-    return preview.substring(0, 200) + '...'
-  }
-  return preview + (lines.length > 2 ? '...' : '')
-}
-
-const isDescriptionLong = (description: string): boolean => {
-  if (!description) return false
-  // Check if description has more than 3 non-empty lines or is longer than 300 characters
-  const lines = description.split('\n').filter(line => line.trim())
-  return lines.length > 3 || description.length > 300
-}
-
 const loadSimilarAuthors = async () => {
   const currentAuthor = author.value
   if (!currentAuthor) return
@@ -915,9 +799,6 @@ onMounted(async () => {
   // Attach global shortcut
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
-    scheduleDescriptionOverflowCheck()
-    reconnectDescriptionObserver()
-    window.addEventListener('resize', checkDescriptionOverflow)
   }
 })
 
@@ -929,9 +810,7 @@ watch(author, (newAuthor) => {
       checkLikeStatus()
     }
 
-    // retrigger header animation on author change
     triggerHeaderEnter()
-    scheduleDescriptionOverflowCheck()
   }
 })
 
@@ -948,13 +827,10 @@ const enterAnim = (i: number) => ({ transitionDelay: `${i * 80}ms` })
 // Ensure animations run after initial render and when data finishes loading
 const triggerHeaderEnter = async () => {
   headerIn.value = false
-  showTypeBadge.value = false
   await nextTick()
-  // double rAF to guarantee the browser paints the initial hidden state
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       headerIn.value = true
-      setTimeout(() => { showTypeBadge.value = true }, 450)
     })
   })
 }
@@ -982,14 +858,11 @@ watch(avatarPreviewOpen, (open, prev) => {
 watch(pending, (now, prev) => {
   if (prev && !now && author.value) {
     triggerHeaderEnter()
-    scheduleDescriptionOverflowCheck()
   }
 })
 
 onUnmounted(() => {
-  if (descriptionResizeObserver) descriptionResizeObserver.disconnect()
   if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', checkDescriptionOverflow)
     window.removeEventListener('keydown', handleGlobalKeydown)
   }
 })
@@ -1011,42 +884,6 @@ onUnmounted(() => {
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
-}
-
-/* Description expand/collapse animation */
-.description-clip {
-  position: relative;
-  transition: max-height 420ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease;
-  max-height: 6.5rem; /* collapsed height (~3 lines) */
-}
-.description-clip p { position: relative; z-index: 0; }
-.description-clip.collapsed { max-height: 6.5rem; }
-.description-clip.expanded { max-height: 1200px; }
-
-/* Fade overlay when clipped */
-.description-clip.collapsed.has-ellipsis::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3.2rem;
-  pointer-events: none;
-  z-index: 1;
-  background: linear-gradient(180deg, rgba(250,250,249,0), #FAFAF9 85%);
-}
-.dark .description-clip.collapsed.has-ellipsis::after {
-  background: linear-gradient(180deg, rgba(12,10,9,0), #0C0A09 85%);
-}
-
-/* Icon rotate for Read More button */
-.icon-rotate {
-  display: inline-block;
-  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
-  transform-origin: center;
-}
-.icon-rotate.rotated {
-  transform: rotate(180deg);
 }
 
 
