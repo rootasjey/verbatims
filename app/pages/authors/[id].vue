@@ -27,7 +27,7 @@
         @share-author="shareAuthor"
         @toggle-like="toggleLike"
         @copy-link="copyLink"
-        @navigate-back="navigateToAuthorsList"
+        @navigate-back="navigateBack"
       />
       </ClientOnly>
 
@@ -795,9 +795,18 @@ const scrollToTop = () => {
   }
 }
 
+const navigateBack = async () => {
+  if (typeof window !== 'undefined' && window.history.length > 1) {
+    window.history.back()
+    return
+  }
+
+  navigateToAuthorsList()
+}
+
 const navigateToAuthorsList = async () => {
   if (typeof window !== 'undefined' && authorsListStore.shouldRestore && window.history.length > 1) {
-    await router.back()
+    router.back()
     return
   }
 

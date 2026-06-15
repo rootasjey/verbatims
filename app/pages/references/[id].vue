@@ -34,7 +34,7 @@
           @toggle-like="toggleLike"
           @copy-link="copyLink"
           @scroll-top="scrollToTop"
-          @navigate-back="navigateToReferencesList"
+          @navigate-back="navigateBack"
           @open-poster="openPosterPreview"
         />
       </ClientOnly>
@@ -723,9 +723,18 @@ const scrollToTop = () => {
   }
 }
 
+const navigateBack = async () => {
+  if (typeof window !== 'undefined' && window.history.length > 1) {
+    window.history.back()
+    return
+  }
+
+  navigateToReferencesList()
+}
+
 const navigateToReferencesList = async () => {
   if (typeof window !== 'undefined' && referencesListStore.shouldRestore && window.history.length > 1) {
-    await router.back()
+    router.back()
     return
   }
 
