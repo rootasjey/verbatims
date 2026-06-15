@@ -878,6 +878,10 @@ const loadSimilarAuthors = async () => {
 
 const hydrated = ref(false)
 
+onNuxtReady(() => {
+  hydrated.value = true
+})
+
 onMounted(async () => {
   await waitForLanguageStore()
 
