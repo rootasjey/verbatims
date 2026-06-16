@@ -361,6 +361,10 @@ const navItems = [
   { label: 'Tags', icon: 'i-ph-tag-duotone', description: 'Browse quote topics and themes', to: '/tags' },
   { label: 'Dashboard', icon: 'i-ph-square-split-vertical-duotone', description: 'Your dashboard', to: '/dashboard' },
   { label: 'Admin', icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin' },
+  { label: 'Pending Quotes', icon: 'i-ph-clock-countdown', description: 'Review and moderate pending quotes', to: '/admin/quotes/pending' },
+  { label: 'Drafts', icon: 'i-ph-file-text', description: 'Manage quote drafts', to: '/admin/quotes/drafts' },
+  { label: 'Social Queue', icon: 'i-ph-share-network', description: 'Manage scheduled social media posts', to: '/admin/social-queue' },
+  { label: 'Admin Tags', icon: 'i-ph-tag-duotone', description: 'Manage tag taxonomy', to: '/admin/tags' },
 ]
 
 const cmdItems = [
@@ -644,21 +648,21 @@ const executeCmdItem = (item: typeof cmdItems[number]) => {
 
 const selectCurrentResult = () => {
   if (mode.value === 'nav') {
-    const index = selectedNavIndex.value
-    if (index >= 0 && filteredNavItems.value[index]) {
+    const index = selectedNavIndex.value >= 0 ? selectedNavIndex.value : 0
+    if (filteredNavItems.value[index]) {
       navigateToNavItem(filteredNavItems.value[index])
     }
     return
   }
   if (mode.value === 'cmd') {
-    const index = selectedCmdIndex.value
-    if (index >= 0 && filteredCmdItems.value[index]) {
+    const index = selectedCmdIndex.value >= 0 ? selectedCmdIndex.value : 0
+    if (filteredCmdItems.value[index]) {
       executeCmdItem(filteredCmdItems.value[index])
     }
     return
   }
-  const index = selectedIndex.value
-  if (index >= 0 && allResults.value[index]) {
+  const index = selectedIndex.value >= 0 ? selectedIndex.value : 0
+  if (allResults.value[index]) {
     const result = allResults.value[index]
     selectResult(result, result.type)
   }
