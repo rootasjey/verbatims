@@ -5,7 +5,14 @@
 
     <!-- Mobile header: hidden on screens >= 768px -->
     <header
-      class="fixed top-0 left-0 right-0 z-40 md:hidden bg-gray-100 dark:bg-gray-800 backdrop-blur-md px-4 py-3 safe-area-pt border-b border-dashed border-gray-200 dark:border-gray-800"
+      class="fixed top-0 left-0 right-0 z-40 md:hidden
+        px-4 py-3 safe-area-pt border-b border-dashed border-gray-200 dark:border-gray-800"
+        :class="[
+          {
+            'bg-[#FAFAF9] dark:bg-[#0C0A09]': scrollY === 0,
+            'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0
+          }
+        ]"
     >
       <div
         class="flex items-center justify-between"
@@ -69,9 +76,18 @@ const currentDate = computed(() => {
   })
 })
 
+const scrollY = ref(0)
+
 const scrollToTop = () => {
   if (import.meta.client) {
+    if (scrollY.value === 0) return
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+const handleScroll = () => {
+  if (import.meta.client) {
+    scrollY.value = window.scrollY
   }
 }
 
@@ -87,6 +103,13 @@ const handleAppIconClick = (event: MouseEvent) => {
 const handleQuoteAdded = () => {
   showAddQuote.value = false
 }
+
+onMounted(() => {
+  if (import.meta.client) {
+    window.addEventListener('scroll', handleScroll)
+    scrollY.value = window.scrollY
+  }
+})
 
 useHead({
   htmlAttrs: {
