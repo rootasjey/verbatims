@@ -15,9 +15,11 @@
           <HomeNavLink to="/references">
             References
           </HomeNavLink>
-          <HomeNavLink to="/search">
-            Search
-          </HomeNavLink>
+          <button @click="showSearch = true"
+            class="group relative inline-block overflow-hidden font-sans text-sm transition-colors duration-300 text-gray-700 dark:text-gray-300 hover:text-white dark:hover:text-[#0C0A09] group-active:scale-95 transition-transform text-left w-full">
+            <span class="relative z-1 transition-colors duration-300">Search</span>
+            <span class="absolute inset-0 w-0 group-hover:w-full transition-all duration-300 ease-out -z-0 bg-[#0C0A09] dark:bg-[#FAFAF9]" />
+          </button>
         </nav>
 
         <div class="mt-6 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700">
@@ -382,6 +384,8 @@
     </div>
   </div>
 
+  <SearchBox v-model="showSearch" />
+
   <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote as any"
     @quote-updated="closeEditAfterUpdate" />
 
@@ -411,6 +415,7 @@ const props = withDefaults(defineProps<Props>(), {
   theme: null
 })
 
+const showSearch = ref(false)
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
