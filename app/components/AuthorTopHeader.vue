@@ -78,13 +78,23 @@
             <NButton
               :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
               size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+              class="hidden md:flex min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
               @click="$emit('copy-link')"
             >
               <NIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
               <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
             </NButton>
           </NTooltip>
+
+          <NButton
+            size="xs"
+            btn="soft-gray"
+            class="md:hidden min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
+            @click="$emit('scroll-to-quotes')"
+          >
+            <NIcon name="i-ph-quotes" class="w-3.5 h-3.5 mr-1" />
+            <span class="hidden sm:inline">Quotes</span>
+          </NButton>
 
           <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
             <NButton
@@ -135,6 +145,7 @@ interface Emits {
   (e: 'share-author'): void
   (e: 'toggle-like'): void
   (e: 'copy-link'): void
+  (e: 'scroll-to-quotes'): void
 }
 
 defineProps<Props>()
