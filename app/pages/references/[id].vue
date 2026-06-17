@@ -36,212 +36,180 @@
           @scroll-top="scrollToTop"
           @navigate-back="navigateBack"
           @open-poster="openPosterPreview"
+          @scroll-to-quotes="scrollToQuotes"
         />
       </ClientOnly>
 
-      <header class="mt-12 p-8">
-
-        <!-- Reference Type Badge -->
-        <div class="flex items-center justify-center gap-4 min-h-8">
-          <Transition name="fade-up" appear>
-            <NBadge
-              v-if="showTypeBadge && reference.primaryType"
-              :color="getTypeColor(reference.primaryType)"
-              badge="outline"
-              :style="{ 'border-width': '0.2px' }"
-              size="sm"
-              class="font-medium"
-            >
-              {{ formatReferenceType(reference.primaryType) }}
-            </NBadge>
-          </Transition>
+      <!-- 3-column newspaper layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b b-dashed border-gray-300 dark:border-gray-700">
+        <!-- Poster column -->
+        <div class="lg:col-span-3 lg:border-r b-dashed border-gray-300 dark:border-gray-700">
+          <div class="p-6 md:p-8">
+            <div v-if="reference.imageUrl" class="w-full shadow-xl overflow-hidden rounded-sm bg-gray-100 dark:bg-[#0C0A09] cursor-pointer" @click="openPosterPreview">
+              <img
+                :src="reference.imageUrl"
+                :alt="reference.name"
+                class="w-full object-cover hover:scale-102 transition-transform duration-300"
+                style="aspect-ratio: 3/4;"
+              />
+            </div>
+            <div v-else class="w-full aspect-[3/4] rounded-sm bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800" />
+          </div>
+          <div class="hidden lg:block">
+            <SimilarReferences :references="similarReferences" compact />
+          </div>
         </div>
 
-        <div class="text-center w-full">
+        <!-- Content column -->
+        <div class="lg:col-span-6 lg:border-r b-dashed border-gray-300 dark:border-gray-700 p-6 md:p-8 md:pr-12 lg:pr-16">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: getTypeDotColor(reference.primaryType) }" />
+            <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-600">
+              {{ reference.primaryType ? formatReferenceType(reference.primaryType) : 'Reference' }}
+            </span>
+            <template v-if="reference.secondary_type || reference.release_date">
+              <span class="text-gray-300 dark:text-gray-600">·</span>
+              <span class="font-sans text-xs font-600 text-gray-400 dark:text-gray-400">
+                <template v-if="reference.secondary_type">{{ reference.secondary_type }}</template>
+                <template v-if="reference.secondary_type && reference.release_date"><span class="mx-2"> · </span></template>
+                <template v-if="reference.release_date">{{ formatReleaseDate(reference.release_date) }}</template>
+              </span>
+            </template>
+          </div>
+
           <h1
-            class="font-title text-size-18 sm:text-size-24 md:text-size-42 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            class="font-title font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            :class="[titleSizeClass, headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]']"
             :style="enterAnim(0)"
           >
             {{ reference.name }}
           </h1>
 
-          <span v-if="reference.release_date"
-            class="block font-serif text-lg font-500 text-gray-500 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(1)"
-          >
-            {{ formatReleaseDate(reference.release_date) }}
-          </span>
-
-          <p
-            v-if="reference.secondary_type"
-            class="font-subtitle italic text-xl font-500 text-gray-600 dark:text-gray-400 mb-6 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(1)"
-          >
-            {{ reference.secondary_type }}
-          </p>
-
           <div v-if="reference.description"
-            class="mt-28 max-w-4xl w-full mx-auto mb-6 transform-gpu transition-all duration-700 ease-out"
+            class="mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(2)"
           >
-            <div class="relative pl-7 md:pl-9">
-              <div class="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-primary-500 via-primary-400 to-primary-500/10"></div>
-              <div
-                ref="descriptionEl"
-                class="description-clip overflow-hidden"
-                :class="[descriptionExpanded ? 'expanded' : 'collapsed', (!descriptionExpanded && (isDescriptionOverflowing || isDescriptionLong(reference.description))) ? 'has-ellipsis' : '']"
-              >
-                <p class="font-serif text-base md:text-lg font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                  {{ reference.description }}
-                </p>
-              </div>
+            <div class="relative">
+              <p class="font-serif text-base md:text-lg font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                {{ reference.description }}
+              </p>
+            </div>
+          </div>
 
-              <NButton
-                v-if="isDescriptionOverflowing || isDescriptionLong(reference.description)"
-                btn="ghost-gray"
+          <div
+            class="transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(3)"
+          >
+            <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <NIcon name="i-ph-globe" class="w-4 h-4" />
+              <span>Original Language: {{ formatLanguage(reference.original_language as langCode) }}</span>
+            </div>
+
+            <ExternalLinksBadges :links="reference.urls" />
+          </div>
+        </div>
+
+        <!-- Quotes sidebar -->
+        <div id="quotes" class="lg:col-span-3 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
+          <div class="p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-6">
+              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
+                Quotes · {{ referenceQuotes.length }}
+              </p>
+              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            </div>
+
+            <div class="mb-6 space-y-3">
+              <NSelect
+                v-model="sortBy"
+                :items="sortOptions"
+                placeholder="Sort by"
+                item-key="label"
+                value-key="label"
                 size="sm"
-                class="mt-3 text-xs font-medium"
-                @click="descriptionExpanded = !descriptionExpanded"
-              >
-                <NIcon name="i-ph-caret-down" class="mr-1 icon-rotate" :class="{ rotated: descriptionExpanded }" />
-                {{ descriptionExpanded ? 'Show Less' : 'Read More' }}
-              </NButton>
+              />
+              <LanguageSelector @language-changed="onLanguageChange" />
             </div>
-          </div>
 
-          <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-            <NIcon name="i-ph-globe" class="w-4 h-4" />
-            <span>Original Language: {{ formatLanguage(reference.original_language as langCode) }}</span>
-          </div>
-        </div>
-      </header>
-
-      <div v-if="reference?.urls" class="px-8 mb-16">
-        <ExternalLinksBadges :links="reference.urls" />
-      </div>
-
-      <!-- Section divider -->
-      <div class="px-8">
-        <div class="max-w-6xl mx-auto">
-          <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
-        </div>
-      </div>
-
-      <!-- Quotes Section -->
-      <div class="px-8 pb-16">
-        <!-- Sort / Filters -->
-        <div class="mt-8 font-body mb-8">
-          <!-- Desktop controls -->
-          <div class="hidden md:flex gap-4 max-w-2xl mx-auto items-center justify-center">
-            <p class="whitespace-nowrap font-600 color-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
-            <span>•</span>
-            <span class="whitespace-nowrap font-600 text-gray-600 dark:text-gray-500">
-              sorted by
-            </span>
-            <NSelect
-              v-model="sortBy"
-              :items="sortOptions"
-              placeholder="Sort by"
-              item-key="label"
-              value-key="label"
-              @change="loadQuotes"
-            />
-            <LanguageSelector class="hidden md:block" @language-changed="onLanguageChange" />
-          </div>
-
-          <!-- Mobile controls: filter button opens drawer -->
-          <div class="md:hidden flex items-center justify-between max-w-xl mx-auto">
-            <p class="font-600 text-gray-600 dark:text-gray-300">{{ referenceQuotes.length }} quotes</p>
-            <NButton size="sm" btn="outline-gray" class="rounded-full" @click="mobileFiltersOpen = true">
-              <NIcon name="i-ph-faders" class="w-4 h-4 mr-1" />
-              Filters
-            </NButton>
-          </div>
-        </div>
-
-        <div v-if="quotesLoading" class="mb-12">
-          <div class="max-w-4xl mx-auto space-y-5">
-            <div v-for="i in 6" :key="i" class="animate-pulse">
-              <div class="bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8">
-                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div v-if="quotesLoading" class="space-y-4">
+              <div v-for="i in 4" :key="i" class="animate-pulse">
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1.5" />
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-3" />
+                <div class="h-px bg-gray-100 dark:bg-gray-800" />
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Quotes Display -->
-        <div v-else-if="referenceQuotes.length > 0" class="mb-12">
-          <div class="max-w-4xl mx-auto space-y-5">
-            <NLink
-              v-for="quote in referenceQuotes"
-              :key="quote.id"
-              :to="`/quotes/${quote.id}`"
-              class="group block bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 transition-all duration-300 hover:shadow-lg hover:border-primary-400 dark:hover:border-primary-500 active:scale-[0.995]"
-            >
-              <blockquote
-                class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed"
-                :class="{
-                  'text-lg md:text-xl': (quote.name || '').length <= 100,
-                  'text-base md:text-lg': (quote.name || '').length > 100 && (quote.name || '').length <= 200,
-                  'text-sm md:text-base': (quote.name || '').length > 200
-                }"
-              >
-                {{ quote.name }}
-              </blockquote>
-
-              <div class="mt-5 flex items-center justify-between gap-4">
-                <div v-if="quote.author" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 min-w-0">
-                  <NAvatar
-                    :src="quote.author.image_url || undefined"
-                    :alt="quote.author.name"
-                    size="xs"
-                    class="flex-shrink-0"
-                  />
-                  <span class="truncate">{{ quote.author.name }}</span>
-                </div>
-                <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                  <span class="flex items-center gap-1">
-                    <NIcon name="i-ph-hand-heart" class="w-3.5 h-3.5" />
-                    {{ formatNumber(quote.likes_count) }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <NIcon name="i-ph-eye" class="w-3.5 h-3.5" />
-                    {{ formatNumber(quote.views_count) }}
-                  </span>
+            <div v-else-if="referenceQuotes.length > 0" class="space-y-6">
+              <div v-for="[authorName, quotes] in quotesByAuthor" :key="authorName">
+                <p class="font-sans text-[10px] font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-3">
+                  {{ authorName }}
+                </p>
+                <div class="space-y-4">
+                  <div
+                    v-for="quote in quotes"
+                    :key="quote.id"
+                    class="pb-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                  >
+                    <NLink
+                      :to="`/quotes/${quote.id}`"
+                      class="block group"
+                    >
+                      <blockquote
+                        class="font-serif text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-3"
+                        :class="{
+                          'text-sm': (quote.name || '').length <= 100,
+                          'text-xs': (quote.name || '').length > 100
+                        }"
+                      >
+                        {{ quote.name }}
+                      </blockquote>
+                    </NLink>
+                    <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
+                      <NuxtLink
+                        v-if="quote.author"
+                        :to="`/authors/${quote.author.id}`"
+                        class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors truncate"
+                      >
+                        {{ quote.author.name }}
+                      </NuxtLink>
+                      <span class="flex items-center gap-1.5 ml-auto shrink-0">
+                        <span class="flex items-center gap-0.5">
+                          <NIcon name="i-ph-hand-heart" class="w-3 h-3" />
+                          {{ formatNumber(quote.likes_count) }}
+                        </span>
+                        <span class="flex items-center gap-0.5">
+                          <NIcon name="i-ph-eye" class="w-3 h-3" />
+                          {{ formatNumber(quote.views_count) }}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-primary-500/20 to-transparent"></div>
-            </NLink>
+            <div v-else class="text-center py-8">
+              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">No quotes yet</p>
+            </div>
+
+            <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
+              <LoadMoreButton
+                idleText="Load More Quotes"
+                loadingText="Loading Quotes..."
+                :isLoading="loadingMoreQuotes"
+                @load="loadMoreQuotes"
+              />
+            </div>
           </div>
-        </div>
-
-        <div v-else class="text-center py-16">
-          <NIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No quotes yet</h3>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">
-            Be the first to submit a quote from {{ reference.name }}!
-          </p>
-        </div>
-
-        <div v-if="hasMoreQuotes && !quotesLoading" class="flex justify-center">
-          <LoadMoreButton
-            class="mb-4"
-            idleText="Load More Quotes"
-            loadingText="Loading Quotes..."
-            :isLoading="loadingMoreQuotes"
-            @load="loadMoreQuotes"
-          />
         </div>
       </div>
 
-      <SimilarReferences :references="similarReferences" />
+      <div class="lg:hidden">
+        <SimilarReferences :references="similarReferences" />
+      </div>
     </div>
 
     <div v-else class="p-8">
@@ -395,6 +363,24 @@ const quotesLoading = ref<boolean>(false)
 const loadingMoreQuotes = ref<boolean>(false)
 const hasMoreQuotes = ref<boolean>(true)
 const currentQuotePage = ref<number>(1)
+
+const quotesByAuthor = computed(() => {
+  const groups = new Map<string, Quote[]>()
+  for (const quote of referenceQuotes.value) {
+    const authorName = quote.author?.name?.trim() || 'Other'
+    if (!groups.has(authorName)) {
+      groups.set(authorName, [])
+    }
+    groups.get(authorName)!.push(quote)
+  }
+  const entries = Array.from(groups.entries())
+  return entries.sort((a, b) => {
+    if (a[0] === 'Other') return 1
+    if (b[0] === 'Other') return -1
+    return b[1].length - a[1].length
+  })
+})
+
 const sortBy = ref<{ label: string; value: string }>({ label: 'Most Recent', value: 'created_at' })
 const mobileFiltersOpen = ref<boolean>(false)
 
@@ -410,77 +396,19 @@ const sharePending = ref<boolean>(false)
 const copyState = ref<'idle' | 'copied'>('idle')
 const headerIn = ref<boolean>(false)
 const showTypeBadge = ref<boolean>(false)
-const descriptionExpanded = ref(false)
-const descriptionEl = ref<HTMLElement | null>(null)
-const isDescriptionOverflowing = ref(false)
-let descriptionResizeObserver: ResizeObserver | null = null
 const similarReferences = ref<any[]>([])
-
-const scheduleDescriptionOverflowCheck = () => {
-  nextTick(() => {
-    checkDescriptionOverflow()
-    requestAnimationFrame(() => {
-      checkDescriptionOverflow()
-      setTimeout(checkDescriptionOverflow, 160)
-    })
-
-    if (typeof document !== 'undefined' && 'fonts' in document) {
-      document.fonts.ready.then(() => {
-        checkDescriptionOverflow()
-      }).catch(() => {})
-    }
-  })
-}
-
-const reconnectDescriptionObserver = () => {
-  if (descriptionResizeObserver) {
-    descriptionResizeObserver.disconnect()
-    descriptionResizeObserver = null
-  }
-
-  if (typeof ResizeObserver === 'undefined' || !descriptionEl.value) {
-    return
-  }
-
-  descriptionResizeObserver = new ResizeObserver(() => {
-    checkDescriptionOverflow()
-  })
-  descriptionResizeObserver.observe(descriptionEl.value)
-}
-
-const checkDescriptionOverflow = () => {
-  const el = descriptionEl.value
-  if (!el) {
-    isDescriptionOverflowing.value = false
-    return
-  }
-  // Use the collapsed max-height (6.5rem) as a stable threshold so
-  // CSS transitions and intermediate clientHeight values don't
-  // cause temporary false negatives.
-  const rootFontSize = typeof window !== 'undefined'
-    ? parseFloat(getComputedStyle(document.documentElement).fontSize || '16')
-    : 16
-  const collapsedHeightPx = 6.5 * rootFontSize
-  isDescriptionOverflowing.value = el.scrollHeight > collapsedHeightPx
-}
-
-watch(() => reference.value?.description, () => {
-  descriptionExpanded.value = false
-  scheduleDescriptionOverflowCheck()
-})
-
-watch(() => descriptionExpanded.value, () => {
-  scheduleDescriptionOverflowCheck()
-})
-
-watch(descriptionEl, () => {
-  reconnectDescriptionObserver()
-  scheduleDescriptionOverflowCheck()
-})
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
   const text = reference.value?.name || ''
   return text.length > 80 ? text.slice(0, 80) + '…' : text
+})
+
+const titleSizeClass = computed(() => {
+  const len = (reference.value?.name || '').length
+  if (len <= 20) return 'text-size-12 sm:text-size-18 md:text-size-28 lg:text-size-32'
+  if (len <= 40) return 'text-size-11 sm:text-size-16 md:text-size-24 lg:text-size-28'
+  if (len <= 60) return 'text-size-10 sm:text-size-14 md:text-size-16 lg:text-size-20'
+  return 'text-size-9 sm:text-size-12 md:text-size-18 lg:text-size-20'
 })
 
 // poster preview state and focus
@@ -723,6 +651,15 @@ const scrollToTop = () => {
   }
 }
 
+const scrollToQuotes = () => {
+  if (typeof window !== 'undefined') {
+    const el = document.getElementById('quotes')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+}
+
 const navigateBack = async () => {
   if (typeof window !== 'undefined' && window.history.length > 1) {
     window.history.back()
@@ -873,11 +810,23 @@ const getTypeColor = (type: string) => {
   return colors[type] || 'gray'
 }
 
-const isDescriptionLong = (description: string): boolean => {
-  if (!description) return false
-  // Check if description has more than 3 non-empty lines or is longer than 300 characters
-  const lines = description.split('\n').filter(line => line.trim())
-  return lines.length > 3 || description.length > 300
+const getTypeDotColor = (type: string | null | undefined): string => {
+  const colors: Record<string, string> = {
+    'film': '#E50914',
+    'book': '#3C82F6',
+    'tv_series': '#7C3AED',
+    'tv_show': '#7C3AED',
+    'music': '#10B981',
+    'speech': '#F59E0B',
+    'podcast': '#EC4899',
+    'interview': '#FBBF24',
+    'documentary': '#6366F1',
+    'media_stream': '#06B6D4',
+    'writings': '#6B7280',
+    'video_game': '#84CC16',
+    'other': '#94A3B8'
+  }
+  return colors[type || ''] || '#94A3B8'
 }
 
 const loadSimilarReferences = async () => {
@@ -904,9 +853,6 @@ onMounted(async () => {
   // Attach global shortcut as soon as component mounts
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleGlobalKeydown)
-    scheduleDescriptionOverflowCheck()
-    reconnectDescriptionObserver()
-    window.addEventListener('resize', checkDescriptionOverflow)
   }
 
   await waitForLanguageStore()
@@ -936,7 +882,6 @@ watch(reference, (newReference) => {
 
   // retrigger header animation on reference change
   triggerHeaderEnter()
-  scheduleDescriptionOverflowCheck()
 })
 
 watch(user, (newUser) => {
@@ -972,14 +917,11 @@ const triggerHeaderEnter = async () => {
 watch(pending, (now, prev) => {
   if (prev && !now && reference.value) {
     triggerHeaderEnter()
-    scheduleDescriptionOverflowCheck()
   }
 })
 
 onUnmounted(() => {
-  if (descriptionResizeObserver) descriptionResizeObserver.disconnect()
   if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', checkDescriptionOverflow)
     window.removeEventListener('keydown', handleGlobalKeydown)
   }
 })
@@ -1002,43 +944,5 @@ onUnmounted(() => {
   transform: translateY(0);
   filter: blur(0);
 }
-
-/* Description expand/collapse animation */
-.description-clip {
-  position: relative;
-  transition: max-height 420ms cubic-bezier(.22,.61,.36,1), opacity 320ms ease;
-  max-height: 6.5rem; /* collapsed height (~3 lines) */
-}
-.description-clip p { position: relative; z-index: 0; }
-.description-clip.collapsed { max-height: 6.5rem; }
-.description-clip.expanded { max-height: 1200px; }
-
-/* Fade overlay when clipped */
-.description-clip.collapsed.has-ellipsis::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3.2rem; /* covers the bottom area */
-  pointer-events: none;
-  z-index: 1;
-  background: linear-gradient(180deg, rgba(255,255,255,0), #FAFAF9 85%);
-}
-/* Dark mode variants */
-.dark .description-clip.collapsed.has-ellipsis::after {
-  background: linear-gradient(180deg, rgba(12,10,9,0), #0C0A09 85%);
-}
-
-/* Icon rotate for Read More button */
-.icon-rotate {
-  display: inline-block;
-  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
-  transform-origin: center;
-}
-.icon-rotate.rotated {
-  transform: rotate(180deg);
-}
-
 
 </style>
