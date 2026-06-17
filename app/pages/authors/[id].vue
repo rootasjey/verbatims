@@ -28,203 +28,171 @@
         @toggle-like="toggleLike"
         @copy-link="copyLink"
         @navigate-back="navigateBack"
+        @scroll-to-quotes="scrollToQuotes"
       />
       </ClientOnly>
 
-      <header class="mt-12 p-8">
-        <!-- Avatar with colored ring indicating type -->
-        <div class="flex justify-center items-center mb-4 min-h-[56px]">
-          <div class="rounded-full flex justify-center items-center ring-2 p-0.5 transition-all duration-420"
-            :class="author.is_fictional ? 'ring-purple-500/60' : 'ring-blue-500/60'"
-          >
-            <NAvatar
-              ref="avatarRef"
-              role="button"
-              tabindex="0"
-              :aria-label="`Open ${author.name} image preview`"
+      <!-- 2-column newspaper layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b b-dashed border-gray-300 dark:border-gray-700">
+        <!-- Content column -->
+        <div class="lg:col-span-9 lg:border-r b-dashed border-gray-300 dark:border-gray-700 p-6 md:p-8 md:pr-12 lg:pr-16">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="rounded-full flex ring-2 p-0.5 cursor-pointer shrink-0"
+              :class="author.is_fictional ? 'ring-purple-500/60' : 'ring-blue-500/60'"
               @click="openAvatarPreview"
-              @keyup.enter.prevent="openAvatarPreview"
-              @keyup.space.prevent="openAvatarPreview"
-              :src="author.image_url || undefined"
-              :alt="author.name"
-              size="lg"
-              :fallback="getAuthorInitials(author.name)"
-              class="shadow-lg avatar-entrance cursor-pointer"
-              :class="[
-                headerIn ? 'scale-in' : 'scale-out',
-              ]"
-            />
+            >
+              <NAvatar
+                ref="avatarRef"
+                :src="author.image_url || undefined"
+                :alt="author.name"
+                size="xs"
+                :fallback="getAuthorInitials(author.name)"
+                class="avatar-entrance"
+                :class="headerIn ? 'scale-in' : 'scale-out'"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" :class="author.is_fictional ? 'bg-purple-500' : 'bg-blue-500'" />
+              <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Author</span>
+              <template v-if="author.job">
+                <span class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">{{ author.job }}</span>
+              </template>
+              <template v-if="!author.is_fictional && (author.birth_date || author.death_date)">
+                <span class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
+              </template>
+              <template v-if="author.birth_location">
+                <span class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">Born in {{ author.birth_location }}</span>
+              </template>
+              <template v-if="author.death_location && author.death_location !== author.birth_location">
+                <span class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">Died in {{ author.death_location }}</span>
+              </template>
+            </div>
           </div>
-        </div>
-
-        <div class="text-center w-full">
           <h1
-            class="font-title text-size-24 md:text-size-42 md:text-size-54 font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            class="font-title font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            :class="[titleSizeClass, headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]']"
             :style="enterAnim(0)"
           >
             {{ author.name }}
           </h1>
 
-          <p
-            v-if="author.job"
-            class="font-subtitle italic text-xl font-500 text-gray-600 dark:text-gray-400 mb-6 transform-gpu transition-all duration-700 ease-out"
+          <div v-if="author.description"
+            class="mb-6 transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(2)"
           >
-            {{ author.job }}
-          </p>
-
-          <span
-            v-if="!author.is_fictional && (author.birth_date || author.death_date)"
-            class="block font-subtitle text-size-8 font-600 text-gray-700 dark:text-gray-400 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(1)"
-          >
-            {{ formatLifeDates(author.birth_date, author.death_date) }}
-          </span>
-
-          <div v-if="author.description"
-            class="mt-28 max-w-2xl w-full mx-auto text-align-justify mb-6 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(3)"
-          >
-            <div>
-              <p class="font-serif text-base md:text-xl font-500 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+            <div class="relative">
+              <p class="font-serif text-base md:text-lg lg:text-5xl font-200 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                 {{ author.description }}
               </p>
             </div>
           </div>
 
-          <div v-if="author.birth_location || author.death_location" class="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
-            <div v-if="author.birth_location" class="flex items-center space-x-1">
-              <NIcon name="i-ph-map-pin" class="w-4 h-4" />
-              <span>Born in {{ author.birth_location }}</span>
-            </div>
-            <div v-if="author.death_location && author.death_location !== author.birth_location" class="flex items-center space-x-1">
-              <NIcon name="i-ph-map-pin" class="w-4 h-4" />
-              <span>Died in {{ author.death_location }}</span>
-            </div>
+          <div
+            class="transform-gpu transition-all duration-700 ease-out"
+            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+            :style="enterAnim(3)"
+          >
+            <ExternalLinksBadges :links="author.socials" />
           </div>
         </div>
-      </header>
 
-      <div v-if="author.socials && author.socials.length > 0" class="px-8 mb-8">
-        <ExternalLinksBadges :links="author.socials" />
-      </div>
+        <!-- Quotes sidebar -->
+        <div id="quotes" class="lg:col-span-3 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
+          <div class="p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-6">
+              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
+                Quotes · {{ authorQuotes.length }}
+              </p>
+              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+            </div>
 
-      <!-- Section divider -->
-      <div class="px-8">
-        <div class="max-w-6xl mx-auto">
-          <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
-        </div>
-      </div>
-
-      <!-- Quotes Section -->
-      <div class="px-8 pb-16">
-        <!-- Sort / Filters -->
-        <div class="mt-8 mb-10">
-          <!-- Desktop controls -->
-          <div class="hidden md:flex items-center justify-center gap-3">
-            <span class="text-sm font-500 text-gray-400 dark:text-gray-500">{{ authorQuotes.length }} quotes</span>
-            <span class="w-px h-3 bg-gray-300 dark:bg-gray-600"></span>
-            <div class="flex items-center gap-2">
-              <span class="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500">Sort</span>
+            <div class="mb-6 space-y-3">
               <NSelect
                 v-model="sortBy"
                 :items="sortOptions"
                 placeholder="Sort"
                 item-key="label"
                 value-key="label"
-                @change="loadQuotes"
+                size="sm"
+              />
+              <LanguageSelector @language-changed="onLanguageChange" />
+            </div>
+
+            <div v-if="quotesLoading" class="space-y-4">
+              <div v-for="i in 4" :key="i" class="animate-pulse">
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1.5" />
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-3" />
+                <div class="h-px bg-gray-100 dark:bg-gray-800" />
+              </div>
+            </div>
+
+            <div v-else-if="authorQuotes.length > 0" class="space-y-4">
+              <div
+                v-for="quote in authorQuotes"
+                :key="quote.id"
+                class="pb-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+              >
+                <NLink
+                  :to="`/quotes/${quote.id}`"
+                  class="block group"
+                >
+                  <blockquote
+                    class="font-body font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-3"
+                    :class="{
+                      'text-md': (quote.name || '').length <= 100,
+                      'text-sm': (quote.name || '').length > 100
+                    }"
+                  >
+                    {{ quote.name }}
+                  </blockquote>
+                </NLink>
+                <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
+                  <NuxtLink
+                    v-if="quote.reference"
+                    :to="`/references/${quote.reference.id}`"
+                    class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors truncate"
+                  >
+                    {{ quote.reference.name }}
+                  </NuxtLink>
+                  <span class="flex items-center gap-1.5 ml-auto shrink-0">
+                    <span class="flex items-center gap-0.5">
+                      <NIcon name="i-ph-hand-heart" class="w-3 h-3" />
+                      {{ formatNumber(quote.likes_count) }}
+                    </span>
+                    <span class="flex items-center gap-0.5">
+                      <NIcon name="i-ph-eye" class="w-3 h-3" />
+                      {{ formatNumber(quote.views_count) }}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="text-center py-8">
+              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">No quotes yet</p>
+            </div>
+
+            <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
+              <LoadMoreButton
+                idleText="Load More Quotes"
+                loadingText="Loading Quotes..."
+                :isLoading="loadingMoreQuotes"
+                @load="loadMoreQuotes"
               />
             </div>
-            <LanguageSelector class="hidden md:block" @language-changed="onLanguageChange" />
           </div>
-
-          <!-- Mobile controls: filter button opens drawer -->
-          <div class="md:hidden flex items-center justify-between max-w-xl mx-auto">
-            <p class="text-sm font-500 text-gray-500 dark:text-gray-400">{{ authorQuotes.length }} quotes</p>
-            <NButton size="sm" btn="ghost-gray" class="rounded-full text-xs" @click="mobileFiltersOpen = true">
-              <NIcon name="i-ph-faders" class="w-3.5 h-3.5 mr-1" />
-              Filters
-            </NButton>
-          </div>
-        </div>
-
-        <div v-if="quotesLoading" class="mb-12">
-          <div class="max-w-4xl mx-auto space-y-5">
-            <div v-for="i in 6" :key="i" class="animate-pulse">
-              <div class="bg-white dark:bg-[#101010] rounded-xl border border-gray-200 dark:border-gray-700 p-6 md:p-8">
-                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quotes Display — editorial entries -->
-        <div v-else-if="authorQuotes.length > 0" class="mb-12">
-          <div class="max-w-3xl mx-auto divide-y divide-gray-200 dark:divide-gray-800">
-            <NLink
-              v-for="quote in authorQuotes"
-              :key="quote.id"
-              :to="`/quotes/${quote.id}`"
-              class="group block py-8 first:pt-0 transition-all duration-300"
-            >
-              <blockquote
-                class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors"
-                :class="{
-                  'text-xl md:text-2xl font-300': (quote.name || '').length <= 100,
-                  'text-lg md:text-xl font-300': (quote.name || '').length > 100 && (quote.name || '').length <= 200,
-                  'text-base md:text-lg font-300': (quote.name || '').length > 200
-                }"
-              >
-                {{ quote.name }}
-              </blockquote>
-
-              <div class="mt-4 flex items-center justify-between gap-4">
-                <div v-if="quote.reference" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 min-w-0">
-                  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0"></span>
-                  <span class="truncate">{{ quote.reference.name }}</span>
-                </div>
-                <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                  <span class="flex items-center gap-1">
-                    <NIcon name="i-ph-hand-heart" class="w-3.5 h-3.5" />
-                    {{ formatNumber(quote.likes_count) }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <NIcon name="i-ph-eye" class="w-3.5 h-3.5" />
-                    {{ formatNumber(quote.views_count) }}
-                  </span>
-                </div>
-              </div>
-            </NLink>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else class="text-center py-16">
-          <NIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No quotes yet</h3>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">
-            Be the first to submit a quote by {{ author.name }}!
-          </p>
-        </div>
-
-        <div v-if="hasMoreQuotes && !quotesLoading" class="flex justify-center">
-          <LoadMoreButton
-            class="mb-4"
-            idleText="Load More Quotes"
-            loadingText="Loading Quotes..."
-            :isLoading="loadingMoreQuotes"
-            @load="loadMoreQuotes"
-          />
         </div>
       </div>
 
-      <SimilarAuthors :authors="similarAuthors" />
+      <div class="lg:hidden">
+        <SimilarAuthors :authors="similarAuthors" />
+      </div>
   </div>
 
     <!-- Error State -->
@@ -473,6 +441,14 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
   }
 }
 
+const titleSizeClass = computed(() => {
+  const len = (author.value?.name || '').length
+  if (len <= 20) return 'text-size-24 md:text-size-42 lg:text-size-48'
+  if (len <= 40) return 'text-size-20 md:text-size-34 lg:text-size-40'
+  if (len <= 60) return 'text-size-18 md:text-size-28 lg:text-size-34'
+  return 'text-size-16 md:text-size-24 lg:text-size-28'
+})
+
 // Header title (truncated for compact sticky header)
 const headerTitle = computed(() => {
   const text = author.value?.name || ''
@@ -694,6 +670,15 @@ const copyLink = async () => {
 const scrollToTop = () => {
   if (typeof window !== 'undefined') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+const scrollToQuotes = () => {
+  if (typeof window !== 'undefined') {
+    const el = document.getElementById('quotes')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
   }
 }
 
