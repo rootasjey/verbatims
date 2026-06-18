@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { sql, eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 /**
  * Admin API: Create Reference
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Insert reference
+    // Insert reference (without image URL — we'll upload to R2 first)
     const result = await db.insert(schema.quoteReferences)
       .values({
         name: body.name.trim(),
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
         description: body.description || null,
         primaryType: body.primary_type,
         secondaryType: body.secondary_type || null,
-        imageUrl: body.image_url || null,
+        imageUrl: null,
         urls: JSON.stringify(body.urls || {}),
         viewsCount: 0,
         likesCount: 0,
@@ -72,6 +72,24 @@ export default defineEventHandler(async (event) => {
       })
       .returning()
       .get()
+
+    let finalImageUrl: string | null = null
+    if (body.image_url) {
+      finalImageUrl = await uploadAndStoreImage(body.image_url, 'references', result.id)
+    }
+
+    if (finalImageUrl) {
+      const updated = await db.update(schema.quoteReferences)
+        .set({ imageUrl: finalImageUrl })
+        .where(eq(schema.quoteReferences.id, result.id))
+        .returning()
+        .get()
+
+      return {
+        success: true,
+        data: updated
+      }
+    }
 
     return {
       success: true,

@@ -85,8 +85,28 @@ export default defineEventHandler(async (event) => {
     if (body.description !== undefined) updateData.description = body.description
     if (body.primary_type !== undefined) updateData.primaryType = body.primary_type
     if (body.secondary_type !== undefined) updateData.secondaryType = body.secondary_type
-    if (body.image_url !== undefined) updateData.imageUrl = body.image_url
     if (body.urls !== undefined) updateData.urls = JSON.stringify(body.urls)
+
+    // Handle image URL changes (upload external images to R2)
+    if (body.image_url !== undefined) {
+      const oldUrl = existingReference.imageUrl
+      const newUrl = body.image_url
+
+      if (newUrl !== oldUrl) {
+        // Delete old R2 image if it exists
+        if (isR2ImageUrl(oldUrl)) {
+          await deleteImageByUrl(oldUrl)
+        }
+
+        if (newUrl) {
+          const storedUrl = await uploadAndStoreImage(newUrl, 'references', parseInt(referenceId))
+          updateData.imageUrl = storedUrl || newUrl
+        } else {
+          updateData.imageUrl = null
+        }
+      }
+      // If newUrl === oldUrl, no change needed — skip entirely
+    }
 
     if (Object.keys(updateData).length === 1) { // Only updatedAt was added
       throw createError({

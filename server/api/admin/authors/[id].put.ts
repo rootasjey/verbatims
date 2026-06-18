@@ -76,8 +76,28 @@ export default defineEventHandler(async (event) => {
     if (body.death_location !== undefined) updateData.deathLocation = body.death_location
     if (body.job !== undefined) updateData.job = body.job
     if (body.description !== undefined) updateData.description = body.description
-    if (body.image_url !== undefined) updateData.imageUrl = body.image_url
     if (body.socials !== undefined) updateData.socials = JSON.stringify(body.socials)
+
+    // Handle image URL changes (upload external images to R2)
+    if (body.image_url !== undefined) {
+      const oldUrl = existingAuthor.imageUrl
+      const newUrl = body.image_url
+
+      if (newUrl !== oldUrl) {
+        // Delete old R2 image if it exists
+        if (isR2ImageUrl(oldUrl)) {
+          await deleteImageByUrl(oldUrl)
+        }
+
+        if (newUrl) {
+          const storedUrl = await uploadAndStoreImage(newUrl, 'authors', parseInt(authorId))
+          updateData.imageUrl = storedUrl || newUrl
+        } else {
+          updateData.imageUrl = null
+        }
+      }
+      // If newUrl === oldUrl, no change needed — skip entirely
+    }
 
     if (Object.keys(updateData).length === 1) { // Only updatedAt was added
       throw createError({
