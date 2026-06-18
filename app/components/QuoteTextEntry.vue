@@ -5,14 +5,21 @@
       class="block no-underline"
     >
       <blockquote
-        class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed text-balance relative overflow-hidden py-2 -mx-2 px-2 transition-all duration-300"
+        class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed text-balance relative overflow-hidden py-2 -mx-2 px-2
+          active:scale-99
+          transition-all duration-300"
         :class="{
           'text-base': (quote.name || '').length > 200,
           'text-lg': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-          'text-xl font-500': (quote.name || '').length <= 100
+          'text-xl font-500': (quote.name || '').length <= 100,
+          'group-hover:text-white dark:group-hover:text-black': quote.tags?.length === 0
         }"
       >
-        <span class="absolute inset-0 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-500 ease-out" :style="{ background: tagBackground }" />
+        <span class="absolute inset-0 translate-x-[-101%]
+          group-hover:translate-x-0 transition-transform duration-500 ease-out"
+          :class="{ 'bg-black dark:bg-white': !quote.tags?.length }"
+          :style="quote.tags?.length ? { background: tagBackground } : {}"
+        />
         <span class="relative">{{ quote.name }}</span>
       </blockquote>
     </NuxtLink>
