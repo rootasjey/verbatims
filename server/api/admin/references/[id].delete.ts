@@ -37,6 +37,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Clean up R2 image if present
+    if (isR2ImageUrl(existingReference.imageUrl)) {
+      await deleteImageByUrl(existingReference.imageUrl)
+    }
+
     // Count associated quotes
     const quoteCountResult = await db.get<{ count: number }>(sql`
       SELECT COUNT(*) as count FROM ${schema.quotes} WHERE reference_id = ${parseInt(referenceId)}

@@ -37,6 +37,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Clean up R2 image if present
+    if (isR2ImageUrl(existingAuthor.imageUrl)) {
+      await deleteImageByUrl(existingAuthor.imageUrl)
+    }
+
     // Determine strategy for related quotes
     const body = await readBody(event).catch(() => ({})) as { strategy?: 'delete' | 'anonymize' }
 
