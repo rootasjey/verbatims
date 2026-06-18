@@ -156,10 +156,14 @@
             </NBadge>
           </template>
         </NInput>
+        <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileSelected">
 
         <div class="mt-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-900/30 p-3">
           <div class="flex items-center gap-3">
-            <div class="h-16 w-12 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+            <div
+              class="relative h-16 w-12 overflow-hidden rounded-md bg-gray-200 dark:bg-gray-800 flex-shrink-0 cursor-pointer group"
+              @click="fileInputRef?.click()"
+            >
               <img
                 v-if="referencePreviewUrl && !referencePreviewErrored"
                 :src="referencePreviewUrl"
@@ -167,12 +171,18 @@
                 class="h-full w-full object-cover"
                 @error="referencePreviewErrored = true"
               />
-              <NIcon v-else name="i-ph-image" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              <div v-else class="h-full w-full flex items-center justify-center">
+                <NIcon name="i-ph-image" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </div>
+              <div class="absolute inset-0 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/0 group-hover:bg-black/40">
+                <NIcon :name="uploading ? 'i-ph-circle-notch' : 'i-ph-upload'" class="w-5 h-5 text-white drop-shadow" :class="uploading ? 'animate-spin' : ''" />
+              </div>
             </div>
             <div class="min-w-0">
               <p class="text-sm font-medium text-gray-900 dark:text-white">Cover preview</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                {{ referencePreviewUrl && !referencePreviewErrored ? 'Image loaded from the provided URL.' : 'Paste an accessible cover or poster URL to preview it here.' }}
+                <span class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" @click="fileInputRef?.click()">Click to upload an image</span>
+                or paste an accessible cover or poster URL to preview it here.
               </p>
             </div>
           </div>
@@ -244,6 +254,20 @@ const selectedTitleIndex = ref(-1)
 const titleInputRef = ref()
 const titleSuggestionsRef = ref()
 const referencePreviewErrored = ref(false)
+const fileInputRef = ref<HTMLInputElement>()
+const { uploading, uploadImage } = useImageUpload()
+
+const onFileSelected = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const url = await uploadImage(file)
+  if (url) {
+    form.value.image_url = url
+  }
+  target.value = ''
+}
 
 const referencePreviewUrl = computed(() => {
   const value = form.value.image_url.trim()

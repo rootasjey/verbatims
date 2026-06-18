@@ -8,7 +8,7 @@ const MIME_TO_EXT: Record<string, string> = {
   'image/avif': '.avif',
 }
 
-function extFromContentType(contentType: string): string {
+export function extFromContentType(contentType: string): string {
   return MIME_TO_EXT[contentType] || '.jpg'
 }
 
