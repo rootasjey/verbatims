@@ -16,205 +16,116 @@
       >
         <div class="flex flex-col">
           <!-- Sidebar Header -->
-          <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
-            <h2 class="hidden lg:block text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h2>
-            <NTooltip content="Close sidebar" :_tooltip-content="{ side: 'right' }">
-              <NButton
-                icon
-                btn="light:soft dark:soft-blue"
-                size="xs"
-                label="i-ph-x-bold"
-                @click="sidebarOpen = false"
-              />
-            </NTooltip>
+          <div class="flex items-center justify-between px-3 py-4 border-b border-gray-100 dark:border-gray-800 lg:hidden">
+            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">Dashboard</h2>
+            <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <NIcon name="i-ph-x" class="w-4 h-4" />
+            </button>
           </div>
 
           <!-- Desktop Collapse Toggle -->
-          <div class="hidden lg:flex justify-center pb-4 border-b border-gray-200 dark:border-gray-700">
-            <NButton
-              icon
-              size="xs"
-              :label="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'"
-              btn="soft-blue"
-              class="transition-transform duration-200"
+          <div class="hidden lg:flex justify-center py-3 border-b border-gray-100 dark:border-gray-800">
+            <button
               :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
               :aria-expanded="!sidebarCollapsed"
               aria-controls="dashboard-sidebar"
+              class="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
               @click="sidebarCollapsed = !sidebarCollapsed"
-            />
+            >
+              <NIcon :name="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'" class="w-4 h-4" />
+            </button>
           </div>
 
           <!-- Navigation Menu -->
           <nav
             :class="[
-              'flex-1 py-6 space-y-2',
-              sidebarCollapsed ? 'px-2' : 'px-4'
+              'flex-1 py-6 space-y-1',
+              sidebarCollapsed ? 'px-2' : 'px-3'
             ]"
           >
-            <!-- Dashboard Overview -->
-            <NTooltip :content="sidebarCollapsed ? 'Overview' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
+            <NTooltip v-for="item in navItems" :key="item.to" :content="sidebarCollapsed ? item.label : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
               <NuxtLink
-                to="/dashboard"
+                :to="item.to"
                 :class="[
-                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start',
-                  $route.path === '/dashboard' 
-                    ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  'flex items-center text-sm rounded-sm transition-all duration-200',
+                  sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                  isActive(item.to)
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                 ]"
                 @click="sidebarOpen = false"
               >
-                <NIcon name="i-ph-house" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
+                <NIcon :name="item.icon" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
                 <span
                   :class="[
-                    'whitespace-nowrap transition-opacity duration-200',
+                    'whitespace-nowrap transition-opacity duration-200 text-sm',
                     sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100'
                   ]"
                 >
-                  Overview
+                  {{ item.label }}
                 </span>
+                <NBadge v-if="!sidebarCollapsed && (item as any).count !== undefined && (item as any).count > 0" :label="`${(item as any).count}`" badge="soft-gray" size="xs" class="ml-auto" />
               </NuxtLink>
             </NTooltip>
 
-            <!-- Favourites -->
-            <NTooltip :content="sidebarCollapsed ? 'Favourites' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
-              <NuxtLink
-                to="/dashboard/favourites"
-                :class="[
-                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start',
-                  $route.path === '/dashboard/favourites' 
-                    ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border border-dashed border-pink-200 dark:border-pink-700' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-pink-900/20 hover:text-gray-700 dark:hover:text-gray-300'
-                ]"
-                @click="sidebarOpen = false"
-              >
-                <NIcon name="i-ph-heart" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Favourites</span>
-              </NuxtLink>
-            </NTooltip>
-
-            <!-- Lists/Collections -->
-            <NTooltip :content="sidebarCollapsed ? 'Lists' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
-              <NuxtLink
-                to="/dashboard/lists"
-                :class="[
-                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start',
-                  $route.path === '/dashboard/lists' 
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-dashed border-blue-200 dark:border-blue-700' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-gray-700 dark:hover:text-gray-300'
-                ]"
-                @click="sidebarOpen = false"
-              >
-                <NIcon name="i-ph-bookmark" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Lists</span>
-              </NuxtLink>
-            </NTooltip>
-
-            <!-- My Quotes Section -->
-            <div class="pt-4">
+            <div class="pt-3 border-t border-gray-100 dark:border-gray-800">
               <h3
                 :class="[
-                  'px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-200',
+                  'px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200',
                   sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100'
                 ]"
               >
                 My Quotes
               </h3>
-              
-              <!-- Drafts -->
-              <NTooltip :content="sidebarCollapsed ? 'Drafts' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
-                <NuxtLink
-                  to="/dashboard/my-quotes/drafts"
-                  :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/dashboard/my-quotes/drafts' 
-                      ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-dashed border-orange-200 dark:border-orange-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-file-dashed" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
-                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" badge="solid-orange" size="xs" class="ml-auto" />
-                </NuxtLink>
-              </NTooltip>
 
-              <!-- Pending -->
-              <NTooltip :content="sidebarCollapsed ? 'Pending' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
+              <NTooltip v-for="item in quoteNavItems" :key="item.to" :content="sidebarCollapsed ? item.label : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
                 <NuxtLink
-                  to="/dashboard/my-quotes/pending"
+                  :to="item.to"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/dashboard/my-quotes/pending' 
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border border-dashed border-yellow-200 dark:border-yellow-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-gray-700 dark:hover:text-gray-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive(item.to)
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-clock" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
-                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" badge="solid-yellow" size="xs" class="ml-auto" />
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Published -->
-              <NTooltip :content="sidebarCollapsed ? 'Published' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
-                <NuxtLink
-                  to="/dashboard/my-quotes/published"
-                  :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/dashboard/my-quotes/published' 
-                      ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-check-circle" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
-                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" badge="solid-green" size="xs" class="ml-auto" />
+                  <NIcon :name="item.icon" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span
+                    :class="[
+                      'whitespace-nowrap transition-opacity duration-200 text-sm',
+                      sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100'
+                    ]"
+                  >
+                    {{ item.label }}
+                  </span>
+                  <NBadge v-if="!sidebarCollapsed && (item as any).count !== undefined && (item as any).count > 0" :label="`${(item as any).count}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
             </div>
 
-            <!-- Settings -->
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <NTooltip :content="sidebarCollapsed ? 'Settings' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
+            <div class="pt-3 border-t border-gray-100 dark:border-gray-800">
+              <NTooltip v-for="item in bottomNavItems" :key="item.to" :content="sidebarCollapsed ? item.label : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
                 <NuxtLink
-                  to="/dashboard/settings"
+                  :to="item.to"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/dashboard/settings'
-                      ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive(item.to)
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-gear" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Settings</span>
-                </NuxtLink>
-              </NTooltip>
-
-              <!-- Admin Panel (only for admin users) -->
-              <NTooltip v-if="user?.role === 'admin'" :content="sidebarCollapsed ? 'Go to Admin' : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
-                <NuxtLink
-                  to="/admin"
-                  :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mt-2',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path.startsWith('/admin')
-                      ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
-                  ]"
-                  @click="sidebarOpen = false"
-                >
-                  <NIcon name="i-ph-shield-check" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Go to Admin</span>
+                  <NIcon :name="item.icon" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span
+                    :class="[
+                      'whitespace-nowrap transition-opacity duration-200 text-sm',
+                      sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100'
+                    ]"
+                  >
+                    {{ item.label }}
+                  </span>
                 </NuxtLink>
               </NTooltip>
             </div>
@@ -232,18 +143,12 @@
       <!-- Main Content -->
       <main :class="['flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
-        <div class="lg:hidden bg-white dark:bg-[#0C0A09]/70 border-b b-dashed border-gray-200 dark:border-gray-800 px-4 py-3">
+        <div class="lg:hidden bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-800 px-4 py-3">
           <div class="flex items-center justify-between">
-            <NTooltip content="Open sidebar" :_tooltip-content="{ side: 'right' }">
-              <NButton
-                icon
-                btn="light:soft dark:text"
-                size="xs"
-                label="i-ph-list-bold"
-                @click="sidebarOpen = true"
-              />
-            </NTooltip>
-            <div class="w-8" /> <!-- Spacer for centering -->
+            <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <NIcon name="i-ph-list-bold" class="w-5 h-5" />
+            </button>
+            <div class="w-8" />
           </div>
         </div>
 
@@ -306,6 +211,28 @@ const handleQuoteAdded = () => {
 watch(() => route.path, () => {
   sidebarOpen.value = false
 })
+
+const isActive = (to: string) => {
+  if (to === '/dashboard') return route.path === '/dashboard'
+  return route.path.startsWith(to)
+}
+
+const navItems = [
+  { to: '/dashboard', label: 'Overview', icon: 'i-ph-house' },
+  { to: '/dashboard/favourites', label: 'Favourites', icon: 'i-ph-heart' },
+  { to: '/dashboard/lists', label: 'Lists', icon: 'i-ph-bookmark' },
+]
+
+const quoteNavItems = computed(() => [
+  { to: '/dashboard/my-quotes/drafts', label: 'Drafts', icon: 'i-ph-file-dashed', count: draftCount.value },
+  { to: '/dashboard/my-quotes/pending', label: 'Pending', icon: 'i-ph-clock', count: pendingCount.value },
+  { to: '/dashboard/my-quotes/published', label: 'Published', icon: 'i-ph-check-circle', count: publishedCount.value },
+])
+
+const bottomNavItems = computed(() => [
+  { to: '/dashboard/settings', label: 'Settings', icon: 'i-ph-gear' },
+  ...(user.value?.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: 'i-ph-shield-check' }] : []),
+])
 
 onMounted(() => {
   loadQuoteCounts()
