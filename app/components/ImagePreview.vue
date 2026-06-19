@@ -2,12 +2,26 @@
   <NDialog
     v-model:open="internalOpen"
     :mask-closable="maskClosable"
+    :show-close="false"
     :una="{
       dialogContent: 'max-w-none p-0 bg-transparent shadow-none border-none ring-0 focus:ring-0',
       dialogOverlay: 'bg-transparent'
     }"
   >
     <div :class="['image-preview-root', overlayClass]" @click.self="close">
+      <div class="image-preview-toolbar">
+        <div class="flex items-center gap-1">
+          <slot name="actions" />
+          <NButton
+            btn="ghost-gray"
+            icon
+            size="xs"
+            label="i-ph-x-bold"
+            square="2em"
+            @click="close"
+          />
+        </div>
+      </div>
       <img
         v-if="src"
         :src="src"
@@ -71,6 +85,7 @@ onUnmounted(() => {
 
 <style scoped>
 .image-preview-root {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,4 +110,11 @@ onUnmounted(() => {
   cursor: zoom-out;
 }
 .image-preview-img:active { transform: scale(0.98); }
+
+.image-preview-toolbar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+}
 </style>

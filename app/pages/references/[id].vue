@@ -45,13 +45,21 @@
         <!-- Poster column -->
         <div class="lg:col-span-3 lg:border-r b-dashed border-gray-300 dark:border-gray-700">
           <div class="p-6 md:p-8">
-            <div v-if="reference.imageUrl" class="w-full shadow-xl overflow-hidden rounded-sm bg-gray-100 dark:bg-[#0C0A09] cursor-pointer" @click="openPosterPreview">
+            <div v-if="reference.imageUrl" class="group relative w-full shadow-xl overflow-hidden rounded-sm bg-gray-100 dark:bg-[#0C0A09] cursor-pointer" @click="openPosterPreview">
               <img
                 :src="reference.imageUrl"
                 :alt="reference.name"
                 class="w-full object-cover hover:scale-102 transition-transform duration-300"
                 style="aspect-ratio: 3/4;"
               />
+              <button
+                v-if="canEditReference"
+                class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-all duration-200 hidden lg:flex"
+                @click.stop="openEditImageDialog"
+                title="Edit poster image"
+              >
+                <NIcon name="i-ph-pencil-simple-line" class="w-4 h-4" />
+              </button>
             </div>
             <div v-else class="w-full aspect-[3/4] rounded-sm bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800" />
           </div>
@@ -244,7 +252,19 @@
         :alt="reference?.name || ''"
         :closeOnScroll="true"
         :mask-closable="true"
-      />
+      >
+        <template #actions>
+          <NButton
+            v-if="canEditReference"
+            btn="ghost-gray"
+            icon
+            size="xs"
+            label="i-ph-pencil-simple-line"
+            square="2em"
+            @click.stop="openEditImageDialog"
+          />
+        </template>
+      </ImagePreview>
     </ClientOnly>
 
     <ClientOnly>
@@ -255,6 +275,16 @@
           ...reference,
         }"
         @reference-deleted="onReferenceDeleted"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <EditImageDialog
+        v-if="reference"
+        v-model="isEditImageDialogOpen"
+        :reference-id="reference.id"
+        :current-image-url="reference.imageUrl || null"
+        @image-updated="onImageUpdated"
       />
     </ClientOnly>
 
@@ -463,6 +493,18 @@ const canEditReference = computed(() => {
 })
 
 const isEditDialogOpen = ref(false)
+const isEditImageDialogOpen = ref(false)
+const openEditImageDialog = () => {
+  if (!reference.value) return
+  isEditImageDialogOpen.value = true
+}
+
+const onImageUpdated = (imageUrl: string | null) => {
+  if (reference.value) {
+    reference.value.imageUrl = imageUrl
+  }
+}
+
 const openEditReference = () => {
   if (!reference.value) return
   isEditDialogOpen.value = true
