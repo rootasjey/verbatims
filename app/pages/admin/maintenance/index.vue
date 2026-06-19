@@ -1,176 +1,93 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="font-title text-size-12 font-bold text-gray-900 dark:text-white">
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
         Database Maintenance
       </h1>
-      <p class="-mt-4 font-body text-gray-600 dark:text-gray-400">
+      <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
         Perform database maintenance operations and manage data integrity
       </p>
     </div>
 
     <!-- Success/Error Alerts -->
     <div class="mb-6 space-y-4">
-      <NAlert
-        v-if="successMessage"
-        alert="soft-green"
-        :title="successMessage"
-        :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
-        @close="successMessage = ''"
-      />
-
-      <NAlert
-        v-if="errorMessage"
-        alert="soft-red"
-        :title="errorMessage"
-        :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
-        @close="errorMessage = ''"
-      />
+      <div v-if="successMessage" class="font-sans text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 border border-dashed border-green-200 dark:border-green-700">
+        {{ successMessage }}
+      </div>
+      <div v-if="errorMessage" class="font-sans text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 border border-dashed border-red-200 dark:border-red-700">
+        {{ errorMessage }}
+      </div>
     </div>
 
     <!-- Database Reset Section -->
-    <NCard class="mb-8">
-      <template #header>
-        <div class="flex items-center space-x-3">
-          <NIcon name="i-ph-warning" class="h-6 w-6 text-red-500" />
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Database Reset
-          </h2>
-        </div>
-      </template>
-
-      <div class="space-y-4">
-        <div class="rounded-lg p-2">
-          <div class="flex items-start space-x-3">
-            <div>
-              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                Destructive Operation Warning
-              </h3>
-              <p class="mt-1 mb-6 text-sm text-red-700 dark:text-red-300">
-                This operation will permanently delete ALL data in the database including:
-              </p>
-              <ul class="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside space-y-1">
-                <li>All quotes, authors, and references</li>
-                <li>All user accounts and collections</li>
-                <li>All tags, likes, and interaction data</li>
-                <li>All moderation history and reports</li>
-              </ul>
-              <p class="mt-4 text-sm font-medium text-red-800 dark:text-red-200">
-                This action cannot be undone. Make sure you have a backup if needed.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end">
-          <NButton
-            btn="solid-black"
-            :loading="isResetting"
-            :disabled="isResetting"
-            @click="showResetConfirmation = true"
-          >
-            <template #leading>
-              <NIcon name="i-ph-trash" />
-            </template>
-            Reset Entire Database
-          </NButton>
-        </div>
+    <div class="border border-dashed border-gray-200 dark:border-gray-700 p-6 mb-8">
+      <div class="flex items-center gap-3 mb-4">
+        <NIcon name="i-ph-warning" class="w-5 h-5 text-red-500" />
+        <h2 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 uppercase tracking-wider">Database Reset</h2>
       </div>
-    </NCard>
+
+      <div class="bg-red-50 dark:bg-red-900/10 border border-dashed border-red-200 dark:border-red-800 p-4 mb-4">
+        <h3 class="font-sans text-sm font-500 text-red-800 dark:text-red-200 mb-2">Destructive Operation Warning</h3>
+        <p class="font-sans text-xs text-red-700 dark:text-red-300 mb-3">This operation will permanently delete ALL data in the database including:</p>
+        <ul class="font-sans text-xs text-red-700 dark:text-red-300 space-y-1 list-disc list-inside">
+          <li>All quotes, authors, and references</li>
+          <li>All user accounts and collections</li>
+          <li>All tags, likes, and interaction data</li>
+          <li>All moderation history and reports</li>
+        </ul>
+        <p class="font-sans text-xs font-500 text-red-800 dark:text-red-200 mt-3">This action cannot be undone. Make sure you have a backup if needed.</p>
+      </div>
+
+      <div class="flex justify-end">
+        <OutlinedButton variant="destructive" :disabled="isResetting" @click="showResetConfirmation = true">Reset Entire Database</OutlinedButton>
+      </div>
+    </div>
 
     <!-- Reset Confirmation Dialog -->
     <NDialog v-model:open="showResetConfirmation">
-      <NCard class="border-none">
-        <template #header>
-          <div class="flex items-center space-x-3">
-            <NIcon name="i-ph-warning-circle" class="h-6 w-6 text-red-500" />
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Confirm Database Reset
-            </h3>
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <p class="text-gray-700 dark:text-gray-300">
-            You are about to permanently delete all data in the database. This action cannot be undone.
-          </p>
-
-          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-2">
-              What will happen:
-            </h4>
-            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <li>• All data rows in every table will be permanently deleted</li>
-              <li>• The database schema (tables, indexes, triggers) will remain intact</li>
-              <li>• A new admin user will be initialized</li>
-              <li>• You will need to log in again after the reset</li>
-            </ul>
-          </div>
-
-          <div class="space-y-3">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Type "RESET DATABASE" to confirm:
-              </label>
-              <NInput
-                v-model="confirmationText"
-                placeholder="RESET DATABASE"
-                :disabled="isResetting"
-                class="w-full"
-              />
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <NCheckbox
-                v-model="acknowledgeDataLoss"
-                :disabled="isResetting"
-              />
-              <label class="text-sm text-gray-700 dark:text-gray-300">
-                I understand that all data will be permanently deleted
-              </label>
-            </div>
-          </div>
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <NIcon name="i-ph-warning-circle" class="w-5 h-5 text-red-500" />
+          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Confirm Database Reset</h3>
         </div>
 
-        <template #footer>
-          <div class="flex justify-end space-x-3">
-            <NButton
-              btn="ghost"
-              :disabled="isResetting"
-              @click="cancelReset"
-            >
-              Cancel
-            </NButton>
-            <NButton
-              btn="solid-black"
-              :loading="isResetting"
-              :disabled="!canConfirmReset"
-              @click="confirmReset"
-            >
-              <template #leading>
-                <NIcon name="i-ph-trash" />
-              </template>
-              Reset Database
-            </NButton>
+        <p class="font-sans text-sm text-gray-700 dark:text-gray-300 mb-4">You are about to permanently delete all data in the database. This action cannot be undone.</p>
+
+        <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 p-4 mb-4">
+          <h4 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 mb-2">What will happen:</h4>
+          <ul class="font-sans text-xs text-gray-600 dark:text-gray-400 space-y-1">
+            <li>&bull; All data rows in every table will be permanently deleted</li>
+            <li>&bull; The database schema (tables, indexes, triggers) will remain intact</li>
+            <li>&bull; A new admin user will be initialized</li>
+            <li>&bull; You will need to log in again after the reset</li>
+          </ul>
+        </div>
+
+        <div class="space-y-3 mb-4">
+          <div>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Type "RESET DATABASE" to confirm:</label>
+            <input v-model="confirmationText" placeholder="RESET DATABASE" :disabled="isResetting" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
           </div>
-        </template>
-      </NCard>
+          <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" v-model="acknowledgeDataLoss" :disabled="isResetting" class="accent-gray-700 dark:accent-gray-300" />
+            I understand that all data will be permanently deleted
+          </label>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="isResetting" @click="cancelReset">Cancel</button>
+          <OutlinedButton variant="destructive" :loading="isResetting" :disabled="!canConfirmReset" @click="confirmReset">Reset Database</OutlinedButton>
+        </div>
+      </div>
     </NDialog>
   </div>
 </template>
 
 <script setup>
-definePageMeta({
-  layout: 'admin',
-  middleware: 'admin'
-})
+definePageMeta({ layout: 'admin', middleware: 'admin' })
+useHead({ title: 'Verbatims &bull; Database Maintenance - Admin' })
 
-useHead({
-  title: 'Verbatims • Database Maintenance - Admin'
-})
-
-// Reactive state
 const isResetting = ref(false)
 const showResetConfirmation = ref(false)
 const confirmationText = ref('')
@@ -178,65 +95,21 @@ const acknowledgeDataLoss = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
-// Computed properties
-const canConfirmReset = computed(() => {
-  return confirmationText.value === 'RESET DATABASE' &&
-         acknowledgeDataLoss.value &&
-         !isResetting.value
-})
+const canConfirmReset = computed(() => confirmationText.value === 'RESET DATABASE' && acknowledgeDataLoss.value && !isResetting.value)
 
-// Database reset functionality
-const cancelReset = () => {
-  showResetConfirmation.value = false
-  confirmationText.value = ''
-  acknowledgeDataLoss.value = false
-}
+const cancelReset = () => { showResetConfirmation.value = false; confirmationText.value = ''; acknowledgeDataLoss.value = false }
 
 const confirmReset = async () => {
   if (!canConfirmReset.value) return
-
-  isResetting.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
-
+  isResetting.value = true; errorMessage.value = ''; successMessage.value = ''
   try {
-    console.log('🔥 Initiating database reset...')
-
-    const response = await $fetch('/api/admin/reset-database', {
-      method: 'POST',
-      body: {
-        confirmationToken: 'RESET_DATABASE_CONFIRMED'
-      }
-    })
-
-    console.log('✅ Database reset completed:', response)
-
-    // Show success message (Worker-safe: data cleared, schema unchanged)
+    const response = await $fetch('/api/admin/reset-database', { method: 'POST', body: { confirmationToken: 'RESET_DATABASE_CONFIRMED' } })
     successMessage.value = `Database reset completed successfully! ${response.data.tablesCleared} tables cleared, ${response.data.rowsDeleted} rows deleted. You will be redirected shortly.`
-
-    // Close dialog
-    showResetConfirmation.value = false
-    cancelReset()
-
-    // Redirect to home after a short delay since the user session has been cleared
-    setTimeout(() => {
-      console.log('🔄 Redirecting to home page...')
-      navigateTo('/')
-    }, 3000)
-
+    showResetConfirmation.value = false; cancelReset()
+    setTimeout(() => navigateTo('/'), 3000)
   } catch (error) {
-    console.error('❌ Database reset failed:', error)
-
-    // Show error message
     errorMessage.value = error.data?.message || error.message || 'Database reset failed. Please try again.'
-
-    // Close dialog on error
-    showResetConfirmation.value = false
-    cancelReset()
-  } finally {
-    isResetting.value = false
-  }
+    showResetConfirmation.value = false; cancelReset()
+  } finally { isResetting.value = false }
 }
-
-
 </script>

@@ -12,11 +12,11 @@
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" placeholder="Search users by name or email..." class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
-          <select v-model="selectedRoleFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+          <input v-model="searchQuery" type="text" placeholder="Search users by name or email..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
+          <select v-model="selectedRoleFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
             <option v-for="opt in roleFilterOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
-          <select v-model="selectedStatusFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+          <select v-model="selectedStatusFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
             <option v-for="opt in statusFilterOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
         </div>

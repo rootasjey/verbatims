@@ -1,202 +1,121 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <!-- Table -->
-    <div class="flex-1 flex flex-col min-h-0">
-      <TableFirstLoadSkeleton v-if="!hasLoadedOnce && loading" :rows="pageSize" :col-classes="['w-6','w-48','min-w-80','w-24','w-24','w-28','w-6']" :layout="['dot','multi','multi','pill','pill','date','dot']" :show-footer="true" />
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+            Messages
+          </h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ totalMessages }} {{ totalMessages === 1 ? 'message' : 'messages' }}
+          </p>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <input v-model="searchQuery" type="text" placeholder="Search name, email, or message..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
+          <select v-model="statusFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+            <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <select v-model="categoryFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+            <option v-for="opt in categoryOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <select v-model="targetFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+            <option v-for="opt in targetOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="md:hidden mt-4 flex gap-2">
+        <input v-model="searchQuery" type="text" placeholder="Search messages..." class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+      </div>
+    </div>
 
-      <div v-else-if="hasLoadedOnce && messages.length === 0" class="text-center py-16">
-        <NIcon name="i-ph-inbox" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium">No messages</h3>
-        <p class="text-gray-500">Try adjusting your filters.</p>
+    <!-- Skeleton -->
+    <div v-if="!hasLoadedOnce && loading" class="space-y-5">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="hasLoadedOnce && messages.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No messages found</p>
+    </div>
+
+    <!-- Table -->
+    <div v-else-if="hasLoadedOnce">
+      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
+        <OutlinedButton size="sm" @click="bulkSetStatus('triaged')">Mark Triaged</OutlinedButton>
+        <OutlinedButton size="sm" variant="primary" @click="bulkSetStatus('resolved')">Mark Resolved</OutlinedButton>
+        <OutlinedButton size="sm" variant="destructive" @click="bulkSetStatus('spam')">Mark Spam</OutlinedButton>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
       </div>
 
-      <div v-else class="flex-1 flex flex-col rounded-2">
-        <div class="group messages-table-container flex-1 overflow-auto border rounded-2">
-          <NTable :columns="columns" :data="messages" :loading="loading" manual-pagination
-            :una="{
-              tableRoot: '!overflow-visible border-none',
-              scrollAreaRoot: '!overflow-visible',
-              table: '!w-auto min-w-full',
-              tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-              tableBody: 'bg-white dark:bg-[#0C0A09]'
-            }"
-            :_table-row="(row) => {
-              if (!row) return {}
-              const rowIdx = messages.findIndex(m => m.id === row.id)
-              const isHighlighted = rowIdx === highlightedRowIndex
-              const isSelected = !!rowSelection[row.id]
-              if (!isHighlighted && !isSelected) return {}
-              const classes = []
-              if (isHighlighted && isSelected) {
-                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
-                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
-              } else if (isHighlighted) {
-                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
-                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
-              } else if (isSelected) {
-                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
-                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
-              }
-              return {
-                ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
-                class: classes.join(' ')
-              }
-            }">
-            <template #select-header>
-              <div>
-                <NCheckbox
-                  checkbox="gray"
-                  :model-value="allSelected"
-                  @update:model-value="toggleAllSelection"
-                />
-              </div>
-            </template>
-
-            <template #select-cell="{ cell }">
-              <div class="items-center justify-center" :class="[
-                Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
-                'group-hover:flex',
-              ]">
-                <NCheckbox
-                  checkbox="gray"
-                  :model-value="!!rowSelection[cell.row.original.id]"
-                  @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
-                />
-              </div>
-            </template>
-
-            <template #message-header>
-              <div class="flex items-center gap-2">
-                <span>Messages</span>
-                <div class="flex-1">
-                  <NInput
-                    v-model="searchQuery"
-                    placeholder="Search name, email, or message..."
-                    size="sm"
-                    leading="i-ph-magnifying-glass"
-                    :loading="loading"
-                    :trailing="searchQuery.length ? 'i-ph-x' : undefined"
-                    :una="{
-                      inputTrailing: 'pointer-events-auto cursor-pointer',
-                    }"
-                    @trailing="resetFilters" />
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Message</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Category</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Target</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Date</th>
+              <th class="w-10 px-3 py-3 text-left"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr v-for="(msg, idx) in messages" :key="msg.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[msg.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+              <td class="px-3 py-3">
+                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[msg.id]" @click="e => handleRowCheckboxClick(e, idx, msg.id)" />
                 </div>
-              </div>
-            </template>
-
-            <template #message-cell="{ cell }">
-              <div class="max-w-xl">
-                <div class="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">{{ truncate(cell.row.original.message, 280) }}</div>
-                <div class="text-xs text-gray-500 mt-1">
-                  <span class="capitalize">{{ cell.row.original.category }}</span>
-                  <span v-if="cell.row.original.target_type !== 'general'"> • {{ formatTarget(cell.row.original) }}</span>
+              </td>
+              <td class="px-3 py-3 max-w-xl">
+                <div class="font-sans text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap line-clamp-3">{{ truncate(msg.message, 280) }}</div>
+                <div class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <span class="capitalize">{{ msg.category }}</span>
+                  <span v-if="msg.target_type !== 'general'"> &middot; {{ formatTarget(msg) }}</span>
                 </div>
-
-                <div class="flex items-center gap-2 border-t border-dashed border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                  <div>
-                    <span class="text-size-3 font-500 italic color-gray-500 dark:color-gray-300">From: </span>
-                    <span class="text-sm font-medium">{{ cell.row.original.user_name || cell.row.original.name || 'Anonymous' }}</span>
-                    <span v-if="cell.row.original.user_email || cell.row.original.email" class="ml-1 text-xs text-gray-500">({{ cell.row.original.user_email || cell.row.original.email || '' }})</span>
-                  </div>
+                <div class="flex items-center gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 mt-2 pt-2">
+                  <span class="font-sans text-xs font-500 italic text-gray-500 dark:text-gray-400">From:</span>
+                  <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ msg.user_name || msg.name || 'Anonymous' }}</span>
+                  <span v-if="msg.user_email || msg.email" class="font-sans text-xs text-gray-500 dark:text-gray-400">({{ msg.user_email || msg.email }})</span>
                 </div>
-              </div>
-            </template>
-
-            <template #category-header>
-              <div>
-                <NSelect v-model="categoryFilter" :items="categoryOptions" item-key="label" value-key="label" size="xs" />
-              </div>
-            </template>
-
-            <template #category-cell="{ cell }">
-              <div class="flex flex-wrap gap-1">
-                <NBadge :key="cell.row.original.category" size="xs" badge="solid-gray">{{ cell.row.original.category }}</NBadge>
-              </div>
-            </template>
-
-            <template #target_type-header>
-              <div>
-                <NSelect v-model="targetFilter" :items="targetOptions" item-key="label" value-key="label" size="xs" />
-              </div>
-            </template>
-
-            <template #target_type-cell="{ cell }">
-              <div class="flex flex-wrap gap-1">
-                <NBadge :key="cell.row.original.target_type" size="xs" badge="solid-gray">{{ cell.row.original.target_type }}</NBadge>
-              </div>
-            </template>
-
-            <template #status-header>
-              <div class="flex items-center gap-2">
-                <NSelect v-model="statusFilter" :items="statusOptions" item-key="label" value-key="label" size="xs" />
-              </div>
-            </template>
-
-            <template #status-cell="{ cell }">
-              <div class="flex items-center gap-2">
-                <NBadge v-if="cell.row.original.status === 'new'" badge="solid-blue" size="xs">{{ cell.row.original.status }}</NBadge>
-                <NBadge v-else-if="cell.row.original.status === 'triaged'" badge="solid-indigo" size="xs">{{ cell.row.original.status }}</NBadge>
-                <NBadge v-else-if="cell.row.original.status === 'resolved'" badge="solid-green" size="xs">{{ cell.row.original.status }}</NBadge>
-                <NBadge v-else-if="cell.row.original.status === 'spam'" badge="soft-error" size="xs">{{ cell.row.original.status }}</NBadge>
-                <NDropdownMenu :items="statusItems(cell.row.original)">
-                  <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
+              </td>
+              <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ msg.category }}</span></td>
+              <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ msg.target_type }}</span></td>
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-1">
+                  <span class="font-sans text-xs px-1.5 py-0.5" :class="statusPillClass(msg.status)">{{ msg.status }}</span>
+                  <NDropdownMenu :items="statusItems(msg)">
+                    <button @click.stop class="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-caret-down" class="w-3 h-3" /></button>
+                  </NDropdownMenu>
+                </div>
+              </td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(msg.created_at) }}</td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="rowActions(msg)">
+                  <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
                 </NDropdownMenu>
-              </div>
-            </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-            <template #date-cell="{ cell }">
-              <span class="text-xs text-gray-500">{{ formatRelativeTime(cell.row.original.created_at) }}</span>
-            </template>
-
-            <template #actions-header>
-              <div class="flex items-center justify-center space-x-1">
-                <span v-if="selectedIds.length > 0">{{ selectedIds.length }}</span>
-                <NTooltip :_tooltip-content="{
-                  class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50',
-                }">
-                  <template #default>
-                    <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                  </template>
-                  <template #content>
-                    <div class="space-y-2">
-                      <div class="flex">
-                        <NBadge badge="solid-gray" size="xs" icon="i-ph-selection-background" class="w-full">
-                          {{ totalMessages }} Total
-                        </NBadge>
-                      </div>
-
-                      <div class="flex">
-                        <NBadge badge="solid-blue" size="xs" icon="i-ph-exclamation-mark" class="w-full">
-                          {{ newCount }} News
-                        </NBadge>
-                      </div>
-                      <div class="flex">
-                        <NBadge badge="solid-orange" size="xs" icon="i-ph-user" class="w-full">
-                          {{ authenticatedCount }} Authenticated
-                        </NBadge>
-                      </div>
-                    </div>
-                  </template>
-                </NTooltip>
-
-                <NDropdownMenu :items="headerActions">
-                  <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-                </NDropdownMenu>
-              </div>
-            </template>
-
-            <template #actions-cell="{ cell }">
-              <NDropdownMenu :items="rowActions(cell.row.original)">
-                <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-              </NDropdownMenu>
-            </template>
-          </NTable>
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalMessages }} {{ totalMessages === 1 ? 'message' : 'messages' }}</span>
+        <div class="flex items-center gap-3">
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
         </div>
-
-        <div class="flex-shrink-0 flex items-center justify-between p-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-          <div class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }} • {{ totalMessages }} total</div>
-          <NPagination v-model:page="currentPage" :total="totalMessages" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" pagination-selected="solid-indigo" />
-        </div>
+      </div>
+      <div v-else class="pt-4 text-center">
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
       </div>
     </div>
   </div>
@@ -227,160 +146,71 @@ const targetFilter = ref({ label: 'All targets', value: '' })
 
 const statusOptions = [
   { label: 'All statuses', value: '' },
-  { label: 'New', value: 'new' },
-  { label: 'Triaged', value: 'triaged' },
-  { label: 'Resolved', value: 'resolved' },
-  { label: 'Spam', value: 'spam' }
+  { label: 'New', value: 'new' }, { label: 'Triaged', value: 'triaged' },
+  { label: 'Resolved', value: 'resolved' }, { label: 'Spam', value: 'spam' }
 ]
 
 const categoryOptions = [
-  { label: 'All categories', value: '' },
-  { label: 'Bug', value: 'bug' },
-  { label: 'Feature', value: 'feature' },
-  { label: 'Feedback', value: 'feedback' },
-  { label: 'Content', value: 'content' },
-  { label: 'Other', value: 'other' }
+  { label: 'All categories', value: '' }, { label: 'Bug', value: 'bug' }, { label: 'Feature', value: 'feature' },
+  { label: 'Feedback', value: 'feedback' }, { label: 'Content', value: 'content' }, { label: 'Other', value: 'other' }
 ]
 
 const targetOptions = [
-  { label: 'All targets', value: '' },
-  { label: 'General', value: 'general' },
-  { label: 'Quote', value: 'quote' },
-  { label: 'Author', value: 'author' },
-  { label: 'Reference', value: 'reference' }
+  { label: 'All targets', value: '' }, { label: 'General', value: 'general' }, { label: 'Quote', value: 'quote' },
+  { label: 'Author', value: 'author' }, { label: 'Reference', value: 'reference' }
 ]
-
-const columns = [
-  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  { header: 'Message', accessorKey: 'message', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
-  { header: 'Category', accessorKey: 'category', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Target', accessorKey: 'target_type', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Status', accessorKey: 'status', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Date', accessorKey: 'date', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
-  { header: 'Actions', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } }
-]
-
-const selectedMessages = computed(() => {
-  const ids = selectedIds.value
-  return ids.length > 0
-    ? messages.value.filter(m => ids.includes(m.id))
-    : []
-})
-
-const headerActions = computed(() => {
-  const actions: Array<any> = []
-  // only show the triage/resolved/spam shortcuts when there's a selection
-  // and at least one of the selected messages would be affected
-  if (selectedMessages.value.length > 0) {
-    const msgs = selectedMessages.value
-    if (msgs.some(m => m.status !== 'triaged')) {
-      actions.push({ label: `Mark ${msgs.length} selected triaged`, leading: 'i-ph-play-duotone', shortcut: 'T', onclick: () => bulkSetStatus('triaged') })
-    }
-    if (msgs.some(m => m.status !== 'resolved')) {
-      actions.push({ label: `Mark ${msgs.length} selected resolved`, leading: 'i-ph-check', shortcut: 'R', onclick: () => bulkSetStatus('resolved') })
-    }
-    if (msgs.some(m => m.status !== 'spam')) {
-      actions.push({ label: `Mark ${msgs.length} selected spam`, leading: 'i-ph-warning', shortcut: 'S', onclick: () => bulkSetStatus('spam') })
-    }
-    if (actions.length) actions.push({})
-  }
-
-  actions.push({ label: 'Refresh', leading: 'i-ph-arrows-clockwise', onclick: () => loadMessages(currentPage.value) })
-  actions.push({ label: 'Reset filters', leading: 'i-ph-x', onclick: resetFilters })
-  return actions
-})
 
 const rowSelection: Ref<Record<number, boolean>> = ref({})
-const lastSelectedIndex = ref<number | null>(null) // track last clicked row for shift-range selection
-
+const lastSelectedIndex = ref<number | null>(null)
 const selectedIds = computed(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
 
 const allSelected = computed<boolean | 'indeterminate'>({
-  get: () => {
-    const total = messages.value.length
-    const count = selectedIds.value.length
-    if (total === 0) return false
-    if (count === total) return true
-    if (count > 0) return 'indeterminate'
-    return false
-  },
-  set: (v) => {
-    const newSelection: Record<number, boolean> = {}
-    if (v === true) {
-      messages.value.forEach(m => { newSelection[m.id] = true })
-    }
-    rowSelection.value = newSelection
-    lastSelectedIndex.value = null // reset range anchor when toggling all
-  }
+  get: () => { const total = messages.value.length; const count = selectedIds.value.length; if (total === 0) return false; if (count === total) return true; if (count > 0) return 'indeterminate'; return false },
+  set: (v) => { const newSel: Record<number, boolean> = {}; if (v === true) messages.value.forEach(m => { newSel[m.id] = true }); rowSelection.value = newSel; lastSelectedIndex.value = null }
 })
 
 const toggleAllSelection = (v: boolean | 'indeterminate') => {
-  // any truthy value (true or 'indeterminate') selects all, false clears
-  if (v) {
-    const newSelection: Record<number, boolean> = {}
-    messages.value.forEach(m => { newSelection[m.id] = true })
-    rowSelection.value = newSelection
-  } else {
-    rowSelection.value = {}
-  }
+  if (v) { const newSel: Record<number, boolean> = {}; messages.value.forEach(m => { newSel[m.id] = true }); rowSelection.value = newSel }
+  else { rowSelection.value = {} }
   lastSelectedIndex.value = null
 }
 
 const loadMessages = async (page = 1) => {
   loading.value = true
   try {
-    const params = {
-      page,
-      limit: pageSize.value,
-      status: statusFilter.value?.value,
-      category: categoryFilter.value?.value || undefined,
-      target_type: targetFilter.value?.value || undefined,
-      search: searchQuery.value || undefined
-    }
+    const params = { page, limit: pageSize.value, status: statusFilter.value?.value, category: categoryFilter.value?.value || undefined, target_type: targetFilter.value?.value || undefined, search: searchQuery.value || undefined }
     const res = await $fetch('/api/admin/messages', { query: params })
-    messages.value = res.data || []
-    totalMessages.value = res.pagination?.total || 0
-    totalPages.value = res.pagination?.totalPages || 0
-    pageSize.value = res.pagination?.limit || pageSize.value
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
-    clearHighlight()
-    currentPage.value = page
-  } catch (err) {
-    console.error('Failed to load messages', err)
-  } finally {
-    loading.value = false
-    hasLoadedOnce.value = true
-  }
+    messages.value = res.data || []; totalMessages.value = res.pagination?.total || 0; totalPages.value = res.pagination?.totalPages || 0; pageSize.value = res.pagination?.limit || pageSize.value
+    rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight(); currentPage.value = page
+  } catch (err) { console.error('Failed to load messages', err) }
+  finally { loading.value = false; hasLoadedOnce.value = true }
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''
-  statusFilter.value = { label: 'All statuses', value: '' }
-  categoryFilter.value = { label: 'All categories', value: '' }
-  targetFilter.value = { label: 'All targets', value: '' }
-  currentPage.value = 1
-  rowSelection.value = {}
-  lastSelectedIndex.value = null
+  searchQuery.value = ''; statusFilter.value = { label: 'All statuses', value: '' }
+  categoryFilter.value = { label: 'All categories', value: '' }; targetFilter.value = { label: 'All targets', value: '' }
+  currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 
-watchDebounced([searchQuery, statusFilter, categoryFilter, targetFilter], () => {
-  currentPage.value = 1
-  loadMessages(1)
-}, { debounce: 300 })
-
+watchDebounced([searchQuery, statusFilter, categoryFilter, targetFilter], () => { currentPage.value = 1; loadMessages(1) }, { debounce: 300 })
 watch(currentPage, () => { loadMessages(currentPage.value) })
 
-const truncate = (t: string, n: number): string => t?.length > n ? t.slice(0, n) + '…' : t
+const truncate = (t: string, n: number): string => t?.length > n ? t.slice(0, n) + '\u2026' : t
 const formatTarget = (row: AdminUserMessage) => row.target_type === 'quote' ? `Quote: ${truncate(row.target_label, 40)}` : row.target_type === 'author' ? `Author: ${row.target_label}` : row.target_type === 'reference' ? `Reference: ${row.target_label}` : 'General'
 
-const setStatus = async (row: AdminUserMessage, status: MessageStatus) => {
-  try {
-    await $fetch(`/api/admin/messages/${row.id}/status`, { method: 'POST', body: { status } })
-    row.status = status
-  } catch (err) {
-    console.error('Failed to set status', err)
+const statusPillClass = (status: string) => {
+  switch (status) {
+    case 'new': return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+    case 'triaged': return 'text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
+    case 'resolved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    case 'spam': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
   }
+}
+
+const setStatus = async (row: AdminUserMessage, status: MessageStatus) => {
+  try { await $fetch(`/api/admin/messages/${row.id}/status`, { method: 'POST', body: { status } }); row.status = status }
+  catch (err) { console.error('Failed to set status', err) }
 }
 
 const statusItems = (row: AdminUserMessage) => ([
@@ -391,35 +221,18 @@ const statusItems = (row: AdminUserMessage) => ([
 ])
 
 const rowActions = (row: AdminUserMessage) => ([
-  {
-    label: 'Copy details', leading: 'i-ph-copy', onclick: async () => {
-    const summary = `From: ${row.user_name || row.name || 'Anonymous'} <${row.user_email || row.email || ''}>\nCategory: ${row.category}\nTarget: ${row.target_type}${row.target_label ? ` (${row.target_label})` : ''}\nTags: ${(row.tags || []).join(', ')}\nMessage: ${row.message}`
-      try { await navigator.clipboard.writeText(summary) } catch {}
-    }
-  },
-  {},
-  { label: 'Mark triaged', leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
+  { label: 'Copy details', leading: 'i-ph-copy', onclick: async () => { const summary = `From: ${row.user_name || row.name || 'Anonymous'} <${row.user_email || row.email || ''}>\nCategory: ${row.category}\nTarget: ${row.target_type}${row.target_label ? ` (${row.target_label})` : ''}\nTags: ${(row.tags || []).join(', ')}\nMessage: ${row.message}`; try { await navigator.clipboard.writeText(summary) } catch {} } },
+  {}, { label: 'Mark triaged', leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
   { label: 'Mark resolved', leading: 'i-ph-check', onclick: () => setStatus(row, 'resolved') },
   { label: 'Mark spam', leading: 'i-ph-warning', onclick: () => setStatus(row, 'spam') }
 ])
 
-// handles click events on row checkboxes, supporting shift‑click range selection
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
-  const currently = !!rowSelection.value[id]
-  const newVal = !currently
-
+  const currently = !!rowSelection.value[id]; const newVal = !currently
   if (event.shiftKey && lastSelectedIndex.value !== null) {
-    // determine range boundaries
-    const start = Math.min(lastSelectedIndex.value, index)
-    const end = Math.max(lastSelectedIndex.value, index)
-    for (let i = start; i <= end; i += 1) {
-      const row = messages.value[i]
-      if (row) rowSelection.value[row.id] = newVal
-    }
-  } else {
-    rowSelection.value[id] = newVal
-  }
-
+    const start = Math.min(lastSelectedIndex.value, index); const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) { const row = messages.value[i]; if (row) rowSelection.value[row.id] = newVal }
+  } else { rowSelection.value[id] = newVal }
   lastSelectedIndex.value = index
 }
 
@@ -429,60 +242,34 @@ const bulkSetStatus = async (status: MessageStatus) => {
     bulkLoading.value = true
     await $fetch('/api/admin/messages/bulk-status', { method: 'POST', body: { ids: selectedIds.value, status } })
     messages.value.forEach(m => { if (selectedIds.value.includes(m.id)) m.status = status })
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
-  } catch (err) {
-    console.error('Failed bulk set status', err)
-  } finally {
-    bulkLoading.value = false
-  }
+    rowSelection.value = {}; lastSelectedIndex.value = null
+  } catch (err) { console.error('Failed bulk set status', err) }
+  finally { bulkLoading.value = false }
 }
 
 const selectAllOnPage = () => {
-  const allSelected = messages.value.length > 0 && messages.value.every(m => !!rowSelection.value[m.id])
-  if (allSelected) rowSelection.value = {}
+  const allSel = messages.value.length > 0 && messages.value.every(m => !!rowSelection.value[m.id])
+  if (allSel) rowSelection.value = {}
   else messages.value.forEach(m => (rowSelection.value[m.id] = true))
 }
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
-
 const isAnyDialogOpen = computed(() => false)
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => messages.value.length,
-  onSelectRow: (index: number) => {
-    const msg = messages.value[index]
-    if (msg) {
-      rowSelection.value[msg.id] = !rowSelection.value[msg.id]
-      lastSelectedIndex.value = null
-    }
-  },
-  isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false
+  onSelectRow: (index: number) => { const msg = messages.value[index]; if (msg) { rowSelection.value[msg.id] = !rowSelection.value[msg.id]; lastSelectedIndex.value = null } },
+  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false
 })
 
-const highlightedMessage = computed<AdminUserMessage | null>(() => {
-  if (highlightedRowIndex.value === null) return null
-  return messages.value[highlightedRowIndex.value] ?? null
-})
+const highlightedMessage = computed<AdminUserMessage | null>(() => { if (highlightedRowIndex.value === null) return null; return messages.value[highlightedRowIndex.value] ?? null })
 
 useAdminKeyboardShortcuts({
-  selectAllOnPage,
-  clearSelection,
-  hasSelection: () => selectedIds.value.length > 0,
-  isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false,
-  customKeys: {
-    t: () => bulkSetStatus('triaged'),
-    r: () => bulkSetStatus('resolved'),
-    s: () => bulkSetStatus('spam')
-  },
+  selectAllOnPage, clearSelection, hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false,
+  customKeys: { t: () => bulkSetStatus('triaged'), r: () => bulkSetStatus('resolved'), s: () => bulkSetStatus('spam') },
   highlightedRowIndex: () => highlightedRowIndex.value,
-  customSingleKeys: {
-    t: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'triaged') },
-    r: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'resolved') },
-    s: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'spam') }
-  }
+  customSingleKeys: { t: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'triaged') }, r: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'resolved') }, s: () => { if (highlightedMessage.value) setStatus(highlightedMessage.value, 'spam') } }
 })
 
 const newCount = computed(() => messages.value.filter(m => m.status === 'new').length)
@@ -492,22 +279,7 @@ onMounted(() => { loadMessages() })
 </script>
 
 <style scoped>
-.messages-table-container {
-  max-height: calc(100vh - 13rem);
-  max-width: calc(100vw - 8rem);
-}
-
-:deep(.table-header tr) {
-  border-bottom: none;
-}
-
-:deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-:deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
-
-.frame { height: calc(100vh - 8rem); }
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
+.line-clamp-3 { display: -webkit-box; line-clamp: 3; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 </style>

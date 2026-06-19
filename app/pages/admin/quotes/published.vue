@@ -16,17 +16,17 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search quotes, authors, or references..."
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
           />
           <select
             v-model="selectedSort"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
           <select
             v-model="selectedLanguage"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <option v-for="opt in languageOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
