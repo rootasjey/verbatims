@@ -17,56 +17,50 @@
         ]"
       >
         <div class="flex flex-col">
-          <!-- Sidebar Header -->
-          <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
-            <h2 class="hidden lg:inline text-lg font-semibold text-gray-900 dark:text-white">Admin Panel</h2>
-            <NButton
-              icon
-              btn="soft-gray"
-              size="xs"
-              label="i-ph-x-bold"
-              @click="sidebarOpen = false"
-            />
+          <!-- Sidebar Header (mobile) -->
+          <div class="flex items-center justify-between px-3 py-4 border-b border-gray-100 dark:border-gray-800 lg:hidden">
+            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">Admin</h2>
+            <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <NIcon name="i-ph-x" class="w-4 h-4" />
+            </button>
           </div>
 
           <!-- Desktop Collapse Toggle -->
-          <div class="hidden lg:flex items-center justify-end p-3 mr-1 border-b border-gray-200 dark:border-gray-700">
-            <NButton
-              icon
-              size="xs"
-              :label="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'"
-              btn="soft-gray"
-              class="transition-transform duration-200"
+          <div class="hidden lg:flex justify-center py-3 border-b border-gray-100 dark:border-gray-800">
+            <button
               :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
               :aria-expanded="!sidebarCollapsed"
               aria-controls="admin-sidebar"
+              class="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
               @click="sidebarCollapsed = !sidebarCollapsed"
-            />
+            >
+              <NIcon :name="sidebarCollapsed ? 'i-ph-caret-right' : 'i-ph-caret-left'" class="w-4 h-4" />
+            </button>
           </div>
 
           <!-- Navigation Menu -->
-          <nav :class="['flex-1 py-6 space-y-2', sidebarCollapsed ? 'px-2' : 'px-4']">
+          <nav :class="['flex-1 py-6 space-y-1', sidebarCollapsed ? 'px-2' : 'px-3']">
             <!-- Admin Overview -->
             <NTooltip :content="sidebarCollapsed ? 'Overview' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
               <NuxtLink
                 to="/admin"
                 :class="[
-                  'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start',
-                  $route.path === '/admin' 
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
+                  'flex items-center text-sm rounded-sm transition-all duration-200',
+                  sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                  isActive('/admin')
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                 ]"
                 @click="sidebarOpen = false"
               >
-                <NIcon name="i-ph-shield-check" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Overview</span>
+                <NIcon name="i-ph-shield-check" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Overview</span>
               </NuxtLink>
             </NTooltip>
 
             <!-- Quotes Section -->
-            <div class="pt-4">
-              <h3 :class="['px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
+            <div class="pt-3">
+              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
                 Quotes Management
               </h3>
               
@@ -75,17 +69,17 @@
                 <NuxtLink
                   to="/admin/quotes/published"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/quotes/published' 
-                      ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-dashed border-green-200 dark:border-green-700' 
-                      : 'text-green-500 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/quotes/published')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-check-circle" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
-                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" badge="solid-green" size="xs" class="ml-auto" />
+                  <NIcon name="i-ph-check-circle" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
+                  <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -94,17 +88,17 @@
                 <NuxtLink
                   to="/admin/quotes/pending"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/quotes/pending' 
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border border-dashed border-yellow-200 dark:border-yellow-700' 
-                      : 'text-yellow-600 dark:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-600 dark:hover:text-yellow-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/quotes/pending')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-clock" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
-                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" badge="solid-yellow" size="xs" class="ml-auto" />
+                  <NIcon name="i-ph-clock" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
+                  <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -113,17 +107,17 @@
                 <NuxtLink
                   to="/admin/quotes/drafts"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/quotes/drafts' 
-                      ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-dashed border-orange-200 dark:border-orange-700' 
-                      : 'text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-700 dark:hover:text-orange-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/quotes/drafts')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-file-dashed" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
-                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" badge="solid-gray" size="xs" class="ml-auto" />
+                  <NIcon name="i-ph-file-dashed" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
+                  <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -132,23 +126,23 @@
                 <NuxtLink
                   to="/admin/social-queue"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/social-queue'
-                      ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-dashed border-indigo-200 dark:border-indigo-700'
-                      : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/social-queue')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-share-network" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Social Queue</span>
+                  <NIcon name="i-ph-share-network" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Social Queue</span>
                 </NuxtLink>
               </NTooltip>
             </div>
 
             <!-- Content Management Section -->
-            <div class="pt-4">
-              <h3 :class="['px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
+            <div class="pt-3">
+              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
                 Content Management
               </h3>
 
@@ -157,16 +151,16 @@
                 <NuxtLink
                   to="/admin/authors"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/authors'
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-dashed border-blue-200 dark:border-blue-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/authors')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-user" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Authors</span>
+                  <NIcon name="i-ph-user" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Authors</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -175,51 +169,53 @@
                 <NuxtLink
                   to="/admin/references"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/references'
-                      ? 'bg-lime-50 dark:bg-lime-900/20 text-lime-700 dark:text-lime-300 border border-dashed border-lime-200 dark:border-lime-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-lime-50 dark:hover:bg-lime-900/20 hover:text-lime-700 dark:hover:text-lime-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/references')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-book" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">References</span>
+                  <NIcon name="i-ph-book" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">References</span>
                 </NuxtLink>
               </NTooltip>
 
+              <!-- Enrichment Queue -->
               <NTooltip :content="sidebarCollapsed ? 'Enrichment Queue' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/enrichment"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/enrichment'
-                      ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-dashed border-cyan-200 dark:border-cyan-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-700 dark:hover:text-cyan-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/enrichment')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-magic-wand" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Enrichment Queue</span>
+                  <NIcon name="i-ph-magic-wand" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Enrichment Queue</span>
                 </NuxtLink>
               </NTooltip>
 
+              <!-- Harvest Quotes -->
               <NTooltip :content="sidebarCollapsed ? 'Harvest Quotes' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/harvest"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/harvest'
-                      ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 border border-dashed border-violet-200 dark:border-violet-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/harvest')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-plant" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Harvest Quotes</span>
-                  <NBadge v-if="!sidebarCollapsed && harvestedCount > 0" :label="`${harvestedCount}`" badge="solid-purple" size="xs" class="ml-auto" />
+                  <NIcon name="i-ph-plant" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Harvest Quotes</span>
+                  <NBadge v-if="!sidebarCollapsed && harvestedCount > 0" :label="`${harvestedCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
@@ -228,16 +224,16 @@
                 <NuxtLink
                   to="/admin/tags"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/tags'
-                      ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/tags')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-hash" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Tags</span>
+                  <NIcon name="i-ph-hash" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Tags</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -246,16 +242,16 @@
                 <NuxtLink
                   to="/admin/sponsors"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/sponsors'
-                      ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-dashed border-amber-200 dark:border-amber-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/sponsors')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-megaphone" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Sponsors</span>
+                  <NIcon name="i-ph-megaphone" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Sponsors</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -264,22 +260,22 @@
                 <NuxtLink
                   to="/admin/themes"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    $route.path === '/admin/themes'
-                      ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 border border-dashed border-rose-200 dark:border-rose-700'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-700 dark:hover:text-rose-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/themes')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-palette" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Themes</span>
+                  <NIcon name="i-ph-palette" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Themes</span>
                 </NuxtLink>
               </NTooltip>
             </div>
 
-            <div class="pt-4">
-              <h3 :class="['px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
+            <div class="pt-3">
+              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
                 System Management
               </h3>
               
@@ -288,14 +284,16 @@
                 <NuxtLink
                   to="/admin/messages"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getManagementItemColor($route.path === '/admin/messages')
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/messages')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-envelope" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Messages</span>
+                  <NIcon name="i-ph-envelope" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Messages</span>
                 </NuxtLink>
               </NTooltip>
               
@@ -304,14 +302,16 @@
                 <NuxtLink
                   to="/admin/users"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getManagementItemColor($route.path === '/admin/users')
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/users')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-users" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Users</span>
+                  <NIcon name="i-ph-users" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Users</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -320,14 +320,16 @@
                 <NuxtLink
                   to="/admin/maintenance"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getManagementItemColor($route.path === '/admin/maintenance')
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/maintenance')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-wrench" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Database Maintenance</span>
+                  <NIcon name="i-ph-wrench" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Database Maintenance</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -336,14 +338,16 @@
                 <NuxtLink
                   to="/admin/import"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getManagementItemColor($route.path === '/admin/import')
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/import')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-upload" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Import Data</span>
+                  <NIcon name="i-ph-upload" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Import Data</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -352,32 +356,34 @@
                 <NuxtLink
                   to="/admin/export"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    getManagementItemColor($route.path === '/admin/export')
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/export')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-download" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Export Data</span>
+                  <NIcon name="i-ph-download" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Export Data</span>
                 </NuxtLink>
               </NTooltip>
             </div>
 
             <!-- Back to Dashboard -->
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="pt-3 border-t border-gray-100 dark:border-gray-800">
               <NTooltip :content="sidebarCollapsed ? 'Back to Dashboard' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/dashboard"
                   :class="[
-                    'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 mt-2',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start',
-                    'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
+                    'flex items-center text-sm rounded-sm transition-all duration-200 mt-2',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                   ]"
                   @click="sidebarOpen = false"
                 >
-                  <NIcon name="i-ph-house" :class="['w-5 h-5', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Back to Dashboard</span>
+                  <NIcon name="i-ph-house" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Back to Dashboard</span>
                 </NuxtLink>
               </NTooltip>
             </div>
@@ -393,18 +399,14 @@
       />
 
       <!-- Main Content -->
-      <main :class="['flex-1 transition-all duration-300', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
+      <main :class="['flex-1 transition-all duration-300 pb-28 md:pb-0', sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64']">
         <!-- Mobile Header -->
-        <div class="lg:hidden dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div class="lg:hidden bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-800 px-4 py-3">
           <div class="flex items-center justify-between">
-            <NButton
-              icon
-              btn="soft-gray"
-              size="xs"
-              label="i-ph-list-bold"
-              @click="sidebarOpen = true"
-            />
-            <div class="w-8" /> <!-- Spacer for centering -->
+            <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <NIcon name="i-ph-list-bold" class="w-5 h-5" />
+            </button>
+            <div class="w-8" />
           </div>
         </div>
 
@@ -452,10 +454,9 @@ const loadQuoteCounts = async () => {
   }
 }
 
-const getManagementItemColor = (isActive: boolean) => {
-  return isActive 
-    ? 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-200 dark:border-gray-700'
-    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/20 hover:text-gray-700 dark:hover:text-gray-300'
+const isActive = (to: string) => {
+  if (to === '/admin') return route.path === '/admin'
+  return route.path.startsWith(to)
 }
 
 // Close sidebar when route changes (mobile)

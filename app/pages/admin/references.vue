@@ -1,397 +1,184 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09] mb-3">
-      <!-- View Toggle -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View:</span>
-          <NToggle
-            v-model="isCardView"
-            :label="isCardView ? 'i-ph-squares-four' : 'i-ph-table'"
-            size="sm"
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+            References
+          </h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ totalReferences }} {{ totalReferences === 1 ? 'reference' : 'references' }}
+          </p>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search references..."
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            {{ isCardView ? 'Card View' : 'Table View' }}
-          </span>
+          <select
+            v-model="selectedTypeFilter"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            <option v-for="opt in typeFilterOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <select
+            v-model="selectedSort"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <div class="flex items-center gap-1 border-l border-dashed border-gray-200 dark:border-gray-700 pl-3">
+            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = false">Table</button>
+            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = true">Cards</button>
+          </div>
+        </div>
+      </div>
+      <div class="md:hidden mt-4 flex gap-2">
+        <input v-model="searchQuery" type="text" placeholder="Search references..." class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400" />
+        <div class="flex items-center gap-1">
+          <button :class="['font-sans text-xs px-2 py-1 transition-colors', !isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']" @click="isCardView = false">Table</button>
+          <button :class="['font-sans text-xs px-2 py-1 transition-colors', isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']" @click="isCardView = true">Cards</button>
         </div>
       </div>
     </div>
 
     <!-- Card View -->
-    <div v-if="isCardView" class="flex-1 overflow-auto">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-        <div
-          v-for="reference in filteredReferences"
-          :key="reference.id"
-          class="bg-white dark:bg-[#0C0A09] rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow"
-        >
-          <div class="flex items-start space-x-3">
+    <div v-if="isCardView">
+      <div v-if="filteredReferences.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No references found</p>
+      </div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div v-for="reference in filteredReferences" :key="reference.id" class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors rounded-sm">
+          <div class="flex items-start gap-3">
             <div class="flex-shrink-0">
-              <img
-                v-if="reference.image_url"
-                :src="reference.image_url"
-                :alt="reference.name"
-                class="w-12 h-16 rounded object-cover"
-              />
-              <div
-                v-else
-                class="w-12 h-16 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
-              >
-                <NIcon :name="getTypeIcon(reference.primary_type)" class="w-6 h-6 text-gray-500" />
-              </div>
+              <img v-if="reference.image_url" :src="reference.image_url" :alt="reference.name" class="w-12 h-16 object-cover grayscale hover:grayscale-0 transition-all duration-300" />
+              <div v-else class="w-12 h-16 bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><NIcon :name="getTypeIcon(reference.primary_type)" class="w-6 h-6 text-gray-500" /></div>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 min-w-0">
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {{ reference.name }}
-                </h3>
-                <button
-                  v-if="hasPendingEnrichment(reference)"
-                  type="button"
-                  class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/60"
-                  :title="`${reference.enrichment_pending_count} pending enrichment suggestion(s)`"
-                  @click="goToReferenceEnrichmentQueue(reference)"
-                />
+                <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ reference.name }}</h3>
+                <button v-if="hasPendingEnrichment(reference)" type="button" class="inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" :title="`${reference.enrichment_pending_count} pending enrichment suggestion(s)`" @click="goToReferenceEnrichmentQueue(reference)" />
               </div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                {{ reference.primary_type.replace('_', ' ') }}
-              </p>
-              <p v-if="reference.secondary_type" class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {{ reference.secondary_type }}
-              </p>
-              <div class="flex items-center space-x-2 mt-1">
-                <span v-if="hasPendingEnrichment(reference)" class="text-xs font-medium text-indigo-700 dark:text-indigo-300">
-                  {{ reference.enrichment_pending_count }} suggestion{{ reference.enrichment_pending_count !== 1 ? 's' : '' }}
-                </span>
-                <span v-if="reference.release_date" class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ formatYear(reference.release_date) }}
-                </span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ reference.quotes_count || 0 }} quotes
-                </span>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize mt-0.5">{{ reference.primary_type.replace('_', ' ') }}</p>
+              <div class="flex items-center gap-2 mt-1">
+                <span v-if="reference.release_date" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatYear(reference.release_date) }}</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ reference.quotes_count || 0 }} quotes</span>
               </div>
             </div>
           </div>
-          <div class="mt-3 flex justify-end space-x-2">
-            <NButton
-              size="xs"
-              btn="ghost"
-              :loading="enrichmentLoading && enrichmentReferenceTarget?.id === reference.id"
-              @click="openEnrichmentPreview(reference)"
-            >
-              <NIcon name="i-ph-magic-wand" class="w-3 h-3 mr-1" />
-              Enrich
-            </NButton>
-            <NButton
-              size="xs"
-              btn="ghost"
-              @click="editReference(reference)"
-            >
-              <NIcon name="i-ph-pencil" class="w-3 h-3 mr-1" />
-              Edit
-            </NButton>
-            <NButton
-              size="xs"
-              btn="ghost"
-              @click="viewReference(reference)"
-            >
-              <NIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
-              View
-            </NButton>
+          <div class="mt-3 flex justify-end gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentReferenceTarget?.id === reference.id" @click="openEnrichmentPreview(reference)">Enrich</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editReference(reference)">Edit</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewReference(reference)">View</button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Table View -->
-    <div v-else class="flex-1 flex flex-col">
-      <!-- Scrollable Table Container -->
-      <div class="group references-table-container flex-1 overflow-auto border rounded-2">
-        <NTable
-          :columns="tableColumns"
-          :data="filteredReferences"
-          :loading="loading"
-          :una="{
-            tableRoot: '!overflow-visible border-none',
-            scrollAreaRoot: '!overflow-visible',
-            table: '!w-auto min-w-full',
-            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-            tableBody: 'bg-white dark:bg-[#0C0A09]'
-          }"
-          :_table-row="(row) => {
-            if (!row) return {}
-            const rowIdx = filteredReferences.findIndex(r => r.id === row.id)
-            const isHighlighted = rowIdx === highlightedRowIndex
-            const isSelected = !!rowSelection[row.id]
-            if (!isHighlighted && !isSelected) return {}
-            const classes = []
-              if (isHighlighted && isSelected) {
-                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
-                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
-              } else if (isHighlighted) {
-                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
-                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
-              } else if (isSelected) {
-                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
-                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
-              }
-            return {
-              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
-              class: classes.join(' ')
-            }
-          }"
-          manual-pagination
-          empty-text="No references found"
-          empty-icon="i-ph-book"
-        >
-
-          <template #select-header>
-            <div>
-              <NCheckbox
-                checkbox="gray"
-                :model-value="allSelected"
-                @update:model-value="toggleAllSelection"
-              />
-            </div>
-          </template>
-
-          <template #select-cell="{ cell }">
-            <div class="items-center justify-center" :class="[
-              Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
-              'group-hover:flex',
-            ]">
-              <NCheckbox
-                checkbox="gray"
-                :model-value="!!rowSelection[cell.row.original.id]"
-                @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
-              />
-            </div>
-          </template>
-
-          <!-- Reference Column -->
-          <template #reference-header>
-            <div class="flex items-center gap-4">
-              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">References</h4>
-              <div class="w-102">
-                <NInput
-                  v-model="searchQuery"
-                  placeholder="Search references by title, description, or genre..."
-                  leading="i-ph-magnifying-glass"
-                  size="md"
-                  :loading="loading"
-                  :trailing="searchQuery ? 'i-ph-x' : undefined"
-                  :una="{
-                    inputTrailing: 'pointer-events-auto cursor-pointer',
-                  }"
-                  @trailing="resetFilters"
-                />
-              </div>
-
-              <div>
-                <NSelect
-                  v-model="selectedSort"
-                  :items="sortOptions"
-                  placeholder="Sort by"
-                  size="sm"
-                  item-key="label"
-                  value-key="label"
-                />
-              </div>
-            </div>
-          </template>
-          <template #reference-cell="{ cell }">
-            <div class="flex items-center space-x-3">
-              <div class="flex-shrink-0">
-                <img
-                  v-if="cell.row.original.image_url"
-                  :src="cell.row.original.image_url"
-                  :alt="cell.row.original.name"
-                  class="w-8 h-10 rounded object-cover"
-                />
-                <div
-                  v-else
-                  class="w-8 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
-                >
-                  <NIcon :name="getTypeIcon(cell.row.original.primary_type)" class="w-4 h-4 text-gray-500" />
-                </div>
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 min-w-0">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {{ cell.row.original.name }}
-                  </p>
-                  <NTooltip v-if="hasPendingEnrichment(cell.row.original)" :content="`${cell.row.original.enrichment_pending_count} pending enrichment suggestion(s)`">
-                    <button
-                      type="button"
-                      class="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/60"
-                      @click="goToReferenceEnrichmentQueue(cell.row.original)"
-                    />
-                  </NTooltip>
-                </div>
-                <p v-if="cell.row.original.secondary_type" class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ cell.row.original.secondary_type }}
-                </p>
-                <button v-if="hasPendingEnrichment(cell.row.original)" type="button" class="text-xs font-medium text-indigo-700 dark:text-indigo-300 truncate hover:underline cursor-pointer text-left" @click="openEnrichmentPreview(cell.row.original)">
-                  {{ cell.row.original.enrichment_pending_count }} pending suggestion{{ cell.row.original.enrichment_pending_count !== 1 ? 's' : '' }}
-                </button>
-              </div>
-            </div>
-          </template>
-
-          <!-- Type Column -->
-          <template #type-header>
-            <div>
-              <NSelect
-                v-model="selectedTypeFilter"
-                :items="typeFilterOptions"
-                placeholder="All Types"
-                size="sm"
-                item-key="label"
-                value-key="label"
-              />
-            </div>
-          </template>
-          <template #type-cell="{ cell }">
-            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 capitalize">
-              {{ cell.row.original.primary_type.replace('_', ' ') }}
-            </span>
-          </template>
-
-          <!-- Release Date Column -->
-          <template #release_date-cell="{ cell }">
-            <span v-if="cell.row.original.release_date" class="text-sm text-gray-900 dark:text-white">
-              {{ formatYear(cell.row.original.release_date) }}
-            </span>
-            <span v-else class="text-sm text-gray-500 dark:text-gray-400">—</span>
-          </template>
-
-          <!-- Quotes Column -->
-          <template #quotes-cell="{ cell }">
-            <span class="text-sm text-gray-900 dark:text-white">
-              {{ cell.row.original.quotes_count || 0 }}
-            </span>
-          </template>
-
-          <!-- Created Column -->
-          <template #created-cell="{ cell }">
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              {{ formatRelativeTime(cell.row.original.created_at) }}
-            </span>
-          </template>
-
-          <!-- Actions Column -->
-          <template #actions-header>
-            <div class="flex items-center justify-center space-x-1">
-              <span v-if="selectedIds.length > 0">{{ selectedIds.length }}</span>
-              <NTooltip :_tooltip-content="{
-                class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50',
-              }">
-                <template #default>
-                  <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                </template>
-                <template #content>
-                  <div class="space-y-2">
-                    <div class="flex">
-                      <NBadge badge="solid-gray" size="xs" icon="i-ph-selection-background" class="w-full">
-                        {{ totalReferences }} Total References
-                      </NBadge>
-                    </div>
-                  </div>
-                </template>
-              </NTooltip>
-
-              <NDropdownMenu :items="headerActions">
-                <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-              </NDropdownMenu>
-            </div>
-          </template>
-
-          <template #actions-cell="{ cell }">
-            <NDropdownMenu :items="getReferenceActions(cell.row.original)">
-              <NButton
-                icon
-                btn="ghost-gray"
-                size="xs"
-                label="i-ph-dots-three-vertical"
-                class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-              />
-            </NDropdownMenu>
-          </template>
-        </NTable>
+    <div v-else>
+      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
+        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">Delete All</button>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
       </div>
 
-      <div class="flex-shrink-0 flex items-center justify-between p-4">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }} • {{ totalReferences }} total references
+      <div v-if="loading && !hasLoadedOnce" class="space-y-5">
+        <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+          <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
         </div>
-        <NPagination
-          v-model:page="currentPage"
-          :total="totalReferences"
-          :items-per-page="pageSize"
-          :sibling-count="2"
-          show-edges
-          size="sm"
-          pagination-selected="solid-indigo"
-        />
+      </div>
+
+      <div v-else-if="hasLoadedOnce && filteredReferences.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No references found</p>
+      </div>
+
+      <div v-else-if="hasLoadedOnce" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Reference</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Type</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Year</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quotes</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+              <th class="w-10 px-3 py-3 text-left"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr v-for="(ref, idx) in filteredReferences" :key="ref.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[ref.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+              <td class="px-3 py-3">
+                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[ref.id]" @click="e => handleRowCheckboxClick(e, idx, ref.id)" />
+                </div>
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="flex-shrink-0">
+                    <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="w-8 h-10 object-cover" />
+                    <div v-else class="w-8 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ ref.name }}</p>
+                      <button v-if="hasPendingEnrichment(ref)" type="button" class="inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" :title="`${ref.enrichment_pending_count} pending enrichment suggestion(s)`" @click="goToReferenceEnrichmentQueue(ref)" />
+                    </div>
+                    <p v-if="ref.secondary_type" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ ref.secondary_type }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-3 py-3"><span class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 capitalize">{{ ref.primary_type.replace('_', ' ') }}</span></td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ ref.release_date ? formatYear(ref.release_date) : '&mdash;' }}</td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ ref.quotes_count || 0 }}</td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(ref.created_at) }}</td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="getReferenceActions(ref)">
+                  <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                </NDropdownMenu>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="hasLoadedOnce">
+        <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+            Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalReferences }} {{ totalReferences === 1 ? 'reference' : 'references' }}
+          </span>
+          <div class="flex items-center gap-3">
+            <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+            <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+          </div>
+        </div>
+        <div v-else class="pt-4 text-center">
+          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+        </div>
       </div>
     </div>
+
+    <AddReferenceDialog v-model="showAddReferenceDialog" :edit-reference="convertToQuoteReference(selectedReference)" @reference-added="onReferenceAdded" @reference-updated="onReferenceUpdated" />
+    <DeleteReferenceDialog v-model="showDeleteReferenceDialog" :reference="referenceToDelete" @reference-deleted="onReferenceDeleted" />
+    <AdminReferenceEnrichmentDialog :open="showEnrichmentDialog" :loading="enrichmentLoading" :applying="enrichmentApplying" :reference="convertToQuoteReference(enrichmentReferenceTarget) || null" :preview="enrichmentPreview" :job-id="enrichmentJobId" :selected-fields="selectedEnrichmentFields" @update:open="handleEnrichmentDialogOpenChange" @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)" @promote-candidate="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget, $event)" @toggle-field="toggleEnrichmentField" @select-recommended="selectRecommendedEnrichmentFields" @apply="applySelectedEnrichment" />
+    <AdminEnrichmentConfigDialog :open="showEnrichmentConfigDialog" :loading="enrichmentConfigLoading" :saving="enrichmentConfigSaving" :updated-at="enrichmentConfigUpdatedAt" :form="enrichmentConfigForm" :sources="enrichmentConfigSources" @update:open="showEnrichmentConfigDialog = $event" @save="saveEnrichmentConfig" />
+
+    <NDialog v-model:open="showBulkDeleteDialog">
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3></template>
+      <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.</p>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
+          <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
   </div>
-
-  <AddReferenceDialog
-    v-model="showAddReferenceDialog"
-    :edit-reference="convertToQuoteReference(selectedReference)"
-    @reference-added="onReferenceAdded"
-    @reference-updated="onReferenceUpdated"
-  />
-
-  <DeleteReferenceDialog
-    v-model="showDeleteReferenceDialog"
-    :reference="referenceToDelete"
-    @reference-deleted="onReferenceDeleted"
-  />
-
-  <AdminReferenceEnrichmentDialog
-    :open="showEnrichmentDialog"
-    :loading="enrichmentLoading"
-    :applying="enrichmentApplying"
-    :reference="convertToQuoteReference(enrichmentReferenceTarget) || null"
-    :preview="enrichmentPreview"
-    :job-id="enrichmentJobId"
-    :selected-fields="selectedEnrichmentFields"
-    @update:open="handleEnrichmentDialogOpenChange"
-    @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)"
-    @promote-candidate="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget, $event)"
-    @toggle-field="toggleEnrichmentField"
-    @select-recommended="selectRecommendedEnrichmentFields"
-    @apply="applySelectedEnrichment"
-  />
-
-  <AdminEnrichmentConfigDialog
-    :open="showEnrichmentConfigDialog"
-    :loading="enrichmentConfigLoading"
-    :saving="enrichmentConfigSaving"
-    :updated-at="enrichmentConfigUpdatedAt"
-    :form="enrichmentConfigForm"
-    :sources="enrichmentConfigSources"
-    @update:open="showEnrichmentConfigDialog = $event"
-    @save="saveEnrichmentConfig"
-  />
-
-  <!-- Bulk Delete Confirmation -->
-  <NDialog v-model:open="showBulkDeleteDialog">
-    <template #header>
-      <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3>
-    </template>
-    <p class="text-gray-600 dark:text-gray-400 mb-4">
-      You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.
-    </p>
-    <template #footer>
-      <div class="flex justify-end gap-3">
-        <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-        <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
-      </div>
-    </template>
-  </NDialog>
 </template>
 
 <script setup lang="ts">
@@ -401,16 +188,11 @@ import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
 const { showErrorToast } = useErrorToast()
 
-definePageMeta({
-  layout: 'admin',
-  middleware: 'admin'
-})
-
-useHead({
-  title: 'References - Admin - Verbatims'
-})
+definePageMeta({ layout: 'admin', middleware: 'admin' })
+useHead({ title: 'References - Admin - Verbatims' })
 
 const loading = ref(false)
+const hasLoadedOnce = ref(false)
 const references = ref<QuoteReferenceWithMetadata[]>([])
 const totalReferences = ref(0)
 const currentPage = ref(1)
@@ -430,89 +212,44 @@ const enrichmentReferenceTarget = ref<QuoteReferenceWithMetadata | null>(null)
 const enrichmentPreview = ref<any | null>(null)
 const enrichmentJobId = ref<number | null>(null)
 const selectedEnrichmentFields = ref<string[]>([])
-
 const showEnrichmentConfigDialog = ref(false)
 const enrichmentConfigLoading = ref(false)
 const enrichmentConfigSaving = ref(false)
 const enrichmentConfigUpdatedAt = ref<string | null>(null)
 const enrichmentConfigSources = ref<Record<string, 'kv' | 'env' | 'default' | 'none'>>({})
 const enrichmentConfigForm = reactive({
-  scheduleEnabled: true,
-  processEnabled: true,
-  scheduleBatchSize: 25,
-  processBatchSize: 3,
-  authorStaleDays: 180,
-  referenceStaleDays: 365,
-  reviewGraceDays: 14,
-  authorMatchMinScore: 60,
-  referenceMatchMinScore: 58,
-  ambiguousMatchGap: 5,
+  scheduleEnabled: true, processEnabled: true, scheduleBatchSize: 25, processBatchSize: 3,
+  authorStaleDays: 180, referenceStaleDays: 365, reviewGraceDays: 14,
+  authorMatchMinScore: 60, referenceMatchMinScore: 58, ambiguousMatchGap: 5,
 })
 
-// Bulk selection state
-const selectionMode = ref(false)
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
-const bulkOpen = ref(false)
 const bulkProcessing = ref(false)
 const showBulkDeleteDialog = ref(false)
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
-watch(selectedIds, (ids) => { bulkOpen.value = ids.length > 0 }, { immediate: true })
+watch(selectedIds, () => {}, { immediate: true })
 const visibleIds = computed<number[]>(() => filteredReferences.value.map(r => r.id))
 const allSelectedOnPage = computed<boolean>(() => visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id]))
 
-// computed helper for header checkbox (select all on current page)
 const allSelected = computed<boolean | 'indeterminate'>({
-  get: () => {
-    const total = filteredReferences.value.length
-    const count = selectedIds.value.length
-    if (total === 0) return false
-    if (count === total) return true
-    if (count > 0) return 'indeterminate'
-    return false
-  },
-  set: (v) => {
-    const newSelection: Record<number, boolean> = {}
-    if (v === true) {
-      filteredReferences.value.forEach(r => { newSelection[r.id] = true })
-    }
-    rowSelection.value = newSelection
-    lastSelectedIndex.value = null // reset range anchor when toggling all
-  }
+  get: () => { const total = filteredReferences.value.length; const count = selectedIds.value.length; if (total === 0) return false; if (count === total) return true; if (count > 0) return 'indeterminate'; return false },
+  set: (v) => { const newSel: Record<number, boolean> = {}; if (v === true) filteredReferences.value.forEach(r => { newSel[r.id] = true }); rowSelection.value = newSel; lastSelectedIndex.value = null }
 })
 
-const toggleSelectionMode = () => { selectionMode.value = !selectionMode.value; if (!selectionMode.value) rowSelection.value = {}; lastSelectedIndex.value = null }
-const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
-
-// toggles the header checkbox state (select/deselect all on current page)
 const toggleAllSelection = (v: boolean | 'indeterminate') => {
-  if (v) {
-    const newSelection: Record<number, boolean> = {}
-    filteredReferences.value.forEach(r => { newSelection[r.id] = true })
-    rowSelection.value = newSelection
-  } else {
-    rowSelection.value = {}
-  }
+  if (v) { const newSel: Record<number, boolean> = {}; filteredReferences.value.forEach(r => { newSel[r.id] = true }); rowSelection.value = newSel }
+  else { rowSelection.value = {} }
   lastSelectedIndex.value = null
 }
-
 const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
-const clearSelection = () => { rowSelection.value = {}; selectionMode.value = false; lastSelectedIndex.value = null }
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
-const isAnyDialogOpen = computed(() =>
-  showAddReferenceDialog.value || showDeleteReferenceDialog.value ||
-  showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value
-)
+const isAnyDialogOpen = computed(() => showAddReferenceDialog.value || showDeleteReferenceDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value)
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => filteredReferences.value.length,
-  onSelectRow: (index: number) => {
-    const ref = filteredReferences.value[index]
-    if (ref) {
-      rowSelection.value[ref.id] = !rowSelection.value[ref.id]
-      lastSelectedIndex.value = null
-    }
-  },
+  onSelectRow: (index: number) => { const ref = filteredReferences.value[index]; if (ref) { rowSelection.value[ref.id] = !rowSelection.value[ref.id]; lastSelectedIndex.value = null } },
   isDialogOpen: () => isAnyDialogOpen.value,
   isDropdownOpen: () => isCardView.value
 })
@@ -523,565 +260,161 @@ const highlightedReference = computed<QuoteReferenceWithMetadata | null>(() => {
 })
 
 useAdminKeyboardShortcuts({
-  selectAllOnPage,
-  clearSelection,
-  hasSelection: () => selectedIds.value.length > 0,
-  isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => isCardView.value,
+  selectAllOnPage, clearSelection, hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => isCardView.value,
   onDelete: () => { showBulkDeleteDialog.value = true },
-  onConfirmDialog: () => {
-    if (showBulkDeleteDialog.value) confirmBulkDelete()
-    else if (showDeleteReferenceDialog.value) { /* handled by delete reference dialog */ }
-  },
+  onConfirmDialog: () => { if (showBulkDeleteDialog.value) confirmBulkDelete() },
   highlightedRowIndex: () => highlightedRowIndex.value,
-  onSingleEdit: () => {
-    if (highlightedReference.value) editReference(highlightedReference.value)
-  },
-  onSingleView: () => {
-    if (highlightedReference.value) viewReference(highlightedReference.value)
-  },
-  onSingleDelete: () => {
-    if (highlightedReference.value) deleteReference(highlightedReference.value)
-  }
+  onSingleEdit: () => { if (highlightedReference.value) editReference(highlightedReference.value) },
+  onSingleView: () => { if (highlightedReference.value) viewReference(highlightedReference.value) },
+  onSingleDelete: () => { if (highlightedReference.value) deleteReference(highlightedReference.value) }
 })
 
-// handle shift‑click range selection on the table rows
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
-  const currently = !!rowSelection.value[id]
-  const newVal = !currently
-
+  const currently = !!rowSelection.value[id]; const newVal = !currently
   if (event.shiftKey && lastSelectedIndex.value !== null) {
-    const start = Math.min(lastSelectedIndex.value, index)
-    const end = Math.max(lastSelectedIndex.value, index)
-    for (let i = start; i <= end; i += 1) {
-      const row = filteredReferences.value[i]
-      if (row) rowSelection.value[row.id] = newVal
-    }
-  } else {
-    rowSelection.value[id] = newVal
-  }
-
+    const start = Math.min(lastSelectedIndex.value, index); const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) { const row = filteredReferences.value[i]; if (row) rowSelection.value[row.id] = newVal }
+  } else { rowSelection.value[id] = newVal }
   lastSelectedIndex.value = index
 }
 
 const typeFilterOptions = [
-  { label: 'All Types', value: '' },
-  { label: 'Books', value: 'book' },
-  { label: 'Films', value: 'film' },
-  { label: 'TV Series', value: 'tv_series' },
-  { label: 'Music', value: 'music' },
-  { label: 'Speeches', value: 'speech' },
-  { label: 'Podcasts', value: 'podcast' },
-  { label: 'Interviews', value: 'interview' },
-  { label: 'Documentaries', value: 'documentary' },
-  { label: 'Media Streams', value: 'media_stream' },
-  { label: 'Writings', value: 'writings' },
-  { label: 'Video Games', value: 'video_game' },
-  { label: 'Other', value: 'other' }
+  { label: 'All Types', value: '' }, { label: 'Books', value: 'book' }, { label: 'Films', value: 'film' }, { label: 'TV Series', value: 'tv_series' },
+  { label: 'Music', value: 'music' }, { label: 'Speeches', value: 'speech' }, { label: 'Podcasts', value: 'podcast' },
+  { label: 'Interviews', value: 'interview' }, { label: 'Documentaries', value: 'documentary' }, { label: 'Media Streams', value: 'media_stream' },
+  { label: 'Writings', value: 'writings' }, { label: 'Video Games', value: 'video_game' }, { label: 'Other', value: 'other' }
 ]
 
 const sortOptions = [
-  { label: 'Name A-Z', value: 'name_asc' },
-  { label: 'Name Z-A', value: 'name_desc' },
-  { label: 'Most Recent', value: 'created_desc' },
-  { label: 'Oldest First', value: 'created_asc' },
-  { label: 'Release Date (Newest)', value: 'release_date_desc' },
-  { label: 'Release Date (Oldest)', value: 'release_date_asc' },
-  { label: 'Most Quotes', value: 'quotes_desc' },
-  { label: 'Most Liked', value: 'likes_desc' }
+  { label: 'Name A-Z', value: 'name_asc' }, { label: 'Name Z-A', value: 'name_desc' },
+  { label: 'Most Recent', value: 'created_desc' }, { label: 'Oldest First', value: 'created_asc' },
+  { label: 'Release Date (Newest)', value: 'release_date_desc' }, { label: 'Release Date (Oldest)', value: 'release_date_asc' },
+  { label: 'Most Quotes', value: 'quotes_desc' }, { label: 'Most Liked', value: 'likes_desc' }
 ]
-
-// header dropdown actions (depends on selection state)
-const headerActions = computed(() => {
-  const actions: any[] = []
-  if (selectedIds.value.length > 0) {
-    actions.push({
-      label: 'Delete Selected',
-      leading: 'i-ph-trash',
-      shortcut: 'D',
-      onclick: () => { showBulkDeleteDialog.value = true }
-    })
-  }
-  if (actions.length > 0) actions.push({})
-  actions.push({
-    label: 'Add New Reference',
-    leading: 'i-ph-plus',
-    onclick: () => { showAddReferenceDialog.value = true }
-  })
-  actions.push({})
-  actions.push({
-    label: 'Enrichment settings',
-    leading: 'i-ph-sliders-horizontal',
-    onclick: () => openEnrichmentConfigDialog()
-  })
-  actions.push({
-    label: 'Refresh',
-    leading: 'i-ph-arrows-clockwise',
-    onclick: () => loadReferences()
-  })
-  actions.push({
-    label: 'Reset Filters',
-    leading: 'i-ph-x',
-    onclick: () => resetFilters()
-  })
-  return actions
-})
 
 const totalPages = computed(() => Math.ceil(totalReferences.value / pageSize.value))
-
-const totalFilmsAndTV = computed(() => {
-  return references.value.filter(ref => ['film', 'tv_series', 'documentary'].includes(ref.primary_type)).length
-})
-
-const totalBooks = computed(() => {
-  return references.value.filter(ref => ref.primary_type === 'book').length
-})
-
-const totalQuotes = computed(() => {
-  return references.value.reduce((sum, reference) => sum + ((reference as any).quotes_count || 0), 0)
-})
-
 const filteredReferences = computed(() => references.value)
 
-const tableColumns = [
-  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  {
-    header: 'Reference',
-    accessorKey: 'reference',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'min-w-60',
-        tableCell: 'min-w-60'
-      }
-    }
-  },
-  {
-    header: 'Type',
-    accessorKey: 'type',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'Release',
-    accessorKey: 'release_date',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-20',
-        tableCell: 'w-20'
-      }
-    }
-  },
-  {
-    header: 'Quotes',
-    accessorKey: 'quotes',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-20',
-        tableCell: 'w-20'
-      }
-    }
-  },
-  {
-    header: 'Created',
-    accessorKey: 'created',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-
-  {
-    header: '',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-16',
-        tableCell: 'w-16'
-      }
-    }
-  },
-]
-
 const getTypeIcon = (type: QuoteReferencePrimaryType) => {
-  const iconMap = {
-    book: 'i-ph-book',
-    film: 'i-ph-film-strip',
-    tv_series: 'i-ph-television',
-    music: 'i-ph-music-note',
-    speech: 'i-ph-microphone',
-    podcast: 'i-ph-microphone-stage',
-    interview: 'i-ph-chat-circle',
-    documentary: 'i-ph-video-camera',
-    media_stream: 'i-ph-play-circle',
-    writings: 'i-ph-article',
-    video_game: 'i-ph-game-controller',
-    other: 'i-ph-file'
-  }
+  const iconMap: Record<string, string> = { book: 'i-ph-book', film: 'i-ph-film-strip', tv_series: 'i-ph-television', music: 'i-ph-music-note', speech: 'i-ph-microphone', podcast: 'i-ph-microphone-stage', interview: 'i-ph-chat-circle', documentary: 'i-ph-video-camera', media_stream: 'i-ph-play-circle', writings: 'i-ph-article', video_game: 'i-ph-game-controller', other: 'i-ph-file' }
   return iconMap[type] || 'i-ph-file'
 }
 
 const loadReferences = async () => {
   try {
     loading.value = true
-
-    // Parse sort option - handle compound sort keys like 'release_date_desc'
-    const sortValue = selectedSort.value.value
-    const lastUnderscoreIndex = sortValue.lastIndexOf('_')
-    const sortBy = sortValue.substring(0, lastUnderscoreIndex)
-    const sortOrder = sortValue.substring(lastUnderscoreIndex + 1)
-
+    const sortValue = selectedSort.value.value; const lastUnderscoreIndex = sortValue.lastIndexOf('_')
+    const sortBy = sortValue.substring(0, lastUnderscoreIndex); const sortOrder = sortValue.substring(lastUnderscoreIndex + 1)
     const response = await $fetch('/api/admin/references', {
-      query: {
-        page: currentPage.value,
-        limit: pageSize.value,
-        search: searchQuery.value || undefined,
-        primary_type: selectedTypeFilter.value.value || undefined,
-        sort_by: sortBy,
-        sort_order: sortOrder.toUpperCase()
-      }
+      query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, primary_type: selectedTypeFilter.value.value || undefined, sort_by: sortBy, sort_order: sortOrder.toUpperCase() }
     })
-
-    references.value = response.data || []
-    totalReferences.value = response.pagination?.total || 0
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
-    clearHighlight()
-  } catch (error) {
-    showErrorToast(error, 'Failed to load references')
-  } finally {
-    loading.value = false
-  }
+    references.value = response.data || []; totalReferences.value = response.pagination?.total || 0
+    rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
+  } catch (error) { showErrorToast(error, 'Failed to load references') }
+  finally { loading.value = false; hasLoadedOnce.value = true }
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''
-  selectedTypeFilter.value = typeFilterOptions[0]
-  selectedSort.value = sortOptions[0]
-  currentPage.value = 1
-  // clear multi-select when filters change
-  rowSelection.value = {}
-  lastSelectedIndex.value = null
+  searchQuery.value = ''; selectedTypeFilter.value = typeFilterOptions[0]; selectedSort.value = sortOptions[0]
+  currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 
 const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
-  {
-    label: 'View Public Page',
-    leading: 'i-ph-eye',
-    onclick: () => viewReference(reference)
-  },
-  {
-    label: 'Preview enrichment',
-    leading: 'i-ph-magic-wand',
-    onclick: () => openEnrichmentPreview(reference)
-  },
-  ...(hasPendingEnrichment(reference)
-    ? [{
-        label: 'Open enrichment queue',
-        leading: 'i-ph-bell-ringing',
-        onclick: () => goToReferenceEnrichmentQueue(reference)
-      }]
-    : []),
-  {
-    label: 'Edit Reference',
-    leading: 'i-ph-pencil',
-    onclick: () => editReference(reference)
-  },
-  {},
-  {
-    label: 'Delete Reference',
-    leading: 'i-ph-trash',
-    onclick: () => deleteReference(reference)
-  }
+  { label: 'View Public Page', leading: 'i-ph-eye', onclick: () => viewReference(reference) },
+  { label: 'Preview enrichment', leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(reference) },
+  ...(hasPendingEnrichment(reference) ? [{ label: 'Open enrichment queue', leading: 'i-ph-bell-ringing', onclick: () => goToReferenceEnrichmentQueue(reference) }] : []),
+  { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+  {}, { label: 'Delete Reference', leading: 'i-ph-trash', onclick: () => deleteReference(reference) }
 ]
 
-const viewReference = (reference: QuoteReferenceWithMetadata) => {
-  navigateTo(`/references/${reference.id}`)
-}
-
+const viewReference = (reference: QuoteReferenceWithMetadata) => navigateTo(`/references/${reference.id}`)
 const hasPendingEnrichment = (reference: QuoteReferenceWithMetadata) => Number(reference.enrichment_pending_count || 0) > 0
-
-const goToReferenceEnrichmentQueue = (reference: QuoteReferenceWithMetadata) => {
-  navigateTo({
-    path: '/admin/enrichment',
-    query: {
-      entityType: 'reference',
-      entityId: String(reference.id),
-      status: 'completed',
-    }
-  })
-}
-
-const editReference = (reference: QuoteReferenceWithMetadata) => {
-  selectedReference.value = reference
-  showAddReferenceDialog.value = true
-}
-
-const deleteReference = async (reference: QuoteReferenceWithMetadata) => {
-  referenceToDelete.value = reference
-  showDeleteReferenceDialog.value = true
-}
+const goToReferenceEnrichmentQueue = (reference: QuoteReferenceWithMetadata) => navigateTo({ path: '/admin/enrichment', query: { entityType: 'reference', entityId: String(reference.id), status: 'completed' } })
+const editReference = (reference: QuoteReferenceWithMetadata) => { selectedReference.value = reference; showAddReferenceDialog.value = true }
+const deleteReference = async (reference: QuoteReferenceWithMetadata) => { referenceToDelete.value = reference; showDeleteReferenceDialog.value = true }
 
 const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata, preferredExternalId?: string) => {
-  enrichmentReferenceTarget.value = reference
-  enrichmentLoading.value = true
-  showEnrichmentDialog.value = true
-
+  enrichmentReferenceTarget.value = reference; enrichmentLoading.value = true; showEnrichmentDialog.value = true
   try {
     const previewUrl = `/api/admin/enrichment/references/${reference.id}/preview` as string
-    const response = await ($fetch as any)(previewUrl, {
-      method: 'POST',
-      body: preferredExternalId ? { preferredExternalId } : undefined,
-    }) as { data?: { job?: any, preview?: any } }
-
-    enrichmentPreview.value = response.data?.preview || null
-    enrichmentJobId.value = response.data?.job?.id || null
-    selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
-      ?.filter((proposal: any) => proposal.recommended)
-      ?.map((proposal: any) => proposal.field) || []
-
-    if (!enrichmentPreview.value) {
-    useToast().toast({
-      title: 'No preview available',
-      description: 'This reference could not be enriched automatically right now.',
-      toast: 'outline-warning'
-    })
-    }
-  } catch (error: any) {
-    showErrorToast(error, 'Enrichment preview failed')
-    showEnrichmentDialog.value = false
-  } finally {
-    enrichmentLoading.value = false
-  }
+    const response = await ($fetch as any)(previewUrl, { method: 'POST', body: preferredExternalId ? { preferredExternalId } : undefined }) as { data?: { job?: any, preview?: any } }
+    enrichmentPreview.value = response.data?.preview || null; enrichmentJobId.value = response.data?.job?.id || null
+    selectedEnrichmentFields.value = enrichmentPreview.value?.proposals?.filter((p: any) => p.recommended)?.map((p: any) => p.field) || []
+    if (!enrichmentPreview.value) useToast().toast({ title: 'No preview available', description: 'This reference could not be enriched automatically right now.', toast: 'outline-warning' })
+  } catch (error: any) { showErrorToast(error, 'Enrichment preview failed'); showEnrichmentDialog.value = false }
+  finally { enrichmentLoading.value = false }
 }
 
 const toggleEnrichmentField = (field: string, value: boolean | 'indeterminate') => {
-  if (value === true) {
-    if (!selectedEnrichmentFields.value.includes(field)) {
-      selectedEnrichmentFields.value = [...selectedEnrichmentFields.value, field]
-    }
-    return
-  }
-
+  if (value === true) { if (!selectedEnrichmentFields.value.includes(field)) selectedEnrichmentFields.value = [...selectedEnrichmentFields.value, field]; return }
   selectedEnrichmentFields.value = selectedEnrichmentFields.value.filter(item => item !== field)
 }
-
-const selectRecommendedEnrichmentFields = () => {
-  selectedEnrichmentFields.value = enrichmentPreview.value?.proposals
-    ?.filter((proposal: any) => proposal.recommended)
-    ?.map((proposal: any) => proposal.field) || []
-}
-
-const closeEnrichmentDialog = () => {
-  showEnrichmentDialog.value = false
-  enrichmentPreview.value = null
-  enrichmentJobId.value = null
-  selectedEnrichmentFields.value = []
-  enrichmentReferenceTarget.value = null
-}
-
-const handleEnrichmentDialogOpenChange = (open: boolean) => {
-  if (!open) {
-    closeEnrichmentDialog()
-    return
-  }
-
-  showEnrichmentDialog.value = true
-}
-
-const applySelectedEnrichment = async () => {
-  if (!enrichmentJobId.value || selectedEnrichmentFields.value.length === 0) return
-
-  enrichmentApplying.value = true
-  try {
-    await $fetch(`/api/admin/enrichment/jobs/${enrichmentJobId.value}/apply`, {
-      method: 'POST',
-      body: {
-        fields: selectedEnrichmentFields.value,
-      }
-    })
-
-    closeEnrichmentDialog()
-    loadReferences()
-  } catch (error: any) {
-    showErrorToast(error, 'Apply failed')
-  } finally {
-    enrichmentApplying.value = false
-  }
-}
+const selectRecommendedEnrichmentFields = () => { selectedEnrichmentFields.value = enrichmentPreview.value?.proposals?.filter((p: any) => p.recommended)?.map((p: any) => p.field) || [] }
+const closeEnrichmentDialog = () => { showEnrichmentDialog.value = false; enrichmentPreview.value = null; enrichmentJobId.value = null; selectedEnrichmentFields.value = []; enrichmentReferenceTarget.value = null }
+const handleEnrichmentDialogOpenChange = (open: boolean) => { if (!open) { closeEnrichmentDialog(); return }; showEnrichmentDialog.value = true }
 
 const openEnrichmentConfigDialog = async () => {
-  enrichmentConfigLoading.value = true
-  showEnrichmentConfigDialog.value = true
-
+  enrichmentConfigLoading.value = true; showEnrichmentConfigDialog.value = true
   try {
     const configUrl = '/api/admin/enrichment/config' as string
-    const response = await ($fetch as any)(configUrl) as {
-      data?: {
-        updatedAt: string | null
-        values: Record<string, string | number | boolean>
-        sources: Record<string, 'kv' | 'env' | 'default' | 'none'>
-      }
-    }
-
-    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null
-    enrichmentConfigSources.value = response.data?.sources || {}
-    enrichmentConfigForm.scheduleEnabled = Boolean(response.data?.values?.scheduleEnabled)
-    enrichmentConfigForm.processEnabled = Boolean(response.data?.values?.processEnabled)
-    enrichmentConfigForm.scheduleBatchSize = Number(response.data?.values?.scheduleBatchSize ?? 25)
-    enrichmentConfigForm.processBatchSize = Number(response.data?.values?.processBatchSize ?? 3)
-    enrichmentConfigForm.authorStaleDays = Number(response.data?.values?.authorStaleDays ?? 180)
-    enrichmentConfigForm.referenceStaleDays = Number(response.data?.values?.referenceStaleDays ?? 365)
-    enrichmentConfigForm.reviewGraceDays = Number(response.data?.values?.reviewGraceDays ?? 14)
-    enrichmentConfigForm.authorMatchMinScore = Number(response.data?.values?.authorMatchMinScore ?? 60)
-    enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58)
-    enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
-  } catch (error: any) {
-    showErrorToast(error, 'Failed to load settings')
-    showEnrichmentConfigDialog.value = false
-  } finally {
-    enrichmentConfigLoading.value = false
-  }
+    const response = await ($fetch as any)(configUrl) as { data?: { updatedAt: string | null; values: Record<string, string | number | boolean>; sources: Record<string, 'kv' | 'env' | 'default' | 'none'> } }
+    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null; enrichmentConfigSources.value = response.data?.sources || {}
+    enrichmentConfigForm.scheduleEnabled = Boolean(response.data?.values?.scheduleEnabled); enrichmentConfigForm.processEnabled = Boolean(response.data?.values?.processEnabled)
+    enrichmentConfigForm.scheduleBatchSize = Number(response.data?.values?.scheduleBatchSize ?? 25); enrichmentConfigForm.processBatchSize = Number(response.data?.values?.processBatchSize ?? 3)
+    enrichmentConfigForm.authorStaleDays = Number(response.data?.values?.authorStaleDays ?? 180); enrichmentConfigForm.referenceStaleDays = Number(response.data?.values?.referenceStaleDays ?? 365)
+    enrichmentConfigForm.reviewGraceDays = Number(response.data?.values?.reviewGraceDays ?? 14); enrichmentConfigForm.authorMatchMinScore = Number(response.data?.values?.authorMatchMinScore ?? 60)
+    enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58); enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
+  } catch (error: any) { showErrorToast(error, 'Failed to load settings'); showEnrichmentConfigDialog.value = false }
+  finally { enrichmentConfigLoading.value = false }
 }
 
 const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
   enrichmentConfigSaving.value = true
   try {
     const configUrl = '/api/admin/enrichment/config' as string
-    const response = await ($fetch as any)(configUrl, {
-      method: 'POST',
-      body: {
-        scheduleEnabled: form.scheduleEnabled,
-        processEnabled: form.processEnabled,
-        scheduleBatchSize: Number(form.scheduleBatchSize),
-        processBatchSize: Number(form.processBatchSize),
-        authorStaleDays: Number(form.authorStaleDays),
-        referenceStaleDays: Number(form.referenceStaleDays),
-        reviewGraceDays: Number(form.reviewGraceDays),
-        authorMatchMinScore: Number(form.authorMatchMinScore),
-        referenceMatchMinScore: Number(form.referenceMatchMinScore),
-        ambiguousMatchGap: Number(form.ambiguousMatchGap),
-      }
-    }) as {
-      data?: {
-        updatedAt: string | null
-        values: Record<string, string | number | boolean>
-        sources: Record<string, 'kv' | 'env' | 'default' | 'none'>
-      }
-    }
-
-    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null
-    enrichmentConfigSources.value = response.data?.sources || {}
-    useToast().toast({
-      title: 'Enrichment settings saved',
-      description: 'KV overrides are now active for the enrichment scheduler and processor.',
-      toast: 'soft-success'
-    })
-    showEnrichmentConfigDialog.value = false
-  } catch (error: any) {
-    showErrorToast(error, 'Save failed')
-  } finally {
-    enrichmentConfigSaving.value = false
-  }
+    const response = await ($fetch as any)(configUrl, { method: 'POST', body: { scheduleEnabled: form.scheduleEnabled, processEnabled: form.processEnabled, scheduleBatchSize: Number(form.scheduleBatchSize), processBatchSize: Number(form.processBatchSize), authorStaleDays: Number(form.authorStaleDays), referenceStaleDays: Number(form.referenceStaleDays), reviewGraceDays: Number(form.reviewGraceDays), authorMatchMinScore: Number(form.authorMatchMinScore), referenceMatchMinScore: Number(form.referenceMatchMinScore), ambiguousMatchGap: Number(form.ambiguousMatchGap) } }) as { data?: { updatedAt: string | null; values: Record<string, string | number | boolean>; sources: Record<string, 'kv' | 'env' | 'default' | 'none'> } }
+    enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null; enrichmentConfigSources.value = response.data?.sources || {}
+    useToast().toast({ title: 'Enrichment settings saved', description: 'KV overrides are now active for the enrichment scheduler and processor.', toast: 'soft-success' }); showEnrichmentConfigDialog.value = false
+  } catch (error: any) { showErrorToast(error, 'Save failed') }
+  finally { enrichmentConfigSaving.value = false }
 }
 
-const onReferenceAdded = () => {
-  showAddReferenceDialog.value = false
-  selectedReference.value = undefined
-  loadReferences()
+const applySelectedEnrichment = async () => {
+  if (!enrichmentJobId.value || selectedEnrichmentFields.value.length === 0) return
+  enrichmentApplying.value = true
+  try { await $fetch(`/api/admin/enrichment/jobs/${enrichmentJobId.value}/apply`, { method: 'POST', body: { fields: selectedEnrichmentFields.value } }); closeEnrichmentDialog(); loadReferences() }
+  catch (error: any) { showErrorToast(error, 'Apply failed') }
+  finally { enrichmentApplying.value = false }
 }
 
-const onReferenceUpdated = () => {
-  showAddReferenceDialog.value = false
-  selectedReference.value = undefined
-  loadReferences()
+const onReferenceAdded = () => { showAddReferenceDialog.value = false; selectedReference.value = undefined; loadReferences() }
+const onReferenceUpdated = () => { showAddReferenceDialog.value = false; selectedReference.value = undefined; loadReferences() }
+const onReferenceDeleted = () => { showDeleteReferenceDialog.value = false; referenceToDelete.value = null; if (references.value.length <= 1 && currentPage.value > 1) currentPage.value = currentPage.value - 1; loadReferences() }
+
+const convertToQuoteReference = (ref: QuoteReferenceWithMetadata | null | undefined): QuoteReference | undefined => {
+  if (!ref) return undefined; const { quotes_count, is_liked, ...quoteReference } = ref; return { ...quoteReference, urls: JSON.stringify(quoteReference.urls) }
 }
 
-const onReferenceDeleted = () => {
-  showDeleteReferenceDialog.value = false
-  referenceToDelete.value = null
-  if (references.value.length <= 1 && currentPage.value > 1) {
-    currentPage.value = currentPage.value - 1
-  }
-  loadReferences()
-}
+const formatYear = (dateString: string | null | undefined) => { const date = parseDateInput(dateString); if (!date) return '\u2014'; return String(date.getFullYear()) }
+
+watchDebounced([currentPage, searchQuery, selectedTypeFilter, selectedSort], () => { loadReferences() }, { debounce: 300 })
+onMounted(() => { loadReferences() })
 
 const confirmBulkDelete = async () => {
   if (selectedIds.value.length === 0) return
   bulkProcessing.value = true
   try {
     const ids = [...selectedIds.value]
-    const results = await Promise.allSettled(
-      ids.map(id => $fetch(`/api/admin/references/${id}`, { method: 'DELETE' }))
-    )
-    const failed = results.filter(r => r.status === 'rejected').length
-    const succeeded = results.length - failed
+    const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/references/${id}`, { method: 'DELETE' })))
+    const failed = results.filter(r => r.status === 'rejected').length; const succeeded = results.length - failed
     useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} reference${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
-  } catch (e) {
-    showErrorToast(e, 'Bulk delete failed')
-  } finally {
-    bulkProcessing.value = false
-    showBulkDeleteDialog.value = false
-    rowSelection.value = {}
-    selectionMode.value = false
-    loadReferences()
-  }
+  } catch (e) { showErrorToast(e, 'Bulk delete failed') }
+  finally { bulkProcessing.value = false; showBulkDeleteDialog.value = false; rowSelection.value = {}; loadReferences() }
 }
-
-// Utility function to convert QuoteReferenceWithMetadata to QuoteReference
-const convertToQuoteReference = (ref: QuoteReferenceWithMetadata | null | undefined): QuoteReference | undefined => {
-  if (!ref) return undefined
-
-  // Extract only the properties that belong to QuoteReference
-  const { quotes_count, is_liked, ...quoteReference } = ref;
-
-  return {
-    ...quoteReference,
-    urls: JSON.stringify(quoteReference.urls)
-  }
-}
-
-const formatYear = (dateString: string | null | undefined) => {
-  const date = parseDateInput(dateString)
-  if (!date) return '—'
-  return String(date.getFullYear())
-}
-
-watchDebounced([currentPage, searchQuery, selectedTypeFilter, selectedSort], () => {
-  loadReferences()
-}, { debounce: 300 })
-
-onMounted(() => {
-  loadReferences()
-})
 </script>
 
 <style scoped>
-.references-table-container {
-  max-height: calc(100vh - 13rem);
-  max-width: calc(100vw - 8rem);
-}
-
-:deep(.table-header tr) {
-  border-bottom: none;
-}
-
-.references-table-container :deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-.references-table-container :deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
 </style>

@@ -1,249 +1,148 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <div class="flex-1 flex flex-col">
-      <div class="group tags-table-container flex-1 overflow-auto border rounded-2">
-        <NTable
-          :columns="tableColumns"
-          :data="tags"
-          :loading="loading"
-          :una="{
-            tableRoot: '!overflow-visible border-none',
-            scrollAreaRoot: '!overflow-visible',
-            table: '!w-auto min-w-full',
-            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-            tableBody: 'bg-white dark:bg-[#0C0A09]'
-          }"
-          :_table-row="(row) => {
-            if (!row) return {}
-            const rowIdx = tags.findIndex(t => t.id === row.id)
-            const isHighlighted = rowIdx === highlightedRowIndex
-            const isSelected = !!rowSelection[row.id]
-            if (!isHighlighted && !isSelected) return {}
-            const classes = []
-              if (isHighlighted && isSelected) {
-                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
-                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
-              } else if (isHighlighted) {
-                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
-                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
-              } else if (isSelected) {
-                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
-                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
-              }
-            return {
-              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
-              class: classes.join(' ')
-            }
-          }"
-          manual-pagination
-          empty-text="No tags found"
-          empty-icon="i-ph-hash"
-        >
-          <template #select-header>
-            <div>
-              <NCheckbox
-                checkbox="gray"
-                :model-value="allSelected"
-                @update:model-value="toggleAllSelection"
-              />
-            </div>
-          </template>
-
-          <template #select-cell="{ cell }">
-            <div class="items-center justify-center" :class="[
-              Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
-              'group-hover:flex',
-            ]">
-              <NCheckbox
-                checkbox="gray"
-                :model-value="!!rowSelection[cell.row.original.id]"
-                @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
-              />
-            </div>
-          </template>
-
-          <template #name-header>
-            <div class="flex items-center gap-2">
-              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
-              <div class="w-102">
-                <NInput
-                  v-model="searchQuery"
-                  placeholder="Search tags by name, description, or category..."
-                  leading="i-ph-magnifying-glass"
-                  size="md"
-                  :loading="loading"
-                  :trailing="searchQuery ? 'i-ph-x' : undefined"
-                  :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                  @trailing="resetFilters"
-                />
-              </div>
-
-              <div>
-                <NSelect
-                  v-model="selectedSort"
-                  :items="sortOptions"
-                  placeholder="Sort by"
-                  size="sm"
-                  item-key="label"
-                  value-key="label"
-                />
-              </div>
-            </div>
-          </template>
-
-          <template #name-cell="{ cell }">
-            <div>
-              <div class="flex items-center gap-2 min-w-0">
-                <BlossomColorPicker
-                  :value="hexToBlossomValue(cell.row.original.color)"
-                  @change="(color) => updateTagColor(cell.row.original, color)"
-                  :colors="BLOSSOM_PALETTE"
-                  :show-alpha-slider="false"
-                  :core-size="18"
-                  :petal-size="18"
-                  class="relative top-0.6"
-                />
-                <span
-                  class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0"
-                  :style="{ '--hover-text': getContrastColor(cell.row.original.color) === 'white' ? '#FAFAF9' : '#0C0A09' }"
-                  @click="editTag(cell.row.original)"
-                >
-                  <span class="tag-name relative z-1 truncate text-sm font-medium transition-colors duration-300">
-                    #{{ cell.row.original.name }}
-                  </span>
-                  <span
-                    class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0"
-                    :style="{ backgroundColor: cell.row.original.color }"
-                  />
-                </span>
-              </div>
-              <NButton
-                btn="linkg-gray"
-                size="xs"
-                label="See the tag page"
-                class="ml-3 hover:underline decoration-offset-4 shrink-0 opacity-50 hover:opacity-100 transition-opacity"
-                @click.stop="navigateTo(`/tags/${encodeURIComponent(cell.row.original.name)}`)"
-              />
-            </div>
-          </template>
-
-          <template #category-cell="{ cell }">
-            <span class="text-xs text-gray-600 dark:text-gray-400">{{ cell.row.original.category || '—' }}</span>
-          </template>
-
-          <template #quotes-cell="{ cell }">
-            <span class="text-sm">{{ cell.row.original.quotes_count || 0 }}</span>
-          </template>
-
-          <template #created-cell="{ cell }">
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(cell.row.original.created_at) }}</span>
-          </template>
-
-
-          <!-- Actions Column -->
-          <template #actions-header>
-            <div class="flex items-center justify-center space-x-1">
-              <span v-if="selectedIds.length > 0">{{ selectedIds.length }}</span>
-              <NTooltip :_tooltip-content="{
-                class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50',
-              }">
-                <template #default>
-                  <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                </template>
-                <template #content>
-                  <div class="space-y-2">
-                    <div class="flex">
-                      <NBadge badge="solid-gray" size="xs" icon="i-ph-selection-background" class="w-full">
-                        {{ totalTags }} Total Tags
-                      </NBadge>
-                    </div>
-                  </div>
-                </template>
-              </NTooltip>
-
-              <NDropdownMenu :items="headerActions">
-                <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-              </NDropdownMenu>
-            </div>
-          </template>
-
-          <template #actions-cell="{ cell }">
-            <NDropdownMenu :items="getTagActions(cell.row.original)">
-              <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
-            </NDropdownMenu>
-          </template>
-        </NTable>
-      </div>
-
-      <div class="flex-shrink-0 flex items-center justify-between p-4">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }} • {{ totalTags }} total tags
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+            Tags
+          </h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ totalTags }} {{ totalTags === 1 ? 'tag' : 'tags' }}
+          </p>
         </div>
-        <NPagination v-model:page="currentPage" :total="totalTags" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" pagination-selected="solid-indigo" />
+        <div class="hidden md:flex items-center gap-3">
+          <input v-model="searchQuery" type="text" placeholder="Search tags by name, description, or category..." class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
+          <select v-model="selectedSort" class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+            <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <OutlinedButton @click="showAddDialog = true">+ Add Tag</OutlinedButton>
+          <OutlinedButton @click="showBackfillDialog = true">Backfill</OutlinedButton>
+        </div>
+      </div>
+      <div class="md:hidden mt-4">
+        <input v-model="searchQuery" type="text" placeholder="Search tags..." class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400" />
       </div>
     </div>
+
+    <!-- Loading -->
+    <div v-if="loading && tags.length === 0" class="space-y-5">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="tags.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? 'No matching tags found' : 'No tags yet' }}</p>
+    </div>
+
+    <!-- Table -->
+    <div v-else>
+      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
+        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">Delete All</button>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
+      </div>
+
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="w-40 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Category</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quotes</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+              <th class="w-10 px-3 py-3 text-left"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr v-for="(tag, idx) in tags" :key="tag.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[tag.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+              <td class="px-3 py-3">
+                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[tag.id]" @click="e => handleRowCheckboxClick(e, idx, tag.id)" />
+                </div>
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <BlossomColorPicker :value="hexToBlossomValue(tag.color)" @change="(color) => updateTagColor(tag, color)" :colors="BLOSSOM_PALETTE" :show-alpha-slider="false" :core-size="18" :petal-size="18" class="relative top-0.6" />
+                  <span class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0" :style="{ '--hover-text': getContrastColor(tag.color) === 'white' ? '#FAFAF9' : '#0C0A09' }" @click="editTag(tag)">
+                    <span class="tag-name relative z-1 truncate font-sans text-sm font-500 transition-colors duration-300">#{{ tag.name }}</span>
+                    <span class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0" :style="{ backgroundColor: tag.color }" />
+                  </span>
+                  <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-1 opacity-0 group-hover:opacity-100" @click.stop="navigateTo(`/tags/${encodeURIComponent(tag.name)}`)">View</button>
+                </div>
+              </td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-600 dark:text-gray-400">{{ tag.category || '\u2014' }}</td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ tag.quotes_count || 0 }}</td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(tag.created_at) }}</td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="getTagActions(tag)">
+                  <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                </NDropdownMenu>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+          Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalTags }} {{ totalTags === 1 ? 'tag' : 'tags' }}
+        </span>
+        <div class="flex items-center gap-3">
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+        </div>
+      </div>
+      <div v-else class="pt-4 text-center">
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+      </div>
+    </div>
+
+    <AddTagDialog v-model="showAddDialog" :edit-tag="selectedTag" @tag-added="reloadAfterModal" @tag-updated="reloadAfterModal" />
+    <DeleteTagDialog v-model="showDeleteDialog" :tag="tagToDelete" @tag-deleted="reloadAfterDelete" />
+
+    <NDialog v-model:open="showBackfillDialog">
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Backfill Quote Tags</h3></template>
+      <div class="space-y-4">
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Run the server-side matcher to assign tags to existing quotes.</p>
+        <div>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Status Scope</label>
+          <select v-model="backfillStatus" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none">
+            <option v-for="opt in backfillStatusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+        </div>
+        <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" v-model="backfillOnlyUntagged" class="accent-gray-700 dark:accent-gray-300" /> Only untagged quotes</label>
+        <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" v-model="backfillDryRun" class="accent-gray-700 dark:accent-gray-300" /> Dry run (preview only)</label>
+        <div class="flex items-center gap-3">
+          <label class="font-sans text-sm text-gray-700 dark:text-gray-300">Limit:</label>
+          <input type="number" v-model.number="backfillLimit" :min="1" :max="5000" class="w-24 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1 text-gray-900 dark:text-gray-100 focus:outline-none" />
+          <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300"><input type="checkbox" v-model="backfillResetExisting" class="accent-gray-700 dark:accent-gray-300" /> Reset existing tags first</label>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="backfillProcessing" @click="showBackfillDialog = false">Cancel</button>
+          <OutlinedButton :disabled="backfillProcessing" @click="triggerBackfill">Run Backfill</OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
+
+    <NDialog v-model:open="showBulkDeleteDialog">
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Tag' : 'Tags' }}</h3></template>
+      <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'tag' : 'tags' }}. This will remove them from associated quotes.</p>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
+          <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
   </div>
-
-  <AddTagDialog v-model="showAddDialog" :edit-tag="selectedTag" @tag-added="reloadAfterModal" @tag-updated="reloadAfterModal" />
-  <DeleteTagDialog v-model="showDeleteDialog" :tag="tagToDelete" @tag-deleted="reloadAfterDelete" />
-
-  <NDialog v-model:open="showBackfillDialog">
-    <template #header>
-      <h3 class="text-lg font-semibold">Backfill Quote Tags</h3>
-    </template>
-
-    <div class="space-y-4">
-      <p class="text-sm text-gray-600 dark:text-gray-400">
-        Run the server-side matcher to assign tags to existing quotes.
-      </p>
-
-      <div>
-        <label class="block text-sm font-medium mb-1">Status Scope</label>
-        <NSelect
-          v-model="backfillStatus"
-          :items="backfillStatusOptions"
-          item-key="label"
-          value-key="label"
-          size="sm"
-        />
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <NCheckbox v-model="backfillOnlyUntagged" label="Only untagged quotes" />
-        <NCheckbox v-model="backfillDryRun" label="Dry run (preview only)" />
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <NNumberField v-model="backfillLimit" :min="1" :max="5000" />
-        <NCheckbox v-model="backfillResetExisting" label="Reset existing tags first" />
-      </div>
-    </div>
-
-    <template #footer>
-      <div class="mt-6 flex justify-end gap-3">
-        <NButton btn="link-gray" :disabled="backfillProcessing" @click="showBackfillDialog = false">Cancel</NButton>
-        <NButton btn="soft-blue" :loading="backfillProcessing" @click="triggerBackfill">
-          Run Backfill
-        </NButton>
-      </div>
-    </template>
-  </NDialog>
-
-  <!-- Bulk Delete Confirmation -->
-  <NDialog v-model:open="showBulkDeleteDialog">
-    <template #header>
-      <h3 class="text-lg font-semibold">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Tag' : 'Tags' }}</h3>
-    </template>
-    <p class="text-gray-600 dark:text-gray-400 mb-4">
-      You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'tag' : 'tags' }}. This will remove them from associated quotes.
-    </p>
-    <template #footer>
-      <div class="flex justify-end gap-3">
-        <NButton btn="ghost" @click="showBulkDeleteDialog = false">Cancel</NButton>
-        <NButton btn="soft-red" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</NButton>
-      </div>
-    </template>
-  </NDialog>
 </template>
 
 <script setup lang="ts">
@@ -275,10 +174,8 @@ const selectedTag = ref<Tag | null>(null)
 const showDeleteDialog = ref(false)
 const tagToDelete = ref<Pick<Tag,'id'|'name'> | null>(null)
 
-// multi-select state
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
-const bulkOpen = ref(false)
 const bulkProcessing = ref(false)
 const showBulkDeleteDialog = ref(false)
 
@@ -291,240 +188,99 @@ const backfillLimit = ref(2000)
 const backfillStatus = ref({ label: 'Approved quotes', value: 'approved' })
 
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
-watch(selectedIds, (ids) => { bulkOpen.value = ids.length > 0 }, { immediate: true })
 
-const clearSelection = () => {
-  rowSelection.value = {}
-  lastSelectedIndex.value = null
-}
-
+const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 const selectAllOnPage = () => {
   const allSelected = tags.value.length > 0 && tags.value.every(t => !!rowSelection.value[t.id])
   if (allSelected) rowSelection.value = {}
   else tags.value.forEach(t => (rowSelection.value[t.id] = true))
 }
 
-const isAnyDialogOpen = computed(() =>
-  showAddDialog.value || showDeleteDialog.value || showBulkDeleteDialog.value || showBackfillDialog.value
-)
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => { const total = tags.value.length; const count = selectedIds.value.length; if (total === 0) return false; if (count === total) return true; if (count > 0) return 'indeterminate'; return false },
+  set: (v) => { const newSelection: Record<number, boolean> = {}; if (v === true) tags.value.forEach(t => { newSelection[t.id] = true }); rowSelection.value = newSelection; lastSelectedIndex.value = null }
+})
+
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) { const newSel: Record<number, boolean> = {}; tags.value.forEach(t => { newSel[t.id] = true }); rowSelection.value = newSel }
+  else { rowSelection.value = {} }
+  lastSelectedIndex.value = null
+}
+
+const isAnyDialogOpen = computed(() => showAddDialog.value || showDeleteDialog.value || showBulkDeleteDialog.value || showBackfillDialog.value)
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => tags.value.length,
-  onSelectRow: (index: number) => {
-    const tag = tags.value[index]
-    if (tag) {
-      rowSelection.value[tag.id] = !rowSelection.value[tag.id]
-      lastSelectedIndex.value = null
-    }
-  },
+  onSelectRow: (index: number) => { const tag = tags.value[index]; if (tag) { rowSelection.value[tag.id] = !rowSelection.value[tag.id]; lastSelectedIndex.value = null } },
   isDialogOpen: () => isAnyDialogOpen.value,
   isDropdownOpen: () => false
 })
 
-const highlightedTag = computed<any | null>(() => {
-  if (highlightedRowIndex.value === null) return null
-  return tags.value[highlightedRowIndex.value] ?? null
-})
+const highlightedTag = computed<any | null>(() => { if (highlightedRowIndex.value === null) return null; return tags.value[highlightedRowIndex.value] ?? null })
 
 useAdminKeyboardShortcuts({
-  selectAllOnPage,
-  clearSelection,
-  hasSelection: () => selectedIds.value.length > 0,
-  isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false,
+  selectAllOnPage, clearSelection, hasSelection: () => selectedIds.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value, isDropdownOpen: () => false,
   onDelete: () => { showBulkDeleteDialog.value = true },
-  onConfirmDialog: () => {
-    if (showBulkDeleteDialog.value) confirmBulkDelete()
-    else if (showDeleteDialog.value) { /* handled by delete dialog */ }
-  },
+  onConfirmDialog: () => { if (showBulkDeleteDialog.value) confirmBulkDelete() },
   highlightedRowIndex: () => highlightedRowIndex.value,
-  onSingleEdit: () => {
-    if (highlightedTag.value) { selectedTag.value = highlightedTag.value; showAddDialog.value = true }
-  },
-  onSingleView: () => {
-    if (highlightedTag.value) navigateTo(`/tags/${encodeURIComponent(highlightedTag.value.name)}`)
-  },
-  onSingleDelete: () => {
-    if (highlightedTag.value) { tagToDelete.value = highlightedTag.value; showDeleteDialog.value = true }
-  }
+  onSingleEdit: () => { if (highlightedTag.value) { selectedTag.value = highlightedTag.value; showAddDialog.value = true } },
+  onSingleView: () => { if (highlightedTag.value) navigateTo(`/tags/${encodeURIComponent(highlightedTag.value.name)}`) },
+  onSingleDelete: () => { if (highlightedTag.value) { tagToDelete.value = highlightedTag.value; showDeleteDialog.value = true } }
 })
 
 const sortOptions = [
-  { label: 'Name A-Z', value: 'name_asc' },
-  { label: 'Name Z-A', value: 'name_desc' },
-  { label: 'Most Recent', value: 'created_at_desc' },
-  { label: 'Oldest First', value: 'created_at_asc' },
+  { label: 'Name A-Z', value: 'name_asc' }, { label: 'Name Z-A', value: 'name_desc' },
+  { label: 'Most Recent', value: 'created_at_desc' }, { label: 'Oldest First', value: 'created_at_asc' },
   { label: 'Most Quotes', value: 'quotes_desc' }
 ]
 
 const backfillStatusOptions = [
-  { label: 'Approved quotes', value: 'approved' },
-  { label: 'Pending quotes', value: 'pending' },
-  { label: 'Draft quotes', value: 'draft' },
-  { label: 'Rejected quotes', value: 'rejected' },
-  { label: 'All quotes', value: 'all' }
-]
-
-const tableColumns = [
-  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  { header: 'Name', accessorKey: 'name', enableSorting: false, meta: { una: { tableHead: 'min-w-48', tableCell: 'min-w-48' } } },
-  { header: 'Category', accessorKey: 'category', enableSorting: false, meta: { una: { tableHead: 'w-40', tableCell: 'w-40' } } },
-  { header: 'Quotes', accessorKey: 'quotes', enableSorting: false, meta: { una: { tableHead: 'w-20', tableCell: 'w-20' } } },
-  { header: 'Created', accessorKey: 'created', enableSorting: false, meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } } },
-  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-16', tableCell: 'w-16' } } },
+  { label: 'Approved quotes', value: 'approved' }, { label: 'Pending quotes', value: 'pending' },
+  { label: 'Draft quotes', value: 'draft' }, { label: 'Rejected quotes', value: 'rejected' }, { label: 'All quotes', value: 'all' }
 ]
 
 const totalPages = computed(() => Math.ceil(totalTags.value / pageSize.value))
 
-const headerActions = computed(() => {
-  const actions = []
-  if (selectedIds.value.length > 0) {
-    actions.push({
-      label: 'Delete Selected',
-      leading: 'i-ph-trash',
-      shortcut: 'D',
-      onclick: () => { showBulkDeleteDialog.value = true }
-    })
-  }
-
-  if (actions.length > 0) actions.push({}) // divider
-  actions.push({
-    label: 'Add New Tag',
-    leading: 'i-ph-plus',
-    onclick: () => { showAddDialog.value = true }
-  })
-  actions.push({
-    label: 'Backfill Tags',
-    leading: 'i-ph-arrows-clockwise',
-    onclick: () => { showBackfillDialog.value = true }
-  })
-  actions.push({})
-  actions.push({
-    label: 'Refresh',
-    leading: 'i-ph-arrows-clockwise',
-    onclick: () => loadTags()
-  })
-  actions.push({
-    label: 'Reset Filters',
-    leading: 'i-ph-x',
-    onclick: () => resetFilters()
-  })
-  return actions
-})
-
-const allSelected = computed<boolean | 'indeterminate'>({
-  get: () => {
-    const total = tags.value.length
-    const count = selectedIds.value.length
-    if (total === 0) return false
-    if (count === total) return true
-    if (count > 0) return 'indeterminate'
-    return false
-  },
-  set: (v) => {
-    const newSelection: Record<number, boolean> = {}
-    if (v === true) {
-      tags.value.forEach(t => { newSelection[t.id] = true })
-    }
-    rowSelection.value = newSelection
-    lastSelectedIndex.value = null // reset range anchor when toggling all
-  }
-})
-
-const toggleAllSelection = (v: boolean | 'indeterminate') => {
-  if (v) {
-    const newSelection: Record<number, boolean> = {}
-    tags.value.forEach(t => { newSelection[t.id] = true })
-    rowSelection.value = newSelection
-  } else {
-    rowSelection.value = {}
-  }
-  lastSelectedIndex.value = null
-}
-
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
-  const currently = !!rowSelection.value[id]
-  const newVal = !currently
-
+  const currently = !!rowSelection.value[id]; const newVal = !currently
   if (event.shiftKey && lastSelectedIndex.value !== null) {
-    const start = Math.min(lastSelectedIndex.value, index)
-    const end = Math.max(lastSelectedIndex.value, index)
-    for (let i = start; i <= end; i += 1) {
-      const row = tags.value[i]
-      if (row) rowSelection.value[row.id] = newVal
-    }
-  } else {
-    rowSelection.value[id] = newVal
-  }
-
+    const start = Math.min(lastSelectedIndex.value, index); const end = Math.max(lastSelectedIndex.value, index)
+    for (let i = start; i <= end; i += 1) { const row = tags.value[i]; if (row) rowSelection.value[row.id] = newVal }
+  } else { rowSelection.value[id] = newVal }
   lastSelectedIndex.value = index
 }
 
 const loadTags = async () => {
   try {
     loading.value = true
-    const sortValue = selectedSort.value.value
-    const lastUnderscoreIndex = sortValue.lastIndexOf('_')
-    const sortBy = sortValue.substring(0, lastUnderscoreIndex)
-    const sortOrder = sortValue.substring(lastUnderscoreIndex + 1).toUpperCase()
-
-    const res = await $fetch('/api/admin/tags', {
-      query: {
-        page: currentPage.value,
-        limit: pageSize.value,
-        search: searchQuery.value || undefined,
-        sort_by: sortBy,
-        sort_order: sortOrder
-      }
-    })
-    tags.value = res.data || []
-    totalTags.value = res.pagination?.total || 0
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
-    clearHighlight()
-  } catch (e) {
-    showErrorToast(e, 'Failed to load tags')
-  } finally {
-    loading.value = false
-  }
+    const sortValue = selectedSort.value.value; const lastUnderscoreIndex = sortValue.lastIndexOf('_')
+    const sortBy = sortValue.substring(0, lastUnderscoreIndex); const sortOrder = sortValue.substring(lastUnderscoreIndex + 1).toUpperCase()
+    const res = await $fetch('/api/admin/tags', { query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, sort_by: sortBy, sort_order: sortOrder } })
+    tags.value = res.data || []; totalTags.value = res.pagination?.total || 0
+    rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
+  } catch (e) { showErrorToast(e, 'Failed to load tags') }
+  finally { loading.value = false }
 }
 
-const resetFilters = () => {
-  searchQuery.value = ''
-  selectedSort.value = sortOptions[0]
-  currentPage.value = 1
-  // clear multi-select when filters change
-  rowSelection.value = {}
-  lastSelectedIndex.value = null
-}
+const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const getTagActions = (tag: any) => [
   { label: 'View Public Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/tags/${encodeURIComponent(tag.name)}`) },
   { label: 'Edit Tag', leading: 'i-ph-pencil', onclick: () => { selectedTag.value = tag; showAddDialog.value = true } },
-  {},
-  { label: 'Delete Tag', leading: 'i-ph-trash', onclick: () => { tagToDelete.value = tag; showDeleteDialog.value = true } }
+  {}, { label: 'Delete Tag', leading: 'i-ph-trash', onclick: () => { tagToDelete.value = tag; showDeleteDialog.value = true } }
 ]
 
 const editTag = (tag: any) => { selectedTag.value = tag; showAddDialog.value = true }
 
 const updateTagColor = async (tag: any, color: BlossomColorPickerColor) => {
-  const prev = tag.color
-  tag.color = color.hex
-  try {
-    await $fetch(`/api/admin/tags/${tag.id}`, { method: 'PUT', body: { color: color.hex } })
-  } catch (e) {
-    tag.color = prev
-    showErrorToast(e, 'Failed to update color')
-  }
+  const prev = tag.color; tag.color = color.hex
+  try { await $fetch(`/api/admin/tags/${tag.id}`, { method: 'PUT', body: { color: color.hex } }) }
+  catch (e) { tag.color = prev; showErrorToast(e, 'Failed to update color') }
 }
 
 const reloadAfterModal = () => { showAddDialog.value = false; selectedTag.value = null; loadTags() }
-const reloadAfterDelete = () => {
-  showDeleteDialog.value = false
-  tagToDelete.value = null
-  if (tags.value.length <= 1 && currentPage.value > 1) currentPage.value = currentPage.value - 1
-  loadTags()
-}
+const reloadAfterDelete = () => { showDeleteDialog.value = false; tagToDelete.value = null; if (tags.value.length <= 1 && currentPage.value > 1) currentPage.value = currentPage.value - 1; loadTags() }
 
 const confirmBulkDelete = async () => {
   if (selectedIds.value.length === 0) return
@@ -532,51 +288,21 @@ const confirmBulkDelete = async () => {
   try {
     const ids = [...selectedIds.value]
     const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/tags/${id}`, { method: 'DELETE' })))
-    const failed = results.filter(r => r.status === 'rejected').length
-    const succeeded = results.length - failed
+    const failed = results.filter(r => r.status === 'rejected').length; const succeeded = results.length - failed
     useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} tag${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
-  } catch (e) {
-    showErrorToast(e, 'Bulk delete failed')
-  } finally {
-    bulkProcessing.value = false
-    showBulkDeleteDialog.value = false
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
-    loadTags()
-  }
+  } catch (e) { showErrorToast(e, 'Bulk delete failed') }
+  finally { bulkProcessing.value = false; showBulkDeleteDialog.value = false; rowSelection.value = {}; lastSelectedIndex.value = null; loadTags() }
 }
 
 const triggerBackfill = async () => {
   backfillProcessing.value = true
   try {
-    const response: any = await $fetch('/api/admin/quotes/backfill-tags', {
-      method: 'POST',
-      body: {
-        dryRun: backfillDryRun.value,
-        status: backfillStatus.value.value,
-        onlyUntagged: backfillOnlyUntagged.value,
-        resetExisting: backfillResetExisting.value,
-        limit: Math.min(Math.max(backfillLimit.value ?? 2000, 1), 5000)
-      }
-    })
-
-    const scanned = response?.results?.quotes_scanned ?? 0
-    const matched = response?.results?.quotes_with_matches ?? 0
-    const linksAttempted = response?.results?.links_attempted ?? 0
-
-    useToast().toast({
-      toast: 'soft-success',
-      title: backfillDryRun.value ? 'Backfill dry-run complete' : 'Backfill completed',
-      description: `${scanned} scanned · ${matched} matched · ${linksAttempted} link attempts`
-    })
-
-    showBackfillDialog.value = false
-    await loadTags()
-  } catch (error) {
-    showErrorToast(error, 'Backfill failed')
-  } finally {
-    backfillProcessing.value = false
-  }
+    const response: any = await $fetch('/api/admin/quotes/backfill-tags', { method: 'POST', body: { dryRun: backfillDryRun.value, status: backfillStatus.value.value, onlyUntagged: backfillOnlyUntagged.value, resetExisting: backfillResetExisting.value, limit: Math.min(Math.max(backfillLimit.value ?? 2000, 1), 5000) } })
+    const scanned = response?.results?.quotes_scanned ?? 0; const matched = response?.results?.quotes_with_matches ?? 0; const linksAttempted = response?.results?.links_attempted ?? 0
+    useToast().toast({ toast: 'soft-success', title: backfillDryRun.value ? 'Backfill dry-run complete' : 'Backfill completed', description: `${scanned} scanned &middot; ${matched} matched &middot; ${linksAttempted} link attempts` })
+    showBackfillDialog.value = false; await loadTags()
+  } catch (error) { showErrorToast(error, 'Backfill failed') }
+  finally { backfillProcessing.value = false }
 }
 
 watchDebounced([currentPage, searchQuery, selectedSort], () => { loadTags() }, { debounce: 300 })
@@ -584,24 +310,7 @@ onMounted(() => { loadTags() })
 </script>
 
 <style scoped>
-.tags-table-container {
-  max-height: calc(100vh - 11rem);
-  max-width: calc(100vw - 8rem);
-}
-
-:deep(.table-header tr) {
-  border-bottom: none;
-}
-
-:deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-:deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
-
-.frame { min-height: calc(100vh - 8rem) }
-
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
 .group\/tag:hover .tag-name { color: var(--hover-text); }
 </style>

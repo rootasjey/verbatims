@@ -1,322 +1,204 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <!-- Content Area -->
-    <div class="flex-1 flex flex-col min-h-0">
-      <!-- First-load Skeleton State -->
-      <TableFirstLoadSkeleton
-        v-if="!hasLoadedOnce && loading"
-        :rows="pageSize"
-        :col-classes="[
-          'min-w-80 flex-1',
-          'w-48',
-          'w-24',
-          'w-32',
-          'w-28',
-          'w-6'
-        ]"
-        :layout="['multi','multi','text','pill','date','dot']"
-        :show-footer="true"
-      />
-
-      <!-- Empty State -->
-      <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
-        <NIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          {{ searchQuery ? 'No matching quotes found' : 'All caught up!' }}
-        </h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-6">
-          {{ searchQuery ? 'Try adjusting your search terms.' : 'No pending quotes to review at the moment.' }}
-        </p>
-      </div>
-
-      <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col">
-        <!-- Scrollable Table Container -->
-        <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
-          <NTable
-            :columns="tableColumns"
-            :data="filteredQuotes"
-            :loading="loading"
-            :una="{
-              tableRoot: '!overflow-visible border-none',
-              scrollAreaRoot: '!overflow-visible',
-              table: '!w-auto min-w-full',
-              tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-              tableBody: 'bg-white dark:bg-[#0C0A09]'
-            }"
-            :_table-row="(row) => {
-              if (!row) return {}
-              const rowIdx = filteredQuotes.findIndex(q => q.id === row.id)
-              const isHighlighted = rowIdx === highlightedRowIndex
-              const isSelected = !!rowSelection[row.id]
-              if (!isHighlighted && !isSelected) return {}
-              const classes = []
-              if (isHighlighted && isSelected) {
-                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
-                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
-              } else if (isHighlighted) {
-                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
-                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
-              } else if (isSelected) {
-                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
-                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
-              }
-              return {
-                ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
-                class: classes.join(' ')
-              }
-            }"
-            manual-pagination
-            empty-text="No pending quotes found"
-            empty-icon="i-ph-clock"
-          >
-            <template #select-header>
-              <div>
-                <NCheckbox
-                  checkbox="gray"
-                  :model-value="allSelected"
-                  @update:model-value="toggleAllSelection"
-                />
-              </div>
-            </template>
-
-            <template #select-cell="{ cell }">
-              <div class="items-center justify-center" :class="[
-                Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
-                'group-hover:flex',
-              ]">
-                <NCheckbox
-                  checkbox="gray"
-                  :model-value="!!rowSelection[cell.row.original.id]"
-                  @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
-                />
-              </div>
-            </template>
-
-            <template #quote-header>
-              <div class="flex items-center gap-4">
-                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
-                <div class="w-102">
-                  <NInput
-                    v-model="searchQuery"
-                    placeholder="Search quotes, authors, or users..."
-                    leading="i-ph-magnifying-glass"
-                    size="md"
-                    :loading="loading"
-                    :trailing="searchQuery ? 'i-ph-x' : undefined"
-                    :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                    @trailing="resetFilters"
-                  />
-                </div>
-              </div>
-            </template>
-
-            <template #language-header>
-              <div>
-                <NSelect
-                  v-model="selectedLanguage"
-                  :items="languageOptions"
-                  placeholder="All Languages"
-                  size="sm"
-                  item-key="label"
-                  value-key="label"
-                />
-              </div>
-            </template>
-
-            <template #status-header>
-              <div>
-                <NSelect
-                  v-model="statusFilter"
-                  :items="statusOptions"
-                  placeholder="Filter by status"
-                  size="sm"
-                  item-key="label"
-                  value-key="label"
-                />
-              </div>
-            </template>
-
-            <template #actions-header>
-              <div class="flex items-center justify-center space-x-1">
-                <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
-                <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
-                  <template #default>
-                    <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                  </template>
-                  <template #content>
-                    <div class="space-y-2">
-                      <div class="flex">
-                        <NBadge badge="solid-yellow" size="xs" icon="i-ph-clock" class="w-full">
-                          {{ pendingCount }} Pending
-                        </NBadge>
-                      </div>
-                      <div class="flex">
-                        <NBadge badge="solid-green" size="xs" icon="i-ph-check-circle" class="w-full">
-                          {{ selectedQuotes.length }} Selected
-                        </NBadge>
-                      </div>
-                      <div class="flex">
-                        <NBadge badge="solid-blue" size="xs" icon="i-ph-users" class="w-full">
-                          {{ uniqueContributors }} Contributors
-                        </NBadge>
-                      </div>
-                    </div>
-                  </template>
-                </NTooltip>
-
-                <NDropdownMenu :items="headerActions">
-                  <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-                </NDropdownMenu>
-              </div>
-            </template>
-
-            <!-- Quote Column with text wrapping -->
-            <template #quote-cell="{ cell }">
-              <div class="max-w-md">
-                <blockquote
-                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
-                  :title="cell.row.original.name"
-                >
-                  {{ cell.row.original.name }}
-                </blockquote>
-                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span v-if="cell.row.original.author_name">{{ cell.row.original.author_name }}</span>
-                  <span v-if="cell.row.original.author_name && cell.row.original.reference_name">•</span>
-                  <span v-if="cell.row.original.reference_name">{{ cell.row.original.reference_name }}</span>
-                </div>
-              </div>
-            </template>
-
-            <!-- User Column -->
-            <template #user-cell="{ cell }">
-              <div class="flex items-center space-x-2">
-                <NAvatar
-                  :src="cell.row.original.user_avatar"
-                  :alt="cell.row.original.user_name"
-                  size="xs"
-                  :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
-                />
-                <div>
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ cell.row.original.user_name }}
-                  </p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ cell.row.original.user_email }}
-                  </p>
-                </div>
-              </div>
-            </template>
-
-            <!-- Language Column -->
-            <template #language-cell="{ cell }">
-              <span class="text-sm text-gray-900 dark:text-white">
-                {{ cell.row.original.language || 'N/A' }}
-              </span>
-            </template>
-
-            <!-- Status Column -->
-            <template #status-cell="{ cell }">
-              <div class="space-y-1">
-                <NBadge badge="solid-yellow" size="xs">
-                  {{ cell.row.original.status }}
-                </NBadge>
-                <div v-if="cell.row.original.status === 'rejected' && cell.row.original.rejection_reason" class="text-xs text-red-600 dark:text-red-400">
-                  {{ cell.row.original.rejection_reason.substring(0, 30) }}{{ cell.row.original.rejection_reason.length > 30 ? '...' : '' }}
-                </div>
-              </div>
-            </template>
-
-            <!-- Date Column -->
-            <template #date-cell="{ cell }">
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ formatRelativeTime(cell.row.original.created_at) }}
-              </span>
-            </template>
-
-            <!-- Actions Column -->
-            <template #actions-cell="{ cell }">
-              <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                <NButton
-                  icon
-                  btn="ghost-gray"
-                  size="xs"
-                  label="i-ph-dots-three-vertical"
-                  class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                />
-              </NDropdownMenu>
-            </template>
-          </NTable>
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+            Pending
+          </h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+          </p>
         </div>
-
-        <!-- Pagination -->
-        <div class="flex-shrink-0 flex items-center justify-between p-4">
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
-          </div>
-          <NPagination
-            v-model:page="currentPage"
-            :total="totalQuotes"
-            :items-per-page="pageSize"
-            :sibling-count="2"
-            show-edges
-            size="sm"
-            pagination-selected="solid-indigo"
+        <div class="hidden md:flex items-center gap-3">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search quotes, authors, or users..."
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
           />
+          <select
+            v-model="statusFilter"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <select
+            v-model="selectedLanguage"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            <option v-for="opt in languageOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
         </div>
+      </div>
+      <div class="md:hidden mt-4 flex gap-2">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search pending..."
+          class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+        />
+        <select
+          v-model="statusFilter"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-1 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer focus:outline-none"
+        >
+          <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+        </select>
       </div>
     </div>
 
-    <AdminQuoteDetailDialog
-      v-model:open="showQuoteDialog"
-      :quote="selectedQuote"
-      @edit="editQuote"
-    />
-  </div>
+    <!-- Skeleton -->
+    <div v-if="!hasLoadedOnce && loading" class="space-y-5">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/2 mb-2" />
+        <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+        {{ searchQuery ? 'No matching quotes found' : 'All caught up!' }}
+      </p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
+        {{ searchQuery ? 'Try adjusting your search terms.' : 'No pending quotes to review at the moment.' }}
+      </p>
+    </div>
+
+    <!-- Table -->
+    <div v-else-if="hasLoadedOnce">
+      <!-- Bulk action bar -->
+      <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
+        <OutlinedButton size="sm" @click="showBulkEditDialog = true">Edit Selected</OutlinedButton>
+        <OutlinedButton size="sm" variant="primary" @click="showBulkApproveModal = true">Approve All</OutlinedButton>
+        <OutlinedButton size="sm" variant="destructive" @click="showBulkRejectModal = true">Reject All</OutlinedButton>
+        <button
+          class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
+          @click="clearSelection"
+        >
+          Clear
+        </button>
+      </div>
+
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-10 px-3 py-3 text-left">
+                <NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" />
+              </th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quote</th>
+              <th class="w-48 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Language</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Submitted</th>
+              <th class="w-10 px-3 py-3 text-left"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr
+              v-for="(quote, idx) in filteredQuotes"
+              :key="quote.id"
+              :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined"
+              :class="[
+                'animate-fade-in-up transition-colors group',
+                { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex },
+                { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[quote.id] }
+              ]"
+              :style="{ animationDelay: `${idx * 0.03}s` }"
+            >
+              <td class="px-3 py-3">
+                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="e => handleRowCheckboxClick(e, idx, quote.id)" />
+                </div>
+              </td>
+              <td class="px-3 py-3 max-w-md">
+                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                  &ldquo;{{ quote.name }}&rdquo;
+                </blockquote>
+                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span v-if="quote.author_name">{{ quote.author_name }}</span>
+                  <span v-if="quote.author_name && quote.reference_name">&middot;</span>
+                  <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
+                </div>
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-2">
+                  <NAvatar :src="quote.user_avatar" :alt="quote.user_name" size="xs" />
+                  <div>
+                    <p class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ quote.user_name }}</p>
+                    <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.user_email }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ quote.language || 'N/A' }}</td>
+              <td class="px-3 py-3">
+                <div class="space-y-1">
+                  <span class="font-sans text-xs px-1.5 py-0.5" :class="statusPillClass(quote.status)">{{ quote.status }}</span>
+                  <div v-if="quote.status === 'rejected' && quote.rejection_reason" class="font-sans text-xs text-red-600 dark:text-red-400">
+                    {{ quote.rejection_reason.substring(0, 30) }}{{ quote.rejection_reason.length > 30 ? '...' : '' }}
+                  </div>
+                </div>
+              </td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(quote.created_at) }}</td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="getQuoteActions(quote)">
+                  <button @click.stop class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
+                  </button>
+                </NDropdownMenu>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+          Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+        </span>
+        <div class="flex items-center gap-3">
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+        </div>
+      </div>
+      <div v-else class="pt-4 text-center">
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+      </div>
+    </div>
+
+    <AdminQuoteDetailDialog v-model:open="showQuoteDialog" :quote="selectedQuote" @edit="editQuote" />
 
     <!-- Reject Quote Modal -->
     <NDialog v-model:open="showRejectModal">
       <template #header>
-        <h3 class="text-lg font-semibold">Reject Quote</h3>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject Quote</h3>
       </template>
-
       <div class="space-y-4">
-        <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <blockquote class="text-sm font-medium text-gray-900 dark:text-white">
-            "{{ selectedQuote.name }}"
-          </blockquote>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            by {{ selectedQuote.user_name }}
-          </p>
+        <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-800">
+          <blockquote class="font-sans text-sm font-500 text-gray-900 dark:text-white">&ldquo;{{ selectedQuote.name }}&rdquo;</blockquote>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">by {{ selectedQuote.user_name }}</p>
         </div>
-
-        <NFormGroup label="Rejection Reason" required>
-          <NInput
-            type="textarea"
+        <div>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
+          <textarea
             v-model="rejectionReason"
             placeholder="Please provide a reason for rejecting this quote..."
-            :rows="3"
+            rows="3"
+            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
             :disabled="processing.has(selectedQuote?.id)"
           />
-        </NFormGroup>
+        </div>
       </div>
-
       <template #footer>
         <div class="flex justify-end gap-3">
-          <NButton
-            btn="ghost"
-            @click="showRejectModal = false"
-            :disabled="processing.has(selectedQuote?.id)"
-          >
-            Cancel
-          </NButton>
-          <NButton
-            btn="soft-red"
-            :loading="processing.has(selectedQuote?.id)"
-            @click="confirmRejectQuote"
-          >
-            Reject Quote
-          </NButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showRejectModal = false" :disabled="processing.has(selectedQuote?.id)">Cancel</button>
+          <OutlinedButton variant="destructive" :disabled="processing.has(selectedQuote?.id)" @click="confirmRejectQuote">Reject Quote</OutlinedButton>
         </div>
       </template>
     </NDialog>
@@ -324,73 +206,45 @@
     <!-- Bulk Reject Modal -->
     <NDialog v-model:open="showBulkRejectModal">
       <template #header>
-        <h3 class="text-lg font-semibold">Reject {{ selectedQuotes.length }} Quotes</h3>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject {{ selectedQuotes.length }} Quotes</h3>
       </template>
-
       <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.
-        </p>
-
-        <NFormGroup label="Rejection Reason" required>
-          <NInput
-            type="textarea"
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.</p>
+        <div>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
+          <textarea
             v-model="bulkRejectionReason"
             placeholder="Please provide a reason for rejecting these quotes..."
-            :rows="3"
+            rows="3"
+            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
             :disabled="bulkProcessing"
           />
-        </NFormGroup>
+        </div>
       </div>
-
       <template #footer>
         <div class="flex justify-end gap-3">
-          <NButton
-            btn="ghost-gray"
-            @click="showBulkRejectModal = false"
-            :disabled="bulkProcessing"
-          >
-            Cancel
-          </NButton>
-          <NButton
-            btn="solid-indigo"
-            :loading="bulkProcessing"
-            @click="confirmBulkReject"
-          >
-            Reject All
-          </NButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkRejectModal = false" :disabled="bulkProcessing">Cancel</button>
+          <OutlinedButton variant="destructive" :disabled="bulkProcessing" @click="confirmBulkReject">Reject All</OutlinedButton>
         </div>
       </template>
     </NDialog>
 
-    <AddQuoteDialog
-      v-model="showEditQuoteDialog"
-      :edit-quote="selectedQuote"
-      @quote-updated="onQuoteUpdated"
-    />
-
-    <BulkEditQuotesDialog
-      v-model:open="showBulkEditDialog"
-      :selected-quotes="selectedQuotesData"
-      @updated="onBulkEditComplete"
-    />
+    <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
+    <BulkEditQuotesDialog v-model:open="showBulkEditDialog" :selected-quotes="selectedQuotesData" @updated="onBulkEditComplete" />
 
     <NDialog v-model:open="showBulkApproveModal">
       <template #header>
-        <h3 class="text-lg font-semibold">Approve {{ selectedQuotes.length }} Quotes</h3>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Approve {{ selectedQuotes.length }} Quotes</h3>
       </template>
-
-      <p class="text-sm text-gray-600 dark:text-gray-400">
-        Are you sure you want to approve {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
-      </p>
-
+      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Are you sure you want to approve {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?</p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <NButton btn="ghost-gray" :disabled="bulkProcessing" @click="showBulkApproveModal = false">Cancel</NButton>
-          <NButton btn="solid-green" :loading="bulkProcessing" @click="bulkApprove(); showBulkApproveModal = false">Approve All</NButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="bulkProcessing" @click="showBulkApproveModal = false">Cancel</button>
+          <OutlinedButton variant="primary" :disabled="bulkProcessing" @click="bulkApprove(); showBulkApproveModal = false">Approve All</OutlinedButton>
         </div>
       </template>
     </NDialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -411,7 +265,7 @@ useHead({
   title: 'Pending Quotes - Admin - Verbatims'
 })
 
-const quotes = ref([])
+const quotes = ref<any[]>([])
 const loading = ref(true)
 const bulkProcessing = ref(false)
 const hasLoadedOnce = ref(false)
@@ -422,10 +276,9 @@ const totalPages = ref(0)
 const searchQuery = ref('')
 const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
 const selectedLanguage = ref({ label: '', value: '' })
-// row selection map (multi-select)
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
-const processing = ref(new Set())
+const processing = ref(new Set<number>())
 
 const showRejectModal = ref(false)
 const showBulkRejectModal = ref(false)
@@ -433,7 +286,7 @@ const showBulkEditDialog = ref(false)
 const showBulkApproveModal = ref(false)
 const showEditQuoteDialog = ref(false)
 const showQuoteDialog = ref(false)
-const selectedQuote = ref(null)
+const selectedQuote = ref<any>(null)
 const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
 
@@ -445,19 +298,17 @@ const statusOptions = [
 
 const { availableLanguages } = useLanguageStore()
 const languageOptions = computed(() => [
+  { label: 'All Languages', value: '' },
   ...((availableLanguages ?? []).map((lang: LanguageOption) => ({
     label: lang.display,
     value: lang.value
   })))
 ])
 
-// selection helpers & stats
-const pendingCount = computed(() => {
-  return quotes.value.filter(q => q.status === 'pending').length
-})
+const pendingCount = computed(() => quotes.value.filter((q: any) => q.status === 'pending').length)
 
 const uniqueContributors = computed(() => {
-  const contributors = new Set(quotes.value.map(q => q.user_id).filter(Boolean))
+  const contributors = new Set(quotes.value.map((q: any) => q.user_id).filter(Boolean))
   return contributors.size
 })
 
@@ -465,7 +316,7 @@ const filteredQuotes = computed(() => {
   let filtered = quotes.value
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(q =>
+    filtered = filtered.filter((q: any) =>
       q.name.toLowerCase().includes(query) ||
       q.author_name?.toLowerCase().includes(query) ||
       q.reference_name?.toLowerCase().includes(query) ||
@@ -473,16 +324,15 @@ const filteredQuotes = computed(() => {
     )
   }
   if (statusFilter.value.value) {
-    filtered = filtered.filter(q => q.status === statusFilter.value.value)
+    filtered = filtered.filter((q: any) => q.status === statusFilter.value.value)
   }
   if (selectedLanguage.value.value) {
-    filtered = filtered.filter(q => q.language === selectedLanguage.value.value)
+    filtered = filtered.filter((q: any) => q.language === selectedLanguage.value.value)
   }
   return filtered
 })
 
-// helpers for table multi-select
-const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
+const visibleIds = computed<number[]>(() => filteredQuotes.value.map((q: any) => q.id))
 const allSelectedOnPage = computed<boolean>(() =>
   visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
 )
@@ -499,18 +349,18 @@ const allSelected = computed<boolean | 'indeterminate'>({
   set: (v) => {
     const newSelection: Record<number, boolean> = {}
     if (v === true) {
-      filteredQuotes.value.forEach(q => { newSelection[q.id] = true })
+      filteredQuotes.value.forEach((q: any) => { newSelection[q.id] = true })
     }
     rowSelection.value = newSelection
     lastSelectedIndex.value = null
   }
 })
 
-const setRowSelected = (id, value) => { rowSelection.value[id] = value === true }
+const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
 const toggleAllSelection = (v: boolean | 'indeterminate') => {
   if (v) {
     const newSel: Record<number, boolean> = {}
-    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    filteredQuotes.value.forEach((q: any) => { newSel[q.id] = true })
     rowSelection.value = newSel
   } else {
     rowSelection.value = {}
@@ -524,6 +374,15 @@ const selectAllOnPage = () => {
 }
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
+
+const selectedQuotes = computed(() => Object
+  .entries(rowSelection.value)
+  .filter(([, v]) => !!v)
+  .map(([k]) => Number(k)))
+
+const selectedQuotesData = computed(() =>
+  quotes.value.filter((quote: any) => selectedQuotes.value.includes(quote.id))
+)
 
 const isAnyDialogOpen = computed(() =>
   showQuoteDialog.value || showRejectModal.value || showBulkRejectModal.value ||
@@ -543,7 +402,7 @@ const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   isDropdownOpen: () => false
 })
 
-const highlightedQuote = computed<AdminQuote | null>(() => {
+const highlightedQuote = computed<any | null>(() => {
   if (highlightedRowIndex.value === null) return null
   return filteredQuotes.value[highlightedRowIndex.value] ?? null
 })
@@ -552,11 +411,8 @@ function repositionHighlightAfterRemoval(previousIndex: number | null) {
   if (previousIndex === null) return
   nextTick(() => {
     const count = filteredQuotes.value.length
-    if (count === 0) {
-      highlightedRowIndex.value = null
-    } else {
-      highlightedRowIndex.value = Math.min(Math.max(0, previousIndex - 1), count - 1)
-    }
+    if (count === 0) highlightedRowIndex.value = null
+    else highlightedRowIndex.value = Math.min(Math.max(0, previousIndex - 1), count - 1)
   })
 }
 
@@ -596,7 +452,6 @@ useAdminKeyboardShortcuts({
   }
 })
 
-// shift‑click support
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
   const newVal = !currently
@@ -613,135 +468,16 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
   lastSelectedIndex.value = index
 }
 
-// derive selected ids
-const selectedQuotes = computed(() => Object
-  .entries(rowSelection.value)
-  .filter(([, v]) => !!v)
-  .map(([k]) => Number(k)))
-
-const selectedQuotesData = computed(() =>
-  quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
-)
-
-const headerActions = computed(() => {
-  const actions: any[] = []
-  if (selectedQuotes.value.length > 0) {
-    actions.push({
-      label: 'Edit Selected',
-      leading: 'i-ph-pencil',
-      shortcut: 'E',
-      onclick: () => { showBulkEditDialog.value = true }
-    })
-    actions.push({
-      label: 'Approve Selected',
-      leading: 'i-ph-check',
-      shortcut: 'A',
-      onclick: () => bulkApprove()
-    })
-    actions.push({
-      label: 'Reject Selected',
-      leading: 'i-ph-x',
-      shortcut: 'R',
-      onclick: () => { showBulkRejectModal.value = true }
-    })
-  }
-  if (actions.length > 0) actions.push({})
-  actions.push({
-    label: 'Refresh',
-    leading: 'i-ph-arrows-clockwise',
-    onclick: () => loadQuotes()
-  })
-  actions.push({
-    label: 'Reset Filters',
-    leading: 'i-ph-x',
-    onclick: () => resetFilters()
-  })
-  return actions
-})
-
-const tableColumns = [
-  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  {
-    header: 'Quote',
-    accessorKey: 'quote',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'min-w-80',
-        tableCell: 'min-w-80'
-      }
-    }
-  },
-  {
-    header: 'User',
-    accessorKey: 'user',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-48',
-        tableCell: 'w-48'
-      }
-    }
-  },
-  {
-    header: 'Language',
-    accessorKey: 'language',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-24',
-        tableCell: 'w-24'
-      }
-    }
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'Submitted',
-    accessorKey: 'date',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-28',
-        tableCell: 'w-28'
-      }
-    }
-  },
-  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } }
-]
-
-
 const loadQuotes = async (page = 1) => {
   try {
     loading.value = true
-
-    const params: any = {
-      page,
-      limit: pageSize.value,
-      status: statusFilter.value.value
-    }
-
-    if (searchQuery.value) {
-      params.search = searchQuery.value
-    }
-
-    if (selectedLanguage.value.value) {
-      params.language = selectedLanguage.value.value
-    }
+    const params: any = { page, limit: pageSize.value, status: statusFilter.value.value }
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedLanguage.value.value) params.language = selectedLanguage.value.value
 
     const response = await $fetch('/api/admin/quotes/pending', { query: params })
 
     quotes.value = response.data || []
-    // Reset selection on data change
     rowSelection.value = {}
     clearHighlight()
     totalQuotes.value = response.pagination?.total || 0
@@ -750,7 +486,6 @@ const loadQuotes = async (page = 1) => {
     currentPage.value = page
   } catch (error) {
     console.error('Failed to load quotes:', error)
-    // TODO: Show error toast
   } finally {
     loading.value = false
     hasLoadedOnce.value = true
@@ -766,36 +501,25 @@ const resetFilters = () => {
   lastSelectedIndex.value = null
 }
 
-// Debounced search + filter reload
 watchDebounced([searchQuery, statusFilter, selectedLanguage], () => {
   currentPage.value = 1
   loadQuotes(1)
 }, { debounce: 300 })
 
-// Seamless page navigation
-watch(currentPage, () => {
-  loadQuotes(currentPage.value)
-})
+watch(currentPage, () => { loadQuotes(currentPage.value) })
 
-
-
-const approveQuote = async (quote) => {
+const approveQuote = async (quote: any) => {
   try {
     processing.value.add(quote.id)
     await $fetch(`/api/admin/quotes/${quote.id}/moderate`, {
       method: 'POST',
       body: { action: 'approve' }
     })
-
-  // Remove from list if filtering by pending
-  if (statusFilter.value?.value === 'pending') {
-      quotes.value = quotes.value.filter(q => q.id !== quote.id)
+    if (statusFilter.value?.value === 'pending') {
+      quotes.value = quotes.value.filter((q: any) => q.id !== quote.id)
     } else {
-      // Update status in place
-      const index = quotes.value.findIndex(q => q.id === quote.id)
-      if (index !== -1) {
-        quotes.value[index].status = 'approved'
-      }
+      const index = quotes.value.findIndex((q: any) => q.id === quote.id)
+      if (index !== -1) quotes.value[index].status = 'approved'
     }
   } catch (error) {
     console.error('Failed to approve quote:', error)
@@ -805,7 +529,7 @@ const approveQuote = async (quote) => {
   }
 }
 
-const rejectQuote = (quote) => {
+const rejectQuote = (quote: any) => {
   selectedQuote.value = quote
   rejectionReason.value = ''
   showRejectModal.value = true
@@ -813,17 +537,12 @@ const rejectQuote = (quote) => {
 
 const confirmRejectQuote = async () => {
   if (!selectedQuote.value || !rejectionReason.value.trim()) return
-
   try {
     processing.value.add(selectedQuote.value.id)
     const response = await $fetch(`/api/admin/quotes/${selectedQuote.value.id}/moderate`, {
       method: 'POST',
-      body: {
-        action: 'reject',
-        rejection_reason: rejectionReason.value.trim()
-      }
+      body: { action: 'reject', rejection_reason: rejectionReason.value.trim() }
     })
-
     onQuoteRejected(response.data)
     showRejectModal.value = false
     rejectionReason.value = ''
@@ -835,7 +554,7 @@ const confirmRejectQuote = async () => {
   }
 }
 
-const quickRejectQuote = async (quote: AdminQuote) => {
+const quickRejectQuote = async (quote: any) => {
   const previousIndex = highlightedRowIndex.value
   try {
     processing.value.add(quote.id)
@@ -855,22 +574,15 @@ const quickRejectQuote = async (quote: AdminQuote) => {
 
 const bulkApprove = async () => {
   if (selectedQuotes.value.length === 0) return
-
   try {
     bulkProcessing.value = true
     await $fetch('/api/admin/quotes/bulk-moderate', {
       method: 'POST',
-      body: {
-        quote_ids: selectedQuotes.value,
-        action: 'approve'
-      }
+      body: { quote_ids: selectedQuotes.value, action: 'approve' }
     })
-
-  // Remove approved quotes from list if filtering by pending
-  if (statusFilter.value?.value === 'pending') {
-      quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    if (statusFilter.value?.value === 'pending') {
+      quotes.value = quotes.value.filter((q: any) => !selectedQuotes.value.includes(q.id))
     }
-
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk approve quotes:', error)
@@ -882,18 +594,12 @@ const bulkApprove = async () => {
 
 const confirmBulkReject = async () => {
   if (selectedQuotes.value.length === 0 || !bulkRejectionReason.value.trim()) return
-
   try {
     bulkProcessing.value = true
     await $fetch('/api/admin/quotes/bulk-moderate', {
       method: 'POST',
-      body: {
-        quote_ids: selectedQuotes.value,
-        action: 'reject',
-        rejection_reason: bulkRejectionReason.value.trim()
-      }
+      body: { quote_ids: selectedQuotes.value, action: 'reject', rejection_reason: bulkRejectionReason.value.trim() }
     })
-
     onBulkRejected()
     showBulkRejectModal.value = false
     bulkRejectionReason.value = ''
@@ -905,73 +611,52 @@ const confirmBulkReject = async () => {
   }
 }
 
-// Event handlers
-const onQuoteRejected = (rejectedQuote) => {
+const onQuoteRejected = (rejectedQuote: any) => {
   if (statusFilter.value?.value === 'pending') {
-    quotes.value = quotes.value.filter(q => q.id !== rejectedQuote.id)
+    quotes.value = quotes.value.filter((q: any) => q.id !== rejectedQuote.id)
   } else {
-    const index = quotes.value.findIndex(q => q.id === rejectedQuote.id)
-    if (index !== -1) {
-      quotes.value[index] = rejectedQuote
-    }
+    const index = quotes.value.findIndex((q: any) => q.id === rejectedQuote.id)
+    if (index !== -1) quotes.value[index] = rejectedQuote
   }
 }
 
 const onBulkRejected = () => {
   if (statusFilter.value?.value === 'pending') {
-    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    quotes.value = quotes.value.filter((q: any) => !selectedQuotes.value.includes(q.id))
   }
   rowSelection.value = {}
 }
 
-// Utility functions
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'approved': return 'green'
-    case 'rejected': return 'red'
-    default: return 'yellow'
-  }
-}
-
-const getQuoteActions = (quote): any[] => {
+const getQuoteActions = (quote: any): any[] => {
   const actions: any[] = [
-    {
-      label: 'View Details',
-      leading: 'i-ph-eye',
-      onclick: () => viewQuote(quote)
-    },
-    {
-      label: 'Edit Quote',
-      leading: 'i-ph-pencil',
-      onclick: () => editQuote(quote)
-    }
+    { label: 'View Details', leading: 'i-ph-eye', onclick: () => viewQuote(quote) },
+    { label: 'Edit Quote', leading: 'i-ph-pencil', onclick: () => editQuote(quote) }
   ]
-
   if (quote.status === 'pending') {
     actions.push(
       {},
-      {
-        label: 'Approve',
-        leading: 'i-ph-check',
-        onclick: () => approveQuote(quote)
-      },
-      {
-        label: 'Reject',
-        leading: 'i-ph-x',
-        onclick: () => rejectQuote(quote)
-      }
+      { label: 'Approve', leading: 'i-ph-check', onclick: () => approveQuote(quote) },
+      { label: 'Reject', leading: 'i-ph-x', onclick: () => rejectQuote(quote) }
     )
   }
-
   return actions
 }
 
-const viewQuote = (quote) => {
+const statusPillClass = (status: string) => {
+  switch (status) {
+    case 'approved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    case 'rejected': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+    case 'pending': return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
+    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
+  }
+}
+
+const viewQuote = (quote: any) => {
   selectedQuote.value = quote
   showQuoteDialog.value = true
 }
 
-const editQuote = (quote) => {
+const editQuote = (quote: any) => {
   selectedQuote.value = quote
   showEditQuoteDialog.value = true
 }
@@ -989,35 +674,22 @@ const onBulkEditComplete = () => {
   loadQuotes()
 }
 
-onMounted(() => {
-  loadQuotes()
-
-})
-
-
-
+onMounted(() => { loadQuotes() })
 </script>
 
 <style scoped>
-.quotes-table-container {
-  min-height: 400px;
-  max-height: calc(100vh - 11rem);
-  max-width: calc(100vw - 8rem);
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-:deep(.table-header tr) {
-  border-bottom: none;
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
 }
-
-.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-.quotes-table-container :deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
-
-.frame {
-  height: calc(100vh - 8rem);
+.line-clamp-2 {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
