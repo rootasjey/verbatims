@@ -50,7 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const triggerClass = computed(() => {
   const base = 'bg-transparent'
-  const classicFlag = ' !text-xs bg-gray-100 dark:bg-gray-800 ring-none !rounded-0 shadow-none'
+  const classicFlag = ' !text-xs bg-gray-100 dark:bg-gray-900 ring-none !rounded-0 shadow-none'
   return `${base} ${props.useClassicDesign ? classicFlag : ''}`
 })
 

@@ -214,7 +214,7 @@ const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
-const selectedLanguage = ref({ label: '', value: '' })
+const selectedLanguage = ref({ label: 'All Languages', value: '' })
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
@@ -238,13 +238,12 @@ const selectedQuotesData = computed<AdminQuote[]>(() =>
 
 const { availableLanguages } = useLanguageStore()
 
-const languageOptions = computed(() => [
-  { label: 'All Languages', value: '' },
-  ...((availableLanguages ?? []).map((lang: LanguageOption) => ({
+const languageOptions = computed(() =>
+  (availableLanguages ?? []).map((lang: LanguageOption) => ({
     label: lang.display,
-    value: lang.value
-  })))
-])
+    value: lang.value === 'all' ? '' : lang.value
+  }))
+)
 
 const totalPages = computed(() => Math.ceil(totalQuotes.value / pageSize.value))
 
@@ -426,7 +425,7 @@ const loadQuotes = async (page = currentPage.value) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedLanguage.value = { label: '', value: '' }
+  selectedLanguage.value = { label: 'All Languages', value: '' }
   currentPage.value = 1
   rowSelection.value = {}
   lastSelectedIndex.value = null

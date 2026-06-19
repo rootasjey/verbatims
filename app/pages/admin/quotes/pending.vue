@@ -275,7 +275,7 @@ const totalQuotes = ref(0)
 const totalPages = ref(0)
 const searchQuery = ref('')
 const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
-const selectedLanguage = ref({ label: '', value: '' })
+const selectedLanguage = ref({ label: 'All Languages', value: '' })
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
 const processing = ref(new Set<number>())
@@ -297,13 +297,12 @@ const statusOptions = [
 ]
 
 const { availableLanguages } = useLanguageStore()
-const languageOptions = computed(() => [
-  { label: 'All Languages', value: '' },
-  ...((availableLanguages ?? []).map((lang: LanguageOption) => ({
+const languageOptions = computed(() =>
+  (availableLanguages ?? []).map((lang: LanguageOption) => ({
     label: lang.display,
-    value: lang.value
-  })))
-])
+    value: lang.value === 'all' ? '' : lang.value
+  }))
+)
 
 const pendingCount = computed(() => quotes.value.filter((q: any) => q.status === 'pending').length)
 
@@ -495,7 +494,7 @@ const loadQuotes = async (page = 1) => {
 const resetFilters = () => {
   searchQuery.value = ''
   statusFilter.value = { label: 'Pending Review', value: 'pending' }
-  selectedLanguage.value = { label: '', value: '' }
+  selectedLanguage.value = { label: 'All Languages', value: '' }
   currentPage.value = 1
   rowSelection.value = {}
   lastSelectedIndex.value = null
@@ -647,7 +646,7 @@ const statusPillClass = (status: string) => {
     case 'approved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
     case 'rejected': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
     case 'pending': return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
-    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
+    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/20'
   }
 }
 
