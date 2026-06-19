@@ -11,33 +11,22 @@
     <!-- Main Navigation Bar -->
     <div class="flex justify-between items-center p-4">
       <div class="flex items-center space-x-4">
-        <NButton btn="~" @click="handleLogoClick" class="cursor-pointer hover:scale-105 active:scale-95 transition-transform">
-          <AppIcon />
+        <NButton btn="~" @click="handleLogoClick" rounded="none" class="group px-0 flex cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
+          <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl relative z-1 transition-colors duration-300 group-hover:text-white dark:group-hover:text-[#0C0A09]">verbatims</span>
+          <span class="absolute inset-0 bg-[#0C0A09] dark:bg-[#FAFAF9] w-0 group-hover:w-full transition-all duration-300 ease-out -z-0" />
         </NButton>
 
         <!-- Page Title for Admin/Dashboard -->
-        <div v-if="shouldShowPageTitle" class="flex items-center space-x-3">
-          <div class="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-          <div class="flex items-center space-x-2">
-            <NTooltip :content="pageHeader.title.value.length > 20 ? pageHeader.title.value : ''">
-              <h1 class="header-title shrink-2 font-title text-lg font-600 text-gray-900 dark:text-white whitespace-nowrap text-ellipsis overflow-hidden">
-                {{ pageHeader.title }}
-              </h1>
-            </NTooltip>
-            <NBadge
-              :color="pageHeader.section.value === 'admin' ? 'red' : 'blue'"
-              badge="soft"
-              size="xs"
-              class="uppercase"
-            >
-              {{ pageHeader.section.value }}
-            </NBadge>
-          </div>
+        <div v-if="shouldShowPageTitle" class="flex items-center gap-3">
+          <div class="h-5 w-px bg-gray-300 dark:bg-gray-600" />
+          <h1 class="font-sans text-xs uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            {{ pageHeader.title }}
+          </h1>
         </div>
       </div>
 
       <NNavigationMenu
-        v-if="!isMobile"
+        v-if="!isMobile && shouldShowNavMenu"
         :items="navMenuItems"
         indicator
         :class="{ 'ml-24': !shouldShowPageTitle }"
@@ -124,6 +113,11 @@ const reportCategory: Ref<ReportCategory> = ref('feedback')
 const shouldShowPageTitle = computed(() => {
   return pageHeader.shouldShow.value &&
          (pageHeader.section.value === 'admin' || pageHeader.section.value === 'dashboard')
+})
+
+// Hide nav menu on admin/dashboard — out of place in a management context
+const shouldShowNavMenu = computed(() => {
+  return pageHeader.section.value !== 'admin' && pageHeader.section.value !== 'dashboard'
 })
 
 const navMenuItems = computed(() => [
@@ -316,28 +310,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.header-title {
-  @media screen and (min-width: 10px) {
-    max-width: 4rem;
-  }
-  @media screen and (min-width: 370px) {
-    max-width: 4rem;
-  }
-  @media screen and (min-width: 420px) {
-    max-width: 8rem;
-  }
-  @media screen and (min-width: 520px) {
-    max-width: 12rem;
-  }
-  @media screen and (min-width: 640px) {
-    max-width: 18rem;
-  }
-  @media screen and (min-width: 720px) {
-    max-width: 4rem;
-  }
-  @media screen and (min-width: 920px) {
-    max-width: 12rem;
-  }
-}
-</style>
