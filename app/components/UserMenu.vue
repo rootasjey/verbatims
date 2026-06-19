@@ -1,5 +1,5 @@
 <template>
-  <NDropdownMenu :items="menuItems" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
+  <NDropdownMenu :items="menuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
     <NButton
       btn="~"
       size="sm"
