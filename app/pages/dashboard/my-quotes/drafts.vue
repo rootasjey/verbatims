@@ -1,392 +1,262 @@
 <template>
-  <div class="min-h-screen">
-    <!-- Mobile: Drafts List -->
-    <div v-if="isMobile" class="mobile-drafts-page bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
-      <!-- Header -->
-      <div
-        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
-        :class="{ 'shadow-sm': !showHeaderElements }"
-      >
-        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
-          <div class="transition-all duration-300 ease-in-out" :class="{ 'mb-2': showHeaderElements }">
-            <h1
-              class="font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out"
-              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
-            >
-              Drafts
-            </h1>
-          </div>
-
-          <NAlert
-            v-if="submissionRestrictionMessage"
-            alert="soft-amber"
-            :title="submissionRestrictionMessage"
-            class="mt-3"
-          />
-
-          <!-- Search Bar with collapse animation -->
-          <div
-            class="transition-all duration-300 ease-in-out overflow-hidden"
-            :class="showHeaderElements ? 'mb-3 max-h-20 opacity-100' : 'max-h-0 opacity-0 mb-0'"
-          >
-            <NInput
-              v-model="searchQuery"
-              :placeholder="`Search among ${filteredQuotes.length} ${filteredQuotes.length === 1 ? 'draft' : 'drafts'}...`"
-              leading="i-ph-magnifying-glass"
-              size="lg"
-              class="w-full"
-              rounded="4"
-              :trailing="searchQuery ? 'i-ph-x' : undefined"
-              :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-              @trailing="searchQuery = ''"
-            />
-          </div>
-
-          <!-- Filter Chips with collapse animation -->
-          <div
-            class="transition-all duration-300 ease-in-out overflow-hidden"
-            :class="showHeaderElements ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'"
-          >
-            <div class="flex items-center gap-2 overflow-x-auto py-2 px-1 scrollbar-hide">
-              <NBadge
-                  badge="soft-gray"
-                class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
-                @click="sortBy = { label: 'Most Recent', value: 'recent' }"
-              >
-                <NIcon name="i-ph-clock" class="w-3 h-3 mr-1.5" />
-                Recent
-              </NBadge>
-              <NBadge
-                  badge="soft-gray"
-                class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
-                @click="sortBy = { label: 'Oldest First', value: 'oldest' }"
-              >
-                <NIcon name="i-ph-calendar-blank" class="w-3 h-3 mr-1.5" />
-                Oldest
-              </NBadge>
-              <NBadge
-                :badge="sortBy.value === 'author' ? 'soft-green' : 'soft-gray'"
-                rounded="full"
-                class="cursor-pointer whitespace-nowrap px-3 text-xs font-500 transition-all hover:shadow-sm active:scale-95"
-                @click="sortBy = { label: 'Author A-Z', value: 'author' }"
-              >
-                <NIcon name="i-ph-user" class="w-3 h-3 mr-1.5" />
-                Author
-              </NBadge>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loading && !hasLoadedOnce" class="flex items-center justify-center py-20">
-        <div class="flex flex-col items-center gap-3">
-          <div class="animate-spin rounded-full h-8 w-8 border-3 border-gray-300 dark:border-gray-600 border-t-blue-500"></div>
-          <span class="text-sm text-gray-600 dark:text-gray-400">Loading drafts...</span>
-        </div>
-      </div>
-
-      <!-- Empty -->
-      <div v-else-if="filteredQuotes.length === 0" class="flex items-center justify-center py-20 px-4">
-        <div class="text-center max-w-xs">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 mb-4">
-            <NIcon name="i-ph-file-dashed" class="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">
-            {{ searchQuery ? 'No matching drafts' : 'No drafts yet' }}
-          </h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-            {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
+  <div>
+    <!-- Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+            Drafts
+          </h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'draft' : 'drafts' }}
           </p>
-          <NButton
-            icon
-            leading="i-ph-arrow-left"
-            to="/dashboard/my-quotes"
-            btn="soft-gray"
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search drafts..."
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 w-48"
+          />
+          <select
+            v-model="sortValue"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
-            Back
-          </NButton>
+            <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+          <LanguageSelector :on-language-changed="onLanguageChanged" :use-classic-design="true" />
         </div>
       </div>
-
-      <!-- Results -->
-      <div v-else class="px-3 pt-3 pb-6 space-y-3">
-        <DraftQuoteCard
-          v-for="(quote, idx) in processedMobileQuotes"
-          :key="idx"
-          :quote="quote"
-          :can-submit-for-review="canSubmitForReview"
-          @edit="handleEditQuote"
-          @submit="handleSubmitQuote"
-          @delete="handleDeleteQuote"
+      <div class="md:hidden mt-4">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search drafts..."
+          class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
-
-        <div v-if="hasMore" class="pt-4">
-          <NButton
-            :loading="loadingMore"
-            block
-            size="lg"
-            btn="soft-gray"
-            class="rounded-xl font-500 text-sm"
-            @click="loadMore"
-          >
-            <NIcon v-if="!loadingMore" name="i-ph-arrow-down" class="w-4 h-4 mr-2" />
-            {{ loadingMore ? 'Loading...' : 'Load More' }}
-          </NButton>
-        </div>
       </div>
-    </div>
 
-    <!-- Desktop: Existing Table View -->
-    <div v-else class="flex-1 flex flex-col min-h-0">
       <NAlert
         v-if="submissionRestrictionMessage"
         alert="soft-amber"
         :title="submissionRestrictionMessage"
-        class="mb-4"
+        class="mt-4"
       />
+    </div>
 
-      <!-- Scrollable Content Area -->
-      <div class="flex-1 overflow-hidden">
-        <!-- First-load Skeleton State -->
-        <TableFirstLoadSkeleton
-          v-if="!hasLoadedOnce && loading"
-          :rows="pageSize"
-          :col-classes="[
-            'w-12',
-            'min-w-80 flex-1',
-            'w-40',
-            'w-24',
-            'w-28',
-            'w-16'
-          ]"
-          :layout="['checkbox','multi','text','pill','date','dot']"
-          :show-footer="true"
-        />
+    <!-- Loading (first load) -->
+    <div v-if="!hasLoadedOnce && loading" class="space-y-5">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/2 mb-2" />
+        <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
+      </div>
+    </div>
 
-        <!-- Empty State -->
-        <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
-          <NIcon name="i-ph-file-dashed" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            {{ searchQuery ? 'No matching drafts' : 'No drafts yet' }}
-          </h3>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">
-            {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
-          </p>
+    <!-- Empty -->
+    <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+        {{ searchQuery ? 'No matching drafts' : 'No drafts yet' }}
+      </p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
+        {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
+      </p>
+    </div>
+
+    <!-- Results -->
+    <div v-else-if="hasLoadedOnce">
+      <!-- Mobile: Feed -->
+      <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
+        <div
+          v-for="(quote, idx) in processedMobileQuotes"
+          :key="quote.id"
+          class="py-4 first:pt-0 last:pb-0 animate-fade-in-up"
+          :style="{ animationDelay: `${idx * 0.05}s` }"
+        >
+          <div class="flex items-start gap-3">
+            <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
+              <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2">
+                &ldquo;{{ quote.name }}&rdquo;
+              </blockquote>
+              <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name || 'Unknown' }}</span>
+                <span v-if="quote.reference?.name || (quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
+                <span v-if="quote.reference?.name || (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference?.name || (quote as any).reference_name }}</span>
+                <span class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
+                <span class="font-sans text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">Draft</span>
+              </div>
+            </NuxtLink>
+            <NDropdownMenu :items="getMobileActions(quote)">
+              <button
+                @click.stop
+                class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0 -mt-1"
+              >
+                <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
+              </button>
+            </NDropdownMenu>
+          </div>
+        </div>
+        <div v-if="hasMore" class="pt-5 pb-2 text-center">
+          <button
+            :disabled="loadingMore"
+            class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
+            @click="loadMore"
+          >
+            {{ loadingMore ? 'Loading...' : 'Load More' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop: Table -->
+      <div class="hidden md:block">
+        <!-- Bulk action bar -->
+        <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
+          <button
+            v-if="canSubmitForReview"
+            class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
+            @click="bulkSubmit"
+          >
+            Submit Selected
+          </button>
+          <button
+            class="font-sans text-xs text-red-600 dark:text-red-400 border border-dashed border-red-300 dark:border-red-800 px-3 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-sm"
+            @click="showBulkDeleteModal = true"
+          >
+            Delete Selected
+          </button>
+          <button
+            class="font-sans text-xs text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
+            @click="showBulkEditDialog = true"
+          >
+            Edit Selected
+          </button>
+          <button
+            class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
+            @click="clearSelection"
+          >
+            Clear
+          </button>
         </div>
 
-        <!-- Quotes Table -->
-        <div v-else class="flex-1 flex flex-col">
-          <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
-            <NTable
-              :columns="tableColumns"
-              :data="filteredQuotes"
-              :loading="loading"
-              :una="{
-                tableRoot: '!overflow-visible border-none',
-                scrollAreaRoot: '!overflow-visible',
-                table: '!w-auto min-w-full',
-                tableHeader: 'sticky top-0 z-1 bg-gray-50 dark:bg-[#0C0A09]',
-                tableBody: 'bg-white dark:bg-[#0C0A09]'
-              }"
-              manual-pagination
-              empty-text="No draft quotes found"
-              empty-icon="i-ph-file-dashed"
-            >
-              <template #select-header>
-                <div>
-                  <NCheckbox
-                    checkbox="gray"
-                    :model-value="allSelected"
-                    @update:model-value="toggleAllSelection"
-                  />
-                </div>
-              </template>
-
-              <template #select-cell="{ cell }">
-                <div class="items-center justify-center" :class="[
-                  Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
-                  'group-hover:flex',
-                ]">
-                  <NCheckbox
-                    checkbox="gray"
-                    :model-value="!!rowSelection[cell.row.original.id]"
-                    @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
-                  />
-                </div>
-              </template>
-
-              <template #quote-header>
-                <div class="flex items-center gap-4">
-                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
-                  <div class="w-102">
-                    <NInput
-                      v-model="searchQuery"
-                      :placeholder="`Search among ${filteredQuotes.length} draft${filteredQuotes.length === 1 ? '' : 's'}...`"
-                      leading="i-ph-magnifying-glass"
-                      size="md"
-                      :loading="loading"
-                      :trailing="searchQuery ? 'i-ph-x' : undefined"
-                      :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                      @trailing="searchQuery = ''"
-                    />
-                  </div>
+        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+                <th class="w-10 px-3 py-3 text-left">
                   <div>
-                    <NSelect
-                      v-model="sortBy"
-                      :items="sortOptions"
-                      placeholder="Sort by"
-                      size="sm"
-                      item-key="label"
-                      value-key="label"
+                    <NCheckbox
+                      checkbox="gray"
+                      :model-value="allSelected"
+                      @update:model-value="toggleAllSelection"
                     />
                   </div>
-                </div>
-              </template>
-
-              <template #language-header>
-                <div>
-                  <LanguageSelector :on-language-changed="onLanguageChanged" />
-                </div>
-              </template>
-
-              <template #actions-header>
-                <div class="flex items-center justify-center space-x-1">
-                  <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
-                  <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
-                    <template #default>
-                      <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                    </template>
-                    <template #content>
-                      <div class="space-y-2">
-                        <div class="flex">
-                          <NBadge badge="solid-gray" size="xs" icon="i-ph-file-dashed" class="w-full">
-                            {{ filteredQuotes.length }} Drafts
-                          </NBadge>
-                        </div>
-                      </div>
-                    </template>
-                  </NTooltip>
-
-                  <NDropdownMenu :items="headerActions">
-                    <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-                  </NDropdownMenu>
-                </div>
-              </template>
-
-              <template #actions-cell="{ cell }">
-                <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                  <NButton
-                    icon
-                    btn="ghost-gray"
-                    size="xs"
-                    label="i-ph-dots-three-vertical"
-                    class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                  />
-                </NDropdownMenu>
-              </template>
-
-              <!-- Quote Column with text wrapping -->
-              <template #quote-cell="{ cell }">
-                <div class="max-w-md">
-                  <blockquote
-                    class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
-                    :title="cell.row.original.name"
-                  >
-                    {{ cell.row.original.name }}
-                  </blockquote>
-                  <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span v-if="cell.row.original.author?.name">{{ cell.row.original.author?.name }}</span>
-                    <span v-if="cell.row.original.author?.name && cell.row.original.reference?.name">•</span>
-                    <span v-if="cell.row.original.reference?.name">{{ cell.row.original.reference?.name }}</span>
+                </th>
+                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quote</th>
+                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Lang</th>
+                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Tags</th>
+                <th class="w-16 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+                <th class="w-10 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-dashed divide-gray-100 dark:divide-gray-800">
+              <tr
+                v-for="quote in filteredQuotes"
+                :key="quote.id"
+                class="group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors"
+              >
+                <td class="px-3 py-3 align-top">
+                  <div :class="selectedQuotes.length > 0 ? '' : 'opacity-0 group-hover:opacity-100'">
+                    <NCheckbox
+                      checkbox="gray"
+                      :model-value="!!rowSelection[quote.id]"
+                      @click="e => handleRowCheckboxClick(e, filteredQuotes.indexOf(quote), quote.id)"
+                    />
                   </div>
-                </div>
-              </template>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <div class="max-w-md">
+                    <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed whitespace-normal break-words mb-1 line-clamp-2">
+                      {{ quote.name }}
+                    </blockquote>
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      <span v-if="quote.author?.name">{{ quote.author.name }}</span>
+                      <span v-if="quote.author?.name && quote.reference?.name">·</span>
+                      <span v-if="quote.reference?.name">{{ quote.reference.name }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ quote.language || 'N/A' }}</span>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <div v-if="quote.tags?.length" class="flex flex-wrap gap-1">
+                    <span
+                      v-for="tag in quote.tags.slice(0, 2)"
+                      :key="tag.id"
+                      class="font-sans text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5"
+                    >
+                      {{ tag.name }}
+                    </span>
+                    <span
+                      v-if="quote.tags.length > 2"
+                      class="font-sans text-xs text-gray-400 dark:text-gray-500 px-1"
+                      :title="quote.tags.slice(2).map(t => t.name).join(', ')"
+                    >
+                      +{{ quote.tags.length - 2 }}
+                    </span>
+                  </div>
+                  <span v-else class="font-sans text-sm text-gray-400">&mdash;</span>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">Draft</span>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <NDropdownMenu :items="getQuoteActions(quote)">
+                    <button
+                      @click.stop
+                      class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
+                    </button>
+                  </NDropdownMenu>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-              <!-- Author Column -->
-              <template #author-cell="{ cell }">
-                <div v-if="cell.row.original.author" class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <NIcon name="i-ph-user" class="w-4 h-4 mr-1 flex-shrink-0" />
-                  <span class="truncate">{{ cell.row.original.author.name }}</span>
-                </div>
-                <span v-else class="text-sm text-gray-400">—</span>
-              </template>
-
-              <!-- Reference Column -->
-              <template #reference-cell="{ cell }">
-                <div v-if="cell.row.original.reference" class="flex items-center text-sm text-gray-600 dark:text-gray-400 max-w-32">
-                  <NIcon name="i-ph-book" class="w-4 h-4 mr-1 flex-shrink-0" />
-                  <span class="truncate">{{ cell.row.original.reference.name }}</span>
-                </div>
-                <span v-else class="text-sm text-gray-400">—</span>
-              </template>
-
-              <!-- Language Column -->
-              <template #language-cell="{ cell }">
-                <span class="text-sm text-gray-900 dark:text-white">
-                  {{ cell.row.original.language || 'N/A' }}
-                </span>
-              </template>
-
-              <!-- Tags Column -->
-              <template #tags-cell="{ cell }">
-                <div v-if="cell.row.original.tags?.length" class="flex flex-wrap gap-1">
-                  <NBadge
-                    v-for="tag in cell.row.original.tags.slice(0, 2)"
-                    :key="tag.id"
-                    badge="soft-gray"
-                    size="xs"
-                  >
-                    {{ tag.name }}
-                  </NBadge>
-                  <NBadge
-                    v-if="cell.row.original.tags.length > 2"
-                    badge="soft-gray"
-                    size="xs"
-                    color="gray"
-                    :title="cell.row.original.tags.slice(2).map((tag: any) => tag.name).join(', ')"
-                  >
-                    +{{ cell.row.original.tags.length - 2 }}
-                  </NBadge>
-                </div>
-                <span v-else class="text-sm text-gray-400">—</span>
-              </template>
-
-              <!-- Status Column -->
-              <template #status-cell>
-                <NBadge color="gray" badge="soft-gray" size="xs">
-                  Draft
-                </NBadge>
-              </template>
-
-              <!-- Date Column -->
-              <template #date-cell="{ cell }">
-                <span class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ formatDate(cell.row.original.created_at) }}
-                </span>
-              </template>
-            </NTable>
-          </div>
-          <!-- Pagination -->
-          <div class="flex-shrink-0 flex items-center justify-between pt-4">
-            <div class="text-sm text-gray-500 dark:text-gray-400">
-              <span>Page {{ currentPage }} of {{ totalPages }}</span>
-            </div>
-
-            <NPagination
-              v-model:page="currentPage"
-              :total="totalDrafts"
-              :items-per-page="pageSize"
-              :sibling-count="2"
-              show-edges
-              size="sm"
-              pagination-selected="solid-indigo"
-            />
+        <!-- Pagination -->
+        <div class="flex items-center justify-between pt-4">
+          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <div class="flex items-center gap-3">
+            <button
+              :disabled="currentPage <= 1"
+              class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50 disabled:cursor-default disabled:border-transparent"
+              @click="currentPage = Math.max(1, currentPage - 1)"
+            >
+              &larr; Previous
+            </button>
+            <button
+              :disabled="currentPage >= totalPages"
+              class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50 disabled:cursor-default disabled:border-transparent"
+              @click="currentPage = Math.min(totalPages, currentPage + 1)"
+            >
+              Next &rarr;
+            </button>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Dialogs -->
     <ClientOnly>
       <DeleteDraftDialog
         v-model:open="showDeleteModal"
@@ -449,7 +319,12 @@ useHead({
   title: 'Drafts - Dashboard - Verbatims'
 })
 
-const { isMobile } = useMobileDetection()
+const pageHeader = usePageHeader()
+
+onMounted(() => {
+  pageHeader.setHeaderFromRoute()
+})
+
 const { user } = useUserSession()
 const { showErrorToast } = useErrorToast()
 
@@ -463,17 +338,17 @@ const deleting = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
 const sortBy = ref({ label: 'Most Recent', value: 'recent' })
+const sortValue = ref('recent')
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalDrafts = ref(0)
 const totalPages = ref(0)
 const hasMore = ref(false)
 
-// Scroll state for header transformation
-const scrollY = ref(0)
-const lastScrollY = ref(0)
-const isScrollingDown = ref(false)
-const showHeaderElements = ref(true)
+watch(sortValue, (val) => {
+  const option = sortOptions.find(o => o.value === val)
+  if (option) sortBy.value = option
+})
 
 const showDeleteModal = ref(false)
 const showBulkDeleteModal = ref(false)
@@ -481,22 +356,17 @@ const showBulkEditDialog = ref(false)
 const showEditQuoteDialog = ref(false)
 const showEditQuoteDrawer = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
-// Local row selection state (keyed by row id)
 const rowSelection = ref<Record<string, boolean>>({})
-// track last clicked row for shift-range selection
 const lastSelectedIndex = ref<number | null>(null)
-// Derive selected quote ids from rowSelection
 const selectedQuotes = computed<number[]>(() => Object
   .entries(rowSelection.value)
   .filter(([, v]) => !!v)
   .map(([k]) => Number(k)))
 
-// Get actual quote data for selected quotes
 const selectedQuotesData = computed<DashboardQuote[]>(() =>
   quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
 )
 
-// Defer eligibility check until user is available (avoids SSR hydration issues)
 const canSubmitForReview = computed(() => {
   if (!user.value) return true
   if (user.value.role !== 'user') return true
@@ -516,7 +386,6 @@ const submissionRestrictionMessage = computed(() => {
   return 'Your account must be at least 7 days old before submitting drafts for review.'
 })
 
-// Visible ids based on current filteredQuotes page
 const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
 const allSelectedOnPage = computed<boolean>(() =>
   visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
@@ -528,18 +397,17 @@ const sortOptions = [
   { label: 'Author A-Z', value: 'author' }
 ]
 
-// Backend search - keep only local sorting
 const filteredQuotes = computed(() => {
   const list = [...quotes.value]
   switch (sortBy.value.value) {
     case 'oldest':
-      list.sort((a, b) => getDateTimestamp(a.created_at) - getDateTimestamp(b.created_at))
+      list.sort((a, b) => getDateTimestamp((a as any).createdAt || a.created_at) - getDateTimestamp((b as any).createdAt || b.created_at))
       break
     case 'author':
       list.sort((a, b) => (a.author?.name || '').localeCompare(b.author?.name || ''))
       break
     default:
-      list.sort((a, b) => getDateTimestamp(b.created_at) - getDateTimestamp(a.created_at))
+      list.sort((a, b) => getDateTimestamp((b as any).createdAt || b.created_at) - getDateTimestamp((a as any).createdAt || a.created_at))
   }
   return list
 })
@@ -558,16 +426,6 @@ const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
     reference: q.reference || ((q as any).reference_name ? { id: q.reference_id!, name: (q as any).reference_name, type: (q as any).reference_type } as any : undefined),
   }))
 })
-
-const tableColumns = [
-  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  { header: 'Quote', accessorKey: 'quote', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
-  { header: 'Language', accessorKey: 'language', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Tags', accessorKey: 'tags', enableSorting: false, meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } } },
-  { header: 'Status', accessorKey: 'status', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Created', accessorKey: 'date', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
-  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } }
-]
 
 const loadDrafts = async (page = 1) => {
   try {
@@ -589,15 +447,9 @@ const loadDrafts = async (page = 1) => {
     }>('/api/dashboard/submissions', { query: queryParams })
 
     const data = response?.data || []
-    // On mobile, append when loading subsequent pages; on desktop, replace
-    if (isMobile.value && page > 1) {
-      quotes.value.push(...data)
-    } else {
-      quotes.value = data
-      // Reset selection when replacing
-      rowSelection.value = {}
-      lastSelectedIndex.value = null
-    }
+    quotes.value = data
+    rowSelection.value = {}
+    lastSelectedIndex.value = null
 
     totalDrafts.value = response.pagination?.total || 0
     pageSize.value = response.pagination?.limit || pageSize.value
@@ -614,10 +466,7 @@ const loadDrafts = async (page = 1) => {
 }
 
 watch(currentPage, () => {
-  // Desktop paginated table only
-  if (!isMobile.value) {
-    loadDrafts(currentPage.value)
-  }
+  loadDrafts(currentPage.value)
 })
 
 watchDebounced([searchQuery, sortBy], () => {
@@ -631,14 +480,14 @@ const getQuoteActions = (quote: DashboardQuote) => [
     leading: 'i-ph-pencil',
     onclick: () => editQuote(quote)
   },
-  {}, // Divider
+  {},
   {
     label: 'Submit for Review',
     leading: 'i-ph-paper-plane-tilt',
     disabled: !canSubmitForReview.value,
     onclick: () => submitQuote(quote)
   },
-  {}, // Divider
+  {},
   {
     label: 'Delete',
     leading: 'i-ph-trash',
@@ -646,13 +495,30 @@ const getQuoteActions = (quote: DashboardQuote) => [
   }
 ]
 
+const getMobileActions = (quote: any) => [
+  {
+    label: 'Edit',
+    leading: 'i-ph-pencil',
+    onclick: () => handleEditQuote(quote)
+  },
+  {},
+  {
+    label: 'Submit for Review',
+    leading: 'i-ph-paper-plane-tilt',
+    disabled: !canSubmitForReview.value,
+    onclick: () => handleSubmitQuote(quote)
+  },
+  {},
+  {
+    label: 'Delete',
+    leading: 'i-ph-trash',
+    onclick: () => handleDeleteQuote(quote)
+  }
+]
+
 const editQuote = (quote: DashboardQuote) => {
   selectedQuote.value = quote
-  if (isMobile.value) {
-    showEditQuoteDrawer.value = true
-  } else {
-    showEditQuoteDialog.value = true
-  }
+  showEditQuoteDialog.value = true
 }
 
 const onQuoteUpdated = () => {
@@ -669,7 +535,6 @@ const onBulkEditComplete = () => {
   loadDrafts()
 }
 
-// Mobile-specific handlers
 const handleEditQuote = (quote: ProcessedQuoteResult) => {
   selectedQuote.value = quote as unknown as DashboardQuote
   showEditQuoteDrawer.value = true
@@ -701,10 +566,7 @@ const submitQuote = async (quote: DashboardQuote) => {
     return
   }
   try {
-    await $fetch(`/api/quotes/${quote.id}/submit`, {
-      method: 'POST'
-    })
-
+    await $fetch(`/api/quotes/${quote.id}/submit`, { method: 'POST' })
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error: any) {
     console.error('Failed to submit quote:', error)
@@ -722,10 +584,7 @@ const deleteDraft = async () => {
 
   deleting.value = true
   try {
-    await $fetch(`/api/quotes/${selectedQuote.value.id}`, {
-      method: 'DELETE'
-    } as any)
-
+    await $fetch(`/api/quotes/${selectedQuote.value.id}`, { method: 'DELETE' } as any)
     quotes.value = quotes.value.filter(q => q.id !== selectedQuote.value?.id)
     showDeleteModal.value = false
     selectedQuote.value = null
@@ -773,13 +632,6 @@ const toggleAllSelection = (v: boolean | 'indeterminate') => {
   lastSelectedIndex.value = null
 }
 
-const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
-const selectAllOnPage = () => {
-  if (allSelectedOnPage.value) rowSelection.value = {}
-  else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
-}
-
-// shift-click range selection
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
   const newVal = !currently
@@ -794,6 +646,93 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
     rowSelection.value[id] = newVal
   }
   lastSelectedIndex.value = index
+}
+
+const bulkSubmit = async () => {
+  if (selectedQuotes.value.length === 0) return
+  if (!canSubmitForReview.value) {
+    useToast().toast({
+      title: 'Submission unavailable',
+      description: submissionRestrictionMessage.value,
+      toast: 'outline-warning'
+    })
+    return
+  }
+  try {
+    bulkProcessing.value = true
+    const ids = [...selectedQuotes.value]
+    const batchSize = 5
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize)
+      await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}/submit`, { method: 'POST' } as any)))
+    }
+
+    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    rowSelection.value = {}
+  } catch (error) {
+    console.error('Failed to bulk submit:', error)
+    showErrorToast(error, 'Bulk submit failed')
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+const bulkDelete = async () => {
+  if (selectedQuotes.value.length === 0) return
+  try {
+    bulkProcessing.value = true
+    const ids = [...selectedQuotes.value]
+    const batchSize = 5
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize)
+      await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}`, { method: 'DELETE' } as any)))
+    }
+
+    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
+    rowSelection.value = {}
+    showBulkDeleteModal.value = false
+  } catch (error) {
+    console.error('Failed to bulk delete:', error)
+    showErrorToast(error, 'Bulk delete failed')
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage: () => {
+    if (allSelectedOnPage.value) rowSelection.value = {}
+    else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
+  },
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isDialogOpen: () => isAnyDialogOpen.value,
+  isDropdownOpen: () => false,
+  onEdit: () => { showBulkEditDialog.value = true },
+  onSubmit: () => bulkSubmit(),
+  onDelete: () => { showBulkDeleteModal.value = true },
+  onConfirmDialog: () => {
+    if (showBulkDeleteModal.value) bulkDelete()
+    else if (showDeleteModal.value) deleteDraft()
+  }
+})
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  sortBy.value.value = 'recent'
+  sortValue.value = 'recent'
+  currentPage.value = 1
+  loadDrafts(1)
+}
+
+const onLanguageChanged = async () => {
+  await loadDrafts(1)
+}
+
+const loadMore = async () => {
+  if (loadingMore.value || !hasMore.value) return
+  currentPage.value++
+  loadDrafts(currentPage.value)
 }
 
 const headerActions = computed(() => {
@@ -833,170 +772,16 @@ const headerActions = computed(() => {
   return actions
 })
 
-const bulkSubmit = async () => {
-  if (selectedQuotes.value.length === 0) return
-  if (!canSubmitForReview.value) {
-    useToast().toast({
-      title: 'Submission unavailable',
-      description: submissionRestrictionMessage.value,
-      toast: 'outline-warning'
-    })
-    return
-  }
-  try {
-    bulkProcessing.value = true
-    // Process in parallel with small batches
-    const ids = [...selectedQuotes.value]
-    const batchSize = 5
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize)
-      await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}/submit`, { method: 'POST' } as any)))
-    }
-
-    // Remove submitted from list
-    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
-    rowSelection.value = {}
-  } catch (error) {
-    console.error('Failed to bulk submit:', error)
-    showErrorToast(error, 'Bulk submit failed')
-  } finally {
-    bulkProcessing.value = false
-  }
-}
-
-const bulkDelete = async () => {
-  if (selectedQuotes.value.length === 0) return
-  try {
-    bulkProcessing.value = true
-    const ids = [...selectedQuotes.value]
-    const batchSize = 5
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize)
-      await Promise.all(batch.map(id => $fetch(`/api/quotes/${id}`, { method: 'DELETE' } as any)))
-    }
-
-    quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
-    rowSelection.value = {}
-    showBulkDeleteModal.value = false
-  } catch (error) {
-    console.error('Failed to bulk delete:', error)
-    showErrorToast(error, 'Bulk delete failed')
-  } finally {
-    bulkProcessing.value = false
-  }
-}
-
-useAdminKeyboardShortcuts({
-  selectAllOnPage,
-  clearSelection,
-  hasSelection: () => selectedQuotes.value.length > 0,
-  isDialogOpen: () => isAnyDialogOpen.value,
-  isDropdownOpen: () => false,
-  onEdit: () => { showBulkEditDialog.value = true },
-  onSubmit: () => bulkSubmit(),
-  onDelete: () => { showBulkDeleteModal.value = true },
-  onConfirmDialog: () => {
-    if (showBulkDeleteModal.value) bulkDelete()
-    else if (showDeleteModal.value) deleteDraft()
-  }
-})
-
-const resetFilters = () => {
-  searchQuery.value = ''
-  sortBy.value.value = 'recent'
-  currentPage.value = 1
-  loadDrafts(1)
-}
-
-const onLanguageChanged = async () => {
-  // Reset to first page when language changes and reload
-  await loadDrafts(1)
-}
-
-// Handle scroll for header transformation
-const handleScroll = () => {
-  if (!isMobile.value) return
-
-  scrollY.value = window.scrollY
-  const scrollThreshold = 50
-
-  // Determine scroll direction
-  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
-    // Scrolling down
-    isScrollingDown.value = true
-    showHeaderElements.value = false
-  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
-    // Scrolling up or at top
-    isScrollingDown.value = false
-    showHeaderElements.value = true
-  }
-
-  lastScrollY.value = scrollY.value
-}
-
 onMounted(() => {
   loadDrafts()
-
-  // Add scroll listener for mobile
-  if (isMobile.value) {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-  }
 })
-
-onBeforeUnmount(() => {
-
-  // Remove scroll listener
-  if (isMobile.value) {
-    window.removeEventListener('scroll', handleScroll)
-  }
-})
-
-
-const loadMore = async () => {
-  if (loadingMore.value || !hasMore.value) return
-  await loadDrafts(currentPage.value + 1)
-}
 </script>
 
 <style scoped>
-.quotes-table-container {
-  min-height: 400px;
-  max-height: calc(100vh - 12rem);
-  max-width: calc(100vw - 8rem);
-}
-
-:deep(.table-header tr) {
-  border-bottom: none;
-}
-
-.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-.quotes-table-container :deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
-
-.mobile-drafts-page {
-  /* Ensure proper spacing for mobile layout */
-  min-height: calc(100vh - 80px); /* Account for bottom navigation */
-}
-
-/* Smooth scrollbar hide utility */
-::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-
-/* Subtle animations */
-@keyframes slideDown {
+@keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -1004,7 +789,16 @@ const loadMore = async () => {
   }
 }
 
-.mobile-drafts-page > :nth-child(n+2) {
-  animation: slideDown 0.3s ease-out;
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  line-clamp: 2;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
