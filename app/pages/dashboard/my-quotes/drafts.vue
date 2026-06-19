@@ -232,26 +232,31 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between pt-4">
+        <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
           <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
             Page {{ currentPage }} of {{ totalPages }}
           </span>
           <div class="flex items-center gap-3">
             <button
-              :disabled="currentPage <= 1"
-              class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50 disabled:cursor-default disabled:border-transparent"
+              v-if="currentPage > 1"
+              class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5"
               @click="currentPage = Math.max(1, currentPage - 1)"
             >
               &larr; Previous
             </button>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
             <button
-              :disabled="currentPage >= totalPages"
-              class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50 disabled:cursor-default disabled:border-transparent"
+              v-if="currentPage < totalPages"
+              class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5"
               @click="currentPage = Math.min(totalPages, currentPage + 1)"
             >
               Next &rarr;
             </button>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
           </div>
+        </div>
+        <div v-else class="pt-4 text-center">
+          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
         </div>
       </div>
     </div>
