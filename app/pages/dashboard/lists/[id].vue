@@ -1,189 +1,155 @@
 <template>
-  <div class="min-h-screen">
-    <!-- Mobile: Collection Detail -->
-    <div v-if="isMobile" class="mobile-collection-detail bg-gray-50 dark:bg-[#0A0805] min-h-screen pb-24">
-      <!-- Header with collapse on scroll -->
-      <div 
-        class="sticky top-10 z-10 bg-white dark:bg-[#0F0D0B] border-b rounded-6 border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out"
-        :class="{ 'shadow-sm': !showHeaderElements }"
-      >
-        <div class="px-4 transition-all duration-300 ease-in-out" :class="showHeaderElements ? 'py-5' : 'py-3'">
-          <div class="mt-3 flex items-center gap-2">
-            <h1 
-              class="overflow-x-hidden font-sans text-gray-900 dark:text-white transition-all duration-300 ease-in-out truncate flex-1"
-              :class="showHeaderElements ? 'text-4xl font-600' : 'text-2xl font-600'"
-            >
-              {{ collection?.name || 'Collection' }}
-            </h1>
-          </div>
-
-          <!-- Description and metadata with collapse animation -->
-          <div 
-            class="transition-all duration-300 ease-in-out overflow-hidden"
-            :class="showHeaderElements ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'"
-          >
-            <p v-if="collection?.description" class="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-              {{ collection.description }}
-            </p>
-            <div class="flex items-center gap-2 py-1 text-xs text-gray-500 dark:text-gray-400">
-              <span>{{ collection?.quotes_count || 0 }} {{ (collection?.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
-              <span>·</span>
-              <NBadge :badge="collection?.is_public ? 'outline-green' : 'outline-red'" size="xs" rounded="full">
-                {{ collection?.is_public ? 'Public' : 'Private' }}
-              </NBadge>
-            </div>
-          </div>
-        </div>
+  <div>
+    <!-- Loading -->
+    <div v-if="loading" class="space-y-6">
+      <div class="animate-pulse">
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/4 mb-4" />
+        <div class="h-8 bg-gray-100 dark:bg-gray-800 rounded w-1/2 mb-3" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-2/3 mb-6" />
+        <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/3" />
       </div>
-
-      <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center py-12">
-        <div class="flex items-center gap-3">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-          <span class="text-gray-600 dark:text-gray-400">Loading...</span>
-        </div>
-      </div>
-
-      <!-- Empty -->
-      <div v-else-if="(collection?.quotes?.length || 0) === 0" class="text-center py-16 px-4">
-        <NIcon name="i-ph-quotes" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No quotes yet</h3>
-        <p class="text-gray-600 dark:text-gray-400">Add quotes to this collection from any quote page.</p>
-      </div>
-
-      <!-- Quotes List -->
-      <div v-else class="px-3 pt-3 pb-6 space-y-3">
-        <QuoteListItem
-          v-for="(quote, idx) in processedMobileQuotes"
-          :key="idx"
-          :quote="quote"
-          :actions="collectionQuoteActions"
-          @share="handleShareQuote"
-          @remove-from-collection="handleRemoveFromCollection"
-        />
-        
-        <div v-if="hasMore" class="pt-3">
-          <NButton
-            :loading="loadingMore"
-            btn="dark:solid-black"
-            size="md"
-            class="w-full hover:scale-101 active:scale-99 transition-transform duration-300 ease-in-out"
-            @click="loadMoreQuotes"
-          >
-            Load More
-          </NButton>
+      <div class="space-y-5">
+        <div v-for="i in 4" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+          <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" />
+          <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/2" />
         </div>
       </div>
     </div>
 
-    <!-- Desktop: Collection Detail -->
-    <div v-else class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Loading State -->
-      <div v-if="loading" class="animate-pulse">
-        <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
-      </div>
+    <!-- Error -->
+    <div v-else-if="!collection" class="py-16 text-center">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">Collection not found</p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">The collection you're looking for doesn't exist.</p>
+      <NuxtLink to="/dashboard/lists" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5">
+        &larr; Back to Lists
+      </NuxtLink>
+    </div>
 
-      <!-- Collection Content -->
-      <div v-else-if="collection">
-        <!-- Header -->
-        <div class="mb-8">
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 mb-2">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white truncate">
-                  {{ collection.name }}
-                </h1>
-                <NBadge v-if="collection.is_public" color="green" badge="soft">Public</NBadge>
-              </div>
-              <p v-if="collection.description" class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                {{ collection.description }}
-              </p>
-              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <NIcon name="i-ph-quotes" class="w-4 h-4" />
-                  {{ collection.quotes_count }} quotes
-                </span>
-                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <NIcon name="i-ph-calendar-plus" class="w-4 h-4" />
-                  Created {{ formatDate(collection.created_at) }}
-                </span>
-                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                  <NIcon name="i-ph-clock" class="w-4 h-4" />
-                  Updated {{ formatDate(collection.updated_at) }}
-                </span>
-              </div>
+    <!-- Content -->
+    <div v-else>
+      <!-- Header -->
+      <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+        <NuxtLink to="/dashboard/lists" class="inline-flex items-center gap-1 font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors mb-4">
+          &larr; Back to Lists
+        </NuxtLink>
+
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100 truncate">
+                {{ collection.name }}
+              </h1>
+              <span
+                v-if="collection.is_public"
+                class="hidden md:inline font-sans text-xs text-green-600 dark:text-green-400 flex-shrink-0"
+              >
+                Public
+              </span>
+              <span
+                v-else
+                class="hidden md:inline font-sans text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"
+              >
+                Private
+              </span>
             </div>
 
-            <div class="flex items-center gap-2">
-              <NButton btn="outline" @click="shareCollection">
-                <NIcon name="i-ph-share" />
-                Share
-              </NButton>
-              <NDropdownMenu :items="collectionActions">
-                <NButton icon btn="ghost" size="sm" label="i-ph-dots-three-vertical" />
-              </NDropdownMenu>
+            <p v-if="collection.description" class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-3 leading-relaxed max-w-2xl">
+              {{ collection.description }}
+            </p>
+
+            <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+              <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+              <span class="text-gray-200 dark:text-gray-700">·</span>
+              <span>Created {{ formatDate(collection.created_at) }}</span>
+              <span v-if="collection.updated_at" class="text-gray-200 dark:text-gray-700">·</span>
+              <span v-if="collection.updated_at">Updated {{ formatDate(collection.updated_at) }}</span>
             </div>
           </div>
 
-          <!-- Back Button -->
-          <NButton btn="ghost" size="sm" to="/dashboard/lists">
-            <NIcon name="i-ph-arrow-left" />
-            Back to Lists
-          </NButton>
-        </div>
-
-        <!-- Quotes Grid -->
-        <div v-if="collection.quotes && collection.quotes.length > 0">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <QuoteCard
-              v-for="quote in collection.quotes"
-              :key="quote.id"
-              :quote="quote"
-            />
-          </div>
-
-          <!-- Load More -->
-          <div v-if="hasMore" class="text-center mt-8">
-            <NButton :loading="loadingMore" btn="dark:solid-black" class="w-full sm:w-auto" @click="loadMoreQuotes">
-              Load More Quotes
-            </NButton>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button
+              @click="shareCollection"
+              class="hidden md:inline-flex items-center gap-1.5 font-sans text-xs text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
+            >
+              Share
+            </button>
+            <NDropdownMenu :items="collectionActions">
+              <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" @click.stop />
+            </NDropdownMenu>
           </div>
         </div>
 
-        <!-- Empty State -->
-        <div v-else class="text-center py-12">
-          <NIcon name="i-ph-bookmark" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No quotes in this collection
-          </h3>
-          <p class="text-gray-500 dark:text-gray-400">
-            This collection is empty or all quotes are pending approval.
-          </p>
+        <div class="md:hidden mt-3 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+          <span
+            class="font-sans"
+            :class="collection.is_public ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'"
+          >
+            {{ collection.is_public ? 'Public' : 'Private' }}
+          </span>
+          <span class="text-gray-200 dark:text-gray-700">·</span>
+          <button @click="shareCollection" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Share</button>
         </div>
       </div>
 
-      <!-- Error State -->
-      <div v-else class="text-center py-12">
-        <NIcon name="i-ph-warning" class="h-16 w-16 text-red-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          Collection not found
-        </h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-6">
-          The collection you're looking for doesn't exist or is not public.
-        </p>
-        <NButton to="/dashboard/lists">Back to Lists</NButton>
+      <!-- Empty -->
+      <div v-if="!collection.quotes?.length" class="py-16 text-center">
+        <p class="font-serif text-xl font-200 text-gray-400 dark:text-gray-500 mb-2">No quotes yet</p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">Add quotes to this collection from any quote page.</p>
+      </div>
+
+      <!-- Quotes Feed -->
+      <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
+        <div
+          v-for="(quote, idx) in collection.quotes"
+          :key="quote.id"
+          class="py-5 first:pt-0 last:pb-0 group animate-fade-in-up"
+          :style="{ animationDelay: `${idx * 0.05}s` }"
+        >
+          <div class="flex items-start gap-4">
+            <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
+              <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                &ldquo;{{ quote.name }}&rdquo;
+              </blockquote>
+              <div class="flex items-center gap-2 mt-2 flex-wrap">
+                <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ (quote as any).author_name || 'Unknown' }}</span>
+                <span v-if="(quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
+                <span v-if="(quote as any).reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).reference_name }}</span>
+                <span class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-xs text-gray-400 dark:text-gray-500">Added {{ formatDate(quote.added_at) }}</span>
+              </div>
+            </NuxtLink>
+            <div class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <NTooltip content="Share quote">
+                <button @click.stop="handleShareQuote(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                  <NIcon name="i-ph-share" class="w-4 h-4" />
+                </button>
+              </NTooltip>
+              <NTooltip content="Remove from collection">
+                <button @click.stop="handleRemoveFromCollection(quote)" class="p-1.5 rounded-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                  <NIcon name="i-ph-x" class="w-4 h-4" />
+                </button>
+              </NTooltip>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div v-if="hasMore" class="text-center pt-6">
+        <button
+          :disabled="loadingMore"
+          class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
+          @click="loadMoreQuotes"
+        >
+          {{ loadingMore ? 'Loading...' : 'Load More' }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { ProcessedQuoteResult } from '~~/server/types'
 import { formatDate } from '~/utils/time-formatter'
-
-const { isMobile } = useMobileDetection()
-const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'dashboard',
@@ -192,6 +158,12 @@ definePageMeta({
 
 const route = useRoute()
 const collectionId = computed(() => String(route.params.id))
+const { showErrorToast } = useErrorToast()
+const pageHeader = usePageHeader()
+
+onMounted(() => {
+  pageHeader.setHeaderFromRoute()
+})
 
 const collection = ref<CollectionWithQuotes | null>(null)
 
@@ -204,30 +176,11 @@ useHead({
     }
   ]
 })
+
 const loading = ref(true)
 const loadingMore = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
-
-// Scroll header state (mobile)
-const scrollY = ref(0)
-const lastScrollY = ref(0)
-const isScrollingDown = ref(false)
-const showHeaderElements = ref(true)
-
-const handleScroll = () => {
-  if (!isMobile.value) return
-  scrollY.value = window.scrollY
-  const scrollThreshold = 50
-  if (scrollY.value > lastScrollY.value && scrollY.value > scrollThreshold) {
-    isScrollingDown.value = true
-    showHeaderElements.value = false
-  } else if (scrollY.value < lastScrollY.value || scrollY.value <= scrollThreshold) {
-    isScrollingDown.value = false
-    showHeaderElements.value = true
-  }
-  lastScrollY.value = scrollY.value
-}
 
 const loadCollection = async (reset = true) => {
   try {
@@ -244,17 +197,16 @@ const loadCollection = async (reset = true) => {
         limit: 12
       }
     })
-    
+
     if (reset) {
       collection.value = response.data as unknown as CollectionWithQuotes
     } else {
       if (collection.value) {
         collection.value.quotes = [...(collection.value.quotes || []), ...(response.data?.quotes || [])]
-        // Store pagination info separately (not in type but exists in API response)
         ;(collection.value as any).pagination = response.data.pagination
       }
     }
-    
+
     hasMore.value = response.data.pagination.hasMore
   } catch (error) {
     console.error('Failed to load collection:', error)
@@ -270,26 +222,16 @@ const loadMoreQuotes = () => {
   loadCollection(false)
 }
 
-const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
-  return (collection.value?.quotes || []).map((q: any) => ({
-    ...q,
-    result_type: 'quote',
-    author: q.author_id ? { id: q.author_id, name: q.author_name, is_fictional: q.author_is_fictional, image_url: q.author_image_url } : undefined,
-    reference: q.reference_id ? { id: q.reference_id, name: q.reference_name, type: q.reference_type } : undefined,
-    tags: q.tags || [],
-  }))
-})
-
 const shareCollection = async () => {
   if (!collection.value) return
-  
+
   try {
     const shareData = {
       title: `${collection.value.name} - Verbatims Collection`,
       text: `Check out this collection of quotes: "${collection.value.name}"`,
       url: window.location.href
     }
-    
+
     if (navigator.share) {
       await navigator.share(shareData)
     } else {
@@ -320,48 +262,34 @@ const collectionActions = computed(() => ([
   }
 ]))
 
-const collectionQuoteActions = [
-  {
-    label: 'Share',
-    leading: 'i-ph-share'
-  },
-  { divider: true } as any,
-  {
-    label: 'Remove from Collection',
-    leading: 'i-ph-trash'
-  }
-]
-
 const handleShareQuote = (quote: any) => {
+  const text = `"${quote.name}"${quote.author_name ? ` - ${quote.author_name}` : ''}`
   if (navigator.share) {
-    navigator.share({ 
-      title: 'Quote from Verbatims', 
-      text: quote.name, 
-      url: `${window.location.origin}/quotes/${quote.id}` 
+    navigator.share({
+      title: 'Quote from Verbatims',
+      text,
+      url: `${window.location.origin}/quotes/${quote.id}`
     })
   } else {
-    navigator.clipboard.writeText(`"${quote.name}" - ${quote.author?.name || ''}`)
+    navigator.clipboard.writeText(text)
     useToast().toast({ title: 'Copied to clipboard', toast: 'outline-success' })
   }
 }
 
 const handleRemoveFromCollection = async (quote: any) => {
   if (!confirm('Remove this quote from the collection?')) return
-  
+
   try {
     await $fetch(`/api/collections/${collectionId.value}/quotes/${quote.id}`, {
       method: 'DELETE'
     })
-    
-    // Remove from local state
+
     if (collection.value) {
       collection.value.quotes = collection.value.quotes?.filter((q: any) => q.id !== quote.id) || []
       if (collection.value.quotes_count) {
         collection.value.quotes_count--
       }
     }
-    
-
   } catch (error) {
     console.error('Failed to remove quote:', error)
     showErrorToast(error, 'Failed to remove quote')
@@ -370,23 +298,31 @@ const handleRemoveFromCollection = async (quote: any) => {
 
 onMounted(() => {
   loadCollection()
-  // Add mobile scroll listener
-  if (isMobile.value) {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-  }
-})
-
-
-
-onBeforeUnmount(() => {
-  if (isMobile.value) {
-    window.removeEventListener('scroll', handleScroll)
-  }
 })
 </script>
 
 <style scoped>
-.mobile-collection-detail {
-  min-height: calc(100vh - 80px);
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  line-clamp: 2;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
