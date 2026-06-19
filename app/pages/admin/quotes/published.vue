@@ -1,309 +1,235 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <!-- Content Area -->
-    <div class="flex-1 flex flex-col min-h-0">
-      <!-- First-load Skeleton State -->
-      <TableFirstLoadSkeleton
-        v-if="!hasLoadedOnce && loading"
-        :rows="pageSize"
-        :col-classes="[
-          'w-12',
-          'min-w-80 flex-1',
-          'w-40',
-          'w-40',
-          'w-32',
-          'w-24',
-          'w-24',
-          'w-28'
-        ]"
-        :layout="['checkbox','multi','text','text','text','pill','date','dot']"
-        :show-footer="true"
-      />
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+            Published
+          </h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+          </p>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search quotes, authors, or references..."
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
+          />
+          <select
+            v-model="selectedSort"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+          <select
+            v-model="selectedLanguage"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          >
+            <option v-for="opt in languageOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+      <!-- Mobile search -->
+      <div class="md:hidden mt-4 flex gap-2">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search published..."
+          class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+        />
+        <select
+          v-model="selectedSort"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-1 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer focus:outline-none"
+        >
+          <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+        </select>
+      </div>
+    </div>
 
-      <!-- Empty State -->
-      <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="text-center py-16">
-        <NIcon name="i-ph-check-circle" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-          {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
-        </h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-6">
-          {{ searchQuery ? 'Try adjusting your search terms.' : 'Published quotes will appear here once users submit and quotes are approved.' }}
-        </p>
+    <!-- First-load Skeleton -->
+    <div v-if="!hasLoadedOnce && loading" class="space-y-5">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/2 mb-2" />
+        <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+        {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
+      </p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
+        {{ searchQuery ? 'Try adjusting your search terms.' : 'Published quotes will appear here once users submit and quotes are approved.' }}
+      </p>
+    </div>
+
+    <!-- Table -->
+    <div v-else-if="hasLoadedOnce">
+      <!-- Bulk action bar -->
+      <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
+        <OutlinedButton size="sm" @click="showBulkEditDialog = true">Edit Selected</OutlinedButton>
+        <OutlinedButton size="sm" @click="showBulkAddToCollection = true">Add to Collection</OutlinedButton>
+        <button
+          class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
+          @click="clearSelection"
+        >
+          Clear
+        </button>
+        <button
+          class="font-sans text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
+          @click="showBulkUnpublishModal = true"
+        >
+          Unpublish All
+        </button>
       </div>
 
-      <!-- Quotes Table -->
-      <div v-else class="flex-1 flex flex-col">
-        <!-- Scrollable Table Container -->
-        <div class="group quotes-table-container flex-1 overflow-auto border rounded-2">
-          <NTable
-            :columns="tableColumns"
-            :data="filteredQuotes"
-            :loading="loading"
-            :una="{
-              tableRoot: '!overflow-visible border-none',
-              scrollAreaRoot: '!overflow-visible',
-              table: '!w-auto min-w-full',
-              tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-              tableBody: 'bg-white dark:bg-[#0C0A09]'
-            }"
-            :_table-row="(row) => {
-              if (!row) return {}
-              const rowIdx = filteredQuotes.findIndex(q => q.id === row.id)
-              const isHighlighted = rowIdx === highlightedRowIndex
-              const isSelected = !!rowSelection[row.id]
-              if (!isHighlighted && !isSelected) return {}
-              const classes = []
-              if (isHighlighted && isSelected) {
-                classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
-                classes.push('hover:bg-indigo-200 dark:hover:bg-indigo-900/50')
-              } else if (isHighlighted) {
-                classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
-                classes.push('hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]')
-              } else if (isSelected) {
-                classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
-                classes.push('hover:bg-indigo-100 dark:hover:bg-indigo-900/40')
-              }
-              return {
-                ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
-                class: classes.join(' ')
-              }
-            }"
-            manual-pagination
-            empty-text="No published quotes found"
-            empty-icon="i-ph-check-circle"
-          >
-            <template #select-header>
-              <div>
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-10 px-3 py-3 text-left">
                 <NCheckbox
                   checkbox="gray"
                   :model-value="allSelected"
                   @update:model-value="toggleAllSelection"
                 />
-              </div>
-            </template>
-
-            <template #select-cell="{ cell }">
-              <div class="items-center justify-center" :class="[
-                Object.keys(rowSelection).length > 0 ? 'flex' : 'hidden',
-                'group-hover:flex',
-              ]">
-                <NCheckbox
-                  checkbox="gray"
-                  :model-value="!!rowSelection[cell.row.original.id]"
-                  @click="e => handleRowCheckboxClick(e, cell.row.index, cell.row.original.id)"
-                />
-              </div>
-            </template>
-
-            <template #quote-header>
-              <div class="flex items-center gap-4">
-                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
-                <div class="w-102">
-                  <NInput
-                    v-model="searchQuery"
-                    placeholder="Search quotes, authors, or references..."
-                    leading="i-ph-magnifying-glass"
-                    size="md"
-                    :loading="loading"
-                    :trailing="searchQuery ? 'i-ph-x' : undefined"
-                    :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                    @trailing="resetFilters"
+              </th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quote</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Language</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Stats</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Published</th>
+              <th class="w-10 px-3 py-3 text-left"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr
+              v-for="(quote, idx) in filteredQuotes"
+              :key="quote.id"
+              :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined"
+              :class="[
+                'animate-fade-in-up transition-colors group',
+                { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex },
+                { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[quote.id] }
+              ]"
+              :style="{ animationDelay: `${idx * 0.03}s` }"
+            >
+              <td class="px-3 py-3">
+                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                  <NCheckbox
+                    checkbox="gray"
+                    :model-value="!!rowSelection[quote.id]"
+                    @click="e => handleRowCheckboxClick(e, idx, quote.id)"
                   />
                 </div>
-                <div>
-                  <NSelect
-                    v-model="selectedSort"
-                    :items="sortOptions"
-                    placeholder="Sort by"
-                    size="sm"
-                    item-key="label"
-                    value-key="label"
-                  />
-                </div>
-              </div>
-            </template>
-
-            <template #language-header>
-              <div>
-                <NSelect
-                  v-model="selectedLanguage"
-                  :items="languageOptions"
-                  placeholder="All Languages"
-                  size="sm"
-                  item-key="label"
-                  value-key="label"
-                />
-              </div>
-            </template>
-
-            <template #actions-header>
-              <div class="flex items-center justify-center space-x-1">
-                <span v-if="selectedQuotes.length > 0">{{ selectedQuotes.length }}</span>
-                <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
-                  <template #default>
-                    <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                  </template>
-                  <template #content>
-                    <div class="space-y-2">
-                      <div class="flex">
-                        <NBadge badge="solid-gray" size="xs" icon="i-ph-check-circle" class="w-full">
-                          {{ totalQuotes }} Published
-                        </NBadge>
-                      </div>
-                      <div class="flex">
-                        <NBadge badge="solid-blue" size="xs" icon="i-ph-eye" class="w-full">
-                          {{ totalViews }} Views
-                        </NBadge>
-                      </div>
-                      <div class="flex">
-                        <NBadge badge="solid-red" size="xs" icon="i-ph-heart" class="w-full">
-                          {{ totalLikes }} Likes
-                        </NBadge>
-                      </div>
-                    </div>
-                  </template>
-                </NTooltip>
-
-                <NDropdownMenu :items="headerActions">
-                  <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-                </NDropdownMenu>
-              </div>
-            </template>
-
-            <template #actions-cell="{ cell }">
-              <NDropdownMenu :items="getQuoteActions(cell.row.original)">
-                <NButton
-                  icon
-                  btn="ghost-gray"
-                  size="xs"
-                  label="i-ph-dots-three-vertical"
-                  class="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-                />
-              </NDropdownMenu>
-            </template>
-
-            <!-- Quote Column with author/reference info -->
-            <template #quote-cell="{ cell }">
-              <div class="max-w-md">
-                <blockquote
-                  class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words mb-2"
-                  :title="cell.row.original.name"
-                >
-                  {{ cell.row.original.name }}
+              </td>
+              <td class="px-3 py-3 max-w-md">
+                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                  &ldquo;{{ quote.name }}&rdquo;
                 </blockquote>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span v-if="cell.row.original.author?.name">{{ cell.row.original.author.name }}</span>
-                  <span v-if="cell.row.original.author?.name && cell.row.original.reference?.name">•</span>
-                  <span v-if="cell.row.original.reference?.name">{{ cell.row.original.reference.name }}</span>
+                  <span v-if="quote.author?.name">{{ quote.author.name }}</span>
+                  <span v-if="quote.author?.name && quote.reference?.name">&middot;</span>
+                  <span v-if="quote.reference?.name">{{ quote.reference.name }}</span>
                 </div>
-              </div>
-            </template>
-
-
-            <!-- User Column -->
-            <template #user-cell="{ cell }">
-              <div class="text-sm">
-                <span v-if="cell.row.original.user_name" class="text-gray-900 dark:text-white">
-                  {{ cell.row.original.user_name }}
+              </td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">
+                {{ quote.language || 'N/A' }}
+              </td>
+              <td class="px-3 py-3">
+                <span v-if="quote.user_name" class="font-sans text-sm text-gray-900 dark:text-gray-100">
+                  {{ quote.user_name }}
                 </span>
-                <span v-else class="text-gray-400 dark:text-gray-600 italic">
+                <span v-else class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">
                   Unknown
                 </span>
-              </div>
-            </template>
-
-            <!-- Language Column -->
-            <template #language-cell="{ cell }">
-              <span class="text-sm text-gray-900 dark:text-white">
-                {{ cell.row.original.language || 'N/A' }}
-              </span>
-            </template>
-
-            <!-- Stats Column -->
-            <template #stats-cell="{ cell }">
-              <div class="text-xs space-y-1">
-                <div class="flex items-center text-gray-500 dark:text-gray-400">
-                  <NIcon name="i-ph-eye" class="w-3 h-3 mr-1" />
-                  {{ cell.row.original.views_count || 0 }}
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                  <span class="flex items-center gap-1"><NIcon name="i-ph-eye" class="w-3 h-3" />{{ quote.views_count || 0 }}</span>
+                  <span class="flex items-center gap-1"><NIcon name="i-ph-heart" class="w-3 h-3" />{{ quote.likes_count || 0 }}</span>
                 </div>
-                <div class="flex items-center text-gray-500 dark:text-gray-400">
-                  <NIcon name="i-ph-heart" class="w-3 h-3 mr-1" />
-                  {{ cell.row.original.likes_count || 0 }}
-                </div>
-              </div>
-            </template>
+              </td>
+              <td class="px-3 py-3">
+                <span class="font-sans text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5">Published</span>
+              </td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">
+                {{ formatRelativeTime(quote.moderated_at || quote.created_at) }}
+              </td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="getQuoteActions(quote)">
+                  <button
+                    @click.stop
+                    class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
+                  </button>
+                </NDropdownMenu>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-            <!-- Status Column -->
-            <template #status-cell>
-              <NBadge badge="solid-lime" size="xs">
-                Published
-              </NBadge>
-            </template>
-
-            <!-- Published Date Column -->
-            <template #published-cell="{ cell }">
-              <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ formatRelativeTime(cell.row.original.moderated_at || cell.row.original.created_at) }}
-              </span>
-            </template>
-          </NTable>
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+          Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+        </span>
+        <div class="flex items-center gap-3">
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
         </div>
-
-        <div class="flex-shrink-0 flex items-center justify-between p-4">
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ totalPages }} • {{ totalQuotes }} total quotes
-          </div>
-          <NPagination
-            v-model:page="currentPage"
-            :total="totalQuotes"
-            :items-per-page="pageSize"
-            :sibling-count="2"
-            show-edges
-            size="sm"
-            pagination-selected="solid-indigo"
-          />
-        </div>
+      </div>
+      <div v-else class="pt-4 text-center">
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
       </div>
     </div>
+
+    <AddQuoteDialog
+      v-model="showEditQuoteDialog"
+      :edit-quote="selectedQuote"
+      @quote-updated="onQuoteUpdated"
+    />
+
+    <AddToCollectionBulkModal
+      v-if="selectedQuotes.length > 0"
+      v-model="showBulkAddToCollection"
+      :quote-ids="selectedQuotes"
+      @added="handleBulkAddedToCollection"
+    />
+
+    <BulkEditQuotesDialog
+      v-model:open="showBulkEditDialog"
+      :selected-quotes="selectedQuotesData"
+      @updated="onBulkEditComplete"
+    />
+
+    <NDialog v-model:open="showBulkUnpublishModal">
+      <template #header>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'Quote' : 'Quotes' }}</h3>
+      </template>
+      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
+        Are you sure you want to unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
+        They will be moved back to drafts.
+      </p>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkUnpublishModal = false">Cancel</button>
+          <OutlinedButton variant="destructive" @click="bulkUnpublish(); showBulkUnpublishModal = false">Unpublish All</OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
   </div>
-
-  <AddQuoteDialog
-    v-model="showEditQuoteDialog"
-    :edit-quote="selectedQuote"
-    @quote-updated="onQuoteUpdated"
-  />
-
-  <!-- Bulk Add to Collection Modal -->
-  <AddToCollectionBulkModal
-    v-if="selectedQuotes.length > 0"
-    v-model="showBulkAddToCollection"
-    :quote-ids="selectedQuotes"
-    @added="handleBulkAddedToCollection"
-  />
-
-  <BulkEditQuotesDialog
-    v-model:open="showBulkEditDialog"
-    :selected-quotes="selectedQuotesData"
-    @updated="onBulkEditComplete"
-  />
-
-  <NDialog v-model:open="showBulkUnpublishModal">
-    <template #header>
-      <h3 class="text-lg font-semibold">Unpublish {{ selectedQuotes.length }} Quotes</h3>
-    </template>
-
-    <p class="text-sm text-gray-600 dark:text-gray-400">
-      Are you sure you want to unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
-      They will be moved back to drafts.
-    </p>
-
-    <template #footer>
-      <div class="flex justify-end gap-3">
-        <NButton btn="ghost-gray" @click="showBulkUnpublishModal = false">Cancel</NButton>
-        <NButton btn="solid-orange" @click="bulkUnpublish(); showBulkUnpublishModal = false">Unpublish All</NButton>
-      </div>
-    </template>
-  </NDialog>
 </template>
 
 <script setup lang="ts">
@@ -337,7 +263,7 @@ const languageStore = useLanguageStore()
 const languageOptions = computed(() =>
   languageStore.availableLanguages.map((lang: LanguageOption) => ({
     label: lang.display,
-    value: lang.value === 'all' ? '' : lang.value // Map 'all' to empty string for filter logic
+    value: lang.value === 'all' ? '' : lang.value
   }))
 )
 
@@ -345,7 +271,6 @@ const selectedLanguage = ref({ label: 'All Languages', value: '' })
 
 const selectedQuote = ref<AdminQuote | undefined>(undefined)
 const showEditQuoteDialog = ref(false)
-// Selection state (multi-select column)
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
 const selectedQuotes = computed<number[]>(() => Object
@@ -356,7 +281,6 @@ const selectedQuotes = computed<number[]>(() => Object
 const selectedQuotesData = computed<AdminQuote[]>(() =>
   quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
 )
-// Bulk modal
 const showBulkAddToCollection = ref(false)
 const showBulkEditDialog = ref(false)
 const showBulkUnpublishModal = ref(false)
@@ -387,7 +311,6 @@ const filteredQuotes = computed(() => {
     filtered = filtered.filter(quote => quote.language === selectedLanguage.value.value)
   }
 
-  // Apply sorting
   if (selectedSort.value.value) {
     filtered = [...filtered].sort((a, b) => {
       switch (selectedSort.value.value) {
@@ -407,121 +330,6 @@ const filteredQuotes = computed(() => {
 
   return filtered
 })
-
-const totalViews = computed(() => {
-  return quotes.value.reduce((sum, quote) => sum + (quote.views_count || 0), 0)
-})
-
-const totalLikes = computed(() => {
-  return quotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
-})
-
-const tableColumns = [
-  { header: '', accessorKey: 'select', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  {
-    header: 'Quote',
-    accessorKey: 'quote',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'min-w-80',
-        tableCell: 'min-w-80'
-      }
-    }
-  },
-  {
-    header: 'Language',
-    accessorKey: 'language',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'User',
-    accessorKey: 'user',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-32',
-        tableCell: 'w-32'
-      }
-    }
-  },
-  {
-    header: 'Stats',
-    accessorKey: 'stats',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-24',
-        tableCell: 'w-24'
-      }
-    }
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-24',
-        tableCell: 'w-24'
-      }
-    }
-  },
-  {
-    header: 'Published',
-    accessorKey: 'published',
-    enableSorting: false,
-    meta: {
-      una: {
-        tableHead: 'w-28',
-        tableCell: 'w-28'
-      }
-    }
-  },
-  { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-16', tableCell: 'w-16' } } }
-]
-
-// Helpers derived from dashboard page
-const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
-const allSelectedOnPage = computed<boolean>(() =>
-  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
-)
-
-const allSelected = computed<boolean | 'indeterminate'>({
-  get: () => {
-    const total = filteredQuotes.value.length
-    const count = selectedQuotes.value.length
-    if (total === 0) return false
-    if (count === total) return true
-    if (count > 0) return 'indeterminate'
-    return false
-  },
-  set: (v) => {
-    const newSel: Record<number, boolean> = {}
-    if (v === true) {
-      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
-    }
-    rowSelection.value = newSel
-    lastSelectedIndex.value = null
-  }
-})
-
-const toggleAllSelection = (v: boolean | 'indeterminate') => {
-  if (v) {
-    const newSel: Record<number, boolean> = {}
-    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
-    rowSelection.value = newSel
-  } else {
-    rowSelection.value = {}
-  }
-  lastSelectedIndex.value = null
-}
 
 const loadQuotes = async () => {
   try {
@@ -544,7 +352,6 @@ const loadQuotes = async () => {
 
     quotes.value = response.data || []
     totalQuotes.value = response.pagination?.total || 0
-    // Reset selection on new data
     rowSelection.value = {}
     clearHighlight()
   } catch (error) {
@@ -558,7 +365,7 @@ const loadQuotes = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedLanguage.value = languageOptions.value[0] // Use the first option from the store (All Languages)
+  selectedLanguage.value = languageOptions.value[0]
   selectedSort.value = { label: 'Most Recent', value: 'newest' }
   currentPage.value = 1
   rowSelection.value = {}
@@ -608,7 +415,7 @@ const onBulkEditComplete = () => {
 
 const unpublishQuote = async (quote: AdminQuote) => {
   try {
-    const res = await $fetch('/api/admin/quotes/unpublish', {
+    await $fetch('/api/admin/quotes/unpublish', {
       method: 'POST',
       body: { id: quote.id }
     })
@@ -619,7 +426,6 @@ const unpublishQuote = async (quote: AdminQuote) => {
   }
 }
 
-// Selection helpers
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const setRowSelected = (id: number, value: boolean) => { rowSelection.value[id] = value === true }
@@ -633,6 +439,41 @@ const isAnyDialogOpen = computed(() =>
   showEditQuoteDialog.value || showBulkAddToCollection.value ||
   showBulkEditDialog.value || showBulkUnpublishModal.value
 )
+
+const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
+const allSelectedOnPage = computed<boolean>(() =>
+  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
+)
+
+const allSelected = computed<boolean | 'indeterminate'>({
+  get: () => {
+    const total = filteredQuotes.value.length
+    const count = selectedQuotes.value.length
+    if (total === 0) return false
+    if (count === total) return true
+    if (count > 0) return 'indeterminate'
+    return false
+  },
+  set: (v) => {
+    const newSel: Record<number, boolean> = {}
+    if (v === true) {
+      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    }
+    rowSelection.value = newSel
+    lastSelectedIndex.value = null
+  }
+})
+
+const toggleAllSelection = (v: boolean | 'indeterminate') => {
+  if (v) {
+    const newSel: Record<number, boolean> = {}
+    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
+    rowSelection.value = newSel
+  } else {
+    rowSelection.value = {}
+  }
+  lastSelectedIndex.value = null
+}
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => filteredQuotes.value.length,
@@ -675,43 +516,6 @@ useAdminKeyboardShortcuts({
   }
 })
 
-
-const headerActions = computed(() => {
-  const actions: any[] = []
-  if (selectedQuotes.value.length > 0) {
-    actions.push({
-      label: 'Edit Selected',
-      leading: 'i-ph-pencil',
-      shortcut: 'E',
-      onclick: () => { showBulkEditDialog.value = true }
-    })
-    actions.push({
-      label: 'Add to Collection',
-      leading: 'i-ph-bookmark',
-      onclick: () => { showBulkAddToCollection.value = true }
-    })
-    actions.push({
-      label: 'Unpublish Selected',
-      leading: 'i-ph-eye-slash',
-      shortcut: 'D',
-      onclick: () => bulkUnpublish()
-    })
-  }
-  if (actions.length > 0) actions.push({})
-  actions.push({
-    label: 'Refresh',
-    leading: 'i-ph-arrows-clockwise',
-    onclick: () => loadQuotes()
-  })
-  actions.push({
-    label: 'Reset Filters',
-    leading: 'i-ph-x',
-    onclick: () => resetFilters()
-  })
-  return actions
-})
-
-// shift‑click support
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
   const currently = !!rowSelection.value[id]
   const newVal = !currently
@@ -751,30 +555,29 @@ const bulkUnpublish = async () => {
 watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
   loadQuotes()
 }, { debounce: 300, immediate: true })
-
-
 </script>
 
 <style scoped>
-.quotes-table-container {
-  max-height: calc(100vh - 11rem);
-  max-width: calc(100vw - 8rem);
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-:deep(.table-header tr) {
-  border-bottom: none;
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
 }
 
-
-.quotes-table-container :deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-.quotes-table-container :deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
-
-.frame {
-  height: calc(100vh - 8rem);
+.line-clamp-2 {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

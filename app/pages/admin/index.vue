@@ -1,300 +1,198 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-        Admin Dashboard
-      </h1>
-      <p class="mt-2 text-gray-600 dark:text-gray-400">
-        System overview and management tools
-      </p>
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-center justify-between gap-4">
+        <h1 class="font-serif text-3xl md:text-5xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
+          Admin Overview
+        </h1>
+        <p class="font-sans text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{{ currentDate }}</p>
+      </div>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="space-y-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="i in 8" :key="i" class="animate-pulse">
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 md:flex">
+        <div v-for="i in 6" :key="i" class="px-4 py-4 md:flex-1 animate-pulse">
+          <div class="h-6 bg-gray-100 dark:bg-gray-800 rounded w-16 mb-2" />
+          <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-20" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
+        <div class="lg:col-span-8 lg:border-r border-dashed border-gray-200 dark:border-gray-700 lg:pr-8 pb-8">
+          <div class="space-y-4">
+            <div v-for="i in 5" :key="i" class="flex items-start gap-3 animate-pulse">
+              <div class="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700 mt-1.5 flex-shrink-0" />
+              <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-full" />
+                <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Dashboard Content -->
-    <div v-else class="space-y-8">
-      <!-- System Stats -->
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">System Statistics</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Quotes Stats -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Quotes</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">
-                    {{ stats.quotes?.approved || 0 }} approved, {{ stats.quotes?.pending || 0 }} pending
-                  </p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-quotes" size="xl" class="text-cyan-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total || 0 }}</p>
-            </div>
-          </div>
-
-          <!-- Users Stats -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">
-                    {{ stats.users?.active || 0 }} active
-                  </p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-users" size="xl" class="text-gray-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.users?.total || 0 }}</p>
-            </div>
-          </div>
-
-          <!-- Authors Stats -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Authors</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">
-                    {{ stats.authors?.fictional || 0 }} fictional
-                  </p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-user" size="xl" class="text-blue-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.authors?.total || 0 }}</p>
-            </div>
-          </div>
-
-          <!-- Collections Stats -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Collections</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">
-                    {{ stats.collections?.public || 0 }} public
-                  </p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-bookmark" size="xl" class="text-orange-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.collections?.total || 0 }}</p>
-            </div>
-          </div>
-
-
+    <div v-else>
+      <!-- Editorial Stats Bar -->
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 md:flex mb-8">
+        <div class="px-4 py-4 md:flex-1">
+          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.quotes?.total || 0 }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Quotes</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.quotes?.approved || 0 }} approved &middot; {{ stats.quotes?.pending || 0 }} pending</p>
+        </div>
+        <div class="px-4 py-4 md:flex-1">
+          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.users?.total || 0 }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Users</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.users?.active || 0 }} active</p>
+        </div>
+        <div class="px-4 py-4 md:flex-1">
+          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.authors?.total || 0 }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Authors</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.authors?.fictional || 0 }} fictional</p>
+        </div>
+        <div class="px-4 py-4 md:flex-1">
+          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.collections?.total || 0 }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Collections</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.collections?.public || 0 }} public</p>
+        </div>
+        <div class="px-4 py-4 md:flex-1">
+          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.likes?.total || 0 }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Likes</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.likes?.unique_users || 0 }} users</p>
+        </div>
+        <div class="px-4 py-4 md:flex-1">
+          <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.views?.total || 0 }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Views</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.views?.unique_users || 0 }} users</p>
         </div>
       </div>
 
-      <!-- Engagement Stats -->
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Engagement</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Total Likes -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Likes</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">
-                    {{ stats.likes?.unique_users || 0 }} users
-                  </p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-heart" size="xl" class="text-red-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.likes?.total || 0 }}</p>
+      <!-- Two-column editorial layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
+        <!-- Main column: Recent Activity -->
+        <div class="lg:col-span-8 lg:border-r border-dashed border-gray-300 dark:border-gray-700 lg:pr-8 pb-8">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
+                Recent Activity
+              </p>
             </div>
+            <span class="font-sans text-xs text-gray-400 dark:text-gray-500">30 days</span>
           </div>
 
-          <!-- Total Views -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Views</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500">
-                    {{ stats.views?.unique_users || 0 }} users
-                  </p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-eye" size="xl" class="text-indigo-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.views?.total || 0 }}</p>
-            </div>
-          </div>
-
-          <!-- Total Shares -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Shares</p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-share" size="xl" class="text-teal-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.total_shares || 0 }}</p>
-            </div>
-          </div>
-
-          <!-- Featured -->
-          <div class="border rounded-2 p-4">
-            <div class="flex-1">
-              <div class="w-full flex justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Featured</p>
-                </div>
-                <div class="flex-shrink-0">
-                  <NIcon name="i-ph-star" size="xl" class="text-yellow-600" />
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.quotes?.featured || 0 }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div class="flex gap-4 flex-wrap">
-          <NButton
-            btn="soft-yellow"
-            to="/admin/quotes/pending"
-            :badge="stats.quotes?.pending || 0"
-          >
-            <NIcon name="i-ph-clock" />
-            Review Pending Quotes
-          </NButton>
-          <NButton
-            btn="outline"
-            to="/admin/quotes/published"
-          >
-            <NIcon name="i-ph-check-circle" />
-            Published Quotes
-          </NButton>
-          <NButton
-            btn="outline"
-            to="/admin/quotes/drafts"
-          >
-            <NIcon name="i-ph-file-dashed" />
-            Draft Quotes
-          </NButton>
-          <NButton
-            btn="outline"
-            to="/admin/import"
-          >
-            <NIcon name="i-ph-upload" />
-            Import Data
-          </NButton>
-          <NButton
-            btn="outline"
-            to="/admin/export"
-          >
-            <NIcon name="i-ph-download" />
-            Export Data
-          </NButton>
-          <NButton
-            btn="outline"
-            to="/admin/maintenance"
-          >
-            <NIcon name="i-ph-wrench" />
-            Database Maintenance
-          </NButton>
-          <NButton
-            btn="outline"
-            disabled
-          >
-            <NIcon name="i-ph-chart-bar" />
-            Analytics (Soon)
-          </NButton>
-        </div>
-      </div>
-
-      <!-- Recent Activity & Top Contributors -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Recent Activity -->
-        <NCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Recent Activity (30 days)</h3>
-          </template>
-
-          <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="space-y-3">
+          <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
             <div
-              v-for="activity in stats.recent_activity.slice(0, 10)"
+              v-for="(activity, idx) in stats.recent_activity.slice(0, 10)"
               :key="activity.date"
-              class="flex items-center justify-between py-2"
+              class="py-3 first:pt-0 last:pb-0 animate-fade-in-up"
+              :style="{ animationDelay: `${idx * 0.05}s` }"
             >
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ formatDate(activity.date) }}
-              </span>
-              <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ activity.count }} submissions
-              </span>
-            </div>
-          </div>
-          <div v-else class="text-center py-8">
-            <p class="text-gray-500 dark:text-gray-400">No recent activity</p>
-          </div>
-        </NCard>
-
-        <!-- Top Contributors -->
-        <NCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Top Contributors</h3>
-          </template>
-
-          <div v-if="stats.top_contributors && stats.top_contributors.length > 0" class="space-y-3">
-            <div
-              v-for="(contributor, index) in stats.top_contributors"
-              :key="contributor.id"
-              class="flex items-center space-x-3"
-            >
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-4">
-                {{ index + 1 }}
-              </span>
-              <NAvatar
-                :src="contributor.avatar_url"
-                :alt="contributor.name"
-                size="xs"
-                :ui="{ background: 'bg-primary-500 dark:bg-primary-400' }"
-              />
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ contributor.name }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ contributor.quote_count }} quotes, {{ contributor.total_likes }} likes
-                </p>
+              <div class="flex items-center justify-between">
+                <span class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ formatDate(activity.date) }}</span>
+                <span class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ activity.count }} submissions</span>
               </div>
             </div>
           </div>
-          <div v-else class="text-center py-8">
-            <p class="text-gray-500 dark:text-gray-400">No contributors yet</p>
+          <div v-else class="py-10 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+            <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">No recent activity</p>
           </div>
-        </NCard>
+        </div>
+
+        <!-- Sidebar column -->
+        <div class="lg:col-span-4 lg:pl-8 pb-8">
+          <!-- Quick Actions -->
+          <div class="mb-8 pb-6 border-b border-dashed border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
+                Quick Actions
+              </p>
+            </div>
+            <div class="space-y-1">
+              <NuxtLink to="/admin/quotes/pending" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
+                <div class="flex items-center gap-2">
+                  <NIcon name="i-ph-clock" class="w-4 h-4 text-gray-400" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Review Pending</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <NBadge v-if="stats.quotes?.pending > 0" :label="`${stats.quotes.pending}`" badge="soft-gray" size="xs" />
+                  <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+                </div>
+              </NuxtLink>
+              <NuxtLink to="/admin/quotes/published" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
+                <div class="flex items-center gap-2">
+                  <NIcon name="i-ph-check-circle" class="w-4 h-4 text-gray-400" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Published Quotes</span>
+                </div>
+                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+              </NuxtLink>
+              <NuxtLink to="/admin/quotes/drafts" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
+                <div class="flex items-center gap-2">
+                  <NIcon name="i-ph-file-dashed" class="w-4 h-4 text-gray-400" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Draft Quotes</span>
+                </div>
+                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+              </NuxtLink>
+              <NuxtLink to="/admin/authors" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
+                <div class="flex items-center gap-2">
+                  <NIcon name="i-ph-user" class="w-4 h-4 text-gray-400" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Authors</span>
+                </div>
+                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+              </NuxtLink>
+              <NuxtLink to="/admin/import" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
+                <div class="flex items-center gap-2">
+                  <NIcon name="i-ph-upload" class="w-4 h-4 text-gray-400" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Import Data</span>
+                </div>
+                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+              </NuxtLink>
+              <NuxtLink to="/admin/export" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors last:border-b-0">
+                <div class="flex items-center gap-2">
+                  <NIcon name="i-ph-download" class="w-4 h-4 text-gray-400" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Export Data</span>
+                </div>
+                <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Top Contributors -->
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
+                Top Contributors
+              </p>
+            </div>
+
+            <div v-if="stats.top_contributors && stats.top_contributors.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
+              <div
+                v-for="(contributor, idx) in stats.top_contributors"
+                :key="contributor.id"
+                class="flex items-center gap-3 py-3 first:pt-0 last:pb-0 animate-fade-in-up"
+                :style="{ animationDelay: `${idx * 0.05}s` }"
+              >
+                <span class="font-sans text-sm text-gray-400 dark:text-gray-500 w-4 flex-shrink-0">{{ idx + 1 }}.</span>
+                <NAvatar
+                  :src="contributor.avatar_url"
+                  :alt="contributor.name"
+                  size="xs"
+                />
+                <div class="min-w-0 flex-1">
+                  <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ contributor.name }}</p>
+                  <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ contributor.quote_count }} quotes &middot; {{ contributor.total_likes }} likes</p>
+                </div>
+              </div>
+            </div>
+            <div v-else class="py-8 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+              <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">No contributors yet</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -303,22 +201,26 @@
 <script setup>
 import { formatDate } from '~/utils/time-formatter'
 
-// Use admin layout
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
 })
 
-// SEO
 useHead({
   title: 'Admin Dashboard - Verbatims'
 })
 
-// Data
 const stats = ref({})
 const loading = ref(true)
 
-// Load admin statistics
+const today = new Date()
+const currentDate = today.toLocaleDateString('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric'
+})
+
 const loadStats = async () => {
   try {
     loading.value = true
@@ -326,22 +228,35 @@ const loadStats = async () => {
     stats.value = response.data
   } catch (error) {
     console.error('Failed to load admin stats:', error)
-    // TODO: Show error toast
   } finally {
     loading.value = false
   }
 }
 
-// Load initial data
 onMounted(() => {
   loadStats()
 })
 
-// Auto-refresh every 5 minutes
 const refreshInterval = setInterval(loadStats, 5 * 60 * 1000)
 
-// Cleanup interval on unmount
 onUnmounted(() => {
   clearInterval(refreshInterval)
 })
 </script>
+
+<style scoped>
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+</style>
