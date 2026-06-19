@@ -7,7 +7,7 @@
       placeholder: 'Select language...',
     }"
     :_combobox-trigger="{
-      class: 'bg-transparent',
+      class: triggerClass,
     }"
     data-testid="language-selector"
     @update:model-value="onLanguageChange"
@@ -40,10 +40,18 @@ import type { LanguageOption } from '~/stores/language'
 interface Props {
   // Optional callback for when language changes (for custom handling)
   onLanguageChanged?: (language: LanguageOption) => void | Promise<void>
+  useClassicDesign?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  onLanguageChanged: undefined
+  onLanguageChanged: undefined,
+  useClassicDesign: false,
+})
+
+const triggerClass = computed(() => {
+  const base = 'bg-transparent'
+  const classicFlag = ' !text-xs bg-gray-100 dark:bg-gray-800 ring-none !rounded-0 shadow-none'
+  return `${base} ${props.useClassicDesign ? classicFlag : ''}`
 })
 
 // Use the language store (initialization handled by plugin)
