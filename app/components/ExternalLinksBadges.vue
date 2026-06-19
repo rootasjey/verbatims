@@ -1,14 +1,14 @@
 <template>
   <div v-if="entries.length" class="text-center pt-4 border-t b-dashed border-gray-200 dark:border-gray-700" :class="$attrs.class">
     <h3 v-if="title" class="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ title }}</h3>
-    <div class="flex flex-wrap justify-center gap-3">
+    <div class="flex flex-wrap justify-start gap-3">
       <NBadge
         v-for="([key, url], i) in entries"
         :key="`${key}-${i}`"
         external
         rounded="full"
         size="sm"
-        badge="~"
+        badge="solid-gray"
         class="hover:scale-102 active:scale-99 transition-transform duration-200 ease-in-out cursor-pointer"
         :class="badgeColors[key] || defaultBadgeClasses"
       >
