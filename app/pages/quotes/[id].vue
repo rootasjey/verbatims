@@ -385,7 +385,7 @@ const onQuoteUpdated = async () => {
 
   } catch (error) {
     console.error('Failed to refresh quote after update:', error)
-    useToast().toast({ title: 'Update failed', description: 'Could not refresh quote.', toast: 'soft-error' })
+    useErrorToast().showErrorToast(error, 'Update failed')
   } finally {
     showEditQuoteDialog.value = false
   }
@@ -516,11 +516,7 @@ const shareQuote = async () => {
     quote.value.shares_count++
   } catch (error) {
     console.error('Failed to share quote:', error)
-    useToast().toast({
-      title: 'Failed to share quote',
-      description: 'Please try again.',
-      toast: 'soft-error',
-    })
+    useErrorToast().showErrorToast(error, 'Failed to share quote')
   } finally {
     sharePending.value = false
   }
@@ -571,10 +567,7 @@ const copyQuoteText = async () => {
     const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
     await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}`)
   } catch (error) {
-    useToast().toast({
-      title: 'Copy failed',
-      description: 'Clipboard is not available.', toast: 'soft-error',
-    })
+    useErrorToast().showErrorToast(error, 'Copy failed')
   }
 }
 
@@ -595,10 +588,7 @@ const copyTextAndLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({
-      title: 'Copy failed',
-      description: 'Clipboard is not available.', toast: 'soft-error',
-    })
+    useErrorToast().showErrorToast(error, 'Copy failed')
   }
 }
 
@@ -611,7 +601,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'soft-error' })
+    useErrorToast().showErrorToast(error, 'Copy failed')
   }
 }
 

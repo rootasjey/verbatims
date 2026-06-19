@@ -72,6 +72,7 @@ const isOpen = computed({
 const submitting = ref(false)
 const quotesCount = ref<number>(props.author?.quotes_count ?? 0)
 const strategy = ref<'delete' | 'anonymize'>(quotesCount.value > 0 ? 'anonymize' : 'delete')
+const { showErrorToast } = useErrorToast()
 
 watch(() => props.author?.id, async (newId) => {
   if (!newId) return
@@ -105,8 +106,7 @@ const confirmDeletion = async () => {
     isOpen.value = false
   } catch (error: any) {
     console.error('Delete author failed:', error)
-    const message = error?.data?.statusMessage || 'Failed to delete author'
-    useToast().toast({ toast: 'error', title: 'Error', description: message })
+    showErrorToast(error, { title: 'Error', fallback: 'Failed to delete author' })
   } finally {
     submitting.value = false
   }

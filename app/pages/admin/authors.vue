@@ -411,6 +411,8 @@ import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 
+const { showErrorToast } = useErrorToast()
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -707,12 +709,7 @@ const loadAuthors = async () => {
     lastSelectedIndex.value = null
     clearHighlight()
   } catch (error) {
-    console.error('Failed to load authors:', error)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to load authors',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Failed to load authors')
   } finally {
     loading.value = false
   }
@@ -824,12 +821,7 @@ const openEnrichmentPreview = async (author: Author, preferredExternalId?: strin
   } catch (error: any) {
     if (enrichmentAuthorTarget.value?.id !== author.id) return
 
-    console.error('Failed to build enrichment preview:', error)
-    useToast().toast({
-      title: 'Enrichment preview failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not build the author preview.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Enrichment preview failed')
     showEnrichmentDialog.value = false
   } finally {
     enrichmentLoading.value = false
@@ -897,11 +889,7 @@ const openEnrichmentConfigDialog = async () => {
     enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58)
     enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
   } catch (error: any) {
-    useToast().toast({
-      title: 'Failed to load settings',
-      description: error?.data?.statusMessage || error?.message || 'Could not load enrichment settings.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Failed to load settings')
     showEnrichmentConfigDialog.value = false
   } finally {
     enrichmentConfigLoading.value = false
@@ -943,11 +931,7 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     })
     showEnrichmentConfigDialog.value = false
   } catch (error: any) {
-    useToast().toast({
-      title: 'Save failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not save enrichment settings.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Save failed')
   } finally {
     enrichmentConfigSaving.value = false
   }
@@ -968,12 +952,7 @@ const applySelectedEnrichment = async () => {
     closeEnrichmentDialog()
     loadAuthors()
   } catch (error: any) {
-    console.error('Failed to apply enrichment preview:', error)
-    useToast().toast({
-      title: 'Apply failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not apply the selected fields.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Apply failed')
   } finally {
     enrichmentApplying.value = false
   }
@@ -1021,7 +1000,7 @@ const confirmBulkDelete = async () => {
     const succeeded = results.length - failed
     useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} author${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
   } catch (e) {
-    useToast().toast({ toast: 'soft-error', title: 'Bulk delete failed' })
+    showErrorToast(e, 'Bulk delete failed')
   } finally {
     bulkProcessing.value = false
     showBulkDeleteDialog.value = false

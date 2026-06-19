@@ -187,6 +187,8 @@ const emit = defineEmits<{
   (e: 'report', quote: ProcessedQuoteResult): void
 }>()
 
+const { showErrorToast } = useErrorToast()
+
 const isHovered = ref(false)
 const topicBorderStyle = computed(() => getTopicBorderStyle(props.quote.tags))
 const hasTopicBorder = computed(() => (props.quote.tags?.length ?? 0) > 0)
@@ -270,7 +272,7 @@ const copyLink = async () => {
     await navigator.clipboard.writeText(url)
     toast({ title: 'Link copied', toast: 'outline-success' })
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'outline-error' })
+    showErrorToast(error, { title: 'Copy failed', fallback: 'Could not copy the link.' })
   }
 }
 
@@ -281,7 +283,7 @@ const copyQuoteText = async () => {
     await navigator.clipboard.writeText(text)
     toast({ title: 'Text copied', toast: 'outline-success' })
   } catch (error) {
-    toast({ title: 'Copy failed', description: 'Clipboard is not available.', toast: 'outline-error' })
+    showErrorToast(error, { title: 'Copy failed', fallback: 'Clipboard is not available.' })
   }
 }
 
@@ -311,7 +313,7 @@ const shareQuote = async () => {
     }
   } catch (error) {
     console.error('Failed to share quote:', error)
-    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'outline-error' })
+    showErrorToast(error, { title: 'Failed to share', fallback: 'Please try again.' })
   } finally {
     sharePending.value = false
   }

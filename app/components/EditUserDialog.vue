@@ -50,6 +50,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { user: currentUser } = useUserSession()
+const { showErrorToast } = useErrorToast()
 
 const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 const user = computed(() => props.user)
@@ -90,7 +91,7 @@ const submit = async () => {
     isOpen.value = false
   } catch (e: any) {
     console.error('Update user failed', e)
-    useToast().toast({ toast: 'error', title: 'Error', description: e?.data?.statusMessage || 'Failed to update user' })
+    showErrorToast(e, { title: 'Error', fallback: 'Failed to update user' })
   } finally {
     submitting.value = false
   }

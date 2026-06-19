@@ -77,6 +77,7 @@ const isOpen = computed({
 
 const loading = ref(false)
 const state = ref({ name: '', description: '', is_public: false })
+const { showErrorToast } = useErrorToast()
 
 watch(() => props.collection, (col) => {
   if (col) {
@@ -107,7 +108,7 @@ const save = async () => {
     state.value = { name: '', description: '', is_public: false }
   } catch (error: any) {
     console.error('Failed to save collection:', error)
-    useToast().toast({ title: isEdit.value ? 'Update failed' : 'Creation failed', description: error?.message || 'Please try again.', toast: 'error' })
+    showErrorToast(error, { title: isEdit.value ? 'Update failed' : 'Creation failed', fallback: 'Please try again.' })
   } finally {
     loading.value = false
   }

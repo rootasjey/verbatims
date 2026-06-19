@@ -311,6 +311,9 @@ import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { useErrorToast } from '~/composables/useErrorToast'
+
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'admin',
@@ -546,11 +549,7 @@ const loadQuotes = async () => {
     clearHighlight()
   } catch (error) {
     console.error('Failed to load published quotes:', error)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to load published quotes',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Failed to load published quotes')
   } finally {
     loading.value = false
     hasLoadedOnce.value = true
@@ -616,11 +615,7 @@ const unpublishQuote = async (quote: AdminQuote) => {
     await loadQuotes()
   } catch (e) {
     console.error('Unpublish failed:', e)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to unpublish quote',
-      toast: 'soft-error'
-    })
+    showErrorToast(e, 'Failed to unpublish quote')
   }
 }
 
@@ -749,11 +744,7 @@ const bulkUnpublish = async () => {
     await loadQuotes()
   } catch (e) {
     console.error('Bulk unpublish failed:', e)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to unpublish selected quotes',
-      toast: 'soft-error'
-    })
+    showErrorToast(e, 'Failed to unpublish selected quotes')
   }
 }
 

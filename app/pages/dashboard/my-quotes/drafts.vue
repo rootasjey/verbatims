@@ -451,6 +451,7 @@ useHead({
 
 const { isMobile } = useMobileDetection()
 const { user } = useUserSession()
+const { showErrorToast } = useErrorToast()
 
 const languageStore = useLanguageStore()
 
@@ -707,11 +708,7 @@ const submitQuote = async (quote: DashboardQuote) => {
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error: any) {
     console.error('Failed to submit quote:', error)
-    useToast().toast({
-      title: 'Failed to submit quote',
-      description: error?.data?.message || 'Please try again.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Failed to submit quote')
   }
 }
 
@@ -861,7 +858,7 @@ const bulkSubmit = async () => {
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk submit:', error)
-    useToast().toast({ title: 'Bulk submit failed', description: 'Please try again.', toast: 'soft-error' })
+    showErrorToast(error, 'Bulk submit failed')
   } finally {
     bulkProcessing.value = false
   }
@@ -883,7 +880,7 @@ const bulkDelete = async () => {
     showBulkDeleteModal.value = false
   } catch (error) {
     console.error('Failed to bulk delete:', error)
-    useToast().toast({ title: 'Bulk delete failed', description: 'Please try again.', toast: 'soft-error' })
+    showErrorToast(error, 'Bulk delete failed')
   } finally {
     bulkProcessing.value = false
   }

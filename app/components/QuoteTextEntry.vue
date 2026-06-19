@@ -77,6 +77,7 @@ const emit = defineEmits<{
 
 const { user } = useUserSession()
 const sharePending = ref(false)
+const { showErrorToast } = useErrorToast()
 
 const menuItems = computed(() => {
   const items: { label: string; leading: string; onclick: () => void }[] = []
@@ -107,7 +108,7 @@ const copyLink = async () => {
     await navigator.clipboard.writeText(url)
     toast({ title: 'Link copied', toast: 'outline-success' })
   } catch {
-    toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'soft-error' })
+    showErrorToast(null, { title: 'Copy failed', fallback: 'Could not copy the link.' })
   }
 }
 
@@ -118,7 +119,7 @@ const copyQuoteText = async () => {
     await navigator.clipboard.writeText(text)
     toast({ title: 'Text copied', toast: 'outline-success' })
   } catch {
-    toast({ title: 'Copy failed', description: 'Clipboard is not available.', toast: 'soft-error' })
+    showErrorToast(null, { title: 'Copy failed', fallback: 'Clipboard is not available.' })
   }
 }
 
@@ -140,7 +141,7 @@ const shareQuote = async () => {
       toast({ title: 'Quote link copied', toast: 'outline-success' })
     }
   } catch {
-    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'soft-error' })
+    showErrorToast(null, { title: 'Failed to share', fallback: 'Please try again.' })
   } finally {
     sharePending.value = false
   }

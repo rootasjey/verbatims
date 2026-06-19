@@ -403,6 +403,7 @@ useHead({
 })
 const languageStore = useLanguageStore()
 const { isMobile } = useMobileDetection()
+const { showErrorToast } = useErrorToast()
 
 const loading = ref(true)
 const loadingMore = ref(false)
@@ -667,14 +668,13 @@ const viewQuote = (quote: DashboardQuote) => {
 }
 
 const withdrawQuote = async (quote: DashboardQuote) => {
-  const { toast } = useToast()
   try {
     withdrawingId.value = quote.id
     await $fetch(`/api/quotes/${quote.id}/withdraw`, { method: 'POST' } as any)
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error) {
     console.error('Failed to withdraw quote:', error)
-    toast({ title: 'Withdraw failed', description: 'Please try again.', toast: 'soft-error' })
+    showErrorToast(error, 'Withdraw failed')
   } finally {
     withdrawingId.value = null
   }
@@ -684,7 +684,6 @@ const withdrawQuote = async (quote: DashboardQuote) => {
 
 const bulkWithdraw = async () => {
   if (selectedQuotes.value.length === 0) return
-  const { toast } = useToast()
   try {
     bulkProcessing.value = true
     const ids = [...selectedQuotes.value]
@@ -697,8 +696,7 @@ const bulkWithdraw = async () => {
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk withdraw:', error)
-    const { toast } = useToast()
-    toast({ title: 'Bulk withdraw failed', description: 'Please try again.', toast: 'soft-error' })
+    showErrorToast(error, 'Bulk withdraw failed')
   } finally {
     bulkProcessing.value = false
   }

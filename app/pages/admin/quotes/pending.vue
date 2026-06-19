@@ -398,6 +398,9 @@ import { formatRelativeTime } from '~/utils/time-formatter'
 import type { LanguageOption } from '~/stores/language'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { useErrorToast } from '~/composables/useErrorToast'
+
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'admin',
@@ -796,11 +799,7 @@ const approveQuote = async (quote) => {
     }
   } catch (error) {
     console.error('Failed to approve quote:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error',
-      description: 'Failed to approve quote'
-    })
+    showErrorToast(error, 'Failed to approve quote')
   } finally {
     processing.value.delete(quote.id)
   }
@@ -830,11 +829,7 @@ const confirmRejectQuote = async () => {
     rejectionReason.value = ''
   } catch (error) {
     console.error('Failed to reject quote:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error',
-      description: 'Failed to reject quote'
-    })
+    showErrorToast(error, 'Failed to reject quote')
   } finally {
     processing.value.delete(selectedQuote.value.id)
   }
@@ -852,7 +847,7 @@ const quickRejectQuote = async (quote: AdminQuote) => {
     repositionHighlightAfterRemoval(previousIndex)
   } catch (error) {
     console.error('Failed to reject quote:', error)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to reject quote' })
+    showErrorToast(error, 'Failed to reject quote')
   } finally {
     processing.value.delete(quote.id)
   }
@@ -879,11 +874,7 @@ const bulkApprove = async () => {
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk approve quotes:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error',
-      description: 'Failed to bulk approve quotes'
-    })
+    showErrorToast(error, 'Failed to bulk approve quotes')
   } finally {
     bulkProcessing.value = false
   }
@@ -908,11 +899,7 @@ const confirmBulkReject = async () => {
     bulkRejectionReason.value = ''
   } catch (error) {
     console.error('Failed to bulk reject quotes:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error',
-      description: 'Failed to bulk reject quotes'
-    })
+    showErrorToast(error, 'Failed to bulk reject quotes')
   } finally {
     bulkProcessing.value = false
   }

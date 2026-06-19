@@ -255,6 +255,8 @@ import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
 import { hexToBlossomValue, getContrastColor, BLOSSOM_PALETTE } from '~/utils/color'
 import { useColorPickerEscape } from '~/composables/useColorPickerEscape'
 
+const { showErrorToast } = useErrorToast()
+
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Tags - Admin - Verbatims' })
 
@@ -481,8 +483,7 @@ const loadTags = async () => {
     lastSelectedIndex.value = null
     clearHighlight()
   } catch (e) {
-    console.error('Failed to load tags', e)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load tags' })
+    showErrorToast(e, 'Failed to load tags')
   } finally {
     loading.value = false
   }
@@ -513,7 +514,7 @@ const updateTagColor = async (tag: any, color: BlossomColorPickerColor) => {
     await $fetch(`/api/admin/tags/${tag.id}`, { method: 'PUT', body: { color: color.hex } })
   } catch (e) {
     tag.color = prev
-    useToast().toast({ toast: 'soft-error', title: 'Failed to update color' })
+    showErrorToast(e, 'Failed to update color')
   }
 }
 
@@ -535,7 +536,7 @@ const confirmBulkDelete = async () => {
     const succeeded = results.length - failed
     useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} tag${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
   } catch (e) {
-    useToast().toast({ toast: 'soft-error', title: 'Bulk delete failed' })
+    showErrorToast(e, 'Bulk delete failed')
   } finally {
     bulkProcessing.value = false
     showBulkDeleteDialog.value = false
@@ -572,12 +573,7 @@ const triggerBackfill = async () => {
     showBackfillDialog.value = false
     await loadTags()
   } catch (error) {
-    console.error('Backfill trigger failed', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Backfill failed',
-      description: 'Unable to run tag backfill.'
-    })
+    showErrorToast(error, 'Backfill failed')
   } finally {
     backfillProcessing.value = false
   }

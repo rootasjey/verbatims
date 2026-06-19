@@ -279,6 +279,9 @@
 import ImportProgress from '~/components/admin/import/ImportProgress.vue'
 import ImportHistory from '~/components/admin/import/ImportHistory.vue'
 import DataPreviewTable from '~/components/admin/DataPreviewTable.vue'
+import { useErrorToast } from '~/composables/useErrorToast'
+
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'admin',
@@ -555,11 +558,7 @@ const startRelink = async (): Promise<void> => {
     openProgress.value = true
   } catch (error: any) {
     console.error('Relink failed:', error)
-    useToast().toast({
-      title: 'Relink Failed',
-      description: error?.data?.message || 'An error occurred during relink.',
-      toast: 'error',
-    })
+    showErrorToast(error, { title: 'Relink Failed', fallback: 'An error occurred during relink.' })
   } finally {
     isRelinking.value = false
   }
@@ -642,11 +641,7 @@ const validateData = async (): Promise<void> => {
   } catch (error: any) {
     console.error('Validation failed:', error)
 
-    useToast().toast({
-      title: 'Import Failed',
-      description: error?.data?.message || 'An error occurred during import.',
-      toast: 'error',
-    })
+    showErrorToast(error, { title: 'Import Failed', fallback: 'An error occurred during import.' })
   } finally {
     isValidating.value = false
   }
@@ -690,11 +685,7 @@ const startImport = async (): Promise<void> => {
     openProgress.value = true
   } catch (error: any) {
     console.error('Import failed:', error)
-    useToast().toast({
-      title: 'Import Failed',
-      description: error?.data?.message || 'An error occurred during import.',
-      toast: 'error',
-    })
+    showErrorToast(error, { title: 'Import Failed', fallback: 'An error occurred during import.' })
   } finally {
     isImporting.value = false
   }

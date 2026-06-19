@@ -178,6 +178,8 @@
 <script setup lang="ts">
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
 
+const { showErrorToast } = useErrorToast()
+
 const route = useRoute()
 
 definePageMeta({
@@ -275,12 +277,7 @@ const loadQueue = async () => {
     queueStats.value = response.data?.stats || queueStats.value
     totalItems.value = response.pagination?.total || 0
   } catch (error: any) {
-    console.error('Failed to load enrichment queue:', error)
-    useToast().toast({
-      title: 'Queue load failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not load enrichment jobs.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Queue load failed')
   } finally {
     loading.value = false
   }
@@ -316,12 +313,7 @@ const openJob = async (job: any) => {
       ?.filter((proposal: any) => proposal.recommended)
       ?.map((proposal: any) => proposal.field) || []
   } catch (error: any) {
-    console.error('Failed to load enrichment job:', error)
-    useToast().toast({
-      title: 'Job load failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not load this enrichment job.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Job load failed')
     showJobDialog.value = false
   } finally {
     jobLoading.value = false
@@ -344,11 +336,7 @@ const processQueuedJobs = async () => {
 
     await loadQueue()
   } catch (error: any) {
-    useToast().toast({
-      title: 'Process failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not process queued jobs.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Process failed')
   } finally {
     processing.value = false
   }
@@ -385,11 +373,7 @@ const applySelectedFields = async () => {
 
     await Promise.all([loadQueue(), openJob(selectedJob.value)])
   } catch (error: any) {
-    useToast().toast({
-      title: 'Apply failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not apply selected fields.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Apply failed')
   } finally {
     jobApplying.value = false
   }
@@ -431,11 +415,7 @@ const openEnrichmentConfigDialog = async () => {
     enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58)
     enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
   } catch (error: any) {
-    useToast().toast({
-      title: 'Failed to load settings',
-      description: error?.data?.statusMessage || error?.message || 'Could not load enrichment settings.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Failed to load settings')
     showEnrichmentConfigDialog.value = false
   } finally {
     enrichmentConfigLoading.value = false
@@ -477,11 +457,7 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     })
     showEnrichmentConfigDialog.value = false
   } catch (error: any) {
-    useToast().toast({
-      title: 'Save failed',
-      description: error?.data?.statusMessage || error?.message || 'Could not save enrichment settings.',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Save failed')
   } finally {
     enrichmentConfigSaving.value = false
   }

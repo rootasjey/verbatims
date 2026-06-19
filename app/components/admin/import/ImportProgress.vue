@@ -275,6 +275,7 @@ const fetchAbort = ref<AbortController | null>(null)
 const previousStatus = ref<UiImportProgress['status'] | null>(null)
 
 const toast = () => useToast()
+const { showErrorToast } = useErrorToast()
 
 const startSSE = () => {
   if (esRef.value) return
@@ -505,7 +506,7 @@ watch(
       toast().toast({ title: 'Import Completed', description: 'Your data import has finished successfully.', toast: 'soft-success' })
       emit('finished', { status: 'completed' })
     } else if (newStatus === 'failed') {
-      toast().toast({ title: 'Import Failed', description: 'The import encountered errors and stopped.', toast: 'soft-error' })
+      showErrorToast(null, { title: 'Import Failed', fallback: 'The import encountered errors and stopped.' })
       emit('finished', { status: 'failed' })
     }
   }

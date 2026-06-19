@@ -1,14 +1,15 @@
 export function useImageUpload() {
+  const { showErrorToast } = useErrorToast()
   const uploading = ref(false)
 
   async function uploadImage(file: File): Promise<string | null> {
     if (!file.type.startsWith('image/')) {
-      useToast().toast({ title: 'Invalid file', description: 'Please select an image file.', toast: 'soft-error' })
+      showErrorToast(null, { title: 'Invalid file', fallback: 'Please select an image file.' })
       return null
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      useToast().toast({ title: 'File too large', description: 'Image must be less than 5MB.', toast: 'soft-error' })
+      showErrorToast(null, { title: 'File too large', fallback: 'Image must be less than 5MB.' })
       return null
     }
 
@@ -22,11 +23,7 @@ export function useImageUpload() {
       })
       return response.data.url
     } catch (error: any) {
-      useToast().toast({
-        title: 'Upload failed',
-        description: error?.data?.statusMessage || 'Could not upload the image.',
-        toast: 'soft-error',
-      })
+      showErrorToast(error, 'Upload failed')
       return null
     } finally {
       uploading.value = false

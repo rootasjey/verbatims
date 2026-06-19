@@ -214,6 +214,7 @@ import type { ProcessedQuoteResult } from '~~/server/types'
 import { getDateTimestamp } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
+const { showErrorToast } = useErrorToast()
 
 interface LikedQuote extends QuoteWithMetadata {
   liked_at: string
@@ -309,10 +310,7 @@ const handleUnlike = async (quote: LikedQuote) => {
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (e) {
     console.error('Failed to unlike:', e)
-    useToast().toast({ 
-      title: 'Failed to remove from favourites',
-      toast: 'soft-error',
-    })
+    showErrorToast(e, 'Failed to remove from favourites')
   }
 }
 

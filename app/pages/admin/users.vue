@@ -257,6 +257,9 @@
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { useErrorToast } from '~/composables/useErrorToast'
+
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'admin',
@@ -491,7 +494,7 @@ const loadUsers = async () => {
     clearHighlight()
   } catch (error: any) {
     console.error('Failed to load users:', error)
-    useToast().toast({ title: 'Error', description: 'Failed to load users', toast: 'soft-error' })
+    showErrorToast(error, 'Failed to load users')
   } finally {
     loading.value = false
   }
@@ -592,11 +595,7 @@ const bulkDeleteUsers = async () => {
     await loadUsers()
   } catch (error: any) {
     console.error('Bulk delete users failed:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Bulk delete failed',
-      description: error?.data?.statusMessage || 'Failed to delete selected users'
-    })
+    showErrorToast(error, 'Bulk delete failed')
   } finally {
     bulkDeleting.value = false
   }

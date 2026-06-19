@@ -229,6 +229,8 @@ const {
   resetForm
 } = useQuoteForm()
 
+const { showErrorToast } = useErrorToast()
+
 const languageTouched = ref(false)
 const authorTouched = ref(false)
 const referenceTouched = ref(false)
@@ -362,11 +364,7 @@ const submitt = async () => {
     isOpen.value = false
   } catch (error) {
     console.error('Failed to bulk edit quotes:', error)
-    useToast().toast({
-      toast: 'error',
-      title: 'Bulk Edit Failed',
-      description: 'Please try again.'
-    })
+    showErrorToast(error, { title: 'Bulk Edit Failed', fallback: 'Please try again.' })
   } finally {
     submitting.value = false
   }
