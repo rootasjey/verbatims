@@ -124,6 +124,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Sponsors - Admin - Verbatims' })
+const { showErrorToast } = useErrorToast()
 
 const loading = ref(false)
 const messages = ref<any[]>([])
@@ -260,7 +261,7 @@ const loadMessages = async () => {
     lastSelectedIndex.value = null
   } catch (e) {
     console.error('Failed to load sponsor messages', e)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load sponsor messages' })
+    showErrorToast(e, 'Failed to load sponsor messages')
   } finally {
     loading.value = false
   }
@@ -301,7 +302,7 @@ const confirmBulkDelete = async () => {
       useToast().toast({ toast: 'outline-warning', title: `Deleted ${succeeded} message${succeeded !== 1 ? 's' : ''}`, description: `${failed} failed` })
     }
   } catch (e) {
-    useToast().toast({ toast: 'soft-error', title: 'Bulk delete failed' })
+    showErrorToast(e, 'Bulk delete failed')
   } finally {
     bulkProcessing.value = false
     showBulkDeleteDialog.value = false

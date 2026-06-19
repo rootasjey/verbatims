@@ -40,6 +40,7 @@ const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 const user = computed(() => props.user)
 const submitting = ref(false)
+const { showErrorToast } = useErrorToast()
 
 const confirm = async () => {
   if (!user.value) return
@@ -51,7 +52,7 @@ const confirm = async () => {
     isOpen.value = false
   } catch (e: any) {
     console.error('Delete user failed', e)
-    useToast().toast({ toast: 'error', title: 'Error', description: e?.data?.statusMessage || 'Failed to delete user' })
+    showErrorToast(e, { title: 'Error', fallback: 'Failed to delete user' })
   } finally {
     submitting.value = false
   }

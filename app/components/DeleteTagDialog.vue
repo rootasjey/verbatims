@@ -36,6 +36,7 @@ const usageCount = ref(0)
 const usageLoading = ref(false)
 const confirmHighUsage = ref(false)
 const highUsageThreshold = 20
+const { showErrorToast } = useErrorToast()
 
 const confirmDelete = async () => {
   if (!props.tag) return
@@ -47,7 +48,7 @@ const confirmDelete = async () => {
     isOpen.value = false
   } catch (error) {
     console.error('Failed to delete tag', error)
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to delete tag' })
+    showErrorToast(error, 'Failed to delete tag')
   } finally {
     submitting.value = false
   }

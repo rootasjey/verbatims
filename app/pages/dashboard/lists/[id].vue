@@ -183,6 +183,7 @@ import type { ProcessedQuoteResult } from '~~/server/types'
 import { formatDate } from '~/utils/time-formatter'
 
 const { isMobile } = useMobileDetection()
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'dashboard',
@@ -363,11 +364,7 @@ const handleRemoveFromCollection = async (quote: any) => {
 
   } catch (error) {
     console.error('Failed to remove quote:', error)
-    useToast().toast({ 
-      title: 'Failed to remove quote',
-      description: 'Please try again',
-      toast: 'soft-error'
-    })
+    showErrorToast(error, 'Failed to remove quote')
   }
 }
 

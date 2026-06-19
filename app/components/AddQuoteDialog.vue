@@ -284,6 +284,8 @@ const {
   createPayload
 } = useQuoteForm()
 
+const { showErrorToast } = useErrorToast()
+
 const handleFormKeydown = (event: KeyboardEvent) => {
   // Handle Ctrl+Enter (Windows/Linux) or Cmd+Enter (Mac) to submit form
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -360,10 +362,7 @@ const submitQuote = async () => {
     await submitCreateQuote(payload)
   } catch (error) {
     console.error('Error submitting quote:', error)
-    useToast().toast({
-      title: 'Error',
-      description: isEditMode.value ? 'Failed to update quote. Please try again.' : 'Failed to add quote. Please try again.'
-    })
+    showErrorToast(error, isEditMode.value ? 'Failed to update quote. Please try again.' : 'Failed to add quote. Please try again.')
   } finally {
     submitting.value = false
   }

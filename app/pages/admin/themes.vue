@@ -385,6 +385,8 @@ import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
 import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
 import { ensureHexColor, hexToBlossomValue } from '~/utils/color'
 
+const { showErrorToast } = useErrorToast()
+
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Themes - Admin - Verbatims' })
 
@@ -486,7 +488,7 @@ const saveAISettings = async () => {
     showAISettings.value = false
     useToast().toast({ toast: 'outline-success', title: 'AI settings saved' })
   } catch {
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to save AI settings' })
+    showErrorToast(null, { title: 'Error', fallback: 'Failed to save AI settings' })
   } finally {
     savingAISettings.value = false
   }
@@ -512,7 +514,7 @@ const loadSuggestions = async () => {
     const res = await $fetch('/api/admin/themes/suggestions')
     suggestions.value = res.data || []
   } catch {
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load suggestions' })
+    showErrorToast(null, { title: 'Error', fallback: 'Failed to load suggestions' })
   } finally {
     loadingSuggestions.value = false
   }
@@ -528,7 +530,7 @@ const loadAISuggestions = async () => {
     }
     suggestions.value = res.data || []
   } catch {
-    useToast().toast({ toast: 'soft-error', title: 'AI Error', description: 'Failed to generate AI suggestions. Check your AI settings.' })
+    showErrorToast(null, { title: 'AI Error', fallback: 'Failed to generate AI suggestions. Check your AI settings.' })
   } finally {
     loadingSuggestions.value = false
   }
@@ -700,8 +702,7 @@ const loadThemes = async () => {
     rowSelection.value = {}
     clearHighlight()
   } catch (e) {
-    console.error('Failed to load themes', e)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load themes' })
+    showErrorToast(e, 'Failed to load themes')
   } finally {
     loading.value = false
   }
@@ -759,8 +760,7 @@ const openEdit = async (theme: any) => {
     initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
   } catch (e) {
-    console.error('Failed to load theme details', e)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to load theme details' })
+    showErrorToast(e, 'Failed to load theme details')
     return
   }
   showEditDialog.value = true
@@ -953,7 +953,7 @@ const removeFilter = async (idx: number) => {
     try {
       await $fetch(`/api/admin/themes/${editingThemeId.value}/filters/${filter.id}`, { method: 'DELETE' })
     } catch {
-      useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to delete filter' })
+      showErrorToast(null, { title: 'Error', fallback: 'Failed to delete filter' })
       return
     }
   }
@@ -1013,12 +1013,11 @@ const saveTheme = async () => {
     await loadThemes()
   } catch (error: any) {
     console.error('Error saving theme:', error)
-    const details = error?.data?.statusMessage || error?.statusMessage || error?.message || 'Unknown error'
     if (error?.statusCode === 409) {
-      useToast().toast({ toast: 'soft-error', title: 'Duplicate slug', description: details, actions: [{ label: 'Copy', btn: 'soft-gray', altText: 'Copy error details', onClick: () => navigator.clipboard.writeText(details) }] })
+      showErrorToast(error, { title: 'Duplicate slug' })
       return
     }
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: details, actions: [{ label: 'Copy', btn: 'soft-gray', altText: 'Copy error details', onClick: () => navigator.clipboard.writeText(details) }] })
+    showErrorToast(error, { title: 'Error' })
   } finally {
     submitting.value = false
   }
@@ -1042,8 +1041,7 @@ const confirmDelete = async () => {
     rowSelection.value = {}
     await loadThemes()
   } catch (e) {
-    console.error('Failed to delete theme', e)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to delete theme' })
+    showErrorToast(e, 'Failed to delete theme')
   } finally {
     submitting.value = false
   }
@@ -1054,7 +1052,7 @@ const toggleActive = async (theme: any, isActive: boolean) => {
     await $fetch(`/api/admin/themes/${theme.id}/activate`, { method: 'PUT', body: { is_active: isActive } })
     await loadThemes()
   } catch {
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to toggle theme' })
+    showErrorToast(null, { title: 'Error', fallback: 'Failed to toggle theme' })
   }
 }
 
@@ -1063,7 +1061,7 @@ const toggleDefault = async (theme: any, isDefault: boolean) => {
     await $fetch(`/api/admin/themes/${theme.id}/default`, { method: 'PUT', body: { is_default: isDefault } })
     await loadThemes()
   } catch {
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to toggle default' })
+    showErrorToast(null, { title: 'Error', fallback: 'Failed to toggle default' })
   }
 }
 

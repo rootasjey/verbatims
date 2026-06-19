@@ -305,6 +305,9 @@ import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
+import { useErrorToast } from '~/composables/useErrorToast'
+
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'admin',
@@ -636,11 +639,7 @@ const loadQuotes = async (page = currentPage.value) => {
     currentPage.value = page
   } catch (error) {
     console.error('Failed to load draft quotes:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error Loading Draft Quotes',
-      description: 'Failed to load draft quotes. Please try again later.'
-    })
+    showErrorToast(error, { title: 'Error Loading Draft Quotes', fallback: 'Failed to load draft quotes. Please try again later.' })
   } finally {
     loading.value = false
     hasLoadedOnce.value = true
@@ -701,11 +700,7 @@ const submitForReview = async (quote: AdminQuote) => {
     repositionHighlightAfterRemoval(previousHighlightedIndex)
   } catch (error) {
     console.error('Failed to submit draft for review:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Submission Failed',
-      description: 'Could not submit the draft. Please try again.'
-    })
+    showErrorToast(error, { title: 'Submission Failed', fallback: 'Could not submit the draft. Please try again.' })
   }
 }
 
@@ -748,11 +743,7 @@ const deleteDraft = async () => {
 
   } catch (error) {
     console.error('Failed to delete draft:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error Deleting Draft',
-      description: 'Failed to delete the draft. Please try again.'
-    })
+    showErrorToast(error, { title: 'Error Deleting Draft', fallback: 'Failed to delete the draft. Please try again.' })
   } finally {
     deleting.value = false
   }
@@ -761,7 +752,6 @@ const deleteDraft = async () => {
 
 const bulkDelete = async () => {
   if (selectedQuotes.value.length === 0) return
-  const { toast } = useToast()
   try {
     bulkProcessing.value = true
     const ids = [...selectedQuotes.value]
@@ -776,11 +766,7 @@ const bulkDelete = async () => {
 
   } catch (error) {
     console.error('Failed to bulk delete:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Bulk Delete Failed',
-      description: 'Please try again.'
-    })
+    showErrorToast(error, { title: 'Bulk Delete Failed', fallback: 'Please try again.' })
   } finally {
     bulkProcessing.value = false
   }
@@ -788,7 +774,6 @@ const bulkDelete = async () => {
 
 const bulkSubmit = async () => {
   if (selectedQuotes.value.length === 0) return
-  const { toast } = useToast()
   try {
     bulkProcessing.value = true
     const ids = [...selectedQuotes.value]
@@ -804,11 +789,7 @@ const bulkSubmit = async () => {
 
   } catch (error) {
     console.error('Failed to bulk submit drafts:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Bulk Submit Failed',
-      description: 'Please try again.'
-    })
+    showErrorToast(error, { title: 'Bulk Submit Failed', fallback: 'Please try again.' })
   } finally {
     bulkProcessing.value = false
   }

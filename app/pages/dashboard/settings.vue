@@ -606,6 +606,7 @@ interface PrivacySettings {
 }
 
 const { isMobile } = useMobileDetection()
+const { showErrorToast } = useErrorToast()
 
 definePageMeta({
   layout: 'dashboard',
@@ -666,11 +667,7 @@ const saveProfile = async () => {
     })
   } catch (error) {
     console.error('Failed to save profile:', error)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to save profile information.',
-      toast: 'error'
-    })
+    showErrorToast(error, 'Failed to save profile information.')
   } finally {
     savingProfile.value = false
   }
@@ -685,11 +682,7 @@ const saveNotifications = async () => {
     })
   } catch (error) {
     console.error('Failed to save notification settings:', error)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to save notification settings.',
-      toast: 'error'
-    })
+    showErrorToast(error, 'Failed to save notification settings.')
   } finally {
     savingNotifications.value = false
   }
@@ -704,11 +697,7 @@ const savePrivacy = async () => {
     })
   } catch (error) {
     console.error('Failed to save privacy settings:', error)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to save privacy settings.',
-      toast: 'error'
-    })
+    showErrorToast(error, 'Failed to save privacy settings.')
   } finally {
     savingPrivacy.value = false
   }
@@ -723,11 +712,7 @@ const deleteAccount = async () => {
     await navigateTo('/')
   } catch (error) {
     console.error('Failed to delete account:', error)
-    useToast().toast({
-      title: 'Error',
-      description: 'Failed to delete account.',
-      toast: 'error'
-    })
+    showErrorToast(error, 'Failed to delete account.')
   } finally {
     deleting.value = false
   }

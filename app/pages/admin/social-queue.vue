@@ -344,6 +344,8 @@ useHead({
   title: 'Social Queue - Admin - Verbatims'
 })
 
+const { showErrorToast: showErrorToastFromComposable } = useErrorToast()
+
 const providerCheckLoading = ref(false)
 const metaStatusLoading = ref(false)
 const metaConnectLoading = ref(false)
@@ -778,34 +780,7 @@ async function copyErrorIfFailed(item: SocialQueueItem) {
 }
 
 function showErrorToast(title: string, description: string) {
-  useToast().toast({
-    title,
-    description,
-    actions: [
-      {
-        label: 'Copy',
-        btn: 'soft-gray',
-        altText: 'Copy error message',
-        onClick: async () => {
-          try {
-            await navigator.clipboard.writeText(description)
-            useToast().toast({
-              title: 'Copied',
-              description: 'Error message copied to clipboard',
-              toast: 'outline-success'
-            })
-          } catch {
-            useToast().toast({
-              title: 'Copy failed',
-              description: 'Could not copy to clipboard',
-              toast: 'outline-warning'
-            })
-          }
-        }
-      }
-    ],
-    toast: 'outline-error'
-  })
+  showErrorToastFromComposable(null, { title, fallback: description })
 }
 
 function readErrorMessage(error: unknown, fallback: string) {

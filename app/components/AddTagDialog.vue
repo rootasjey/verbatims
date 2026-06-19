@@ -105,6 +105,7 @@ const dialogTitle = computed(() => isEditMode.value ? 'Edit Tag' : 'Create Tag')
 const submitButtonText = computed(() => isEditMode.value ? 'Update Tag' : 'Create Tag')
 
 useColorPickerEscape()
+const { showErrorToast } = useErrorToast()
 
 const submitting = ref(false)
 const form = ref({ name: '', description: '', category: '', color: '#687FE5' })
@@ -209,10 +210,10 @@ const submitTag = async () => {
   } catch (error: any) {
     console.error('Error saving tag:', error)
     if (error?.statusCode === 409) {
-      useToast().toast({ toast: 'error', title: 'Duplicate name', description: 'A tag with this name already exists.' })
+      showErrorToast(null, { title: 'Duplicate name', fallback: 'A tag with this name already exists.' })
       return
     }
-    useToast().toast({ toast: 'error', title: 'Error', description: 'Failed to save tag' })
+    showErrorToast(error, 'Failed to save tag')
   } finally {
     submitting.value = false
   }

@@ -55,6 +55,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { user } = useUserSession()
+const { showErrorToast } = useErrorToast()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -83,8 +84,7 @@ const confirmDeletion = async () => {
     isOpen.value = false
   } catch (error: any) {
     console.error('Delete quote failed:', error)
-    const message = error?.data?.statusMessage || 'Failed to delete quote'
-    useToast().toast({ toast: 'error', title: 'Error', description: message })
+    showErrorToast(error, { title: 'Error', fallback: 'Failed to delete quote' })
   } finally {
     submitting.value = false
   }

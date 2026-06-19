@@ -4,6 +4,7 @@ import { useLocalStorage, useDebounceFn } from '@vueuse/core'
  * Handles export logic and state management for the admin export interface
  */
 export const useDataExport = () => {
+  const { showErrorToast } = useErrorToast()
   const STORAGE_KEYS = {
     options: 'verbatims-admin-export-options',
     quotes: 'verbatims-admin-export-filters-quotes',
@@ -450,11 +451,7 @@ export const useDataExport = () => {
       return
     }
 
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Download Export Failed',
-      description: 'Failed to start download (no content or download URL available)',
-    })
+    showErrorToast(null, { title: 'Download Export Failed', fallback: 'Failed to start download (no content or download URL available)' })
   }
 
   const startExport = async () => {
@@ -497,11 +494,7 @@ export const useDataExport = () => {
 
       if (!response.success) {
         state.errorMessage = response.error || 'Unknown error occurred'
-        useToast().toast({
-          title: 'Export Failed',
-          description: state.errorMessage,
-          toast: 'soft-error',
-        })
+        showErrorToast(null, { title: 'Export Failed', fallback: state.errorMessage })
         return
       }
 
@@ -523,12 +516,7 @@ export const useDataExport = () => {
       console.error('Export failed:', error)
       const errorMsg = error.data?.message || 'Export failed'
       state.errorMessage = errorMsg
-
-      useToast().toast({
-        title: 'Export Failed',
-        description: errorMsg,
-        toast: 'soft-error',
-      })
+      showErrorToast(error, 'Export Failed')
     } finally {
       state.isExporting = false
       state.showProgressDialog = false
@@ -791,12 +779,7 @@ export const useDataExport = () => {
     } catch (error: any) {
       console.error('Failed to download export:', error)
       state.errorMessage = 'Failed to download export'
-
-    useToast().toast({
-      title: 'Failed to Export',
-      description: 'Failed to start export download',
-      toast: 'soft-error',
-    })
+      showErrorToast(error, 'Failed to Export')
     }
   }
 
@@ -822,12 +805,7 @@ export const useDataExport = () => {
     } catch (error: any) {
       console.error('Failed to delete export history entry:', error)
       state.errorMessage = error.data?.message || 'Failed to delete export history entry'
-
-      useToast().toast({
-        title: 'Clear Failed',
-        description: 'Failed to clear export history',
-        toast: 'soft-error',
-      })
+      showErrorToast(error, 'Clear Failed')
     }
   }
 
@@ -851,12 +829,7 @@ export const useDataExport = () => {
     } catch (error: any) {
       console.error('Failed to clear export history:', error)
       state.errorMessage = error.data?.message || 'Failed to clear export history'
-
-      useToast().toast({
-        title: 'Download Failed',
-        description: 'Failed to start export download',
-        toast: 'soft-error',
-      })
+      showErrorToast(error, 'Download Failed')
     }
   }
 
@@ -924,11 +897,7 @@ export const useDataExport = () => {
 
     } catch (error: any) {
       console.error('Backup download error:', error)
-      useToast().toast({
-        title: 'Download Failed',
-        description: error.message || 'Failed to download backup file.',
-        toast: 'error'
-      })
+      showErrorToast(error, 'Download Failed')
     }
   }
 

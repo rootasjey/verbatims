@@ -26,6 +26,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 const submitting = ref(false)
+const { showErrorToast } = useErrorToast()
 
 const confirmDelete = async () => {
   if (!props.message) return
@@ -36,7 +37,7 @@ const confirmDelete = async () => {
     isOpen.value = false
   } catch (error) {
     console.error('Failed to delete sponsor message', error)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to delete sponsor message' })
+    showErrorToast(error, 'Failed to delete sponsor message')
   } finally {
     submitting.value = false
   }

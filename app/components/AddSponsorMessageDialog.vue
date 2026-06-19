@@ -143,6 +143,7 @@ const dialogTitle = computed(() => isEdit.value ? 'Edit Sponsor Message' : 'Crea
 const submitText = computed(() => isEdit.value ? 'Update Message' : 'Create Message')
 
 const submitting = ref(false)
+const { showErrorToast } = useErrorToast()
 
 const normalizeDatetime = (val: string) => {
   if (!val) return ''
@@ -224,7 +225,7 @@ const submit = async () => {
     close()
   } catch (error: any) {
     console.error('Error saving sponsor message:', error)
-    useToast().toast({ toast: 'soft-error', title: 'Error', description: 'Failed to save sponsor message' })
+    showErrorToast(error, 'Failed to save sponsor message')
   } finally {
     submitting.value = false
   }

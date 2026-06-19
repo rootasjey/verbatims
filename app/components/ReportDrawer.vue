@@ -82,6 +82,7 @@ const isOpen = computed({
 })
 
 const { toast } = useToast()
+const { showErrorToast } = useErrorToast()
 
 const {
   categories,
@@ -117,7 +118,7 @@ const onSubmit = async () => {
   try {
     const res = await submit()
     if (res?.status === 'ratelimited') {
-      toast({ title: 'Too many messages', description: 'Please slow down and try again later.', toast: 'error' })
+      showErrorToast(null, { title: 'Too many messages', fallback: 'Please slow down and try again later.' })
       return
     }
     
@@ -125,7 +126,7 @@ const onSubmit = async () => {
     emit('submitted')
     close()
   } catch (error) {
-    toast({ title: 'Submission failed', description: 'Please try again.', toast: 'error' })
+    showErrorToast(error, { title: 'Submission failed', fallback: 'Please try again.' })
   }
 }
 </script>

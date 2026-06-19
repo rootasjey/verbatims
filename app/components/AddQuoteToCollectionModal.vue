@@ -110,6 +110,8 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+const { showErrorToast } = useErrorToast()
+
 const collections = ref<CollectionWithStats[]>([])
 const loading = ref(false)
 const creating = ref(false)
@@ -163,7 +165,7 @@ const createAndAddToCollection = async () => {
     toast({ title: 'Collection created!', description: `"${createResponse.data.name}" created and quote added.`, toast: 'success' })
   } catch (error) {
     console.error('Failed to create collection and add quote:', error)
-    toast({ title: 'Failed to create collection', description: 'Please try again.', toast: 'error' })
+    showErrorToast(error, { title: 'Failed to create collection', fallback: 'Please try again.' })
   } finally {
     creating.value = false
   }
@@ -190,7 +192,7 @@ const addToCollection = async (collection: CollectionWithStats) => {
     if (err && err.statusCode === 409) {
       toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.` })
     } else {
-      toast({ title: 'Failed to add quote', description: 'Please try again.', toast: 'error' })
+      showErrorToast(error, { title: 'Failed to add quote', fallback: 'Please try again.' })
     }
   } finally {
     addingToCollections.value.delete(collection.id)

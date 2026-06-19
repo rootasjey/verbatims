@@ -604,6 +604,7 @@ const shareAuthor = async () => {
 
   sharePending.value = true
   const { toast } = useToast()
+  const { showErrorToast } = useErrorToast()
 
   try {
     const shareData = {
@@ -627,7 +628,7 @@ const shareAuthor = async () => {
     currentAuthor.shares_count = (currentAuthor.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share author:', error)
-    toast({ title: 'Failed to share', description: 'Please try again.', toast: 'soft-error' })
+    showErrorToast(error, 'Failed to share')
   } finally {
     sharePending.value = false
   }
@@ -647,7 +648,7 @@ const copyTextAndLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({ title: 'Copy failed', description: 'Clipboard not available.', toast: 'soft-error' })
+    useErrorToast().showErrorToast(error, 'Copy failed')
   }
 }
 
@@ -663,7 +664,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useToast().toast({ title: 'Copy failed', description: 'Could not copy the link.', toast: 'soft-error' })
+    useErrorToast().showErrorToast(error, 'Copy failed')
   }
 }
 

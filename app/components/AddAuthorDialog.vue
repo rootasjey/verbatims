@@ -270,6 +270,7 @@ const nameSuggestionsRef = ref()
 const authorPreviewErrored = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
 const { uploading, uploadImage } = useImageUpload()
+const { showErrorToast } = useErrorToast()
 
 const onFileSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -500,11 +501,7 @@ const submitAuthor = async () => {
     closeDialog()
   } catch (error) {
     console.error('Error submitting author:', error)
-    useToast().toast({
-      toast: 'error',
-      title: 'Error',
-      description: isEditMode.value ? 'Failed to update author. Please try again.' : 'Failed to create author. Please try again.'
-    })
+    showErrorToast(error, isEditMode.value ? 'Failed to update author. Please try again.' : 'Failed to create author. Please try again.')
   } finally {
     submitting.value = false
   }

@@ -311,6 +311,8 @@ const {
 	initializeFormForEdit,
 } = useQuoteForm()
 
+const { showErrorToast } = useErrorToast()
+
 const onAuthorInput = () => {
 	void searchAuthors($fetch, { limit: 10, minLength: 2 })
 }
@@ -379,11 +381,7 @@ const submitQuote = async () => {
 		emit('submitted')
 	} catch (error: any) {
 		console.error('Error submitting quote:', error)
-		useToast().toast({
-			title: 'Error',
-			duration: 8000,
-			description: error?.message || 'Failed to save quote. Please try again.'
-		})
+		showErrorToast(error, 'Failed to save quote. Please try again.')
 	} finally {
 		submitting.value = false
 	}

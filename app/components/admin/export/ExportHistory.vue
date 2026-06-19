@@ -292,6 +292,7 @@ import { useDataExport } from '~/composables/useDataExport'
 const emit = defineEmits<{ (e: 'go-to-export'): void }>()
 
 const dataExport = useDataExport()
+const { showErrorToast } = useErrorToast()
 
 const selectionMode = ref(false)
 const bulkOpen = ref(false)
@@ -397,11 +398,7 @@ const bulkDelete = async () => {
     showBulkDeleteModal.value = false
   } catch (error) {
     console.error('Failed to bulk delete export history entries:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Bulk Delete Failed',
-      description: 'Please try again.'
-    })
+    showErrorToast(error, { title: 'Bulk Delete Failed', fallback: 'Please try again.' })
   } finally {
     bulkProcessing.value = false
   }

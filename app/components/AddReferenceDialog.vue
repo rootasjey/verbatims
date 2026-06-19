@@ -256,6 +256,7 @@ const titleSuggestionsRef = ref()
 const referencePreviewErrored = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
 const { uploading, uploadImage } = useImageUpload()
+const { showErrorToast } = useErrorToast()
 
 const onFileSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -508,11 +509,7 @@ const submitReference = async () => {
     closeDialog()
   } catch (error) {
     console.error('Error submitting reference:', error)
-    useToast().toast({
-      toast: 'soft-error',
-      title: 'Error',
-      description: isEditMode.value ? 'Failed to update reference. Please try again.' : 'Failed to create reference. Please try again.'
-    })
+    showErrorToast(error, isEditMode.value ? 'Failed to update reference. Please try again.' : 'Failed to create reference. Please try again.')
   } finally {
     submitting.value = false
   }

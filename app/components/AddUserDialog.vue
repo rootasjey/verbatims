@@ -116,6 +116,7 @@ const roleModel = computed<RoleOption>({
 
 const submitting = ref(false)
 const canSubmit = computed(() => form.value.name.trim() && form.value.email.trim() && form.value.password.length >= 8)
+const { showErrorToast } = useErrorToast()
 
 const close = () => { isOpen.value = false }
 
@@ -135,7 +136,7 @@ const submit = async () => {
     isOpen.value = false
   } catch (e: any) {
     console.error('Create user failed', e)
-    useToast().toast({ toast: 'error', title: 'Error', description: e?.data?.statusMessage || 'Failed to create user' })
+    showErrorToast(e, { title: 'Error', fallback: 'Failed to create user' })
   } finally {
     submitting.value = false
   }
