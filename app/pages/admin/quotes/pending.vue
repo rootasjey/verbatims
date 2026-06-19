@@ -16,17 +16,17 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search quotes, authors, or users..."
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
           />
           <select
             v-model="statusFilter"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
           <select
             v-model="selectedLanguage"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <option v-for="opt in languageOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
@@ -51,9 +51,9 @@
     <!-- Skeleton -->
     <div v-if="!hasLoadedOnce && loading" class="space-y-5">
       <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
-        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" />
-        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/2 mb-2" />
-        <div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-1/2 mb-2" />
+        <div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
       </div>
     </div>
 
@@ -180,7 +180,7 @@
         <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject Quote</h3>
       </template>
       <div class="space-y-4">
-        <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-800">
+        <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-900">
           <blockquote class="font-sans text-sm font-500 text-gray-900 dark:text-white">&ldquo;{{ selectedQuote.name }}&rdquo;</blockquote>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">by {{ selectedQuote.user_name }}</p>
         </div>
@@ -646,7 +646,7 @@ const statusPillClass = (status: string) => {
     case 'approved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
     case 'rejected': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
     case 'pending': return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
-    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/20'
+    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
   }
 }
 

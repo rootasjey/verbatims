@@ -16,20 +16,19 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search lists..."
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
             v-model="visibilityValue"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <option v-for="opt in visibilityOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
-          <button
+          <OutlinedButton
             @click="openCreateModal"
-            class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm whitespace-nowrap"
           >
             + Create List
-          </button>
+          </OutlinedButton>
         </div>
       </div>
       <div class="md:hidden mt-4 space-y-3">

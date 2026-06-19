@@ -12,8 +12,8 @@
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" placeholder="Search tags by name, description, or category..." class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
-          <select v-model="selectedSort" class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+          <input v-model="searchQuery" type="text" placeholder="Search tags by name, description, or category..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
+          <select v-model="selectedSort" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
             <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
           <OutlinedButton @click="showAddDialog = true">+ Add Tag</OutlinedButton>
@@ -28,7 +28,7 @@
     <!-- Loading -->
     <div v-if="loading && tags.length === 0" class="space-y-5">
       <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
-        <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
+        <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4" />
       </div>
     </div>
 

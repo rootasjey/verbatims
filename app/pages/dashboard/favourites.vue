@@ -16,11 +16,11 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search favourites..."
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
             v-model="sortValue"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
           </select>
