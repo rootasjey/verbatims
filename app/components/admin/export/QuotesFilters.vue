@@ -2,111 +2,119 @@
   <div class="space-y-6">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Quote Status
         </label>
-        <NSelect
-          v-model="statusModel"
-          :items="statusOptions"
-          item-key="label"
-          value-key="label"
-          placeholder="All statuses"
+        <select
           multiple
-        />
+          :value="toArray(props.modelValue.status)"
+          @change="updateFilter('status', Array.from(($event.target as HTMLSelectElement).selectedOptions).map((o: HTMLOptionElement) => o.value))"
+          class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+        >
+          <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Language
         </label>
-        <NSelect
-          v-model="languageModel"
-          :items="languageOptions"
-          item-key="label"
-          value-key="label"
-          placeholder="All languages"
+        <select
           multiple
-        />
+          :value="toArray(props.modelValue.language)"
+          @change="updateFilter('language', Array.from(($event.target as HTMLSelectElement).selectedOptions).map((o: HTMLOptionElement) => o.value))"
+          class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+        >
+          <option v-for="opt in languageOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Author Name
         </label>
-        <NInput
+        <input
           :model-value="modelValue.author_name"
           @update:model-value="updateFilter('author_name', $event)"
           placeholder="Search by author name"
-          class="mx-0.5"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Quote Content
         </label>
-        <NInput
+        <input
           :model-value="modelValue.search"
           @update:model-value="updateFilter('search', $event)"
           placeholder="Search in quote content"
-          class="mx-0.5"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
         Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <NInput
+        <input
           :model-value="modelValue.date_range.start"
           @update:model-value="updateDateRange('start', $event)"
           type="date"
           placeholder="Start date"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
-        <NInput
+        <input
           :model-value="modelValue.date_range.end"
           @update:model-value="updateDateRange('end', $event)"
           type="date"
           placeholder="End date"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
     </div>
 
     <div>
-      <NCheckbox
-        :model-value="modelValue.featured_only"
-        @update:model-value="updateFilter('featured_only', $event)"
-        label="Featured quotes only"
-      />
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          class="accent-gray-700 dark:accent-gray-300"
+          :checked="modelValue.featured_only"
+          @change="updateFilter('featured_only', ($event.target as HTMLInputElement).checked)"
+        />
+        <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Featured quotes only</span>
+      </label>
     </div>
 
     <!-- Analytics Filters -->
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Min Views
         </label>
-        <NInput
+        <input
           :model-value="modelValue.min_views"
           @update:model-value="updateFilter('min_views', Number($event))"
           type="number"
           min="0"
           placeholder="0"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Min Likes
         </label>
-        <NInput
+        <input
           :model-value="modelValue.min_likes"
           @update:model-value="updateFilter('min_likes', Number($event))"
           type="number"
           min="0"
           placeholder="0"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none"
         />
       </div>
     </div>

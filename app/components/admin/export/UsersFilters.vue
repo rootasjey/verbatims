@@ -2,65 +2,65 @@
   <div class="space-y-6">
     <!-- Search -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
         User Search (name or email)
       </label>
-      <NInput
+      <input
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
         placeholder="Search by name or email"
+        class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
 
     <!-- Role Filter -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
         User Role
       </label>
       <div>
-        <NSelect
-          :model-value="roleModel"
-          @update:model-value="v => roleModel = (Array.isArray(v) ? v : [v])"
-          :items="roleOptions"
-          item-key="value"
-          value-key="value"
-          placeholder="All roles"
+        <select
           multiple
-        />
+          :value="roleModel.map(o => o.value)"
+          @change="roleModel = Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => ({ label: o.text, value: o.value }))"
+          class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+        >
+          <option v-for="opt in roleOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
       </div>
     </div>
 
     <!-- Status Filters -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Account Status
         </label>
         <div>
-          <NSelect
-            :model-value="activeStatusModel"
-            @update:model-value="v => activeStatusModel = (typeof v === 'object' ? v : activeStatusOptions.find(o => o.value === v) ?? null)"
-            :items="activeStatusOptions"
-            item-key="value"
-            value-key="value"
-            placeholder="All accounts"
-          />
+          <select
+            :value="activeStatusModel?.value === undefined ? '' : String(activeStatusModel.value)"
+            @change="activeStatusModel = (($event.target as HTMLSelectElement).value === '' ? null : activeStatusOptions.find(o => String(o.value) === ($event.target as HTMLSelectElement).value) ?? null)"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+          >
+            <option value="">All accounts</option>
+            <option v-for="opt in activeStatusOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</option>
+          </select>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Email Verification
         </label>
         <div>
-          <NSelect
-            :model-value="emailVerifiedModel"
-            @update:model-value="v => emailVerifiedModel = (typeof v === 'object' ? v : verificationOptions.find(o => o.value === v) ?? null)"
-            :items="verificationOptions"
-            item-key="value"
-            value-key="value"
-            placeholder="All users"
-          />
+          <select
+            :value="emailVerifiedModel?.value === undefined ? '' : String(emailVerifiedModel.value)"
+            @change="emailVerifiedModel = (($event.target as HTMLSelectElement).value === '' ? null : verificationOptions.find(o => String(o.value) === ($event.target as HTMLSelectElement).value) ?? null)"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+          >
+            <option value="">All users</option>
+            <option v-for="opt in verificationOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</option>
+          </select>
         </div>
       </div>
     </div>
@@ -68,84 +68,89 @@
     <!-- Language and Location -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Language Preference
         </label>
         <div>
-          <NSelect
-            :model-value="languageModel"
-            @update:model-value="v => languageModel = (Array.isArray(v) ? v : [v])"
-            :items="languageOptions"
-            item-key="value"
-            value-key="value"
-            placeholder="All languages"
+          <select
             multiple
-          />
+            :value="languageModel.map(o => o.value)"
+            @change="languageModel = Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => ({ label: o.text, value: o.value }))"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+          >
+            <option v-for="opt in languageOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Location (search)
         </label>
-        <NInput
+        <input
           :model-value="modelValue.location"
           @update:model-value="updateFilter('location', $event)"
           placeholder="Search by location"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
     </div>
 
     <!-- Job/Profession Filter -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
         Job/Profession (search)
       </label>
-      <NInput
+      <input
         :model-value="modelValue.job"
         @update:model-value="updateFilter('job', $event)"
         placeholder="Search by job or profession"
+        class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
 
     <!-- Creation Date Range -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
         Registration Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <NInput
+        <input
           :model-value="modelValue.date_range?.start"
           @update:model-value="updateDateRange('date_range', 'start', $event)"
           type="date"
           placeholder="Start date"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
-        <NInput
+        <input
           :model-value="modelValue.date_range?.end"
           @update:model-value="updateDateRange('date_range', 'end', $event)"
           type="date"
           placeholder="End date"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
     </div>
 
     <!-- Last Login Date Range -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
         Last Login Date Range
       </label>
       <div class="grid grid-cols-2 gap-3">
-        <NInput
+        <input
           :model-value="modelValue.last_login_range?.start"
           @update:model-value="updateDateRange('last_login_range', 'start', $event)"
           type="date"
           placeholder="Start date"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
-        <NInput
+        <input
           :model-value="modelValue.last_login_range?.end"
           @update:model-value="updateDateRange('last_login_range', 'end', $event)"
           type="date"
           placeholder="End date"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
     </div>
@@ -153,28 +158,30 @@
     <!-- Activity Filters -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Minimum Quotes Created
         </label>
-        <NInput
+        <input
           :model-value="modelValue.min_quotes"
           @update:model-value="updateFilter('min_quotes', $event ? parseInt($event) : 0)"
           type="number"
           min="0"
           placeholder="0"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
           Minimum Collections Created
         </label>
-        <NInput
+        <input
           :model-value="modelValue.min_collections"
           @update:model-value="updateFilter('min_collections', $event ? parseInt($event) : 0)"
           type="number"
           min="0"
           placeholder="0"
+          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none"
         />
       </div>
     </div>

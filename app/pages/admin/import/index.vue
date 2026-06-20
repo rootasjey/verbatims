@@ -1,5 +1,9 @@
 <template>
   <div class="mb-8 space-y-6">
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">Import Data</h1>
+    </div>
+
     <NTabs v-model="activeTab" :items="tabs" class="w-full">
       <template #content="{ item }">
         <div v-if="item.value === 'import'" class="mt-6 space-y-6">
@@ -7,19 +11,15 @@
             <div class="flex items-center justify-between px-4 space-x-4">
               <h2 class="text-xl font-semibold">1 • Upload Data File</h2>
               <NCollapsibleTrigger as-child>
-                <NButton btn="ghost-gray" square>
+                <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
-                </NButton>
+                </OutlinedButton>
               </NCollapsibleTrigger>
             </div>
 
             <NCollapsibleContent>
               <div class="space-y-6 p-4">
-                <NCard>
-                  <template #header>
-                    <h2 class="text-xl font-semibold">Upload Data File</h2>
-                  </template>
-
+                <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
                   <div class="space-y-4">
                     <!-- File Upload -->
                     <div>
@@ -49,21 +49,17 @@
                           >Auto-detected</NBadge>
                           <div v-if="detectedFormat && selectedFormat?.value !== detectedFormat?.value">
                             <NTooltip :text="`Reset to detected (${detectedFormat.label})`">
-                              <NButton btn="ghost-gray" square size="xs" @click="resetFormatToDetected" aria-label="Reset format to detected">
+                              <OutlinedButton size="sm" @click="resetFormatToDetected" aria-label="Reset format to detected">
                                 <NIcon name="i-ph-arrow-counter-clockwise" />
-                              </NButton>
+                              </OutlinedButton>
                             </NTooltip>
                           </div>
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <NSelect
-                          v-model="selectedFormat"
-                          :items="formatOptions"
-                          placeholder="Select data format"
-                          item-key="label"
-                          value-key="value"
-                        />
+                        <select v-model="selectedFormat" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer">
+                          <option v-for="opt in formatOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+                        </select>
                       </div>
                       <p v-if="selectedFormat?.value === 'zip'" class="mt-2 text-xs text-gray-500">
                         Dependency order for ALL imports: users → authors → references → tags → quotes
@@ -83,30 +79,38 @@
                           >Auto-detected</NBadge>
                           <div v-if="detectedDataType && selectedDataType?.value !== detectedDataType?.value">
                             <NTooltip :text="`Reset to detected (${detectedDataType.label})`">
-                              <NButton btn="ghost-gray" square size="xs" @click="resetTypeToDetected" aria-label="Reset data type to detected">
+                              <OutlinedButton size="sm" @click="resetTypeToDetected" aria-label="Reset data type to detected">
                                 <NIcon name="i-ph-arrow-counter-clockwise" />
-                              </NButton>
+                              </OutlinedButton>
                             </NTooltip>
                           </div>
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <NSelect
-                          v-model="selectedDataType"
-                          :items="dataTypeOptions"
-                          placeholder="Select data type"
-                          item-key="label"
-                          value-key="label"
-                        />
+                        <select v-model="selectedDataType" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer">
+                          <option v-for="opt in dataTypeOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+                        </select>
                       </div>
                     </div>
 
                     <!-- Import Options -->
                     <div class="space-y-3">
                       <h3 class="text-sm font-medium">Import Options</h3>
-                      <NCheckbox v-model="importOptions.createBackup" label="Create backup before import" help="Recommended for production imports" />
-                      <NCheckbox v-model="importOptions.ignoreValidationErrors" label="Ignore validation errors" help="Import data even if validation fails (not recommended)" />
-                      <NCheckbox v-model="importOptions.preserveIds" label="Preserve explicit IDs when present" help="Insert records using provided id fields and realign sequences. Use with caution." />
+                      <label class="flex items-center gap-2">
+                        <input type="checkbox" v-model="importOptions.createBackup" class="accent-gray-700 dark:accent-gray-300" />
+                        <span class="text-sm">Create backup before import</span>
+                      </label>
+                      <p class="text-xs text-gray-500 ml-6 -mt-2">Recommended for production imports</p>
+                      <label class="flex items-center gap-2">
+                        <input type="checkbox" v-model="importOptions.ignoreValidationErrors" class="accent-gray-700 dark:accent-gray-300" />
+                        <span class="text-sm">Ignore validation errors</span>
+                      </label>
+                      <p class="text-xs text-gray-500 ml-6 -mt-2">Import data even if validation fails (not recommended)</p>
+                      <label class="flex items-center gap-2">
+                        <input type="checkbox" v-model="importOptions.preserveIds" class="accent-gray-700 dark:accent-gray-300" />
+                        <span class="text-sm">Preserve explicit IDs when present</span>
+                      </label>
+                      <p class="text-xs text-gray-500 ml-6 -mt-2">Insert records using provided id fields and realign sequences. Use with caution.</p>
                       <div>
                         <label class="block text-sm font-medium mb-1">Batch Size</label>
                         <NNumberField v-model="importOptions.batchSize" :min="1" :max="1000" />
@@ -116,19 +120,17 @@
 
                     <!-- Actions -->
                     <div class="flex gap-3 pt-4">
-                      <NButton :disabled="!selectedFile || !selectedFormat" :loading="isValidating" btn="soft-blue" @click="validateData">Validate Data</NButton>
-                      <NButton v-if="validationResult" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" btn="soft-green" @click="startImport">Start Import</NButton>
+                      <OutlinedButton variant="primary" :disabled="!selectedFile || !selectedFormat" :loading="isValidating" @click="validateData">Validate Data</OutlinedButton>
+                      <OutlinedButton v-if="validationResult" variant="primary" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" @click="startImport">Start Import</OutlinedButton>
                     </div>
                   </div>
-                </NCard>
+                </div>
 
-                <NCard v-if="validationResult">
-                  <template #header>
-                    <div class="flex items-center gap-2">
-                      <NIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
-                      <h3 class="text-lg font-semibold">Validation {{ validationResult.isValid ? 'Passed' : 'Failed' }}</h3>
-                    </div>
-                  </template>
+                <div v-if="validationResult" class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                  <div class="flex items-center gap-2 mb-4">
+                    <NIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
+                    <h3 class="text-lg font-semibold">Validation {{ validationResult.isValid ? 'Passed' : 'Failed' }}</h3>
+                  </div>
                   <div class="space-y-4">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -165,7 +167,7 @@
                       </div>
                     </div>
                   </div>
-                </NCard>
+                </div>
 
                 <DataPreviewTable :data="previewData" :type="selectedDataType?.value || 'references'" :max-rows="5" />
               </div>
@@ -177,9 +179,9 @@
             <div class="flex items-center justify-between px-4 space-x-4">
               <h2 class="text-xl font-semibold">2 • Import Progress</h2>
               <NCollapsibleTrigger as-child>
-                <NButton btn="ghost-gray" square>
+                <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
-                </NButton>
+                </OutlinedButton>
               </NCollapsibleTrigger>
             </div>
             <NCollapsibleContent>
@@ -200,20 +202,18 @@
             <div class="flex items-center justify-between px-4 space-x-4">
               <h2 class="text-xl font-semibold">3 • Relink Post-Quote Relations</h2>
               <NCollapsibleTrigger as-child>
-                <NButton btn="ghost-gray" square>
+                <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
-                </NButton>
+                </OutlinedButton>
               </NCollapsibleTrigger>
             </div>
             <NCollapsibleContent>
               <div class="space-y-6 p-4">
-                <NCard>
-                  <template #header>
-                    <div class="flex items-center gap-2">
-                      <NIcon name="i-ph-link-simple" />
-                      <h2 class="text-xl font-semibold">Relink Post-Quote Relations</h2>
-                    </div>
-                  </template>
+                <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
+                  <div class="flex items-center gap-2 mb-4">
+                    <NIcon name="i-ph-link-simple" />
+                    <h2 class="text-xl font-semibold">Relink Post-Quote Relations</h2>
+                  </div>
 
                   <div class="space-y-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -250,16 +250,16 @@
 
                     <!-- Actions -->
                     <div class="flex gap-3 pt-2">
-                      <NButton :disabled="!selectedRelinkFile" :loading="isRelinking" btn="soft-indigo" @click="startRelink">
+                      <OutlinedButton variant="primary" :disabled="!selectedRelinkFile" :loading="isRelinking" @click="startRelink">
                         Start Relink
-                      </NButton>
+                      </OutlinedButton>
                     </div>
 
                     <p class="mt-2 text-xs text-gray-500">
                       Tip: If collection/quote IDs are missing, include <code>collection_name</code> and/or <code>quote_name</code> (and optional <code>language</code> or <code>user_id</code>) to resolve links.
                     </p>
                   </div>
-                </NCard>
+                </div>
               </div>
             </NCollapsibleContent>
           </NCollapsible>
@@ -910,5 +910,4 @@ const guessDataTypeFromContent = (text: string, fmt?: string | null): SelectOpti
 
   return null
 }
-
 </script>

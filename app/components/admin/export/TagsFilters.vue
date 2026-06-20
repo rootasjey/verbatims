@@ -1,56 +1,59 @@
 <template>
   <div class="space-y-4">
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
-      <NInput v-model="model.search" placeholder="Search tags by name or description" />
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Search</label>
+      <input v-model="model.search" placeholder="Search tags by name or description" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Category</label>
         <div>
-          <NSelect
-            v-model="categoryModel"
-            :items="categoryOptions"
-            item-key="label"
-            value-key="label"
-            placeholder="Select categories"
+          <select
             multiple
-          />
+            :value="categoryModel.map(o => o.label)"
+            @change="categoryModel = Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => ({ label: o.value, value: o.value }))"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+          >
+            <option v-for="opt in categoryOptions" :key="opt.label" :value="opt.label">{{ opt.label }}</option>
+          </select>
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Color</label>
         <div>
-          <NSelect
-            v-model="colorModel"
-            :items="colorOptions"
-            item-key="label"
-            value-key="label"
-            placeholder="Select colors"
+          <select
             multiple
-          />
+            :value="colorModel.map(o => o.label)"
+            @change="colorModel = Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => ({ label: o.value, value: o.value }))"
+            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
+          >
+            <option v-for="opt in colorOptions" :key="opt.label" :value="opt.label">{{ opt.label }}</option>
+          </select>
         </div>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created from</label>
-        <NInput v-model="dateStart" type="date" />
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Created from</label>
+        <input v-model="dateStart" type="date" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created to</label>
-        <NInput v-model="dateEnd" type="date" />
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Created to</label>
+        <input v-model="dateEnd" type="date" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum usage</label>
-        <NNumberField v-model="model.min_usage" :min="0" />
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Minimum usage</label>
+        <input type="number" v-model.number="model.min_usage" :min="0" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none" />
       </div>
     </div>
 
-    <div class="flex items-center gap-4">
-      <NCheckbox v-model="model.unused_only" label="Only tags with no usage" />
+    <div>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" v-model="model.unused_only" class="accent-gray-700 dark:accent-gray-300" />
+        <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Only tags with no usage</span>
+      </label>
     </div>
   </div>
 </template>
@@ -98,4 +101,3 @@ const dateEnd = computed({
   }
 })
 </script>
-

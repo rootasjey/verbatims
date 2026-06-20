@@ -1,380 +1,361 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <div class="flex-1 flex flex-col">
-      <div class="group themes-table-container flex-1 overflow-auto border rounded-2">
-        <NTable
-          :columns="tableColumns"
-          :data="themes"
-          :loading="loading"
-          :una="{
-            tableRoot: '!overflow-visible border-none',
-            scrollAreaRoot: '!overflow-visible',
-            table: '!w-auto min-w-full',
-            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-            tableBody: 'bg-white dark:bg-[#0C0A09]'
-          }"
-          :_table-row="(row) => {
-            if (!row) return {}
-            const isHighlighted = themes.findIndex(t => t.id === row.id) === highlightedRowIndex
-            const isSelected = !!rowSelection[row.id]
-            if (!isHighlighted && !isSelected) return {}
-            const classes = []
-            if (isHighlighted && isSelected) {
-              classes.push('bg-indigo-100 dark:bg-indigo-900/40 border-2 border-indigo-500 dark:border-indigo-400')
-            } else if (isHighlighted) {
-              classes.push('bg-[#FAFAF9] dark:bg-[#1C1B1A]')
-            } else if (isSelected) {
-              classes.push('bg-indigo-50/50 dark:bg-indigo-950/30 border-1.5 border-indigo-300 dark:border-indigo-700')
-            }
-            return {
-              ...(isHighlighted ? { 'data-highlighted': 'true' } : {}),
-              class: classes.join(' ')
-            }
-          }"
-          manual-pagination
-          empty-text="No themes found"
-          empty-icon="i-ph-palette"
-        >
-          <template #name-header>
-            <div class="flex items-center gap-2">
-              <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Themes</h4>
-              <div class="w-80">
-                <NInput
-                  v-model="searchQuery"
-                  placeholder="Search themes..."
-                  leading="i-ph-magnifying-glass"
-                  size="md"
-                  :loading="loading"
-                  :trailing="searchQuery ? 'i-ph-x' : undefined"
-                  :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                  @trailing="resetFilters"
-                />
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">Themes</h1>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalThemes }} {{ totalThemes === 1 ? 'theme' : 'themes' }}</p>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <input v-model="searchQuery" type="text" placeholder="Search themes..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
+          <select v-model="selectedSort" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
+            <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="md:hidden mt-4">
+        <input v-model="searchQuery" type="text" placeholder="Search themes..." class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+      </div>
+    </div>
+
+    <!-- Skeleton -->
+    <div v-if="loading && themes.length === 0" class="space-y-5">
+      <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="themes.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No themes found</p>
+    </div>
+
+    <!-- Table -->
+    <div v-else>
+      <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
+        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showDeleteDialog = true">Delete All</button>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
+      </div>
+
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="themes.length > 0 && themes.every(t => !!rowSelection[t.id])" @update:model-value="selectAllOnPage" /></th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Schedule</th>
+              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Filters</th>
+              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Priority</th>
+              <th class="w-10 px-3 py-3 text-left">
+                <NDropdownMenu :items="headerActions">
+                  <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-caret-down" class="w-4 h-4" /></button>
+                </NDropdownMenu>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr v-for="(theme, idx) in themes" :key="theme.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[theme.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
+              <td class="px-3 py-3">
+                <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[theme.id]" @click="rowSelection[theme.id] = !rowSelection[theme.id]" />
+                </div>
+              </td>
+              <td class="px-3 py-3">
+                <div class="min-w-0">
+                  <div class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ theme.name }}</div>
+                  <code class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ theme.slug }}</code>
+                </div>
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-1.5">
+                  <span v-if="theme.isActive" class="font-sans text-xs px-1.5 py-0.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20">Active</span>
+                  <span v-else-if="theme.isDefault" class="font-sans text-xs px-1.5 py-0.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20">Default</span>
+                  <span v-else-if="theme.scheduledDate" class="font-sans text-xs px-1.5 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">Scheduled</span>
+                  <span v-else class="font-sans text-xs px-1.5 py-0.5 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">Inactive</span>
+                </div>
+              </td>
+              <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ theme.scheduledDate || (theme.scheduledStart ? formatDate(theme.scheduledStart) : '—') }}</td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">{{ theme.filters_count || 0 }}</td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">{{ theme.priority }}</td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="getThemeActions(theme)">
+                  <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                </NDropdownMenu>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalThemes }} total</span>
+        <div class="flex items-center gap-3">
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+        </div>
+      </div>
+      <div v-else class="pt-4 text-center">
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+      </div>
+    </div>
+
+    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-5xl' }">
+      <template #header>
+        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
+      </template>
+      <div class="max-h-[75vh] overflow-y-auto">
+        <div class="space-y-6 px-4">
+          <div v-if="!editMode" class="pb-2">
+            <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
+              <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> Generate Suggestions</OutlinedButton>
+              <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> AI Suggestions</OutlinedButton>
+              <button class="ml-auto p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()"><NIcon name="i-ph-gear" class="w-4 h-4" /></button>
+              <p class="w-full text-xs text-gray-400 mt-1">Auto-generate from top tags, authors, and references</p>
+            </div>
+            <div v-else-if="loadingSuggestions && suggestions.length === 0">
+              <div class="flex items-center gap-2 text-sm text-gray-500">
+                <span class="i-ph-circle-notch animate-spin" />
+                Generating suggestions...
+              </div>
+            </div>
+            <div v-else-if="suggestions.length > 0">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Theme Suggestions</h4>
+                <div class="flex items-center gap-1">
+                  <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()"><NIcon name="i-ph-gear" class="w-4 h-4" /></button>
+                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" /> Refresh</OutlinedButton>
+                </div>
+              </div>
+              <div class="relative">
+                <div ref="suggestionScrollRef" class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth">
+                  <div v-for="(s, i) in suggestions" :key="i"
+                    class="flex-shrink-0 w-56 p-3 rounded-xl border-1.5 cursor-pointer transition-all overflow-hidden"
+                    :class="selectedSuggestionIndex === i
+                      ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+                    @click="applySuggestion(i)">
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_primary }" />
+                      <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_secondary }" />
+                      <span class="text-2xs uppercase tracking-wider text-gray-400 ml-auto font-medium">{{ s.type }}</span>
+                    </div>
+                    <p class="text-sm font-semibold truncate text-gray-900 dark:text-white">{{ s.name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{{ s.description }}</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                      <span v-for="f in s.filters" :key="f.value" class="text-2xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 truncate max-w-full">
+                        {{ f.value }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  v-if="suggestions.length > 3"
+                  class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  @click="scrollSuggestions(-1)"
+                >
+                  <span class="i-ph-caret-left text-sm" />
+                </button>
+                <button
+                  v-if="suggestions.length > 3"
+                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  @click="scrollSuggestions(1)"
+                >
+                  <span class="i-ph-caret-right text-sm" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Name *</label>
+              <NInput v-model="form.name" placeholder="e.g., To Infinity & Beyond" :disabled="submitting" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Slug *</label>
+              <NInput v-model="form.slug" placeholder="e.g., space" :disabled="submitting" required />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Description</label>
+            <NInput type="textarea" v-model="form.description" :rows="2" placeholder="Short theme description" :disabled="submitting" />
+          </div>
+
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-2 px-18 py-6">
+            <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">Theme Colors</h4>
+            <div class="flex gap-16">
+              <div>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white">Primary</label>
+                <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_primary }}</span>
+                <div class="flex items-center gap-3">
+                  <BlossomColorPicker
+                    :value="primaryPickerValue"
+                    @change="onPrimaryChange"
+                    :show-alpha-slider="false"
+                    :core-size="28"
+                    :petal-size="28"
+                  />
+                </div>
               </div>
               <div>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white">Secondary</label>
+                <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_secondary }}</span>
+                <div class="flex items-center gap-3">
+                  <BlossomColorPicker
+                    :value="secondaryPickerValue"
+                    @change="onSecondaryChange"
+                    :show-alpha-slider="false"
+                    :core-size="28"
+                    :petal-size="28"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Image URL</label>
+            <NInput v-model="form.image_url" placeholder="https://..." :disabled="submitting" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Priority</label>
+              <NNumberField v-model="form.priority" :min="0" :disabled="submitting" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Date</label>
+              <NInput v-model="form.scheduled_date" type="date" :disabled="submitting" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Start</label>
+              <NInput v-model="form.scheduled_start" type="datetime-local" :disabled="submitting" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled End</label>
+              <NInput v-model="form.scheduled_end" type="datetime-local" :disabled="submitting" />
+            </div>
+            <div class="flex items-end gap-4 pb-1">
+              <NCheckbox v-model="form.is_active" label="Active" />
+              <NCheckbox v-model="form.is_default" label="Default fallback" />
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Content Filters</h4>
+            <div class="space-y-2 mb-3">
+              <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[9rem_1fr_auto] gap-2 items-center">
                 <NSelect
-                  v-model="selectedSort"
-                  :items="sortOptions"
-                  placeholder="Sort by"
+                  v-model="filter.type"
+                  :items="filterTypeOptions"
                   size="sm"
-                  item-key="label"
-                  value-key="label"
+                  class="w-full"
+                  @update:model-value="onFilterValueInput(idx)"
                 />
-              </div>
-            </div>
-          </template>
-
-          <template #name-cell="{ cell }">
-            <div class="min-w-0">
-              <div class="font-medium text-sm">{{ cell.row.original.name }}</div>
-              <code class="text-xs text-gray-400 dark:text-gray-500">{{ cell.row.original.slug }}</code>
-            </div>
-          </template>
-
-          <template #status-cell="{ cell }">
-            <div class="flex items-center gap-1.5">
-              <NBadge v-if="cell.row.original.isActive" badge="solid-green" size="xs">Active</NBadge>
-              <NBadge v-else-if="cell.row.original.isDefault" badge="soft-blue" size="xs">Default</NBadge>
-              <NBadge v-else-if="cell.row.original.scheduledDate" badge="soft-yellow" size="xs">Scheduled</NBadge>
-              <NBadge v-else badge="ghost-gray" size="xs">Inactive</NBadge>
-            </div>
-          </template>
-
-          <template #schedule-cell="{ cell }">
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              {{ cell.row.original.scheduledDate || (cell.row.original.scheduledStart ? formatDate(cell.row.original.scheduledStart) : '—') }}
-            </span>
-          </template>
-
-          <template #filters-cell="{ cell }">
-            <span class="text-sm">{{ cell.row.original.filters_count || 0 }}</span>
-          </template>
-
-          <template #priority-cell="{ cell }">
-            <span class="text-sm">{{ cell.row.original.priority }}</span>
-          </template>
-
-          <template #actions-header>
-            <div class="flex items-center justify-center space-x-1">
-              <NDropdownMenu :items="headerActions">
-                <NButton size="xs" btn="ghost-gray" icon label="i-ph-caret-down" class="hover:bg-gray-200 dark:hover:bg-gray-900" />
-              </NDropdownMenu>
-            </div>
-          </template>
-
-          <template #actions-cell="{ cell }">
-            <NDropdownMenu :items="getThemeActions(cell.row.original)">
-              <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="hover:bg-gray-200 dark:hover:bg-gray-700/50" />
-            </NDropdownMenu>
-          </template>
-        </NTable>
-      </div>
-
-      <div class="flex-shrink-0 flex items-center justify-between p-4">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }} • {{ totalThemes }} total themes
-        </div>
-        <NPagination v-model:page="currentPage" :total="totalThemes" :items-per-page="pageSize" :sibling-count="2" show-edges size="sm" pagination-selected="solid-indigo" />
-      </div>
-    </div>
-  </div>
-
-  <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-5xl' }">
-    <template #header>
-      <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
-    </template>
-    <div class="max-h-[75vh] overflow-y-auto">
-      <div class="space-y-6 px-4">
-        <div v-if="!editMode" class="pb-2">
-          <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
-            <NButton size="xs" btn="soft-indigo" leading="i-ph-lightbulb" @click="loadSuggestions">
-              Generate Suggestions
-            </NButton>
-            <NButton size="xs" btn="soft-purple" leading="i-ph-sparkle" @click="loadAISuggestions">
-              AI Suggestions
-            </NButton>
-            <NButton size="xs" btn="ghost-gray" icon label="i-ph-gear" class="ml-auto" @click="showAISettings = true; loadAISettings()" />
-            <p class="w-full text-xs text-gray-400 mt-1">Auto-generate from top tags, authors, and references</p>
-          </div>
-          <div v-else-if="loadingSuggestions && suggestions.length === 0">
-            <div class="flex items-center gap-2 text-sm text-gray-500">
-              <span class="i-ph-circle-notch animate-spin" />
-              Generating suggestions...
-            </div>
-          </div>
-          <div v-else-if="suggestions.length > 0">
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Theme Suggestions</h4>
-              <div class="flex items-center gap-1">
-                <NButton size="xs" btn="ghost-gray" icon label="i-ph-gear" @click="showAISettings = true; loadAISettings()" />
-                <NButton size="xs" btn="ghost-gray" leading="i-ph-arrows-clockwise" :loading="loadingSuggestions" @click="loadSuggestions">
-                  Refresh
-                </NButton>
-              </div>
-            </div>
-            <div class="relative">
-              <div ref="suggestionScrollRef" class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth">
-                <div v-for="(s, i) in suggestions" :key="i"
-                  class="flex-shrink-0 w-56 p-3 rounded-xl border-1.5 cursor-pointer transition-all overflow-hidden"
-                  :class="selectedSuggestionIndex === i
-                    ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
-                  @click="applySuggestion(i)">
-                  <div class="flex items-center gap-1.5 mb-2">
-                    <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_primary }" />
-                    <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_secondary }" />
-                    <span class="text-2xs uppercase tracking-wider text-gray-400 ml-auto font-medium">{{ s.type }}</span>
-                  </div>
-                  <p class="text-sm font-semibold truncate text-gray-900 dark:text-white">{{ s.name }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{{ s.description }}</p>
-                  <div class="flex flex-wrap gap-1 mt-2">
-                    <span v-for="f in s.filters" :key="f.value" class="text-2xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 truncate max-w-full">
-                      {{ f.value }}
-                    </span>
+                <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
+                  <NInput v-model="filter.value" placeholder="Value" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
+                  <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                    <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                       :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
+                      {{ s.label }}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <button
-                v-if="suggestions.length > 3"
-                class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                @click="scrollSuggestions(-1)"
-              >
-                <span class="i-ph-caret-left text-sm" />
-              </button>
-              <button
-                v-if="suggestions.length > 3"
-                class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                @click="scrollSuggestions(1)"
-              >
-                <span class="i-ph-caret-right text-sm" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Name *</label>
-            <NInput v-model="form.name" placeholder="e.g., To Infinity & Beyond" :disabled="submitting" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Slug *</label>
-            <NInput v-model="form.slug" placeholder="e.g., space" :disabled="submitting" required />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Description</label>
-          <NInput type="textarea" v-model="form.description" :rows="2" placeholder="Short theme description" :disabled="submitting" />
-        </div>
-
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-2 px-18 py-6">
-          <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">Theme Colors</h4>
-          <div class="flex gap-16">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white">Primary</label>
-              <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_primary }}</span>
-              <div class="flex items-center gap-3">
-                <BlossomColorPicker
-                  :value="primaryPickerValue"
-                  @change="onPrimaryChange"
-                  :show-alpha-slider="false"
-                  :core-size="28"
-                  :petal-size="28"
-                />
+                <button class="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors" @click="removeFilter(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
               </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white">Secondary</label>
-              <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_secondary }}</span>
-              <div class="flex items-center gap-3">
-                <BlossomColorPicker
-                  :value="secondaryPickerValue"
-                  @change="onSecondaryChange"
-                  :show-alpha-slider="false"
-                  :core-size="28"
-                  :petal-size="28"
-                />
-              </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <OutlinedButton size="sm" @click="addFilter"><span class="i-ph-plus" /> Add Filter</OutlinedButton>
+              <template v-if="filterRecommendations.length">
+                <span class="text-2xs text-gray-400">Suggestions:</span>
+                <button v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" class="text-2xs px-2 py-0.5 rounded-full border border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" @click="applyFilterRecommendation(r)">
+                  {{ r.label }}
+                </button>
+              </template>
             </div>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Image URL</label>
-          <NInput v-model="form.image_url" placeholder="https://..." :disabled="submitting" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Priority</label>
-            <NNumberField v-model="form.priority" :min="0" :disabled="submitting" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Date</label>
-            <NInput v-model="form.scheduled_date" type="date" :disabled="submitting" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Start</label>
-            <NInput v-model="form.scheduled_start" type="datetime-local" :disabled="submitting" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled End</label>
-            <NInput v-model="form.scheduled_end" type="datetime-local" :disabled="submitting" />
-          </div>
-          <div class="flex items-end gap-4 pb-1">
-            <NCheckbox v-model="form.is_active" label="Active" />
-            <NCheckbox v-model="form.is_default" label="Default fallback" />
-          </div>
-        </div>
-
-        <div class="border-t pt-4">
-          <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Content Filters</h4>
-          <div class="space-y-2 mb-3">
-            <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[9rem_1fr_auto] gap-2 items-center">
-              <NSelect
-                v-model="filter.type"
-                :items="filterTypeOptions"
-                size="sm"
-                class="w-full"
-                @update:model-value="onFilterValueInput(idx)"
-              />
-              <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
-                <NInput v-model="filter.value" placeholder="Value" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
-                <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                  <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                       :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
-                    {{ s.label }}
-                  </div>
-                </div>
-              </div>
-              <NButton icon btn="ghost-red" size="xs" label="i-ph-x" @click="removeFilter(idx)" />
-            </div>
-          </div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <NButton size="xs" btn="soft-blue" leading="i-ph-plus" @click="addFilter">Add Filter</NButton>
-            <template v-if="filterRecommendations.length">
-              <span class="text-2xs text-gray-400">Suggestions:</span>
-              <button v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" class="text-2xs px-2 py-0.5 rounded-full border border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" @click="applyFilterRecommendation(r)">
-                {{ r.label }}
-              </button>
-            </template>
           </div>
         </div>
       </div>
-    </div>
 
-    <template #footer>
-      <div class="flex justify-end gap-3 px-4 pb-2">
-        <NButton btn="ghost-gray" :disabled="submitting" @click="showEditDialog = false">Cancel</NButton>
-        <NButton btn="solid-indigo" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
-          {{ editMode ? 'Update Theme' : 'Create Theme' }}
-        </NButton>
-      </div>
-    </template>
-  </NDialog>
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-2">
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" :disabled="submitting" @click="showEditDialog = false">Cancel</button>
+          <OutlinedButton variant="primary" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
+            {{ editMode ? 'Update Theme' : 'Create Theme' }}
+          </OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
 
-  <NDialog v-model:open="showDeleteDialog" :una="{ dialogContent: 'md:max-w-sm' }">
-    <div>
-      <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">Delete Theme</h3>
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        Are you sure you want to delete <span class="font-medium">{{ themeToDelete?.name }}</span>? This will remove all its content filters.
-      </p>
-      <div class="flex justify-end gap-3">
-        <NButton btn="light:soft dark:soft-white" :disabled="submitting" @click="showDeleteDialog = false">Cancel</NButton>
-        <NButton btn="soft-red" :loading="submitting" @click="confirmDelete">Delete</NButton>
-      </div>
-    </div>
-  </NDialog>
-
-  <NDialog v-model:open="showAISettings" :una="{ dialogContent: 'md:max-w-md' }">
-    <template #header>
-      <h3 class="font-title uppercase text-size-4 font-600 ml-4">AI Suggestions Settings</h3>
-    </template>
-    <div class="space-y-4 px-4">
+    <NDialog v-model:open="showDeleteDialog" :una="{ dialogContent: 'md:max-w-sm' }">
       <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Provider</label>
-        <NSelect v-model="aiSettings.provider" :items="providerOptions" size="sm" />
-        <p class="text-xs text-gray-400 mt-1 capitalize">Selected: {{ aiSettings.provider }}</p>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2 capitalize">API Key ({{ aiSettings.provider }})</label>
-        <NInput
-          :model-value="activeProviderSettings.apiKey"
-          @update:model-value="(v) => setProviderSetting('api_key', v)"
-          placeholder="sk-..." size="sm" type="password"
-        />
-        <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'OPENROUTER_API_KEY' : aiSettings.provider === 'opencode' ? 'OPENCODE_API_KEY' : aiSettings.provider === 'openai' ? 'OPENAI_API_KEY' : 'AI_API_KEY' }}</code> env var.</p>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
-        <NInput
-          :model-value="activeProviderSettings.model"
-          @update:model-value="(v) => setProviderSetting('model', v)"
-          placeholder="e.g. gpt-4o-mini" size="sm"
-        />
-      </div>
-
-      <div v-if="aiSettings.provider === 'custom'">
-        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
-        <NInput v-model="aiSettings.custom_base_url" placeholder="https://..." size="sm" />
-      </div>
-      <div v-else>
-        <p class="text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-          Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
+        <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">Delete Theme</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+          Are you sure you want to delete <span class="font-medium">{{ themeToDelete?.name }}</span>? This will remove all its content filters.
         </p>
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" :disabled="submitting" @click="showDeleteDialog = false">Cancel</button>
+          <OutlinedButton variant="destructive" :loading="submitting" @click="confirmDelete">Delete</OutlinedButton>
+        </div>
       </div>
-    </div>
-    <template #footer>
-      <div class="flex justify-end gap-3 px-4 pb-2">
-        <NButton btn="ghost-gray" @click="showAISettings = false">Cancel</NButton>
-        <NButton btn="solid-indigo" :loading="savingAISettings" @click="saveAISettings">Save Settings</NButton>
+    </NDialog>
+
+    <NDialog v-model:open="showAISettings" :una="{ dialogContent: 'md:max-w-md' }">
+      <template #header>
+        <h3 class="font-title uppercase text-size-4 font-600 ml-4">AI Suggestions Settings</h3>
+      </template>
+      <div class="space-y-4 px-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Provider</label>
+          <NSelect v-model="aiSettings.provider" :items="providerOptions" size="sm" />
+          <p class="text-xs text-gray-400 mt-1 capitalize">Selected: {{ aiSettings.provider }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2 capitalize">API Key ({{ aiSettings.provider }})</label>
+          <NInput
+            :model-value="activeProviderSettings.apiKey"
+            @update:model-value="(v) => setProviderSetting('api_key', v)"
+            placeholder="sk-..." size="sm" type="password"
+          />
+          <p class="text-xs text-gray-400 mt-1">Stored in the database. Falls back to <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'OPENROUTER_API_KEY' : aiSettings.provider === 'opencode' ? 'OPENCODE_API_KEY' : aiSettings.provider === 'openai' ? 'OPENAI_API_KEY' : 'AI_API_KEY' }}</code> env var.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
+          <NInput
+            :model-value="activeProviderSettings.model"
+            @update:model-value="(v) => setProviderSetting('model', v)"
+            placeholder="e.g. gpt-4o-mini" size="sm"
+          />
+        </div>
+
+        <div v-if="aiSettings.provider === 'custom'">
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
+          <NInput v-model="aiSettings.custom_base_url" placeholder="https://..." size="sm" />
+        </div>
+        <div v-else>
+          <p class="text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+            Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
+          </p>
+        </div>
       </div>
-    </template>
-  </NDialog>
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-2">
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" @click="showAISettings = false">Cancel</button>
+          <OutlinedButton variant="primary" :loading="savingAISettings" @click="saveAISettings">Save Settings</OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -1083,13 +1064,6 @@ onMounted(() => { loadThemes() })
 </script>
 
 <style scoped>
-.themes-table-container {
-  max-height: calc(100vh - 11rem);
-  max-width: calc(100vw - 8rem);
-}
-
-:deep(.table-header tr) { border-bottom: none; }
-:deep([data-reka-scroll-area-viewport]) { overflow: visible !important; }
-:deep([data-reka-scroll-area-corner]) { display: none !important; }
-.frame { min-height: calc(100vh - 8rem) }
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
 </style>

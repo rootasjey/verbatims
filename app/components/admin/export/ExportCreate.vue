@@ -3,24 +3,21 @@
     <div class="space-y-7">
       <div class="flex md:grid-cols-2 gap-6">
         <!-- Export -->
-        <NCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">Export Data</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Download your export</p>
-              </div>
+        <div class="max-w-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <div class="flex items-center gap-3 mb-4">
+            <div>
+              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Export Data</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Download your export</p>
             </div>
-          </template>
+          </div>
 
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row gap-4">
-              <NButton
-                btn="solid-black"
-                :loading="dataExport.state.isExporting"
+              <OutlinedButton
                 :disabled="!dataExport.exportOptions.value.format.value || dataExport.state.isExporting"
-                @click="dataExport.startExport"
+                :loading="dataExport.state.isExporting"
                 class="flex-1"
+                @click="dataExport.startExport"
               >
                 <NIcon :name="dataExport.exportOptions.value.download_after_export ? 'i-ph-download' : 'i-ph-export-duotone'" />
                 {{
@@ -30,48 +27,43 @@
                         ? 'Generate & Download Export'
                         : 'Generate Export')
                 }}
-              </NButton>
+              </OutlinedButton>
 
-              <NButton
-                btn="ghost"
+              <button
+                class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                 :disabled="dataExport.state.isExporting"
                 @click="() => dataExport.resetFilters({ clearStorage: true })"
               >
                 <NIcon name="i-ph-arrow-clockwise" />
                 Reset All
-              </NButton>
+              </button>
             </div>
 
-            <div class="flex items-center gap-3">
-              <NCheckbox
-                v-model="dataExport.exportOptions.value.download_after_export"
-                label="Download after export"
-              />
-            </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" v-model="dataExport.exportOptions.value.download_after_export" class="accent-gray-700 dark:accent-gray-300" />
+              <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Download after export</span>
+            </label>
           </div>
-        </NCard>
+        </div>
 
         <!-- Preview Export -->
-        <NCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">Preview Export</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Review data before export</p>
-              </div>
+        <div class="max-w-2xl min-w-md border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <div class="flex items-center gap-3 mb-4">
+            <div>
+              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Preview Export</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Review data before export</p>
             </div>
-          </template>
+          </div>
 
           <div class="space-y-4">
             <div class="flex justify-start">
-              <NButton
-                btn="outline-blue"
+              <OutlinedButton
                 :disabled="dataExport.state.isExporting || !dataExport.exportOptions.value.format.value"
                 @click="dataExport.validateExport"
               >
                 <NIcon name="i-ph-magnifying-glass" />
                 Generate Preview
-              </NButton>
+              </OutlinedButton>
             </div>
 
             <!-- Export Preview Results -->
@@ -114,168 +106,165 @@
               </div>
             </div>
           </div>
-        </NCard>
+        </div>
       </div>
 
       <div class="flex md:grid-cols-2 gap-6">
         <!-- Export Configuration -->
-        <NCard class="max-w-2xl shadow-none bg-gray-50/50 dark:bg-gray-800/20">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">Export Configuration</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Choose data type and format</p>
-              </div>
+        <div class="max-w-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <div class="flex items-center gap-3 mb-4">
+            <div>
+              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Export Configuration</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Choose data type and format</p>
             </div>
-          </template>
+          </div>
 
           <div class="space-y-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-3">
                 Data Type
               </label>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <NButton
+                <button
                   v-for="dataType in dataTypeOptions"
                   :key="dataType.value"
-                  :btn="dataExport.exportOptions.value.data_type.value === dataType.value ? 'light:solid-blue dark:solid-green' : 'light:outline-gray dark:outline-green'"
                   :disabled="!dataType.available"
-                  class="justify-start p-4 h-auto"
+                  class="flex flex-col items-start gap-1 min-w-0 overflow-hidden p-4 text-left border border-dashed active:scale-99 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  :class="dataExport.exportOptions.value.data_type.value === dataType.value
+                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
                   @click="dataExport.setDataType({ label: dataType.label, value: dataType.value, available: dataType.available })"
                 >
-                  <div class="flex flex-col items-start gap-1 min-w-0 overflow-hidden">
-                    <div class="flex items-center gap-2">
-                      <NIcon :name="dataType.icon" class="w-4 h-4" />
-                      <span class="font-medium">{{ dataType.label }}</span>
-                    </div>
-                    <span class="text-xs opacity-75 w-full truncate">{{ dataType.description }}</span>
+                  <div class="flex items-center gap-2">
+                    <NIcon :name="dataType.icon" class="w-4 h-4" />
+                    <span class="font-medium">{{ dataType.label }}</span>
                   </div>
-                </NButton>
+                  <span class="text-xs opacity-75 w-full truncate">{{ dataType.description }}</span>
+                </button>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
                   Export Format
                 </label>
                 <div>
-                  <NSelect
-                    :model-value="formatModel"
-                    @update:model-value="v => formatModel = (typeof v === 'object' ? v : dataExport.formatOptions.find(o => o.label === v) ?? dataExport.exportOptions.value.format)"
-                    :items="dataExport.formatOptions"
-                    item-key="label"
-                    value-key="label"
-                    placeholder="Select format"
-                  />
-                  <p v-if="dataExport.isAllSelected.value" class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                  <select
+                    :value="dataExport.exportOptions.value.format?.label || ''"
+                    @change="formatModel = dataExport.formatOptions.find(o => o.label === ($event.target as HTMLSelectElement).value) ?? dataExport.exportOptions.value.format"
+                    class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer"
+                  >
+                    <option value="" disabled>Select format</option>
+                    <option v-for="opt in dataExport.formatOptions" :key="opt.label" :value="opt.label">{{ opt.label }}</option>
+                  </select>
+                  <p v-if="dataExport.isAllSelected.value" class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">
                     The result will be a ZIP archive containing one file per data type in the selected format (CSV/JSON/XML).
                   </p>
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
                   Record Limit (0 = no limit)
                 </label>
-                <NInput
+                <input
                   v-model.number="dataExport.exportOptions.value.limit"
                   type="number"
                   min="0"
                   placeholder="0"
+                  class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-3">
                 Include Data
               </label>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <NCheckbox
-                  v-model="dataExport.exportOptions.value.include_relations"
-                  :label="dataExport.getIncludeRelationsLabel()"
-                />
-                <NCheckbox
-                  v-model="dataExport.exportOptions.value.include_user_data"
-                  label="Include user information"
-                />
-                <NCheckbox
-                  v-model="dataExport.exportOptions.value.include_moderation_data"
-                  label="Include moderation history"
-                />
-                <NCheckbox
-                  v-model="dataExport.exportOptions.value.include_analytics"
-                  label="Include analytics (views, likes, shares)"
-                />
-                <NCheckbox
-                  v-model="dataExport.exportOptions.value.include_metadata"
-                  label="Include export metadata"
-                />
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="dataExport.exportOptions.value.include_relations" class="accent-gray-700 dark:accent-gray-300" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ dataExport.getIncludeRelationsLabel() }}</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="dataExport.exportOptions.value.include_user_data" class="accent-gray-700 dark:accent-gray-300" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include user information</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="dataExport.exportOptions.value.include_moderation_data" class="accent-gray-700 dark:accent-gray-300" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include moderation history</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="dataExport.exportOptions.value.include_analytics" class="accent-gray-700 dark:accent-gray-300" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include analytics (views, likes, shares)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="dataExport.exportOptions.value.include_metadata" class="accent-gray-700 dark:accent-gray-300" />
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include export metadata</span>
+                </label>
               </div>
             </div>
           </div>
-        </NCard>
+        </div>
 
         <!-- Filters -->
-        <NCard class="max-w-2xl min-w-md shadow-none bg-gray-50/50 dark:bg-gray-800/20">
-          <template #header>
-            <NCollapsible>
-              <NCollapsibleTrigger class="w-full border-b b-dashed border-gray-200 dark:border-gray-700 pb-3">
-                <div class="flex items-center justify-between w-full p-0">
-                  <div class="flex items-center gap-3">
-                    <div class="text-left">
-                      <h3 class="font-semibold text-gray-900 dark:text-white">Filters</h3>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">Optional filtering criteria (click to expand)</p>
-                    </div>
+        <div class="max-w-2xl min-w-md border border-dashed border-gray-200 dark:border-gray-700 p-4">
+          <NCollapsible>
+            <NCollapsibleTrigger class="w-full">
+              <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-3">
+                  <div class="text-left">
+                    <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Filters</h3>
+                    <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Optional filtering criteria</p>
                   </div>
-                  <NIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
                 </div>
-              </NCollapsibleTrigger>
+                <NIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
+              </div>
+            </NCollapsibleTrigger>
 
-              <NCollapsibleContent>
-                <div class="pt-4 space-y-6">
-                  <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 text-sm">
-                    Using the last saved filters of each data type (Quotes, Authors, References, Users, Tags). To change them, switch to a specific data type and adjust its filters.
-                  </div>
-                  <!-- Dynamic Filters based on Data Type -->
-                  <div v-if="dataExport.exportOptions.value.data_type.value === 'quotes' && !dataExport.isAllSelected.value">
-                    <QuotesFilters
-                      v-model="dataExport.quotesFilters.value"
-                      :status-options="dataExport.statusOptions as any"
-                      :language-options="dataExport.languageOptions as any"
-                    />
-                  </div>
-
-                  <div v-else-if="dataExport.exportOptions.value.data_type.value === 'references' && !dataExport.isAllSelected.value">
-                    <ReferencesFilters
-                      v-model="dataExport.referencesFilters.value"
-                      :primary-type-options="dataExport.primaryTypeOptions"
-                    />
-                  </div>
-
-                  <div v-else-if="dataExport.exportOptions.value.data_type.value === 'authors' && !dataExport.isAllSelected.value">
-                    <AuthorsFilters
-                      v-model="dataExport.authorsFilters.value"
-                    />
-                  </div>
-
-                  <div v-else-if="dataExport.exportOptions.value.data_type.value === 'users' && !dataExport.isAllSelected.value">
-                    <UsersFilters
-                      v-model="dataExport.usersFilters.value"
-                    />
-                  </div>
-
-	                  <div v-else-if="dataExport.exportOptions.value.data_type.value === 'tags' && !dataExport.isAllSelected.value">
-	                    <TagsFilters
-	                      v-model="dataExport.tagsFilters.value"
-	                    />
-	                  </div>
+            <NCollapsibleContent>
+              <div class="pt-4 space-y-6">
+                <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 font-sans text-xs text-gray-500 dark:text-gray-400">
+                  Using the last saved filters of each data type (Quotes, Authors, References, Users, Tags). To change them, switch to a specific data type and adjust its filters.
                 </div>
-              </NCollapsibleContent>
-            </NCollapsible>
-          </template>
-        </NCard>
+                <!-- Dynamic Filters based on Data Type -->
+                <div v-if="dataExport.exportOptions.value.data_type.value === 'quotes' && !dataExport.isAllSelected.value">
+                  <QuotesFilters
+                    v-model="dataExport.quotesFilters.value"
+                    :status-options="dataExport.statusOptions as any"
+                    :language-options="dataExport.languageOptions as any"
+                  />
+                </div>
+
+                <div v-else-if="dataExport.exportOptions.value.data_type.value === 'references' && !dataExport.isAllSelected.value">
+                  <ReferencesFilters
+                    v-model="dataExport.referencesFilters.value"
+                    :primary-type-options="dataExport.primaryTypeOptions"
+                  />
+                </div>
+
+                <div v-else-if="dataExport.exportOptions.value.data_type.value === 'authors' && !dataExport.isAllSelected.value">
+                  <AuthorsFilters
+                    v-model="dataExport.authorsFilters.value"
+                  />
+                </div>
+
+                <div v-else-if="dataExport.exportOptions.value.data_type.value === 'users' && !dataExport.isAllSelected.value">
+                  <UsersFilters
+                    v-model="dataExport.usersFilters.value"
+                  />
+                </div>
+
+                <div v-else-if="dataExport.exportOptions.value.data_type.value === 'tags' && !dataExport.isAllSelected.value">
+                  <TagsFilters
+                    v-model="dataExport.tagsFilters.value"
+                  />
+                </div>
+              </div>
+            </NCollapsibleContent>
+          </NCollapsible>
+        </div>
       </div>
     </div>
   </div>
