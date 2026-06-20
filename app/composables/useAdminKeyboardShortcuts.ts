@@ -36,6 +36,13 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
     if (options.isDropdownOpen()) return
 
     if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+      const target = e.target as HTMLElement | null
+      if (target) {
+        const tag = target.tagName?.toLowerCase()
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) {
+          return
+        }
+      }
       e.preventDefault()
       options.selectAllOnPage()
       return
