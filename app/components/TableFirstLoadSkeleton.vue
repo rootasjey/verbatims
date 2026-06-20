@@ -10,34 +10,34 @@
           <template v-for="(variant, idx) in resolvedLayout" :key="idx">
             <div :class="colClasses[idx] || 'flex-1'">
               <!-- checkbox -->
-              <div v-if="variant === 'checkbox'" class="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-if="variant === 'checkbox'" class="h-4 w-4 rounded bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- multi-line (title + subtitle) -->
               <div v-else-if="variant === 'multi'">
-                <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700 mb-2"></div>
-                <div class="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-900 mb-2"></div>
+                <div class="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-900"></div>
               </div>
 
               <!-- text (default width) -->
-              <div v-else-if="variant === 'text'" class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else-if="variant === 'text'" class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- short text -->
-              <div v-else-if="variant === 'short'" class="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else-if="variant === 'short'" class="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- tiny text -->
-              <div v-else-if="variant === 'tiny'" class="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else-if="variant === 'tiny'" class="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- date width -->
-              <div v-else-if="variant === 'date'" class="h-4 w-3/5 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else-if="variant === 'date'" class="h-4 w-3/5 rounded bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- badge/pill -->
-              <div v-else-if="variant === 'pill'" class="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else-if="variant === 'pill'" class="h-5 w-16 rounded-full bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- dot / small icon -->
-              <div v-else-if="variant === 'dot'" class="h-4 w-6 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else-if="variant === 'dot'" class="h-4 w-6 rounded bg-gray-200 dark:bg-gray-900"></div>
 
               <!-- fallback -->
-              <div v-else class="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div v-else class="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-900"></div>
             </div>
           </template>
         </div>
@@ -46,8 +46,8 @@
 
     <!-- Footer (pagination) skeleton -->
     <div v-if="showFooter" class="flex-shrink-0 flex items-center justify-between pt-4">
-      <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
-      <div class="h-8 w-48 rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-900"></div>
+      <div class="h-8 w-48 rounded bg-gray-200 dark:bg-gray-900"></div>
     </div>
   </div>
 </template>
