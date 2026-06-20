@@ -162,6 +162,7 @@
       </div>
       <div v-else class="pt-4 text-center">
         <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+        </div>
       </div>
     </div>
 
