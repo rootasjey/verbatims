@@ -54,175 +54,102 @@
       </div>
     </div>
 
-    <div class="mt-2 flex-1 flex flex-col min-h-0">
-      <div class="group social-table-container flex-1 overflow-auto border rounded-2">
-        <NTable
-          :columns="tableColumns"
-          :data="queueItems"
-          :loading="loading"
-          manual-pagination
-          empty-text="Queue is empty"
-          empty-icon="i-ph-calendar"
-          :una="{
-            tableRoot: '!overflow-visible border-none',
-            scrollAreaRoot: '!overflow-visible',
-            table: '!w-auto min-w-full',
-            tableHeader: 'sticky top-0 z-1 bg-[#FAFAF9] dark:bg-[#0C0A09]',
-            tableBody: 'bg-white dark:bg-[#0C0A09]'
-          }"
-        >
-          <template #position-cell="{ cell }">
-            <div class="flex items-center gap-1.5">
-              <NLink
-                v-if="hasPublishedPostUrl(cell.row.original)"
-                :to="cell.row.original.published_post_url!"
-                target="_blank"
-                class="inline-flex items-center gap-1 text-sm text-green-700 dark:text-green-400 hover:underline"
-              >
-                <span>#{{ cell.row.original.position }}</span>
-                <NIcon name="i-ph-link-simple" class="w-3 h-3" />
-              </NLink>
-              <span v-else class="text-sm text-gray-900 dark:text-white">#{{ cell.row.original.position }}</span>
-              <NTooltip v-if="hasPublishedPostUrl(cell.row.original)">
-                <template #default>
-                  <NIcon name="i-ph-check-circle" class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                </template>
-                <template #content>
-                  <span>Published post available</span>
-                </template>
-              </NTooltip>
-            </div>
-          </template>
-
-          <template #quote-header>
-            <div class="flex items-center gap-4">
-              <span>Content</span>
-              <NInput
-                v-model="searchQuery"
-                placeholder="Search queue by content, author, reference..."
-                leading="i-ph-magnifying-glass"
-                :loading="loading"
-                :trailing="searchQuery ? 'i-ph-x' : undefined"
-                :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                class="md:w-94"
-                size="md"
-                input="outline-green"
-                @trailing="searchQuery = ''"
-              />
-            </div>
-          </template>
-
-          <template #quote-cell="{ cell }">
-            <div class="max-w-md">
-              <div class="flex items-start gap-2">
-                <p class="text-sm text-gray-900 dark:text-white leading-relaxed whitespace-normal break-words flex-1">
-                  {{ getQueueItemPrimaryText(cell.row.original) }}
-                </p>
-                <NLink
-                  v-if="getQueueItemPath(cell.row.original)"
-                  :to="getQueueItemPath(cell.row.original)!"
-                  class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                  :title="getQueueItemLinkLabel(cell.row.original)"
-                >
-                  <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
-                </NLink>
-              </div>
-              <p v-if="getQueueItemSecondaryText(cell.row.original)" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ getQueueItemSecondaryText(cell.row.original) }}
-              </p>
-              <p v-else class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                {{ formatQueueSourceLabel(cell.row.original) }}
-              </p>
-            </div>
-          </template>
-
-          <template #status-header>
-            <div class="flex items-center">
-              <NTooltip :_tooltip-content="{
-                class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50',
-              }">
-                <template #default>
-                  <NIcon name="i-ph-info" class="mr-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                </template>
-                <template #content>
-                  <div class="space-y-2">
-                    <div class="flex">
-                      <NBadge badge="soft" size="xs" icon="i-ph-shuffle" class="w-full">
-                        {{ stats.queued }} Queued
-                      </NBadge>
-                    </div>
-                    <div class="flex">
-                      <NBadge badge="soft-yellow" size="xs" icon="i-ph-play" class="w-full">
-                        {{ stats.processing }} Processing
-                      </NBadge>
-                    </div>
-
-                    <div class="flex">
-                      <NBadge badge="soft-green" size="xs" icon="i-ph-check" class="w-full">
-                        {{ stats.posted }} Posted
-                      </NBadge>
-                    </div>
-                    <div class="flex">
-                      <NBadge badge="soft-red" size="xs" icon="i-ph-x" class="w-full">
-                        {{ stats.failed }} Failed
-                      </NBadge>
-                    </div>
-                  </div>
-                </template>
-              </NTooltip>
-
-              <NSelect
-                v-model="selectedStatus"
-                :items="statusOptions"
-                item-key="label"
-                value-key="label"
-                size="xs"
-                placeholder="All statuses"
-              />
-            </div>
-          </template>
-
-          <template #status-cell="{ cell }">
-            <NBadge
-              :color="statusColor(cell.row.original.status)"
-              badge="soft"
-              size="xs"
-              :class="{ 'cursor-pointer': cell.row.original.status === 'failed' && cell.row.original.error_message }"
-              @click="copyErrorIfFailed(cell.row.original)"
-            >
-              {{ cell.row.original.status }}
-              <template v-if="cell.row.original.status === 'failed' && cell.row.original.error_message">
-                &middot; {{ briefError(cell.row.original.error_message) }}
-              </template>
-            </NBadge>
-          </template>
-
-          <template #postedCount-cell="{ cell }">
-            <span class="text-sm text-gray-900 dark:text-white">{{ cell.row.original.quote_posts_count || 0 }}</span>
-          </template>
-
-          <template #lastPosted-cell="{ cell }">
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              {{ formatLastPosted(cell.row.original.last_posted_at) }}
-            </span>
-          </template>
-
-          <template #actions-header>
-            <div class="flex items-center justify-center space-x-1">
-              <span>Actions</span>
-              <NDropdownMenu :items="tableHeaderMenuItems">
-                <NButton size="10px" btn="soft-gray" icon label="i-ph-dots-three-vertical" />
-              </NDropdownMenu>
-            </div>
-          </template>
-
-          <template #actions-cell="{ cell }">
-            <NDropdownMenu :items="rowActionItems(cell.row.original)">
-              <NButton size="xs" btn="soft-gray" icon label="i-ph-dots-three-vertical" />
-            </NDropdownMenu>
-          </template>
-        </NTable>
+    <div class="flex flex-col min-h-0">
+      <!-- Skeleton -->
+      <div v-if="loading && queueItems.length === 0" class="space-y-5">
+        <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
+          <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
+        </div>
       </div>
+
+      <!-- Empty -->
+      <div v-else-if="queueItems.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">Queue is empty</p>
+      </div>
+
+      <!-- Table -->
+      <div v-else>
+        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Position</th>
+                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <div class="flex items-center gap-4">
+                    <span>Content</span>
+                    <input v-model="searchQuery" type="text" placeholder="Search queue by content, author, reference..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-72" />
+                  </div>
+                </th>
+                <th class="w-52 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <div class="flex items-center gap-1">
+                    <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
+                      <template #default>
+                        <NIcon name="i-ph-info" class="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-pointer" />
+                      </template>
+                      <template #content>
+                        <div class="space-y-1 font-sans text-xs">
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400" /> {{ stats.queued }} Queued</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500" /> {{ stats.processing }} Processing</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" /> {{ stats.posted }} Posted</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500" /> {{ stats.failed }} Failed</div>
+                        </div>
+                      </template>
+                    </NTooltip>
+                    <select v-model="selectedStatus" class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-1.5 py-1 text-gray-700 dark:text-gray-300 cursor-pointer">
+                      <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+                    </select>
+                  </div>
+                </th>
+                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Posted Count</th>
+                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Posted</th>
+                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr v-for="(item, idx) in queueItems" :key="item.id" class="animate-fade-in-up transition-colors group" :style="{ animationDelay: `${idx * 0.03}s` }">
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-1.5">
+                    <NLink v-if="hasPublishedPostUrl(item)" :to="item.published_post_url!" target="_blank" class="inline-flex items-center gap-1 font-sans text-sm text-green-700 dark:text-green-400 hover:underline">
+                      <span>#{{ item.position }}</span><NIcon name="i-ph-link-simple" class="w-3 h-3" />
+                    </NLink>
+                    <span v-else class="font-sans text-sm text-gray-900 dark:text-gray-100">#{{ item.position }}</span>
+                    <NTooltip v-if="hasPublishedPostUrl(item)">
+                      <template #default><NIcon name="i-ph-check-circle" class="w-3.5 h-3.5 text-green-600 dark:text-green-400" /></template>
+                      <template #content><span>Published post available</span></template>
+                    </NTooltip>
+                  </div>
+                </td>
+                <td class="px-3 py-3 max-w-md">
+                  <div class="flex items-start gap-2">
+                    <p class="font-sans text-sm text-gray-900 dark:text-gray-100 leading-relaxed flex-1">{{ getQueueItemPrimaryText(item) }}</p>
+                    <NLink v-if="getQueueItemPath(item)" :to="getQueueItemPath(item)!" class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" :title="getQueueItemLinkLabel(item)">
+                      <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
+                    </NLink>
+                  </div>
+                  <p v-if="getQueueItemSecondaryText(item)" class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ getQueueItemSecondaryText(item) }}</p>
+                  <p v-else class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ formatQueueSourceLabel(item) }}</p>
+                </td>
+                <td class="px-3 py-3">
+                  <span class="font-sans text-xs px-1.5 py-0.5 cursor-pointer" :class="statusClass(item.status)" @click="copyErrorIfFailed(item)">
+                    {{ item.status }}<span v-if="item.status === 'failed' && item.error_message"> &middot; {{ briefError(item.error_message) }}</span>
+                  </span>
+                </td>
+                <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ item.quote_posts_count || 0 }}</td>
+                <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatLastPosted(item.last_posted_at) }}</td>
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-1">
+                    <NDropdownMenu :items="tableHeaderMenuItems">
+                      <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-list" class="w-4 h-4" /></button>
+                    </NDropdownMenu>
+                    <NDropdownMenu :items="rowActionItems(item)">
+                      <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                    </NDropdownMenu>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }}</span>
@@ -662,44 +589,15 @@ function statusLabelFor(platform: SocialPlatform) {
   return 'not configured'
 }
 
-const tableColumns = [
-  {
-    header: 'Position',
-    accessorKey: 'position',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } }
-  },
-  {
-    header: 'Quote',
-    accessorKey: 'quote',
-    enableSorting: false,
-    meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } }
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-52', tableCell: 'w-52 text-center' } }
-  },
-  {
-    header: 'Posted Count',
-    accessorKey: 'postedCount',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } }
-  },
-  {
-    header: 'Last Posted',
-    accessorKey: 'lastPosted',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-32', tableCell: 'w-32' } }
-  },
-  {
-    header: 'Actions',
-    accessorKey: 'actions',
-    enableSorting: false,
-    meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } }
+function statusClass(status: SocialQueueStatus) {
+  switch (status) {
+    case 'queued': return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+    case 'processing': return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
+    case 'posted': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    case 'failed': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
   }
-]
+}
 
 function statusColor(status: SocialQueueStatus) {
   if (status === 'queued') return 'blue'
@@ -1624,24 +1522,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.social-table-container {
-  max-height: calc(100vh - 11rem);
-  max-width: calc(100vw - 8rem);
-}
-
-:deep(.table-header tr) {
-  border-bottom: none;
-}
-
-.social-table-container :deep([data-reka-scroll-area-viewport]) {
-  overflow: visible !important;
-}
-
-.social-table-container :deep([data-reka-scroll-area-corner]) {
-  display: none !important;
-}
-
-.frame {
-  height: calc(100vh - 8rem);
-}
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
 </style>
