@@ -1,7 +1,7 @@
 <template>
   <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
     <div>
-      <h3 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100">{{ dialogTitle }}</h3>
+      <h3 class="font-serif text-md font-200 text-gray-900 dark:text-gray-100">{{ dialogTitle }}</h3>
       <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="mt-6 space-y-6">
         <!-- Quote Content -->
         <div>
