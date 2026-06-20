@@ -1,7 +1,6 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="dialogTitle"
     :submit-text="submitButtonText"
     :submitting="submitting"
     :can-submit="!!form.content.trim()"
@@ -10,6 +9,12 @@
     @submit="submitQuote"
     @close="closeDialog"
   >
+    <template #header-title>
+      <div class="flex items-center gap-2">
+        <NIcon name="i-lucide-quote" />
+        <NIcon v-if="isEditMode" name="i-tabler-writing-filled" />
+      </div>
+    </template>
     <form @keydown="handleFormKeydown" class="space-y-6">
       <!-- Quote Content -->
       <div>
@@ -20,10 +25,15 @@
           rows="4"
           :disabled="submitting"
           required
-          class="w-full font-body text-xl font-200 text-gray-900 dark:text-gray-100 bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-2 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none"
+          class="w-full font-subtitle text-xl font-500 text-gray-900
+            dark:text-gray-100 rounded-2
+            bg-blue-400/10 dark:bg-blue-400/10
+            px-4 py-4 placeholder-gray-400 dark:placeholder-gray-500
+            focus:outline-none resize-none"
         />
-        <div class="mt-2 text-right">
-          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ form.content.length }} characters</span>
+        <div class="px-1 flex justify-between">
+          <span class="font-sans text-xs font-600 text-gray-500 dark:text-gray-400">{{ dialogTitle }}</span>
+          <span class="font-sans text-xs font-600 text-gray-500 dark:text-gray-400">{{ form.content.length }} characters</span>
         </div>
       </div>
 
