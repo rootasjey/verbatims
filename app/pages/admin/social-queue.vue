@@ -1,60 +1,56 @@
 <template>
-  <div class="frame flex flex-col h-full">
-    <div class="flex-shrink-0 bg-gray-50 dark:bg-[#0C0A09]">
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col sm:flex-row gap-3">
-          <div>
-            <NToggleGroup
-              v-model="safeSelectedPlatform"
-              type="single"
-              class="space-x-2 flex-wrap"
+  <div>
+    <!-- Editorial Header -->
+    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
+      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+        Social Queue
+      </h1>
+      <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }}</p>
+
+      <div class="flex flex-col sm:flex-row gap-3 mt-4">
+        <div>
+          <NToggleGroup
+            v-model="safeSelectedPlatform"
+            type="single"
+            class="space-x-2 flex-wrap"
+          >
+            <NToggleGroupItem
+              v-for="opt in platformOptions"
+              :key="opt.value"
+              :value="opt.value"
+              size="sm"
+              :class="[toggleItemColorClass(opt.value), {
+                'w-auto px-4': opt.value === selectedPlatform,
+                'max-w-full': opt.value === selectedPlatform
+              }]"
             >
-              <NToggleGroupItem
-                v-for="opt in platformOptions"
-                :key="opt.value"
-                :value="opt.value"
-                size="sm"
-                :class="[toggleItemColorClass(opt.value), {
-                  'w-auto px-4': opt.value === selectedPlatform,
-                  'max-w-full': opt.value === selectedPlatform
-                }]"
-              >
-                <NIcon :name="opt.label" />
-                <div v-if="opt.value === selectedPlatform" class="flex items-center gap-2">
-                  <span class="font-medium">
-                    {{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}
-                  </span>
+              <NIcon :name="opt.label" />
+              <div v-if="opt.value === selectedPlatform" class="flex items-center gap-2">
+                <span class="font-medium">
+                  {{ SOCIAL_PLATFORM_LABELS[selectedPlatform] || selectedPlatform }}
+                </span>
 
-                  <NTooltip>
-                    <div class="flex items-center bg-gray-50 dark:bg-gray-800 p-.5 rounded-1">
-                      <NIcon :name="getPlatformStatus(selectedPlatform).ok ? 'i-lucide-workflow' : 'i-lucide-traffic-cone'" />
+                <NTooltip>
+                  <div class="flex items-center bg-gray-50 dark:bg-gray-800 p-.5 rounded-1">
+                    <NIcon :name="getPlatformStatus(selectedPlatform).ok ? 'i-lucide-workflow' : 'i-lucide-traffic-cone'" />
+                  </div>
+                  <template #content>
+                    <div>
+                      {{ statusLabelFor(selectedPlatform) }}
                     </div>
-                    <template #content>
-                      <div>
-                        {{ statusLabelFor(selectedPlatform) }}
-                      </div>
-                    </template>
-                  </NTooltip>
+                  </template>
+                </NTooltip>
 
-                  <span>ID: {{ getPlatformStatus(selectedPlatform).account }}</span>
-                </div>
-              </NToggleGroupItem>
-            </NToggleGroup>
-          </div>
-          <NButton btn="soft-gray" :loading="providerCheckLoading" @click="checkProvider">
-            <NIcon name="i-ph-plugs-connected" />
-            Check provider
-          </NButton>
-
-          <NButton btn="soft-blue" :loading="runNowLoading" @click="runNow">
-            <NIcon name="i-ph-play" />
-            Run now
-          </NButton>
-
-          <NDropdownMenu :items="actionMenuItems">
-            <NButton size="sm" btn="soft-gray" icon label="i-ph-dots-three-vertical" />
-          </NDropdownMenu>
+                <span>ID: {{ getPlatformStatus(selectedPlatform).account }}</span>
+              </div>
+            </NToggleGroupItem>
+          </NToggleGroup>
         </div>
+        <OutlinedButton :loading="providerCheckLoading" @click="checkProvider">Check provider</OutlinedButton>
+        <OutlinedButton variant="primary" :loading="runNowLoading" @click="runNow">Run now</OutlinedButton>
+        <NDropdownMenu :items="actionMenuItems">
+          <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+        </NDropdownMenu>
       </div>
     </div>
 
@@ -228,19 +224,17 @@
         </NTable>
       </div>
 
-      <div class="flex-shrink-0 flex items-center justify-between p-4">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }} • {{ totalItems }} items
+      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }}</span>
+        <div class="flex items-center gap-3">
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
         </div>
-        <NPagination
-          v-model:page="currentPage"
-          :total="totalItems"
-          :items-per-page="pageSize"
-          :sibling-count="2"
-          show-edges
-          size="sm"
-          pagination-selected="solid-indigo"
-        />
+      </div>
+      <div v-else class="pt-4 text-center">
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
       </div>
     </div>
 
