@@ -1,176 +1,170 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="{ dialogContent: 'md:max-w-md lg:max-w-lg' }">
-    <div>
-      <h3 class="font-serif text-md font-200 text-gray-900 dark:text-gray-100">{{ dialogTitle }}</h3>
-      <form @submit.prevent="submitQuote" @keydown="handleFormKeydown" class="mt-6 space-y-6">
-        <!-- Quote Content -->
-        <div>
-          <textarea
-            v-model="form.content"
-            autofocus
-            placeholder="Enter the quote content..."
-            rows="4"
-            :disabled="submitting"
-            required
-            class="w-full font-body text-xl font-200 text-gray-900 dark:text-gray-100 bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-2 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none"
-          />
-          <div class="mt-2 text-right">
-            <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ form.content.length }} characters</span>
-          </div>
+  <AppDialog
+    v-model="isOpen"
+    :title="dialogTitle"
+    :submit-text="submitButtonText"
+    :submitting="submitting"
+    :can-submit="!!form.content.trim()"
+    max-width="lg"
+    scrollable
+    @submit="submitQuote"
+    @close="closeDialog"
+  >
+    <form @keydown="handleFormKeydown" class="space-y-6">
+      <!-- Quote Content -->
+      <div>
+        <textarea
+          v-model="form.content"
+          autofocus
+          placeholder="Enter the quote content..."
+          rows="4"
+          :disabled="submitting"
+          required
+          class="w-full font-body text-xl font-200 text-gray-900 dark:text-gray-100 bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-2 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none"
+        />
+        <div class="mt-2 text-right">
+          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ form.content.length }} characters</span>
         </div>
-
-        <!-- Author -->
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Author</label>
-          <div class="relative">
-            <input
-              ref="authorInputRef"
-              v-model="authorQuery"
-              type="text"
-              placeholder="Search for an author or enter a new one..."
-              :disabled="submitting"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
-              @input="onAuthorInput"
-              @focus="handleAuthorInputFocus"
-              @blur="handleAuthorInputBlur"
-              @keydown="handleAuthorKeydown"
-            />
-            <div
-              v-if="showAuthorSuggestions && (authorSuggestions.length > 0 || authorQuery)"
-              ref="authorSuggestionsRef"
-              class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 max-h-48 overflow-auto"
-              tabindex="-1"
-              @blur="handleAuthorSuggestionsBlur"
-              @keydown="handleAuthorKeydown"
-            >
-              <div
-                v-for="(author, index) in authorSuggestions"
-                :key="author.id"
-                :class="[
-                  'px-3 py-2 cursor-pointer font-sans text-sm',
-                  selectedAuthorIndex === index
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                ]"
-                @click="selectAuthor(author)"
-                @mouseenter="selectedAuthorIndex = index"
-              >
-                <p class="text-sm text-gray-900 dark:text-gray-100">{{ author.name }}</p>
-                <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</p>
-              </div>
-              <div
-                v-if="authorQuery && !authorSuggestions.some(a => a.name.toLowerCase() === authorQuery.toLowerCase())"
-                :class="[
-                  'px-3 py-2 cursor-pointer border-t border-dashed border-gray-200 dark:border-gray-700 font-sans text-sm',
-                  selectedAuthorIndex === authorSuggestions.length
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                ]"
-                @click="createNewAuthor"
-                @mouseenter="selectedAuthorIndex = authorSuggestions.length"
-              >
-                <p class="text-sm text-blue-600 dark:text-blue-400">Create new author: &ldquo;{{ authorQuery }}&rdquo;</p>
-              </div>
-            </div>
-          </div>
-          <div v-if="form.selectedAuthor" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
-            <div>
-              <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ form.selectedAuthor.name }}</span>
-              <span v-if="form.selectedAuthor.job" class="font-sans text-xs text-gray-500 dark:text-gray-400 ml-2">{{ form.selectedAuthor.job }}</span>
-            </div>
-            <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="clearAuthor"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
-          </div>
-        </div>
-
-        <!-- Reference -->
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Reference</label>
-          <div class="relative">
-            <input
-              ref="referenceInputRef"
-              v-model="referenceQuery"
-              type="text"
-              placeholder="Search for a reference or enter a new one..."
-              :disabled="submitting"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
-              @input="onReferenceInput"
-              @focus="handleReferenceInputFocus"
-              @blur="handleReferenceInputBlur"
-              @keydown="handleReferenceKeydown"
-            />
-            <div
-              v-if="showReferenceSuggestions && (referenceSuggestions.length > 0 || referenceQuery)"
-              ref="referenceSuggestionsRef"
-              class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 max-h-48 overflow-auto"
-              tabindex="-1"
-              @blur="handleReferenceSuggestionsBlur"
-              @keydown="handleReferenceKeydown"
-            >
-              <div
-                v-for="(reference, index) in referenceSuggestions"
-                :key="reference.id"
-                :class="[
-                  'px-3 py-2 cursor-pointer font-sans text-sm',
-                  selectedReferenceIndex === index
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                ]"
-                @click="selectReference(reference)"
-                @mouseenter="selectedReferenceIndex = index"
-              >
-                <p class="text-sm text-gray-900 dark:text-gray-100">{{ reference.name }}</p>
-                <p v-if="reference.primary_type" class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ reference.primary_type.replace('_', ' ') }}</p>
-              </div>
-              <div
-                v-if="referenceQuery && !referenceSuggestions.some(r => r.name.toLowerCase() === referenceQuery.toLowerCase())"
-                :class="[
-                  'px-3 py-2 cursor-pointer border-t border-dashed border-gray-200 dark:border-gray-700 font-sans text-sm',
-                  selectedReferenceIndex === referenceSuggestions.length
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                ]"
-                @click="createNewReference"
-                @mouseenter="selectedReferenceIndex = referenceSuggestions.length"
-              >
-                <p class="text-sm text-blue-600 dark:text-blue-400">Create new reference: &ldquo;{{ referenceQuery }}&rdquo;</p>
-              </div>
-            </div>
-          </div>
-          <div v-if="form.selectedReference" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
-            <div>
-              <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ form.selectedReference.name }}</span>
-              <span v-if="form.selectedReference.primary_type" class="font-sans text-xs text-gray-500 dark:text-gray-400 ml-2 capitalize">{{ form.selectedReference.primary_type.replace('_', ' ') }}</span>
-            </div>
-            <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="clearReference"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
-          </div>
-        </div>
-
-        <!-- Language -->
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Language</label>
-          <select
-            v-model="form.language"
-            :disabled="submitting"
-            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none"
-            @change="onLanguageSelected(form.language)"
-          >
-            <option v-for="opt in languageOptions" :key="opt.value" :value="opt" class="dark:bg-gray-800">{{ opt.label }}</option>
-          </select>
-          <div v-if="languageDetection.label" class="mt-2 flex flex-wrap items-center gap-2 font-sans text-xs">
-            <span class="inline-flex items-center bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
-              {{ languageDetection.source === 'manual' ? `Language set to ${languageDetection.label}` : `Auto-detected: ${languageDetection.label}` }}
-            </span>
-            <span v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'" class="text-amber-700 dark:text-amber-300">Low confidence &mdash; please confirm.</span>
-          </div>
-        </div>
-      </form>
-
-      <div class="mt-6 flex justify-end gap-3">
-        <button type="button" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="submitting" @click="closeDialog">Cancel</button>
-        <OutlinedButton :loading="submitting" :disabled="!form.content.trim()" @click="submitQuote">{{ submitButtonText }}</OutlinedButton>
       </div>
-    </div>
-  </NDialog>
+
+      <!-- Author -->
+      <div>
+        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Author</label>
+        <div class="relative">
+          <input
+            ref="authorInputRef"
+            v-model="authorQuery"
+            type="text"
+            placeholder="Search for an author or enter a new one..."
+            :disabled="submitting"
+            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            @input="onAuthorInput"
+            @focus="handleAuthorInputFocus"
+            @blur="handleAuthorInputBlur"
+            @keydown="handleAuthorKeydown"
+          />
+          <div
+            v-if="showAuthorSuggestions && (authorSuggestions.length > 0 || authorQuery)"
+            ref="authorSuggestionsRef"
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 max-h-48 overflow-auto"
+            tabindex="-1"
+            @blur="handleAuthorSuggestionsBlur"
+            @keydown="handleAuthorKeydown"
+          >
+            <div
+              v-for="(author, index) in authorSuggestions"
+              :key="author.id"
+              :class="[
+                'px-3 py-2 cursor-pointer font-sans text-sm',
+                selectedAuthorIndex === index ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              ]"
+              @click="selectAuthor(author)"
+              @mouseenter="selectedAuthorIndex = index"
+            >
+              <p class="text-sm text-gray-900 dark:text-gray-100">{{ author.name }}</p>
+              <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</p>
+            </div>
+            <div
+              v-if="authorQuery && !authorSuggestions.some(a => a.name.toLowerCase() === authorQuery.toLowerCase())"
+              :class="[
+                'px-3 py-2 cursor-pointer border-t border-dashed border-gray-200 dark:border-gray-700 font-sans text-sm',
+                selectedAuthorIndex === authorSuggestions.length ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              ]"
+              @click="createNewAuthor"
+              @mouseenter="selectedAuthorIndex === authorSuggestions.length ? selectedAuthorIndex = authorSuggestions.length : null"
+            >
+              <p class="text-sm text-blue-600 dark:text-blue-400">Create new author: &ldquo;{{ authorQuery }}&rdquo;</p>
+            </div>
+          </div>
+        </div>
+        <div v-if="form.selectedAuthor" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
+          <div>
+            <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ form.selectedAuthor.name }}</span>
+            <span v-if="form.selectedAuthor.job" class="font-sans text-xs text-gray-500 dark:text-gray-400 ml-2">{{ form.selectedAuthor.job }}</span>
+          </div>
+          <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="clearAuthor"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      <!-- Reference -->
+      <div>
+        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Reference</label>
+        <div class="relative">
+          <input
+            ref="referenceInputRef"
+            v-model="referenceQuery"
+            type="text"
+            placeholder="Search for a reference or enter a new one..."
+            :disabled="submitting"
+            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            @input="onReferenceInput"
+            @focus="handleReferenceInputFocus"
+            @blur="handleReferenceInputBlur"
+            @keydown="handleReferenceKeydown"
+          />
+          <div
+            v-if="showReferenceSuggestions && (referenceSuggestions.length > 0 || referenceQuery)"
+            ref="referenceSuggestionsRef"
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 max-h-48 overflow-auto"
+            tabindex="-1"
+            @blur="handleReferenceSuggestionsBlur"
+            @keydown="handleReferenceKeydown"
+          >
+            <div
+              v-for="(reference, index) in referenceSuggestions"
+              :key="reference.id"
+              :class="[
+                'px-3 py-2 cursor-pointer font-sans text-sm',
+                selectedReferenceIndex === index ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              ]"
+              @click="selectReference(reference)"
+              @mouseenter="selectedReferenceIndex = index"
+            >
+              <p class="text-sm text-gray-900 dark:text-gray-100">{{ reference.name }}</p>
+              <p v-if="reference.primary_type" class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ reference.primary_type.replace('_', ' ') }}</p>
+            </div>
+            <div
+              v-if="referenceQuery && !referenceSuggestions.some(r => r.name.toLowerCase() === referenceQuery.toLowerCase())"
+              :class="[
+                'px-3 py-2 cursor-pointer border-t border-dashed border-gray-200 dark:border-gray-700 font-sans text-sm',
+                selectedReferenceIndex === referenceSuggestions.length ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              ]"
+              @click="createNewReference"
+              @mouseenter="selectedReferenceIndex = referenceSuggestions.length"
+            >
+              <p class="text-sm text-blue-600 dark:text-blue-400">Create new reference: &ldquo;{{ referenceQuery }}&rdquo;</p>
+            </div>
+          </div>
+        </div>
+        <div v-if="form.selectedReference" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
+          <div>
+            <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ form.selectedReference.name }}</span>
+            <span v-if="form.selectedReference.primary_type" class="font-sans text-xs text-gray-500 dark:text-gray-400 ml-2 capitalize">{{ form.selectedReference.primary_type.replace('_', ' ') }}</span>
+          </div>
+          <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="clearReference"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      <!-- Language -->
+      <div>
+        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Language</label>
+        <select
+          v-model="form.language"
+          :disabled="submitting"
+          class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none"
+          @change="onLanguageSelected(form.language)"
+        >
+          <option v-for="opt in languageOptions" :key="opt.value" :value="opt" class="dark:bg-gray-800">{{ opt.label }}</option>
+        </select>
+        <div v-if="languageDetection.label" class="mt-2 flex flex-wrap items-center gap-2 font-sans text-xs">
+          <span class="inline-flex items-center bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
+            {{ languageDetection.source === 'manual' ? `Language set to ${languageDetection.label}` : `Auto-detected: ${languageDetection.label}` }}
+          </span>
+          <span v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'" class="text-amber-700 dark:text-amber-300">Low confidence &mdash; please confirm.</span>
+        </div>
+      </div>
+    </form>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
