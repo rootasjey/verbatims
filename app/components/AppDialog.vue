@@ -2,7 +2,8 @@
   <NDialog v-model:open="isOpen" :una="unaConfig" :show-close="false">
     <template #header>
       <div class="flex justify-between items-center mb-1 pb-2 border-b b-dashed border-gray-200">
-        <h3 class="font-title uppercase text-size-4 font-600">
+        <slot name="header-title"></slot>
+        <h3 v-if="title" class="font-title uppercase text-size-4 font-600">
           <slot name="title">{{ title }}</slot>
         </h3>
         <div class="flex items-center gap-2">
@@ -42,7 +43,7 @@
 <script setup lang="ts">
 interface Props {
   modelValue: boolean
-  title: string
+  title?: string
   submitText?: string
   cancelText?: string
   submitting?: boolean
