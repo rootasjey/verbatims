@@ -112,6 +112,7 @@
       <!-- Bulk action bar -->
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
+        <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedAuthors">Merge Selected</button>
         <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">Delete All</button>
         <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
       </div>
@@ -229,7 +230,7 @@
       </template>
     </NDialog>
 
-    <MergeAuthorsDialog v-model="showMergeDialog" :source-author="authorToMerge" @authors-merged="onAuthorsMerged" />
+    <MergeAuthorsDialog v-model="showMergeDialog" :source-author="authorToMerge" :initial-target-author="initialMergeTarget" @authors-merged="onAuthorsMerged" />
   </div>
 </template>
 
@@ -259,6 +260,7 @@ const showDeleteAuthorDialog = ref(false)
 const authorToDelete = ref<Author | null>(null)
 const showMergeDialog = ref(false)
 const authorToMerge = ref<Author | null>(null)
+const initialMergeTarget = ref<Author | null>(null)
 const showEnrichmentDialog = ref(false)
 const showEnrichmentConfigDialog = ref(false)
 const enrichmentLoading = ref(false)
@@ -415,8 +417,19 @@ const editAuthor = async (author: Author) => {
 }
 
 const deleteAuthor = async (author: Author) => { authorToDelete.value = author; showDeleteAuthorDialog.value = true }
-const mergeAuthor = async (author: Author) => { authorToMerge.value = author; showMergeDialog.value = true }
-const onAuthorsMerged = () => { showMergeDialog.value = false; authorToMerge.value = null; loadAuthors() }
+const mergeAuthor = async (author: Author) => { authorToMerge.value = author; initialMergeTarget.value = null; showMergeDialog.value = true }
+const mergeSelectedAuthors = () => {
+  const ids = selectedIds.value
+  if (ids.length !== 2) return
+  const [first, second] = ids
+  const a = filteredAuthors.value.find(a => a.id === first)
+  const b = filteredAuthors.value.find(a => a.id === second)
+  if (!a || !b) return
+  authorToMerge.value = a
+  initialMergeTarget.value = b
+  showMergeDialog.value = true
+}
+const onAuthorsMerged = () => { showMergeDialog.value = false; authorToMerge.value = null; initialMergeTarget.value = null; loadAuthors() }
 
 const openEnrichmentPreview = async (author: Author, preferredExternalId?: string) => {
   enrichmentAuthorTarget.value = author; enrichmentLoading.value = true; showEnrichmentDialog.value = true
