@@ -228,6 +228,8 @@
         </div>
       </template>
     </NDialog>
+
+    <MergeAuthorsDialog v-model="showMergeDialog" :source-author="authorToMerge" @authors-merged="onAuthorsMerged" />
   </div>
 </template>
 
@@ -255,6 +257,8 @@ const showAddAuthorDialog = ref(false)
 const selectedAuthor = ref<Author | undefined>()
 const showDeleteAuthorDialog = ref(false)
 const authorToDelete = ref<Author | null>(null)
+const showMergeDialog = ref(false)
+const authorToMerge = ref<Author | null>(null)
 const showEnrichmentDialog = ref(false)
 const showEnrichmentConfigDialog = ref(false)
 const enrichmentLoading = ref(false)
@@ -394,7 +398,8 @@ const getAuthorActions = (author: Author) => [
   { label: 'Edit Author', leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
   { label: 'Preview enrichment', leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(author) },
   ...(hasPendingEnrichment(author) ? [{ label: 'Open enrichment queue', leading: 'i-ph-bell-ringing', onclick: () => goToAuthorEnrichmentQueue(author) }] : []),
-  {}, { label: 'Delete Author', leading: 'i-ph-trash', onclick: () => deleteAuthor(author) }
+  {}, { label: 'Merge into…', leading: 'i-ph-git-merge', onclick: () => mergeAuthor(author) },
+  { label: 'Delete Author', leading: 'i-ph-trash', onclick: () => deleteAuthor(author) }
 ]
 
 const viewAuthor = (author: Author) => navigateTo(`/authors/${author.id}`)
@@ -410,6 +415,8 @@ const editAuthor = async (author: Author) => {
 }
 
 const deleteAuthor = async (author: Author) => { authorToDelete.value = author; showDeleteAuthorDialog.value = true }
+const mergeAuthor = async (author: Author) => { authorToMerge.value = author; showMergeDialog.value = true }
+const onAuthorsMerged = () => { showMergeDialog.value = false; authorToMerge.value = null; loadAuthors() }
 
 const openEnrichmentPreview = async (author: Author, preferredExternalId?: string) => {
   enrichmentAuthorTarget.value = author; enrichmentLoading.value = true; showEnrichmentDialog.value = true
