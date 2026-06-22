@@ -2,7 +2,7 @@
   <NuxtLink
     :to="to"
     :href="href"
-    class="group relative inline-block overflow-hidden font-sans text-sm transition-colors duration-300"
+    class="group relative inline-block overflow-hidden font-sans text-sm active:scale-95 transition-[colors,transform] duration-300"
     :class="[
       defaultClasses,
       activeClasses
