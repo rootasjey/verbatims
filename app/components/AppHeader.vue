@@ -34,7 +34,7 @@
 
       <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
         <div class="flex">
-          <NTooltip content="Add Quote (Ctrl/Cmd+N)" placement="bottom">
+          <NTooltip v-if="user" content="Add Quote (Ctrl/Cmd+N)" placement="bottom">
             <NButton
             icon
             btn="ghost-gray"
@@ -162,12 +162,12 @@ const navMenuItems = computed(() => [
     label: 'Contribute',
     trailing: 'i-ph-dot-bold',
     items: [
-      {
+      ...(user ? [{
         label: 'Add Quote',
         leading: 'i-ph-quotes-duotone',
         description: 'Contribute a new quote',
         onclick: () => { showAddQuote.value = true }
-      },
+      }] : []),
       {
         label: 'Suggest Edit',
         leading: 'i-ph-pencil-duotone',
@@ -304,7 +304,7 @@ onMounted(() => {
       showSearch.value = true
     }
     // Cmd+N (Mac) or Ctrl+N (Win/Linux)
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+    if (user && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
       e.preventDefault()
       showAddQuote.value = true
     }
