@@ -4,37 +4,45 @@
     title="Merge Authors"
     submit-text="Merge"
     :submitting="submitting"
-    :can-submit="!!selectedTarget && !!sourceAuthor"
+    :can-submit="!!selectedTarget && !!localSourceAuthor"
     :max-width="'lg'"
     :scrollable="true"
     @submit="confirmMerge"
   >
     <div class="space-y-5">
-      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3 flex items-start">
-        <NIcon name="i-ph-warning" class="w-5 h-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" />
-        <div class="text-sm text-amber-800 dark:text-amber-300">
+      <div class="bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded-md p-3 flex items-start">
+        <NIcon name="i-ph-warning" class="w-5 h-5 text-pink-600 mt-0.5 mr-2 flex-shrink-0" />
+        <div class="text-sm text-pink-800 dark:text-pink-300">
           <p class="font-medium">This action merges two authors into one and cannot be undone.</p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-center">
         <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 bg-gray-50/50 dark:bg-gray-900/20">
           <h4 class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Source (will be removed)</h4>
           <div class="flex items-center gap-3">
             <div class="flex-shrink-0">
-              <div v-if="sourceAuthor?.image_url" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <img :src="sourceAuthor.image_url" :alt="sourceAuthor.name" class="w-full h-full object-cover grayscale" />
+              <div v-if="localSourceAuthor?.image_url" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                <img :src="localSourceAuthor.image_url" :alt="localSourceAuthor.name" class="w-full h-full object-cover grayscale" />
               </div>
               <div v-else class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                 <NIcon name="i-ph-user" class="w-5 h-5 text-gray-500" />
               </div>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ sourceAuthor?.name }}</p>
+              <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ localSourceAuthor?.name }}</p>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ sourceQuotesCount }} quote{{ sourceQuotesCount !== 1 ? 's' : '' }}</p>
             </div>
           </div>
-          <div v-if="sourceAuthor?.job" class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ sourceAuthor.job }}</div>
+        </div>
+
+        <div class="flex flex-col items-center gap-1">
+          <NIcon name="i-ph-arrow-right" class="w-6 h-6 text-gray-400 dark:text-gray-500" />
+          <button
+            v-if="selectedTarget"
+            class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors underline decoration-dashed underline-offset-2"
+            @click="swapAuthors"
+          >Switch</button>
         </div>
 
         <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4">
@@ -57,7 +65,7 @@
             <NIcon name="i-ph-arrow-bend-right-down" class="w-4 h-4" />
             <span class="font-sans text-xs">Search and select an author below</span>
           </div>
-          <div v-if="selectedTarget?.job" class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedTarget.job }}</div>
+
         </div>
       </div>
 
@@ -108,7 +116,7 @@
         </div>
       </div>
 
-      <div v-if="selectedTarget && sourceAuthor">
+      <div v-if="selectedTarget && localSourceAuthor">
         <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
           <table class="w-full text-sm">
             <thead>
@@ -122,7 +130,7 @@
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               <tr>
                 <td class="px-3 py-2 font-sans text-xs text-gray-700 dark:text-gray-300">Name</td>
-                <td class="px-3 py-2 font-sans text-xs text-gray-900 dark:text-gray-100">{{ sourceAuthor.name }}</td>
+                <td class="px-3 py-2 font-sans text-xs text-gray-900 dark:text-gray-100">{{ localSourceAuthor.name }}</td>
                 <td class="px-3 py-2 font-sans text-xs text-gray-900 dark:text-gray-100">{{ selectedTarget.name }}</td>
                 <td class="px-3 py-2 font-sans text-xs text-blue-600 dark:text-blue-400">Keep target</td>
               </tr>
@@ -141,7 +149,7 @@
         </div>
 
         <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">
-          <strong>{{ sourceQuotesCount }}</strong> quote{{ sourceQuotesCount !== 1 ? 's' : '' }} will be reassigned from <strong>{{ sourceAuthor.name }}</strong> to <strong>{{ selectedTarget.name }}</strong>.
+          <strong>{{ sourceQuotesCount }}</strong> quote{{ sourceQuotesCount !== 1 ? 's' : '' }} will be reassigned from <strong>{{ localSourceAuthor.name }}</strong> to <strong>{{ selectedTarget.name }}</strong>.
           View, like, and share counts will be summed.
         </p>
       </div>
@@ -167,6 +175,7 @@ import type { Author } from '#shared/types/author'
 interface Props {
   modelValue: boolean
   sourceAuthor?: Author | null
+  initialTargetAuthor?: Author | null
 }
 
 interface Emits {
@@ -184,6 +193,7 @@ const isOpen = computed({
   set: (v: boolean) => emit('update:modelValue', v),
 })
 
+const localSourceAuthor = ref<Author | null>(null)
 const submitting = ref(false)
 const searchQuery = ref('')
 const searchResults = ref<Author[]>([])
@@ -193,12 +203,12 @@ const activeSuggestionIndex = ref(-1)
 const suggestionsRef = ref<HTMLElement | null>(null)
 const searchInputRef = ref<any>(null)
 
-const sourceQuotesCount = computed(() => props.sourceAuthor?.quotes_count ?? 0)
+const sourceQuotesCount = computed(() => localSourceAuthor.value?.quotes_count ?? 0)
 const targetQuotesCount = computed(() => selectedTarget.value?.quotes_count ?? 0)
 
 const diffFields = computed(() => {
-  if (!props.sourceAuthor || !selectedTarget.value) return []
-  const source = props.sourceAuthor
+  if (!localSourceAuthor.value || !selectedTarget.value) return []
+  const source = localSourceAuthor.value
   const target = selectedTarget.value
   const fields: { name: string; label: string; sourceValue: string | null; targetValue: string | null }[] = [
     { name: 'job', label: 'Job', sourceValue: source.job ?? null, targetValue: target.job ?? null },
@@ -230,7 +240,7 @@ const loadSearchResults = async () => {
       query: { search: q, limit: 10, sort_by: 'quotes', sort_order: 'DESC' },
     })
     searchResults.value = (res.data || []).filter(
-      (a: Author) => a.id !== props.sourceAuthor?.id
+      (a: Author) => a.id !== localSourceAuthor.value?.id
     )
     activeSuggestionIndex.value = -1
   } catch {
@@ -272,14 +282,23 @@ const selectTarget = (author: Author) => {
   showSuggestions.value = false
 }
 
+const swapAuthors = () => {
+  if (!selectedTarget.value || !localSourceAuthor.value) return
+  const tmp = localSourceAuthor.value
+  localSourceAuthor.value = selectedTarget.value
+  selectedTarget.value = tmp
+  searchQuery.value = tmp.name
+  showSuggestions.value = false
+}
+
 const confirmMerge = async () => {
-  if (!props.sourceAuthor || !selectedTarget.value) return
+  if (!localSourceAuthor.value || !selectedTarget.value) return
   submitting.value = true
   try {
     await $fetch('/api/admin/authors/merge', {
       method: 'POST',
       body: {
-        source_id: props.sourceAuthor.id,
+        source_id: localSourceAuthor.value.id,
         target_id: selectedTarget.value.id,
       },
     })
@@ -287,7 +306,7 @@ const confirmMerge = async () => {
     useToast().toast({
       toast: 'soft-success',
       title: 'Authors merged',
-      description: `${props.sourceAuthor.name} → ${selectedTarget.value.name}. ${sourceQuotesCount.value} quote(s) reassigned.`,
+      description: `${localSourceAuthor.value.name} → ${selectedTarget.value.name}. ${sourceQuotesCount.value} quote(s) reassigned.`,
     })
 
     emit('authors-merged')
@@ -301,11 +320,16 @@ const confirmMerge = async () => {
 
 watch(() => props.modelValue, async (val) => {
   if (val) {
+    localSourceAuthor.value = props.sourceAuthor ?? null
     selectedTarget.value = null
     searchQuery.value = ''
     searchResults.value = []
     showSuggestions.value = false
     activeSuggestionIndex.value = -1
+    if (props.initialTargetAuthor && props.initialTargetAuthor.id !== localSourceAuthor.value?.id) {
+      selectedTarget.value = props.initialTargetAuthor
+      searchQuery.value = props.initialTargetAuthor.name
+    }
     await nextTick()
     const input = searchInputRef.value
     if (typeof input?.focus === 'function') {
