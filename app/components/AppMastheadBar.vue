@@ -44,9 +44,16 @@
             </NTooltip>
 
             <UserMenu v-if="user" :user="user" />
-            <NButton v-else btn="light:soft" to="/login" rounded="4" class="font-800 relative left-2 dark:border hover:color-blue-6 hover:scale-102 active:scale-95 transition-transform">
-              Sign in
-            </NButton>
+
+            <NTooltip v-else content="Sign in">
+              <NButton
+                link
+                icon
+                btn="ghost-gray"
+                label="i-lucide-log-in"
+                to="/login"
+              />
+            </NTooltip>
           </div>
         </div>
       </div>
