@@ -82,6 +82,7 @@
     <div v-else>
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
         <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
+        <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedReferences">Merge Selected</button>
         <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">Delete All</button>
         <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
       </div>
@@ -178,6 +179,8 @@
         </div>
       </template>
     </NDialog>
+
+    <MergeReferencesDialog v-model="showMergeDialog" :source-reference="referenceToMerge" :initial-target-reference="initialMergeTarget" @references-merged="onReferencesMerged" />
   </div>
 </template>
 
@@ -205,6 +208,9 @@ const showAddReferenceDialog = ref(false)
 const selectedReference = ref<QuoteReferenceWithMetadata | undefined>()
 const showDeleteReferenceDialog = ref(false)
 const referenceToDelete = ref<QuoteReferenceWithMetadata | null>(null)
+const showMergeDialog = ref(false)
+const referenceToMerge = ref<QuoteReferenceWithMetadata | null>(null)
+const initialMergeTarget = ref<QuoteReferenceWithMetadata | null>(null)
 const showEnrichmentDialog = ref(false)
 const enrichmentLoading = ref(false)
 const enrichmentApplying = ref(false)
@@ -245,7 +251,7 @@ const toggleAllSelection = (v: boolean | 'indeterminate') => {
 const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
-const isAnyDialogOpen = computed(() => showAddReferenceDialog.value || showDeleteReferenceDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value)
+const isAnyDialogOpen = computed(() => showAddReferenceDialog.value || showDeleteReferenceDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value || showMergeDialog.value)
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => filteredReferences.value.length,
@@ -325,7 +331,8 @@ const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
   { label: 'Preview enrichment', leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(reference) },
   ...(hasPendingEnrichment(reference) ? [{ label: 'Open enrichment queue', leading: 'i-ph-bell-ringing', onclick: () => goToReferenceEnrichmentQueue(reference) }] : []),
   { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(reference) },
-  {}, { label: 'Delete Reference', leading: 'i-ph-trash', onclick: () => deleteReference(reference) }
+  {}, { label: 'Merge into…', leading: 'i-ph-git-merge', onclick: () => mergeReference(reference) },
+  { label: 'Delete Reference', leading: 'i-ph-trash', onclick: () => deleteReference(reference) }
 ]
 
 const viewReference = (reference: QuoteReferenceWithMetadata) => navigateTo(`/references/${reference.id}`)
@@ -333,6 +340,19 @@ const hasPendingEnrichment = (reference: QuoteReferenceWithMetadata) => Number(r
 const goToReferenceEnrichmentQueue = (reference: QuoteReferenceWithMetadata) => navigateTo({ path: '/admin/enrichment', query: { entityType: 'reference', entityId: String(reference.id), status: 'completed' } })
 const editReference = (reference: QuoteReferenceWithMetadata) => { selectedReference.value = reference; showAddReferenceDialog.value = true }
 const deleteReference = async (reference: QuoteReferenceWithMetadata) => { referenceToDelete.value = reference; showDeleteReferenceDialog.value = true }
+const mergeReference = async (reference: QuoteReferenceWithMetadata) => { referenceToMerge.value = reference; initialMergeTarget.value = null; showMergeDialog.value = true }
+const mergeSelectedReferences = () => {
+  const ids = selectedIds.value
+  if (ids.length !== 2) return
+  const [first, second] = ids
+  const a = filteredReferences.value.find(r => r.id === first)
+  const b = filteredReferences.value.find(r => r.id === second)
+  if (!a || !b) return
+  referenceToMerge.value = a
+  initialMergeTarget.value = b
+  showMergeDialog.value = true
+}
+const onReferencesMerged = () => { showMergeDialog.value = false; referenceToMerge.value = null; initialMergeTarget.value = null; loadReferences() }
 
 const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata, preferredExternalId?: string) => {
   enrichmentReferenceTarget.value = reference; enrichmentLoading.value = true; showEnrichmentDialog.value = true
