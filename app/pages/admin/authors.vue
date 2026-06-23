@@ -316,7 +316,7 @@ const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const isAnyDialogOpen = computed(() =>
-  showAddAuthorDialog.value || showDeleteAuthorDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value
+  showAddAuthorDialog.value || showDeleteAuthorDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value || showMergeDialog.value
 )
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
