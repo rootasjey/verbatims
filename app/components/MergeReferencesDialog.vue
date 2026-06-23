@@ -21,16 +21,16 @@
                 <NIcon :name="getTypeIcon(localSourceReference?.primary_type)" class="w-5 h-5 text-gray-500" />
               </div>
             </div>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0">
               <NTooltip v-if="localSourceReference?.name" :content="localSourceReference.name">
                 <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ localSourceReference?.name }}</p>
               </NTooltip>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ localSourceReference?.primary_type?.replace('_', ' ') }} &middot; {{ sourceQuotesCount }} quote{{ sourceQuotesCount !== 1 ? 's' : '' }}</p>
 
               <NTooltip content="Source will be removed">
-                <div class="flex items-center gap-3 mt-1">
-                  <h4 class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Source</h4>
-                  <NIcon name="i-tabler-trash-x-filled" class="text-amber-600" />
+                <div class="flex items-center gap-2 mt-1 rounded-4 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                   <NIcon name="i-tabler-trash-x" size="xs" class="text-red-600" />
+                   <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-red-600 dark:text-gray-400">Source</h4>
                 </div>
               </NTooltip>
             </div>
@@ -38,13 +38,12 @@
         </div>
 
         <div class="flex flex-col items-center gap-1">
-          <NIcon name="i-ph-arrow-right" class="w-6 h-6 text-gray-400 dark:text-gray-500" />
+          <NIcon name="i-tabler-arrow-iteration" size="2xl" class="text-gray-400 dark:text-gray-500" />
           <button
             v-if="selectedTarget"
-            class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors underline decoration-dashed underline-offset-2"
-            @click="swapReferences">
-            Switch
-          </button>
+            class="font-sans text-xs font-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors underline decoration-dashed underline-offset-2"
+            @click="swapReferences"
+          >Switch</button>
         </div>
 
         <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 overflow-hidden min-w-0">
@@ -57,16 +56,17 @@
                 <NIcon :name="getTypeIcon(selectedTarget.primary_type)" class="w-5 h-5 text-gray-500" />
               </div>
             </div>
-            <div class="min-w-0 flex-1">
+
+            <div class="min-w-0">
               <NTooltip v-if="selectedTarget.name" :content="selectedTarget.name">
                 <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ selectedTarget.name }}</p>
               </NTooltip>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ selectedTarget.primary_type.replace('_', ' ') }} &middot; {{ targetQuotesCount }} quote{{ targetQuotesCount !== 1 ? 's' : '' }}</p>
 
               <NTooltip content="Target will be kept">
-                <div class="flex items-center gap-3 mt-1">
-                  <h4 class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Target</h4>
-                  <NIcon name="i-tabler-heart-handshake" class="text-blue-600" />
+                <div class="flex items-center gap-2 mt-1 rounded-4 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                  <NIcon name="i-tabler-heart-handshake" size="xs" class="text-blue-600" />
+                  <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-blue-600 dark:text-gray-400">Target</h4>
                 </div>
               </NTooltip>
             </div>
@@ -153,7 +153,7 @@
                   <span v-else>—</span>
                 </td>
                 <td class="px-3 py-2">
-                  <span v-if="field.sourceValue && !field.targetValue" class="font-sans text-xs text-amber-600 dark:text-amber-400">Will be copied</span>
+                  <span v-if="field.sourceValue && !field.targetValue" class="font-sans text-xs text-lime-600 dark:text-lime-400">Will be copied</span>
                   <span v-else-if="field.sourceValue && field.targetValue && field.sourceValue !== field.targetValue" class="font-sans text-xs text-gray-500 dark:text-gray-400">Keep target</span>
                   <span v-else class="font-sans text-xs text-gray-400 dark:text-gray-500">—</span>
                 </td>
@@ -180,7 +180,7 @@
               <span class="font-sans text-xs text-gray-400 dark:text-gray-500">&middot;</span>
               <span class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ cell.entity }}</span>
               <span class="font-sans text-xs text-gray-400 dark:text-gray-500">&middot;</span>
-              <span :class="['font-sans text-xs', cell.action === 'Will be kept' ? 'text-lime-600 dark:text-lime-400' : cell.action === 'Will be copied' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400']">{{ cell.action }}</span>
+              <span :class="['font-sans text-xs', cell.action === 'Will be kept' ? 'text-blue-600 dark:text-blue-400' : cell.action === 'Will be copied' ? 'text-lime-600 dark:text-lime-400' : 'text-red-600 dark:text-red-400']">{{ cell.action }}</span>
             </div>
             <button class="flex-shrink-0 p-0.5 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="closeExpanded(cell.key)">
               <NIcon name="i-ph-x" class="w-4 h-4" />
@@ -191,9 +191,9 @@
           </div>
         </div>
 
-        <div class="mt-2 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded-md p-3 flex items-start">
-          <NIcon name="i-ph-warning" class="w-5 h-5 text-pink-600 mt-0.5 mr-2 flex-shrink-0" />
-          <div class="text-sm text-pink-800 dark:text-pink-300">
+        <div class="mt-2 p-3 flex items-center gap-2 bg-amber-50 dark:bg-pink-900/20 border border-amber-200 dark:border-pink-800">
+          <NIcon name="i-ph-warning" class="text-amber-500 dark:text-pink-600 flex-shrink-0" />
+          <div class="text-xs text-amber-500 dark:text-pink-300">
             <p class="font-medium">This action merges two references into one and cannot be undone.</p>
           </div>
         </div>
