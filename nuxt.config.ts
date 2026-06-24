@@ -109,6 +109,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
+    francisApiKey: process.env.NUXT_FRANCIS_API_KEY || '',
+    francisApiUrl: process.env.NUXT_FRANCIS_API_URL || 'https://francis.verbatims.cc',
     xPostEnabled: process.env.NUXT_X_POST_ENABLED || 'true',
     xPostAccessToken: process.env.NUXT_X_POST_ACCESS_TOKEN || process.env.NUXT_X_POST_BEARER_TOKEN || '',
     xPostOauth1ConsumerKey: process.env.NUXT_X_POST_OAUTH1_CONSUMER_KEY || '',
