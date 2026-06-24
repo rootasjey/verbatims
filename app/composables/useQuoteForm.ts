@@ -32,7 +32,6 @@ const ISO3_TO_LANGUAGE: Record<string, QuoteLanguage> = {
   zho: 'zh'
 }
 
-const SUPPORTED_ISO3_CODES = Object.keys(ISO3_TO_LANGUAGE)
 const MIN_CONTENT_LENGTH_FOR_DETECTION = 12
 const APPLY_CONFIDENCE_THRESHOLD = 0.35
 const LOW_CONFIDENCE_THRESHOLD = 0.55
@@ -74,15 +73,6 @@ export function useQuoteForm() {
     const iso2 = ISO3_TO_LANGUAGE[iso3]
     if (!iso2) return null
     return getLanguageOption(iso2)
-  }
-
-  const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
-
-  const computeConfidence = (bestDistance: number, nextDistance?: number, textLength = 0) => {
-    const normalizedBest = clamp01(1 - (Math.min(bestDistance, 1000) / 1000))
-    const gap = nextDistance !== undefined ? clamp01((nextDistance - bestDistance) / 1000) : 0.5
-    const lengthBoost = clamp01(Math.min(textLength, 140) / 140)
-    return clamp01((normalizedBest * 0.55) + (gap * 0.25) + (lengthBoost * 0.2))
   }
 
   const clearLanguageDetection = () => {
@@ -140,26 +130,23 @@ export function useQuoteForm() {
     }
 
     try {
-      const { francAll } = await import('franc-min')
-      const results = francAll(content, {
-        minLength: MIN_CONTENT_LENGTH_FOR_DETECTION,
-        only: SUPPORTED_ISO3_CODES
+      const response = await $fetch('/api/detect-language', {
+        method: 'POST',
+        body: { text: content },
       })
 
-      if (!results.length || results[0][0] === 'und') {
+      if (!response || response.language === 'und') {
         clearLanguageDetection()
         return
       }
 
-      const [bestCode, bestDistance] = results[0]
-      const nextDistance = results[1]?.[1]
-      const option = mapIso3ToLanguageOption(bestCode)
+      const option = mapIso3ToLanguageOption(response.language)
       if (!option) {
         clearLanguageDetection()
         return
       }
 
-      const confidence = computeConfidence(bestDistance, nextDistance, content.length)
+      const confidence = response.confidence
       languageDetection.value = {
         code: option.value,
         label: option.label,
