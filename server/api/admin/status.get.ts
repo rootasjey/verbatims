@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
         data: {
           hasDatabase: false,
           hasAdminUser: false,
-          adminUsers: []
+          adminUsers: [] as Array<{ id: number; email: string; name: string }>
         }
       }
     }
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
       data: {
         hasDatabase: false,
         hasAdminUser: false,
-        adminUsers: []
+        adminUsers: [] as Array<{ id: number; email: string; name: string }>
       }
     }
   }

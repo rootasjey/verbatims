@@ -126,7 +126,7 @@
                   <NCheckbox
                     checkbox="gray"
                     :model-value="!!rowSelection[quote.id]"
-                    @click="e => handleRowCheckboxClick(e, idx, quote.id)"
+                    @click="handleRowCheckboxClick($event, idx, quote.id)"
                   />
                 </div>
               </td>

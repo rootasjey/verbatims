@@ -114,7 +114,7 @@
             <tr v-for="(ref, idx) in filteredReferences" :key="ref.id" :data-highlighted="idx === highlightedRowIndex ? 'true' : undefined" :class="['animate-fade-in-up transition-colors group', { 'bg-[#FAFAF9] dark:bg-[#1C1B1A]': idx === highlightedRowIndex }, { 'bg-indigo-50/50 dark:bg-indigo-950/30': !!rowSelection[ref.id] }]" :style="{ animationDelay: `${idx * 0.03}s` }">
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
-                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[ref.id]" @click="e => handleRowCheckboxClick(e, idx, ref.id)" />
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[ref.id]" @click="handleRowCheckboxClick($event, idx, ref.id)" />
                 </div>
               </td>
               <td class="px-3 py-3">

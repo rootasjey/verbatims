@@ -68,7 +68,12 @@ export default defineNuxtConfig({
   ],
 
   typescript: {
-    strict: false
+    strict: false,
+    tsConfig: {
+      compilerOptions: {
+        noImplicitAny: true
+      }
+    }
   },
 
   hub: {

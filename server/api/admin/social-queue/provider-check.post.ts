@@ -29,7 +29,7 @@ async function discoverInstagramBusinessAccount(input: {
       }
     })
 
-    const payload = await response.json().catch(() => null) as InstagramDiscoveryPayload | null
+    const payload = await response.json().catch((): null => null) as InstagramDiscoveryPayload | null
     if (!response.ok) {
       return {
         accountId: '',
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
     throwServer(400, SOCIAL_PLATFORM_ERROR_MESSAGE)
   }
 
-  if (isUnimplementedSocialPlatform(platform)) {
+  if (isUnimplementedSocialPlatform(platform as any)) {
     return {
       success: true,
       data: {
@@ -115,7 +115,7 @@ export default defineEventHandler(async (event) => {
         }
       })
 
-      const payload = await response.json().catch(() => null) as {
+      const payload = await response.json().catch((): null => null) as {
         id?: string
         name?: string
         owner?: {
@@ -207,7 +207,7 @@ export default defineEventHandler(async (event) => {
         }
       })
 
-      const payload = await response.json().catch(() => null) as {
+      const payload = await response.json().catch((): null => null) as {
         id?: string
         username?: string
         error?: { message?: string }
@@ -307,7 +307,7 @@ export default defineEventHandler(async (event) => {
           }
         })
 
-        const payload = await response.json().catch(() => null) as {
+        const payload = await response.json().catch((): null => null) as {
           id?: string
           username?: string
           error?: { message?: string }
@@ -396,7 +396,7 @@ export default defineEventHandler(async (event) => {
         }
       })
 
-      const payload = await response.json().catch(() => null) as {
+      const payload = await response.json().catch((): null => null) as {
         id?: string
         name?: string
         error?: { message?: string }
@@ -470,7 +470,7 @@ export default defineEventHandler(async (event) => {
         body: JSON.stringify({ identifier, password })
       })
 
-      const payload = await response.json().catch(() => null) as {
+      const payload = await response.json().catch((): null => null) as {
         did?: string
         handle?: string
         message?: string
@@ -550,7 +550,7 @@ export default defineEventHandler(async (event) => {
       headers
     })
 
-    const payload = await response.json().catch(() => null) as {
+    const payload = await response.json().catch((): null => null) as {
       data?: { username?: string; id?: string }
       detail?: string
       title?: string

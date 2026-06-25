@@ -527,7 +527,7 @@ const applySuggestion = (index: number) => {
   form.value.color_primary = ensureHexColor(s.color_primary, '#6366f1')
   form.value.color_secondary = ensureHexColor(s.color_secondary, '#f59e0b')
   initPickerValues(form.value.color_primary, form.value.color_secondary)
-  filters.value = s.filters.map((f: any) => ({ id: undefined, type: f.type, value: f.value }))
+  filters.value = s.filters.map((f: any) => ({ id: undefined as number | undefined, type: f.type, value: f.value }))
 }
 
 const form = ref({

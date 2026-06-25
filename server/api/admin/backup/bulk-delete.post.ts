@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'backup_ids array is required and must not be empty')
     }
 
-    const validIds = backup_ids.filter(id => !isNaN(Number(id))).map(id => Number(id))
+    const validIds = backup_ids.filter((id: unknown) => !isNaN(Number(id))).map((id: unknown) => Number(id))
     if (validIds.length !== backup_ids.length) {
       throwServer(400, 'All backup IDs must be valid numbers')
     }

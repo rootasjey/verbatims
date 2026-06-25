@@ -332,7 +332,7 @@ async function postToX(text: string, imageUrl: string): Promise<PublishResult> {
         : { text })
     })
 
-    const payload = await response.json().catch(() => null) as any
+    const payload = await response.json().catch((): null => null) as any
 
     if (!response.ok) {
       const message = withXUserContextHint(payload?.detail || payload?.title || `X API error (${response.status})`)
@@ -373,7 +373,7 @@ async function uploadXMedia(input: { auth: XAuthConfig, imageUrl: string }): Pro
     body: form
   })
 
-  const payload = await response.json().catch(() => null) as {
+  const payload = await response.json().catch((): null => null) as {
     media_id_string?: string
     errors?: Array<{ message?: string }>
     title?: string
@@ -407,7 +407,7 @@ async function postToBluesky(text: string, canonicalUrl: string, imageUrl: strin
       body: JSON.stringify({ identifier, password })
     })
 
-    const sessionPayload = await sessionResponse.json().catch(() => null) as {
+    const sessionPayload = await sessionResponse.json().catch((): null => null) as {
       accessJwt?: string
       did?: string
       handle?: string
@@ -431,7 +431,7 @@ async function postToBluesky(text: string, canonicalUrl: string, imageUrl: strin
       body: imageBytes
     })
 
-    const uploadPayload = await uploadResponse.json().catch(() => null) as {
+    const uploadPayload = await uploadResponse.json().catch((): null => null) as {
       blob?: {
         $type?: string
         ref?: { $link?: string }
@@ -477,7 +477,7 @@ async function postToBluesky(text: string, canonicalUrl: string, imageUrl: strin
       })
     })
 
-    const createRecordPayload = await createRecordResponse.json().catch(() => null) as {
+    const createRecordPayload = await createRecordResponse.json().catch((): null => null) as {
       uri?: string
       cid?: string
       message?: string
@@ -599,7 +599,7 @@ async function postToInstagram(caption: string, imageUrl: string): Promise<Publi
       })
     })
 
-    const createContainerPayload = await createContainerResponse.json().catch(() => null) as {
+    const createContainerPayload = await createContainerResponse.json().catch((): null => null) as {
       id?: string
       error?: {
         message?: string
@@ -637,7 +637,7 @@ async function postToInstagram(caption: string, imageUrl: string): Promise<Publi
       })
     })
 
-    const publishPayload = await publishResponse.json().catch(() => null) as {
+    const publishPayload = await publishResponse.json().catch((): null => null) as {
       id?: string
       error?: {
         message?: string
@@ -684,7 +684,7 @@ async function resolveInstagramBusinessAccountForPosting(input: {
       }
     })
 
-    const discoveryPayload = await discoveryResponse.json().catch(() => null) as {
+    const discoveryPayload = await discoveryResponse.json().catch((): null => null) as {
       data?: Array<{
         instagram_business_account?: {
           id?: string
@@ -755,7 +755,7 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
       })
     })
 
-    const createContainerPayload = await createContainerResponse.json().catch(() => null) as {
+    const createContainerPayload = await createContainerResponse.json().catch((): null => null) as {
       id?: string
       error?: {
         message?: string
@@ -793,7 +793,7 @@ async function postToThreads(text: string, imageUrl: string): Promise<PublishRes
       })
     })
 
-    const publishPayload = await publishResponse.json().catch(() => null) as {
+    const publishPayload = await publishResponse.json().catch((): null => null) as {
       id?: string
       error?: {
         message?: string
@@ -851,7 +851,7 @@ async function postToFacebook(message: string, imageUrl: string): Promise<Publis
       })
     })
 
-    const payload = await response.json().catch(() => null) as {
+    const payload = await response.json().catch((): null => null) as {
       id?: string
       post_id?: string
       error?: {
@@ -908,7 +908,7 @@ async function postToPinterest(description: string, canonicalUrl: string, imageU
       })
     })
 
-    const payload = await response.json().catch(() => null) as {
+    const payload = await response.json().catch((): null => null) as {
       id?: string
       board_id?: string
       title?: string
@@ -951,7 +951,7 @@ async function waitForThreadsContainerReady(input: {
       }
     })
 
-    const statusPayload = await statusResponse.json().catch(() => null) as {
+    const statusPayload = await statusResponse.json().catch((): null => null) as {
       status?: string
       error_message?: string
       error?: {
@@ -993,7 +993,7 @@ async function getThreadsPermalink(input: {
     }
   })
 
-  const payload = await response.json().catch(() => null) as {
+  const payload = await response.json().catch((): null => null) as {
     permalink?: string
   } | null
 
@@ -1022,7 +1022,7 @@ async function waitForInstagramContainerReady(input: {
       }
     })
 
-    const statusPayload = await statusResponse.json().catch(() => null) as {
+    const statusPayload = await statusResponse.json().catch((): null => null) as {
       status_code?: string
       error?: {
         message?: string
@@ -1063,7 +1063,7 @@ async function getInstagramPermalink(input: {
     }
   })
 
-  const payload = await response.json().catch(() => null) as {
+  const payload = await response.json().catch((): null => null) as {
     permalink?: string
   } | null
 

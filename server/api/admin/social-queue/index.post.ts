@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     .where(inArray(schema.quotes.id, quoteIds))
 
   const approvedIdSet = new Set(approvedQuotes.map(q => q.id))
-  const validQuoteIds = quoteIds.filter(id => approvedIdSet.has(id))
+  const validQuoteIds = quoteIds.filter((id: number) => approvedIdSet.has(id))
 
   if (!validQuoteIds.length) {
     throwServer(400, 'No valid quotes found')
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
 
   const basePosition = Number(maxPositionRow[0]?.maxPosition || 0)
 
-  const values = validQuoteIds.map((quoteId, index) => ({
+  const values = validQuoteIds.map((quoteId: number, index: number) => ({
     quoteId,
     sourceType: 'quote',
     sourceId: quoteId,
