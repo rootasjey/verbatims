@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.87.9",
+  "version": "0.87.10",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,7 +19,9 @@
     "bump:minor": "node ./scripts/bump-version.mjs minor",
     "bump:major": "node ./scripts/bump-version.mjs major",
     "version": "node ./scripts/tag-version.mjs",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.0.6",
@@ -55,6 +57,7 @@
     "jimp": "^1.6.0",
     "puppeteer": "^24.37.5",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.9",
     "vue-tsc": "^3.2.5",
     "wrangler": "^4.68.0"
   },
