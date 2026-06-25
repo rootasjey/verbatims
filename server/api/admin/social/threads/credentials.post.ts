@@ -17,7 +17,7 @@ async function fetchThreadsProfile(accessToken: string) {
   requestUrl.searchParams.set('access_token', accessToken)
 
   const response = await fetch(requestUrl)
-  const payload = await response.json().catch(() => null) as ThreadsProfilePayload | null
+  const payload = await response.json().catch((): null => null) as ThreadsProfilePayload | null
 
   if (!response.ok || payload?.error) {
     throwServer(400, payload?.error?.message || `Threads API error (${response.status})`)

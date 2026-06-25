@@ -530,7 +530,7 @@ const onReferenceUpdated = async () => {
 }
 
 const totalQuoteLikes = computed(() => {
-  return referenceQuotes.value.reduce((sum, quote) => sum + (quote.likes_count || 0), 0)
+  return referenceQuotes.value.reduce<number>((sum: number, quote: any) => sum + (quote.likes_count || 0), 0)
 })
 
 const loadQuotes = async (reset = true) => {

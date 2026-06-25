@@ -111,7 +111,7 @@
             >
               <td class="px-3 py-3">
                 <div :class="[Object.keys(rowSelection).length > 0 ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity']">
-                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="e => handleRowCheckboxClick(e, idx, quote.id)" />
+                  <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="handleRowCheckboxClick($event, idx, quote.id)" />
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">

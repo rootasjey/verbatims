@@ -118,8 +118,8 @@ export function sanitizeExportFilters(rawFilters: RawExportFilters): QuoteExport
   // Handle tag IDs array
   if (rawFilters.tag_ids && Array.isArray(rawFilters.tag_ids)) {
     const validTagIds = rawFilters.tag_ids
-      .map(id => typeof id === 'string' ? parseInt(id, 10) : id)
-      .filter(id => !isNaN(id) && id > 0)
+      .map((id: unknown) => typeof id === 'string' ? parseInt(id, 10) : id)
+      .filter((id: number) => !isNaN(id) && id > 0)
     if (validTagIds.length > 0) {
       sanitized.tag_ids = validTagIds
     }

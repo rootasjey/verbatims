@@ -7,7 +7,7 @@ import { useNitroApp, useEvent } from '#imports'
 
 function getBrowserBinding(name: string = 'BROWSER'): BrowserWorker | undefined {
   // // @ts-expect-error globalThis.__env__ is not typed
-  return process.env[name] || globalThis.__env__?.[name] || globalThis[name]
+  return process.env[name] || (globalThis as any).__env__?.[name] || (globalThis as any)[name]
 }
 
 interface HubBrowserOptions {

@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       updatedCount: changes,
       updatedIds: [quoteId],
-      skippedIds: [],
+      skippedIds: [] as number[],
       message: 'Quote withdrawn to drafts'
     }
   } catch (error: any) {

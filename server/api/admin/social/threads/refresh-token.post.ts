@@ -24,7 +24,7 @@ async function refreshLongLivedToken(accessToken: string) {
   requestUrl.searchParams.set('access_token', accessToken)
 
   const response = await fetch(requestUrl)
-  const payload = await response.json().catch(() => null) as ThreadsRefreshPayload | null
+  const payload = await response.json().catch((): null => null) as ThreadsRefreshPayload | null
   if (!response.ok || payload?.error || payload?.error_message) {
     throwServer(400, payload?.error?.message || payload?.error_message || `Threads refresh error (${response.status})`)
   }
@@ -49,7 +49,7 @@ async function fetchThreadsProfile(accessToken: string) {
   requestUrl.searchParams.set('access_token', accessToken)
 
   const response = await fetch(requestUrl)
-  const payload = await response.json().catch(() => null) as ThreadsProfilePayload | null
+  const payload = await response.json().catch((): null => null) as ThreadsProfilePayload | null
   if (!response.ok || payload?.error || payload?.error_message) {
     throwServer(400, payload?.error?.message || payload?.error_message || `Threads profile error (${response.status})`)
   }

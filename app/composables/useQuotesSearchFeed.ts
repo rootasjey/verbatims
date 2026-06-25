@@ -110,7 +110,7 @@ export function useQuoteSearchFeed() {
     default: () => ({
       success: true,
       data: {
-        quotes: [],
+        quotes: [] as any[],
         total: 0,
         page: 1,
         limit,

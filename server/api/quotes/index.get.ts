@@ -27,9 +27,13 @@ export default defineEventHandler(async (event) => {
       ['created_at', 'updated_at', 'views_count', 'likes_count', 'shares_count']
     )
 
-    // Use normalized and validated values for SQL
     const sortBy = sort_by
     const sortOrder = sort_order === 'asc' ? asc : desc
+    const sortableColumns: Record<string, any> = {
+      created_at: schema.quotes.createdAt,
+      likes_count: schema.quotes.likesCount,
+      views_count: schema.quotes.viewsCount,
+    }
 
     const offset = (page - 1) * limit
 
@@ -66,7 +70,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
       .where(and(...conditions))
       .groupBy(schema.quotes.id)
-      .orderBy(sortBy in schema.quotes ? sortOrder(schema.quotes[sortBy]) : desc(schema.quotes.createdAt))
+      .orderBy(sortOrder(sortableColumns[sortBy] ?? schema.quotes.createdAt))
       .limit(limit)
       .offset(offset)
 
