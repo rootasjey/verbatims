@@ -296,7 +296,7 @@ const searchAuthors = useDebounceFn(async () => {
   }
 
   try {
-    const response = await $fetch('/api/authors/search', {
+    const response = await $fetch<ApiResponse<Author[]>>('/api/authors/search', {
       query: { q: nameQuery.value, limit: 5 }
     })
     nameSuggestions.value = response.data || []
@@ -353,7 +353,7 @@ const handleNameKeydown = (event: KeyboardEvent) => {
       event.preventDefault()
       if (selectedNameIndex.value >= 0) {
         if (selectedNameIndex.value < nameSuggestions.value.length) {
-          selectExistingAuthor(nameSuggestions.value[selectedNameIndex.value])
+          selectExistingAuthor(nameSuggestions.value[selectedNameIndex.value]!)
         } else {
           useNewAuthorName()
         }

@@ -553,8 +553,8 @@ const loadFilterOptions = async () => {
   if (authorOptions.value.length && referenceOptions.value.length) return
   try {
     const [authorsData, referencesData] = await Promise.all([
-      $fetch('/api/authors?limit=100'),
-      $fetch('/api/references?limit=100')
+      $fetch<ApiResponse<Author[]>>('/api/authors?limit=100'),
+      $fetch<ApiResponse<QuoteReference[]>>('/api/references?limit=100')
     ])
 
     authorOptions.value = (authorsData.data || [])

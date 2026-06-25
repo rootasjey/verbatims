@@ -271,7 +271,7 @@
                 {{ item.reference.name }}
               </NuxtLink>
               <p v-else class="font-sans text-xs text-gray-400 dark:text-gray-600 mt-2">
-                {{ item.reference?.name || '' }}
+                {{ '' }}
               </p>
             </div>
           </div>
@@ -533,8 +533,8 @@ const formatReferenceType = (type: string) => {
 const getAuthorInitials = (name: string) => {
   if (!name) return '?'
   const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+  if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase()
+  return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase()
 }
 
 // Track images that failed to load so we show the initials fallback

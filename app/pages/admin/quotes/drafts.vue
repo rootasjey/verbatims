@@ -408,8 +408,8 @@ const loadQuotes = async (page = currentPage.value) => {
       }
     })
 
-    quotes.value = (response.data as any) || []
-    totalQuotes.value = response.pagination?.total || 0
+    quotes.value = (response?.data as any) || []
+    totalQuotes.value = response?.pagination?.total || 0
     rowSelection.value = {}
     lastSelectedIndex.value = null
     clearHighlight()

@@ -15,7 +15,7 @@ export function normalizeTagColor(color?: string | null, fallback = DEFAULT_TAG_
 export function getRandomTagBorderColor(tags?: TagColorLike[] | null, fallback = DEFAULT_TAG_BORDER_COLOR): string {
   const colors = tags
     ?.map(tag => tag?.color?.trim())
-    .filter((color): color is string => Boolean(color) && HEX_COLOR_PATTERN.test(color))
+    .filter((color): color is string => Boolean(color) && HEX_COLOR_PATTERN.test(color!))
     ?? []
 
   if (!colors.length) return fallback

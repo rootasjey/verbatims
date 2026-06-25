@@ -81,8 +81,8 @@ const emit = defineEmits<{
 const getAuthorInitials = (name: string): string => {
   if (!name) return '?'
   const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+  if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase()
+  return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase()
 }
 
 const navigateToAuthor = (authorId: number) => {
@@ -96,7 +96,7 @@ const showMoreAuthors = () => {
 const fetchRecentAuthors = async () => {
   try {
     loading.value = true
-    const response = await $fetch('/api/authors', {
+    const response = await $fetch<ApiResponse<Author[]>>('/api/authors', {
       query: {
         limit: 8,
         sort_by: 'updated_at',
@@ -104,7 +104,7 @@ const fetchRecentAuthors = async () => {
       }
     })
 
-    if (response.success) {
+    if (response?.success) {
       recentAuthors.value = response.data || []
     }
   } catch (error) {

@@ -383,16 +383,16 @@ const loadAuthors = async () => {
     const response = await $fetch('/api/admin/authors', {
       query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, is_fictional: selectedFictionalFilter.value.value || undefined, sort_by: sortBy, sort_order: sortOrder.toUpperCase() }
     })
-    authors.value = response.data || []
-    totalAuthors.value = response.pagination?.total || 0
+    authors.value = response?.data || []
+    totalAuthors.value = response?.pagination?.total || 0
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
   } catch (error) { showErrorToast(error, 'Failed to load authors') }
   finally { loading.value = false; hasLoadedOnce.value = true }
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''; selectedFictionalFilter.value = fictionalFilterOptions[0]
-  selectedSort.value = sortOptions[0]; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
+  searchQuery.value = ''; selectedFictionalFilter.value = fictionalFilterOptions[0]!
+  selectedSort.value = sortOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 
 const getAuthorActions = (author: Author) => [

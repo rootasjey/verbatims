@@ -257,13 +257,13 @@ const loadTags = async () => {
     const sortValue = selectedSort.value.value; const lastUnderscoreIndex = sortValue.lastIndexOf('_')
     const sortBy = sortValue.substring(0, lastUnderscoreIndex); const sortOrder = sortValue.substring(lastUnderscoreIndex + 1).toUpperCase()
     const res = await $fetch('/api/admin/tags', { query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, sort_by: sortBy, sort_order: sortOrder } })
-    tags.value = res.data || []; totalTags.value = res.pagination?.total || 0
+    tags.value = res?.data || []; totalTags.value = res?.pagination?.total || 0
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
   } catch (e) { showErrorToast(e, 'Failed to load tags') }
   finally { loading.value = false }
 }
 
-const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
+const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const getTagActions = (tag: any) => [
   { label: 'View Public Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/tags/${encodeURIComponent(tag.name)}`) },

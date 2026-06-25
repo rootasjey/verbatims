@@ -362,7 +362,7 @@ const sortOptions: SortOption[] = [
   { label: 'Most Viewed', value: 'views_count' }
 ]
 
-const sortBy = ref<SortOption>(sortOptions[0])
+const sortBy = ref<SortOption>(sortOptions[0]!)
 const mobileFiltersOpen = ref<boolean>(false)
 
 const headerIn = ref(false)
@@ -517,15 +517,15 @@ const loadQuotes = async (reset = true) => {
       ...languageStore.getLanguageQuery()
     }
 
-    const response = await $fetch('/api/quotes', { query })
+    const response = await $fetch<ApiResponse<QuoteWithMetadata[]> & { pagination?: { hasMore?: boolean; total?: number; page?: number; limit?: number } }>('/api/quotes', { query })
 
     if (reset) {
-      authorQuotes.value = response.data || []
+      authorQuotes.value = response?.data || []
     } else {
-      authorQuotes.value.push(...(response.data || []))
+      authorQuotes.value.push(...(response?.data || []))
     }
 
-    hasMoreQuotes.value = response.pagination?.hasMore || false
+    hasMoreQuotes.value = response?.pagination?.hasMore || false
   } catch (error) {
     console.error('Failed to load quotes:', error)
     // Reset quotes on error to show empty state
@@ -572,8 +572,8 @@ const checkLikeStatus = async () => {
   if (!user.value || !currentAuthor) return
 
   try {
-    const { data } = await $fetch(`/api/authors/${currentAuthor.id}/like-status`)
-    isLiked.value = data?.isLiked || false
+    const likeStatusRes = await $fetch<ApiResponse<{ isLiked: boolean }>>(`/api/authors/${currentAuthor.id}/like-status`)
+    isLiked.value = likeStatusRes?.data?.isLiked || false
   } catch (error) {
     console.error('Failed to check like status:', error)
   }
@@ -585,12 +585,12 @@ const toggleLike = async () => {
 
   likePending.value = true
   try {
-    const { data } = await $fetch(`/api/authors/${currentAuthor.id}/like`, {
+    const likeRes = await $fetch<ApiResponse<{ isLiked: boolean; likesCount: number | null }>>(`/api/authors/${currentAuthor.id}/like`, {
       method: 'POST'
     })
 
-    isLiked.value = data.isLiked
-    currentAuthor.likes_count = data.likesCount
+    isLiked.value = likeRes?.data?.isLiked ?? false
+    currentAuthor.likes_count = likeRes?.data?.likesCount ?? currentAuthor.likes_count
   } catch (error) {
     console.error('Failed to toggle like:', error)
   } finally {
@@ -745,10 +745,10 @@ const loadSimilarAuthors = async () => {
   if (!currentAuthor) return
 
   try {
-    const response = await $fetch(`/api/authors/${currentAuthor.id}/similar`, {
+    const similarRes = await $fetch<ApiResponse<Author[]>>(`/api/authors/${currentAuthor.id}/similar`, {
       query: { limit: 6 }
     })
-    similarAuthors.value = response.data || []
+    similarAuthors.value = similarRes?.data || []
   } catch (error) {
     console.error('Failed to load similar authors:', error)
     similarAuthors.value = []
@@ -766,8 +766,8 @@ onMounted(async () => {
 
   if (author.value) {
     try {
-      const res = await $fetch(`/api/authors/${route.params.id}/view`, { method: 'POST' })
-      if (!res.recorded) throw new Error('View not recorded')
+      const viewRes = await $fetch<{ recorded: boolean } | undefined>(`/api/authors/${route.params.id}/view`, { method: 'POST' })
+      if (!viewRes?.recorded) throw new Error('View not recorded')
       const currentAuthor = author.value
       if (currentAuthor) currentAuthor.views_count = (currentAuthor.views_count || 0) + 1
     } catch (error) {

@@ -235,7 +235,7 @@ const languageTouched = ref(false)
 const authorTouched = ref(false)
 const referenceTouched = ref(false)
 
-const selectedLanguage = ref<{ label: string, value: string } | null>(null)
+const selectedLanguage = ref<{ label: string, value: string }>({ label: 'Do not change', value: '' })
 const languageItems = computed(() => [
   { label: 'Do not change', value: '' },
   ...languageOptions
@@ -394,7 +394,7 @@ watch(isOpen, (open) => {
     languageTouched.value = false
     authorTouched.value = false
     referenceTouched.value = false
-    selectedLanguage.value = null
+    selectedLanguage.value = { label: 'Do not change', value: '' }
   }
 })
 

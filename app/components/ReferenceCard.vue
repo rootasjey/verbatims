@@ -111,6 +111,6 @@ const getCardBackgroundColor = (reference: QuoteReference): string => {
     hash |= 0
   }
   const index = Math.abs(hash) % referenceGradients.length
-  return referenceGradients[index]
+  return referenceGradients[index]!
 }
 </script>

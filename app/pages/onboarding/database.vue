@@ -503,7 +503,7 @@ const triggerFileInput = () => {
 const handleFileChange = (e: Event) => {
   const input = e.target as HTMLInputElement | null
   if (input && input.files && input.files.length > 0) {
-    const file = input.files[0]
+    const file = input.files[0]!
     if (validateFile(file)) {
       zipFile.value = file
     } else {
@@ -542,7 +542,7 @@ const onDrop = (e: DragEvent) => {
   fileValidationError.value = null
   const dt = e.dataTransfer
   if (!dt || !dt.files || dt.files.length === 0) return
-  const file = dt.files[0]
+  const file = dt.files[0]!
   if (validateFile(file)) {
     zipFile.value = file
     // Clear native file input (keeps UI in sync)

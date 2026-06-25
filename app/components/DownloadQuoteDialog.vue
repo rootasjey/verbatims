@@ -119,7 +119,7 @@ const form: { theme: ThemeOption; background: BgOption } = reactive({
 const sizeOption = ref(sizes[0])
 const downloading = ref(false)
 
-const renderSize = computed(() => sizeOption.value.value)
+const renderSize = computed(() => sizeOption.value!.value)
 const previewScale = computed(() => Math.max(0.1, Math.min(3, previewSize / renderSize.value)))
 const close = () => { isOpen.value = false }
 const fontsReady = ref(false)
@@ -150,7 +150,7 @@ onMounted(async () => {
   }
 })
 
-watch(() => [form.theme.value, form.background.value, sizeOption.value.value] as const, ([theme, background, size]) => {
+watch(() => [form.theme.value, form.background.value, sizeOption.value!.value] as const, ([theme, background, size]) => {
   saveDownloadImageSettings({ theme, background, size })
 })
 

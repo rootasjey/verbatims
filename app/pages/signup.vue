@@ -369,14 +369,14 @@ const signUpWithEmail = async () => {
   error.value = ''
 
   try {
-    const { data } = await $fetch('/api/auth/register', {
+    const { data } = (await $fetch<ApiResponse<{ user: Record<string, unknown> }>>('/api/auth/register', {
       method: 'POST',
       body: {
         name: form.value.name,
         email: form.value.email,
         password: form.value.password
       }
-    })
+    })) ?? { data: undefined }
 
     await refreshCookie('nuxt-session')
     await navigateTo('/')

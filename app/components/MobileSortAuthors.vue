@@ -69,9 +69,9 @@ const internalOpen = computed({
   set: (v: boolean) => emit('update:open', v)
 })
 
-const internalSortOption = computed<SortOption>({
-  get: () => props.sortOptions.find(o => o.value === props.sortBy) || props.sortOptions[0],
-  set: (opt) => emit('update:sortBy', opt.value)
+const internalSortOption = computed({
+  get: () => props.sortOptions.find(o => o.value === props.sortBy) ?? props.sortOptions[0]!,
+  set: (opt: SortOption) => emit('update:sortBy', opt.value)
 })
 
 // sortOrder is read-only here; toggling is delegated to parent via event

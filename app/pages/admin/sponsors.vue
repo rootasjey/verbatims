@@ -231,7 +231,7 @@ const loadMessages = async () => {
   finally { loading.value = false }
 }
 
-const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
+const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 const reload = () => { showDialog.value = false; editingMessage.value = null; loadMessages() }
 const handleDeleted = () => { showDeleteDialog.value = false; deletingMessage.value = null; if (messages.value.length <= 1 && currentPage.value > 1) currentPage.value -= 1; loadMessages() }
 

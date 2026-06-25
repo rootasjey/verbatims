@@ -739,7 +739,7 @@ const parseCSV = (csvContent: string): Record<string, any>[] => {
   // Simple CSV parser - in production, use a proper CSV library
   const lines = csvContent.trim().split('\n')
   if (!lines.length) return []
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+  const headers = (lines[0] ?? '').split(',').map(h => h.trim().replace(/"/g, ''))
 
   return lines.slice(1).map(line => {
     const values = line.split(',').map(v => v.trim().replace(/"/g, ''))

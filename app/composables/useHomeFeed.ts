@@ -45,14 +45,14 @@ export function useHomeFeed() {
     curatedLoading.value = true
     try {
       const [authorsRes, refsRes] = await Promise.all([
-        $fetch('/api/authors', {
+        $fetch<ApiResponse<Author[]>>('/api/authors', {
           query: {
             limit: 8,
             sort_by: 'likes_count',
             sort_order: 'DESC',
           },
         }),
-        $fetch('/api/references', {
+        $fetch<ApiResponse<QuoteReference[]>>('/api/references', {
           query: {
             limit: 12,
             sort_by: 'likes_count',
@@ -79,7 +79,7 @@ export function useHomeFeed() {
     if (!theme) return
     themedLoading.value = true
     try {
-      const res = await $fetch(`/api/themes/${theme.slug}/feed`)
+      const res = await $fetch<ApiResponse<{ quotes: ProcessedQuoteResult[]; authors: Author[]; references: QuoteReference[] }>>(`/api/themes/${theme.slug}/feed`)
       if (res.success && res.data) {
         themedQuotes.value = res.data.quotes || []
         authors.value = res.data.authors || []
@@ -106,26 +106,26 @@ export function useHomeFeed() {
 
     // Insert an author every 6th slot and a reference every 12th slot
     for (let i = 0; i < q.length; i++) {
-      items.push({ type: 'quote', data: q[i] })
+      items.push({ type: 'quote', data: q[i]! })
 
       if ((i + 1) % 6 === 0 && authorIndex < auths.length) {
-        items.push({ type: 'author', data: auths[authorIndex] })
+        items.push({ type: 'author', data: auths[authorIndex]! })
         authorIndex++
       }
 
       if ((i + 1) % 12 === 0 && refIndex < refs.length) {
-        items.push({ type: 'reference', data: refs[refIndex] })
+        items.push({ type: 'reference', data: refs[refIndex]! })
         refIndex++
       }
     }
 
     // Append any remaining authors/references at the end
     while (authorIndex < auths.length) {
-      items.push({ type: 'author', data: auths[authorIndex] })
+      items.push({ type: 'author', data: auths[authorIndex]! })
       authorIndex++
     }
     while (refIndex < refs.length) {
-      items.push({ type: 'reference', data: refs[refIndex] })
+      items.push({ type: 'reference', data: refs[refIndex]! })
       refIndex++
     }
 

@@ -8,7 +8,7 @@
           v-model="searchQueryModel"
           :placeholder="`Search among ${totalAuthors || 0} authors...`"
           leading="i-ph-magnifying-glass"
-          :trailing="searchQueryModel ? 'i-ph-x' : null"
+          :trailing="searchQueryModel ? 'i-ph-x' : undefined"
           size="md"
           class="focus:border-2 focus:border-lime-500"
           @input="$emit('search-input')"
@@ -86,9 +86,9 @@ const searchQueryModel = computed({
   set: (val: string) => emit('update:searchQuery', val)
 })
 
-const sortByModel = computed<Option | null>({
-  get: () => (props.sortOptions).find(o => o.value === props.sortBy) || null,
-  set: (opt: Option | null) => emit('update:sortBy', opt?.value || '')
+const sortByModel = computed({
+  get: () => props.sortOptions.find(o => o.value === props.sortBy) ?? props.sortOptions[0] ?? { label: '', value: '' },
+  set: (opt: Option) => emit('update:sortBy', opt.value)
 })
 
 const mobileFiltersOpenModel = computed({

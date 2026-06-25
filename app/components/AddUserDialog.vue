@@ -93,11 +93,11 @@ const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit
 type Role = 'user' | 'moderator' | 'admin'
 type RoleOption = { label: string; value: Role }
 
-const roleOptions = [
+const roleOptions: RoleOption[] = [
   { label: 'User', value: 'user' },
   { label: 'Moderator', value: 'moderator' },
   { label: 'Admin', value: 'admin' }
-] satisfies RoleOption[]
+]
 
 const form = ref({
   name: '',
@@ -109,13 +109,13 @@ const form = ref({
   avatar_url: ''
 })
 
-const roleModel = computed<RoleOption>({
-  get: () => roleOptions.find(o => o.value === form.value.role) || roleOptions[0],
-  set: (opt) => { form.value.role = opt.value }
+const roleModel = computed({
+  get: () => roleOptions.find(o => o.value === form.value.role) ?? roleOptions[0]!,
+  set: (opt: RoleOption) => { form.value.role = opt.value }
 })
 
 const submitting = ref(false)
-const canSubmit = computed(() => form.value.name.trim() && form.value.email.trim() && form.value.password.length >= 8)
+const canSubmit = computed(() => !!(form.value.name.trim() && form.value.email.trim() && form.value.password.length >= 8))
 const { showErrorToast } = useErrorToast()
 
 const close = () => { isOpen.value = false }

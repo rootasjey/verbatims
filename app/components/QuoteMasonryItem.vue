@@ -200,7 +200,7 @@ const toggleQuoteLike = async () => {
 onMounted(async () => {
   if (user.value) {
     try {
-      const { data } = await $fetch(`/api/quotes/${props.quote.id}/like-status`)
+      const { data } = await $fetch<ApiResponse<{ isLiked: boolean }>>(`/api/quotes/${props.quote.id}/like-status`)
       isQuoteLiked.value = data?.isLiked || false
     } catch (error) {
       console.error('Failed to check like status:', error)

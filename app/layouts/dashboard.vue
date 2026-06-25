@@ -192,7 +192,7 @@ watch(() => route.path, (newPath) => {
 
 const loadQuoteCounts = async () => {
   try {
-    const stats = await $fetch('/api/dashboard/stats')
+    const stats = await $fetch<{ data: { draft: number; pending: number; approved: number } }>('/api/dashboard/stats')
     if (stats.data) {
       draftCount.value = stats.data.draft || 0
       pendingCount.value = stats.data.pending || 0

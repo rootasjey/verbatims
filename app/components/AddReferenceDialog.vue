@@ -309,7 +309,7 @@ const searchReferences = useDebounceFn(async () => {
   }
 
   try {
-    const response = await $fetch('/api/references/search', {
+    const response = await $fetch<ApiResponse<QuoteReference[]>>('/api/references/search', {
       query: { q: titleQuery.value, limit: 5 }
     })
     titleSuggestions.value = response.data || []
@@ -366,7 +366,7 @@ const handleTitleKeydown = (event: KeyboardEvent) => {
       event.preventDefault()
       if (selectedTitleIndex.value >= 0) {
         if (selectedTitleIndex.value < titleSuggestions.value.length) {
-          selectExistingReference(titleSuggestions.value[selectedTitleIndex.value])
+           selectExistingReference(titleSuggestions.value[selectedTitleIndex.value]!)
         } else {
           useNewReferenceTitle()
         }

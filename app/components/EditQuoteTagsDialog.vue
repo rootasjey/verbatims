@@ -300,7 +300,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     case 'Enter':
       event.preventDefault()
       if (selectedIndex.value >= 0) {
-        if (selectedIndex.value < suggestionsArray.length) addExistingTag(suggestionsArray[selectedIndex.value])
+        if (selectedIndex.value < suggestionsArray.length) addExistingTag(suggestionsArray[selectedIndex.value]!)
         else createAndAddTag()
       }
       break

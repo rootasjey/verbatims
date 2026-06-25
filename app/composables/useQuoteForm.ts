@@ -130,7 +130,7 @@ export function useQuoteForm() {
     }
 
     try {
-      const response = await $fetch('/api/detect-language', {
+      const response = await $fetch<{ language: string; confidence: number }>('/api/detect-language', {
         method: 'POST',
         body: { text: content },
       })
@@ -474,7 +474,7 @@ export function useQuoteForm() {
         shares_count: 0,
         created_at: quote.created_at || new Date().toISOString(),
         updated_at: quote.updated_at || new Date().toISOString()
-      } as Author
+      } as unknown as Author
       authorQuery.value = quote.author_name
     }
 
@@ -497,7 +497,7 @@ export function useQuoteForm() {
         shares_count: 0,
         created_at: quote.created_at || new Date().toISOString(),
         updated_at: quote.updated_at || new Date().toISOString()
-      } as QuoteReference
+      } as unknown as QuoteReference
       referenceQuery.value = quote.reference_name
     }
   }

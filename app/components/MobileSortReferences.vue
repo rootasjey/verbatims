@@ -86,14 +86,14 @@ const internalOpen = computed({
   set: (v: boolean) => emit('update:open', v)
 })
 
-const internalSortBy = computed<Option | null>({
-  get: () => props.sortOptions.find(option => option.value === props.sortBy) || null,
-  set: (option) => emit('update:sortBy', option?.value || '')
+const internalSortBy = computed({
+  get: () => props.sortOptions.find(option => option.value === props.sortBy) ?? props.sortOptions[0] ?? { label: '', value: '' },
+  set: (option: Option) => emit('update:sortBy', option.value)
 })
 
-const internalPrimaryType = computed<Option | null>({
-  get: () => props.typeOptions.find(option => option.value === props.primaryType) || null,
-  set: (option) => emit('update:primaryType', option?.value || '')
+const internalPrimaryType = computed({
+  get: () => props.typeOptions.find(option => option.value === props.primaryType) ?? props.typeOptions[0] ?? { label: '', value: '' },
+  set: (option: Option) => emit('update:primaryType', option.value)
 })
 
 const sortOrder = computed(() => props.sortOrder)
