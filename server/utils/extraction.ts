@@ -54,13 +54,7 @@ export function extractReference(quote: QuoteSearchResultWithJoins) {
  * @returns An array of tag objects with `name` and `color` properties.
  */
 export function extractTags(quote: QuoteSearchResult) {
-  if (!quote.tag_names) return []
-  const names = quote.tag_names.split(',')
-  const colors = quote.tag_colors ? quote.tag_colors.split(',') : []
-  return names.map((name, i) => ({
-    name,
-    color: colors[i] || 'gray'
-  }))
+  return parseTags(quote.tag_names, quote.tag_colors)
 }
 
 /**

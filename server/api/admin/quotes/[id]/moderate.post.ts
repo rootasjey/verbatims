@@ -97,10 +97,7 @@ export default defineEventHandler(async (event) => {
     // Process tags
     const processedQuote = {
       ...updatedQuote,
-      tags: updatedQuote.tag_names ? updatedQuote.tag_names.split(',').map((name, index) => ({
-        name,
-        color: updatedQuote.tag_colors?.split(',')[index] || 'gray'
-      })) : []
+      tags: parseTags(updatedQuote.tag_names, updatedQuote.tag_colors)
     }
     
     return {

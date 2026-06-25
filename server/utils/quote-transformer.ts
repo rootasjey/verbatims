@@ -32,11 +32,7 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
       name: quote.reference_name,
       primary_type: quote.reference_type as QuoteReferencePrimaryType
     } : undefined,
-    tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-      id: index, // Not available in results
-      name,
-      color: quote.tag_colors?.split(',')[index] || 'gray'
-    })) : []
+    tags: parseTags(quote.tag_names, quote.tag_colors)
   }))
 }
 
