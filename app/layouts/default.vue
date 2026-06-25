@@ -105,10 +105,12 @@ const handleQuoteAdded = () => {
 }
 
 onMounted(() => {
-  if (import.meta.client) {
-    window.addEventListener('scroll', handleScroll)
-    scrollY.value = window.scrollY
-  }
+  window.addEventListener('scroll', handleScroll)
+  scrollY.value = window.scrollY
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 
 useHead({
