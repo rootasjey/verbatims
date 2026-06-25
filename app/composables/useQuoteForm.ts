@@ -176,180 +176,122 @@ export function useQuoteForm() {
   const showAuthorSuggestions = ref(false)
   const showReferenceSuggestions = ref(false)
   const submitting = ref(false)
-
-  // Keyboard / navigation state
   const selectedAuthorIndex = ref(-1)
   const selectedReferenceIndex = ref(-1)
 
-  // Template refs (components assign these)
   const authorInputRef = ref<any>(null)
   const referenceInputRef = ref<any>(null)
   const authorSuggestionsRef = ref<HTMLElement | null>(null)
   const referenceSuggestionsRef = ref<HTMLElement | null>(null)
 
-  // Debounced network search functions
-  const _searchAuthors = async (fetcher: typeof $fetch, opts: { limit?: number; minLength?: number } = {}) => {
-    const limit = opts.limit ?? 5
-    const minLength = opts.minLength ?? 1
-    if (!authorQuery.value.trim() || authorQuery.value.trim().length < minLength) {
-      authorSuggestions.value = []
-      return
+  function useSuggestionSearch<T>(config: {
+    query: Ref<string>
+    suggestions: Ref<T[]>
+    endpoint: string
+  }) {
+    const _search = async (fetcher: typeof $fetch, opts: { limit?: number; minLength?: number } = {}) => {
+      const limit = opts.limit ?? 5
+      const minLength = opts.minLength ?? 1
+      if (!config.query.value.trim() || config.query.value.trim().length < minLength) {
+        config.suggestions.value = [] as any
+        return
+      }
+      try {
+        const response = await fetcher(config.endpoint, { query: { q: config.query.value, limit } })
+        config.suggestions.value = (response as any).data || []
+      } catch (error) {
+        console.error(`Error searching ${config.endpoint}:`, error)
+        config.suggestions.value = [] as any
+      }
+    }
+    return useDebounceFn(_search, 300)
+  }
+
+  function useSuggestionNavigation(config: {
+    show: Ref<boolean>
+    suggestions: Ref<any[]>
+    query: Ref<string>
+    selectedIndex: Ref<number>
+    suggestionsRef: Ref<HTMLElement | null>
+    inputRef: Ref<any>
+    select: (item: any) => void
+    createNew: () => void
+    scrollToItem: () => void
+  }) {
+    const handleInputFocus = () => {
+      config.show.value = true
+      config.selectedIndex.value = -1
     }
 
-    try {
-      const response = await fetcher('/api/authors/search', {
-        query: { q: authorQuery.value, limit }
-      })
-      // many endpoints return { data }
-      authorSuggestions.value = (response as any).data || []
-    } catch (error) {
-      console.error('Error searching authors:', error)
-      authorSuggestions.value = []
-    }
-  }
-  const searchAuthors = useDebounceFn(_searchAuthors, 300)
-
-  const _searchReferences = async (fetcher: typeof $fetch, opts: { limit?: number; minLength?: number } = {}) => {
-    const limit = opts.limit ?? 5
-    const minLength = opts.minLength ?? 1
-    if (!referenceQuery.value.trim() || referenceQuery.value.trim().length < minLength) {
-      referenceSuggestions.value = []
-      return
+    const handleInputBlur = (event: FocusEvent) => {
+      const relatedTarget = event.relatedTarget as HTMLElement
+      if (relatedTarget && config.suggestionsRef.value?.contains(relatedTarget)) return
+      setTimeout(() => {
+        config.show.value = false
+        config.selectedIndex.value = -1
+      }, 150)
     }
 
-    try {
-      const response = await fetcher('/api/references/search', {
-        query: { q: referenceQuery.value, limit }
-      })
-      referenceSuggestions.value = (response as any).data || []
-    } catch (error) {
-      console.error('Error searching references:', error)
-      referenceSuggestions.value = []
+    const handleSuggestionsBlur = (event: FocusEvent) => {
+      const relatedTarget = event.relatedTarget as HTMLElement
+      if (relatedTarget && config.inputRef.value?.$el?.contains(relatedTarget)) return
+      setTimeout(() => {
+        config.show.value = false
+        config.selectedIndex.value = -1
+      }, 150)
     }
-  }
-  const searchReferences = useDebounceFn(_searchReferences, 300)
 
-  // Focus / blur / keyboard handlers for author suggestions
-  const handleAuthorInputFocus = () => {
-    showAuthorSuggestions.value = true
-    selectedAuthorIndex.value = -1
-  }
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (!config.show.value) return
+      const hasCreateOption = config.query.value && !config.suggestions.value.some((s: any) => s.name.toLowerCase() === config.query.value.toLowerCase())
+      const totalItems = config.suggestions.value.length + (hasCreateOption ? 1 : 0)
 
-  const handleAuthorInputBlur = (event: FocusEvent) => {
-    const relatedTarget = event.relatedTarget as HTMLElement
-    if (relatedTarget && authorSuggestionsRef.value?.contains(relatedTarget)) return
-    setTimeout(() => {
-      showAuthorSuggestions.value = false
-      selectedAuthorIndex.value = -1
-    }, 150)
-  }
-
-  const handleAuthorSuggestionsBlur = (event: FocusEvent) => {
-    const relatedTarget = event.relatedTarget as HTMLElement
-    if (relatedTarget && authorInputRef.value?.$el?.contains(relatedTarget)) return
-    setTimeout(() => {
-      showAuthorSuggestions.value = false
-      selectedAuthorIndex.value = -1
-    }, 150)
-  }
-
-  const handleAuthorKeydown = (event: KeyboardEvent) => {
-    if (!showAuthorSuggestions.value) return
-
-    const totalItems = authorSuggestions.value.length + (authorQuery.value && !authorSuggestions.value.some(a => a.name.toLowerCase() === authorQuery.value.toLowerCase()) ? 1 : 0)
-
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault()
-        selectedAuthorIndex.value = selectedAuthorIndex.value < totalItems - 1 ? selectedAuthorIndex.value + 1 : 0
-        scrollToSelectedAuthorItem()
-        break
-      case 'ArrowUp':
-        event.preventDefault()
-        selectedAuthorIndex.value = selectedAuthorIndex.value > 0 ? selectedAuthorIndex.value - 1 : totalItems - 1
-        scrollToSelectedAuthorItem()
-        break
-      case 'Enter':
-        event.preventDefault()
-        if (selectedAuthorIndex.value >= 0) {
-          if (selectedAuthorIndex.value < authorSuggestions.value.length) {
-            const candidate = authorSuggestions.value[selectedAuthorIndex.value]
-            if (candidate) selectAuthor(candidate)
-          } else {
-            createNewAuthor()
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault()
+          config.selectedIndex.value = config.selectedIndex.value < totalItems - 1 ? config.selectedIndex.value + 1 : 0
+          config.scrollToItem()
+          break
+        case 'ArrowUp':
+          event.preventDefault()
+          config.selectedIndex.value = config.selectedIndex.value > 0 ? config.selectedIndex.value - 1 : totalItems - 1
+          config.scrollToItem()
+          break
+        case 'Enter':
+          event.preventDefault()
+          if (config.selectedIndex.value >= 0) {
+            if (config.selectedIndex.value < config.suggestions.value.length) {
+              const candidate = config.suggestions.value[config.selectedIndex.value]
+              if (candidate) config.select(candidate)
+            } else {
+              config.createNew()
+            }
           }
-        }
-        break
-      case 'Escape':
-        event.preventDefault()
-        showAuthorSuggestions.value = false
-        selectedAuthorIndex.value = -1
-        authorInputRef.value?.$el?.focus()
-        break
+          break
+        case 'Escape':
+          event.preventDefault()
+          config.show.value = false
+          config.selectedIndex.value = -1
+          config.inputRef.value?.$el?.focus()
+          break
+      }
     }
+
+    return { handleInputFocus, handleInputBlur, handleSuggestionsBlur, handleKeydown }
   }
 
-  // Focus / blur / keyboard handlers for references
-  const handleReferenceInputFocus = () => {
-    showReferenceSuggestions.value = true
-    selectedReferenceIndex.value = -1
-  }
+  const searchAuthors = useSuggestionSearch({
+    query: authorQuery,
+    suggestions: authorSuggestions,
+    endpoint: '/api/authors/search',
+  })
 
-  const handleReferenceInputBlur = (event: FocusEvent) => {
-    const relatedTarget = event.relatedTarget as HTMLElement
-    if (relatedTarget && referenceSuggestionsRef.value?.contains(relatedTarget)) return
-    setTimeout(() => {
-      showReferenceSuggestions.value = false
-      selectedReferenceIndex.value = -1
-    }, 150)
-  }
+  const searchReferences = useSuggestionSearch({
+    query: referenceQuery,
+    suggestions: referenceSuggestions,
+    endpoint: '/api/references/search',
+  })
 
-  const handleReferenceSuggestionsBlur = (event: FocusEvent) => {
-    const relatedTarget = event.relatedTarget as HTMLElement
-    if (relatedTarget && referenceInputRef.value?.$el?.contains(relatedTarget)) return
-    setTimeout(() => {
-      showReferenceSuggestions.value = false
-      selectedReferenceIndex.value = -1
-    }, 150)
-  }
-
-  const handleReferenceKeydown = (event: KeyboardEvent) => {
-    if (!showReferenceSuggestions.value) return
-
-    const totalItems = referenceSuggestions.value.length + (referenceQuery.value && !referenceSuggestions.value.some(r => r.name.toLowerCase() === referenceQuery.value.toLowerCase()) ? 1 : 0)
-
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault()
-        selectedReferenceIndex.value = selectedReferenceIndex.value < totalItems - 1 ? selectedReferenceIndex.value + 1 : 0
-        scrollToSelectedReferenceItem()
-        break
-      case 'ArrowUp':
-        event.preventDefault()
-        selectedReferenceIndex.value = selectedReferenceIndex.value > 0 ? selectedReferenceIndex.value - 1 : totalItems - 1
-        scrollToSelectedReferenceItem()
-        break
-      case 'Enter':
-        event.preventDefault()
-        if (selectedReferenceIndex.value >= 0) {
-          if (selectedReferenceIndex.value < referenceSuggestions.value.length) {
-            const candidate = referenceSuggestions.value[selectedReferenceIndex.value]
-            if (candidate) selectReference(candidate)
-          } else {
-            createNewReference()
-          }
-        }
-        break
-      case 'Escape':
-        event.preventDefault()
-        showReferenceSuggestions.value = false
-        selectedReferenceIndex.value = -1
-        referenceInputRef.value?.$el?.focus()
-        break
-    }
-  }
-
-  // Selection helpers
   const selectAuthor = (author: Author) => {
     form.value.selectedAuthor = author
     authorQuery.value = author.name
@@ -357,9 +299,9 @@ export function useQuoteForm() {
     selectedAuthorIndex.value = -1
   }
 
-  const selectReference = (reference: QuoteReference) => {
-    form.value.selectedReference = reference
-    referenceQuery.value = reference.name
+  const selectReference = (ref: QuoteReference) => {
+    form.value.selectedReference = ref
+    referenceQuery.value = ref.name
     showReferenceSuggestions.value = false
     selectedReferenceIndex.value = -1
   }
@@ -382,7 +324,7 @@ export function useQuoteForm() {
       shares_count: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }
+    } as unknown as Author
     showAuthorSuggestions.value = false
     selectedAuthorIndex.value = -1
   }
@@ -403,10 +345,50 @@ export function useQuoteForm() {
       shares_count: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }
+    } as unknown as QuoteReference
     showReferenceSuggestions.value = false
     selectedReferenceIndex.value = -1
   }
+
+  const authorNav = useSuggestionNavigation({
+    show: showAuthorSuggestions,
+    suggestions: authorSuggestions,
+    query: authorQuery,
+    selectedIndex: selectedAuthorIndex,
+    suggestionsRef: authorSuggestionsRef,
+    inputRef: authorInputRef,
+    select: selectAuthor,
+    createNew: createNewAuthor,
+    scrollToItem: () => {
+      nextTick(() => {
+        if (selectedAuthorIndex.value >= 0 && authorSuggestionsRef.value) {
+          const items = (authorSuggestionsRef.value as HTMLElement).children
+          const selectedItem = items[selectedAuthorIndex.value]
+          if (selectedItem) selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
+        }
+      })
+    },
+  })
+
+  const referenceNav = useSuggestionNavigation({
+    show: showReferenceSuggestions,
+    suggestions: referenceSuggestions,
+    query: referenceQuery,
+    selectedIndex: selectedReferenceIndex,
+    suggestionsRef: referenceSuggestionsRef,
+    inputRef: referenceInputRef,
+    select: selectReference,
+    createNew: createNewReference,
+    scrollToItem: () => {
+      nextTick(() => {
+        if (selectedReferenceIndex.value >= 0 && referenceSuggestionsRef.value) {
+          const items = (referenceSuggestionsRef.value as HTMLElement).children
+          const selectedItem = items[selectedReferenceIndex.value]
+          if (selectedItem) selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
+        }
+      })
+    },
+  })
 
   const clearAuthor = () => {
     form.value.selectedAuthor = null
@@ -562,16 +544,16 @@ export function useQuoteForm() {
     onLanguageSelected,
 
     // focus / blur / keyboard handlers (authors)
-    handleAuthorInputFocus,
-    handleAuthorInputBlur,
-    handleAuthorSuggestionsBlur,
-    handleAuthorKeydown,
+    handleAuthorInputFocus: authorNav.handleInputFocus,
+    handleAuthorInputBlur: authorNav.handleInputBlur,
+    handleAuthorSuggestionsBlur: authorNav.handleSuggestionsBlur,
+    handleAuthorKeydown: authorNav.handleKeydown,
 
     // focus / blur / keyboard handlers (references)
-    handleReferenceInputFocus,
-    handleReferenceInputBlur,
-    handleReferenceSuggestionsBlur,
-    handleReferenceKeydown,
+    handleReferenceInputFocus: referenceNav.handleInputFocus,
+    handleReferenceInputBlur: referenceNav.handleInputBlur,
+    handleReferenceSuggestionsBlur: referenceNav.handleSuggestionsBlur,
+    handleReferenceKeydown: referenceNav.handleKeydown,
 
     // selection helpers
     selectAuthor,
@@ -585,9 +567,5 @@ export function useQuoteForm() {
     resetForm,
     initializeFormForEdit,
     createPayload,
-
-    // utilities
-    scrollToSelectedAuthorItem,
-    scrollToSelectedReferenceItem
   }
 }
