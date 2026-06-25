@@ -12,10 +12,7 @@ export default defineEventHandler(async (event) => {
     const referenceIdParam = getRouterParam(event, 'id')
     const referenceId = Number.parseInt(referenceIdParam || '', 10)
     if (!referenceIdParam || Number.isNaN(referenceId)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reference ID'
-      })
+      throwServer(400, 'Invalid reference ID')
     }
 
     const query = getQuery(event)
@@ -28,10 +25,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!currentReference) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Reference not found'
-      })
+      throwServer(404, 'Reference not found')
     }
 
     // Find similar references using a multi-factor approach
@@ -94,9 +88,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error fetching similar references:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to fetch similar references'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to fetch similar references')
   }
 })

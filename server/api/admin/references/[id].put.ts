@@ -10,18 +10,12 @@ export default defineEventHandler(async (event) => {
     // Check admin authentication
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const referenceId = getRouterParam(event, 'id')
     if (!referenceId || isNaN(parseInt(referenceId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reference ID'
-      })
+      throwServer(400, 'Invalid reference ID')
     }
 
     const body = await readBody(event) as UpdateQuoteReferenceData
@@ -33,28 +27,19 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!existingReference) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Reference not found'
-      })
+      throwServer(404, 'Reference not found')
     }
 
     // Validate required fields
     if (body.name !== undefined && (!body.name || !body.name.trim())) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Reference name is required'
-      })
+      throwServer(400, 'Reference name is required')
     }
 
     // Validate primary type if provided
     if (body.primary_type !== undefined) {
       const validTypes = ['film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'media_stream', 'writings', 'video_game', 'other']
       if (!validTypes.includes(body.primary_type)) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Invalid primary type'
-        })
+        throwServer(400, 'Invalid primary type')
       }
     }
 
@@ -69,10 +54,7 @@ export default defineEventHandler(async (event) => {
         .get()
 
       if (duplicateReference) {
-        throw createError({
-          statusCode: 409,
-          statusMessage: 'A reference with this name already exists'
-        })
+        throwServer(409, 'A reference with this name already exists')
       }
     }
 
@@ -109,10 +91,7 @@ export default defineEventHandler(async (event) => {
     }
 
     if (Object.keys(updateData).length === 1) { // Only updatedAt was added
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'No fields to update'
-      })
+      throwServer(400, 'No fields to update')
     }
 
     // Update reference
@@ -134,9 +113,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

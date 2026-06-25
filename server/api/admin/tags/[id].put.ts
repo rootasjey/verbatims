@@ -4,12 +4,12 @@ import { eq, and, ne, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
     const id = getRouterParam(event, 'id')
-    if (!id || isNaN(parseInt(id))) throw createError({ statusCode: 400, statusMessage: 'Invalid tag ID' })
+    if (!id || isNaN(parseInt(id))) throwServer(400, 'Invalid tag ID')
     const tagId = parseInt(id)
     const body = await readBody(event)
 
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.tags.id, tagId))
       .limit(1)
     
-    if (!existing || existing.length === 0) throw createError({ statusCode: 404, statusMessage: 'Tag not found' })
+    if (!existing || existing.length === 0) throwServer(404, 'Tag not found')
 
     // If updating name, ensure uniqueness (case-insensitive) excluding current ID
     if (typeof body.name === 'string' && body.name.trim()) {
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
         .limit(1)
 
       if (conflict.length > 0) { 
-        throw createError({ statusCode: 409, statusMessage: 'Tag with this name already exists' }) 
+        throwServer(409, 'Tag with this name already exists') 
       }
     }
 
@@ -69,6 +69,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error updating tag:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update tag' })
+    throwServer(500, 'Failed to update tag')
   }
 })

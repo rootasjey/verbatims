@@ -5,18 +5,12 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
 
     const authorId = getRouterParam(event, 'id')
     if (!authorId || isNaN(parseInt(authorId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid author ID'
-      })
+      throwServer(400, 'Invalid author ID')
     }
 
     // Check if author exists
@@ -26,10 +20,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!author) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Author not found'
-      })
+      throwServer(404, 'Author not found')
     }
 
     // Check if user has already liked this author
@@ -72,10 +63,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!updatedAuthor) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch updated author'
-      })
+      throwServer(500, 'Failed to fetch updated author')
     }
 
     return {
@@ -91,9 +79,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Error toggling author like:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to toggle like'
-    })
+    throwServer(500, 'Failed to toggle like')
   }
 })

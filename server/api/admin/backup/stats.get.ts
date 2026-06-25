@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     // Get overall statistics
@@ -106,9 +106,6 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Backup stats error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to get backup statistics'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to get backup statistics')
   }
 })

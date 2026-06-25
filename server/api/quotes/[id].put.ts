@@ -6,38 +6,26 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
 
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
 
     const body = await readBody(event)
 
     // Validate required fields
     if (!body.name || body.name.length < 2 || body.name.length > 3000) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Quote text must be between 2 and 3000 characters'
-      })
+      throwServer(400, 'Quote text must be between 2 and 3000 characters')
     }
 
     // Check if quote exists and user has permission to edit it
     const existingQuote = await db.select().from(schema.quotes).where(eq(schema.quotes.id, parseInt(quoteId))).get()
 
     if (!existingQuote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found'
-      })
+      throwServer(404, 'Quote not found')
     }
 
     // Check permissions: users can only edit their own drafts, admins can edit any quote
@@ -46,10 +34,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     const isDraft = existingQuote.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'You can only edit your own draft quotes'
-      })
+      throwServer(403, 'You can only edit your own draft quotes')
     }
 
     let authorId = body.author_id
@@ -124,10 +109,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     .get()
 
     if (!updatedQuote) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch updated quote'
-      })
+      throwServer(500, 'Failed to fetch updated quote')
     }
 
     // Fetch tags for the quote
@@ -192,9 +174,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       throw error
     }
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

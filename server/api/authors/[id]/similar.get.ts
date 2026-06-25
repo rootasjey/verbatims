@@ -12,10 +12,7 @@ export default defineEventHandler(async (event) => {
     const authorIdParam = getRouterParam(event, 'id')
     const authorId = Number.parseInt(authorIdParam || '', 10)
     if (!authorIdParam || Number.isNaN(authorId)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid author ID'
-      })
+      throwServer(400, 'Invalid author ID')
     }
 
     const query = getQuery(event)
@@ -28,10 +25,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!currentAuthor) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Author not found'
-      })
+      throwServer(404, 'Author not found')
     }
 
     // Find similar authors using a multi-factor approach
@@ -94,9 +88,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error fetching similar authors:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to fetch similar authors'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to fetch similar authors')
   }
 })

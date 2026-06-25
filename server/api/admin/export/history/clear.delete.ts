@@ -8,11 +8,11 @@ import { sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throw createError({ statusCode: 403, statusMessage: 'Admin access required' }) }
+    if (user.role !== 'admin') { throwServer(403, 'Admin access required') }
 
     const body = await readBody(event)
     const { confirm } = body
-    if (!confirm) { throw createError({ statusCode: 400, statusMessage: 'Confirmation required to clear all export history' }) }
+    if (!confirm) { throwServer(400, 'Confirmation required to clear all export history') }
 
     const countResult = await db.select({ total: sql<number>`COUNT(*)` })
       .from(schema.exportLogs);
@@ -50,9 +50,6 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Clear export history error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to clear export history'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to clear export history')
   }
 })

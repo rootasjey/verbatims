@@ -25,10 +25,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (existingUser) {
-      throw createError({
-        statusCode: 409,
-        message: 'User with this email or name already exists'
-      })
+      throwServer(409, 'User with this email or name already exists')
     }
 
     // Hash the password using nuxt-auth-utils
@@ -47,10 +44,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!result) {
-      throw createError({
-        statusCode: 500,
-        message: 'Failed to create user account'
-      })
+      throwServer(500, 'Failed to create user account')
     }
 
     const user = {
@@ -95,9 +89,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     console.error('Registration error:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Internal server error during registration'
-    })
+    throwServer(500, 'Internal server error during registration')
   }
 })

@@ -238,9 +238,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     }
   } catch (error) {
     console.error('Quotes search error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to search quotes'
-    })
+    throwServer(500, 'Failed to search quotes')
   }
 })

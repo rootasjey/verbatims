@@ -7,24 +7,15 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     if (!body.name || typeof body.name !== 'string') {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Collection name is required'
-      })
+      throwServer(400, 'Collection name is required')
     }
     
     if (body.name.length < 2 || body.name.length > 100) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Collection name must be between 2 and 100 characters'
-      })
+      throwServer(400, 'Collection name must be between 2 and 100 characters')
     }
     
     if (body.description && body.description.length > 500) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Description must be less than 500 characters'
-      })
+      throwServer(400, 'Description must be less than 500 characters')
     }
     
     // Check if user already has a collection with this name
@@ -37,10 +28,7 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (existingCollection) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'You already have a collection with this name'
-      })
+      throwServer(409, 'You already have a collection with this name')
     }
     
     // Create collection
@@ -77,9 +65,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Collection creation error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to create collection'
-    })
+    throwServer(500, 'Failed to create collection')
   }
 })

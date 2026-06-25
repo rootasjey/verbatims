@@ -4,7 +4,7 @@ import { eq, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
@@ -22,10 +22,10 @@ export default defineEventHandler(async (event) => {
     const config = body?.config ? JSON.stringify(body.config) : '{}'
 
     if (!slug || slug.length < 2) {
-      throw createError({ statusCode: 400, statusMessage: 'Theme slug is required (min 2 chars)' })
+      throwServer(400, 'Theme slug is required (min 2 chars)')
     }
     if (!name) {
-      throw createError({ statusCode: 400, statusMessage: 'Theme name is required' })
+      throwServer(400, 'Theme name is required')
     }
 
     const exists = await db.select({ id: schema.themes.id })
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (exists.length > 0) {
-      throw createError({ statusCode: 409, statusMessage: 'Theme with this slug already exists' })
+      throwServer(409, 'Theme with this slug already exists')
     }
 
     const result = await db.insert(schema.themes).values({
@@ -52,13 +52,13 @@ export default defineEventHandler(async (event) => {
     }).returning()
 
     if (!result || result.length === 0) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to create theme' })
+      throwServer(500, 'Failed to create theme')
     }
 
     return { success: true, data: result[0] }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error creating theme:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to create theme' })
+    throwServer(500, 'Failed to create theme')
   }
 })

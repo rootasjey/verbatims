@@ -197,7 +197,7 @@ Rules:
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
@@ -354,6 +354,6 @@ export default defineEventHandler(async (event) => {
     return { success: true, data: suggestions }
   } catch (error) {
     console.error('Error generating theme suggestions:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to generate theme suggestions' })
+    throwServer(500, 'Failed to generate theme suggestions')
   }
 })

@@ -4,21 +4,21 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (user.role !== 'admin' && user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const body = await readBody(event) as ExportOptions
     const { format, filters = {}, include_relations = true, include_metadata = false, limit = 0 } = body
 
-    if (!format) throw createError({ statusCode: 400, statusMessage: 'Export format is required' })
+    if (!format) throwServer(400, 'Export format is required')
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({ statusCode: 400, statusMessage: 'Unsupported export format. Supported formats: json, csv, xml' })
+      throwServer(400, 'Unsupported export format. Supported formats: json, csv, xml')
     }
 
     const tagFilters = (filters || {}) as TagExportFilters
     const filterValidation = validateTagFilters(tagFilters)
     if (!filterValidation.valid) {
-      throw createError({ statusCode: 400, statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}` })
+      throwServer(400, `Invalid filters: ${filterValidation.errors.join(', ')}`)
     }
 
     const exportId = `tags_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
         mimeType = 'application/xml'
         break
       default:
-        throw createError({ statusCode: 400, statusMessage: 'Unsupported export format' })
+        throwServer(400, 'Unsupported export format')
     }
 
     const fileSize: number = new TextEncoder().encode(contentData).length
@@ -142,7 +142,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Tags export error:', error)
-    throw createError({ statusCode: error.statusCode || 500, statusMessage: error.statusMessage || 'Export failed' })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Export failed')
   }
 })
 

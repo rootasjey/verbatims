@@ -88,9 +88,6 @@ export default defineEventHandler(async () => {
     ]
   } catch (error) {
     console.error('[Sitemap] Failed to generate sitemap URLs:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to generate sitemap URLs'
-    })
+    throwServer(500, 'Failed to generate sitemap URLs')
   }
 })

@@ -5,7 +5,7 @@ import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constan
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const body = await readBody(event)
@@ -14,17 +14,17 @@ export default defineEventHandler(async (event) => {
     : []
 
   if (!quoteIds.length) {
-    throw createError({ statusCode: 400, statusMessage: 'quoteIds is required' })
+    throwServer(400, 'quoteIds is required')
   }
 
   const platform = String(body?.platform || 'x')
   if (!isSocialPlatform(platform)) {
-    throw createError({ statusCode: 400, statusMessage: SOCIAL_PLATFORM_ERROR_MESSAGE })
+    throwServer(400, SOCIAL_PLATFORM_ERROR_MESSAGE)
   }
 
   const scheduledFor = body?.scheduledFor ? new Date(String(body.scheduledFor)) : null
   if (scheduledFor && Number.isNaN(scheduledFor.getTime())) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid scheduledFor value' })
+    throwServer(400, 'Invalid scheduledFor value')
   }
 
   const approvedQuotes = await db
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
   const validQuoteIds = quoteIds.filter(id => approvedIdSet.has(id))
 
   if (!validQuoteIds.length) {
-    throw createError({ statusCode: 400, statusMessage: 'No valid quotes found' })
+    throwServer(400, 'No valid quotes found')
   }
 
   const maxPositionRow = await db.select({

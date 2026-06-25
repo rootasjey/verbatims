@@ -8,19 +8,19 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const body = await readBody(event)
     const { backup_ids } = body
 
     if (!Array.isArray(backup_ids) || backup_ids.length === 0) {
-      throw createError({ statusCode: 400, statusMessage: 'backup_ids array is required and must not be empty' })
+      throwServer(400, 'backup_ids array is required and must not be empty')
     }
 
     const validIds = backup_ids.filter(id => !isNaN(Number(id))).map(id => Number(id))
     if (validIds.length !== backup_ids.length) {
-      throw createError({ statusCode: 400, statusMessage: 'All backup IDs must be valid numbers' })
+      throwServer(400, 'All backup IDs must be valid numbers')
     }
 
     const results = {
@@ -50,6 +50,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Bulk delete backup error:', error)
     if ((error as any).statusCode) throw error
-    throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
+    throwServer(500, 'Internal server error')
   }
 })

@@ -3,7 +3,7 @@ import { db, schema } from 'hub:db'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
@@ -19,6 +19,6 @@ export default defineEventHandler(async (event) => {
     return { success: true, data: result }
   } catch (error) {
     console.error('Error fetching settings:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch settings' })
+    throwServer(500, 'Failed to fetch settings')
   }
 })

@@ -104,7 +104,7 @@ async function buildSourceSearchCondition(search: string) {
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const query = getQuery(event)
@@ -116,14 +116,14 @@ export default defineEventHandler(async (event) => {
   const platform = String(query.platform || 'x').trim()
 
   if (!isSocialPlatform(platform)) {
-    throw createError({ statusCode: 400, statusMessage: SOCIAL_PLATFORM_ERROR_MESSAGE })
+    throwServer(400, SOCIAL_PLATFORM_ERROR_MESSAGE)
   }
 
   const conditions = [eq(schema.socialQueue.platform, platform as any)]
 
   if (status) {
     if (!isSocialQueueStatus(status)) {
-      throw createError({ statusCode: 400, statusMessage: 'status must be queued, processing, posted, or failed' })
+      throwServer(400, 'status must be queued, processing, posted, or failed')
     }
     conditions.push(eq(schema.socialQueue.status, status))
   }

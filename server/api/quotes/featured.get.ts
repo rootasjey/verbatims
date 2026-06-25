@@ -122,9 +122,6 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
     }
   } catch (error) {
     console.error('Error fetching featured quote:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch featured quote'
-    })
+    throwServer(500, 'Failed to fetch featured quote')
   }
 })

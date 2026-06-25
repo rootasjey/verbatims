@@ -6,27 +6,18 @@ export default defineEventHandler(async (event) => {
     // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     const collectionId = getRouterParam(event, 'id')
     const quoteId = getRouterParam(event, 'quoteId')
     
     if (!collectionId || isNaN(parseInt(collectionId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid collection ID'
-      })
+      throwServer(400, 'Invalid collection ID')
     }
     
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
     
     // Check if collection exists and user owns it
@@ -36,17 +27,11 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (!collection) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Collection not found'
-      })
+      throwServer(404, 'Collection not found')
     }
     
     if (collection.userId !== session.user.id) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Access denied'
-      })
+      throwServer(403, 'Access denied')
     }
     
     // Check if quote is in collection
@@ -59,10 +44,7 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (!collectionQuote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found in this collection'
-      })
+      throwServer(404, 'Quote not found in this collection')
     }
     
     // Remove quote from collection
@@ -89,9 +71,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Remove quote from collection error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to remove quote from collection'
-    })
+    throwServer(500, 'Failed to remove quote from collection')
   }
 })

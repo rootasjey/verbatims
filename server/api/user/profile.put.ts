@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
   if (!session.user) {
-    throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+    throwServer(401, 'Authentication required')
   }
 
   const body = await readBody(event)
@@ -26,6 +26,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error updating profile:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update profile' })
+    throwServer(500, 'Failed to update profile')
   }
 })

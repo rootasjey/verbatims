@@ -8,10 +8,10 @@ export default defineEventHandler(async (event) => {
     // Auth: admin or moderator
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const query = getQuery(event)
@@ -98,6 +98,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     console.error('Admin quotes index error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch admin quotes' })
+    throwServer(500, 'Failed to fetch admin quotes')
   }
 })

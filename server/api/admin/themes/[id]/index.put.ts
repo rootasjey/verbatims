@@ -4,13 +4,13 @@ import { eq, ne, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
     const id = getRouterParam(event, 'id')
     if (!id || isNaN(parseInt(id))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid theme ID' })
+      throwServer(400, 'Invalid theme ID')
     }
     const themeId = parseInt(id)
     const body = await readBody(event)
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (!existing || existing.length === 0) {
-      throw createError({ statusCode: 404, statusMessage: 'Theme not found' })
+      throwServer(404, 'Theme not found')
     }
 
     if (typeof body.slug === 'string' && body.slug.trim()) {
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
         .limit(1)
 
       if (conflict.length > 0) {
-        throw createError({ statusCode: 409, statusMessage: 'Theme with this slug already exists' })
+        throwServer(409, 'Theme with this slug already exists')
       }
     }
 
@@ -88,6 +88,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error updating theme:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update theme' })
+    throwServer(500, 'Failed to update theme')
   }
 })

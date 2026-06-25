@@ -49,7 +49,7 @@ export async function hubBrowser(eventOrOptions?: H3Event | HubBrowserOptions, m
   if (puppeteer instanceof PuppeteerWorkers) {
     const binding = getBrowserBinding()
     if (!binding) {
-      throw createError('Missing Cloudflare Browser binding (BROWSER)')
+      throwServer(500, 'Missing Cloudflare Browser binding (BROWSER)')
     }
     let browser: Browser | null = null
     const sessionId = await getRandomSession(puppeteer, binding)

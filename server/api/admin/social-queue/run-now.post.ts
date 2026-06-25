@@ -6,14 +6,14 @@ import { resolveAppOrigin } from '../../../utils/app-origin'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const body = await readBody(event)
   const platform = body?.platform ? String(body.platform) : undefined
 
   if (platform && !isSocialPlatform(platform)) {
-    throw createError({ statusCode: 400, statusMessage: SOCIAL_PLATFORM_ERROR_MESSAGE })
+    throwServer(400, SOCIAL_PLATFORM_ERROR_MESSAGE)
   }
 
   const selectedPlatform: SocialPlatform | undefined = platform && isSocialPlatform(platform)

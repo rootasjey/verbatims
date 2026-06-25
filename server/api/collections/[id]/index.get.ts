@@ -32,10 +32,7 @@ export default defineEventHandler(async (event) => {
     `)
     
     if (!collection) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Collection not found'
-      })
+      throwServer(404, 'Collection not found')
     }
     
     // Check access permissions

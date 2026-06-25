@@ -69,9 +69,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Error fetching tags:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch tags'
-    })
+    throwServer(500, 'Failed to fetch tags')
   }
 })

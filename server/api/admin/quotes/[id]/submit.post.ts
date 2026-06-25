@@ -6,15 +6,15 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid quote ID' })
+      throwServer(400, 'Invalid quote ID')
     }
 
     // Ensure the quote exists and is a draft (admin/mods can submit any draft)
@@ -27,12 +27,12 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!quote) {
-      throw createError({ statusCode: 404, statusMessage: 'Quote not found or not a draft' })
+      throwServer(404, 'Quote not found or not a draft')
     }
 
     // Minimal validation similar to user submit: require some content
     if (!quote.name || String(quote.name).trim().length < 10) {
-      throw createError({ statusCode: 400, statusMessage: 'Quote must have at least 10 characters before submission' })
+      throwServer(400, 'Quote must have at least 10 characters before submission')
     }
 
     // Move quote to pending
@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
     `))
 
     if (!updatedQuote) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to fetch updated quote' })
+      throwServer(500, 'Failed to fetch updated quote')
     }
 
     const processedQuote = {
@@ -94,6 +94,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     console.error('Admin submit quote error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to submit quote for review' })
+    throwServer(500, 'Failed to submit quote for review')
   }
 })

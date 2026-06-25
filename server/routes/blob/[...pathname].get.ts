@@ -3,12 +3,12 @@ import { blob } from 'hub:blob'
 export default defineEventHandler(async (event) => {
   const pathname = getRouterParam(event, 'pathname')
   if (!pathname) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing pathname' })
+    throwServer(400, 'Missing pathname')
   }
 
   const file = await blob.get(pathname)
   if (!file) {
-    throw createError({ statusCode: 404, statusMessage: 'File not found' })
+    throwServer(404, 'File not found')
   }
 
   const arrayBuffer = await file.arrayBuffer()

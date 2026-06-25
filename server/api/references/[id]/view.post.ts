@@ -5,10 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const refId = getRouterParam(event, 'id')
     if (!refId || isNaN(parseInt(refId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reference ID'
-      })
+      throwServer(400, 'Invalid reference ID')
     }
 
     const session = await getUserSession(event)
@@ -24,7 +21,7 @@ export default defineEventHandler(async (event) => {
       .get()
       
     if (!ref) {
-      throw createError({ statusCode: 404, statusMessage: 'Reference not found' })
+      throwServer(404, 'Reference not found')
     }
 
     // Check recent view within 1 hour by same user or anonymous IP
@@ -63,6 +60,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error tracking reference view:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to track reference view' })
+    throwServer(500, 'Failed to track reference view')
   }
 })

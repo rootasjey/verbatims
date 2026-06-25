@@ -7,10 +7,7 @@ export default defineEventHandler(async (event) => {
     // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     const query = getQuery(event)
@@ -130,9 +127,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Dashboard activity error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch user activity'
-    })
+    throwServer(500, 'Failed to fetch user activity')
   }
 })

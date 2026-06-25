@@ -6,25 +6,16 @@ export default defineEventHandler(async (event) => {
     // Check authentication and admin privileges
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     if (session.user.role !== 'admin') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin access required'
-      })
+      throwServer(403, 'Admin access required')
     }
     
     const userId = getRouterParam(event, 'id')
     if (!userId || isNaN(parseInt(userId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid user ID'
-      })
+      throwServer(400, 'Invalid user ID')
     }
     
     const userIdInt = parseInt(userId)
@@ -37,10 +28,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     
     if (!existingUser || existingUser.length === 0) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'User not found'
-      })
+      throwServer(404, 'User not found')
     }
     
     const user = existingUser[0]
@@ -48,17 +36,11 @@ export default defineEventHandler(async (event) => {
     // Prevent admin from modifying their own role or status
     if (userIdInt === session.user.id) {
       if (body.role !== undefined && body.role !== user.role) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Cannot modify your own role'
-        })
+        throwServer(400, 'Cannot modify your own role')
       }
       
       if (body.is_active !== undefined && !body.is_active) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Cannot deactivate your own account'
-        })
+        throwServer(400, 'Cannot deactivate your own account')
       }
     }
     
@@ -78,10 +60,7 @@ export default defineEventHandler(async (event) => {
     }
     
     if (Object.keys(updates).length === 0) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'No valid fields to update'
-      })
+      throwServer(400, 'No valid fields to update')
     }
     
     // Update user
@@ -131,9 +110,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('User update error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update user'
-    })
+    throwServer(500, 'Failed to update user')
   }
 })

@@ -8,19 +8,13 @@ export default defineEventHandler(async (event) => {
 
     // Validate required fields
     if (!username || !email || !password || !adminPassword) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'All fields are required'
-      })
+      throwServer(400, 'All fields are required')
     }
 
     // Verify admin authorization password
     const requiredAdminPassword = process.env.ADMIN_PASSWORD || 'Verbatims@Admin2024!'
     if (adminPassword !== requiredAdminPassword) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Invalid admin authorization password'
-      })
+      throwServer(403, 'Invalid admin authorization password')
     }
 
     // Initialize database schema first if needed
@@ -30,10 +24,7 @@ export default defineEventHandler(async (event) => {
       // Database tables don't exist, initialize them
       const initSuccess = await initializeDatabase()
       if (!initSuccess) {
-        throw createError({
-          statusCode: 500,
-          statusMessage: 'Failed to initialize database schema'
-        })
+        throwServer(500, 'Failed to initialize database schema')
       }
     }
 
@@ -44,10 +35,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (existingAdmin) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'An admin user already exists'
-      })
+      throwServer(409, 'An admin user already exists')
     }
 
     // Check if user with this email or username already exists
@@ -57,27 +45,18 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (existingUser) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'User with this email or username already exists'
-      })
+      throwServer(409, 'User with this email or username already exists')
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid email format'
-      })
+      throwServer(400, 'Invalid email format')
     }
 
     // Validate password strength
     if (password.length < 8) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Password must be at least 8 characters long'
-      })
+      throwServer(400, 'Password must be at least 8 characters long')
     }
 
     // Hash the password using nuxt-auth-utils
@@ -101,10 +80,7 @@ export default defineEventHandler(async (event) => {
 
     console.log(`✅ Admin user created successfully: ${username} (${email})`)
     if (!createdUser) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to retrieve created admin user'
-      })
+      throwServer(500, 'Failed to retrieve created admin user')
     }
 
     return {
@@ -130,9 +106,6 @@ export default defineEventHandler(async (event) => {
     }
 
     // Otherwise, create a generic error
-    throw createError({
-      statusCode: 500,
-      statusMessage: error?.message || 'Failed to create admin user'
-    })
+    throwServer(500, error?.message || 'Failed to create admin user')
   }
 })

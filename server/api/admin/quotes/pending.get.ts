@@ -98,9 +98,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Admin pending quotes error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch pending quotes'
-    })
+    throwServer(500, 'Failed to fetch pending quotes')
   }
 })

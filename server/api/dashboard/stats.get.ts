@@ -6,10 +6,7 @@ export default defineEventHandler(async (event) => {
     // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     // Get user's quote statistics
@@ -57,9 +54,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Dashboard stats error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch dashboard stats'
-    })
+    throwServer(500, 'Failed to fetch dashboard stats')
   }
 })

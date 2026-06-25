@@ -5,10 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
 
     const session = await getUserSession(event)
@@ -27,10 +24,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found or not approved'
-      })
+      throwServer(404, 'Quote not found or not approved')
     }
 
     // Check if this user/IP has already viewed this quote recently (within 1 hour)
@@ -74,9 +68,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Error tracking view:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to track view'
-    })
+    throwServer(500, 'Failed to track view')
   }
 })

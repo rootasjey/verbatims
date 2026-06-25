@@ -10,18 +10,12 @@ export default defineEventHandler(async (event) => {
     // Check admin authentication
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const authorId = getRouterParam(event, 'id')
     if (!authorId || isNaN(parseInt(authorId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid author ID'
-      })
+      throwServer(400, 'Invalid author ID')
     }
 
     const body = await readBody(event) as UpdateAuthorData
@@ -33,18 +27,12 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!existingAuthor) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Author not found'
-      })
+      throwServer(404, 'Author not found')
     }
 
     // Validate required fields
     if (body.name !== undefined && (!body.name || !body.name.trim())) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Author name is required'
-      })
+      throwServer(400, 'Author name is required')
     }
 
     // Check if another author with same name already exists (excluding current author)
@@ -58,10 +46,7 @@ export default defineEventHandler(async (event) => {
         .get()
 
       if (duplicateAuthor) {
-        throw createError({
-          statusCode: 409,
-          statusMessage: 'An author with this name already exists'
-        })
+        throwServer(409, 'An author with this name already exists')
       }
     }
 
@@ -100,10 +85,7 @@ export default defineEventHandler(async (event) => {
     }
 
     if (Object.keys(updateData).length === 1) { // Only updatedAt was added
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'No fields to update'
-      })
+      throwServer(400, 'No fields to update')
     }
 
     // Update author
@@ -125,9 +107,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

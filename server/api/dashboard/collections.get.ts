@@ -48,9 +48,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Dashboard collections error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch collections'
-    })
+    throwServer(500, 'Failed to fetch collections')
   }
 })

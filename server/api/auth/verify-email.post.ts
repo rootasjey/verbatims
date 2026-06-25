@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!verificationToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid or expired verification token' })
+    throwServer(400, 'Invalid or expired verification token')
   }
 
   await db.update(schema.users)

@@ -20,15 +20,12 @@ async function fetchThreadsProfile(accessToken: string) {
   const payload = await response.json().catch(() => null) as ThreadsProfilePayload | null
 
   if (!response.ok || payload?.error) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: payload?.error?.message || `Threads API error (${response.status})`
-    })
+    throwServer(400, payload?.error?.message || `Threads API error (${response.status})`)
   }
 
   const userId = String(payload?.id || '').trim()
   if (!userId) {
-    throw createError({ statusCode: 400, statusMessage: 'Threads API did not return a user ID for this token' })
+    throwServer(400, 'Threads API did not return a user ID for this token')
   }
 
   return {
@@ -40,7 +37,7 @@ async function fetchThreadsProfile(accessToken: string) {
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const body = await readBody(event)
@@ -52,15 +49,12 @@ export default defineEventHandler(async (event) => {
 
   const nextAccessToken = incomingAccessToken || resolved.accessToken
   if (!nextAccessToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Threads access token is required' })
+    throwServer(400, 'Threads access token is required')
   }
 
   const profile = await fetchThreadsProfile(nextAccessToken)
   if (incomingUserId && incomingUserId !== profile.userId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `Threads user ID does not match the supplied token (expected ${profile.userId})`
-    })
+    throwServer(400, `Threads user ID does not match the supplied token (expected ${profile.userId})`)
   }
 
   await setMetaSocialCredentials({

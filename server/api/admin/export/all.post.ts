@@ -6,7 +6,7 @@ import { eq, inArray, sql, desc } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (user.role !== 'admin' && user.role !== 'moderator') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+    throwServer(403, 'Admin or moderator access required')
   }
 
   const body = await readBody(event) as any
@@ -22,10 +22,7 @@ export default defineEventHandler(async (event) => {
   } = body || {}
 
   if (!['json', 'csv', 'xml'].includes(format)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Unsupported export format (use json, csv, or xml)',
-    })
+    throwServer(400, 'Unsupported export format (use json, csv, or xml)')
   }
 
   // Lightweight fetchers; rely on per-route builders if needed later

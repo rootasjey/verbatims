@@ -4,7 +4,7 @@ import { getThreadsOAuthAppConfig, resolveThreadsOAuthConfig, setThreadsOAuthApp
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const body = await readBody(event)
@@ -16,12 +16,12 @@ export default defineEventHandler(async (event) => {
 
   const nextAppId = incomingAppId || String(stored?.appId || process.env.THREADS_APP_ID || '')
   if (!nextAppId) {
-    throw createError({ statusCode: 400, statusMessage: 'Threads App ID is required' })
+    throwServer(400, 'Threads App ID is required')
   }
 
   const nextAppSecret = incomingAppSecret || String(stored?.appSecret || '')
   if (!nextAppSecret && !String(process.env.THREADS_APP_SECRET || '')) {
-    throw createError({ statusCode: 400, statusMessage: 'Threads App Secret is required (provide it here or in THREADS_APP_SECRET)' })
+    throwServer(400, 'Threads App Secret is required (provide it here or in THREADS_APP_SECRET)')
   }
 
   await setThreadsOAuthAppConfig({

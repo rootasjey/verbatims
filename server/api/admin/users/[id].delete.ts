@@ -5,20 +5,20 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const idParam = getRouterParam(event, 'id')
     if (!idParam || isNaN(parseInt(idParam))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid user ID' })
+      throwServer(400, 'Invalid user ID')
     }
     const userId = parseInt(idParam)
 
     if (userId === session.user.id) {
-      throw createError({ statusCode: 400, statusMessage: 'Cannot delete your own account' })
+      throwServer(400, 'Cannot delete your own account')
     }
 
     const user = await db.select({ id: schema.users.id, role: schema.users.role })
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     
     if (!user || user.length === 0) {
-      throw createError({ statusCode: 404, statusMessage: 'User not found' })
+      throwServer(404, 'User not found')
     }
 
     // Optional safeguard: prevent deleting the last admin
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       
       const adminCount = Number(adminCountResult[0]?.count || 0)
       if (adminCount <= 1) {
-        throw createError({ statusCode: 400, statusMessage: 'Cannot delete the last admin' })
+        throwServer(400, 'Cannot delete the last admin')
       }
     }
 
@@ -48,6 +48,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Admin delete user error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to delete user' })
+    throwServer(500, 'Failed to delete user')
   }
 })

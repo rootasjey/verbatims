@@ -4,12 +4,12 @@ import { eq, and } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
-    if (!session.user) throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+    if (!session.user) throwServer(401, 'Authentication required')
 
     const quoteId = getRouterParam(event, 'id')
     const tagId = getRouterParam(event, 'tagId')
     if (!quoteId || isNaN(parseInt(quoteId)) || !tagId || isNaN(parseInt(tagId))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid identifiers' })
+      throwServer(400, 'Invalid identifiers')
     }
 
     const quote = await db.select({
@@ -20,12 +20,12 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quotes.id, parseInt(quoteId)))
     .get()
 
-    if (!quote) throw createError({ statusCode: 404, statusMessage: 'Quote not found' })
+    if (!quote) throwServer(404, 'Quote not found')
 
     const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
     const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
     if (!isAdmin && !isOwnerDraft) {
-      throw createError({ statusCode: 403, statusMessage: 'Not allowed to edit tags for this quote' })
+      throwServer(403, 'Not allowed to edit tags for this quote')
     }
 
     await db.delete(schema.quoteTags)
@@ -39,6 +39,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error removing tag from quote:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to remove tag from quote' })
+    throwServer(500, 'Failed to remove tag from quote')
   }
 })

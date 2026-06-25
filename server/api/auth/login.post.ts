@@ -16,18 +16,12 @@ export default defineEventHandler(async (event) => {
     const userData = await db.select().from(schema.users).where(eq(schema.users.email, email)).get()
 
     if (!userData) {
-      throw createError({
-        statusCode: 401,
-        message: 'Invalid email or password'
-      })
+      throwServer(401, 'Invalid email or password')
     }
 
     // Check if user has a password (might be OAuth-only user)
     if (!userData.password) {
-      throw createError({
-        statusCode: 401,
-        message: 'This account uses social login. Please sign in with your social provider.'
-      })
+      throwServer(401, 'This account uses social login. Please sign in with your social provider.')
     }
 
     // Verify password using nuxt-auth-utils
@@ -37,10 +31,7 @@ export default defineEventHandler(async (event) => {
     const isValidPassword = await verifyPasswordWorker(userData.password, password)
 
     if (!isValidPassword) {
-      throw createError({
-        statusCode: 401,
-        message: 'Invalid email or password'
-      })
+      throwServer(401, 'Invalid email or password')
     }
 
     // Update last login timestamp
@@ -82,9 +73,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     console.error('Login error:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Internal server error during login'
-    })
+    throwServer(500, 'Internal server error during login')
   }
 })

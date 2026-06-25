@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
   // Basic validation
   if (!body || !body.category || !body.message || body.message.trim().length < 10) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid payload' })
+    throwServer(400, 'Invalid payload')
   }
 
   // Normalize optional fields
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
   const email = userId ? null : (body.email?.trim() || null)
 
   if (!userId && !name && !email) {
-    throw createError({ statusCode: 400, statusMessage: 'Anonymous reports must include a name or email' })
+    throwServer(400, 'Anonymous reports must include a name or email')
   }
 
   // Anti-flood for anonymous: limit N per window per IP, and dedupe exact repeats in 5 minutes
@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!exists) {
-      throw createError({ statusCode: 404, statusMessage: `${targetType} not found` })
+      throwServer(404, `${targetType} not found`)
     }
   }
 

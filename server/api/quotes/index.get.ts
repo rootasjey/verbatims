@@ -101,9 +101,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Error fetching quotes:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch quotes'
-    })
+    throwServer(500, 'Failed to fetch quotes')
   }
 })

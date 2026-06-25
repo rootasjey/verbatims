@@ -10,20 +10,14 @@ export default defineEventHandler(async (event) => {
     // Check admin authentication
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const body = await readBody(event) as CreateAuthorData
 
     // Validate required fields
     if (!body.name || !body.name.trim()) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Author name is required'
-      })
+      throwServer(400, 'Author name is required')
     }
 
     // Check if author with same name already exists
@@ -33,10 +27,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (existingAuthor) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'An author with this name already exists'
-      })
+      throwServer(409, 'An author with this name already exists')
     }
 
     // Insert author (without image URL — we'll upload to R2 first)
@@ -89,9 +80,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

@@ -10,12 +10,12 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (user.role !== 'admin' && user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const exportId = getRouterParam(event, 'id')
     if (!exportId) {
-      throw createError({ statusCode: 400, statusMessage: 'Export ID is required' })
+      throwServer(400, 'Export ID is required')
     }
 
     const exportLog = await db.select()
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
       .limit(1);
 
     if (!exportLog || exportLog.length === 0) {
-      throw createError({ statusCode: 404, statusMessage: 'Export not found or expired' })
+      throwServer(404, 'Export not found or expired')
     }
 
     const exportLogData = exportLog[0];
@@ -38,10 +38,10 @@ export default defineEventHandler(async (event) => {
 
       // If we couldn't find any backup or the backup lacks a file key, return 404.
       if (!latest || !latest.file_key) {
-        throw createError({ statusCode: 404, statusMessage: 'Export file not found in storage' })
+        throwServer(404, 'Export file not found in storage')
       }
       const file = await blob.get(latest.file_key as string)
-      if (!file) { throw createError({ statusCode: 404, statusMessage: 'Archive not found in storage' }) }
+      if (!file) { throwServer(404, 'Archive not found in storage') }
 
       const ab = await file.arrayBuffer()
       setHeader(event, 'Content-Type', 'application/zip')
@@ -118,10 +118,7 @@ export default defineEventHandler(async (event) => {
         break
 
       default:
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Unsupported export format'
-        })
+        throwServer(400, 'Unsupported export format')
     }
 
     await db.update(schema.exportLogs)
@@ -139,10 +136,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Export download error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Download failed'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Download failed')
   }
 })
 

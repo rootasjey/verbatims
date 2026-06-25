@@ -4,12 +4,12 @@ import { eq, count } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
     const id = getRouterParam(event, 'id')
-    if (!id || isNaN(parseInt(id))) throw createError({ statusCode: 400, statusMessage: 'Invalid tag ID' })
+    if (!id || isNaN(parseInt(id))) throwServer(400, 'Invalid tag ID')
     const tagId = parseInt(id)
 
     // Optionally, we could check usage count and return it
@@ -25,6 +25,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error deleting tag:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to delete tag' })
+    throwServer(500, 'Failed to delete tag')
   }
 })

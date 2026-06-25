@@ -8,10 +8,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (user.role !== 'admin' && user.role !== 'moderator') {
-      throw createError({ 
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required',
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const body = await readBody(event) as ExportOptions
@@ -25,21 +22,15 @@ export default defineEventHandler(async (event) => {
 
     const filterValidation = validateFiltersForReferencesExport(filters)
     if (!filterValidation.valid) {
-      throw createError({
-        statusCode: 400, 
-        statusMessage: `Invalid filters: ${filterValidation.errors.join(', ')}`,
-      })
+      throwServer(400, `Invalid filters: ${filterValidation.errors.join(', ')}`)
     }
 
     if (!format) {
-      throw createError({ statusCode: 400, statusMessage: 'Export format is required' })
+      throwServer(400, 'Export format is required')
     }
 
     if (!['json', 'csv', 'xml'].includes(format)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Unsupported export format. Supported formats: json, csv, xml',
-      })
+      throwServer(400, 'Unsupported export format. Supported formats: json, csv, xml')
     }
 
     const exportId = `references_export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -108,10 +99,7 @@ export default defineEventHandler(async (event) => {
         break
 
       default:
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Unsupported export format'
-        })
+        throwServer(400, 'Unsupported export format')
     }
 
     const fileSize = new TextEncoder().encode(contentData).length
@@ -181,10 +169,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('References export failed:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'References export failed'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'References export failed')
   }
 })
 

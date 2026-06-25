@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!resetToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid or expired reset token' })
+    throwServer(400, 'Invalid or expired reset token')
   }
 
   const user = await db
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!user) {
-    throw createError({ statusCode: 404, statusMessage: 'User not found' })
+    throwServer(404, 'User not found')
   }
 
   const hashedPassword = await hashPasswordWorker(password)

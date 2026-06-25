@@ -26,15 +26,12 @@ async function refreshLongLivedToken(accessToken: string) {
   const response = await fetch(requestUrl)
   const payload = await response.json().catch(() => null) as ThreadsRefreshPayload | null
   if (!response.ok || payload?.error || payload?.error_message) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: payload?.error?.message || payload?.error_message || `Threads refresh error (${response.status})`
-    })
+    throwServer(400, payload?.error?.message || payload?.error_message || `Threads refresh error (${response.status})`)
   }
 
   const nextToken = String(payload?.access_token || '')
   if (!nextToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Threads refresh did not return a token' })
+    throwServer(400, 'Threads refresh did not return a token')
   }
 
   const expiresIn = Number(payload?.expires_in || 0)
@@ -54,10 +51,7 @@ async function fetchThreadsProfile(accessToken: string) {
   const response = await fetch(requestUrl)
   const payload = await response.json().catch(() => null) as ThreadsProfilePayload | null
   if (!response.ok || payload?.error || payload?.error_message) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: payload?.error?.message || payload?.error_message || `Threads profile error (${response.status})`
-    })
+    throwServer(400, payload?.error?.message || payload?.error_message || `Threads profile error (${response.status})`)
   }
 
   return {
@@ -69,13 +63,13 @@ async function fetchThreadsProfile(accessToken: string) {
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const stored = await getMetaSocialCredentials()
   const resolved = await resolveThreadsPostConfig()
   if (!resolved.accessToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Threads access token is required before it can be refreshed' })
+    throwServer(400, 'Threads access token is required before it can be refreshed')
   }
 
   const refreshed = await refreshLongLivedToken(resolved.accessToken)

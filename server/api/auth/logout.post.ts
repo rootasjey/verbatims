@@ -4,9 +4,6 @@ export default defineEventHandler(async (event) => {
     return { message: 'Logged out successfully' }
   } catch (error) {
     console.error('Logout error:', error)
-    throw createError({
-      statusCode: 500,
-      message: 'Internal server error during logout'
-    })
+    throwServer(500, 'Internal server error during logout')
   }
 })

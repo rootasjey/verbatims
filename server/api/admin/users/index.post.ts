@@ -5,34 +5,34 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const body = await readBody(event)
     const { name, email, password, role = 'user', is_active = true, email_verified = false, avatar_url = null } = body || {}
 
     if (!name || !email || !password) {
-      throw createError({ statusCode: 400, statusMessage: 'Name, email and password are required' })
+      throwServer(400, 'Name, email and password are required')
     }
 
     if (typeof name !== 'string' || name.length < 1 || name.length > 70) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid name length' })
+      throwServer(400, 'Invalid name length')
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid email format' })
+      throwServer(400, 'Invalid email format')
     }
 
     if (typeof password !== 'string' || password.length < 8) {
-      throw createError({ statusCode: 400, statusMessage: 'Password must be at least 8 characters long' })
+      throwServer(400, 'Password must be at least 8 characters long')
     }
 
     if (!['user', 'moderator', 'admin'].includes(role)) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid role' })
+      throwServer(400, 'Invalid role')
     }
 
     // Check existing by email
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     
     if (existing.length > 0) {
-      throw createError({ statusCode: 409, statusMessage: 'Email already in use' })
+      throwServer(409, 'Email already in use')
     }
 
     // Hash password (nuxt-auth-utils)
@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
     }).returning()
 
     if (!result || result.length === 0) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to create user' })
+      throwServer(500, 'Failed to create user')
     }
 
     const created = {
@@ -75,6 +75,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Admin create user error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to create user' })
+    throwServer(500, 'Failed to create user')
   }
 })

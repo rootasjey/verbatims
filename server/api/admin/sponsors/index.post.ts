@@ -3,14 +3,14 @@ import { db, schema } from 'hub:db'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
     const body = await readBody(event)
     const message = String(body?.message || '').trim()
     if (!message) {
-      throw createError({ statusCode: 400, statusMessage: 'Message is required' })
+      throwServer(400, 'Message is required')
     }
 
     const result = await db.insert(schema.sponsorMessages).values({
@@ -27,13 +27,13 @@ export default defineEventHandler(async (event) => {
     }).returning()
 
     if (!result || result.length === 0) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to create sponsor message' })
+      throwServer(500, 'Failed to create sponsor message')
     }
 
     return { success: true, data: result[0] }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error creating sponsor message:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to create sponsor message' })
+    throwServer(500, 'Failed to create sponsor message')
   }
 })

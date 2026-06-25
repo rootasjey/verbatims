@@ -6,10 +6,7 @@ export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
 
     const quote = await db.select({
@@ -44,10 +41,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found'
-      })
+      throwServer(404, 'Quote not found')
     }
 
     // Fetch tags for the quote
@@ -100,9 +94,6 @@ export default defineEventHandler(async (event) => {
     if ((error as any).statusCode) throw error
     
     console.error('Error fetching quote:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch quote'
-    })
+    throwServer(500, 'Failed to fetch quote')
   }
 })

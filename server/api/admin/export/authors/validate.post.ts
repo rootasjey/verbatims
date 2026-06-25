@@ -7,10 +7,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const body = await readBody(event) as ExportOptions
@@ -106,10 +103,7 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Authors export validation error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to validate authors export'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to validate authors export')
   }
 })
 

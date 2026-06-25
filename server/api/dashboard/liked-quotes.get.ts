@@ -78,9 +78,6 @@ export default defineEventHandler(async (event) => {
     }
 
     console.error('Dashboard liked quotes error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch liked quotes'
-    })
+    throwServer(500, 'Failed to fetch liked quotes')
   }
 })

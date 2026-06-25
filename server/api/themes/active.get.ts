@@ -52,6 +52,6 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<{
     }
   } catch (error) {
     console.error('Error resolving active theme:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to resolve active theme' })
+    throwServer(500, 'Failed to resolve active theme')
   }
 })

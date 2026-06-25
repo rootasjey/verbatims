@@ -4,7 +4,7 @@ import { and, asc, desc, eq, gt, lt, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const body = await readBody(event)
@@ -12,11 +12,11 @@ export default defineEventHandler(async (event) => {
   const direction = String(body?.direction || '') as 'up' | 'down'
 
   if (!Number.isInteger(id) || id <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid queue id' })
+    throwServer(400, 'Invalid queue id')
   }
 
   if (!['up', 'down'].includes(direction)) {
-    throw createError({ statusCode: 400, statusMessage: 'direction must be up or down' })
+    throwServer(400, 'direction must be up or down')
   }
 
   const current = await db
@@ -34,11 +34,11 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!current) {
-    throw createError({ statusCode: 404, statusMessage: 'Queue item not found' })
+    throwServer(404, 'Queue item not found')
   }
 
   if (current.status !== 'queued') {
-    throw createError({ statusCode: 400, statusMessage: 'Only queued items can be reordered' })
+    throwServer(400, 'Only queued items can be reordered')
   }
 
   const adjacent = direction === 'up'

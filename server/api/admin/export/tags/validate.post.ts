@@ -4,7 +4,7 @@ import { inArray, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+    throwServer(403, 'Admin or moderator access required')
   }
 
   const body = await readBody(event) as ExportOptions

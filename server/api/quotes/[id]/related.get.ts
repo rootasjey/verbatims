@@ -5,10 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
     const quoteIdNum = parseInt(quoteId)
 
