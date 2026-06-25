@@ -90,10 +90,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         const processed: ProcessedQuoteResult = {
           ...quote as any,
           result_type: 'quote' as const,
-          tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-            name,
-            color: quote.tag_colors?.split(',')[index] || 'gray'
-          })) : []
+          tags: parseTags(quote.tag_names, quote.tag_colors)
         }
         return processed
       })

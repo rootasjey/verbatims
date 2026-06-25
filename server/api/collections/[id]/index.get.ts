@@ -90,10 +90,7 @@ export default defineEventHandler(async (event) => {
     // Process quotes data
     const processedQuotes = quotes.map((quote: any) => ({
       ...quote,
-      tags: quote.tag_names ? quote.tag_names.split(',').map((name: string, index: number) => ({
-        name,
-        color: quote.tag_colors?.split(',')[index] || 'gray'
-      })) : []
+      tags: parseTags(quote.tag_names, quote.tag_colors)
     }))
     
     return {
