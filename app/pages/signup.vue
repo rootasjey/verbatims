@@ -369,7 +369,7 @@ const signUpWithEmail = async () => {
   error.value = ''
 
   try {
-    const { user } = await $fetch('/api/auth/register', {
+    const { data } = await $fetch('/api/auth/register', {
       method: 'POST',
       body: {
         name: form.value.name,

@@ -81,8 +81,9 @@ export default defineEventHandler(async (event) => {
     }
 
     return {
+      success: true,
       message: 'Account created successfully',
-      user,
+      data: { user },
     }
   } catch (error: any) {
     if ((error as any).statusCode) {

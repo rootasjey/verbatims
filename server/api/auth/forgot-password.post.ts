@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   // Always return success to prevent email enumeration
   if (!user) {
-    return { message: 'If an account with this email exists, we sent a reset link.' }
+    return { success: true, message: 'If an account with this email exists, we sent a reset link.' }
   }
 
   await db
@@ -43,5 +43,5 @@ export default defineEventHandler(async (event) => {
 
   await sendPasswordResetEmail(event, user.email, token)
 
-  return { message: 'If an account with this email exists, we sent a reset link.' }
+  return { success: true, message: 'If an account with this email exists, we sent a reset link.' }
 })

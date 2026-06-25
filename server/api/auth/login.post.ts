@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
     // Set user session
     await setUserSession(event, { user })
 
-    return { user }
+    return { success: true, data: { user } }
   } catch (error: any) {
     if ((error as any).statusCode) {
       throw error
