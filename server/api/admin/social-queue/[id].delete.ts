@@ -4,12 +4,12 @@ import { and, eq, gt, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id) || id <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid queue id' })
+    throwServer(400, 'Invalid queue id')
   }
 
   const existing = await db
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'Queue item not found' })
+    throwServer(404, 'Queue item not found')
   }
 
   await db.delete(schema.socialQueue).where(eq(schema.socialQueue.id, id))

@@ -5,12 +5,12 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session?.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
 
     const idParam = getRouterParam(event, 'id')
     if (!idParam || isNaN(parseInt(idParam))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid quote ID' })
+      throwServer(400, 'Invalid quote ID')
     }
     const quoteId = Number(idParam)
 
@@ -25,10 +25,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found, not pending, or you do not have permission to withdraw it'
-      })
+      throwServer(404, 'Quote not found, not pending, or you do not have permission to withdraw it')
     }
 
     // Move back to draft and clear moderation fields
@@ -57,6 +54,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if (error?.statusCode) throw error
     console.error('Withdraw quote error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to withdraw quote' })
+    throwServer(500, 'Failed to withdraw quote')
   }
 })

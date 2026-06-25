@@ -84,9 +84,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Error suggesting tags:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to suggest tags'
-    })
+    throwServer(500, 'Failed to suggest tags')
   }
 })

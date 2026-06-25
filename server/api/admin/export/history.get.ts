@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (user.role !== 'admin' && user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const query = getQuery(event)
@@ -99,9 +99,6 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Export history error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to fetch export history'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to fetch export history')
   }
 })

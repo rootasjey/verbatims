@@ -5,10 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const authorId = getRouterParam(event, 'id')
     if (!authorId || isNaN(parseInt(authorId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid author ID'
-      })
+      throwServer(400, 'Invalid author ID')
     }
 
     const session = await getUserSession(event)
@@ -23,10 +20,7 @@ export default defineEventHandler(async (event) => {
       .get()
       
     if (!author) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Author not found'
-      })
+      throwServer(404, 'Author not found')
     }
 
     // Check if this user/IP has already viewed this author recently (within 1 hour)
@@ -73,9 +67,6 @@ export default defineEventHandler(async (event) => {
     }
 
     console.error('Error tracking author view:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to track author view'
-    })
+    throwServer(500, 'Failed to track author view')
   }
 })

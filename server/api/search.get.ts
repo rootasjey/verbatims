@@ -203,9 +203,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
     }
   } catch (error) {
     console.error('Search error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Search failed'
-    })
+    throwServer(500, 'Search failed')
   }
 })

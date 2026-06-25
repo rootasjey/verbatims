@@ -6,27 +6,27 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+    throwServer(403, 'Admin or moderator access required')
   }
 
   const formData = await readMultipartFormData(event)
   if (!formData) {
-    throw createError({ statusCode: 400, statusMessage: 'No file provided' })
+    throwServer(400, 'No file provided')
   }
 
   const file = formData.find((f) => f.name === 'image')
 
   if (!file || !file.data || file.data.length === 0) {
-    throw createError({ statusCode: 400, statusMessage: 'No image file provided' })
+    throwServer(400, 'No image file provided')
   }
 
   const mimeType = file.type || 'image/jpeg'
   if (!mimeType.startsWith('image/')) {
-    throw createError({ statusCode: 400, statusMessage: 'File must be an image' })
+    throwServer(400, 'File must be an image')
   }
 
   if (file.data.length > MAX_FILE_SIZE) {
-    throw createError({ statusCode: 400, statusMessage: 'Image must be less than 5MB' })
+    throwServer(400, 'Image must be less than 5MB')
   }
 
   const ext = extFromContentType(mimeType)

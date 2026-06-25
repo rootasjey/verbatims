@@ -8,12 +8,12 @@ import { eq } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throw createError({ statusCode: 403, statusMessage: 'Admin access required' }) }
+    if (user.role !== 'admin') { throwServer(403, 'Admin access required') }
 
     const body = await readBody(event)
     const { exportId } = body
 
-    if (!exportId) { throw createError({ statusCode: 400, statusMessage: 'Export ID is required' }) }
+    if (!exportId) { throwServer(400, 'Export ID is required') }
 
     const exportLog = await db.select({ id: schema.exportLogs.id })
       .from(schema.exportLogs)
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
       .limit(1);
 
     if (!exportLog || exportLog.length === 0) {
-      throw createError({ statusCode: 404, statusMessage: 'Export history entry not found' })
+      throwServer(404, 'Export history entry not found')
     }
 
     // Find associated backup file (if any)
@@ -47,9 +47,6 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Delete export history error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to delete export history entry'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to delete export history entry')
   }
 })

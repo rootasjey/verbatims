@@ -5,11 +5,11 @@ import { and, desc, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (!user || user.role !== 'admin') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const importId = getRouterParam(event, 'id')
-  if (!importId) throw createError({ statusCode: 400, statusMessage: 'Import ID is required' })
+  if (!importId) throwServer(400, 'Import ID is required')
 
   // Try to discover backup file by metadata first (preferred)
   const q = getQuery(event)
@@ -32,12 +32,12 @@ export default defineEventHandler(async (event) => {
 
   if (!row) {
     // If not found, return 404 but include a hint
-    throw createError({ statusCode: 404, statusMessage: 'No report found for this import' })
+    throwServer(404, 'No report found for this import')
   }
 
   const fileKey = String(row.fileKey)
   const file = await blob.get(fileKey)
-  if (!file) throw createError({ statusCode: 404, statusMessage: 'Report file missing from storage' })
+  if (!file) throwServer(404, 'Report file missing from storage')
 
   const inline = q.inline === '1'
 
@@ -125,6 +125,6 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'Content-Disposition', `${inline ? 'inline' : 'attachment'}; filename="import-report-${importId}.bin"`)
   // Re-read to satisfy type guard (should exist; earlier fetched)
   const file2 = await blob.get(fileKey)
-  if (!file2) throw createError({ statusCode: 404, statusMessage: 'Report file missing from storage' })
+  if (!file2) throwServer(404, 'Report file missing from storage')
   return file2.stream()
 })

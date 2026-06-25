@@ -103,9 +103,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Error fetching authors:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch authors'
-    })
+    throwServer(500, 'Failed to fetch authors')
   }
 })

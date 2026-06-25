@@ -6,7 +6,7 @@ function getResendClient(): Resend {
   const config = useRuntimeConfig()
   const apiKey = config.resendApiKey
   if (!apiKey) {
-    throw createError({ statusCode: 500, statusMessage: 'Email service not configured' })
+    throwServer(500, 'Email service not configured')
   }
   return new Resend(apiKey)
 }
@@ -49,7 +49,7 @@ export async function sendPasswordResetEmail(event: H3Event, toEmail: string, to
 
   if (error) {
     console.error('Failed to send password reset email:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to send password reset email' })
+    throwServer(500, 'Failed to send password reset email')
   }
 }
 
@@ -85,6 +85,6 @@ export async function sendVerificationEmail(event: H3Event, toEmail: string, tok
 
   if (error) {
     console.error('Failed to send verification email:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to send verification email' })
+    throwServer(500, 'Failed to send verification email')
   }
 }

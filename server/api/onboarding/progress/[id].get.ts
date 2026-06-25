@@ -6,32 +6,26 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session || !session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator role required.' })
+      throwServer(403, 'Admin or moderator role required.')
     }
   } catch (e) {
     if (e && (e as any).statusCode) throw e
-    throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+    throwServer(401, 'Authentication required')
   }
 
   const importId = getRouterParam(event, 'id')
   
   if (!importId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Import ID is required'
-    })
+    throwServer(400, 'Import ID is required')
   }
 
   // Check if progress exists
   const progress = getProgress(importId)
   if (!progress) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Import progress not found'
-    })
+    throwServer(404, 'Import progress not found')
   }
 
   // Check if client accepts SSE

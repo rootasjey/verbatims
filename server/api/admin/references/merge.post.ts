@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const body = await readBody(event)
@@ -16,16 +16,16 @@ export default defineEventHandler(async (event) => {
     const fieldsToCopy: string[] = body?.fields ?? []
 
     if (!sourceId || isNaN(sourceId) || !targetId || isNaN(targetId)) {
-      throw createError({ statusCode: 400, statusMessage: 'source_id and target_id are required' })
+      throwServer(400, 'source_id and target_id are required')
     }
 
     if (sourceId === targetId) {
-      throw createError({ statusCode: 400, statusMessage: 'Source and target must be different references' })
+      throwServer(400, 'Source and target must be different references')
     }
 
     const invalidFields = fieldsToCopy.filter(f => !MERGEABLE_FIELDS.includes(f as any))
     if (invalidFields.length > 0) {
-      throw createError({ statusCode: 400, statusMessage: `Invalid fields: ${invalidFields.join(', ')}` })
+      throwServer(400, `Invalid fields: ${invalidFields.join(', ')}`)
     }
 
     const [sourceRef, targetRef] = await Promise.all([
@@ -34,10 +34,10 @@ export default defineEventHandler(async (event) => {
     ])
 
     if (!sourceRef) {
-      throw createError({ statusCode: 404, statusMessage: 'Source reference not found' })
+      throwServer(404, 'Source reference not found')
     }
     if (!targetRef) {
-      throw createError({ statusCode: 404, statusMessage: 'Target reference not found' })
+      throwServer(404, 'Target reference not found')
     }
 
     const quotesResult = await db.get<{ count: number }>(sql`
@@ -137,11 +137,11 @@ export default defineEventHandler(async (event) => {
       }
     } catch (txErr) {
       await db.run(sql`ROLLBACK`)
-      throw createError({ statusCode: 500, statusMessage: 'Failed to merge references' })
+      throwServer(500, 'Failed to merge references')
     }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error merging references:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
+    throwServer(500, 'Internal server error')
   }
 })

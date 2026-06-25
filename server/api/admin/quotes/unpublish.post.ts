@@ -5,10 +5,10 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const body = await readBody(event)
@@ -25,10 +25,10 @@ export default defineEventHandler(async (event) => {
     // Validate payload
     ids = Array.from(new Set(ids))
     if (ids.length === 0) {
-      throw createError({ statusCode: 400, statusMessage: 'At least one valid quote id is required' })
+      throwServer(400, 'At least one valid quote id is required')
     }
     if (ids.length > 200) {
-      throw createError({ statusCode: 400, statusMessage: 'You can unpublish at most 200 quotes at a time' })
+      throwServer(400, 'You can unpublish at most 200 quotes at a time')
     }
 
     // Filter to only currently approved quotes to avoid unnecessary writes
@@ -79,6 +79,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Admin unpublish quotes error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to unpublish quotes' })
+    throwServer(500, 'Failed to unpublish quotes')
   }
 })

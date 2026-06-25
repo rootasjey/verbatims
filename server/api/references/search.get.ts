@@ -44,9 +44,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Reference search error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to search references'
-    })
+    throwServer(500, 'Failed to search references')
   }
 })

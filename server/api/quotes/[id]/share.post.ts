@@ -5,10 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
 
     // Check if quote exists and is approved
@@ -24,10 +21,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found or not approved'
-      })
+      throwServer(404, 'Quote not found or not approved')
     }
 
     // Increment share count
@@ -42,7 +36,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!updatedQuote) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to update quote share count' })
+      throwServer(500, 'Failed to update quote share count')
     }
 
     return {
@@ -57,9 +51,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Error tracking share:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to track share'
-    })
+    throwServer(500, 'Failed to track share')
   }
 })

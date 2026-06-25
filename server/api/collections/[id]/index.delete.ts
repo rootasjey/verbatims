@@ -6,18 +6,12 @@ export default defineEventHandler(async (event) => {
     // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     const collectionId = getRouterParam(event, 'id')
     if (!collectionId || isNaN(parseInt(collectionId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid collection ID'
-      })
+      throwServer(400, 'Invalid collection ID')
     }
     
     // Check if collection exists and user owns it
@@ -27,10 +21,7 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (!collection) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Collection not found'
-      })
+      throwServer(404, 'Collection not found')
     }
     
     // Check ownership or admin privileges
@@ -39,10 +30,7 @@ export default defineEventHandler(async (event) => {
                      session.user.role === 'moderator'
     
     if (!canDelete) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Access denied'
-      })
+      throwServer(403, 'Access denied')
     }
     
     // Delete collection (cascade will handle collection_quotes)
@@ -60,9 +48,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Collection deletion error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to delete collection'
-    })
+    throwServer(500, 'Failed to delete collection')
   }
 })

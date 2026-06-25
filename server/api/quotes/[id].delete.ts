@@ -10,19 +10,13 @@ export default defineEventHandler(async (event) => {
     // Get quote ID from URL
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Quote ID is required'
-      })
+      throwServer(400, 'Quote ID is required')
     }
 
     // Get user session
     const { user } = await requireUserSession(event)
     if (!user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
 
     // Check if quote exists and belongs to user
@@ -36,10 +30,7 @@ export default defineEventHandler(async (event) => {
     .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found'
-      })
+      throwServer(404, 'Quote not found')
     }
 
     // Check permissions: regular users can only delete their own drafts
@@ -49,10 +40,7 @@ export default defineEventHandler(async (event) => {
     const isDraft = quote.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'You can only delete your own draft quotes'
-      })
+      throwServer(403, 'You can only delete your own draft quotes')
     }
 
     // Delete quote
@@ -70,9 +58,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Delete quote error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to delete quote'
-    })
+    throwServer(500, 'Failed to delete quote')
   }
 })

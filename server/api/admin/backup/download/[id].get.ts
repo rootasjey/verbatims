@@ -10,22 +10,19 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (user.role !== 'admin' && user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required',
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const backupId = getRouterParam(event, 'id')
     if (!backupId || isNaN(Number(backupId))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid backup ID' })
+      throwServer(400, 'Invalid backup ID')
     }
 
     // First, look up the backup file to determine how to serve it
     const backupNumericId = Number(backupId)
     const backupFileRecord = await getBackupFileById(backupNumericId)
     if (!backupFileRecord) {
-      throw createError({ statusCode: 404, statusMessage: 'Backup file not found' })
+      throwServer(404, 'Backup file not found')
     }
 
     const ext = backupFileRecord.filename.split('.').pop()?.toLowerCase()
@@ -34,7 +31,7 @@ export default defineEventHandler(async (event) => {
     if (ext === 'zip') {
       const file = await blob.get(backupFileRecord.file_key)
       if (!file) {
-        throw createError({ statusCode: 404, statusMessage: 'Backup file not found in storage' })
+        throwServer(404, 'Backup file not found in storage')
       }
 
       const arrayBuffer = await file.arrayBuffer()
@@ -89,14 +86,14 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Backup download endpoint error:', error)
     if (error.message?.includes('not found')) {
-      throw createError({ statusCode: 404, statusMessage: 'Backup file not found' })
+      throwServer(404, 'Backup file not found')
     }
 
     if (error.message?.includes('not available')) {
-      throw createError({ statusCode: 410, statusMessage: 'Backup file is not available' })
+      throwServer(410, 'Backup file is not available')
     }
 
     if ((error as any).statusCode) throw error
-    throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
+    throwServer(500, 'Internal server error')
   }
 })

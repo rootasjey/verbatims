@@ -4,12 +4,12 @@ import { eq } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const id = getRouterParam(event, 'id')
   if (!id || isNaN(parseInt(id))) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid sponsor message ID' })
+    throwServer(400, 'Invalid sponsor message ID')
   }
   const sponsorId = parseInt(id)
 
@@ -20,13 +20,13 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (!row || row.length === 0) {
-      throw createError({ statusCode: 404, statusMessage: 'Sponsor message not found' })
+      throwServer(404, 'Sponsor message not found')
     }
 
     return { success: true, data: row[0] }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error fetching sponsor message:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch sponsor message' })
+    throwServer(500, 'Failed to fetch sponsor message')
   }
 })

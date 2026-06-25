@@ -4,7 +4,7 @@ import { eq, or, like, count, desc, asc, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
@@ -76,6 +76,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Error fetching admin tags:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch tags' })
+    throwServer(500, 'Failed to fetch tags')
   }
 })

@@ -7,60 +7,39 @@ export default defineEventHandler(async (event) => {
     // Check authentication and admin privileges
     const session = await requireUserSession(event)
     if (!session || !session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
     
     const body = await readBody(event)
     
     // Validate input
     if (!body.quote_ids || !Array.isArray(body.quote_ids) || body.quote_ids.length === 0) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Quote IDs array is required'
-      })
+      throwServer(400, 'Quote IDs array is required')
     }
     
     if (!body.action || !['approve', 'reject'].includes(body.action)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid action (approve/reject) is required'
-      })
+      throwServer(400, 'Valid action (approve/reject) is required')
     }
     
     // Validate rejection reason if rejecting
     if (body.action === 'reject' && (!body.rejection_reason || body.rejection_reason.trim().length === 0)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Rejection reason is required when rejecting quotes'
-      })
+      throwServer(400, 'Rejection reason is required when rejecting quotes')
     }
     
     // Limit bulk operations
     if (body.quote_ids.length > 50) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Cannot moderate more than 50 quotes at once'
-      })
+      throwServer(400, 'Cannot moderate more than 50 quotes at once')
     }
     
     // Validate all quote IDs are numbers and quotes exist
     const quoteIds: number[] = body.quote_ids.map((id: string) => {
       const numId = parseInt(id)
       if (isNaN(numId)) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'All quote IDs must be valid numbers'
-        })
+        throwServer(400, 'All quote IDs must be valid numbers')
       }
       return numId
     })
@@ -79,10 +58,7 @@ export default defineEventHandler(async (event) => {
       .all()
 
     if (existingQuotes.length !== quoteIds.length) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Some quotes not found or not pending moderation'
-      })
+      throwServer(400, 'Some quotes not found or not pending moderation')
     }
     
     // Perform bulk update
@@ -126,9 +102,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Bulk quote moderation error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to perform bulk moderation'
-    })
+    throwServer(500, 'Failed to perform bulk moderation')
   }
 })

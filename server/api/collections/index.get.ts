@@ -87,9 +87,6 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Collections fetch error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch collections'
-    })
+    throwServer(500, 'Failed to fetch collections')
   }
 })

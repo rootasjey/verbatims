@@ -8,10 +8,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     const body = await readBody(event)
 
     if (!body.name || body.name.length < 2 || body.name.length > 4000) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Quote text must be between 2 and 4000 characters'
-      })
+      throwServer(400, 'Quote text must be between 2 and 4000 characters')
     }
 
     let authorId = body.author_id
@@ -45,10 +42,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     // Validate language
     const allowedLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la']
     if (body.language && !allowedLanguages.includes(body.language)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid language code'
-      })
+      throwServer(400, 'Invalid language code')
     }
 
     // Validate author_id if provided
@@ -58,10 +52,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
         .where(eq(schema.authors.id, authorId))
         .get()
       if (!author) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Invalid author ID'
-        })
+        throwServer(400, 'Invalid author ID')
       }
     }
 
@@ -72,10 +63,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
         .where(eq(schema.quoteReferences.id, referenceId))
         .get()
       if (!reference) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Invalid reference ID'
-        })
+        throwServer(400, 'Invalid reference ID')
       }
     }
 
@@ -91,10 +79,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
       .get()
 
     if (similarQuotes) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'A similar quote already exists'
-      })
+      throwServer(409, 'A similar quote already exists')
     }
 
     // Insert the quote
@@ -165,10 +150,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     .get()
 
     if (!createdQuote) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch created quote'
-      })
+      throwServer(500, 'Failed to fetch created quote')
     }
 
     // Fetch tags for the quote
@@ -233,9 +215,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error creating quote:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to create quote'
-    })
+    throwServer(500, 'Failed to create quote')
   }
 })

@@ -13,10 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const refId = getRouterParam(event, 'id')
     if (!refId || isNaN(parseInt(refId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reference ID'
-      })
+      throwServer(400, 'Invalid reference ID')
     }
 
     // Check if user has liked this reference
@@ -41,9 +38,6 @@ export default defineEventHandler(async (event) => {
     }
 
     console.error('Error checking reference like status:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to check like status'
-    })
+    throwServer(500, 'Failed to check like status')
   }
 })

@@ -5,7 +5,7 @@ import { toISOStringOrEmpty, toISOStringOrNull } from '~~/server/utils/date-norm
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {
   const session = await requireUserSession(event)
   if (!session.user || (session.user.role !== 'admin' && session.user.role !== 'moderator')) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const query = getQuery(event)

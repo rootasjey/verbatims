@@ -7,13 +7,13 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{ text?: string }>(event)
 
   if (!body?.text || body.text.trim().length === 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing text' })
+    throwServer(400, 'Missing text')
   }
 
   const runtimeConfig = useRuntimeConfig()
 
   if (!runtimeConfig.francisApiKey) {
-    throw createError({ statusCode: 500, statusMessage: 'Language detection not configured' })
+    throwServer(500, 'Language detection not configured')
   }
 
   const response = await $fetch(`${runtimeConfig.francisApiUrl}/api/v1/detect`, {

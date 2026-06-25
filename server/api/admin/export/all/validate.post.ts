@@ -4,7 +4,7 @@ import { eq, inArray, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
   if (user.role !== 'admin' && user.role !== 'moderator') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+    throwServer(403, 'Admin or moderator access required')
   }
 
   const body = await readBody(event) as any
@@ -122,6 +122,6 @@ export default defineEventHandler(async (event) => {
     return { success: true, data: validation }
   } catch (e: any) {
     console.error('All export validate error:', e)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to validate combined export' })
+    throwServer(500, 'Failed to validate combined export')
   }
 })

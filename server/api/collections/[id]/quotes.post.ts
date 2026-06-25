@@ -6,27 +6,18 @@ export default defineEventHandler(async (event) => {
     // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     const collectionId = getRouterParam(event, 'id')
     if (!collectionId || isNaN(parseInt(collectionId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid collection ID'
-      })
+      throwServer(400, 'Invalid collection ID')
     }
     
     const body = await readBody(event)
     
     if (!body.quote_id || isNaN(parseInt(body.quote_id))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid quote ID is required'
-      })
+      throwServer(400, 'Valid quote ID is required')
     }
     
     // Check if collection exists and user owns it
@@ -36,17 +27,11 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (!collection) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Collection not found'
-      })
+      throwServer(404, 'Collection not found')
     }
     
     if (collection.userId !== session.user.id) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Access denied'
-      })
+      throwServer(403, 'Access denied')
     }
     
     // Check if quote exists and is approved
@@ -59,10 +44,7 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found or not approved'
-      })
+      throwServer(404, 'Quote not found or not approved')
     }
     
     // Check if quote is already in collection
@@ -75,10 +57,7 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (existingEntry) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'Quote is already in this collection'
-      })
+      throwServer(409, 'Quote is already in this collection')
     }
     
     // Add quote to collection
@@ -119,7 +98,7 @@ export default defineEventHandler(async (event) => {
     
     // Ensure we have an added quote result
     if (!addedQuote) {
-      throw createError({ statusCode: 404, statusMessage: 'Failed to load added quote' })
+      throwServer(404, 'Failed to load added quote')
     }
 
     // Process tags safely (DB result shapes can be loose)
@@ -148,9 +127,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Add quote to collection error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to add quote to collection'
-    })
+    throwServer(500, 'Failed to add quote to collection')
   }
 })

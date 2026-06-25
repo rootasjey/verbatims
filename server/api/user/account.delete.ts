@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
   if (!session.user) {
-    throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+    throwServer(401, 'Authentication required')
   }
 
   try {
@@ -18,6 +18,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error deleting account:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to delete account' })
+    throwServer(500, 'Failed to delete account')
   }
 })

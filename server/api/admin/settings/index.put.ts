@@ -4,14 +4,14 @@ import { sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || session.user.role !== 'admin') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   try {
     const body = await readBody(event)
     const settings = body?.settings as Record<string, string> | undefined
     if (!settings || typeof settings !== 'object') {
-      throw createError({ statusCode: 400, statusMessage: 'Body must contain a settings object' })
+      throwServer(400, 'Body must contain a settings object')
     }
 
     for (const [key, value] of Object.entries(settings)) {
@@ -23,6 +23,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if (error.statusCode) throw error
     console.error('Error updating settings:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update settings' })
+    throwServer(500, 'Failed to update settings')
   }
 })

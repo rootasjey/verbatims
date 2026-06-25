@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const body = await readBody(event)
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
 
     const allowedStatuses: Array<QuoteStatus | 'all'> = ['all', 'draft', 'pending', 'approved', 'rejected']
     if (!allowedStatuses.includes(status)) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid status filter' })
+      throwServer(400, 'Invalid status filter')
     }
 
     const { created, idsByLowerName } = await ensureCuratedTagsExist()
@@ -139,6 +139,6 @@ export default defineEventHandler(async (event) => {
     }
 
     console.error('Backfill tags error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to backfill tags' })
+    throwServer(500, 'Failed to backfill tags')
   }
 })

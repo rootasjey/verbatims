@@ -6,18 +6,12 @@ export default defineEventHandler(async (event) => {
     // Check authentication
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     const collectionId = getRouterParam(event, 'id')
     if (!collectionId || isNaN(parseInt(collectionId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid collection ID'
-      })
+      throwServer(400, 'Invalid collection ID')
     }
     
     const body = await readBody(event)
@@ -29,10 +23,7 @@ export default defineEventHandler(async (event) => {
       .get()
     
     if (!collection) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Collection not found'
-      })
+      throwServer(404, 'Collection not found')
     }
     
     // Check ownership or admin privileges
@@ -41,26 +32,17 @@ export default defineEventHandler(async (event) => {
                    session.user.role === 'moderator'
     
     if (!canEdit) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Access denied'
-      })
+      throwServer(403, 'Access denied')
     }
     
     // Validate input
     if (body.name !== undefined) {
       if (!body.name || typeof body.name !== 'string') {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Collection name is required'
-        })
+        throwServer(400, 'Collection name is required')
       }
       
       if (body.name.length < 2 || body.name.length > 100) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Collection name must be between 2 and 100 characters'
-        })
+        throwServer(400, 'Collection name must be between 2 and 100 characters')
       }
       
       // Check if user already has another collection with this name
@@ -73,18 +55,12 @@ export default defineEventHandler(async (event) => {
         .get()
       
       if (existingCollection && existingCollection.id !== parseInt(collectionId)) {
-        throw createError({
-          statusCode: 409,
-          statusMessage: 'You already have a collection with this name'
-        })
+        throwServer(409, 'You already have a collection with this name')
       }
     }
     
     if (body.description !== undefined && body.description && body.description.length > 500) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Description must be less than 500 characters'
-      })
+      throwServer(400, 'Description must be less than 500 characters')
     }
     
     // Build update object
@@ -103,10 +79,7 @@ export default defineEventHandler(async (event) => {
     }
     
     if (Object.keys(updateData).length === 0) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'No valid fields to update'
-      })
+      throwServer(400, 'No valid fields to update')
     }
     
     updateData.updatedAt = new Date()
@@ -142,9 +115,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Collection update error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update collection'
-    })
+    throwServer(500, 'Failed to update collection')
   }
 })

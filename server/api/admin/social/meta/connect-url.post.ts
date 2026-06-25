@@ -15,7 +15,7 @@ const META_DEFAULT_SCOPES = [
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const body = await readBody(event)
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   const resolvedOAuth = await resolveMetaOAuthConfig({ origin })
   const appId = resolvedOAuth.appId
   if (!appId) {
-    throw createError({ statusCode: 500, statusMessage: 'Missing Meta App ID (configure Meta settings or META_APP_ID)' })
+    throwServer(500, 'Missing Meta App ID (configure Meta settings or META_APP_ID)')
   }
 
   const redirectUri = resolvedOAuth.redirectUri

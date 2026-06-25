@@ -103,9 +103,6 @@ export default defineEventHandler(async (event) => {
     }
 
     console.error('Dashboard submissions error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch submissions'
-    })
+    throwServer(500, 'Failed to fetch submissions')
   }
 })

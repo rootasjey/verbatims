@@ -7,43 +7,28 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
     
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid quote ID'
-      })
+      throwServer(400, 'Invalid quote ID')
     }
     
     const body = await readBody(event)
     
     // Validate action
     if (!body.action || !['approve', 'reject'].includes(body.action)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid action (approve/reject) is required'
-      })
+      throwServer(400, 'Valid action (approve/reject) is required')
     }
     
     // Validate rejection reason if rejecting
     if (body.action === 'reject' && (!body.rejection_reason || body.rejection_reason.trim().length === 0)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Rejection reason is required when rejecting a quote'
-      })
+      throwServer(400, 'Rejection reason is required when rejecting a quote')
     }
     
     // Check if quote exists and is pending
@@ -56,10 +41,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!quote) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Quote not found or not pending moderation'
-      })
+      throwServer(404, 'Quote not found or not pending moderation')
     }
     
     // Update quote status
@@ -112,10 +94,7 @@ export default defineEventHandler(async (event) => {
     `))
 
     if (!updatedQuote) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch updated quote'
-      })
+      throwServer(500, 'Failed to fetch updated quote')
     }
     
     // Process tags
@@ -139,9 +118,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Quote moderation error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to moderate quote'
-    })
+    throwServer(500, 'Failed to moderate quote')
   }
 })

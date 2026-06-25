@@ -5,10 +5,7 @@
  */
 
 export default defineEventHandler(async (_event) => {
-  throw createError({
-    statusCode: 410,
-    statusMessage: 'This export endpoint has been deprecated. Please use /api/admin/export/references instead.'
-  })
+  throwServer(410, 'This export endpoint has been deprecated. Please use /api/admin/export/references instead.')
 })
 
 

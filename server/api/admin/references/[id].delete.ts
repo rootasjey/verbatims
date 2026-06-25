@@ -10,18 +10,12 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin access required'
-      })
+      throwServer(403, 'Admin access required')
     }
 
     const referenceId = getRouterParam(event, 'id')
     if (!referenceId || isNaN(parseInt(referenceId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reference ID'
-      })
+      throwServer(400, 'Invalid reference ID')
     }
 
     // Check if reference exists
@@ -31,10 +25,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!existingReference) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Reference not found'
-      })
+      throwServer(404, 'Reference not found')
     }
 
     // Clean up R2 image if present
@@ -54,10 +45,7 @@ export default defineEventHandler(async (event) => {
     if (quoteCount > 0) {
       const strategy = body?.strategy
       if (strategy !== 'delete' && strategy !== 'anonymize') {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Related quotes exist. Provide strategy: "delete" or "anonymize".'
-        })
+        throwServer(400, 'Related quotes exist. Provide strategy: "delete" or "anonymize".')
       }
 
       await db.run(sql`BEGIN TRANSACTION`)
@@ -80,7 +68,7 @@ export default defineEventHandler(async (event) => {
         await db.run(sql`COMMIT`)
       } catch (txErr) {
         await db.run(sql`ROLLBACK`)
-        throw createError({ statusCode: 500, statusMessage: 'Failed to process deletion transaction' })
+        throwServer(500, 'Failed to process deletion transaction')
       }
 
       return {
@@ -105,9 +93,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

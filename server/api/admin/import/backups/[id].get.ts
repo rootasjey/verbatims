@@ -8,10 +8,10 @@ import { eq, desc } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throw createError({ statusCode: 403, statusMessage: 'Admin access required' }) }
+    if (user.role !== 'admin') { throwServer(403, 'Admin access required') }
 
     const importId = getRouterParam(event, 'id')
-    if (!importId) { throw createError({ statusCode: 400, statusMessage: 'Import ID is required' }) }
+    if (!importId) { throwServer(400, 'Import ID is required') }
 
     const importLog = await db.select({ id: schema.importLogs.id })
       .from(schema.importLogs)
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error: any) {
     console.error('Import backup listing failed:', error)
-    throw createError({ statusCode: error.statusCode || 500, statusMessage: error.statusMessage || 'Failed to list import backups' })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to list import backups')
   }
 })
 

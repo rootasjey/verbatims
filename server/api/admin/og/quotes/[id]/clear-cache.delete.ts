@@ -3,10 +3,7 @@ import { kv } from 'hub:kv'
 export default defineEventHandler(async (event) => {
   const quoteId = getRouterParam(event, 'id')
   if (!quoteId) {
-    throw createError({
-      statusCode: 400,
-      message: 'Quote ID is required'
-    })
+    throwServer(400, 'Quote ID is required')
   }
 
   // Delete all cache entries for this quote

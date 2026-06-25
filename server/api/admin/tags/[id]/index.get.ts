@@ -4,12 +4,12 @@ import { eq, count, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const id = getRouterParam(event, 'id')
   if (!id || isNaN(parseInt(id))) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid tag ID' })
+    throwServer(400, 'Invalid tag ID')
   }
   const tagId = parseInt(id)
 
@@ -30,12 +30,12 @@ export default defineEventHandler(async (event) => {
     .groupBy(schema.tags.id)
     .limit(1)
     
-    if (!row || row.length === 0) throw createError({ statusCode: 404, statusMessage: 'Tag not found' })
+    if (!row || row.length === 0) throwServer(404, 'Tag not found')
 
     return { success: true, data: row[0] }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error fetching tag by id:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch tag' })
+    throwServer(500, 'Failed to fetch tag')
   }
 })

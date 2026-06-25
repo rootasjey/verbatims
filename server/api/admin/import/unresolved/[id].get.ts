@@ -1,9 +1,9 @@
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
-  if (user.role !== 'admin') throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+  if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const id = event.context.params?.id
-  if (!id) throw createError({ statusCode: 400, statusMessage: 'Missing import id' })
+  if (!id) throwServer(400, 'Missing import id')
 
   const data = getUnresolved(id)
   const filename = `unresolved-${id}.json`

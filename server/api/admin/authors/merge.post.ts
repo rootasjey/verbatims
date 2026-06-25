@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const body = await readBody(event)
@@ -16,16 +16,16 @@ export default defineEventHandler(async (event) => {
     const fieldsToCopy: string[] = body?.fields ?? []
 
     if (!sourceId || isNaN(sourceId) || !targetId || isNaN(targetId)) {
-      throw createError({ statusCode: 400, statusMessage: 'source_id and target_id are required' })
+      throwServer(400, 'source_id and target_id are required')
     }
 
     if (sourceId === targetId) {
-      throw createError({ statusCode: 400, statusMessage: 'Source and target must be different authors' })
+      throwServer(400, 'Source and target must be different authors')
     }
 
     const invalidFields = fieldsToCopy.filter(f => !MERGEABLE_FIELDS.includes(f as any))
     if (invalidFields.length > 0) {
-      throw createError({ statusCode: 400, statusMessage: `Invalid fields: ${invalidFields.join(', ')}` })
+      throwServer(400, `Invalid fields: ${invalidFields.join(', ')}`)
     }
 
     const [sourceAuthor, targetAuthor] = await Promise.all([
@@ -34,10 +34,10 @@ export default defineEventHandler(async (event) => {
     ])
 
     if (!sourceAuthor) {
-      throw createError({ statusCode: 404, statusMessage: 'Source author not found' })
+      throwServer(404, 'Source author not found')
     }
     if (!targetAuthor) {
-      throw createError({ statusCode: 404, statusMessage: 'Target author not found' })
+      throwServer(404, 'Target author not found')
     }
 
     const quotesResult = await db.get<{ count: number }>(sql`
@@ -113,11 +113,11 @@ export default defineEventHandler(async (event) => {
       }
     } catch (txErr) {
       await db.run(sql`ROLLBACK`)
-      throw createError({ statusCode: 500, statusMessage: 'Failed to merge authors' })
+      throwServer(500, 'Failed to merge authors')
     }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error merging authors:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Internal server error' })
+    throwServer(500, 'Internal server error')
   }
 })

@@ -13,10 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const authorId = getRouterParam(event, 'id')
     if (!authorId || isNaN(parseInt(authorId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid author ID'
-      })
+      throwServer(400, 'Invalid author ID')
     }
 
     // Check if user has liked this author
@@ -41,9 +38,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Error checking author like status:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to check like status'
-    })
+    throwServer(500, 'Failed to check like status')
   }
 })

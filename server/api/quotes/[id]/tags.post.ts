@@ -5,17 +5,17 @@ import { getTagById, isCuratedTagName } from '~~/server/utils/tagging'
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
-    if (!session.user) throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+    if (!session.user) throwServer(401, 'Authentication required')
 
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid quote ID' })
+      throwServer(400, 'Invalid quote ID')
     }
 
     const body = await readBody(event)
     const { tagId, name } = body || {}
     if (!tagId && !name) {
-      throw createError({ statusCode: 400, statusMessage: 'Provide tagId or name' })
+      throwServer(400, 'Provide tagId or name')
     }
 
     // Check permissions: owner of draft or admin/moderator can edit tags
@@ -27,12 +27,12 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quotes.id, parseInt(quoteId)))
     .get()
 
-    if (!quote) throw createError({ statusCode: 404, statusMessage: 'Quote not found' })
+    if (!quote) throwServer(404, 'Quote not found')
     const isPrivileged = session.user.role === 'admin' || session.user.role === 'moderator'
     const isAdminUser = session.user.role === 'admin'
     const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
     if (!isPrivileged && !isOwnerDraft) {
-      throw createError({ statusCode: 403, statusMessage: 'Not allowed to edit tags for this quote' })
+      throwServer(403, 'Not allowed to edit tags for this quote')
     }
 
     let finalTagId = tagId
@@ -56,15 +56,9 @@ export default defineEventHandler(async (event) => {
 
         finalTagId = inserted.id
       } else if (!existing) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Only admins can create new tags. Please select an existing curated tag.'
-        })
+        throwServer(400, 'Only admins can create new tags. Please select an existing curated tag.')
       } else if (!isCuratedTagName(existing.name) && !isAdminUser) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'This tag is not part of the curated taxonomy.'
-        })
+        throwServer(400, 'This tag is not part of the curated taxonomy.')
       } else {
         finalTagId = existing.id
       }
@@ -72,14 +66,11 @@ export default defineEventHandler(async (event) => {
 
     const selectedTag = await getTagById(finalTagId)
     if (!selectedTag) {
-      throw createError({ statusCode: 404, statusMessage: 'Tag not found' })
+      throwServer(404, 'Tag not found')
     }
 
     if (!isCuratedTagName(selectedTag.name) && !isAdminUser) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Only curated tags can be added to quotes.'
-      })
+      throwServer(400, 'Only curated tags can be added to quotes.')
     }
 
     // Attach relation (ignore duplicates)
@@ -101,6 +92,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error adding tag to quote:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to add tag to quote' })
+    throwServer(500, 'Failed to add tag to quote')
   }
 })

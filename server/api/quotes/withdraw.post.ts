@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session?.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
 
     const body = await readBody(event)
@@ -21,10 +21,10 @@ export default defineEventHandler(async (event) => {
 
     ids = Array.from(new Set(ids))
     if (ids.length === 0) {
-      throw createError({ statusCode: 400, statusMessage: 'At least one valid quote id is required' })
+      throwServer(400, 'At least one valid quote id is required')
     }
     if (ids.length > 200) {
-      throw createError({ statusCode: 400, statusMessage: 'You can withdraw at most 200 quotes at a time' })
+      throwServer(400, 'You can withdraw at most 200 quotes at a time')
     }
 
     // Only allow withdrawing quotes owned by the user and currently pending
@@ -77,6 +77,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if (error?.statusCode) throw error
     console.error('Bulk withdraw quotes error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to bulk withdraw quotes' })
+    throwServer(500, 'Failed to bulk withdraw quotes')
   }
 })

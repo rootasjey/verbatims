@@ -5,18 +5,12 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
 
     const refId = getRouterParam(event, 'id')
     if (!refId || isNaN(parseInt(refId))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reference ID'
-      })
+      throwServer(400, 'Invalid reference ID')
     }
 
     const ref = await db.select({ id: schema.quoteReferences.id })
@@ -25,10 +19,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!ref) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Reference not found'
-      })
+      throwServer(404, 'Reference not found')
     }
 
     // Check if user has already liked this reference
@@ -71,10 +62,7 @@ export default defineEventHandler(async (event) => {
       .get()
 
     if (!updatedRef) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch updated reference'
-      })
+      throwServer(500, 'Failed to fetch updated reference')
     }
 
     return {
@@ -90,9 +78,6 @@ export default defineEventHandler(async (event) => {
     }
     
     console.error('Error toggling reference like:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to toggle like'
-    })
+    throwServer(500, 'Failed to toggle like')
   }
 })

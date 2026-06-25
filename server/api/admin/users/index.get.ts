@@ -5,17 +5,11 @@ export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> 
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
     
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
     
     const query = getQuery(event)
@@ -122,9 +116,6 @@ export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> 
     }
     
     console.error('Admin users error:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch users'
-    })
+    throwServer(500, 'Failed to fetch users')
   }
 })

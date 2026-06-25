@@ -2,10 +2,7 @@ export default defineEventHandler(async (event) => {
   // Check authentication
   const { user } = await getUserSession(event)
   if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Authentication required'
-    })
+    throwServer(401, 'Authentication required')
   }
 
   const body = await readBody(event)
@@ -14,10 +11,7 @@ export default defineEventHandler(async (event) => {
   // Validate language
   const validLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh']
   if (!language || !validLanguages.includes(language)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid language. Must be one of: ' + validLanguages.join(', ')
-    })
+    throwServer(400, 'Invalid language. Must be one of: ' + validLanguages.join(', '))
   }
 
   try {
@@ -44,9 +38,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     console.error('Error updating user language:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

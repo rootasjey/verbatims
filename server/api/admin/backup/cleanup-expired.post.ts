@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const expiredFiles = await listBackupFiles({
@@ -51,9 +51,6 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Backup cleanup error:', error)
-    throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to cleanup expired backups'
-    })
+    throwServer(error.statusCode || 500, error.statusMessage || 'Failed to cleanup expired backups')
   }
 })

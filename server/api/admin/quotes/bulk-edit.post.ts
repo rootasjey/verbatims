@@ -5,20 +5,20 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session || !session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin or moderator access required' })
+      throwServer(403, 'Admin or moderator access required')
     }
 
     const body = await readBody(event)
 
     if (!body.quote_ids || !Array.isArray(body.quote_ids) || body.quote_ids.length === 0) {
-      throw createError({ statusCode: 400, statusMessage: 'Quote IDs array is required' })
+      throwServer(400, 'Quote IDs array is required')
     }
 
     if (body.quote_ids.length > 50) {
-      throw createError({ statusCode: 400, statusMessage: 'Cannot edit more than 50 quotes at once' })
+      throwServer(400, 'Cannot edit more than 50 quotes at once')
     }
 
     let hasUpdate = false
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     const quoteIds: number[] = body.quote_ids.map((id: string | number) => {
       const numId = typeof id === 'number' ? id : parseInt(id)
       if (isNaN(numId)) {
-        throw createError({ statusCode: 400, statusMessage: 'All quote IDs must be valid numbers' })
+        throwServer(400, 'All quote IDs must be valid numbers')
       }
       return numId
     })
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     if (body.language !== undefined) {
       const validLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la']
       if (!validLanguages.includes(body.language)) {
-        throw createError({ statusCode: 400, statusMessage: `Invalid language: ${body.language}` })
+        throwServer(400, `Invalid language: ${body.language}`)
       }
       updateData.language = body.language
       hasUpdate = true
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!hasUpdate) {
-      throw createError({ statusCode: 400, statusMessage: 'At least one field to update is required' })
+      throwServer(400, 'At least one field to update is required')
     }
 
     // Check existence
@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
       .all()
 
     if (existing.length !== quoteIds.length) {
-      throw createError({ statusCode: 400, statusMessage: 'Some quotes not found' })
+      throwServer(400, 'Some quotes not found')
     }
 
     // Batch update
@@ -110,6 +110,6 @@ export default defineEventHandler(async (event) => {
       throw error
     }
     console.error('Bulk edit quotes error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to update quotes' })
+    throwServer(500, 'Failed to update quotes')
   }
 })

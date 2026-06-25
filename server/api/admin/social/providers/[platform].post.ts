@@ -37,12 +37,12 @@ function assignOptionalBoolean(target: Record<string, string | boolean>, input: 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   if (!session.user || session.user.role !== 'admin') {
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+    throwServer(403, 'Admin access required')
   }
 
   const platformParam = String(getRouterParam(event, 'platform') || '').trim().toLowerCase()
   if (!isEditableSocialProvider(platformParam)) {
-    throw createError({ statusCode: 400, statusMessage: 'Unsupported provider' })
+    throwServer(400, 'Unsupported provider')
   }
 
   const platform = platformParam as EditableSocialProvider

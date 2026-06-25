@@ -9,12 +9,12 @@ export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
     if (!user || user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const backupId = getRouterParam(event, 'id')
     if (!backupId || isNaN(Number(backupId))) {
-      throw createError({ statusCode: 400, statusMessage: 'Invalid backup ID' })
+      throwServer(400, 'Invalid backup ID')
     }
 
     await deleteBackup(Number(backupId))
@@ -27,9 +27,6 @@ export default defineEventHandler(async (event) => {
     console.error('Delete backup endpoint error:', error)
     if ((error as any).statusCode) throw error
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Internal server error'
-    })
+    throwServer(500, 'Internal server error')
   }
 })

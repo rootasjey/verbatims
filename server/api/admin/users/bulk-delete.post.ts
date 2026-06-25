@@ -5,11 +5,11 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+      throwServer(401, 'Authentication required')
     }
 
     if (session.user.role !== 'admin') {
-      throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
+      throwServer(403, 'Admin access required')
     }
 
     const body = await readBody(event)
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     )) as number[]
 
     if (ids.length === 0) {
-      throw createError({ statusCode: 400, statusMessage: 'No valid user IDs provided' })
+      throwServer(400, 'No valid user IDs provided')
     }
 
     const selectedUsers = await db.select({
@@ -53,6 +53,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Admin bulk delete users error:', error)
-    throw createError({ statusCode: 500, statusMessage: 'Failed to bulk delete users' })
+    throwServer(500, 'Failed to bulk delete users')
   }
 })
