@@ -103,7 +103,7 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
         }
         if (options.customSingleKeys && key in options.customSingleKeys) {
           e.preventDefault()
-          options.customSingleKeys[key]()
+          options.customSingleKeys[key]!()
         }
       }
       return
@@ -113,7 +113,7 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
 
     if (options.customKeys && key in options.customKeys) {
       e.preventDefault()
-      options.customKeys[key]()
+      options.customKeys[key]!()
       return
     }
 

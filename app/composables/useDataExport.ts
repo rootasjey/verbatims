@@ -750,14 +750,14 @@ export const useDataExport = () => {
     try {
       state.isLoadingHistory = true
 
-      const response = await $fetch('/api/admin/export/history-with-backups', {
+      const response = await $fetch<ApiResponse<{ entries: any[]; pagination: any }>>('/api/admin/export/history-with-backups', {
         query: {
           page,
           limit: state.historyPagination.limit
         }
       })
 
-      if (response.success) {
+      if (response.success && response.data) {
         state.exportHistory = response.data.entries
         state.historyPagination = {
           ...state.historyPagination,
@@ -785,7 +785,7 @@ export const useDataExport = () => {
 
   const deleteExportHistoryEntry = async (exportId: string) => {
     try {
-      const response = await $fetch('/api/admin/export/history', {
+      const response = await $fetch<ApiResponse<unknown>>('/api/admin/export/history', {
         method: 'DELETE',
         body: { exportId }
       })
@@ -811,7 +811,7 @@ export const useDataExport = () => {
 
   const clearAllExportHistory = async () => {
     try {
-      const response = await $fetch('/api/admin/export/history/clear', {
+      const response = await $fetch<ApiResponse<unknown>>('/api/admin/export/history/clear', {
         method: 'DELETE',
         body: { confirm: true }
       })

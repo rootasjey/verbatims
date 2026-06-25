@@ -13,7 +13,7 @@
             @update:model-value="val => (feed.searchQuery.value = val)"
             placeholder="Search quotes..."
             leading="i-ph-magnifying-glass"
-            :trailing="feed.searchQuery?.value ? 'i-ph-x' : null"
+            :trailing="feed.searchQuery?.value ? 'i-ph-x' : undefined"
             size="md"
             :loading="feed.quotesLoading?.value"
             @trailing="feed.searchQuery.value = ''; feed.searchQuery.value = ''"

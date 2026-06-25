@@ -8,7 +8,7 @@
           v-model="searchModel"
           :placeholder="`Search among ${totalCount || 0} references...`"
           leading="i-ph-magnifying-glass"
-          :trailing="searchModel ? 'i-ph-x' : null"
+          :trailing="searchModel ? 'i-ph-x' : undefined"
           size="md"
           class="focus:border-2 focus:border-lime-500"
           @trailing="searchModel = ''; focus()"
@@ -93,14 +93,14 @@ const searchModel = computed({
   set: (v: string) => emit('update:searchQuery', v)
 })
 
-const primaryTypeModel = computed<Option | null>({
-  get: () => (props.typeOptions as Option[]).find((o) => o.value === props.primaryType) || null,
-  set: (opt: Option | null) => emit('update:primaryType', opt?.value || '')
+const primaryTypeModel = computed({
+  get: () => (props.typeOptions as Option[]).find((o) => o.value === props.primaryType) ?? (props.typeOptions as Option[])[0] ?? { label: '', value: '' },
+  set: (opt: Option) => emit('update:primaryType', opt.value)
 })
 
-const sortByModel = computed<Option | null>({
-  get: () => (props.sortOptions as Option[]).find((o) => o.value === props.sortBy) || null,
-  set: (opt: Option | null) => emit('update:sortBy', opt?.value || '')
+const sortByModel = computed({
+  get: () => (props.sortOptions as Option[]).find((o) => o.value === props.sortBy) ?? (props.sortOptions as Option[])[0] ?? { label: '', value: '' },
+  set: (opt: Option) => emit('update:sortBy', opt.value)
 })
 
 const focus = () => {

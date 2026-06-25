@@ -61,14 +61,14 @@
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
-          :model-value="modelValue.date_range.start"
+          :model-value="modelValue.date_range?.start"
           @update:model-value="updateDateRange('start', $event)"
           type="date"
           placeholder="Start date"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
         <input
-          :model-value="modelValue.date_range.end"
+          :model-value="modelValue.date_range?.end"
           @update:model-value="updateDateRange('end', $event)"
           type="date"
           placeholder="End date"
@@ -159,7 +159,7 @@ const updateDateRange = (type: 'start' | 'end', value: string) => {
   const updated = {
     ...props.modelValue,
     date_range: {
-      ...props.modelValue.date_range,
+      ...(props.modelValue.date_range ?? {}),
       [type]: value
     }
   }

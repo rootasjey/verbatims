@@ -355,7 +355,7 @@ const performSearch = async (query: string) => {
   authors.value = localResults
 
   try {
-    const response = await $fetch('/api/authors', {
+    const response = await $fetch<ApiResponse<Author[]> & { pagination?: { total?: number } }>('/api/authors', {
       query: {
         page: 1,
         limit: 50,
@@ -365,13 +365,13 @@ const performSearch = async (query: string) => {
       }
     })
 
-    const apiResults = response.data || []
+    const apiResults = response?.data || []
 
     const existingIds = new Set(localResults.map(a => a.id))
     const newResults = apiResults.filter(author => !existingIds.has(author.id))
 
     authors.value = [...localResults, ...newResults]
-    totalAuthors.value = response.pagination?.total || authors.value.length
+    totalAuthors.value = response?.pagination?.total || authors.value.length
     hasMore.value = false
   } catch (error) {
     console.error('Failed to search authors:', error)

@@ -165,7 +165,7 @@
     </div>
 
     <AddReferenceDialog v-model="showAddReferenceDialog" :edit-reference="convertToQuoteReference(selectedReference)" @reference-added="onReferenceAdded" @reference-updated="onReferenceUpdated" />
-    <DeleteReferenceDialog v-model="showDeleteReferenceDialog" :reference="referenceToDelete" @reference-deleted="onReferenceDeleted" />
+    <DeleteReferenceDialog v-model="showDeleteReferenceDialog" :reference="referenceToDelete!" @reference-deleted="onReferenceDeleted" />
     <AdminReferenceEnrichmentDialog :open="showEnrichmentDialog" :loading="enrichmentLoading" :applying="enrichmentApplying" :reference="convertToQuoteReference(enrichmentReferenceTarget) || null" :preview="enrichmentPreview" :job-id="enrichmentJobId" :selected-fields="selectedEnrichmentFields" @update:open="handleEnrichmentDialogOpenChange" @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)" @promote-candidate="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget, $event)" @toggle-field="toggleEnrichmentField" @select-recommended="selectRecommendedEnrichmentFields" @apply="applySelectedEnrichment" />
     <AdminEnrichmentConfigDialog :open="showEnrichmentConfigDialog" :loading="enrichmentConfigLoading" :saving="enrichmentConfigSaving" :updated-at="enrichmentConfigUpdatedAt" :form="enrichmentConfigForm" :sources="enrichmentConfigSources" @update:open="showEnrichmentConfigDialog = $event" @save="saveEnrichmentConfig" />
 
@@ -315,14 +315,14 @@ const loadReferences = async () => {
     const response = await $fetch('/api/admin/references', {
       query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, primary_type: selectedTypeFilter.value.value || undefined, sort_by: sortBy, sort_order: sortOrder.toUpperCase() }
     })
-    references.value = response.data || []; totalReferences.value = response.pagination?.total || 0
+    references.value = response?.data || []; totalReferences.value = response?.pagination?.total || 0
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
   } catch (error) { showErrorToast(error, 'Failed to load references') }
   finally { loading.value = false; hasLoadedOnce.value = true }
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''; selectedTypeFilter.value = typeFilterOptions[0]; selectedSort.value = sortOptions[0]
+  searchQuery.value = ''; selectedTypeFilter.value = typeFilterOptions[0]!; selectedSort.value = sortOptions[0]!
   currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 

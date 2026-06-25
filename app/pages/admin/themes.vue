@@ -493,7 +493,7 @@ const loadSuggestions = async () => {
   selectedSuggestionIndex.value = null
   try {
     const res = await $fetch('/api/admin/themes/suggestions')
-    suggestions.value = res.data || []
+    suggestions.value = res?.data || []
   } catch {
     showErrorToast(null, { title: 'Error', fallback: 'Failed to load suggestions' })
   } finally {
@@ -506,10 +506,10 @@ const loadAISuggestions = async () => {
   selectedSuggestionIndex.value = null
   try {
     const res = await $fetch('/api/admin/themes/suggestions?ai=true')
-    if (!res.data || !res.data.length) {
+    if (!res?.data || !res.data.length) {
       useToast().toast({ toast: 'outline-warning', title: 'No AI suggestions', description: 'AI returned no results. Check your AI settings or fallback to regular suggestions.' })
     }
-    suggestions.value = res.data || []
+    suggestions.value = res?.data || []
   } catch {
     showErrorToast(null, { title: 'AI Error', fallback: 'Failed to generate AI suggestions. Check your AI settings.' })
   } finally {
@@ -678,8 +678,8 @@ const loadThemes = async () => {
         sort_order: sortOrder,
       },
     })
-    themes.value = res.data || []
-    totalThemes.value = res.pagination?.total || 0
+    themes.value = res?.data || []
+    totalThemes.value = res?.pagination?.total || 0
     rowSelection.value = {}
     clearHighlight()
   } catch (e) {
@@ -691,7 +691,7 @@ const loadThemes = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedSort.value = sortOptions[0]
+  selectedSort.value = sortOptions[0]!
   currentPage.value = 1
   rowSelection.value = {}
 }
@@ -761,7 +761,7 @@ const scrollHighlightedIntoView = () => {
 }
 
 const onFilterValueInput = (idx: number) => {
-  clearTimeout(fetchFilterTimeout)
+  if (fetchFilterTimeout) clearTimeout(fetchFilterTimeout)
   highlightedIndex.value = -1
   fetchingFilterIndex.value = idx
   const filter = filters.value[idx]
@@ -785,7 +785,7 @@ const searchFilterSuggestions = async (idx: number) => {
     const res = await $fetch('/api/admin/themes/filter-suggestions', {
       query: { q: filter.value, type: filter.type },
     })
-    filterSuggestions.value = res.data || []
+    filterSuggestions.value = res?.data || []
     activeFilterIndex.value = filterSuggestions.value.length > 0 ? idx : null
     highlightedIndex.value = -1
   } catch {
@@ -802,7 +802,7 @@ const onFilterKeydown = async (idx: number, e: KeyboardEvent) => {
     if (e.metaKey || e.ctrlKey) return
     e.preventDefault()
     if (activeFilterIndex.value === idx && highlightedIndex.value >= 0 && highlightedIndex.value < filterSuggestions.value.length) {
-      selectFilterSuggestion(idx, filterSuggestions.value[highlightedIndex.value])
+      selectFilterSuggestion(idx, filterSuggestions.value[highlightedIndex.value]!)
     } else {
       const current = filters.value[idx]
       if (current) {
@@ -911,7 +911,7 @@ const fetchFilterRecommendations = async () => {
 }
 
 const scheduleFilterRecommendations = () => {
-  clearTimeout(recommendTimeout)
+  if (recommendTimeout) clearTimeout(recommendTimeout)
   recommendTimeout = setTimeout(fetchFilterRecommendations, 400)
 }
 
@@ -976,7 +976,7 @@ const saveTheme = async () => {
 
     } else {
       const res = await $fetch('/api/admin/themes', { method: 'POST', body: payload })
-      const newId = res.data?.id
+      const newId = res?.data?.id
 
       if (newId) {
         for (const filter of filters.value) {

@@ -287,7 +287,7 @@ const loadSearchResults = async () => {
     return
   }
   try {
-    const res: any = await $fetch('/api/admin/authors', {
+    const res = await $fetch<ApiResponse<Author[]>>('/api/admin/authors', {
       query: { search: q, limit: 10, sort_by: 'quotes', sort_order: 'DESC' },
     })
     searchResults.value = (res.data || []).filter(
@@ -320,7 +320,7 @@ const handleKeydown = (e: KeyboardEvent) => {
   } else if (e.key === 'Enter') {
     e.preventDefault()
     if (activeSuggestionIndex.value >= 0 && activeSuggestionIndex.value < searchResults.value.length) {
-      selectTarget(searchResults.value[activeSuggestionIndex.value])
+      selectTarget(searchResults.value[activeSuggestionIndex.value]!)
     }
   } else if (e.key === 'Escape') {
     showSuggestions.value = false
@@ -343,7 +343,7 @@ const onEscapeCapture = (ke: KeyboardEvent) => {
   if (ke.key === 'Escape') {
     ke.stopPropagation()
     if (expandedCells.value.length > 0) {
-      closeExpanded(expandedCells.value[expandedCells.value.length - 1].key)
+      closeExpanded(expandedCells.value[expandedCells.value.length - 1]!.key)
     }
   }
 }

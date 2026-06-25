@@ -120,6 +120,6 @@ function formatDate(value: unknown): string {
   const date = new Date(String(value))
   
   if (isNaN(date.getTime())) return String(value)
-  return date.toISOString().split('T')[0]
+  return date.toISOString().split('T')[0] ?? ''
 }
 </script>

@@ -207,7 +207,7 @@ export function useQuoteSearchFeed() {
         ...languageStore.getLanguageQuery()
       }
 
-      const response = await $fetch('/api/quotes/search', { query })
+      const response = await $fetch<ApiResponse<QuotesSearchPayload>>('/api/quotes/search', { query })
 
       if (response.data?.quotes) {
         const responseData = response.data as QuotesSearchPayload

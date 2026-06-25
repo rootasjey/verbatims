@@ -365,7 +365,7 @@ const loadQuotes = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedLanguage.value = languageOptions.value[0]
+  selectedLanguage.value = languageOptions.value[0] ?? { label: 'All Languages', value: '' }
   selectedSort.value = { label: 'Most Recent', value: 'newest' }
   currentPage.value = 1
   rowSelection.value = {}

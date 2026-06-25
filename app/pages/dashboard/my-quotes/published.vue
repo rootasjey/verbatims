@@ -467,8 +467,8 @@ const loadPublishedMobile = async (page = 1) => {
       quotes.value.push(...data)
     }
 
-    totalQuotes.value = response.pagination.total
-    totalPages.value = response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.limit)
+    totalQuotes.value = (response as any)?.pagination?.total ?? 0
+    totalPages.value = (response as any)?.pagination?.totalPages || Math.ceil(((response as any)?.pagination?.total ?? 0) / ((response as any)?.pagination?.limit ?? 1))
     hasMore.value = page < totalPages.value
     currentPage.value = page
   } catch (error) {

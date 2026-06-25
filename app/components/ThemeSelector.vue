@@ -44,9 +44,9 @@ function getInitialTheme(): ThemeOption {
     const saved = localStorage.getItem('theme')
     const found = themeOptions.find(opt => opt.value === saved)
     if (found) return found
-    return themeOptions[0]
+    return themeOptions[0]!
   }
-  return themeOptions[0]
+  return themeOptions[0]!
 }
 
 const selectedTheme = ref<ThemeOption>(getInitialTheme())

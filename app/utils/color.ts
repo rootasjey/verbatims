@@ -85,9 +85,9 @@ export function hexToHsl(hex: string): { h: number; s: number; l: number } {
     g = parseInt(clean.substring(2, 4), 16) / 255
     b = parseInt(clean.substring(4, 6), 16) / 255
   } else if (clean.length === 3) {
-    r = parseInt(clean[0] + clean[0], 16) / 255
-    g = parseInt(clean[1] + clean[1], 16) / 255
-    b = parseInt(clean[2] + clean[2], 16) / 255
+    r = parseInt(clean[0]! + clean[0]!, 16) / 255
+    g = parseInt(clean[1]! + clean[1]!, 16) / 255
+    b = parseInt(clean[2]! + clean[2]!, 16) / 255
   }
   const max = Math.max(r, g, b), min = Math.min(r, g, b)
   let h = 0, s = 0, l = (max + min) / 2

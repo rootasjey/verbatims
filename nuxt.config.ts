@@ -71,7 +71,8 @@ export default defineNuxtConfig({
     strict: false,
     tsConfig: {
       compilerOptions: {
-        noImplicitAny: true
+        noImplicitAny: true,
+        strictNullChecks: true
       }
     }
   },

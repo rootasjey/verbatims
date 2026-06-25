@@ -476,12 +476,12 @@ const loadQuotes = async (page = 1) => {
 
     const response = await $fetch('/api/admin/quotes/pending', { query: params })
 
-    quotes.value = response.data || []
+    quotes.value = response?.data || []
     rowSelection.value = {}
     clearHighlight()
-    totalQuotes.value = response.pagination?.total || 0
-    pageSize.value = response.pagination?.limit || pageSize.value
-    totalPages.value = response.pagination?.totalPages || Math.ceil((response.pagination?.total || 0) / (response.pagination?.limit || pageSize.value))
+    totalQuotes.value = response?.pagination?.total || 0
+    pageSize.value = response?.pagination?.limit || pageSize.value
+    totalPages.value = response?.pagination?.totalPages || Math.ceil((response?.pagination?.total || 0) / (response?.pagination?.limit || pageSize.value))
     currentPage.value = page
   } catch (error) {
     console.error('Failed to load quotes:', error)
@@ -542,7 +542,7 @@ const confirmRejectQuote = async () => {
       method: 'POST',
       body: { action: 'reject', rejection_reason: rejectionReason.value.trim() }
     })
-    onQuoteRejected(response.data)
+    onQuoteRejected(response?.data)
     showRejectModal.value = false
     rejectionReason.value = ''
   } catch (error) {
@@ -561,7 +561,7 @@ const quickRejectQuote = async (quote: any) => {
       method: 'POST',
       body: { action: 'reject', rejection_reason: '' }
     })
-    onQuoteRejected(response.data)
+    onQuoteRejected(response?.data)
     repositionHighlightAfterRemoval(previousIndex)
   } catch (error) {
     console.error('Failed to reject quote:', error)

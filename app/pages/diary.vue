@@ -220,7 +220,12 @@ const formattedDate = today.toLocaleDateString('en-US', {
   year: 'numeric'
 })
 
-const userStats = ref({
+interface UserStats {
+  approved: number; pending: number; draft: number; collections: number;
+  likes: number; likes_given: number; views: number; submitted: number;
+}
+
+const userStats = ref<UserStats>({
   approved: 0,
   pending: 0,
   draft: 0,
@@ -250,9 +255,9 @@ const fetchRecentQuote = async () => {
   if (!user.value) return
   recentQuoteLoading.value = true
   try {
-    const response = await $fetch('/api/dashboard/submissions?limit=1&status=approved')
-    if (response.data && response.data.length > 0) {
-      recentQuote.value = response.data[0]
+    const response = await $fetch<ApiResponse<DiaryQuote[]>>('/api/dashboard/submissions?limit=1&status=approved')
+    if (response?.data && response.data.length > 0) {
+      recentQuote.value = response.data[0] ?? null
     }
   } catch (error) {
     console.error('Failed to load recent quote:', error)
@@ -266,8 +271,8 @@ const loadUserStats = async () => {
 
   statsLoading.value = true
   try {
-    const response = await $fetch('/api/dashboard/stats')
-    if (response.data) {
+    const response = await $fetch<ApiResponse<UserStats>>('/api/dashboard/stats')
+    if (response?.data) {
       userStats.value = response.data
     }
   } catch (error) {

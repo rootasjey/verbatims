@@ -241,7 +241,7 @@ const loadUsers = async () => {
   finally { loading.value = false }
 }
 
-const resetFilters = () => { searchQuery.value = ''; selectedRoleFilter.value = roleFilterOptions[0]; selectedStatusFilter.value = statusFilterOptions[0]; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
+const resetFilters = () => { searchQuery.value = ''; selectedRoleFilter.value = roleFilterOptions[0]!; selectedStatusFilter.value = statusFilterOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const getUserActions = (user: AdminUser) => [
   { label: 'View Profile', leading: 'i-ph-user', onclick: () => navigateTo(`/users/${user.id}`) },

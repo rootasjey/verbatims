@@ -59,18 +59,18 @@ const isSelf = computed(() => user.value?.id === currentUser.value?.id)
 type Role = 'user' | 'moderator' | 'admin'
 type RoleOption = { label: string; value: Role }
 
-const roleOptions = [
+const roleOptions: RoleOption[] = [
   { label: 'User', value: 'user' },
   { label: 'Moderator', value: 'moderator' },
   { label: 'Admin', value: 'admin' }
-] satisfies RoleOption[]
+]
 
 const form = ref({ role: 'user' as Role, is_active: true, email_verified: false })
 const submitting = ref(false)
 
-const roleModel = computed<RoleOption>({
-  get: () => roleOptions.find(o => o.value === form.value.role) || roleOptions[0],
-  set: (opt) => { form.value.role = opt.value }
+const roleModel = computed({
+  get: () => roleOptions.find(o => o.value === form.value.role) ?? roleOptions[0]!,
+  set: (opt: RoleOption) => { form.value.role = opt.value }
 })
 
 watch(user, (u) => {

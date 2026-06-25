@@ -198,8 +198,8 @@ const loadQueue = async () => {
 
 const syncFiltersFromRoute = () => {
   const queryEntityType = String(route.query.entityType || '').trim(); const queryEntityId = Number.parseInt(String(route.query.entityId || ''), 10); const queryStatus = String(route.query.status || '').trim()
-  selectedEntityType.value = entityTypeOptions.find(o => o.value === queryEntityType) || entityTypeOptions[0]
-  selectedStatus.value = statusOptions.find(o => o.value === queryStatus) || statusOptions[0]
+  selectedEntityType.value = entityTypeOptions.find(o => o.value === queryEntityType) ?? entityTypeOptions[0]!
+  selectedStatus.value = statusOptions.find(o => o.value === queryStatus) ?? statusOptions[0]!
   selectedEntityId.value = Number.isInteger(queryEntityId) && queryEntityId > 0 ? queryEntityId : null; currentPage.value = 1
 }
 

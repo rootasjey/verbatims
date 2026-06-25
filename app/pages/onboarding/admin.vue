@@ -156,7 +156,7 @@ const createAdminUser = async () => {
   success.value = ''
 
   try {
-    const response = await $fetch('/api/onboarding/admin', {
+    const response = await $fetch<ApiResponse<unknown>>('/api/onboarding/admin', {
       method: 'POST',
       body: {
         username: form.value.username.trim(),
@@ -166,14 +166,14 @@ const createAdminUser = async () => {
       }
     })
 
-    if (response.success) {
+    if (response?.success) {
       success.value = 'Admin user created successfully!'
       
       setTimeout(() => {
         navigateTo('/onboarding/database')
       }, 2000)
     } else {
-      error.value = response.message || 'Failed to create admin user'
+      error.value = response?.message || 'Failed to create admin user'
     }
   } catch (err: any) {
     console.error('Admin user creation error:', err)

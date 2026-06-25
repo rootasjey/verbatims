@@ -555,15 +555,15 @@ const loadQuotes = async (reset = true) => {
       ...languageStore.getLanguageQuery()
     }
 
-    const response = await $fetch('/api/quotes', { query })
+    const response = await $fetch<ApiResponse<QuoteWithMetadata[]> & { pagination?: { hasMore?: boolean } }>('/api/quotes', { query })
 
     if (reset) {
-      referenceQuotes.value = response.data || []
+      referenceQuotes.value = response?.data || []
     } else {
-      referenceQuotes.value.push(...(response.data || []))
+      referenceQuotes.value.push(...(response?.data || []))
     }
 
-    hasMoreQuotes.value = Boolean(response.pagination?.hasMore)
+    hasMoreQuotes.value = Boolean(response?.pagination?.hasMore)
   } catch (error) {
     console.error('Failed to load quotes:', error)
     if (reset) {
@@ -594,8 +594,8 @@ const checkLikeStatus = async () => {
   if (!user.value || !reference.value) return
 
   try {
-    const { data } = await $fetch(`/api/references/${reference.value.id}/like-status`)
-    isLiked.value = data?.isLiked || false
+    const likeStatusRes = await $fetch<ApiResponse<{ isLiked: boolean }>>(`/api/references/${reference.value.id}/like-status`)
+    isLiked.value = likeStatusRes?.data?.isLiked || false
   } catch (error) {
     console.error('Failed to check like status:', error)
   }
@@ -606,11 +606,11 @@ const toggleLike = async () => {
 
   likePending.value = true
   try {
-    const { data } = await $fetch(`/api/references/${reference.value.id}/like`, {
+    const likeRes = await $fetch<ApiResponse<{ isLiked: boolean; likesCount: number | null }>>(`/api/references/${reference.value.id}/like`, {
       method: 'POST'
     })
-    isLiked.value = data.isLiked
-    reference.value.likes_count = data.likesCount
+    isLiked.value = likeRes?.data?.isLiked ?? false
+    reference.value.likes_count = likeRes?.data?.likesCount ?? reference.value.likes_count
   } catch (error) {
     console.error('Failed to toggle like:', error)
   } finally {
@@ -875,10 +875,10 @@ const loadSimilarReferences = async () => {
   if (!reference.value) return
 
   try {
-    const response = await $fetch(`/api/references/${reference.value.id}/similar`, {
+    const similarRes = await $fetch<ApiResponse<QuoteReference[]>>(`/api/references/${reference.value.id}/similar`, {
       query: { limit: 6 }
     })
-    similarReferences.value = response.data || []
+    similarReferences.value = similarRes?.data || []
   } catch (error) {
     console.error('Failed to load similar references:', error)
     similarReferences.value = []

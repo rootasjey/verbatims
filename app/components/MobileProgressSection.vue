@@ -117,7 +117,7 @@ const statOptions = [
 ]
 
 const statIndex = useLocalStorage<number>('verbatims-mobile-progress-section-stat-index', 0)
-const statValue = computed(() => statOptions[statIndex.value].value.value)
+const statValue = computed(() => statOptions[statIndex.value]!.value.value)
 const displayValue = ref(statValue.value)
 
 watch(statValue, (newValue, oldValue) => {
@@ -143,6 +143,6 @@ onMounted(() => {
   displayValue.value = statValue.value
 })
 
-const statLabel = computed(() => statOptions[statIndex.value].label)
+const statLabel = computed(() => statOptions[statIndex.value]!.label)
 </script>
 

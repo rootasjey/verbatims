@@ -183,7 +183,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     randomAdding.value = true
 
     try {
-      await $fetch('/api/admin/social-queue/bulk-random', {
+      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/bulk-random', {
         method: 'POST',
         body: {
           count: Number((count ?? randomCount.value) || '5'),
@@ -280,7 +280,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function addQuoteToQueue(quoteId: number) {
     try {
-      await $fetch('/api/admin/social-queue', {
+      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue', {
         method: 'POST',
         body: {
           quoteIds: [quoteId],
@@ -303,7 +303,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function moveQueueItem(id: number, direction: 'up' | 'down') {
     try {
-      await $fetch('/api/admin/social-queue/reorder', {
+      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/reorder', {
         method: 'POST',
         body: { id, direction }
       })
@@ -317,7 +317,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function removeQueueItem(id: number) {
     try {
-      await $fetch(`/api/admin/social-queue/${id}`, { method: 'DELETE' })
+      await $fetch<ApiResponse<unknown>>(`/api/admin/social-queue/${id}`, { method: 'DELETE' })
       await loadQueue()
     } catch (error) {
       console.error('Failed to remove queue item:', error)
@@ -401,7 +401,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
 
   async function requeueSingleFailedItem(id: number) {
     try {
-      await $fetch('/api/admin/social-queue/requeue-single', {
+      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/requeue-single', {
         method: 'POST',
         body: { id }
       })
