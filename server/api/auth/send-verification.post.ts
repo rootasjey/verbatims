@@ -47,5 +47,5 @@ export default defineEventHandler(async (event) => {
 
   await sendVerificationEmail(event, user.email, token)
 
-  return { message: 'Verification email sent' }
+  return { success: true, message: 'Verification email sent' }
 })

@@ -24,5 +24,5 @@ export default defineEventHandler(async () => {
     return true
   })
 
-  return { data: active.slice(0, 10) }
+  return { success: true, data: active.slice(0, 10) }
 })

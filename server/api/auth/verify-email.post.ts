@@ -39,5 +39,5 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return { message: 'Email verified successfully' }
+  return { success: true, message: 'Email verified successfully' }
 })

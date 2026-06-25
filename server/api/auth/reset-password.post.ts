@@ -46,5 +46,5 @@ export default defineEventHandler(async (event) => {
     .set({ usedAt: new Date() })
     .where(eq(schema.passwordResetTokens.id, resetToken.id))
 
-  return { message: 'Password reset successfully' }
+  return { success: true, message: 'Password reset successfully' }
 })
