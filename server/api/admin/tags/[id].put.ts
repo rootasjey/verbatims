@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const id = getRouterParam(event, 'id')
+    const id = getRouterParam(event, 'id')!
     if (!id || isNaN(parseInt(id))) throwServer(400, 'Invalid tag ID')
     const tagId = parseInt(id)
     const body = await readBody(event)

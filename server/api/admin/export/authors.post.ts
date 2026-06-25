@@ -83,8 +83,8 @@ export default defineEventHandler(async (event) => {
     // Generate export content based on format
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const filename = `authors-export-${timestamp}.${format}`
-    let contentData: string
-    let mimeType: string
+    let contentData = ''
+    let mimeType = ''
 
     switch (format) {
       case 'json':
@@ -101,9 +101,6 @@ export default defineEventHandler(async (event) => {
         contentData = generateAuthorsXML(processedAuthors)
         mimeType = 'application/xml'
         break
-
-      default:
-        throwServer(400, 'Unsupported export format')
     }
 
     // Log the export first to get the export log ID

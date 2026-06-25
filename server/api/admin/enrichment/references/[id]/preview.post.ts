@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'Admin access required')
   }
 
-  const id = Number(getRouterParam(event, 'id'))
+  const id = Number(getRouterParam(event, 'id')!)
   if (!Number.isInteger(id) || id <= 0) {
     throwServer(400, 'Invalid reference ID')
   }
@@ -15,15 +15,13 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{ preferredExternalId?: string | null }>(event)
 
   const job = await previewReferenceEnrichment(id, session.user.id, body?.preferredExternalId || null)
-  if (!job) {
-    throwServer(404, 'No enrichment job could be generated for this reference')
-  }
+  if (!job) throwServer(404, 'No enrichment job could be generated for this reference')
 
   return {
     success: true,
     data: {
-      job,
-      preview: job.resultPayload ? JSON.parse(job.resultPayload) : null,
+      job: job!,
+      preview: job!.resultPayload ? JSON.parse(job!.resultPayload) : null,
     }
   }
 })

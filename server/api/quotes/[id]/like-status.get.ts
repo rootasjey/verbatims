@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
       .where(and(
         eq(schema.userLikes.userId, session.user.id),
         eq(schema.userLikes.likeableType, 'quote'),
-        eq(schema.userLikes.likeableId, parseInt(quoteId))
+        eq(schema.userLikes.likeableId, parseInt(quoteId!))
       ))
       .get()
 

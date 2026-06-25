@@ -27,12 +27,12 @@ export default defineEventHandler(async (event) => {
     // Find associated backup file (if any)
     const backupFile = await db.select({ fileKey: schema.backupFiles.fileKey })
       .from(schema.backupFiles)
-      .where(eq(schema.backupFiles.exportLogId, exportLog[0].id))
+      .where(eq(schema.backupFiles.exportLogId, exportLog[0]!.id))
       .limit(1);
 
     // Delete backup file from blob storage if exists
-    if (backupFile && backupFile.length > 0 && backupFile[0].fileKey) {
-      try { await deleteBackupFile(String(backupFile[0].fileKey)) } 
+    if (backupFile && backupFile.length > 0 && backupFile[0]?.fileKey) {
+      try { await deleteBackupFile(String(backupFile[0]!.fileKey)) } 
       catch (err: any) { console.error('Failed to delete backup file from blob storage:', err) }
     }
 

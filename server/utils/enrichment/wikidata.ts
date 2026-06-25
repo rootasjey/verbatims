@@ -298,11 +298,11 @@ async function findBestAuthorCandidate(
   const deathDate = parseWikidataDate(getFirstTimeValue(entity.claims?.P570))
   const birthLocation = labels[getFirstEntityId(entity.claims?.P19)] || null
   const deathLocation = labels[getFirstEntityId(entity.claims?.P20)] || null
-  const citizenships = extractEntityIds(entity.claims?.P27).map(id => labels[id]).filter(Boolean)
-  const occupations = extractEntityIds(entity.claims?.P106).map(id => labels[id]).filter(Boolean)
+  const citizenships = extractEntityIds(entity.claims?.P27).map(id => labels[id]).filter(Boolean) as string[]
+  const occupations = extractEntityIds(entity.claims?.P106).map(id => labels[id]).filter(Boolean) as string[]
   const wikipediaUrl = buildWikipediaUrl(entity)
   const wikidataUrl = `https://www.wikidata.org/wiki/${entity.id}`
-  const description = buildAuthorDescription(entity, occupations, citizenships, birthDate, deathDate)
+  const description = buildAuthorDescription(entity, occupations.filter(Boolean) as string[], citizenships, birthDate, deathDate)
   const imageFileName = getCommonsImageFileName(entity.claims?.P18)
 
   const socials = mergeAndNormalizeSocials([
@@ -329,8 +329,8 @@ async function findBestAuthorCandidate(
  {
       source: 'wikidata',
       external_id: entity.id,
-      label: getLabel(entity),
-      description: getDescription(entity),
+      label: getLabel(entity) || '',
+      description: getDescription(entity) || '',
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
       image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
@@ -510,7 +510,7 @@ async function findBestReferenceCandidate(
     ...extractEntityIds(entity.claims?.P175),
   ])
   const labels = await fetchEntityLabels([...instanceOfIds, ...creatorIds])
-  const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean)
+  const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean) as string[]
 
   if (!matchesExpectedReferenceType(reference.primaryType, instanceLabels, getDescription(entity))) {
     notes.push('The selected Wikidata entity does not match the expected reference type closely enough.')
@@ -538,8 +538,8 @@ async function findBestReferenceCandidate(
     match: {
       source: 'wikidata',
       external_id: entity.id,
-      label: getLabel(entity),
-      description: getDescription(entity),
+      label: getLabel(entity) || '',
+      description: getDescription(entity) || '',
       wikipedia_url: wikipediaUrl,
       wikidata_url: wikidataUrl,
       image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
@@ -796,7 +796,7 @@ function scoreReferenceSearchResult(
 
   const instanceOfIds = extractEntityIds(entity.claims?.P31)
   const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean)
-  if (matchesExpectedReferenceType(reference.primaryType, instanceLabels, getDescription(entity))) score += 18
+  if (matchesExpectedReferenceType(reference.primaryType, instanceLabels.filter(Boolean) as string[], getDescription(entity))) score += 18
   else if (reference.primaryType !== 'other') {
     score -= 24
     signals.push('The selected candidate does not align cleanly with the expected reference type.')
@@ -1073,9 +1073,9 @@ function resolveMatchConfidence(
   const gap = computeScoreGap(score, competingScore)
   const hasConflict = signals.some(signal => /does not align|conflicts/i.test(signal))
 
-  if (hasConflict || score < 66 || (gap !== null && gap < ambiguousMatchGap)) return 'ambiguous'
-  if (score >= 82 && gap >= MATCH_GAP_FOR_HIGH_CONFIDENCE) return 'high'
-  if (score >= 72 && gap >= MATCH_GAP_FOR_MEDIUM_CONFIDENCE) return 'medium'
+  if (hasConflict || score < 66 || (gap ?? 0) < ambiguousMatchGap) return 'ambiguous'
+  if (score >= 82 && (gap ?? 0) >= MATCH_GAP_FOR_HIGH_CONFIDENCE) return 'high'
+  if (score >= 72 && (gap ?? 0) >= MATCH_GAP_FOR_MEDIUM_CONFIDENCE) return 'medium'
   return 'low'
 }
 
@@ -1184,7 +1184,7 @@ function parseWikidataDate(value: string | null) {
   const match = value.match(/^([+-]\d{4,})-(\d{2})-(\d{2})T/)
   if (!match) return null
 
-  const year = match[1].replace(/^\+/, '')
+  const year = match[1]!.replace(/^\+/, '')
   const month = match[2]
   const day = match[3]
   if (month === '00') return year

@@ -3,6 +3,15 @@ import { eq, and, or, count, sum, sql, desc, like } from 'drizzle-orm'
 
 export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> => {
   try {
+    return await handleAdminUsersList(event)
+  } catch (error: any) {
+    if ((error as any).statusCode) throw error
+    console.error('Admin users error:', error)
+    throwServer(500, 'Failed to fetch users')
+  }
+})
+
+async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> {
     const session = await requireUserSession(event)
     if (!session.user) {
       throwServer(401, 'Authentication required')
@@ -110,12 +119,5 @@ export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> 
         totalPages: Math.ceil(total / limit)
       }
     }
-  } catch (error: any) {
-    if ((error as any).statusCode) {
-      throw error
-    }
-    
-    console.error('Admin users error:', error)
-    throwServer(500, 'Failed to fetch users')
   }
-})
+

@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Body must contain a settings object')
     }
 
-    for (const [key, value] of Object.entries(settings)) {
+    for (const [key, value] of Object.entries(settings!)) {
       if (typeof value !== 'string') continue
       await db.run(sql`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (${key}, ${value}, CAST(unixepoch() AS INTEGER))`)
     }

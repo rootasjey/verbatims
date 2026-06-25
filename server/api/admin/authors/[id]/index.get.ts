@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin or moderator access required')
     }
 
-    const authorId = getRouterParam(event, 'id')
+    const authorId = getRouterParam(event, 'id')!
     if (!authorId || isNaN(parseInt(authorId))) {
       throwServer(400, 'Invalid author ID')
     }

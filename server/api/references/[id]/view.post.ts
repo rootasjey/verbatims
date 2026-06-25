@@ -3,7 +3,7 @@ import { eq, and, or, isNotNull, isNull, gt, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const refId = getRouterParam(event, 'id')
+    const refId = getRouterParam(event, 'id')!
     if (!refId || isNaN(parseInt(refId))) {
       throwServer(400, 'Invalid reference ID')
     }
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     // Ensure reference exists
     const ref = await db.select({ id: schema.quoteReferences.id })
       .from(schema.quoteReferences)
-      .where(eq(schema.quoteReferences.id, parseInt(refId)))
+      .where(eq(schema.quoteReferences.id, parseInt(refId!)))
       .get()
       
     if (!ref) {
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     const recentView = await db.select({ id: schema.referenceViews.id })
       .from(schema.referenceViews)
       .where(and(
-        eq(schema.referenceViews.referenceId, parseInt(refId)),
+        eq(schema.referenceViews.referenceId, parseInt(refId!)),
         or(
           and(
             eq(schema.referenceViews.userId, session.user?.id || 0),
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
     let recorded = false
     if (!recentView) {
       await db.insert(schema.referenceViews).values({
-        referenceId: parseInt(refId),
+        referenceId: parseInt(refId!),
         userId: session.user?.id || null,
         ipAddress: session.user ? null : clientIP,
         userAgent

@@ -17,21 +17,22 @@ export default defineEventHandler(async (event) => {
       status: schema.quotes.status
     })
     .from(schema.quotes)
-    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
 
     if (!quote) throwServer(404, 'Quote not found')
+    const q = quote!
 
     const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
+    const isOwnerDraft = q.userId === session.user.id && q.status === 'draft'
     if (!isAdmin && !isOwnerDraft) {
       throwServer(403, 'Not allowed to edit tags for this quote')
     }
 
     await db.delete(schema.quoteTags)
       .where(and(
-        eq(schema.quoteTags.quoteId, parseInt(quoteId)),
-        eq(schema.quoteTags.tagId, parseInt(tagId))
+        eq(schema.quoteTags.quoteId, parseInt(quoteId!)),
+        eq(schema.quoteTags.tagId, parseInt(tagId!))
       ))
       .run()
 

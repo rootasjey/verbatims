@@ -7,17 +7,17 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'Admin access required')
   }
 
-  const importId = getRouterParam(event, 'id')
+  const importId = getRouterParam(event, 'id')!
   if (!importId) {
     throwServer(400, 'Import ID is required')
   }
 
-  const progress = getAdminImport(importId)
+  const progress = getAdminImport(importId!)
   if (!progress) {
     throwServer(404, 'Import not found')
   }
 
-  requestCancel(importId)
+  requestCancel(importId!)
 
   return { success: true, message: 'Cancellation requested' }
 })

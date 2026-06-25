@@ -33,12 +33,8 @@ export default defineEventHandler(async (event) => {
       db.select().from(schema.authors).where(eq(schema.authors.id, targetId)).get(),
     ])
 
-    if (!sourceAuthor) {
-      throwServer(404, 'Source author not found')
-    }
-    if (!targetAuthor) {
-      throwServer(404, 'Target author not found')
-    }
+    if (!sourceAuthor) throwServer(404, 'Source author not found')
+    if (!targetAuthor) throwServer(404, 'Target author not found')
 
     const quotesResult = await db.get<{ count: number }>(sql`
       SELECT COUNT(*) as count FROM ${schema.quotes} WHERE author_id = ${sourceId}
@@ -68,8 +64,8 @@ export default defineEventHandler(async (event) => {
       if (fieldsToCopy.length > 0) {
         const updateData: Record<string, any> = {}
         for (const field of fieldsToCopy) {
-          if (sourceAuthor[field as keyof typeof sourceAuthor] != null && targetAuthor[field as keyof typeof targetAuthor] == null) {
-            updateData[field] = sourceAuthor[field as keyof typeof sourceAuthor]
+          if (sourceAuthor![field as keyof typeof sourceAuthor] != null && targetAuthor![field as keyof typeof targetAuthor] == null) {
+            updateData[field] = sourceAuthor![field as keyof typeof sourceAuthor]
           }
         }
         if (Object.keys(updateData).length > 0) {
@@ -87,9 +83,9 @@ export default defineEventHandler(async (event) => {
 
       await db.update(schema.authors)
         .set({
-          viewsCount: (targetAuthor.viewsCount ?? 0) + (sourceAuthor.viewsCount ?? 0),
-          likesCount: (targetAuthor.likesCount ?? 0) + (sourceAuthor.likesCount ?? 0),
-          sharesCount: (targetAuthor.sharesCount ?? 0) + (sourceAuthor.sharesCount ?? 0),
+          viewsCount: (targetAuthor!.viewsCount ?? 0) + (sourceAuthor!.viewsCount ?? 0),
+          likesCount: (targetAuthor!.likesCount ?? 0) + (sourceAuthor!.likesCount ?? 0),
+          sharesCount: (targetAuthor!.sharesCount ?? 0) + (sourceAuthor!.sharesCount ?? 0),
         })
         .where(eq(schema.authors.id, targetId))
         .run()
@@ -104,8 +100,8 @@ export default defineEventHandler(async (event) => {
         success: true,
         message: 'Authors merged successfully',
         data: {
-          sourceAuthor: { id: sourceId, name: sourceAuthor.name },
-          targetAuthor: { id: targetId, name: targetAuthor.name },
+          sourceAuthor: { id: sourceId, name: sourceAuthor!.name },
+          targetAuthor: { id: targetId, name: targetAuthor!.name },
           quotesMoved: quotesCount,
           viewsMoved: viewsCount,
           fieldsCopied: fieldsToCopy,

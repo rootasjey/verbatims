@@ -46,24 +46,21 @@ export async function hubBrowser(eventOrOptions?: H3Event | HubBrowserOptions, m
   const nitroApp = useNitroApp()
   const requestEvent = event || useEvent()
   // If in production, use Cloudflare Puppeteer
-  if (puppeteer instanceof PuppeteerWorkers) {
-    const binding = getBrowserBinding()
+    if (puppeteer instanceof PuppeteerWorkers) {
+    const binding = getBrowserBinding()!
     if (!binding) {
       throwServer(500, 'Missing Cloudflare Browser binding (BROWSER)')
     }
     let browser: Browser | null = null
-    const sessionId = await getRandomSession(puppeteer, binding)
-    // if there is free open session, connect to it
+    const sessionId = await getRandomSession(puppeteer, binding!)
     if (sessionId) {
       try {
-        browser = await puppeteer.connect(binding, sessionId)
+        browser = await puppeteer.connect(binding!, sessionId)
       } catch (e) {
-        // another worker may have connected first
       }
     }
     if (!browser) {
-      // No open sessions, launch new session
-      browser = await puppeteer.launch(binding, {
+      browser = await puppeteer.launch(binding!, {
         // keep_alive is in milliseconds
         // https://developers.cloudflare.com/browser-rendering/platform/puppeteer/#keep-alive
         keep_alive: (options.keepAlive || 60) * 1000
@@ -130,7 +127,7 @@ async function getRandomSession(puppeteer: PuppeteerWorkers, binding: BrowserWor
     return null
   }
 
-  return sessionsIds[Math.floor(Math.random() * sessionsIds.length)]
+  return sessionsIds[Math.floor(Math.random() * sessionsIds.length)] || null
 }
 
 let _puppeteer: PuppeteerWorkers | Puppeteer

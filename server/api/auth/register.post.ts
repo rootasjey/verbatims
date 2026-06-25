@@ -51,17 +51,17 @@ export default defineEventHandler(async (event) => {
       id: result.id,
       name: result.name,
       email: result.email,
-      role: result.role,
-      created_at: toISOStringOrNull(result.createdAt),
-      avatar_url: result.avatarUrl,
-      biography: result.biography,
-      job: result.job,
+      role: result.role ?? 'user',
+      created_at: toISOStringOrNull(result.createdAt) ?? '',
+      avatar_url: result.avatarUrl ?? undefined,
+      biography: result.biography ?? undefined,
+      job: result.job ?? undefined,
       language: (result.language && validLanguages.includes(result.language as any))
         ? (result.language as typeof validLanguages[number])
         : 'en',
-      location: result.location,
-      socials: result.socials,
-      updated_at: toISOStringOrNull(result.updatedAt)
+      location: result.location ?? undefined,
+      socials: result.socials ?? undefined,
+      updated_at: toISOStringOrNull(result.updatedAt) ?? ''
     }
 
     await setUserSession(event, { user })

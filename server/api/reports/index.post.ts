@@ -92,5 +92,5 @@ export default defineEventHandler(async (event) => {
     createdAt: new Date()
   }).returning({ id: schema.userMessages.id })
 
-  return { success: true, status: 'accepted', id: result.id }
+  return { success: true, status: 'accepted', id: result!.id }
 })

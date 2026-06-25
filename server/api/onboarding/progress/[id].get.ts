@@ -16,14 +16,13 @@ export default defineEventHandler(async (event) => {
     throwServer(401, 'Authentication required')
   }
 
-  const importId = getRouterParam(event, 'id')
+  const importId = getRouterParam(event, 'id')!
   
   if (!importId) {
     throwServer(400, 'Import ID is required')
   }
 
-  // Check if progress exists
-  const progress = getProgress(importId)
+  const progress = getProgress(importId!)
   if (!progress) {
     throwServer(404, 'Import progress not found')
   }

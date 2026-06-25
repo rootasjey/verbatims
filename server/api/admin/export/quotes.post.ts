@@ -125,8 +125,8 @@ export default defineEventHandler(async (event) => {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const filename = `quotes-export-${timestamp}.${format}`
-    let contentData: string
-    let mimeType: string
+    let contentData = ''
+    let mimeType = ''
 
     switch (format) {
       case 'json':
@@ -143,9 +143,6 @@ export default defineEventHandler(async (event) => {
         contentData = generateQuotesXML(processedQuotes)
         mimeType = 'application/xml'
         break
-
-      default:
-        throwServer(400, 'Unsupported export format')
     }
 
     const fileSize: number = new TextEncoder().encode(contentData).length

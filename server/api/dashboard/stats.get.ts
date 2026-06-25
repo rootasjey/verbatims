@@ -19,19 +19,19 @@ export default defineEventHandler(async (event) => {
       total_likes: sum(schema.quotes.likesCount),
       total_views: sum(schema.quotes.viewsCount),
       total_shares: sum(schema.quotes.sharesCount)
-    }).from(schema.quotes).where(eq(schema.quotes.userId, session.user.id))
+    }).from(schema.quotes).where(eq(schema.quotes.userId, session.user!.id))
 
     const quoteStats = quoteStatsResult[0]
     
     // Get user's collections count
     const collectionsResult = await db.select({ count: count() })
       .from(schema.userCollections)
-      .where(eq(schema.userCollections.userId, session.user.id))
+      .where(eq(schema.userCollections.userId, session.user!.id))
     
     // Get user's likes given count
     const likesGivenResult = await db.select({ count: count() })
       .from(schema.userLikes)
-      .where(eq(schema.userLikes.userId, session.user.id))
+      .where(eq(schema.userLikes.userId, session.user!.id))
     
     return {
       success: true,

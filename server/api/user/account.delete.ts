@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const userId = session.user.id
+    const userId = session.user!.id
 
     await db.delete(schema.users).where(eq(schema.users.id, userId))
 

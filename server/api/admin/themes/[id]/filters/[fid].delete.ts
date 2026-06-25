@@ -8,8 +8,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const id = getRouterParam(event, 'id')
-    const fid = getRouterParam(event, 'fid')
+    const id = getRouterParam(event, 'id')!
+    const fid = getRouterParam(event, 'fid')!
     if (!id || isNaN(parseInt(id)) || !fid || isNaN(parseInt(fid))) {
       throwServer(400, 'Invalid theme ID or filter ID')
     }

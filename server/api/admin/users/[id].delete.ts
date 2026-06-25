@@ -11,13 +11,13 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin access required')
     }
 
-    const idParam = getRouterParam(event, 'id')
+    const idParam = getRouterParam(event, 'id')!
     if (!idParam || isNaN(parseInt(idParam))) {
       throwServer(400, 'Invalid user ID')
     }
     const userId = parseInt(idParam)
 
-    if (userId === session.user.id) {
+    if (userId === session.user!.id) {
       throwServer(400, 'Cannot delete your own account')
     }
 
@@ -26,12 +26,11 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.users.id, userId))
       .limit(1)
     
-    if (!user || user.length === 0) {
-      throwServer(404, 'User not found')
-    }
+    if (!user || user.length === 0) throwServer(404, 'User not found')
+    const userRecord = user[0]!
 
     // Optional safeguard: prevent deleting the last admin
-    if (user[0].role === 'admin') {
+    if (userRecord.role === 'admin') {
       const adminCountResult = await db.select({ count: count() })
         .from(schema.users)
         .where(eq(schema.users.role, 'admin'))

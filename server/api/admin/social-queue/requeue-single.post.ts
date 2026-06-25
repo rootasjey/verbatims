@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     throwServer(404, 'Queue item not found')
   }
 
-  if (item[0].status !== 'failed') {
+  if (item[0]!.status !== 'failed') {
     throwServer(400, 'Only failed items can be re-queued')
   }
 

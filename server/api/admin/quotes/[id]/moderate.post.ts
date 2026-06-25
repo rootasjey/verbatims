@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin or moderator access required')
     }
     
-    const quoteId = getRouterParam(event, 'id')
+    const quoteId = getRouterParam(event, 'id')!
     if (!quoteId || isNaN(parseInt(quoteId))) {
       throwServer(400, 'Invalid quote ID')
     }
@@ -31,7 +31,6 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Rejection reason is required when rejecting a quote')
     }
     
-    // Check if quote exists and is pending
     const quote = await db.select()
       .from(schema.quotes)
       .where(and(
@@ -40,9 +39,7 @@ export default defineEventHandler(async (event) => {
       ))
       .get()
 
-    if (!quote) {
-      throwServer(404, 'Quote not found or not pending moderation')
-    }
+    if (!quote) throwServer(404, 'Quote not found or not pending moderation')
     
     // Update quote status
     const newStatus = body.action === 'approve' ? 'approved' : 'rejected'
@@ -61,9 +58,9 @@ export default defineEventHandler(async (event) => {
     let autoTagResult: { matchedTagNames: string[], attachedCount: number } | null = null
     if (body.action === 'approve') {
       autoTagResult = await autoTagQuoteById(
-        quote.id,
-        quote.name,
-        quote.language || undefined
+        quote!.id,
+        quote!.name,
+        quote!.language || undefined
       )
     }
     
@@ -89,7 +86,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN users m ON q.moderator_id = m.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.id = ${parseInt(quoteId)}
+      WHERE q.id = ${parseInt(quoteId!)}
       GROUP BY q.id
     `))
 

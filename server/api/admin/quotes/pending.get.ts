@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     if (!session.user) {
       throwServer(401, 'Authentication required')
     }
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
+    if (session.user!.role !== 'admin' && session.user!.role !== 'moderator') {
       throwServer(403, 'Admin or moderator access required')
     }
 

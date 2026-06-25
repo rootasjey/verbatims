@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin or moderator access required')
     }
 
-    const quoteId = getRouterParam(event, 'id')
+    const quoteId = getRouterParam(event, 'id')!
     if (!quoteId || isNaN(parseInt(quoteId))) {
       throwServer(400, 'Invalid quote ID')
     }
@@ -26,12 +26,9 @@ export default defineEventHandler(async (event) => {
       ))
       .get()
 
-    if (!quote) {
-      throwServer(404, 'Quote not found or not a draft')
-    }
+    if (!quote) throwServer(404, 'Quote not found or not a draft')
 
-    // Minimal validation similar to user submit: require some content
-    if (!quote.name || String(quote.name).trim().length < 10) {
+    if (!quote!.name || String(quote!.name).trim().length < 10) {
       throwServer(400, 'Quote must have at least 10 characters before submission')
     }
 
@@ -66,7 +63,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN users m ON q.moderator_id = m.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
       LEFT JOIN tags t ON qt.tag_id = t.id
-      WHERE q.id = ${parseInt(quoteId)}
+      WHERE q.id = ${parseInt(quoteId!)}
       GROUP BY q.id
     `))
 

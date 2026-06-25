@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.authors, sql`${schema.userLikes.likeableType} = 'author' AND ${schema.userLikes.likeableId} = ${schema.authors.id}`)
       .leftJoin(schema.quoteReferences, sql`${schema.userLikes.likeableType} = 'reference' AND ${schema.userLikes.likeableId} = ${schema.quoteReferences.id}`)
       .leftJoin(qa, eq(schema.quotes.authorId, qa.id))
-      .where(eq(schema.userLikes.userId, session.user.id))
+      .where(eq(schema.userLikes.userId, session.user!.id))
       .orderBy(desc(schema.userLikes.createdAt))
       .limit(10)
     
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
       updated_at: schema.userCollections.updatedAt
     })
       .from(schema.userCollections)
-      .where(eq(schema.userCollections.userId, session.user.id))
+      .where(eq(schema.userCollections.userId, session.user!.id))
       .orderBy(desc(schema.userCollections.createdAt))
       .limit(10)
     
@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
     })
       .from(schema.quotes)
       .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .where(eq(schema.quotes.userId, session.user.id))
+      .where(eq(schema.quotes.userId, session.user!.id))
       .orderBy(desc(schema.quotes.createdAt))
       .limit(10)
     

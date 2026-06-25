@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin access required')
     }
     
-    const userId = getRouterParam(event, 'id')
+    const userId = getRouterParam(event, 'id')!
     if (!userId || isNaN(parseInt(userId))) {
       throwServer(400, 'Invalid user ID')
     }
@@ -31,10 +31,9 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'User not found')
     }
     
-    const user = existingUser[0]
+    const user = existingUser[0]!
     
-    // Prevent admin from modifying their own role or status
-    if (userIdInt === session.user.id) {
+    if (userIdInt === session.user!.id) {
       if (body.role !== undefined && body.role !== user.role) {
         throwServer(400, 'Cannot modify your own role')
       }

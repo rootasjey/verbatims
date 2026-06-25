@@ -153,7 +153,7 @@ async function createOAuth1AuthorizationHeader(input: {
   const signature = await signHmacSha1(signingKey, baseString)
 
   const headerParams = [...oauthParams, ['oauth_signature', signature]]
-    .map(([key, value]) => `${percentEncode(key)}="${percentEncode(value)}"`)
+    .map(([key, value]) => `${percentEncode(key!)}="${percentEncode(value!)}"`)
     .join(', ')
 
   return `OAuth ${headerParams}`
