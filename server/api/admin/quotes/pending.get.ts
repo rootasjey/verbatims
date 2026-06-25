@@ -4,46 +4,36 @@ import type { CreatedQuoteResult } from '~~/server/types'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check authentication and admin privileges
     const session = await getUserSession(event)
     if (!session.user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
-      })
+      throwServer(401, 'Authentication required')
     }
-    
     if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Admin or moderator access required'
-      })
+      throwServer(403, 'Admin or moderator access required')
     }
-    
+
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
-    const search = query.search as string || ''
+    const search = (query.search as string) || ''
     const status = (query.status as string) || 'pending'
-    const language = query.language as string || ''
-    
-    // Build WHERE conditions
-    const conditions = [`q.status = '${status}'`]
-    
+    const language = (query.language as string) || ''
+
+    const conditions = [sql`q.status = ${status}`]
     if (language) {
-      conditions.push(`q.language = '${language}'`)
+      conditions.push(sql`q.language = ${language}`)
     }
-    
     if (search) {
-      const searchPattern = `%${search}%`
-      conditions.push(`(q.name LIKE '${searchPattern}' OR a.name LIKE '${searchPattern}' OR r.name LIKE '${searchPattern}' OR u.name LIKE '${searchPattern}')`)
+      const pattern = `%${search}%`
+      conditions.push(sql`(q.name LIKE ${pattern} OR a.name LIKE ${pattern} OR r.name LIKE ${pattern} OR u.name LIKE ${pattern})`)
     }
-    
-    const whereClause = `WHERE ${conditions.join(' AND ')}`
-    
-    // Get pending quotes with all related data
-    const quotes = await db.all<CreatedQuoteResult>(sql.raw(`
+
+    const whereClause = conditions.length > 0
+      ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
+      : sql``
+
+    const quotes = await db.all<CreatedQuoteResult>(sql`
       SELECT
         q.*,
         a.name as author_name,
@@ -68,17 +58,16 @@ export default defineEventHandler(async (event) => {
       GROUP BY q.id
       ORDER BY q.created_at ASC
       LIMIT ${limit} OFFSET ${offset}
-    `))
+    `)
 
-    // Get total count
-    const totalResult = await db.get<{ total: number }>(sql.raw(`
+    const totalResult = await db.get<{ total: number }>(sql`
       SELECT COUNT(*) as total
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       ${whereClause}
-    `))
+    `)
 
     const total = totalResult?.total || 0
     const hasMore = offset + quotes.length < total
