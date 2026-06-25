@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin access required')
     }
 
-    const referenceId = getRouterParam(event, 'id')
+    const referenceId = getRouterParam(event, 'id')!
     if (!referenceId || isNaN(parseInt(referenceId))) {
       throwServer(400, 'Invalid reference ID')
     }
@@ -29,8 +29,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Clean up R2 image if present
-    if (isR2ImageUrl(existingReference.imageUrl)) {
-      await deleteImageByUrl(existingReference.imageUrl)
+    if (isR2ImageUrl(existingReference.imageUrl!)) {
+      await deleteImageByUrl(existingReference.imageUrl!)
     }
 
     // Count associated quotes

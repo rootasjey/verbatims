@@ -17,7 +17,6 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<{
       try { config = JSON.parse(theme.config) } catch { config = null }
     }
 
-    // Backward compat: convert old UnoCSS color names to hex
     if (config) {
       const colorNameToHex: Record<string, string> = {
         rose: '#f43f5e', pink: '#ec4899', fuchsia: '#d946ef',
@@ -37,15 +36,15 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<{
       }
     }
 
-    const filters = await getThemeFilters(theme.id)
+    const filters = await getThemeFilters(theme!.id)
 
     return {
       success: true,
       data: {
-        slug: theme.slug,
-        name: theme.name,
-        description: theme.description,
-        image_url: theme.image_url,
+        slug: theme!.slug,
+        name: theme!.name,
+        description: theme!.description,
+        image_url: theme!.image_url,
         config,
         filters_count: filters.length,
       },

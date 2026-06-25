@@ -26,22 +26,20 @@ export default defineEventHandler(async (event) => {
     .limit(1)
     .get()
 
-  if (!existing) {
-    throwServer(404, 'Queue item not found')
-  }
+  if (!existing) throwServer(404, 'Queue item not found')
 
   await db.delete(schema.socialQueue).where(eq(schema.socialQueue.id, id))
 
-  if (existing.status === 'queued') {
+  if (existing!.status === 'queued') {
     await db.update(schema.socialQueue)
       .set({
         position: sql`${schema.socialQueue.position} - 1`,
         updatedAt: sql`CURRENT_TIMESTAMP`
       })
       .where(and(
-        eq(schema.socialQueue.platform, existing.platform),
+        eq(schema.socialQueue.platform, existing!.platform),
         eq(schema.socialQueue.status, 'queued'),
-        gt(schema.socialQueue.position, existing.position)
+        gt(schema.socialQueue.position, existing!.position)
       ))
   }
 
@@ -49,9 +47,9 @@ export default defineEventHandler(async (event) => {
     success: true,
     data: {
       deleted: true,
-      id: existing.id,
-      sourceType: existing.sourceType,
-      sourceId: existing.sourceId
+      id: existing!.id,
+      sourceType: existing!.sourceType,
+      sourceId: existing!.sourceId
     }
   }
 })

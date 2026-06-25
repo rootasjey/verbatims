@@ -2,26 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, and, like, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
 import type { ProcessedQuoteResult } from '~~/server/types'
 
-export default defineEventHandler(async (event): Promise<ApiResponse<{
-  quotes: ProcessedQuoteResult[]
-  total: number
-  page: number
-  limit: number
-  offset: number
-  pageCount: number
-  sort: 'relevance' | 'recent' | 'popular'
-  q?: string
-  filters: {
-    language?: QuoteLanguage
-    author?: number | null
-    reference?: number | null
-    tagIds?: number[]
-    minLen?: number
-    maxLen?: number
-    from?: string
-    to?: string
-  }
-}>> => {
+export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
 

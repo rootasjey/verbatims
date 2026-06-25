@@ -26,18 +26,19 @@ export default defineEventHandler(async (event) => {
       status: schema.quotes.status
     })
     .from(schema.quotes)
-    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
 
     if (!quote) {
       throwServer(404, 'Quote not found')
     }
+    const q = quote!
 
     // Check permissions: regular users can only delete their own drafts
     // Admins and moderators can delete any quote
     const isAdmin = user.role === 'admin' || user.role === 'moderator'
-    const isOwner = quote.userId === user.id
-    const isDraft = quote.status === 'draft'
+    const isOwner = q.userId === user.id
+    const isDraft = q.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {
       throwServer(403, 'You can only delete your own draft quotes')
@@ -45,7 +46,7 @@ export default defineEventHandler(async (event) => {
 
     // Delete quote
     await db.delete(schema.quotes)
-      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .where(eq(schema.quotes.id, parseInt(quoteId!)))
       .run()
 
     return {

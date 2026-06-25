@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin or moderator access required')
     }
 
-    const authorId = getRouterParam(event, 'id')
+    const authorId = getRouterParam(event, 'id')!
     if (!authorId || isNaN(parseInt(authorId))) {
       throwServer(400, 'Invalid author ID')
     }
@@ -35,8 +35,7 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Author name is required')
     }
 
-    // Check if another author with same name already exists (excluding current author)
-    if (body.name && body.name.trim() !== existingAuthor.name) {
+    if (body.name && body.name.trim() !== existingAuthor!.name) {
       const duplicateAuthor = await db.select()
         .from(schema.authors)
         .where(and(
@@ -63,15 +62,14 @@ export default defineEventHandler(async (event) => {
     if (body.description !== undefined) updateData.description = body.description
     if (body.socials !== undefined) updateData.socials = JSON.stringify(body.socials)
 
-    // Handle image URL changes (upload external images to R2)
     if (body.image_url !== undefined) {
-      const oldUrl = existingAuthor.imageUrl
+      const oldUrl = existingAuthor!.imageUrl
       const newUrl = body.image_url
 
       if (newUrl !== oldUrl) {
         // Delete old R2 image if it exists
-        if (isR2ImageUrl(oldUrl)) {
-          await deleteImageByUrl(oldUrl)
+        if (isR2ImageUrl(oldUrl!)) {
+          await deleteImageByUrl(oldUrl!)
         }
 
         if (newUrl) {
@@ -91,7 +89,7 @@ export default defineEventHandler(async (event) => {
     // Update author
     const updatedAuthor = await db.update(schema.authors)
       .set(updateData)
-      .where(eq(schema.authors.id, parseInt(authorId)))
+      .where(eq(schema.authors.id, parseInt(authorId!)))
       .returning()
       .get()
 

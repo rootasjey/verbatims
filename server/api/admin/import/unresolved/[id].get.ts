@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const id = event.context.params?.id
   if (!id) throwServer(400, 'Missing import id')
 
-  const data = getUnresolved(id)
+  const data = getUnresolved(id!)
   const filename = `unresolved-${id}.json`
 
   setHeader(event, 'Content-Type', 'application/json; charset=utf-8')

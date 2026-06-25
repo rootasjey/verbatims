@@ -24,13 +24,14 @@ export default defineEventHandler(async (event) => {
       status: schema.quotes.status
     })
     .from(schema.quotes)
-    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
 
     if (!quote) throwServer(404, 'Quote not found')
+    const q = quote!
     const isPrivileged = session.user.role === 'admin' || session.user.role === 'moderator'
     const isAdminUser = session.user.role === 'admin'
-    const isOwnerDraft = quote.userId === session.user.id && quote.status === 'draft'
+    const isOwnerDraft = q.userId === session.user.id && q.status === 'draft'
     if (!isPrivileged && !isOwnerDraft) {
       throwServer(403, 'Not allowed to edit tags for this quote')
     }
@@ -68,14 +69,15 @@ export default defineEventHandler(async (event) => {
     if (!selectedTag) {
       throwServer(404, 'Tag not found')
     }
+    const t = selectedTag!
 
-    if (!isCuratedTagName(selectedTag.name) && !isAdminUser) {
+    if (!isCuratedTagName(t.name) && !isAdminUser) {
       throwServer(400, 'Only curated tags can be added to quotes.')
     }
 
     // Attach relation (ignore duplicates)
     await db.insert(schema.quoteTags).values({
-      quoteId: parseInt(quoteId),
+      quoteId: parseInt(quoteId!),
       tagId: finalTagId
     }).onConflictDoNothing().run()
 

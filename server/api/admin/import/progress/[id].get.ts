@@ -11,12 +11,12 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'Admin access required')
   }
 
-  const importId = getRouterParam(event, 'id')
+  const importId = getRouterParam(event, 'id')!
   if (!importId) {
     throwServer(400, 'Import ID is required')
   }
 
-  const progress = getAdminImport(importId)
+  const progress = getAdminImport(importId!)
   if (!progress) {
     throwServer(404, 'Import not found')
   }
@@ -25,16 +25,16 @@ export default defineEventHandler(async (event) => {
   const wantsSSE = accept.includes('text/event-stream')
 
   if (!wantsSSE) {
-    const derived = computeDerived(progress)
+    const derived = computeDerived(progress!)
     return {
       success: true,
       data: {
-        ...progress,
+        ...progress!,
         ...derived,
-        errorCount: progress.errors.length,
-        warningCount: progress.warnings.length,
-        recentErrors: progress.errors.slice(-5),
-        recentWarnings: progress.warnings.slice(-5),
+        errorCount: progress!.errors.length,
+        warningCount: progress!.warnings.length,
+        recentErrors: progress!.errors.slice(-5),
+        recentWarnings: progress!.warnings.slice(-5),
       }
     }
   }
@@ -48,10 +48,10 @@ export default defineEventHandler(async (event) => {
     start(controller) {
       try {
         const encoder = new TextEncoder()
-        const initial = { ...progress, ...computeDerived(progress) }
+        const initial = { ...progress!, ...computeDerived(progress!) }
         controller.enqueue(encoder.encode(formatSSE('progress', initial)))
 
-        const unsubscribe = onProgress(importId, (updated) => {
+        const unsubscribe = onProgress(importId!, (updated) => {
           try {
             const payload = { ...updated, ...computeDerived(updated) }
             controller.enqueue(encoder.encode(formatSSE('progress', payload)))

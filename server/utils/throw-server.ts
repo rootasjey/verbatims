@@ -1,6 +1,6 @@
 import { createError } from 'h3'
 
-export function throwServer(statusCode: number, statusMessage?: string, extra?: Record<string, unknown>) {
+export function throwServer(statusCode: number, statusMessage?: string, extra?: Record<string, unknown>): never {
   const payload: Record<string, unknown> = {
     statusCode: Number(statusCode) || 500
   }

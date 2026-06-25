@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 
-export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
+export default defineEventHandler(async (event) => {
   try {
     const session = await requireUserSession(event)
     if (!session.user) {
@@ -22,16 +22,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     }
 
     // Check if quote exists and user has permission to edit it
-    const existingQuote = await db.select().from(schema.quotes).where(eq(schema.quotes.id, parseInt(quoteId))).get()
+    const existingQuote = await db.select().from(schema.quotes).where(eq(schema.quotes.id, parseInt(quoteId!))).get()
 
     if (!existingQuote) {
       throwServer(404, 'Quote not found')
     }
+    const e = existingQuote!
 
     // Check permissions: users can only edit their own drafts, admins can edit any quote
     const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwner = existingQuote.userId === session.user.id
-    const isDraft = existingQuote.status === 'draft'
+    const isOwner = e.userId === session.user.id
+    const isDraft = e.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {
       throwServer(403, 'You can only edit your own draft quotes')
@@ -74,7 +75,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
         referenceId: referenceId || null,
         updatedAt: new Date()
       })
-      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .where(eq(schema.quotes.id, parseInt(quoteId!)))
       .run()
 
     // Fetch the updated quote with all related data
@@ -105,12 +106,13 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
     .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
 
     if (!updatedQuote) {
       throwServer(500, 'Failed to fetch updated quote')
     }
+    const u = updatedQuote!
 
     // Fetch tags for the quote
     const tags = await db.select({
@@ -120,39 +122,39 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     })
     .from(schema.tags)
     .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
-    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
     .all()
 
     const transformedQuote: QuoteWithMetadata = {
-      id: updatedQuote.id,
-      name: updatedQuote.name,
-      language: updatedQuote.language,
-      author_id: updatedQuote.authorId,
-      reference_id: updatedQuote.referenceId,
-      user_id: updatedQuote.userId,
-      status: updatedQuote.status as any,
-      moderator_id: updatedQuote.moderatorId,
-      moderated_at: toISOStringOrNull(updatedQuote.moderatedAt) ?? undefined,
-      rejection_reason: updatedQuote.rejectionReason,
-      views_count: updatedQuote.viewsCount,
-      likes_count: updatedQuote.likesCount,
-      shares_count: updatedQuote.sharesCount,
-      is_featured: updatedQuote.isFeatured,
-      created_at: toISOStringOrNull(updatedQuote.createdAt) || '',
-      updated_at: toISOStringOrNull(updatedQuote.updatedAt) || '',
-      author: updatedQuote.authorId ? {
-        id: updatedQuote.authorId,
-        name: updatedQuote.authorName,
-        is_fictional: updatedQuote.authorIsFictional
+      id: u.id,
+      name: u.name,
+      language: u.language!,
+      author_id: u.authorId ?? undefined,
+      reference_id: u.referenceId ?? undefined,
+      user_id: u.userId,
+      status: u.status as QuoteStatus,
+      moderator_id: u.moderatorId ?? undefined,
+      moderated_at: toISOStringOrNull(u.moderatedAt) ?? undefined,
+      rejection_reason: u.rejectionReason ?? undefined,
+      views_count: u.viewsCount ?? 0,
+      likes_count: u.likesCount ?? 0,
+      shares_count: u.sharesCount ?? 0,
+      is_featured: u.isFeatured ?? false,
+      created_at: toISOStringOrNull(u.createdAt) || '',
+      updated_at: toISOStringOrNull(u.updatedAt) || '',
+      author: u.authorId ? {
+        id: u.authorId,
+        name: u.authorName ?? undefined,
+        is_fictional: u.authorIsFictional ?? undefined
       } : undefined,
-      reference: updatedQuote.referenceId ? {
-        id: updatedQuote.referenceId,
-        name: updatedQuote.referenceName,
-        primary_type: updatedQuote.referencePrimaryType || 'other'
+      reference: u.referenceId ? {
+        id: u.referenceId,
+        name: u.referenceName ?? undefined,
+        primary_type: u.referencePrimaryType || 'other'
       } : undefined,
       user: {
-        id: updatedQuote.userId,
-        name: updatedQuote.userName || ''
+        id: u.userId,
+        name: u.userName || ''
       },
       tags: tags.map(t => ({
         id: t.id,

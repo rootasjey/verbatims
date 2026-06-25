@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .where(and(
-      eq(schema.quotes.id, parseInt(quoteId)),
+      eq(schema.quotes.id, parseInt(quoteId!)),
       eq(schema.quotes.status, 'approved')
     ))
     .get()
@@ -43,6 +43,7 @@ export default defineEventHandler(async (event) => {
     if (!quote) {
       throwServer(404, 'Quote not found')
     }
+    const q = quote!
 
     // Fetch tags for the quote
     const tags = await db.select({
@@ -51,34 +52,34 @@ export default defineEventHandler(async (event) => {
     })
     .from(schema.tags)
     .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
-    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
     .all()
 
     const transformedQuote = {
-      id: quote.id,
-      name: quote.name,
-      language: quote.language,
-      status: quote.status,
-      views_count: quote.viewsCount,
-      likes_count: quote.likesCount,
-      shares_count: quote.sharesCount,
-      is_featured: quote.isFeatured,
-      created_at: quote.createdAt,
-      updated_at: quote.updatedAt,
-      author: quote.authorId ? {
-        id: quote.authorId,
-        name: quote.authorName,
-        is_fictional: quote.authorIsFictional,
-        image_url: quote.authorImageUrl
+      id: q.id,
+      name: q.name,
+      language: q.language,
+      status: q.status,
+      views_count: q.viewsCount,
+      likes_count: q.likesCount,
+      shares_count: q.sharesCount,
+      is_featured: q.isFeatured,
+      created_at: q.createdAt,
+      updated_at: q.updatedAt,
+      author: q.authorId ? {
+        id: q.authorId,
+        name: q.authorName,
+        is_fictional: q.authorIsFictional,
+        image_url: q.authorImageUrl
       } : undefined,
-      reference: quote.referenceId ? {
-        id: quote.referenceId,
-        name: quote.referenceName,
-        primary_type: quote.referencePrimaryType
+      reference: q.referenceId ? {
+        id: q.referenceId,
+        name: q.referenceName,
+        primary_type: q.referencePrimaryType
       } : undefined,
       user: {
-        id: quote.userId,
-        name: quote.userName
+        id: q.userId,
+        name: q.userName
       },
       tags: tags.map(t => ({
         name: t.name,

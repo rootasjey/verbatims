@@ -87,7 +87,7 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
       category: row.category,
       tags: parseJSONSafely(row.tags) || [],
       message: row.message,
-      target_type: row.target_type,
+      target_type: (row.target_type || 'general') as ReportTargetType,
       target_id: row.target_id ?? null,
       ip_address: row.ip_address ?? null,
       user_agent: row.user_agent ?? null,
@@ -107,7 +107,7 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
   }))
 
   return {
-    data,
+    data: data as AdminUserMessage[],
     pagination: {
       page,
       limit,

@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
         name: tag.name,
         description: tag.description ?? null,
         category: tag.category ?? null,
-        color: tag.color,
+        color: tag.color || '',
         created_at: toISO(tag.createdAt),
         updated_at: toISO(tag.updatedAt),
         usage_count: Number(quotesCountResult?.count ?? 0)

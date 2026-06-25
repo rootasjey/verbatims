@@ -11,10 +11,10 @@ function slugify(text: string): string {
 }
 
 function toTitle(text: string): string {
-  return text.replace(/\w+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase())
+  return text.replace(/\w+/g, w => w[0]!.toUpperCase() + w.slice(1).toLowerCase())
 }
 
-function pick<T>(items: T[], index: number, key: string): T {
+function pick<T>(items: T[], index: number, key: string): T | undefined {
   let hash = 0
   for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash) + key.charCodeAt(i) | 0
   return items[Math.abs(hash + index * 7) % items.length]
@@ -86,8 +86,8 @@ async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: 
   } catch {}
 
   const defaults = providerDefaults[provider] || providerDefaults.openrouter
-  let baseUrl = defaults.baseUrl || process.env.AI_BASE_URL || providerDefaults.openrouter.baseUrl
-  let model = defaults.defaultModel || process.env.AI_MODEL || providerDefaults.openrouter.defaultModel
+  let baseUrl = defaults!.baseUrl || process.env.AI_BASE_URL || providerDefaults.openrouter!.baseUrl
+  let model = defaults!.defaultModel || process.env.AI_MODEL || providerDefaults.openrouter!.defaultModel
 
   // Per-provider overrides from DB
   const providerKey = provider === 'custom' ? 'custom' : provider
@@ -177,7 +177,7 @@ Rules:
 
     // Validate and filter suggestions
     return suggestions.slice(0, MAX_SUGGESTIONS).map((s: any, i: number) => {
-      const pair = colorPairs[i % colorPairs.length]
+      const pair = colorPairs[i % colorPairs.length]!
       return {
         type: s.type || 'tag',
         name: s.name || 'Untitled',
@@ -261,19 +261,19 @@ export default defineEventHandler(async (event) => {
 
     const addSuggestion = (type: string, name: string, desc: string, filters: any[]) => {
       if (suggestions.length >= MAX_SUGGESTIONS) return
-      const pair = colorPairs[colorIndex % colorPairs.length]
+      const pair = colorPairs[colorIndex % colorPairs.length]!
       colorIndex++
-      suggestions.push({ type, name, slug: slugify(name), description: desc, color_primary: pair[0], color_secondary: pair[1], filters })
+      suggestions.push({ type, name, slug: slugify(name), description: desc, color_primary: pair![0], color_secondary: pair![1], filters })
     }
 
     // --- Tag suggestions ---
     for (let i = 0; i < topTags.length; i++) {
       if (suggestions.length >= MAX_SUGGESTIONS) break
-      const tag = topTags[i]
+      const tag = topTags[i]!
       if (tag.count < MIN_QUOTES) continue
 
       const title = toTitle(tag.name)
-      const pattern = pick(tagPatterns, i, tag.name)
+      const pattern = pick(tagPatterns, i, tag.name)!
       const name = pattern.name(title)
       if (existingSlugs.has(slugify(name))) continue
 
@@ -294,16 +294,16 @@ export default defineEventHandler(async (event) => {
 
       for (const ct of coTags) filters.push({ type: 'tag_name', value: ct.name, match_mode: 'any' })
 
-      addSuggestion('tag', name, pattern.desc(title), filters)
+      addSuggestion('tag', name, pattern!.desc(title), filters)
     }
 
     // --- Author suggestions ---
     for (let i = 0; i < topAuthors.length; i++) {
       if (suggestions.length >= MAX_SUGGESTIONS) break
-      const author = topAuthors[i]
+      const author = topAuthors[i]!
       if (author.count < MIN_QUOTES) continue
 
-      const pattern = pick(authorPatterns, i, author.name)
+      const pattern = pick(authorPatterns, i, author.name)!
       const name = pattern.name(author.name)
       if (existingSlugs.has(slugify(name))) continue
 
@@ -321,16 +321,16 @@ export default defineEventHandler(async (event) => {
 
       for (const t of authorTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
 
-      addSuggestion('author', name, pattern.desc(author.name), filters)
+      addSuggestion('author', name, pattern!.desc(author.name), filters)
     }
 
     // --- Reference suggestions ---
     for (let i = 0; i < topReferences.length; i++) {
       if (suggestions.length >= MAX_SUGGESTIONS) break
-      const ref = topReferences[i]
+      const ref = topReferences[i]!
       if (ref.count < MIN_QUOTES) continue
 
-      const pattern = pick(referencePatterns, i, ref.name)
+      const pattern = pick(referencePatterns, i, ref.name)!
       const name = pattern.name(ref.name)
       if (existingSlugs.has(slugify(name))) continue
 
@@ -348,7 +348,7 @@ export default defineEventHandler(async (event) => {
 
       for (const t of refTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
 
-      addSuggestion('reference', name, pattern.desc(ref.name), filters)
+      addSuggestion('reference', name, pattern!.desc(ref.name), filters)
     }
 
     return { success: true, data: suggestions }

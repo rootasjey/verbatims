@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 
-export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMetadata>> => {
+export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireUserSession(event)
 
@@ -152,6 +152,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
     if (!createdQuote) {
       throwServer(500, 'Failed to fetch created quote')
     }
+    const c = createdQuote!
 
     // Fetch tags for the quote
     const tags = await db.select({
@@ -166,44 +167,44 @@ export default defineEventHandler(async (event): Promise<ApiResponse<QuoteWithMe
 
     // Transform the result
     const transformedQuote: QuoteWithMetadata = {
-      id: createdQuote.id,
-      name: createdQuote.name,
-      language: createdQuote.language,
-      author_id: createdQuote.authorId,
-      reference_id: createdQuote.referenceId,
-      user_id: createdQuote.userId,
-      status: createdQuote.status as QuoteStatus,
-      views_count: createdQuote.viewsCount,
-      likes_count: createdQuote.likesCount,
-      shares_count: createdQuote.sharesCount,
-      is_featured: createdQuote.isFeatured,
-      created_at: createdQuote.createdAt.toISOString(),
-      updated_at: createdQuote.updatedAt.toISOString(),
-      author: createdQuote.authorId ? {
-        id: createdQuote.authorId,
-        name: createdQuote.authorName,
-        is_fictional: createdQuote.authorIsFictional,
-        job: createdQuote.authorJob,
-        description: createdQuote.authorDescription
+      id: c.id,
+      name: c.name,
+      language: c.language!,
+      author_id: c.authorId ?? undefined,
+      reference_id: c.referenceId ?? undefined,
+      user_id: c.userId,
+      status: c.status as QuoteStatus,
+      views_count: c.viewsCount ?? 0,
+      likes_count: c.likesCount ?? 0,
+      shares_count: c.sharesCount ?? 0,
+      is_featured: c.isFeatured ?? false,
+      created_at: c.createdAt?.toISOString() || new Date().toISOString(),
+      updated_at: c.updatedAt?.toISOString() || new Date().toISOString(),
+      author: c.authorId ? {
+        id: c.authorId,
+        name: c.authorName ?? undefined,
+        is_fictional: c.authorIsFictional ?? undefined,
+        job: c.authorJob ?? undefined,
+        description: c.authorDescription ?? undefined
       } : undefined,
-      reference: createdQuote.referenceId ? {
-        id: createdQuote.referenceId,
-        name: createdQuote.referenceName,
-        original_language: createdQuote.referenceOriginalLanguage,
-        primary_type: createdQuote.referencePrimaryType,
-        description: createdQuote.referenceDescription,
-        release_date: createdQuote.referenceReleaseDate
+      reference: c.referenceId ? {
+        id: c.referenceId,
+        name: c.referenceName ?? undefined,
+        original_language: c.referenceOriginalLanguage ?? undefined,
+        primary_type: c.referencePrimaryType ?? undefined,
+        description: c.referenceDescription ?? undefined,
+        release_date: c.referenceReleaseDate ?? undefined
       } : undefined,
       user: {
-        id: createdQuote.userId,
-        name: createdQuote.userName,
-        email: createdQuote.userEmail,
-        avatar_url: createdQuote.userAvatarUrl
+        id: c.userId,
+        name: c.userName || '',
+        email: c.userEmail ?? undefined,
+        avatar_url: c.userAvatarUrl ?? undefined
       },
       tags: tags.map(t => ({
         id: t.id,
         name: t.name,
-        color: t.color
+        color: t.color || 'gray'
       }))
     }
 

@@ -166,7 +166,7 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
   const publishResult = await publishByPlatform(itemPlatform, {
     text: content,
     canonicalUrl,
-    imageUrl: resolvedContent.media.url,
+    imageUrl: resolvedContent.media?.url || '',
     blueskyHashtags
   })
 

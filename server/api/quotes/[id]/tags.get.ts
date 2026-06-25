@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(schema.tags)
     .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
-    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
     .orderBy(asc(schema.tags.name))
     .all()
 

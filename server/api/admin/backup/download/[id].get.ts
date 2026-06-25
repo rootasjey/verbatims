@@ -25,27 +25,26 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Backup file not found')
     }
 
-    const ext = backupFileRecord.filename.split('.').pop()?.toLowerCase()
+    const ext = backupFileRecord!.filename.split('.').pop()?.toLowerCase()
 
-    // If it's a ZIP, serve the binary directly from R2 without UTF-8 conversion
     if (ext === 'zip') {
-      const file = await blob.get(backupFileRecord.file_key)
+      const file = await blob.get(backupFileRecord!.file_key)
       if (!file) {
         throwServer(404, 'Backup file not found in storage')
       }
 
-      const arrayBuffer = await file.arrayBuffer()
+      const arrayBuffer = await file!.arrayBuffer()
 
       setHeader(event, 'Content-Type', 'application/zip')
-      setHeader(event, 'Content-Disposition', `attachment; filename="${backupFileRecord.filename}"`)
+      setHeader(event, 'Content-Disposition', `attachment; filename="${backupFileRecord!.filename}"`)
       setHeader(event, 'Content-Length', arrayBuffer.byteLength)
       setHeader(event, 'Cache-Control', 'private, max-age=3600')
 
-      setHeader(event, 'X-Backup-ID', backupFileRecord.id.toString())
-      setHeader(event, 'X-Backup-Created', backupFileRecord.created_at)
-      setHeader(event, 'X-Backup-File-Path', backupFileRecord.file_path)
-      if (backupFileRecord.content_hash) {
-        setHeader(event, 'X-Content-Hash', backupFileRecord.content_hash)
+      setHeader(event, 'X-Backup-ID', backupFileRecord!.id.toString())
+      setHeader(event, 'X-Backup-Created', backupFileRecord!.created_at)
+      setHeader(event, 'X-Backup-File-Path', backupFileRecord!.file_path)
+      if (backupFileRecord!.content_hash) {
+        setHeader(event, 'X-Content-Hash', backupFileRecord!.content_hash)
       }
 
       await trackBackupFileAccess(backupNumericId)

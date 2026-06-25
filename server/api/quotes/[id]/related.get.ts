@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!quoteId || isNaN(parseInt(quoteId))) {
       throwServer(400, 'Invalid quote ID')
     }
-    const quoteIdNum = parseInt(quoteId)
+    const quoteIdNum = parseInt(quoteId!)
 
     // First, get the current quote's details to find related quotes
     const currentQuote = await db.select({ 
@@ -125,7 +125,7 @@ export default defineEventHandler(async (event) => {
         .where(eq(schema.quoteTags.quoteId, quoteIdNum))
         .all()
 
-      const tagIds = currentQuoteTags.map(t => t.tagId)
+      const tagIds = currentQuoteTags.map(t => t.tagId).filter((id): id is number => id !== null)
 
       if (tagIds.length > 0) {
         const existingIds = [...new Set(relatedQuotes.map((q: any) => q.id))]
@@ -193,10 +193,11 @@ export default defineEventHandler(async (event) => {
 
       // Group tags by quote ID
       allTags.forEach(tag => {
+        if (tag.quoteId === null) return
         if (!tagsByQuoteId[tag.quoteId]) {
           tagsByQuoteId[tag.quoteId] = []
         }
-        tagsByQuoteId[tag.quoteId].push({ name: tag.name, color: tag.color })
+        tagsByQuoteId[tag.quoteId]!.push({ name: tag.name, color: tag.color })
       })
     }
 

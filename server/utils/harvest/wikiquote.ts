@@ -185,7 +185,7 @@ function parseWikiTextQuotes(wikitext: string, lang: string): ParsedQuote[] {
 
     const headingMatch = wikitext.substring(i).match(/^={2,}\s*(.+?)\s*={2,}/)
     if (headingMatch) {
-      currentSection = stripWikiMarkup(headingMatch[1])
+      currentSection = stripWikiMarkup(headingMatch[1]!)
       i += headingMatch[0].length - 1
       continue
     }
@@ -233,11 +233,11 @@ function parseWikiTextQuotes(wikitext: string, lang: string): ParsedQuote[] {
   }
 
   for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i]
+    const raw = lines[i]!
 
     const headingMatch = raw.match(/^={2,}\s*(.+?)\s*={2,}/)
     if (headingMatch) {
-      currentSection = stripWikiMarkup(headingMatch[1])
+      currentSection = stripWikiMarkup(headingMatch[1]!)
       continue
     }
 
@@ -259,7 +259,7 @@ function parseWikiTextQuotes(wikitext: string, lang: string): ParsedQuote[] {
 
         let attribution: string | null = null
         for (let j = i + 1; j < lines.length; j++) {
-          const nextLine = lines[j]
+          const nextLine = lines[j]!
           const nextLevel = nextLine.match(/^(\*+)/)?.[1]?.length || 0
           if (nextLevel <= 1) break
           if (nextLevel === 2) {

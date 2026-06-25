@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   try {
     const result = await db.select()
       .from(schema.settings)
-      .where(eq(schema.settings.key, `user_${session.user.id}_notifications`))
+      .where(eq(schema.settings.key, `user_${session.user!.id}_notifications`))
       .limit(1)
 
     const defaults = { quote_approval: true, collection_updates: true, weekly_digest: false }

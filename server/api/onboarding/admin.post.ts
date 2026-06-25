@@ -79,20 +79,18 @@ export default defineEventHandler(async (event) => {
     })
 
     console.log(`✅ Admin user created successfully: ${username} (${email})`)
-    if (!createdUser) {
-      throwServer(500, 'Failed to retrieve created admin user')
-    }
+    if (!createdUser) throwServer(500, 'Failed to retrieve created admin user')
 
     return {
       success: true,
       message: 'Admin user created successfully',
       data: {
         user: {
-          id: createdUser.id,
-          name: createdUser.name,
-          email: createdUser.email,
-          role: createdUser.role,
-          createdAt: createdUser.createdAt
+          id: createdUser!.id,
+          name: createdUser!.name,
+          email: createdUser!.email,
+          role: createdUser!.role,
+          createdAt: createdUser!.createdAt
         }
       }
     }

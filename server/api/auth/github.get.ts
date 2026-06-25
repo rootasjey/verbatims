@@ -15,7 +15,7 @@ export default defineOAuthGitHubEventHandler({
       let existingUser = await db
         .select()
         .from(schema.users)
-        .where(eq(schema.users.email, user.email))
+        .where(eq(schema.users.email, user.email!))
         .get()
       
       if (existingUser) {
@@ -38,7 +38,7 @@ export default defineOAuthGitHubEventHandler({
         existingUser = await db
           .insert(schema.users)
           .values({
-            email: user.email,
+            email: user.email!,
             name: user.name || user.login,
             password: oauthPasswordHash,
             avatarUrl: user.avatar_url,
@@ -60,13 +60,13 @@ export default defineOAuthGitHubEventHandler({
         id: existingUser.id,
         email: existingUser.email,
         name: existingUser.name,
-        avatar_url: existingUser.avatarUrl,
-        role: existingUser.role,
-        is_active: existingUser.isActive,
-        email_verified: existingUser.emailVerified,
+        avatar_url: existingUser.avatarUrl ?? undefined,
+        role: existingUser.role ?? 'user',
+        is_active: existingUser.isActive ?? false,
+        email_verified: existingUser.emailVerified ?? false,
         language,
-        created_at: toISOStringOrNull(existingUser.createdAt),
-        updated_at: toISOStringOrNull(existingUser.updatedAt)
+        created_at: toISOStringOrNull(existingUser.createdAt) ?? '',
+        updated_at: toISOStringOrNull(existingUser.updatedAt) ?? ''
       }
 
       await setUserSession(event, {

@@ -13,24 +13,22 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin access required')
     }
 
-    const authorId = getRouterParam(event, 'id')
+    const authorId = getRouterParam(event, 'id')!
     if (!authorId || isNaN(parseInt(authorId))) {
       throwServer(400, 'Invalid author ID')
     }
 
-    // Check if author exists
     const existingAuthor = await db.select()
       .from(schema.authors)
-      .where(eq(schema.authors.id, parseInt(authorId)))
+      .where(eq(schema.authors.id, parseInt(authorId!)))
       .get()
 
     if (!existingAuthor) {
       throwServer(404, 'Author not found')
     }
 
-    // Clean up R2 image if present
     if (isR2ImageUrl(existingAuthor.imageUrl)) {
-      await deleteImageByUrl(existingAuthor.imageUrl)
+      await deleteImageByUrl(existingAuthor.imageUrl!)
     }
 
     // Determine strategy for related quotes

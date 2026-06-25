@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
       .from(schema.quotes)
       .where(and(
-        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.id, parseInt(quoteId!)),
         eq(schema.quotes.status, 'approved')
       ))
       .get()
@@ -27,22 +27,23 @@ export default defineEventHandler(async (event) => {
     // Increment share count
     await db.update(schema.quotes)
       .set({ sharesCount: sql`${schema.quotes.sharesCount} + 1` })
-      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .where(eq(schema.quotes.id, parseInt(quoteId!)))
 
     // Get updated share count
     const updatedQuote = await db.select({ sharesCount: schema.quotes.sharesCount })
       .from(schema.quotes)
-      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .where(eq(schema.quotes.id, parseInt(quoteId!)))
       .get()
 
     if (!updatedQuote) {
       throwServer(500, 'Failed to update quote share count')
     }
+    const u = updatedQuote!
 
     return {
       success: true,
       data: {
-        sharesCount: updatedQuote.sharesCount
+        sharesCount: u.sharesCount
       }
     }
   } catch (error) {

@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     const quote = await db.select({ id: schema.quotes.id })
       .from(schema.quotes)
       .where(and(
-        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.id, parseInt(quoteId!)),
         eq(schema.quotes.status, 'approved')
       ))
       .get()
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     const recentView = await db.select({ id: schema.quoteViews.id })
       .from(schema.quoteViews)
       .where(and(
-        eq(schema.quoteViews.quoteId, parseInt(quoteId)),
+        eq(schema.quoteViews.quoteId, parseInt(quoteId!)),
         or(
           and(
             eq(schema.quoteViews.userId, session.user?.id || 0),
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
     // Only track if not a recent view
     if (!recentView) {
       await db.insert(schema.quoteViews).values({
-        quoteId: parseInt(quoteId),
+        quoteId: parseInt(quoteId!),
         userId: session.user?.id || null,
         ipAddress: session.user ? null : clientIP, // Only store IP for anonymous users
         userAgent

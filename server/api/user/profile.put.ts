@@ -13,11 +13,11 @@ export default defineEventHandler(async (event) => {
   try {
     await db.update(schema.users)
       .set({
-        name: name || session.user.name,
+        name: name || session.user!.name,
         biography: bio || undefined,
         updatedAt: new Date()
       })
-      .where(eq(schema.users.id, session.user.id))
+      .where(eq(schema.users.id, session.user!.id))
 
     return {
       success: true,

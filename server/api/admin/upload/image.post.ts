@@ -20,12 +20,12 @@ export default defineEventHandler(async (event) => {
     throwServer(400, 'No image file provided')
   }
 
-  const mimeType = file.type || 'image/jpeg'
+  const mimeType = file!.type || 'image/jpeg'
   if (!mimeType.startsWith('image/')) {
     throwServer(400, 'File must be an image')
   }
 
-  if (file.data.length > MAX_FILE_SIZE) {
+  if (file!.data.length > MAX_FILE_SIZE) {
     throwServer(400, 'Image must be less than 5MB')
   }
 
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   const id = randomUUID()
   const key = `images/uploads/${id}${ext}`
 
-  const raw = file.data
+  const raw = file!.data
   const ab = raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength
     ? (raw.buffer as ArrayBuffer)
     : raw.slice().buffer as ArrayBuffer

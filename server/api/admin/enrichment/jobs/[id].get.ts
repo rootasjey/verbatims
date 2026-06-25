@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'Admin access required')
   }
 
-  const id = Number(getRouterParam(event, 'id'))
+  const id = Number(getRouterParam(event, 'id')!)
   if (!Number.isInteger(id) || id <= 0) {
     throwServer(400, 'Invalid enrichment job ID')
   }
@@ -18,9 +18,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.entityEnrichmentJobs.id, id))
     .get()
 
-  if (!job) {
-    throwServer(404, 'Enrichment job not found')
-  }
+  if (!job) throwServer(404, 'Enrichment job not found')
 
   const [proposals, changeHistory] = await Promise.all([
     db.select()
@@ -33,22 +31,22 @@ export default defineEventHandler(async (event) => {
       .orderBy(desc(schema.entityFieldChangeHistory.createdAt), desc(schema.entityFieldChangeHistory.id)),
   ])
 
-  const entity = job.entityType === 'author'
+  const entity = job!.entityType === 'author'
     ? await db.select({ id: schema.authors.id, name: schema.authors.name })
       .from(schema.authors)
-      .where(eq(schema.authors.id, job.entityId))
+      .where(eq(schema.authors.id, job!.entityId))
       .get()
     : await db.select({ id: schema.quoteReferences.id, name: schema.quoteReferences.name })
       .from(schema.quoteReferences)
-      .where(eq(schema.quoteReferences.id, job.entityId))
+      .where(eq(schema.quoteReferences.id, job!.entityId))
       .get()
 
   return {
     success: true,
     data: {
-      job,
+      job: job!,
       entity,
-      preview: job.resultPayload ? JSON.parse(job.resultPayload) : null,
+      preview: job!.resultPayload ? JSON.parse(job!.resultPayload) : null,
       proposals: proposals.map((proposal) => ({
         ...proposal,
         sourceLabels: proposal.sourceLabels ? JSON.parse(proposal.sourceLabels) : [],

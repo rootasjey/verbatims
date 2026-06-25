@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'Admin or moderator access required')
     }
 
-    const referenceId = getRouterParam(event, 'id')
+    const referenceId = getRouterParam(event, 'id')!
     if (!referenceId || isNaN(parseInt(referenceId))) {
       throwServer(400, 'Invalid reference ID')
     }
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if another reference with same name already exists (excluding current reference)
-    if (body.name && body.name.trim() !== existingReference.name) {
+    if (body.name && body.name.trim() !== existingReference!.name) {
       const duplicateReference = await db.select()
         .from(schema.quoteReferences)
         .where(and(
@@ -71,13 +71,13 @@ export default defineEventHandler(async (event) => {
 
     // Handle image URL changes (upload external images to R2)
     if (body.image_url !== undefined) {
-      const oldUrl = existingReference.imageUrl
+      const oldUrl = existingReference!.imageUrl
       const newUrl = body.image_url
 
       if (newUrl !== oldUrl) {
         // Delete old R2 image if it exists
-        if (isR2ImageUrl(oldUrl)) {
-          await deleteImageByUrl(oldUrl)
+        if (isR2ImageUrl(oldUrl!)) {
+          await deleteImageByUrl(oldUrl!)
         }
 
         if (newUrl) {

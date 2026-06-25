@@ -63,8 +63,9 @@ export default defineEventHandler(async (event) => {
       .all()
 
       tags.forEach(tag => {
+        if (tag.quoteId === null) return
         if (!tagsMap[tag.quoteId]) tagsMap[tag.quoteId] = []
-        tagsMap[tag.quoteId].push({ name: tag.name, color: tag.color })
+        tagsMap[tag.quoteId]!.push({ name: tag.name, color: tag.color })
       })
     }
 

@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, desc, sql } from 'drizzle-orm'
 
-export default defineEventHandler(async (_event): Promise<ApiResponse<any>> => {
+export default defineEventHandler(async (_event) => {
   try {
     // Get a featured quote (either marked as featured or random popular quote)
     let featuredQuote = await db.select({

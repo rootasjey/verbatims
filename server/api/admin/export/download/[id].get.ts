@@ -29,23 +29,22 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Export not found or expired')
     }
 
-    const exportLogData = exportLog[0];
+    const exportLogData = exportLog[0]!;
 
-    // If this is an 'all' export (zip), try to serve the stored backup directly from R2
-    if (exportLogData.dataType === 'all') {
-      const backups = await getBackupFilesForExport(Number(exportLogData.id ?? -1))
+    if (exportLogData!.dataType === 'all') {
+      const backups = await getBackupFilesForExport(Number(exportLogData!.id ?? -1))
       const latest = backups.find(b => b.file_path?.endsWith('.zip')) || backups[0]
 
       // If we couldn't find any backup or the backup lacks a file key, return 404.
       if (!latest || !latest.file_key) {
         throwServer(404, 'Export file not found in storage')
       }
-      const file = await blob.get(latest.file_key as string)
+      const file = await blob.get(latest!.file_key as string)
       if (!file) { throwServer(404, 'Archive not found in storage') }
 
-      const ab = await file.arrayBuffer()
+      const ab = await file!.arrayBuffer()
       setHeader(event, 'Content-Type', 'application/zip')
-      setHeader(event, 'Content-Disposition', `attachment; filename="${exportLogData.filename}"`)
+      setHeader(event, 'Content-Disposition', `attachment; filename="${exportLogData!.filename}"`)
       setHeader(event, 'Content-Length', ab.byteLength)
       setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
       setHeader(event, 'Pragma', 'no-cache')
@@ -53,8 +52,7 @@ export default defineEventHandler(async (event) => {
       return new Uint8Array(ab)
     }
 
-    // For single-type exports, regenerate the content (JSON/CSV/XML)
-    const filters = parseFiltersFromExportLog(exportLogData)
+    const filters = parseFiltersFromExportLog(exportLogData!)
 
     // Rebuild the export (this is a simplified approach for demo)
     const { query, bindings } = buildQuotesQueryForDownload(filters, true, 0)
@@ -98,10 +96,10 @@ export default defineEventHandler(async (event) => {
       })) : undefined
     }))
 
-    let content: string
-    let mimeType: string
+    let content = ''
+    let mimeType = ''
 
-    switch (exportLogData.format) {
+    switch (exportLogData!.format) {
       case 'json':
         content = JSON.stringify(processedQuotes, null, 2)
         mimeType = 'application/json'
@@ -116,9 +114,6 @@ export default defineEventHandler(async (event) => {
         content = generateXMLForDownload(processedQuotes)
         mimeType = 'application/xml'
         break
-
-      default:
-        throwServer(400, 'Unsupported export format')
     }
 
     await db.update(schema.exportLogs)
@@ -126,7 +121,7 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.exportLogs.exportId, exportId));
 
     setHeader(event, 'Content-Type', mimeType)
-    setHeader(event, 'Content-Disposition', `attachment; filename="${exportLogData.filename}"`)
+    setHeader(event, 'Content-Disposition', `attachment; filename="${exportLogData!.filename}"`)
     setHeader(event, 'Content-Length', Buffer.byteLength(content, 'utf8'))
     setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
     setHeader(event, 'Pragma', 'no-cache')

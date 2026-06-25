@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'Admin access required')
   }
 
-  const id = getRouterParam(event, 'id')
+  const id = getRouterParam(event, 'id')!
   if (!id || isNaN(parseInt(id))) {
     throwServer(400, 'Invalid tag ID')
   }

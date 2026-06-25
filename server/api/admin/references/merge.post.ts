@@ -33,12 +33,8 @@ export default defineEventHandler(async (event) => {
       db.select().from(schema.quoteReferences).where(eq(schema.quoteReferences.id, targetId)).get(),
     ])
 
-    if (!sourceRef) {
-      throwServer(404, 'Source reference not found')
-    }
-    if (!targetRef) {
-      throwServer(404, 'Target reference not found')
-    }
+    if (!sourceRef) throwServer(404, 'Source reference not found')
+    if (!targetRef) throwServer(404, 'Target reference not found')
 
     const quotesResult = await db.get<{ count: number }>(sql`
       SELECT COUNT(*) as count FROM ${schema.quotes} WHERE reference_id = ${sourceId}
@@ -92,8 +88,8 @@ export default defineEventHandler(async (event) => {
       if (fieldsToCopy.length > 0) {
         const updateData: Record<string, any> = {}
         for (const field of fieldsToCopy) {
-          if (sourceRef[field as keyof typeof sourceRef] != null && targetRef[field as keyof typeof targetRef] == null) {
-            updateData[field] = sourceRef[field as keyof typeof sourceRef]
+          if (sourceRef![field as keyof typeof sourceRef] != null && targetRef![field as keyof typeof targetRef] == null) {
+            updateData[field] = sourceRef![field as keyof typeof sourceRef]
           }
         }
         if (Object.keys(updateData).length > 0) {
@@ -111,9 +107,9 @@ export default defineEventHandler(async (event) => {
 
       await db.update(schema.quoteReferences)
         .set({
-          viewsCount: (targetRef.viewsCount ?? 0) + (sourceRef.viewsCount ?? 0),
-          likesCount: (targetRef.likesCount ?? 0) + (sourceRef.likesCount ?? 0),
-          sharesCount: (targetRef.sharesCount ?? 0) + (sourceRef.sharesCount ?? 0),
+          viewsCount: (targetRef!.viewsCount ?? 0) + (sourceRef!.viewsCount ?? 0),
+          likesCount: (targetRef!.likesCount ?? 0) + (sourceRef!.likesCount ?? 0),
+          sharesCount: (targetRef!.sharesCount ?? 0) + (sourceRef!.sharesCount ?? 0),
         })
         .where(eq(schema.quoteReferences.id, targetId))
         .run()
@@ -128,8 +124,8 @@ export default defineEventHandler(async (event) => {
         success: true,
         message: 'References merged successfully',
         data: {
-          sourceReference: { id: sourceId, name: sourceRef.name },
-          targetReference: { id: targetId, name: targetRef.name },
+          sourceReference: { id: sourceId, name: sourceRef!.name },
+          targetReference: { id: targetId, name: targetRef!.name },
           quotesMoved: quotesCount,
           viewsMoved: viewsCount,
           fieldsCopied: fieldsToCopy,

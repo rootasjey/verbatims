@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
       ['created_at', 'updated_at', 'views_count', 'likes_count', 'shares_count']
     )
 
-    const sortBy = sort_by
+    const sortBy = sort_by || 'created_at'
     const sortOrder = sort_order === 'asc' ? asc : desc
     const sortableColumns: Record<string, any> = {
       created_at: schema.quotes.createdAt,

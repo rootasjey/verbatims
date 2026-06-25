@@ -31,7 +31,6 @@ export default defineEventHandler(async (event) => {
     .get()
 
   if (!row) {
-    // If not found, return 404 but include a hint
     throwServer(404, 'No report found for this import')
   }
 
@@ -41,14 +40,12 @@ export default defineEventHandler(async (event) => {
 
   const inline = q.inline === '1'
 
-  // Inspect stored format from metadata
   let storedFormat: 'ndjson' | 'csv' = 'ndjson'
   try {
     const meta = row.metadata ? JSON.parse(String(row.metadata)) : null
     if (meta && (meta.format === 'ndjson' || meta.format === 'csv')) storedFormat = meta.format
   } catch {}
 
-  // If format matches, stream raw blob
   if (storedFormat === requestedFormat) {
     const filename = row.filename || `import-report.${storedFormat}`
     setHeader(event, 'Content-Type', storedFormat === 'csv' ? 'text/csv' : 'application/x-ndjson')
@@ -57,8 +54,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Else: convert on-the-fly
-  const compression = (row.compressionType === 'gzip' ? 'gzip' : 'none') as 'gzip' | 'none'
-  const { content } = await downloadBackupFile(String(row.fileKey), compression)
+  const compression = (row!.compressionType === 'gzip' ? 'gzip' : 'none') as 'gzip' | 'none'
+  const { content } = await downloadBackupFile(String(row!.fileKey), compression)
   let out = ''
   if (storedFormat === 'ndjson' && requestedFormat === 'csv') {
     // Convert NDJSON -> CSV
@@ -126,5 +123,5 @@ export default defineEventHandler(async (event) => {
   // Re-read to satisfy type guard (should exist; earlier fetched)
   const file2 = await blob.get(fileKey)
   if (!file2) throwServer(404, 'Report file missing from storage')
-  return file2.stream()
+  return (file2 as NonNullable<typeof file2>).stream()
 })

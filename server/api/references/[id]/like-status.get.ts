@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const refId = getRouterParam(event, 'id')
+    const refId = getRouterParam(event, 'id')!
     if (!refId || isNaN(parseInt(refId))) {
       throwServer(400, 'Invalid reference ID')
     }

@@ -10,12 +10,12 @@ export default defineEventHandler(async (event) => {
     const { user } = await requireUserSession(event)
     if (user.role !== 'admin') { throwServer(403, 'Admin access required') }
 
-    const importId = getRouterParam(event, 'id')
+    const importId = getRouterParam(event, 'id')!
     if (!importId) { throwServer(400, 'Import ID is required') }
 
     const importLog = await db.select({ id: schema.importLogs.id })
       .from(schema.importLogs)
-      .where(eq(schema.importLogs.importId, importId))
+      .where(eq(schema.importLogs.importId, importId!))
       .limit(1)
       .get()
     

@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     const quote = await db.select()
       .from(schema.quotes)
       .where(and(
-        eq(schema.quotes.id, parseInt(quoteId)),
+        eq(schema.quotes.id, parseInt(quoteId!)),
         eq(schema.quotes.status, 'draft'),
         eq(schema.quotes.userId, session.user.id)
       ))
@@ -41,16 +41,17 @@ export default defineEventHandler(async (event) => {
     if (!quote) {
       throwServer(404, 'Quote not found, not a draft, or you do not have permission to submit it')
     }
+    const q = quote!
 
     // Validate quote has minimum required content
-    if (!quote.name || quote.name.trim().length < 10) {
+    if (!q.name || q.name.trim().length < 10) {
       throwServer(400, 'Quote must have at least 10 characters before submission')
     }
 
     // Update quote status to pending
     await db.update(schema.quotes)
       .set({ status: 'pending' })
-      .where(eq(schema.quotes.id, parseInt(quoteId)))
+      .where(eq(schema.quotes.id, parseInt(quoteId!)))
 
     // Fetch the updated quote with all related data
     const updatedQuoteData = await db.select({
@@ -78,12 +79,13 @@ export default defineEventHandler(async (event) => {
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
     .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-    .where(eq(schema.quotes.id, parseInt(quoteId)))
+    .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
 
     if (!updatedQuoteData) {
       throwServer(500, 'Failed to fetch updated quote')
     }
+    const u = updatedQuoteData!
 
     // Fetch tags
     const tags = await db.select({
@@ -92,18 +94,18 @@ export default defineEventHandler(async (event) => {
     })
     .from(schema.tags)
     .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
-    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId)))
+    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
     .all()
 
     // Process the quote result
     const processedQuote = {
-      ...updatedQuoteData,
-      author_name: updatedQuoteData.authorName || null,
-      author_is_fictional: updatedQuoteData.authorIsFictional || false,
-      author_image_url: updatedQuoteData.authorImageUrl || null,
-      reference_name: updatedQuoteData.referenceName || null,
-      reference_type: updatedQuoteData.referencePrimaryType || null,
-      user_name: updatedQuoteData.userName || null,
+      ...u,
+      author_name: u.authorName || null,
+      author_is_fictional: u.authorIsFictional || false,
+      author_image_url: u.authorImageUrl || null,
+      reference_name: u.referenceName || null,
+      reference_type: u.referencePrimaryType || null,
+      user_name: u.userName || null,
       tags
     }
 

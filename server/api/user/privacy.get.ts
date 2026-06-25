@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   try {
     const result = await db.select()
       .from(schema.settings)
-      .where(eq(schema.settings.key, `user_${session.user.id}_privacy`))
+      .where(eq(schema.settings.key, `user_${session.user!.id}_privacy`))
       .limit(1)
 
     const defaults = { public_profile: true, show_attribution: true }
