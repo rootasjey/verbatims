@@ -170,17 +170,16 @@ const props = defineProps({
   }
 })
 
+const quote = reactive({ ...props.quote })
 const { user } = useUserSession()
 
 const isLiked = ref(false)
 const likePending = ref(false)
 
-// Check if user has liked this quote
 const checkLikeStatus = async () => {
   if (!user.value) return
-
   try {
-    const { data } = await $fetch(`/api/quotes/${props.quote.id}/like-status`)
+    const { data } = await $fetch(`/api/quotes/${quote.id}/like-status`)
     isLiked.value = data?.isLiked || false
   } catch (error) {
     console.error('Failed to check like status:', error)
@@ -189,19 +188,14 @@ const checkLikeStatus = async () => {
 
 const toggleLike = async () => {
   if (!user.value || likePending.value) return
-
   likePending.value = true
   try {
-    const { data } = await $fetch(`/api/quotes/${props.quote.id}/like`, {
-      method: 'POST'
-    })
-
+    const { data } = await $fetch(`/api/quotes/${quote.id}/like`, { method: 'POST' })
     isLiked.value = data.isLiked
-    // Update the quote's like count
     if (data.isLiked) {
-      props.quote.likes_count++
+      quote.likes_count++
     } else {
-      props.quote.likes_count--
+      quote.likes_count--
     }
   } catch (error) {
     console.error('Failed to toggle like:', error)
@@ -215,20 +209,16 @@ const shareQuote = async () => {
     if (navigator.share) {
       await navigator.share({
         title: 'Quote from Verbatims',
-        text: `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}`,
-        url: `${window.location.origin}/quotes/${props.quote.id}`
+        text: `"${quote.name}" ${quote.author ? `- ${quote.author.name}` : ''}`,
+        url: `${window.location.origin}/quotes/${quote.id}`
       })
     } else {
-      // Fallback: copy to clipboard
       await navigator.clipboard.writeText(
-        `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}\n\n${window.location.origin}/quotes/${props.quote.id}`
+        `"${quote.name}" ${quote.author ? `- ${quote.author.name}` : ''}\n\n${window.location.origin}/quotes/${quote.id}`
       )
-      // TODO: Show toast notification
     }
-
-    // Track share
-    await $fetch(`/api/quotes/${props.quote.id}/share`, { method: 'POST' })
-    props.quote.shares_count++
+    await $fetch(`/api/quotes/${quote.id}/share`, { method: 'POST' })
+    quote.shares_count++
   } catch (error) {
     console.error('Failed to share quote:', error)
   }
@@ -244,25 +234,24 @@ const addToCollection = () => {
   showAddQuoteToCollectionModal.value = true
 }
 
-const onAddedToCollection = (collection) => {
-  // TODO: Show success toast
-}
+const onAddedToCollection = () => {}
 
 const reportQuote = () => {
   if (!user.value) {
     navigateTo('/login')
     return
   }
-  // TODO: Open report modal
 }
 
-const dropdownItems = computed(() =>  [
+const hasModeratorAccess = computed(() => user.value?.role === 'admin' || user.value?.role === 'moderator')
+
+const dropdownItems = computed(() => [
   {
     label: 'Share',
     leading: 'i-ph-share',
     onclick: shareQuote
   },
-  ...(user.value.role === 'admin' || user.value.role === 'moderator' ? [{
+  ...(hasModeratorAccess.value ? [{
     label: 'Add to Collection',
     leading: 'i-ph-bookmark',
     onclick: addToCollection
@@ -276,25 +265,17 @@ const dropdownItems = computed(() =>  [
 ])
 
 const formatNumber = (num) => {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M'
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K'
-  }
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
   return num.toString()
 }
 
 onMounted(() => {
-  if (user.value) {
-    checkLikeStatus()
-  }
+  if (user.value) checkLikeStatus()
 })
 
 watch(user, (newUser) => {
-  if (newUser) {
-    checkLikeStatus()
-  } else {
-    isLiked.value = false
-  }
+  if (newUser) checkLikeStatus()
+  else isLiked.value = false
 })
 </script>
