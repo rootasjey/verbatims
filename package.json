@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.87.18",
+  "version": "0.88.0",
   "private": true,
   "type": "module",
   "scripts": {

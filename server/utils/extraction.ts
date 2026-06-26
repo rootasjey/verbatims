@@ -70,6 +70,12 @@ export function parseIntSafe(value: any, defaultValue: number) {
   return Number.isFinite(n) ? n : defaultValue
 }
 
+export function parseIntParam(value: string | undefined): number | null {
+  if (!value) return null
+  const n = parseInt(value, 10)
+  return Number.isFinite(n) ? n : null
+}
+
 /**
  * Safely parses a JSON string and returns the parsed value, or an empty array on failure.
  *
