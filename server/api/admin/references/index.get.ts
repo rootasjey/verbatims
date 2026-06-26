@@ -23,16 +23,19 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    // Build the WHERE clause
-    const whereConditions = []
+    // Build the WHERE clause with parameterized queries
+    const whereConditions: string[] = []
+    const params: any[] = []
     
     if (search) {
       const searchPattern = `%${search}%`
-      whereConditions.push(`(r.name LIKE '${searchPattern}' OR r.description LIKE '${searchPattern}' OR r.secondary_type LIKE '${searchPattern}')`)
+      whereConditions.push('(r.name LIKE ? OR r.description LIKE ? OR r.secondary_type LIKE ?)')
+      params.push(searchPattern, searchPattern, searchPattern)
     }
     
     if (primary_type) {
-      whereConditions.push(`r.primary_type = '${primary_type}'`)
+      whereConditions.push('r.primary_type = ?')
+      params.push(primary_type)
     }
     
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
@@ -56,8 +59,9 @@ export default defineEventHandler(async (event) => {
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
     // Main query with quote count
-    const references = await db.all(sql.raw(`
-      SELECT 
+    const allBindings = [...params, limit, offset]
+    const references = await db.all((sql.raw as any)(
+      `SELECT 
         r.*,
         COUNT(q.id) as quotes_count,
         (
@@ -87,15 +91,17 @@ export default defineEventHandler(async (event) => {
       ${whereClause}
       GROUP BY r.id
       ORDER BY ${sortColumn === 'quotes_count' ? 'quotes_count' : `r.${sortColumn}`} ${sortDirection}
-      LIMIT ${limit} OFFSET ${offset}
-    `))
+      LIMIT ? OFFSET ?`,
+      ...allBindings,
+    ))
     
     // Count query for pagination
-    const countResult = await db.get<{ total: number }>(sql.raw(`
-      SELECT COUNT(*) as total
+    const countResult = await db.get<{ total: number }>((sql.raw as any)(
+      `SELECT COUNT(*) as total
       FROM quote_references r
-      ${whereClause}
-    `))
+      ${whereClause}`,
+      ...params,
+    ))
     
     const referencesData = references.map((reference: any) => ({
       ...reference,

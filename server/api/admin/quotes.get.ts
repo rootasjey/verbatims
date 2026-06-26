@@ -6,29 +6,35 @@ export default defineEventHandler(async (event) => {
     const { user } = await requireModerator(event)
     
     const query = getQuery(event)
-    const page = parseInt(query.page as string) || 1
+    const page = Math.max(1, parseInt(query.page as string) || 1)
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
-    const search = query.search as string || ''
-    const status = query.status as string || 'approved'
-    const language = query.language as string
+    const search = (query.search as string || '').trim()
+    const status = (query.status as string || 'approved').trim()
+    const language = (query.language as string || '').trim()
     
-    // Build WHERE conditions for SQL
-    const conditions = [`q.status = '${status}'`]
+    const params: any[] = []
+    const conditions: string[] = []
+    
+    conditions.push('q.status = ?')
+    params.push(status)
     
     if (search) {
+      conditions.push('(q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ? OR u.name LIKE ?)')
       const searchPattern = `%${search}%`
-      conditions.push(`(q.name LIKE '${searchPattern}' OR a.name LIKE '${searchPattern}' OR r.name LIKE '${searchPattern}' OR u.name LIKE '${searchPattern}')`)
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern)
     }
     
     if (language) {
-      conditions.push(`q.language = '${language}'`)
+      conditions.push('q.language = ?')
+      params.push(language)
     }
     
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
     
-    const quotesResult = await db.all<DatabaseAdminQuote>(sql.raw(`
-      SELECT
+    const allBindings = [...params, limit, offset]
+    const quotesResult = await db.all<DatabaseAdminQuote>((sql.raw as any)(
+      `SELECT
         q.*,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
@@ -51,18 +57,19 @@ export default defineEventHandler(async (event) => {
       ${whereClause}
       GROUP BY q.id
       ORDER BY q.moderated_at DESC, q.created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `))
+      LIMIT ? OFFSET ?`,
+      ...allBindings,
+    ))
 
-    // Get total count
-    const totalResult = await db.get<{ total: number }>(sql.raw(`
-      SELECT COUNT(*) as total
+    const totalResult = await db.get<{ total: number }>((sql.raw as any)(
+      `SELECT COUNT(*) as total
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
-      ${whereClause}
-    `))
+      ${whereClause}`,
+      ...params,
+    ))
 
     const total = totalResult?.total || 0
     const hasMore = offset + quotesResult.length < total
