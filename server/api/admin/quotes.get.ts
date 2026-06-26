@@ -1,5 +1,5 @@
 import { db } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import { sql, SQL } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -13,28 +13,23 @@ export default defineEventHandler(async (event) => {
     const status = (query.status as string || 'approved').trim()
     const language = (query.language as string || '').trim()
     
-    const params: any[] = []
-    const conditions: string[] = []
-    
-    conditions.push('q.status = ?')
-    params.push(status)
+    const conditions: SQL[] = [sql`q.status = ${status}`]
     
     if (search) {
-      conditions.push('(q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ? OR u.name LIKE ?)')
-      const searchPattern = `%${search}%`
-      params.push(searchPattern, searchPattern, searchPattern, searchPattern)
+      const p = `%${search}%`
+      conditions.push(sql`(q.name LIKE ${p} OR a.name LIKE ${p} OR r.name LIKE ${p} OR u.name LIKE ${p})`)
     }
     
     if (language) {
-      conditions.push('q.language = ?')
-      params.push(language)
+      conditions.push(sql`q.language = ${language}`)
     }
     
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const whereClause = conditions.length > 0
+      ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
+      : sql``
     
-    const allBindings = [...params, limit, offset]
-    const quotesResult = await db.all<DatabaseAdminQuote>((sql.raw as any)(
-      `SELECT
+    const quotesResult = await db.all<DatabaseAdminQuote>(sql`
+      SELECT
         q.*,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
@@ -57,19 +52,17 @@ export default defineEventHandler(async (event) => {
       ${whereClause}
       GROUP BY q.id
       ORDER BY q.moderated_at DESC, q.created_at DESC
-      LIMIT ? OFFSET ?`,
-      ...allBindings,
-    ))
+      LIMIT ${limit} OFFSET ${offset}
+    `)
 
-    const totalResult = await db.get<{ total: number }>((sql.raw as any)(
-      `SELECT COUNT(*) as total
+    const totalResult = await db.get<{ total: number }>(sql`
+      SELECT COUNT(*) as total
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
-      ${whereClause}`,
-      ...params,
-    ))
+      ${whereClause}
+    `)
 
     const total = totalResult?.total || 0
     const hasMore = offset + quotesResult.length < total
