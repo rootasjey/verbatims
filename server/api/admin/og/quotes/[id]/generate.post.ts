@@ -15,5 +15,5 @@ export default defineEventHandler(async (event) => {
   const origin = `${requestUrl.protocol}//${requestUrl.host}`
   const res = await $fetch.raw(`${origin}/api/og/quotes/${id}.png`)
   if (!res.ok) { throwServer(500, 'Failed to generate OG image'); return }
-  return { ok: true, id }
+  return { success: true, data: { ok: true, id } }
 })

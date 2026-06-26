@@ -55,6 +55,7 @@ export interface AdminUserMessage extends UserMessage {
  * API response shape for admin messages listing
  */
 export interface AdminMessagesListResponse {
+  success: boolean
   data: AdminUserMessage[]
   pagination: {
     page: number

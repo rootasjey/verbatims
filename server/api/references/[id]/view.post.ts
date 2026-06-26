@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
     const { recorded } = await trackView('reference', refId, session.user?.id ?? null, clientIP, userAgent)
 
-    return { success: true, message: 'View tracked', recorded }
+    return { success: true, data: { recorded }, message: 'View tracked' }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error tracking reference view:', error)

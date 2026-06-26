@@ -104,6 +104,7 @@ export default defineEventHandler(async (event): Promise<AdminMessagesListRespon
   }))
 
   return {
+    success: true,
     data: data as AdminUserMessage[],
     pagination: {
       page,

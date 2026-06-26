@@ -766,8 +766,8 @@ onMounted(async () => {
 
   if (author.value) {
     try {
-      const viewRes = await $fetch<{ recorded: boolean } | undefined>(`/api/authors/${route.params.id}/view`, { method: 'POST' })
-      if (!viewRes?.recorded) throw new Error('View not recorded')
+      const viewRes = await $fetch<{ data: { recorded: boolean } } | undefined>(`/api/authors/${route.params.id}/view`, { method: 'POST' })
+      if (!viewRes?.data?.recorded) throw new Error('View not recorded')
       const currentAuthor = author.value
       if (currentAuthor) currentAuthor.views_count = (currentAuthor.views_count || 0) + 1
     } catch (error) {

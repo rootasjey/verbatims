@@ -902,7 +902,7 @@ onMounted(async () => {
 
   try { // Track view (dedup handled server-side)
     const res = await $fetch(`/api/references/${route.params.id}/view`, { method: 'POST' })
-    if (res?.recorded) {
+    if (res?.data?.recorded) {
       reference.value.views_count = (reference.value.views_count || 0) + 1
     }
   } catch (error) { console.error('Failed to track reference view:', error) }

@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
       })
       .where(eq(schema.users.id, user.id))
 
-    return { success: true, data: { message: 'Profile updated successfully' } }
+    return { success: true, message: 'Profile updated successfully' }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error updating profile:', error)
