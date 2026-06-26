@@ -244,92 +244,42 @@ export const useDataExport = () => {
   const cleanFilters = (filters: any) => {
     const cleaned: any = {}
 
-    // Only include non-empty arrays
-    if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
-      cleaned.status = filters.status
-    }
-    if (filters.language && Array.isArray(filters.language) && filters.language.length > 0) {
-      cleaned.language = filters.language
-    }
-    if (filters.primary_type && Array.isArray(filters.primary_type) && filters.primary_type.length > 0) {
-      cleaned.primary_type = filters.primary_type
-    }
-    if (filters.role && Array.isArray(filters.role) && filters.role.length > 0) {
-      cleaned.role = filters.role
-    }
-
-    // Only include non-empty strings
-    if (filters.author_name && filters.author_name.trim()) {
-      cleaned.author_name = filters.author_name.trim()
-    }
-    if (filters.search && filters.search.trim()) {
-      cleaned.search = filters.search.trim()
-    }
-    if (filters.job && filters.job.trim()) {
-      cleaned.job = filters.job.trim()
-    }
-    if (filters.birth_location && filters.birth_location.trim()) {
-      cleaned.birth_location = filters.birth_location.trim()
-    }
-    if (filters.death_location && filters.death_location.trim()) {
-      cleaned.death_location = filters.death_location.trim()
-    }
-    if (filters.location && filters.location.trim()) {
-      cleaned.location = filters.location.trim()
-    }
-
-    // Only include date range if both start and end are provided
-    if (filters.date_range && filters.date_range.start && filters.date_range.end) {
-      cleaned.date_range = {
-        start: filters.date_range.start,
-        end: filters.date_range.end
-      }
-    }
-    if (filters.birth_date_range && filters.birth_date_range.start && filters.birth_date_range.end) {
-      cleaned.birth_date_range = {
-        start: filters.birth_date_range.start,
-        end: filters.birth_date_range.end
-      }
-    }
-    if (filters.death_date_range && filters.death_date_range.start && filters.death_date_range.end) {
-      cleaned.death_date_range = {
-        start: filters.death_date_range.start,
-        end: filters.death_date_range.end
-      }
-    }
-    if (filters.last_login_range && filters.last_login_range.start && filters.last_login_range.end) {
-      cleaned.last_login_range = {
-        start: filters.last_login_range.start,
-        end: filters.last_login_range.end
+    const arrayFields = ['status', 'language', 'primary_type', 'role', 'category', 'color']
+    for (const field of arrayFields) {
+      if (Array.isArray(filters[field]) && filters[field].length > 0) {
+        cleaned[field] = filters[field]
       }
     }
 
-    // Only include boolean filters if they are true or explicitly false
-    if (filters.featured_only === true) {
-      cleaned.featured_only = true
-    }
-    if (filters.is_fictional !== undefined) {
-      cleaned.is_fictional = filters.is_fictional
-    }
-    if (filters.email_verified !== undefined) {
-      cleaned.email_verified = filters.email_verified
-    }
-    if (filters.is_active !== undefined) {
-      cleaned.is_active = filters.is_active
+    const stringFields = ['author_name', 'search', 'job', 'birth_location', 'death_location', 'location']
+    for (const field of stringFields) {
+      if (filters[field]?.trim()) {
+        cleaned[field] = filters[field].trim()
+      }
     }
 
-    // Only include numeric filters if they are greater than 0
-    if (filters.min_views && filters.min_views > 0) {
-      cleaned.min_views = filters.min_views
+    const dateRangeFields = ['date_range', 'birth_date_range', 'death_date_range', 'last_login_range']
+    for (const field of dateRangeFields) {
+      if (filters[field]?.start && filters[field]?.end) {
+        cleaned[field] = { start: filters[field].start, end: filters[field].end }
+      }
     }
-    if (filters.min_likes && filters.min_likes > 0) {
-      cleaned.min_likes = filters.min_likes
+
+    const strictBooleanFields = ['featured_only', 'unused_only']
+    for (const field of strictBooleanFields) {
+      if (filters[field] === true) cleaned[field] = true
     }
-    if (filters.min_quotes && filters.min_quotes > 0) {
-      cleaned.min_quotes = filters.min_quotes
+
+    const optionalBooleanFields = ['is_fictional', 'email_verified', 'is_active']
+    for (const field of optionalBooleanFields) {
+      if (filters[field] !== undefined) cleaned[field] = filters[field]
     }
-    if (filters.min_collections && filters.min_collections > 0) {
-      cleaned.min_collections = filters.min_collections
+
+    const positiveNumberFields = ['min_views', 'min_likes', 'min_quotes', 'min_collections', 'min_usage']
+    for (const field of positiveNumberFields) {
+      if (filters[field] && filters[field] > 0) {
+        cleaned[field] = filters[field]
+      }
     }
 
     return cleaned
