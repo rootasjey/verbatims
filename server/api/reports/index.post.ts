@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
 
     const messageCount = Number(recentCount?.cnt || 0)
     if (messageCount >= ANON_MAX_PER_WINDOW) {
-      return { success: true, status: 'ratelimited' as const }
+      return { success: true, data: { status: 'ratelimited' as const } }
     }
 
     const [duplicate] = await db.select({ id: schema.userMessages.id })
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     if (duplicate) {
-      return { success: true, status: 'accepted' as const, id: duplicate.id }
+      return { success: true, data: { status: 'accepted' as const, id: duplicate.id } }
     }
   }
 
@@ -92,5 +92,5 @@ export default defineEventHandler(async (event) => {
     createdAt: new Date()
   }).returning({ id: schema.userMessages.id })
 
-  return { success: true, status: 'accepted', id: result!.id }
+  return { success: true, data: { status: 'accepted', id: result!.id } }
 })

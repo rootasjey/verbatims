@@ -68,5 +68,5 @@ export default defineEventHandler(async (event) => {
 
   updateAdminImport(importId, { status: 'completed', completedAt: new Date() })
 
-  return { success: true, importId, message: 'Relink started', counts }
+  return { success: true, data: { importId, counts }, message: 'Relink started' }
 })

@@ -65,9 +65,11 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      data: rows,
-      pagination: { page, limit, total, totalPages, hasMore: page < totalPages },
-      activeCount
+      data: {
+        sponsors: rows,
+        ...(activeCount ? { activeCount } : {})
+      },
+      pagination: { page, limit, total, totalPages, hasMore: page < totalPages }
     }
   } catch (error) {
     console.error('Error fetching admin sponsors:', error)

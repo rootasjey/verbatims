@@ -86,8 +86,10 @@ export default defineEventHandler(async (event) => {
     
     return {
       success: true,
-      data: processedQuote,
-      autoTagging: autoTagResult,
+      data: {
+        quote: processedQuote,
+        autoTagging: autoTagResult
+      },
       message: `Quote ${body.action === 'approve' ? 'approved' : 'rejected'} successfully`
     }
   } catch (error: any) {

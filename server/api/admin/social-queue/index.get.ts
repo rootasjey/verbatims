@@ -294,19 +294,21 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    data: resolvedRows,
+    data: {
+      queue: resolvedRows,
+      stats: {
+        queued: Number(queueStats[0]?.queued || 0),
+        processing: Number(queueStats[0]?.processing || 0),
+        posted: Number(queueStats[0]?.posted || 0),
+        failed: Number(queueStats[0]?.failed || 0)
+      }
+    },
     pagination: {
       page,
       limit,
       total,
       totalPages,
       hasMore: page < totalPages
-    },
-    stats: {
-      queued: Number(queueStats[0]?.queued || 0),
-      processing: Number(queueStats[0]?.processing || 0),
-      posted: Number(queueStats[0]?.posted || 0),
-      failed: Number(queueStats[0]?.failed || 0)
     }
   }
 })

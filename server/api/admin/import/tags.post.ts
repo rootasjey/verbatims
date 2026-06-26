@@ -57,9 +57,11 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      importId,
+      data: {
+        importId,
+        progressUrl: `/api/admin/import/progress/${importId}`
+      },
       message: 'Tags import started',
-      progressUrl: `/api/admin/import/progress/${importId}`
     }
   } catch (error: any) {
     throwServer(error.statusCode || 500, error.statusMessage || 'Import tags failed')

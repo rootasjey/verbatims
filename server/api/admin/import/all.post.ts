@@ -177,8 +177,10 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    importId,
+    data: {
+      importId,
+      progressUrl: `/api/admin/import/progress/${importId}`,
+    },
     message: 'ALL import started',
-    progressUrl: `/api/admin/import/progress/${importId}`,
   }
 })
