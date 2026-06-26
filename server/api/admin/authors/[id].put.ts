@@ -1,13 +1,9 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
+import { updateAuthorSchema } from '../../../validation/schemas'
 
-/**
- * Admin API: Update Author
- * Updates an existing author with admin authentication
- */
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin authentication
     const { user } = await requireModerator(event)
 
     const authorId = getRouterParam(event, 'id')!
@@ -15,9 +11,8 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Invalid author ID')
     }
 
-    const body = await readBody(event) as UpdateAuthorData
+    const body = await readValidatedBody(event, updateAuthorSchema.parse)
 
-    // Check if author exists
     const existingAuthor = await db.select()
       .from(schema.authors)
       .where(eq(schema.authors.id, parseInt(authorId)))
@@ -27,12 +22,7 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Author not found')
     }
 
-    // Validate required fields
-    if (body.name !== undefined && (!body.name || !body.name.trim())) {
-      throwServer(400, 'Author name is required')
-    }
-
-    if (body.name && body.name.trim() !== existingAuthor!.name) {
+    if (body.name && body.name !== existingAuthor.name) {
       const duplicateAuthor = await db.select()
         .from(schema.authors)
         .where(and(
@@ -47,9 +37,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Build update object
-    const updateData: any = { updatedAt: sql`CURRENT_TIMESTAMP` }
+    const updateData: Record<string, any> = { updatedAt: sql`CURRENT_TIMESTAMP` }
 
-    if (body.name !== undefined) updateData.name = body.name.trim()
+    if (body.name !== undefined) updateData.name = body.name
     if (body.is_fictional !== undefined) updateData.isFictional = body.is_fictional
     if (body.birth_date !== undefined) updateData.birthDate = body.birth_date
     if (body.birth_location !== undefined) updateData.birthLocation = body.birth_location

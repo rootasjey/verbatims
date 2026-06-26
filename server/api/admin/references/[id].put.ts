@@ -1,13 +1,9 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
+import { updateReferenceSchema } from '../../../validation/schemas'
 
-/**
- * Admin API: Update Reference
- * Updates an existing reference with admin authentication
- */
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin authentication
     const { user } = await requireModerator(event)
 
     const referenceId = getRouterParam(event, 'id')!
@@ -15,9 +11,8 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Invalid reference ID')
     }
 
-    const body = await readBody(event) as UpdateQuoteReferenceData
+    const body = await readValidatedBody(event, updateReferenceSchema.parse)
 
-    // Check if reference exists
     const existingReference = await db.select()
       .from(schema.quoteReferences)
       .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
@@ -27,21 +22,8 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Reference not found')
     }
 
-    // Validate required fields
-    if (body.name !== undefined && (!body.name || !body.name.trim())) {
-      throwServer(400, 'Reference name is required')
-    }
-
-    // Validate primary type if provided
-    if (body.primary_type !== undefined) {
-      const validTypes = ['film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'media_stream', 'writings', 'video_game', 'other']
-      if (!validTypes.includes(body.primary_type)) {
-        throwServer(400, 'Invalid primary type')
-      }
-    }
-
     // Check if another reference with same name already exists (excluding current reference)
-    if (body.name && body.name.trim() !== existingReference!.name) {
+    if (body.name && body.name !== existingReference.name) {
       const duplicateReference = await db.select()
         .from(schema.quoteReferences)
         .where(and(
@@ -58,7 +40,7 @@ export default defineEventHandler(async (event) => {
     // Build update object
     const updateData: any = { updatedAt: sql`CURRENT_TIMESTAMP` }
 
-    if (body.name !== undefined) updateData.name = body.name.trim()
+    if (body.name !== undefined) updateData.name = body.name
     if (body.original_language !== undefined) updateData.originalLanguage = body.original_language
     if (body.release_date !== undefined) updateData.releaseDate = body.release_date
     if (body.description !== undefined) updateData.description = body.description
