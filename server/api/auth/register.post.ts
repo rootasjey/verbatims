@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
   const { name, email, password } = body
 
+  const ip = getRequestIP(event) || 'unknown'
+  await requireRateLimit(event, `register:ip:${ip}`, 3, 3600, 'Too many registration attempts. Please try again later.')
+
   try {
     // Check if user already exists
     const existingUser = await db

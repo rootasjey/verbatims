@@ -11,6 +11,9 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   const { email, password } = await readValidatedBody(event, bodySchema.parse)
 
+  const ip = getRequestIP(event) || 'unknown'
+  await requireRateLimit(event, `login:ip:${ip}`, 10, 60, 'Too many login attempts. Please try again later.')
+
   try {
     // Find user by email
     const userData = await db.select().from(schema.users).where(eq(schema.users.email, email)).get()

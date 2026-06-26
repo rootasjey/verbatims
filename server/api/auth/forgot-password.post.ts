@@ -13,6 +13,10 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
   const { email } = body
 
+  const ip = getRequestIP(event) || 'unknown'
+  await requireRateLimit(event, `forgot-password:ip:${ip}`, 5, 3600, 'Too many password reset requests. Please try again later.')
+  await requireRateLimit(event, `forgot-password:email:${email}`, 3, 3600)
+
   const user = await db
     .select({ id: schema.users.id, email: schema.users.email })
     .from(schema.users)

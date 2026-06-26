@@ -12,6 +12,9 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
   const { token, password } = body
 
+  const ip = getRequestIP(event) || 'unknown'
+  await requireRateLimit(event, `reset-password:ip:${ip}`, 5, 3600, 'Too many password reset attempts. Please try again later.')
+
   const resetToken = await db
     .select()
     .from(schema.passwordResetTokens)
