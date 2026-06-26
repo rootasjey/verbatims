@@ -5,7 +5,9 @@ import { createQuoteSchema } from '../../validation/schemas'
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireAuth(event)
-    await requireRateLimit(event, `create-quote:user:${user.id}`, 10, 3600, 'You have reached the limit of quote creations. Please try again later.')
+    if (user.role === 'user') {
+      await requireRateLimit(event, `create-quote:user:${user.id}`, 10, 3600, 'You have reached the limit of quote creations. Please try again later.')
+    }
 
     const body = await readValidatedBody(event, createQuoteSchema.parse)
 
