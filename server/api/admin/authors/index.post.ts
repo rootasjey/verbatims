@@ -1,21 +1,12 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { createAuthorSchema } from '../../../validation/schemas'
 
-/**
- * Admin API: Create Author
- * Creates a new author with admin authentication
- */
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin authentication
     const { user } = await requireModerator(event)
 
-    const body = await readBody(event) as CreateAuthorData
-
-    // Validate required fields
-    if (!body.name || !body.name.trim()) {
-      throwServer(400, 'Author name is required')
-    }
+    const body = await readValidatedBody(event, createAuthorSchema.parse)
 
     // Check if author with same name already exists
     const existingAuthor = await db.select()
@@ -30,14 +21,14 @@ export default defineEventHandler(async (event) => {
     // Insert author (without image URL — we'll upload to R2 first)
     const result = await db.insert(schema.authors)
       .values({
-        name: body.name.trim(),
-        isFictional: body.is_fictional || false,
-        birthDate: body.birth_date || null,
-        birthLocation: body.birth_location || null,
-        deathDate: body.death_date || null,
-        deathLocation: body.death_location || null,
-        job: body.job || null,
-        description: body.description || null,
+        name: body.name,
+        isFictional: body.is_fictional,
+        birthDate: body.birth_date ?? null,
+        birthLocation: body.birth_location ?? null,
+        deathDate: body.death_date ?? null,
+        deathLocation: body.death_location ?? null,
+        job: body.job ?? null,
+        description: body.description ?? null,
         imageUrl: null,
         socials: JSON.stringify(body.socials || {}),
         viewsCount: 0,

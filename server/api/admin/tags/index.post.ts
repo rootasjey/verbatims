@@ -1,22 +1,17 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { createTagSchema } from '../../../validation/schemas'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
 
   try {
-    const body = await readBody(event)
-    const name = String(body?.name || '').trim()
-    const color = (body?.color as string) || '#687FE5'
-    const description = (body?.description as string) || null
-    const category = (body?.category as string) || null
-    if (!name || name.length < 2) {
-      throwServer(400, 'Tag name is required')
-    }
+    const body = await readValidatedBody(event, createTagSchema.parse)
+    const color = body.color || '#687FE5'
 
     const exists = await db.select({ id: schema.tags.id })
       .from(schema.tags)
-      .where(sql`LOWER(${schema.tags.name}) = LOWER(${name})`)
+      .where(sql`LOWER(${schema.tags.name}) = LOWER(${body.name})`)
       .limit(1)
     
     if (exists.length > 0) { 
@@ -24,9 +19,9 @@ export default defineEventHandler(async (event) => {
     }
 
     const result = await db.insert(schema.tags).values({
-      name,
-      description,
-      category,
+      name: body.name,
+      description: body.description ?? null,
+      category: body.category ?? null,
       color
     }).returning()
 

@@ -1,31 +1,12 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { createReferenceSchema } from '../../../validation/schemas'
 
-/**
- * Admin API: Create Reference
- * Creates a new reference with admin authentication
- */
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin authentication
     const { user } = await requireModerator(event)
 
-    const body = await readBody(event) as CreateQuoteReferenceData
-
-    // Validate required fields
-    if (!body.name || !body.name.trim()) {
-      throwServer(400, 'Reference name is required')
-    }
-
-    if (!body.primary_type) {
-      throwServer(400, 'Primary type is required')
-    }
-
-    // Validate primary type
-    const validTypes = ['film', 'book', 'tv_series', 'music', 'speech', 'podcast', 'interview', 'documentary', 'media_stream', 'writings', 'video_game', 'other']
-    if (!validTypes.includes(body.primary_type)) {
-      throwServer(400, 'Invalid primary type')
-    }
+    const body = await readValidatedBody(event, createReferenceSchema.parse)
 
     // Check if reference with same name already exists
     const existingReference = await db.select()
@@ -40,18 +21,18 @@ export default defineEventHandler(async (event) => {
     // Insert reference (without image URL — we'll upload to R2 first)
     const result = await db.insert(schema.quoteReferences)
       .values({
-        name: body.name.trim(),
+        name: body.name,
         originalLanguage: body.original_language || 'en',
-        releaseDate: body.release_date || null,
-        description: body.description || null,
-        primaryType: body.primary_type,
-        secondaryType: body.secondary_type || null,
+        releaseDate: body.release_date ?? null,
+        description: body.description ?? null,
+        primaryType: body.primary_type as any,
+        secondaryType: body.secondary_type ?? null,
         imageUrl: null,
         urls: JSON.stringify(body.urls || {}),
         viewsCount: 0,
         likesCount: 0,
         sharesCount: 0
-      })
+      } as any)
       .returning()
       .get()
 

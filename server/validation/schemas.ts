@@ -69,6 +69,7 @@ export const createAuthorSchema = z.object({
   birth_location: z.string().max(200).trim().optional().nullable(),
   death_date: z.string().max(50).trim().optional().nullable(),
   death_location: z.string().max(200).trim().optional().nullable(),
+  image_url: z.string().url().optional().nullable(),
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -79,6 +80,8 @@ export const createReferenceSchema = z.object({
   description: z.string().max(5000).trim().optional().nullable(),
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
+  image_url: z.string().url().optional().nullable(),
+  urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
 export const createTagSchema = z.object({
