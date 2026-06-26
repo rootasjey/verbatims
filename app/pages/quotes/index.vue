@@ -75,17 +75,6 @@ const debouncedSaveScrollState = useDebounceFn(() => {
   saveCurrentQuotesState()
 }, 100)
 
-const cloneSnapshot = (snapshot: typeof quotesFeedStore.snapshot) => {
-  if (!snapshot) return null
-
-  return {
-    ...snapshot,
-    additionalQuotes: [...snapshot.additionalQuotes],
-    lastSuccessfulQuotes: [...snapshot.lastSuccessfulQuotes],
-    lastSuccessfulMeta: { ...snapshot.lastSuccessfulMeta }
-  }
-}
-
 const restoreScrollPosition = async (scrollY: number) => {
   if (typeof window === 'undefined' || scrollY <= 0) return
 
@@ -115,7 +104,7 @@ const getRestorableSnapshot = () => {
     return null
   }
 
-  return cloneSnapshot(snapshot)
+  return quotesFeedStore.cloneSnapshot(snapshot)
 }
 
 const restoreFeedFromSnapshot = async () => {

@@ -39,13 +39,18 @@ export const useQuotesFeedStore = defineStore('quotesFeed', () => {
   })
   const restoreSnapshot = ref<QuoteFeedSnapshot | null>(null)
 
-  function saveSnapshot(nextSnapshot: QuoteFeedSnapshot) {
-    snapshot.value = {
+  function cloneSnapshot(nextSnapshot: QuoteFeedSnapshot | null): QuoteFeedSnapshot | null {
+    if (!nextSnapshot) return null
+    return {
       ...nextSnapshot,
       additionalQuotes: [...nextSnapshot.additionalQuotes],
       lastSuccessfulQuotes: [...nextSnapshot.lastSuccessfulQuotes],
       lastSuccessfulMeta: { ...nextSnapshot.lastSuccessfulMeta }
     }
+  }
+
+  function saveSnapshot(nextSnapshot: QuoteFeedSnapshot) {
+    snapshot.value = cloneSnapshot(nextSnapshot)
   }
 
   function requestRestore() {
@@ -53,12 +58,7 @@ export const useQuotesFeedStore = defineStore('quotesFeed', () => {
   }
 
   function stageRestoreSnapshot(nextSnapshot: QuoteFeedSnapshot) {
-    restoreSnapshot.value = {
-      ...nextSnapshot,
-      additionalQuotes: [...nextSnapshot.additionalQuotes],
-      lastSuccessfulQuotes: [...nextSnapshot.lastSuccessfulQuotes],
-      lastSuccessfulMeta: { ...nextSnapshot.lastSuccessfulMeta }
-    }
+    restoreSnapshot.value = cloneSnapshot(nextSnapshot)
   }
 
   function clearRestoreRequest() {
@@ -77,6 +77,7 @@ export const useQuotesFeedStore = defineStore('quotesFeed', () => {
     snapshot,
     restoreSnapshot,
     shouldRestore,
+    cloneSnapshot,
     saveSnapshot,
     stageRestoreSnapshot,
     requestRestore,

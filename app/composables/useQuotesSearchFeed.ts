@@ -47,7 +47,13 @@ export function useQuoteSearchFeed() {
   const limit = 50
   const initialLoading = ref(true)
   const lastSuccessfulQuotes = ref<ProcessedQuoteResult[]>([])
-  const lastSuccessfulMeta = ref({
+
+  interface LastSuccessfulMeta {
+    total: number; page: number; limit: number; offset: number; pageCount: number
+    sort: SortMode; q: string | undefined; hasMore: boolean
+  }
+
+  const lastSuccessfulMeta = ref<LastSuccessfulMeta>({
     total: 0,
     page: 1,
     limit,
@@ -124,23 +130,25 @@ export function useQuoteSearchFeed() {
     })
   })
 
+  function mergeMeta(partial: Partial<LastSuccessfulMeta>, overrides?: { page?: number }): typeof lastSuccessfulMeta.value {
+    return {
+      total: typeof partial.total === 'number' ? partial.total : lastSuccessfulMeta.value.total,
+      page: typeof partial.page === 'number' ? partial.page : (overrides?.page ?? lastSuccessfulMeta.value.page),
+      limit: typeof partial.limit === 'number' ? partial.limit : lastSuccessfulMeta.value.limit,
+      offset: typeof partial.offset === 'number' ? partial.offset : lastSuccessfulMeta.value.offset,
+      pageCount: typeof partial.pageCount === 'number' ? partial.pageCount : lastSuccessfulMeta.value.pageCount,
+      sort: partial.sort || lastSuccessfulMeta.value.sort,
+      q: partial.q ?? lastSuccessfulMeta.value.q,
+      hasMore: typeof partial.hasMore === 'boolean' ? partial.hasMore : lastSuccessfulMeta.value.hasMore,
+    }
+  }
+
   watch(quotesData, (val) => {
     const payload = val.data
     const quotes = payload?.quotes
     if (Array.isArray(quotes)) {
       lastSuccessfulQuotes.value = quotes as ProcessedQuoteResult[]
-
-      lastSuccessfulMeta.value = {
-        total: typeof payload?.total === 'number' ? payload.total : lastSuccessfulMeta.value.total,
-        page: typeof payload?.page === 'number' ? payload.page : lastSuccessfulMeta.value.page,
-        limit: typeof payload?.limit === 'number' ? payload.limit : lastSuccessfulMeta.value.limit,
-        offset: typeof payload?.offset === 'number' ? payload.offset : lastSuccessfulMeta.value.offset,
-        pageCount: typeof payload?.pageCount === 'number' ? payload.pageCount : lastSuccessfulMeta.value.pageCount,
-        sort: (payload?.sort as SortMode) || lastSuccessfulMeta.value.sort,
-        q: payload?.q ?? lastSuccessfulMeta.value.q,
-        hasMore: typeof (payload as any)?.hasMore === 'boolean' ? (payload as any).hasMore : lastSuccessfulMeta.value.hasMore,
-      }
-
+      lastSuccessfulMeta.value = mergeMeta(payload as Partial<LastSuccessfulMeta>)
       if (initialLoading.value) initialLoading.value = false
     }
   }, { immediate: true })
@@ -210,22 +218,9 @@ export function useQuoteSearchFeed() {
       const response = await $fetch<ApiResponse<QuotesSearchPayload>>('/api/quotes/search', { query })
 
       if (response.data?.quotes) {
-        const responseData = response.data as QuotesSearchPayload
-
         additionalQuotes.value = [...additionalQuotes.value, ...(response.data.quotes as ProcessedQuoteResult[] || [])]
         currentPage.value = nextPage
-        lastSuccessfulMeta.value = {
-          total: typeof responseData.total === 'number' ? responseData.total : lastSuccessfulMeta.value.total,
-          page: typeof responseData.page === 'number' ? responseData.page : nextPage,
-          limit: typeof responseData.limit === 'number' ? responseData.limit : lastSuccessfulMeta.value.limit,
-          offset: typeof responseData.offset === 'number' ? responseData.offset : lastSuccessfulMeta.value.offset,
-          pageCount: typeof responseData.pageCount === 'number' ? responseData.pageCount : lastSuccessfulMeta.value.pageCount,
-          sort: responseData.sort || lastSuccessfulMeta.value.sort,
-          q: responseData.q ?? lastSuccessfulMeta.value.q,
-          hasMore: typeof (responseData as QuotesSearchPayload & { hasMore?: boolean }).hasMore === 'boolean'
-            ? Boolean((responseData as QuotesSearchPayload & { hasMore?: boolean }).hasMore)
-            : lastSuccessfulMeta.value.hasMore,
-        }
+        lastSuccessfulMeta.value = mergeMeta(response.data as Partial<LastSuccessfulMeta>, { page: nextPage })
       }
     } catch (error) {
       console.error('Failed to load more quotes:', error)
