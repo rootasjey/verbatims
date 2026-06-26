@@ -721,8 +721,7 @@ export const useDataExport = () => {
     }
   }
 
-  const downloadContent = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType })
+  const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -733,16 +732,11 @@ export const useDataExport = () => {
     window.URL.revokeObjectURL(url)
   }
 
-  const downloadContentBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+  const downloadContent = (content: string, filename: string, mimeType: string) => {
+    downloadBlob(new Blob([content], { type: mimeType }), filename)
   }
+
+  const downloadContentBlob = downloadBlob
 
   const isAllSelected = computed(() => exportOptions.value.data_type.value === 'all')
 
