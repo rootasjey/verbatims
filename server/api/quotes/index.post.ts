@@ -1,21 +1,17 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
+import { createQuoteSchema } from '../../validation/schemas'
 
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireAuth(event)
 
-    const body = await readBody(event)
-
-    if (!body.name || body.name.length < 2 || body.name.length > 4000) {
-      throwServer(400, 'Quote text must be between 2 and 4000 characters')
-    }
+    const body = await readValidatedBody(event, createQuoteSchema.parse)
 
     let authorId = body.author_id
     let referenceId = body.reference_id
 
-    // Create new author if provided
-    if (body.new_author && body.new_author.name) {
+    if (body.new_author?.name) {
       const authorResult = await db.insert(schema.authors).values({
         name: body.new_author.name,
         isFictional: body.new_author.is_fictional || false,
@@ -26,23 +22,16 @@ export default defineEventHandler(async (event) => {
       authorId = authorResult.id
     }
 
-    // Create new reference if provided
-    if (body.new_reference && body.new_reference.name) {
+    if (body.new_reference?.name) {
       const referenceResult = await db.insert(schema.quoteReferences).values({
         name: body.new_reference.name,
         originalLanguage: body.new_reference.original_language || 'en',
         primaryType: body.new_reference.primary_type || 'other',
-        description: body.new_reference.description || null,
-        releaseDate: body.new_reference.release_date || null
-      }).returning({ id: schema.quoteReferences.id }).get()
+        description: body.new_reference.description ?? null,
+        releaseDate: body.new_reference.release_date ?? null,
+      } as any).returning({ id: schema.quoteReferences.id }).get()
       
       referenceId = referenceResult.id
-    }
-
-    // Validate language
-    const allowedLanguages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la']
-    if (body.language && !allowedLanguages.includes(body.language)) {
-      throwServer(400, 'Invalid language code')
     }
 
     // Validate author_id if provided
@@ -68,7 +57,6 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check for duplicate quotes (fuzzy matching)
-    // Using SQL raw for LOWER and TRIM as they are standard SQL functions
     const similarQuotes = await db.select({ id: schema.quotes.id })
       .from(schema.quotes)
       .where(and(
@@ -82,33 +70,32 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'A similar quote already exists')
     }
 
-    // Insert the quote
     const quoteResult = await db.insert(schema.quotes).values({
-      name: body.name.trim(),
-      language: body.language || 'en',
+      name: body.name,
+      language: body.language,
       authorId: authorId || null,
       referenceId: referenceId || null,
       userId: user.id,
       status: 'draft',
       createdAt: new Date(),
       updatedAt: new Date()
-    }).returning({ id: schema.quotes.id }).get()
+    } as any).returning({ id: schema.quotes.id }).get()
 
     const quoteId = quoteResult.id
 
     // Add tags if provided
-    if (body.tags && Array.isArray(body.tags) && body.tags.length > 0) {
+    if (body.tags && body.tags.length > 0) {
       for (const tagId of body.tags) {
         const tag = await db.select({ id: schema.tags.id })
           .from(schema.tags)
-          .where(eq(schema.tags.id, tagId))
+          .where(eq(schema.tags.id, Number(tagId)))
           .get()
         
         if (tag) {
           await db.insert(schema.quoteTags).values({
             quoteId: quoteId,
             tagId: tagId
-          }).run()
+          } as any).run()
         }
       }
     }

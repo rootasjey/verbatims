@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, ne, sql } from 'drizzle-orm'
+import { updateTagSchema } from '../../../validation/schemas'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -8,7 +9,7 @@ export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id')!
     if (!id || isNaN(parseInt(id))) throwServer(400, 'Invalid tag ID')
     const tagId = parseInt(id)
-    const body = await readBody(event)
+    const body = await readValidatedBody(event, updateTagSchema.parse)
 
     const existing = await db.select()
       .from(schema.tags)
@@ -18,13 +19,12 @@ export default defineEventHandler(async (event) => {
     if (!existing || existing.length === 0) throwServer(404, 'Tag not found')
 
     // If updating name, ensure uniqueness (case-insensitive) excluding current ID
-    if (typeof body.name === 'string' && body.name.trim()) {
-      const nameTrimmed = body.name.trim()
+    if (body.name) {
       const conflict = await db.select({ id: schema.tags.id })
         .from(schema.tags)
         .where(
           and(
-            sql`LOWER(${schema.tags.name}) = LOWER(${nameTrimmed})`,
+            sql`LOWER(${schema.tags.name}) = LOWER(${body.name})`,
             ne(schema.tags.id, tagId)
           )
         )
@@ -35,19 +35,11 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updates: any = {}
-    if (typeof body.name === 'string' && body.name.trim()) { 
-      updates.name = body.name.trim() 
-    }
-    if (typeof body.description === 'string' || body.description === null) { 
-      updates.description = body.description ?? null 
-    }
-    if (typeof body.category === 'string' || body.category === null) { 
-      updates.category = body.category ?? null 
-    }
-    if (typeof body.color === 'string' && body.color.trim()) { 
-      updates.color = body.color.trim() 
-    }
+    const updates: Record<string, any> = {}
+    if (body.name !== undefined) updates.name = body.name
+    if (body.description !== undefined) updates.description = body.description ?? null
+    if (body.category !== undefined) updates.category = body.category ?? null
+    if (body.color !== undefined) updates.color = body.color
 
     if (Object.keys(updates).length === 0) {
       return { success: true, data: existing[0] }
