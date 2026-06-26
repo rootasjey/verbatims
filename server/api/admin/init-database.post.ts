@@ -1,5 +1,11 @@
 export default defineEventHandler(async (event) => {
   try {
+    const { user } = await getUserSession(event)
+    if (!user) throwServer(401, 'Authentication required')
+    if (user.role !== 'admin') {
+      throwServer(403, 'Admin access required')
+    }
+
     console.log('Manual database initialization started...')
     const success = await initializeDatabase()
 
@@ -38,11 +44,8 @@ export default defineEventHandler(async (event) => {
       message: 'Database initialized and admin user created successfully, seeding skipped (already has data)'
     }
   } catch (error: any) {
+    if (error?.statusCode) throw error
     console.error('Manual database initialization error:', error)
-    return {
-      success: false,
-      message: 'Database initialization failed',
-      error: error?.message || error
-    }
+    throwServer(500, 'Failed to initialize database')
   }
 })
