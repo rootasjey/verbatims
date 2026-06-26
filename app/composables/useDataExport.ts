@@ -285,40 +285,46 @@ export const useDataExport = () => {
     return cleaned
   }
 
-  const convertToApiOptions = (): ExportOptions => {
-    const rawFilters = getCurrentFilters()
-    const cleanedFilters = cleanFilters(rawFilters)
+  const baseExportOptions = () => ({
+    format: exportOptions.value.format.value,
+    include_metadata: exportOptions.value.include_metadata,
+    include_relations: exportOptions.value.include_relations,
+    include_user_data: exportOptions.value.include_user_data,
+    include_moderation_data: exportOptions.value.include_moderation_data,
+    include_analytics: exportOptions.value.include_analytics,
+    limit: exportOptions.value.limit,
+  })
 
-    return {
-      format: exportOptions.value.format.value,
-      data_type: exportOptions.value.data_type.value,
-      filters: cleanedFilters,
-      include_metadata: exportOptions.value.include_metadata,
-      include_relations: exportOptions.value.include_relations,
-      include_user_data: exportOptions.value.include_user_data,
-      include_moderation_data: exportOptions.value.include_moderation_data,
-      include_analytics: exportOptions.value.include_analytics,
-      limit: exportOptions.value.limit
-    }
+  const convertToApiOptions = (): ExportOptions => ({
+    ...baseExportOptions(),
+    data_type: exportOptions.value.data_type.value,
+    filters: cleanFilters(getCurrentFilters()),
+  })
+
+  const buildAllApiOptions = () => ({
+    ...baseExportOptions(),
+    data_type: 'all' as const,
+    all_filters: {
+      quotes: cleanFilters(quotesFilters.value),
+      references: cleanFilters(referencesFilters.value),
+      authors: cleanFilters(authorsFilters.value),
+      users: cleanFilters(usersFilters.value),
+    },
+  })
+
+  const EXPORT_ENDPOINTS: Record<string, string> = {
+    all: '/api/admin/export/all',
+    quotes: '/api/admin/export/quotes',
+    references: '/api/admin/export/references',
+    authors: '/api/admin/export/authors',
+    users: '/api/admin/export/users',
+    tags: '/api/admin/export/tags',
   }
 
-  const buildAllApiOptions = () => {
-    return {
-      format: exportOptions.value.format.value,
-      data_type: 'all' as const,
-      include_metadata: exportOptions.value.include_metadata,
-      include_relations: exportOptions.value.include_relations,
-      include_user_data: exportOptions.value.include_user_data,
-      include_moderation_data: exportOptions.value.include_moderation_data,
-      include_analytics: exportOptions.value.include_analytics,
-      limit: exportOptions.value.limit,
-      all_filters: {
-        quotes: cleanFilters(quotesFilters.value),
-        references: cleanFilters(referencesFilters.value),
-        authors: cleanFilters(authorsFilters.value),
-        users: cleanFilters(usersFilters.value)
-      }
-    }
+  const getExportEndpoint = (dataType: string): string => {
+    const endpoint = EXPORT_ENDPOINTS[dataType]
+    if (!endpoint) throw new Error('Invalid data type selected')
+    return endpoint
   }
 
   const validateExport = async () => {
@@ -327,32 +333,7 @@ export const useDataExport = () => {
 
       const dataType = exportOptions.value.data_type.value
       const apiOptions = dataType === 'all' ? (buildAllApiOptions() as any) : convertToApiOptions()
-
-      let apiEndpoint = ''
-
-      switch (dataType) {
-        case 'all':
-          apiEndpoint = '/api/admin/export/all/validate'
-          break
-        case 'quotes':
-          apiEndpoint = '/api/admin/export/quotes/validate'
-          break
-        case 'references':
-          apiEndpoint = '/api/admin/export/references/validate'
-          break
-        case 'authors':
-          apiEndpoint = '/api/admin/export/authors/validate'
-          break
-        case 'users':
-          apiEndpoint = '/api/admin/export/users/validate'
-          break
-        case 'tags':
-          apiEndpoint = '/api/admin/export/tags/validate'
-          break
-        default:
-          state.errorMessage = `Validation for ${dataType} export is not yet implemented. You can still proceed with the export.`
-          return
-      }
+      const apiEndpoint = `${getExportEndpoint(dataType)}/validate`
 
       const response = await $fetch<{ success: boolean; data: any }>(apiEndpoint, {
         method: 'POST',
@@ -368,25 +349,6 @@ export const useDataExport = () => {
     } catch (error: any) {
       console.error('Export validation failed:', error)
       state.errorMessage = error.data?.message || 'Failed to validate export'
-    }
-  }
-
-  const getExportEndpoint = (dataType: string): string => {
-    switch (dataType) {
-      case 'all':
-        return '/api/admin/export/all'
-      case 'quotes':
-        return '/api/admin/export/quotes'
-      case 'references':
-        return '/api/admin/export/references'
-      case 'authors':
-        return '/api/admin/export/authors'
-      case 'users':
-        return '/api/admin/export/users'
-      case 'tags':
-        return '/api/admin/export/tags'
-      default:
-        throw new Error('Invalid data type selected')
     }
   }
 
@@ -857,61 +819,25 @@ export const useDataExport = () => {
     if (autoPreviewStarted.value) return
     autoPreviewStarted.value = true
 
-    // Watch export option changes (format, data_type, include flags, limit)
-    watch(
-      () => ({ ...exportOptions.value }),
-      () => {
-        triggerPreviewUpdate()
-      },
-      { deep: true }
-    )
+    watch(() => ({ ...exportOptions.value }), () => triggerPreviewUpdate(), { deep: true })
 
-    // Watch filters per data type; only trigger when relevant for current selection or when 'all'
-    watch(
-      () => ({ ...quotesFilters.value }),
-      () => {
-        const dt = exportOptions.value.data_type.value
-        if (dt === 'quotes' || dt === 'all') triggerPreviewUpdate()
-      },
-      { deep: true }
-    )
-
-    watch(
-      () => ({ ...referencesFilters.value }),
-      () => {
-        const dt = exportOptions.value.data_type.value
-        if (dt === 'references' || dt === 'all') triggerPreviewUpdate()
-      },
-      { deep: true }
-    )
-
-    watch(
-      () => ({ ...authorsFilters.value }),
-      () => {
-        const dt = exportOptions.value.data_type.value
-        if (dt === 'authors' || dt === 'all') triggerPreviewUpdate()
-      },
-      { deep: true }
-    )
-
-    watch(
-      () => ({ ...usersFilters.value }),
-      () => {
-        const dt = exportOptions.value.data_type.value
-        if (dt === 'users' || dt === 'all') triggerPreviewUpdate()
-      },
-      { deep: true }
-    )
-
-    // Watch tags filters for preview update
-    watch(
-      () => ({ ...tagsFilters.value }),
-      () => {
-        const dt = exportOptions.value.data_type.value
-        if (dt === 'tags' || dt === 'all') triggerPreviewUpdate()
-      },
-      { deep: true }
-    )
+    const filterWatchers: Array<{ ref: any; dataType: string }> = [
+      { ref: quotesFilters, dataType: 'quotes' },
+      { ref: referencesFilters, dataType: 'references' },
+      { ref: authorsFilters, dataType: 'authors' },
+      { ref: usersFilters, dataType: 'users' },
+      { ref: tagsFilters, dataType: 'tags' },
+    ]
+    for (const { ref, dataType } of filterWatchers) {
+      watch(
+        () => ({ ...ref.value }),
+        () => {
+          const dt = exportOptions.value.data_type.value
+          if (dt === dataType || dt === 'all') triggerPreviewUpdate()
+        },
+        { deep: true }
+      )
+    }
   }
 
   return {
