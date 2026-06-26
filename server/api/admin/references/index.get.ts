@@ -4,16 +4,14 @@
  */
 
 import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import { sql, SQL } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check admin authentication
     const { user } = await requireModerator(event)
 
     const query = getQuery(event)
     
-    // Parse query parameters
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 50, 100)
     const search = query.search as string
@@ -23,24 +21,21 @@ export default defineEventHandler(async (event) => {
     
     const offset = (page - 1) * limit
     
-    // Build the WHERE clause with parameterized queries
-    const whereConditions: string[] = []
-    const params: any[] = []
+    const conditions: SQL[] = []
     
     if (search) {
-      const searchPattern = `%${search}%`
-      whereConditions.push('(r.name LIKE ? OR r.description LIKE ? OR r.secondary_type LIKE ?)')
-      params.push(searchPattern, searchPattern, searchPattern)
+      const p = `%${search}%`
+      conditions.push(sql`(r.name LIKE ${p} OR r.description LIKE ${p} OR r.secondary_type LIKE ${p})`)
     }
     
     if (primary_type) {
-      whereConditions.push('r.primary_type = ?')
-      params.push(primary_type)
+      conditions.push(sql`r.primary_type = ${primary_type}`)
     }
     
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+    const whereClause = conditions.length > 0
+      ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
+      : sql``
     
-    // Map frontend sort values to database columns
     const sortColumnMap: Record<string, string> = {
       'name': 'name',
       'created': 'created_at',
@@ -52,16 +47,15 @@ export default defineEventHandler(async (event) => {
       'quotes': 'quotes_count'
     }
 
-    // Validate and map sort column
     const mappedSortBy = sortColumnMap[sortBy] || sortBy
     const allowedSortColumns = ['name', 'created_at', 'updated_at', 'release_date', 'primary_type', 'views_count', 'likes_count', 'quotes_count']
     const sortColumn = allowedSortColumns.includes(mappedSortBy) ? mappedSortBy : 'name'
     const sortDirection = sortOrder.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
     
-    // Main query with quote count
-    const allBindings = [...params, limit, offset]
-    const references = await db.all((sql.raw as any)(
-      `SELECT 
+    const orderCol = sortColumn === 'quotes_count' ? sql.raw('quotes_count') : sql.raw(`r.${sortColumn}`)
+    
+    const references = await db.all(sql`
+      SELECT 
         r.*,
         COUNT(q.id) as quotes_count,
         (
@@ -90,18 +84,15 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN quotes q ON r.id = q.reference_id
       ${whereClause}
       GROUP BY r.id
-      ORDER BY ${sortColumn === 'quotes_count' ? 'quotes_count' : `r.${sortColumn}`} ${sortDirection}
-      LIMIT ? OFFSET ?`,
-      ...allBindings,
-    ))
+      ORDER BY ${orderCol} ${sql.raw(sortDirection)}
+      LIMIT ${limit} OFFSET ${offset}
+    `)
     
-    // Count query for pagination
-    const countResult = await db.get<{ total: number }>((sql.raw as any)(
-      `SELECT COUNT(*) as total
+    const countResult = await db.get<{ total: number }>(sql`
+      SELECT COUNT(*) as total
       FROM quote_references r
-      ${whereClause}`,
-      ...params,
-    ))
+      ${whereClause}
+    `)
     
     const referencesData = references.map((reference: any) => ({
       ...reference,
