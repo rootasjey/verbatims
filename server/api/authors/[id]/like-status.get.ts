@@ -1,42 +1,20 @@
-import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { findExistingLike } from '../../../services/like.service'
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await getUserSession(event)
     if (!session.user) {
-      return {
-        success: true,
-        data: { isLiked: false }
-      }
+      return { success: true, data: { isLiked: false } }
     }
 
-    const authorId = getRouterParam(event, 'id')
-    if (!authorId || isNaN(parseInt(authorId))) {
-      throwServer(400, 'Invalid author ID')
-    }
+    const authorId = parseIntParam(getRouterParam(event, 'id'))
+    if (!authorId) throwServer(400, 'Invalid author ID')
 
-    // Check if user has liked this author
-    const like = await db.select({ id: schema.userLikes.id })
-      .from(schema.userLikes)
-      .where(and(
-        eq(schema.userLikes.userId, session.user.id),
-        eq(schema.userLikes.likeableType, 'author'),
-        eq(schema.userLikes.likeableId, parseInt(authorId))
-      ))
-      .get()
+    const like = await findExistingLike('author', authorId, session.user.id)
 
-    return {
-      success: true,
-      data: {
-        isLiked: !!like
-      }
-    }
+    return { success: true, data: { isLiked: !!like } }
   } catch (error: any) {
-    if ((error as any).statusCode) {
-      throw error
-    }
-    
+    if ((error as any).statusCode) throw error
     console.error('Error checking author like status:', error)
     throwServer(500, 'Failed to check like status')
   }
