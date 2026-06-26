@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import type { CreatedQuoteResult } from '~~/server/types'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
+import { moderateQuoteSchema } from '../../../../validation/schemas'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -12,17 +13,7 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Invalid quote ID')
     }
     
-    const body = await readBody(event)
-    
-    // Validate action
-    if (!body.action || !['approve', 'reject'].includes(body.action)) {
-      throwServer(400, 'Valid action (approve/reject) is required')
-    }
-    
-    // Validate rejection reason if rejecting
-    if (body.action === 'reject' && (!body.rejection_reason || body.rejection_reason.trim().length === 0)) {
-      throwServer(400, 'Rejection reason is required when rejecting a quote')
-    }
+    const body = await readValidatedBody(event, moderateQuoteSchema.parse)
     
     const quote = await db.select()
       .from(schema.quotes)
@@ -42,7 +33,7 @@ export default defineEventHandler(async (event) => {
         status: newStatus,
         moderatorId: user.id,
         moderatedAt: sql`CURRENT_TIMESTAMP`,
-        rejectionReason: body.action === 'reject' ? body.rejection_reason.trim() : null,
+        rejectionReason: body.action === 'reject' ? (body.rejection_reason || '').trim() : null,
         updatedAt: sql`CURRENT_TIMESTAMP`
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
