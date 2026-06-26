@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
   scheduleBackground(event, runJob)
 
-    return { success: true, importId, message: 'Quotes import started', progressUrl: `/api/admin/import/progress/${importId}` }
+    return { success: true, data: { importId, progressUrl: `/api/admin/import/progress/${importId}` }, message: 'Quotes import started' }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     throwServer(500, 'Import quotes failed')

@@ -74,8 +74,10 @@ export default defineEventHandler(async (event) => {
       return {
         success: true,
         message: 'Reference deleted successfully',
-        quotesAffected: quoteCount,
-        strategy: body.strategy
+        data: {
+          quotesAffected: quoteCount,
+          strategy: body.strategy
+        }
       }
     }
 
@@ -84,7 +86,7 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.quoteReferences.id, parseInt(referenceId)))
       .run()
 
-    return { success: true, message: 'Reference deleted successfully', quotesAffected: 0 }
+    return { success: true, message: 'Reference deleted successfully', data: { quotesAffected: 0 } }
 
   } catch (error: any) {
     console.error('Error deleting reference:', error)

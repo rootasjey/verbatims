@@ -125,8 +125,7 @@ export default defineEventHandler(async (event) => {
         limit,
         total,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
+        hasMore: page < totalPages
       }
     }
 

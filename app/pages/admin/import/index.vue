@@ -554,7 +554,7 @@ const startRelink = async (): Promise<void> => {
       method: 'POST',
       body
     })
-    currentImportId.value = response.importId
+    currentImportId.value = response.data?.importId
     openProgress.value = true
   } catch (error: any) {
     console.error('Relink failed:', error)
@@ -664,7 +664,7 @@ const startImport = async (): Promise<void> => {
           filename: selectedFile.value?.name || null,
         }
       })
-      currentImportId.value = response.importId
+      currentImportId.value = response.data?.importId
     } else {
       const type = selectedDataType.value?.value || 'references'
       const importUrl = `/api/admin/import/${type}`
@@ -677,7 +677,7 @@ const startImport = async (): Promise<void> => {
           filename: selectedFile.value?.name || null,
         }
       })
-      currentImportId.value = response.importId
+      currentImportId.value = response.data?.importId
     }
 
     // Toggle collapsibles per UX preference

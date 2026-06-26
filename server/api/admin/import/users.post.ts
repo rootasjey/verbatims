@@ -57,9 +57,11 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      importId,
+      data: {
+        importId,
+        progressUrl: `/api/admin/import/progress/${importId}`
+      },
       message: 'Users import started',
-      progressUrl: `/api/admin/import/progress/${importId}`
     }
   } catch (error: any) {
     if ((error as any).statusCode) throw error

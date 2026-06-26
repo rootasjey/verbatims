@@ -225,7 +225,7 @@ const loadMessages = async () => {
     const sortValue = selectedSort.value.value; const lastUnderscoreIndex = sortValue.lastIndexOf('_')
     const sortBy = sortValue.substring(0, lastUnderscoreIndex); const sortOrder = sortValue.substring(lastUnderscoreIndex + 1).toUpperCase()
     const res: any = await $fetch('/api/admin/sponsors', { query: { page: currentPage.value, limit: pageSize.value, search: searchQuery.value || undefined, sort_by: sortBy, sort_order: sortOrder } })
-    messages.value = res.data || []; total.value = res.pagination?.total || 0; activeCount.value = res.activeCount || 0
+    messages.value = res.data?.sponsors || []; total.value = res.pagination?.total || 0; activeCount.value = res.data?.activeCount || 0
     rowSelection.value = {}; lastSelectedIndex.value = null
   } catch (e) { console.error('Failed to load sponsor messages', e); showErrorToast(e, 'Failed to load sponsor messages') }
   finally { loading.value = false }

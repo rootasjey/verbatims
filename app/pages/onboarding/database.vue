@@ -317,7 +317,7 @@ interface ProgressUpdate {
 
 interface StartImportResponse {
   success: boolean
-  importId?: string
+  data?: { importId?: string }
   message?: string
 }
 
@@ -582,9 +582,9 @@ const startImport = async () => {
       })
     }
 
-    if (response.success && response.importId) {
+    if (response.success && response.data?.importId) {
       // Start real-time progress tracking
-      startProgressTracking(response.importId)
+      startProgressTracking(response.data.importId)
     } else {
       errors.value.push(response.message || 'Failed to start import')
       loading.value = false

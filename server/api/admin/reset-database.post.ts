@@ -141,10 +141,9 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       message: 'Database data cleared successfully',
-      // Hint to clients that server cleared the session and where to go next
-      loggedOut: true,
-      redirectTo: '/',
       data: {
+        loggedOut: true,
+        redirectTo: '/',
         tablesCleared,
         rowsDeleted,
         sequencesReset,

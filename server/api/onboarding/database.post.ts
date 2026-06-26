@@ -98,9 +98,11 @@ export default defineEventHandler(async (event) => {
 
       return {
         success: true,
-        importId,
+        data: {
+          importId,
+          progressUrl: `/api/onboarding/progress/${importId}`
+        },
         message: 'Import started successfully',
-        progressUrl: `/api/onboarding/progress/${importId}`
       }
     }
 
@@ -110,8 +112,10 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       message: 'Database initialized successfully',
-      data: results,
-      importId
+      data: {
+        ...results,
+        importId
+      }
     }
   } catch (error: any) {
     console.error('Database initialization error:', error)

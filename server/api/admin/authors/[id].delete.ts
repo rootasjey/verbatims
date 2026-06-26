@@ -77,8 +77,10 @@ export default defineEventHandler(async (event) => {
       return {
         success: true,
         message: 'Author deleted successfully',
-        quotesAffected: quoteCount,
-        strategy: body.strategy
+        data: {
+          quotesAffected: quoteCount,
+          strategy: body.strategy
+        }
       }
     }
 
@@ -87,7 +89,7 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.authors.id, parseInt(authorId)))
       .run()
 
-    return { success: true, message: 'Author deleted successfully', quotesAffected: 0 }
+    return { success: true, message: 'Author deleted successfully', data: { quotesAffected: 0 } }
 
   } catch (error: any) {
     console.error('Error deleting author:', error)
