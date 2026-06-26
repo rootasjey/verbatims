@@ -1,22 +1,11 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
+import { createCollectionSchema } from '../../validation/schemas'
 
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireAuth(event)
-    const body = await readBody(event)
-
-    if (!body.name || typeof body.name !== 'string') {
-      throwServer(400, 'Collection name is required')
-    }
-    
-    if (body.name.length < 2 || body.name.length > 100) {
-      throwServer(400, 'Collection name must be between 2 and 100 characters')
-    }
-    
-    if (body.description && body.description.length > 500) {
-      throwServer(400, 'Description must be less than 500 characters')
-    }
+    const body = await readValidatedBody(event, createCollectionSchema.parse)
     
     // Check if user already has a collection with this name
     const existingCollection = await db.select()
@@ -35,9 +24,9 @@ export default defineEventHandler(async (event) => {
     const result = await db.insert(schema.userCollections)
       .values({
         userId: user.id,
-        name: body.name.trim(),
-        description: body.description?.trim() || null,
-        isPublic: !!body.is_public
+        name: body.name,
+        description: body.description || null,
+        isPublic: body.is_public
       })
       .returning()
       .get()
