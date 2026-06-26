@@ -57,10 +57,7 @@ function formatCallbackError(returnPath: string, message: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const query = getQuery(event)
   const error = String(query.error || '')
@@ -79,7 +76,7 @@ export default defineEventHandler(async (event) => {
   const stateKey = `${THREADS_OAUTH_STATE_PREFIX}${state}`
   const storedState = await useStorage('kv').getItem<{ createdBy?: number, returnPath?: string }>(stateKey)
   await useStorage('kv').removeItem(stateKey)
-  if (!storedState || storedState.createdBy !== session.user.id) {
+  if (!storedState || storedState.createdBy !== user.id) {
     return sendRedirect(event, '/admin/social-queue?threadsConnect=error&threadsReason=Invalid%20or%20expired%20OAuth%20state')
   }
 

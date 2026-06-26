@@ -4,17 +4,14 @@ import throwServer from '~~/server/utils/throw-server'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
 
-    if (session.user.role === 'user') {
-      if (!session.user.email_verified) {
+    if (user.role === 'user') {
+      if (!user.email_verified) {
         throwServer(403, 'You must verify your email before submitting a draft for review.')
       }
 
-      const createdAtMs = new Date(session.user.created_at || '').getTime()
+      const createdAtMs = new Date(user.created_at || '').getTime()
       const accountAgeMs = Date.now() - createdAtMs
       const oneWeekMs = 7 * 24 * 60 * 60 * 1000
 
@@ -34,7 +31,7 @@ export default defineEventHandler(async (event) => {
       .where(and(
         eq(schema.quotes.id, parseInt(quoteId!)),
         eq(schema.quotes.status, 'draft'),
-        eq(schema.quotes.userId, session.user.id)
+        eq(schema.quotes.userId, user.id)
       ))
       .get()
 

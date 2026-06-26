@@ -4,10 +4,7 @@ import { randomUUID } from 'node:crypto'
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
-  if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-    throwServer(403, 'Admin or moderator access required')
-  }
+  const { user } = await requireModerator(event)
 
   const formData = await readMultipartFormData(event)
   if (!formData) {

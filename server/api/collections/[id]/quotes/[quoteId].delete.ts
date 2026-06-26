@@ -4,10 +4,7 @@ import { eq, and } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
     
     const collectionId = getRouterParam(event, 'id')
     const quoteId = getRouterParam(event, 'quoteId')
@@ -30,7 +27,7 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Collection not found')
     }
     
-    if (collection.userId !== session.user.id) {
+    if (collection.userId !== user.id) {
       throwServer(403, 'Access denied')
     }
     

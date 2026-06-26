@@ -2,13 +2,10 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
-  if (!session.user) {
-    throwServer(401, 'Authentication required')
-  }
+  const { user } = await requireAuth(event)
 
   try {
-    const userId = session.user!.id
+    const userId = user!.id
 
     await db.delete(schema.users).where(eq(schema.users.id, userId))
 

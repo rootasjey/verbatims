@@ -35,10 +35,7 @@ async function fetchThreadsProfile(accessToken: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const body = await readBody(event)
   const stored = await getMetaSocialCredentials()

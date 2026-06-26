@@ -4,10 +4,7 @@ import { toISOStringOrNull } from '../../utils/date-normalization'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
 
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
@@ -30,8 +27,8 @@ export default defineEventHandler(async (event) => {
     const e = existingQuote!
 
     // Check permissions: users can only edit their own drafts, admins can edit any quote
-    const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwner = e.userId === session.user.id
+    const isAdmin = user.role === 'admin' || user.role === 'moderator'
+    const isOwner = e.userId === user.id
     const isDraft = e.status === 'draft'
 
     if (!isAdmin && (!isOwner || !isDraft)) {

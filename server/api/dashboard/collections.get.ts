@@ -3,7 +3,7 @@ import { eq, desc, count, sql, getTableColumns } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 10, 50)
     const page = parseInt(query.page as string) || 1
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     })
       .from(schema.userCollections)
       .leftJoin(schema.collectionQuotes, eq(schema.userCollections.id, schema.collectionQuotes.collectionId))
-      .where(eq(schema.userCollections.userId, session.user.id))
+      .where(eq(schema.userCollections.userId, user.id))
       .groupBy(schema.userCollections.id)
       .orderBy(desc(schema.userCollections.updatedAt))
       .limit(limit)
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     // Get total count
     const totalResult = await db.select({ total: count() })
       .from(schema.userCollections)
-      .where(eq(schema.userCollections.userId, session.user.id))
+      .where(eq(schema.userCollections.userId, user.id))
 
     const total = Number(totalResult[0]?.total) ?? 0
     const collectionCount = Number(collections.length) ?? 0

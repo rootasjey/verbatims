@@ -2,15 +2,12 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
-  if (!session.user) {
-    throwServer(401, 'Authentication required')
-  }
+  const { user } = await requireAuth(event)
 
   try {
     const result = await db.select()
       .from(schema.settings)
-      .where(eq(schema.settings.key, `user_${session.user!.id}_notifications`))
+      .where(eq(schema.settings.key, `user_${user!.id}_notifications`))
       .limit(1)
 
     const defaults = { quote_approval: true, collection_updates: true, weekly_digest: false }

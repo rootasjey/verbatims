@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     
     if (publicOnly) {
       whereConditions.push(eq(schema.userCollections.isPublic, true))
-    } else if (!session.user) {
+    } else     if (!session.user) {
       whereConditions.push(eq(schema.userCollections.isPublic, true))
     } else if (!userId) {
       whereConditions.push(or(eq(schema.userCollections.isPublic, true), eq(schema.userCollections.userId, session.user.id)))

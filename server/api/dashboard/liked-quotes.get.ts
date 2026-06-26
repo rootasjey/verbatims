@@ -3,7 +3,7 @@ import { eq, and, desc, count, sql, getTableColumns } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const page = parseInt(query.page as string) || 1
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
       .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
       .where(and(
-        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.userId, user.id),
         eq(schema.userLikes.likeableType, 'quote'),
         eq(schema.quotes.status, 'approved')
       ))
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.userLikes)
       .innerJoin(schema.quotes, eq(schema.userLikes.likeableId, schema.quotes.id))
       .where(and(
-        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.userId, user.id),
         eq(schema.userLikes.likeableType, 'quote'),
         eq(schema.quotes.status, 'approved')
       ))

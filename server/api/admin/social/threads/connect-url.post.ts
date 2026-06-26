@@ -9,10 +9,7 @@ const THREADS_DEFAULT_SCOPES = [
 ]
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const body = await readBody(event)
   const returnPath = typeof body?.returnPath === 'string' && body.returnPath.startsWith('/')
@@ -30,7 +27,7 @@ export default defineEventHandler(async (event) => {
   const state = crypto.randomUUID()
   await useStorage('kv').setItem(`${THREADS_OAUTH_STATE_PREFIX}${state}`, {
     createdAt: new Date().toISOString(),
-    createdBy: session.user.id,
+    createdBy: user.id,
     returnPath
   })
 

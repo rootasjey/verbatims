@@ -3,10 +3,7 @@ import { and, eq, sql } from 'drizzle-orm'
 import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constants/social'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const body = await readBody(event)
   const platform = String(body?.platform || '').trim()

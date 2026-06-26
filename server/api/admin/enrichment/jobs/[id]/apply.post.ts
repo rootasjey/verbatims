@@ -1,10 +1,7 @@
 import { applyEnrichmentJob } from "~~/server/utils/enrichment/processor"
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id) || id <= 0) {
@@ -12,7 +9,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody<{ fields?: EnrichmentProposalField[] }>(event)
-  const result = await applyEnrichmentJob(id, body?.fields, session.user.id)
+  const result = await applyEnrichmentJob(id, body?.fields, user.id)
 
   return {
     success: true,

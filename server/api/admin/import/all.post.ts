@@ -13,7 +13,7 @@ import { eq } from 'drizzle-orm'
  * ZIP parsing uses fflate (no install needed in this project).
  */
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const { user } = await requireAuth(event)
   if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const body = await readBody<{ zipBase64?: string; bundle?: Record<string, any[]>; options?: ImportOptions; filename?: string }>(event)

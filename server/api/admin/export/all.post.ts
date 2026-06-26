@@ -4,7 +4,7 @@ import { blob } from 'hub:blob'
 import { eq, inArray, sql, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const { user } = await requireAuth(event)
   if (user.role !== 'admin' && user.role !== 'moderator') {
     throwServer(403, 'Admin or moderator access required')
   }

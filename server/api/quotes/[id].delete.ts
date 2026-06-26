@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Get user session
-    const { user } = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     if (!user) {
       throwServer(401, 'Authentication required')
     }

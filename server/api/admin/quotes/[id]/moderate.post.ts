@@ -5,14 +5,7 @@ import { autoTagQuoteById } from '~~/server/utils/tagging'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
-    
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
     
     const quoteId = getRouterParam(event, 'id')!
     if (!quoteId || isNaN(parseInt(quoteId))) {
@@ -47,7 +40,7 @@ export default defineEventHandler(async (event) => {
     await db.update(schema.quotes)
       .set({
         status: newStatus,
-        moderatorId: session.user.id,
+        moderatorId: user.id,
         moderatedAt: sql`CURRENT_TIMESTAMP`,
         rejectionReason: body.action === 'reject' ? body.rejection_reason.trim() : null,
         updatedAt: sql`CURRENT_TIMESTAMP`

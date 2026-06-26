@@ -4,14 +4,7 @@ import { eq, count, sum, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication and admin privileges
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
-    
-    if (session.user.role !== 'admin') {
-      throwServer(403, 'Admin access required')
-    }
+    const { user } = await requireAdmin(event)
     
     const userId = getRouterParam(event, 'id')!
     if (!userId || isNaN(parseInt(userId))) {
@@ -31,10 +24,10 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'User not found')
     }
     
-    const user = existingUser[0]!
+    const targetUser = existingUser[0]!
     
-    if (userIdInt === session.user!.id) {
-      if (body.role !== undefined && body.role !== user.role) {
+    if (userIdInt === targetUser!.id) {
+      if (body.role !== undefined && body.role !== targetUser.role) {
         throwServer(400, 'Cannot modify your own role')
       }
       

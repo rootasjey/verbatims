@@ -4,13 +4,7 @@
  */
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session || !session.user) {
-      throwServer(401, 'Authentication required')
-    }
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throwServer(403, 'Admin or moderator role required.')
-    }
+    const { user } = await requireModerator(event)
   } catch (e) {
     if (e && (e as any).statusCode) throw e
     throwServer(401, 'Authentication required')

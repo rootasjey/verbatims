@@ -6,7 +6,7 @@ import type { ImportOptions } from '~~/server/types'
  */
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
     const body = await readBody(event)

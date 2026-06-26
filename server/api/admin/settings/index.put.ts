@@ -2,10 +2,7 @@ import { db, schema } from 'hub:db'
 import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || session.user.role !== 'admin') {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireAdmin(event)
 
   try {
     const body = await readBody(event)

@@ -13,10 +13,7 @@ interface ScheduleBody {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const body = await readBody<ScheduleBody>(event)
   const entityIds = Array.isArray(body?.entityIds) ? body.entityIds.map(value => Number(value)).filter(Number.isInteger) : []
@@ -47,7 +44,7 @@ export default defineEventHandler(async (event) => {
     entityIdsByType,
     limitPerType: Number.isInteger(Number(body?.limitPerType)) ? Number(body.limitPerType) : undefined,
     triggeredBy: 'manual',
-    createdBy: session.user.id,
+    createdBy: user.id,
     reason: body?.entityType ? 'manual' : undefined,
   })
 

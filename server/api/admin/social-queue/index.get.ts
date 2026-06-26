@@ -102,10 +102,7 @@ async function buildSourceSearchCondition(search: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const query = getQuery(event)
   const page = Math.max(parseInt(String(query.page || '1')) || 1, 1)

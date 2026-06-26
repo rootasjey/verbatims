@@ -2,10 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, count, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const id = getRouterParam(event, 'id')!
   if (!id || isNaN(parseInt(id))) {

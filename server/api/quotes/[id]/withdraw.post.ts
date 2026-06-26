@@ -3,10 +3,7 @@ import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session?.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
 
     const idParam = getRouterParam(event, 'id')
     if (!idParam || isNaN(parseInt(idParam))) {
@@ -19,7 +16,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.quotes)
       .where(and(
         eq(schema.quotes.id, quoteId),
-        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.userId, user.id),
         eq(schema.quotes.status, 'pending')
       ))
       .get()
@@ -38,7 +35,7 @@ export default defineEventHandler(async (event) => {
       })
       .where(and(
         eq(schema.quotes.id, quoteId),
-        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.userId, user.id),
         eq(schema.quotes.status, 'pending')
       ))
 

@@ -4,10 +4,7 @@ import { eq, count, sum, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
     
     // Get user's quote statistics
     const quoteStatsResult = await db.select({
@@ -19,19 +16,19 @@ export default defineEventHandler(async (event) => {
       total_likes: sum(schema.quotes.likesCount),
       total_views: sum(schema.quotes.viewsCount),
       total_shares: sum(schema.quotes.sharesCount)
-    }).from(schema.quotes).where(eq(schema.quotes.userId, session.user!.id))
+    }).from(schema.quotes).where(eq(schema.quotes.userId, user!.id))
 
     const quoteStats = quoteStatsResult[0]
     
     // Get user's collections count
     const collectionsResult = await db.select({ count: count() })
       .from(schema.userCollections)
-      .where(eq(schema.userCollections.userId, session.user!.id))
+      .where(eq(schema.userCollections.userId, user!.id))
     
     // Get user's likes given count
     const likesGivenResult = await db.select({ count: count() })
       .from(schema.userLikes)
-      .where(eq(schema.userLikes.userId, session.user!.id))
+      .where(eq(schema.userLikes.userId, user!.id))
     
     return {
       success: true,

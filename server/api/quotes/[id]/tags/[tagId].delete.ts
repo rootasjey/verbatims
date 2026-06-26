@@ -3,8 +3,7 @@ import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) throwServer(401, 'Authentication required')
+    const { user } = await requireAuth(event)
 
     const quoteId = getRouterParam(event, 'id')
     const tagId = getRouterParam(event, 'tagId')
@@ -23,8 +22,8 @@ export default defineEventHandler(async (event) => {
     if (!quote) throwServer(404, 'Quote not found')
     const q = quote!
 
-    const isAdmin = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isOwnerDraft = q.userId === session.user.id && q.status === 'draft'
+    const isAdmin = user.role === 'admin' || user.role === 'moderator'
+    const isOwnerDraft = q.userId === user.id && q.status === 'draft'
     if (!isAdmin && !isOwnerDraft) {
       throwServer(403, 'Not allowed to edit tags for this quote')
     }

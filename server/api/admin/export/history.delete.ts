@@ -7,8 +7,7 @@ import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throwServer(403, 'Admin access required') }
+    const { user } = await requireAdmin(event)
 
     const body = await readBody(event)
     const { exportId } = body

@@ -3,9 +3,7 @@ import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) throwServer(401, 'Authentication required')
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') throwServer(403, 'Admin or moderator access required')
+    const { user } = await requireModerator(event)
     
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1

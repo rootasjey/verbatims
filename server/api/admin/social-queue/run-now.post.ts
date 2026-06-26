@@ -4,10 +4,7 @@ import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constan
 import { resolveAppOrigin } from '../../../utils/app-origin'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const body = await readBody(event)
   const platform = body?.platform ? String(body.platform) : undefined
