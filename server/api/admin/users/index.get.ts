@@ -12,14 +12,7 @@ export default defineEventHandler(async (event): Promise<AdminUsersApiResponse> 
 })
 
 async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> {
-    const session = await requireUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
-    
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
     
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1
@@ -101,7 +94,7 @@ async function handleAdminUsersList(event: any): Promise<AdminUsersApiResponse> 
       const userData: any = { ...user }
       
       // Only admins can see email addresses
-      if (session.user.role !== 'admin') {
+      if (user.role !== 'admin') {
         delete userData.email
       }
       

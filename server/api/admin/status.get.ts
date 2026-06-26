@@ -3,11 +3,7 @@ import { eq, count } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await getUserSession(event)
-    if (!user) throwServer(401, 'Authentication required')
-    if (user.role !== 'admin' && user.role !== 'moderator') {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
 
     if (!db) {
       return {

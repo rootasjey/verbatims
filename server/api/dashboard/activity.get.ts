@@ -5,10 +5,7 @@ import { alias } from 'drizzle-orm/sqlite-core'
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
     
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
@@ -40,7 +37,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.authors, sql`${schema.userLikes.likeableType} = 'author' AND ${schema.userLikes.likeableId} = ${schema.authors.id}`)
       .leftJoin(schema.quoteReferences, sql`${schema.userLikes.likeableType} = 'reference' AND ${schema.userLikes.likeableId} = ${schema.quoteReferences.id}`)
       .leftJoin(qa, eq(schema.quotes.authorId, qa.id))
-      .where(eq(schema.userLikes.userId, session.user!.id))
+      .where(eq(schema.userLikes.userId, user!.id))
       .orderBy(desc(schema.userLikes.createdAt))
       .limit(10)
     
@@ -64,7 +61,7 @@ export default defineEventHandler(async (event) => {
       updated_at: schema.userCollections.updatedAt
     })
       .from(schema.userCollections)
-      .where(eq(schema.userCollections.userId, session.user!.id))
+      .where(eq(schema.userCollections.userId, user!.id))
       .orderBy(desc(schema.userCollections.createdAt))
       .limit(10)
     
@@ -89,7 +86,7 @@ export default defineEventHandler(async (event) => {
     })
       .from(schema.quotes)
       .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .where(eq(schema.quotes.userId, session.user!.id))
+      .where(eq(schema.quotes.userId, user!.id))
       .orderBy(desc(schema.quotes.createdAt))
       .limit(10)
     

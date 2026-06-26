@@ -2,10 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || (session.user.role !== 'admin' && session.user.role !== 'moderator')) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id) { throwServer(400, 'Invalid id') }
@@ -26,7 +23,7 @@ export default defineEventHandler(async (event) => {
   await db.update(schema.userMessages)
     .set({
       status,
-      reviewedBy: session.user.id,
+      reviewedBy: user.id,
       reviewedAt: new Date()
     })
     .where(eq(schema.userMessages.id, id))

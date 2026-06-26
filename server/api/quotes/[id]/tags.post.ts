@@ -4,8 +4,7 @@ import { getTagById, isCuratedTagName } from '~~/server/utils/tagging'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) throwServer(401, 'Authentication required')
+    const { user } = await requireAuth(event)
 
     const quoteId = getRouterParam(event, 'id')
     if (!quoteId || isNaN(parseInt(quoteId))) {
@@ -29,9 +28,9 @@ export default defineEventHandler(async (event) => {
 
     if (!quote) throwServer(404, 'Quote not found')
     const q = quote!
-    const isPrivileged = session.user.role === 'admin' || session.user.role === 'moderator'
-    const isAdminUser = session.user.role === 'admin'
-    const isOwnerDraft = q.userId === session.user.id && q.status === 'draft'
+    const isPrivileged = user.role === 'admin' || user.role === 'moderator'
+    const isAdminUser = user.role === 'admin'
+    const isOwnerDraft = q.userId === user.id && q.status === 'draft'
     if (!isPrivileged && !isOwnerDraft) {
       throwServer(403, 'Not allowed to edit tags for this quote')
     }

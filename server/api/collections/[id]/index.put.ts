@@ -4,10 +4,7 @@ import { eq, and, sql } from 'drizzle-orm'
 export default defineEventHandler(async (event) => {
   try {
     // Check authentication
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
     
     const collectionId = getRouterParam(event, 'id')
     if (!collectionId || isNaN(parseInt(collectionId))) {
@@ -27,9 +24,9 @@ export default defineEventHandler(async (event) => {
     }
     
     // Check ownership or admin privileges
-    const canEdit = collection.userId === session.user.id ||
-                   session.user.role === 'admin' ||
-                   session.user.role === 'moderator'
+    const canEdit = collection.userId === user.id ||
+                   user.role === 'admin' ||
+                   user.role === 'moderator'
     
     if (!canEdit) {
       throwServer(403, 'Access denied')

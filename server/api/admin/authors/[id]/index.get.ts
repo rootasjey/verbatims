@@ -4,10 +4,7 @@ import { normalizeAdminAuthor } from '~~/server/utils/admin-author-transformer'
 
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
 
     const authorId = getRouterParam(event, 'id')!
     if (!authorId || isNaN(parseInt(authorId))) {

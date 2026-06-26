@@ -7,8 +7,7 @@ import { eq, desc } from 'drizzle-orm'
  */
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
-    if (user.role !== 'admin') { throwServer(403, 'Admin access required') }
+    const { user } = await requireAdmin(event)
 
     const importId = getRouterParam(event, 'id')!
     if (!importId) { throwServer(400, 'Import ID is required') }

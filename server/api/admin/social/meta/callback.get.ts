@@ -67,10 +67,7 @@ async function discoverThreadsAccount(input: {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const query = getQuery(event)
   const code = String(query.code || '')
@@ -84,7 +81,7 @@ export default defineEventHandler(async (event) => {
   const storedState = await useStorage('kv').getItem<{ createdBy?: number, returnPath?: string, preferredPageId?: string }>(stateKey)
   await useStorage('kv').removeItem(stateKey)
 
-  if (!storedState || storedState.createdBy !== session.user.id) {
+  if (!storedState || storedState.createdBy !== user.id) {
     return sendRedirect(event, '/admin/social-queue?metaConnect=error&metaReason=Invalid%20or%20expired%20OAuth%20state')
   }
 

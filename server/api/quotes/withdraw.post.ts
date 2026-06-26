@@ -3,10 +3,7 @@ import { eq, and, inArray, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session?.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
 
     const body = await readBody(event)
 
@@ -32,7 +29,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.quotes)
       .where(and(
         inArray(schema.quotes.id, ids),
-        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.userId, user.id),
         eq(schema.quotes.status, 'pending')
       ))
       .all()
@@ -60,7 +57,7 @@ export default defineEventHandler(async (event) => {
       })
       .where(and(
         inArray(schema.quotes.id, updatableIds),
-        eq(schema.quotes.userId, session.user.id),
+        eq(schema.quotes.userId, user.id),
         eq(schema.quotes.status, 'pending')
       ))
       .run()

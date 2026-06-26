@@ -3,7 +3,7 @@ import { eq, and, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     const body = await readBody(event)
 
     if (!body.name || typeof body.name !== 'string') {
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const existingCollection = await db.select()
       .from(schema.userCollections)
       .where(and(
-        eq(schema.userCollections.userId, session.user.id),
+        eq(schema.userCollections.userId, user.id),
         eq(schema.userCollections.name, body.name.trim())
       ))
       .get()
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     // Create collection
     const result = await db.insert(schema.userCollections)
       .values({
-        userId: session.user.id,
+        userId: user.id,
         name: body.name.trim(),
         description: body.description?.trim() || null,
         isPublic: !!body.is_public

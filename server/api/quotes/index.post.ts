@@ -3,7 +3,7 @@ import { eq, sql, and, ne } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
+    const { user } = await requireAuth(event)
 
     const body = await readBody(event)
 

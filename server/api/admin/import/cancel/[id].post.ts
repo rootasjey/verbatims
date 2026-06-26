@@ -2,7 +2,7 @@
  * Admin API: Cancel Import
  */
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const { user } = await requireAuth(event)
   if (!user || user.role !== 'admin') {
     throwServer(403, 'Admin access required')
   }

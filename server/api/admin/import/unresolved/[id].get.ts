@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const { user } = await requireAuth(event)
   if (user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const id = event.context.params?.id

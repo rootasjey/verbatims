@@ -2,10 +2,7 @@ import { getRequestURL } from 'h3'
 import { getMetaOAuthAppConfig, resolveMetaOAuthConfig } from '../../../../utils/social-meta-config'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const requestUrl = getRequestURL(event)
   const origin = `${requestUrl.protocol}//${requestUrl.host}`.replace(/\/$/, '')

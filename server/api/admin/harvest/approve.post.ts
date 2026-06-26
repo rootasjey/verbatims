@@ -2,12 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
-  if (!session.user) throwServer(401, 'Authentication required')
-  if (session.user.role !== 'admin' && session.user.role !== 'moderator') {
-    throwServer(403, 'Admin or moderator access required')
-  }
-  const user = session.user
+  const { user } = await requireModerator(event)
 
   const body = await readBody(event)
   const { quote_ids, new_status } = body as {

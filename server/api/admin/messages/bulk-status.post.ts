@@ -2,10 +2,7 @@ import { db, schema } from 'hub:db'
 import { inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
-  if (!session.user || (session.user.role !== 'admin' && session.user.role !== 'moderator')) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const body = await readBody<{ ids: number[]; status: ReportStatus }>(event)
   const ids = (body?.ids || []).filter(n => typeof n === 'number')
@@ -17,7 +14,7 @@ export default defineEventHandler(async (event) => {
   await db.update(schema.userMessages)
     .set({
       status,
-      reviewedBy: session.user.id,
+      reviewedBy: user.id,
       reviewedAt: new Date()
     })
     .where(inArray(schema.userMessages.id, ids))

@@ -4,10 +4,7 @@
  * Admin access required
  */
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
-  if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'moderator')) {
-    throwServer(403, 'Admin access required'); return
-  }
+  const { user } = await requireModerator(event)
 
   let id = getRouterParam(event, 'id')
   if (!id) { throwServer(400, 'Quote id is required'); return }

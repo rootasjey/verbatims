@@ -6,8 +6,7 @@ import type { HarvestSourceType } from '#shared/constants/harvest'
 import type { HarvestQuotePreview } from '#shared/types/harvest'
 
 export default defineEventHandler(async (event) => {
-  const { user } = await getUserSession(event)
-  if (!user) throwServer(401, 'Authentication required')
+  const { user } = await requireAuth(event)
   if (user?.role !== 'admin' && user?.role !== 'moderator') {
     throwServer(403, 'Admin or moderator access required')
   }

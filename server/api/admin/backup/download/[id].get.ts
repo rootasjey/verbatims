@@ -8,7 +8,7 @@ import { blob } from 'hub:blob'
  */
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     if (user.role !== 'admin' && user.role !== 'moderator') {
       throwServer(403, 'Admin or moderator access required')
     }

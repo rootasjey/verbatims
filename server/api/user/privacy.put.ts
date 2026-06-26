@@ -2,15 +2,12 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
-  if (!session.user) {
-    throwServer(401, 'Authentication required')
-  }
+  const { user } = await requireAuth(event)
 
   const body = await readBody(event)
 
   try {
-    const key = `user_${session.user!.id}_privacy`
+    const key = `user_${user!.id}_privacy`
     const existing = await db.select()
       .from(schema.settings)
       .where(eq(schema.settings.key, key))

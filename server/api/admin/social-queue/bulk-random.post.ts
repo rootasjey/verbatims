@@ -4,10 +4,7 @@ import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constan
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user || !['admin', 'moderator'].includes(session.user.role)) {
-      throwServer(403, 'Admin access required')
-    }
+    const { user } = await requireModerator(event)
 
     const body = await readBody(event)
     const requestedCount = Number(body?.count || 5)
@@ -54,7 +51,7 @@ export default defineEventHandler(async (event) => {
       platform: platform as any,
       status: 'queued' as const,
       position: basePosition + index + 1,
-      createdBy: session.user!.id
+      createdBy: user!.id
     }))
 
     const BATCH_SIZE = 10

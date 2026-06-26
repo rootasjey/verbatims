@@ -7,10 +7,7 @@ import { sql, eq, gte, lte, desc, count, sum, avg } from 'drizzle-orm'
  */
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
 
     // Get overall statistics
     const overallStats = await db.select({

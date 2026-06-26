@@ -3,10 +3,7 @@ import { and, desc, eq, like, or, sql } from 'drizzle-orm'
 import { toISOStringOrEmpty, toISOStringOrNull } from '~~/server/utils/date-normalization'
 
 export default defineEventHandler(async (event): Promise<AdminMessagesListResponse> => {
-  const session = await requireUserSession(event)
-  if (!session.user || (session.user.role !== 'admin' && session.user.role !== 'moderator')) {
-    throwServer(403, 'Admin access required')
-  }
+  const { user } = await requireModerator(event)
 
   const query = getQuery(event)
   const page = Math.max(1, Number(query.page || 1))

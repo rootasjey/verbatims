@@ -3,13 +3,7 @@ import { eq, count } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
-    if (session.user.role !== 'admin') {
-      throwServer(403, 'Admin access required')
-    }
+    const { user } = await requireAdmin(event)
 
     const idParam = getRouterParam(event, 'id')!
     if (!idParam || isNaN(parseInt(idParam))) {
@@ -17,17 +11,17 @@ export default defineEventHandler(async (event) => {
     }
     const userId = parseInt(idParam)
 
-    if (userId === session.user!.id) {
+    if (userId === user!.id) {
       throwServer(400, 'Cannot delete your own account')
     }
 
-    const user = await db.select({ id: schema.users.id, role: schema.users.role })
+    const userResult = await db.select({ id: schema.users.id, role: schema.users.role })
       .from(schema.users)
       .where(eq(schema.users.id, userId))
       .limit(1)
     
-    if (!user || user.length === 0) throwServer(404, 'User not found')
-    const userRecord = user[0]!
+    if (!userResult || userResult.length === 0) throwServer(404, 'User not found')
+    const userRecord = userResult[0]!
 
     // Optional safeguard: prevent deleting the last admin
     if (userRecord.role === 'admin') {

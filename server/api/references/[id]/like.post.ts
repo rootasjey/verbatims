@@ -3,10 +3,7 @@ import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
 
     const refId = getRouterParam(event, 'id')!
     if (!refId || isNaN(parseInt(refId))) {
@@ -23,7 +20,7 @@ export default defineEventHandler(async (event) => {
     const existingLike = await db.select({ id: schema.userLikes.id })
       .from(schema.userLikes)
       .where(and(
-        eq(schema.userLikes.userId, session.user!.id),
+        eq(schema.userLikes.userId, user!.id),
         eq(schema.userLikes.likeableType, 'reference'),
         eq(schema.userLikes.likeableId, parseInt(refId!))
       ))
@@ -34,14 +31,14 @@ export default defineEventHandler(async (event) => {
     if (existingLike) {
       await db.delete(schema.userLikes)
         .where(and(
-          eq(schema.userLikes.userId, session.user!.id),
+          eq(schema.userLikes.userId, user!.id),
           eq(schema.userLikes.likeableType, 'reference'),
           eq(schema.userLikes.likeableId, parseInt(refId!))
         ))
       isLiked = false
     } else {
       await db.insert(schema.userLikes).values({
-        userId: session.user!.id,
+        userId: user!.id,
         likeableType: 'reference',
         likeableId: parseInt(refId!)
       })

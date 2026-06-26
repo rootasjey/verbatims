@@ -6,13 +6,7 @@ import { transformAdminQuotes } from '~~/server/utils/quote-transformer'
 export default defineEventHandler(async (event) => {
   try {
     // Auth: admin or moderator
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
-    if (session.user!.role !== 'admin' && session.user!.role !== 'moderator') {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
 
     const query = getQuery(event)
 

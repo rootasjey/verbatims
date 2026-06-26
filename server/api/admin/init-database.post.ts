@@ -1,10 +1,6 @@
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await getUserSession(event)
-    if (!user) throwServer(401, 'Authentication required')
-    if (user.role !== 'admin') {
-      throwServer(403, 'Admin access required')
-    }
+    const { user } = await requireAdmin(event)
 
     console.log('Manual database initialization started...')
     const success = await initializeDatabase()

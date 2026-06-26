@@ -3,10 +3,7 @@ import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
+    const { user } = await requireAuth(event)
 
     const authorId = getRouterParam(event, 'id')
     if (!authorId || isNaN(parseInt(authorId))) {
@@ -27,7 +24,7 @@ export default defineEventHandler(async (event) => {
     const existingLike = await db.select({ id: schema.userLikes.id })
       .from(schema.userLikes)
       .where(and(
-        eq(schema.userLikes.userId, session.user.id),
+        eq(schema.userLikes.userId, user.id),
         eq(schema.userLikes.likeableType, 'author'),
         eq(schema.userLikes.likeableId, parseInt(authorId))
       ))
@@ -39,7 +36,7 @@ export default defineEventHandler(async (event) => {
       // Unlike - remove the like
       await db.delete(schema.userLikes)
         .where(and(
-          eq(schema.userLikes.userId, session.user.id),
+          eq(schema.userLikes.userId, user.id),
           eq(schema.userLikes.likeableType, 'author'),
           eq(schema.userLikes.likeableId, parseInt(authorId))
         ))
@@ -48,7 +45,7 @@ export default defineEventHandler(async (event) => {
     } else {
       // Like - add the like
       await db.insert(schema.userLikes).values({
-        userId: session.user.id,
+        userId: user.id,
         likeableType: 'author',
         likeableId: parseInt(authorId)
       })

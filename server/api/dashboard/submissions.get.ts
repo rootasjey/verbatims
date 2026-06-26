@@ -3,7 +3,7 @@ import { eq, and, like, or, desc, count, getTableColumns } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await requireUserSession(event)
+    const { user } = await requireAuth(event)
     const query = getQuery(event)
     const limit = Math.min(parseInt(query.limit as string) || 10, 100)
     const page = parseInt(query.page as string) || 1
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     const search = query.search as string || ''
 
     // Build conditions array for dynamic filtering
-    const conditions = [eq(schema.quotes.userId, session.user.id)]
+    const conditions = [eq(schema.quotes.userId, user.id)]
 
     if (status && ['draft', 'pending', 'approved', 'rejected'].includes(status)) {
       conditions.push(eq(schema.quotes.status, status as any))

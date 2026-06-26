@@ -5,12 +5,7 @@ import type { HarvestQuoteImportItem } from '#shared/types/harvest'
 import { findOrCreateAuthor, findOrCreateReference } from '../../../utils/import-helpers'
 
 export default defineEventHandler(async (event) => {
-  const session = await getUserSession(event)
-  if (!session.user) throwServer(401, 'Authentication required')
-  if (session.user.role !== 'admin') {
-    throwServer(403, 'Admin access required')
-  }
-  const user = session.user
+  const { user } = await requireAdmin(event)
 
   const body = await readBody(event)
   const { sourceType, quotes } = body as {

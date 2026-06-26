@@ -4,7 +4,7 @@ import { eq, desc, sql } from 'drizzle-orm'
  * Admin API: List Import History (backed by import_logs + live overlay)
  */
 export default defineEventHandler(async (event) => {
-  const { user } = await requireUserSession(event)
+  const { user } = await requireAuth(event)
   if (!user || user.role !== 'admin') throwServer(403, 'Admin access required')
 
   const query = getQuery(event)

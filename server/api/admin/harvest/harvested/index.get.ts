@@ -3,8 +3,7 @@ import { eq, sql, and, desc } from 'drizzle-orm'
 import { transformAdminQuotes } from '~~/server/utils/quote-transformer'
 
 export default defineEventHandler(async (event) => {
-  const { user } = await getUserSession(event)
-  if (!user) throwServer(401, 'Authentication required')
+  const { user } = await requireAuth(event)
   if (user?.role !== 'admin' && user?.role !== 'moderator') {
     throwServer(403, 'Admin or moderator access required')
   }

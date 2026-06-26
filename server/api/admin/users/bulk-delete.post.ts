@@ -3,14 +3,7 @@ import { inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const session = await getUserSession(event)
-    if (!session.user) {
-      throwServer(401, 'Authentication required')
-    }
-
-    if (session.user!.role !== 'admin') {
-      throwServer(403, 'Admin access required')
-    }
+    const { user } = await requireAdmin(event)
 
     const body = await readBody(event)
     const ids = Array.from(new Set(
@@ -32,9 +25,9 @@ export default defineEventHandler(async (event) => {
       .where(inArray(schema.users.id, ids))
 
     const foundIds = new Set(selectedUsers.map(user => user.id))
-    const skippedSelf = selectedUsers.filter(user => user.id === session.user!.id)
+    const skippedSelf = selectedUsers.filter(user => user.id === user!.id)
     const skippedAdmins = selectedUsers.filter(user => user.role === 'admin')
-    const deletableUsers = selectedUsers.filter(user => user.id !== session.user!.id && user.role !== 'admin')
+    const deletableUsers = selectedUsers.filter(user => user.id !== user!.id && user.role !== 'admin')
 
     if (deletableUsers.length > 0) {
       await db.delete(schema.users).where(inArray(schema.users.id, deletableUsers.map(user => user.id)))

@@ -3,15 +3,7 @@ import { db, schema } from 'hub:db'
 import { sql, eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  try {
-    const session = await requireUserSession(event)
-    if (!session || !session.user) throwServer(401, 'Authentication required')
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator') throwServer(403, 'Admin or moderator role required.')
-  } catch (e) {
-    // If getUserSession or the check throws a createError-like object, rethrow so Nuxt handles it
-    if (e && (e as any).statusCode) throw e
-    throwServer(401, 'Authentication required')
-  }
+  const { user } = await requireModerator(event)
 
   // Check if this is a request for async processing
   const query = getQuery(event)

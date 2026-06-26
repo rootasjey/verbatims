@@ -4,10 +4,7 @@
  */
 export default defineEventHandler(async (event) => {
   try {
-    const { user } = await requireUserSession(event)
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-      throwServer(403, 'Admin or moderator access required')
-    }
+    const { user } = await requireModerator(event)
 
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1

@@ -1,9 +1,6 @@
 export default defineEventHandler(async (event) => {
   // Check authentication
-  const { user } = await getUserSession(event)
-  if (!user) {
-    throwServer(401, 'Authentication required')
-  }
+  const { user } = await requireAuth(event)
 
   const body = await readBody(event)
   const { language } = body
