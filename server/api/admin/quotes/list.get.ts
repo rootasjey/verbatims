@@ -18,23 +18,28 @@ export default defineEventHandler(async (event) => {
     const language = (query.language as string) || ''
     const search = (query.search as string) || ''
 
-    // WHERE conditions
-    const conditions: string[] = [`q.status = '${status}'`]
+    // WHERE conditions with parameterized queries
+    const params: any[] = []
+    const conditions: string[] = ['q.status = ?']
+    params.push(status)
 
     if (language) {
-      conditions.push(`q.language = '${language}'`)
+      conditions.push('q.language = ?')
+      params.push(language)
     }
 
     if (search) {
       const like = `%${search}%`
-      conditions.push(`(q.name LIKE '${like}' OR a.name LIKE '${like}' OR r.name LIKE '${like}' OR u.name LIKE '${like}')`)
+      conditions.push('(q.name LIKE ? OR a.name LIKE ? OR r.name LIKE ? OR u.name LIKE ?)')
+      params.push(like, like, like, like)
     }
 
-    const whereClause = `WHERE ${conditions.join(' AND ')}`
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     // Main query with joins for admin view
-    const quotes = await db.all<DatabaseAdminQuote>(sql.raw(`
-      SELECT
+    const allBindings = [...params, limit, offset]
+    const quotes = await db.all<DatabaseAdminQuote>((sql.raw as any)(
+      `SELECT
         q.*,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
@@ -57,18 +62,20 @@ export default defineEventHandler(async (event) => {
       ${whereClause}
       GROUP BY q.id
       ORDER BY q.created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `))
+      LIMIT ? OFFSET ?`,
+      ...allBindings,
+    ))
 
     // Count query
-    const totalRow = await db.get<{ total: number }>(sql.raw(`
-      SELECT COUNT(DISTINCT q.id) as total
+    const totalRow = await db.get<{ total: number }>((sql.raw as any)(
+      `SELECT COUNT(DISTINCT q.id) as total
       FROM quotes q
       LEFT JOIN authors a ON q.author_id = a.id
       LEFT JOIN quote_references r ON q.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
-      ${whereClause}
-    `))
+      ${whereClause}`,
+      ...params,
+    ))
 
     const total = totalRow?.total || 0
     const totalPages = Math.ceil(total / limit)
