@@ -3,6 +3,12 @@ import { eq, count } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
+    const { user } = await getUserSession(event)
+    if (!user) throwServer(401, 'Authentication required')
+    if (user.role !== 'admin' && user.role !== 'moderator') {
+      throwServer(403, 'Admin or moderator access required')
+    }
+
     if (!db) {
       return {
         success: false,
@@ -59,15 +65,8 @@ export default defineEventHandler(async (event) => {
     }
 
   } catch (error: any) {
+    if (error?.statusCode) throw error
     console.error('Admin status check error:', error)
-    return {
-      success: false,
-      message: error?.message || 'Failed to check admin status',
-      data: {
-        hasDatabase: false,
-        hasAdminUser: false,
-        adminUsers: [] as Array<{ id: number; email: string; name: string }>
-      }
-    }
+    throwServer(500, 'Failed to check admin status')
   }
 })
