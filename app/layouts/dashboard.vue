@@ -231,6 +231,7 @@ const quoteNavItems = computed(() => [
 
 const bottomNavItems = computed(() => [
   { to: '/dashboard/settings', label: 'Settings', icon: 'i-ph-gear' },
+  { to: '/dashboard/developer', label: 'Developer', icon: 'i-ph-code' },
   ...(user.value?.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: 'i-ph-shield-check' }] : []),
 ])
 
