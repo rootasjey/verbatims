@@ -26,7 +26,7 @@ export async function findAuthors(filters: AuthorFilters) {
     params.push(q, q, q)
   }
 
-  const authors = await db.all<Record<string, any>>(sql.raw(`
+  const authorsQuery = sql.raw(`
     SELECT a.*, COUNT(q.id) as quotes_count,
       (SELECT r.id FROM quotes q2
        JOIN quote_references r ON r.id = q2.reference_id
@@ -46,16 +46,18 @@ export async function findAuthors(filters: AuthorFilters) {
     GROUP BY a.id
     ORDER BY a.${sortBy} ${sortDir}
     LIMIT ? OFFSET ?
-  `, ...params, limit, offset]))
+  `, ...params, limit, offset)
+  const authors = await db.all<Record<string, any>>(authorsQuery)
 
-  const countResult = await db.get<{ total: number }>(sql.raw(`
+  const countQuery = sql.raw(`
     SELECT COUNT(*) as total FROM (
       SELECT a.id FROM authors a
       LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
       ${whereClause}
       GROUP BY a.id
     )
-  `, ...params))
+  `, ...params)
+  const countResult = await db.get<{ total: number }>(countQuery)
 
   const total = countResult?.total || 0
   return { data: authors, pagination: buildPaginationMeta(total, page, limit) }
@@ -66,13 +68,14 @@ export async function findAuthorById(id: number) {
 }
 
 export async function searchAuthors(query: string, limit = 20) {
-  return db.all<Record<string, any>>(sql.raw(`
+  const searchQuery = sql.raw(`
     SELECT id, name, is_fictional, job, image_url, views_count, likes_count
     FROM authors a
     WHERE a.name LIKE ?
     ORDER BY CASE WHEN a.name LIKE ? THEN 0 ELSE 1 END, a.likes_count DESC, a.name ASC
     LIMIT ?
-  `, `%${query}%`, `${query}%`, limit]))
+  `, `%${query}%`, `${query}%`, limit)
+  return db.all<Record<string, any>>(searchQuery)
 }
 
 export async function countAuthorQuotes(authorId: number) {

@@ -54,12 +54,28 @@ export async function trackView(
 
   if (recentView) return { recorded: false }
 
-  await db.insert(table).values({
-    [entityIdCol.name]: entityId,
-    userId: userId ?? null,
-    ipAddress: userId ? null : ip,
-    userAgent,
-  } as any)
+  if (entityType === 'quote') {
+    await db.insert(table).values({
+      quoteId: entityId,
+      userId: userId ?? null,
+      ipAddress: userId ? null : ip,
+      userAgent,
+    } as any)
+  } else if (entityType === 'author') {
+    await db.insert(table).values({
+      authorId: entityId,
+      userId: userId ?? null,
+      ipAddress: userId ? null : ip,
+      userAgent,
+    } as any)
+  } else {
+    await db.insert(table).values({
+      referenceId: entityId,
+      userId: userId ?? null,
+      ipAddress: userId ? null : ip,
+      userAgent,
+    } as any)
+  }
 
   return { recorded: true }
 }
