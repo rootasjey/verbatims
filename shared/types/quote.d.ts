@@ -82,7 +82,7 @@ export interface Quote {
 export interface QuoteWithRelations extends Quote {
   author?: Author;
   reference?: QuoteReference;
-  tags?: Array<Pick<Tag, 'id' | 'name' | 'color'>>;
+  tags?: Array<{ id?: number; name: string; color?: string | null }>;
   user?: {
     id: number;
     name: string;

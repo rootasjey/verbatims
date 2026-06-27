@@ -577,6 +577,41 @@ export const sponsorMessages = sqliteTable('sponsor_messages', {
   typeIdx: index('idx_sponsor_messages_type').on(table.type),
 }))
 
+export const apiKeys = sqliteTable('api_keys', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(),
+  tier: text('tier', { enum: ['free', 'pro', 'enterprise'] }).notNull().default('free'),
+  permissions: text('permissions').notNull().default('["read"]'),
+  rateLimit: integer('rate_limit').notNull().default(1000),
+  windowSec: integer('window_sec').notNull().default(3600),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  userIdx: index('idx_api_keys_user_id').on(table.userId),
+  keyHashIdx: index('idx_api_keys_key_hash').on(table.keyHash),
+  activeIdx: index('idx_api_keys_active').on(table.isActive),
+  tierIdx: index('idx_api_keys_tier').on(table.tier),
+}))
+
+export const apiKeyUsageLogs = sqliteTable('api_key_usage_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  apiKeyId: integer('api_key_id').notNull().references(() => apiKeys.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull(),
+  method: text('method').notNull().default('GET'),
+  statusCode: integer('status_code').notNull().default(200),
+  ipAddress: text('ip_address'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  apiKeyIdx: index('idx_usage_logs_api_key').on(table.apiKeyId),
+  createdIdx: index('idx_usage_logs_created').on(table.createdAt),
+}))
+
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),

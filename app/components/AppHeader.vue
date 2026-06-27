@@ -220,6 +220,12 @@ const navMenuItems = computed(() => [
         to: '/terms'
       },
       {
+        label: 'Developers',
+        leading: 'i-ph-code-duotone',
+        description: 'API documentation',
+        to: '/developers'
+      },
+      {
         label: 'Licenses',
         leading: 'i-ph-book-open-duotone',
         description: 'Read our licenses',

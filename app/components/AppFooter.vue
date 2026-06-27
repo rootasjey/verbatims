@@ -72,6 +72,7 @@
         </p>
 
         <div class="flex items-center gap-6 text-xs sm:text-sm">
+          <NuxtLink to="/developers" class="link-muted" data-testid="footer-developers">Developers</NuxtLink>
           <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">Licenses</NuxtLink>
           <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">Privacy & Policy</NuxtLink>
           <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">Terms & Condition</NuxtLink>

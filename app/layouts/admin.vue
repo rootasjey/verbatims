@@ -274,6 +274,31 @@
               </NTooltip>
             </div>
 
+            <!-- Development Section -->
+            <div class="pt-3">
+              <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
+                Development
+              </h3>
+
+              <!-- API Keys -->
+              <NTooltip :content="sidebarCollapsed ? 'API Keys' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/api-keys"
+                  :class="[
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/api-keys')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <NIcon name="i-ph-key" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">API Keys</span>
+                </NuxtLink>
+              </NTooltip>
+            </div>
+
             <div class="pt-3">
               <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
                 System Management
