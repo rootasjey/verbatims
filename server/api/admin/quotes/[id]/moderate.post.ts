@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Get updated quote with full details
-    const updatedQuote = await db.get<CreatedQuoteResult>(sql.raw(`
+    const updatedQuote = await db.get<CreatedQuoteResult>(sql`
       SELECT 
         q.*,
         a.name as author_name,
@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
       LEFT JOIN tags t ON qt.tag_id = t.id
       WHERE q.id = ${parseInt(quoteId!)}
       GROUP BY q.id
-    `))
+    `)
 
     if (!updatedQuote) {
       throwServer(500, 'Failed to fetch updated quote')
