@@ -177,6 +177,17 @@ describe('Admin routes', () => {
     expect(res.success).toBe(true)
     expect(typeof res.data).toBe('object')
   })
+
+  test('DELETE /api/quotes/5 deletes a draft quote as admin', async () => {
+    const res = await $fetch('/api/quotes/5', {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.success).toBe(true)
+
+    const check = await $fetch('/api/admin/quotes/list', adminHeaders())
+    expect(check.data.find((q: any) => q.id === 5)).toBeUndefined()
+  })
 })
 
 // ── API v1 (unchanged) ──
