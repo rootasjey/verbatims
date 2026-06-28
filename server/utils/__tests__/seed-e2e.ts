@@ -38,7 +38,7 @@ export async function seedTestDb() {
     .join('\n')
   client.executeMultiple(statements)
 
-  for (const table of ['api_key_usage_logs', 'api_keys', 'quote_tags', 'quote_views', 'author_views', 'reference_views', 'user_likes', 'quotes', 'tags', 'quote_references', 'authors', 'users']) {
+  for (const table of ['social_posts', 'social_queue', 'api_key_usage_logs', 'api_keys', 'quote_tags', 'quote_views', 'author_views', 'reference_views', 'user_likes', 'quotes', 'tags', 'quote_references', 'authors', 'users']) {
     client.execute(`DELETE FROM ${table}`)
   }
 
@@ -63,6 +63,10 @@ export async function seedTestDb() {
     INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (7, 'Another pending quote.', 'en', 2, 1, 'pending');
 
     INSERT INTO quote_tags (quote_id, tag_id) VALUES (1, 1), (1, 2), (1, 3), (2, 2), (3, 2);
+
+    INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (1, 1, 'quote', 1, 'bluesky', 'queued', 0);
+    INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (2, 2, 'quote', 2, 'bluesky', 'queued', 1);
+    INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (3, 3, 'quote', 3, 'bluesky', 'posted', 2);
   `)
 
   client.close()

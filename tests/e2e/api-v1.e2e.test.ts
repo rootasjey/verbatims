@@ -361,6 +361,26 @@ describe('GET /api/v1/search', () => {
   })
 })
 
+describe('GET /api/admin/social-queue', () => {
+  test('returns queue items with correct response shape', async () => {
+    const res = await $fetch('/api/admin/social-queue?platform=bluesky', adminHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data).toBeTypeOf('object')
+    expect(Array.isArray(res.data.queue)).toBe(true)
+    expect(res.data.queue.length).toBeGreaterThanOrEqual(2)
+    for (const item of res.data.queue) {
+      expect(item.id).toBeTypeOf('number')
+      expect(item.position).toBeTypeOf('number')
+      expect(item.status).toBeTypeOf('string')
+    }
+    expect(res.data.stats).toBeTypeOf('object')
+    expect(res.data.stats).toHaveProperty('queued')
+    expect(res.data.stats).toHaveProperty('posted')
+    expect(res.pagination).toBeTypeOf('object')
+    expect(res.pagination.total).toBe(3)
+  })
+})
+
 describe('Auth errors', () => {
   test('returns 401 without Authorization header', async () => {
     const res = await fetch('/api/v1/tags')
