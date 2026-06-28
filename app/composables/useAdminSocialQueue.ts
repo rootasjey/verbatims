@@ -36,19 +36,21 @@ export interface SocialQueueItem {
 
 interface SocialQueueResponse {
   success: boolean
-  data: SocialQueueItem[]
+  data: {
+    queue: SocialQueueItem[]
+    stats: {
+      queued: number
+      processing: number
+      posted: number
+      failed: number
+    }
+  }
   pagination: {
     page: number
     limit: number
     total: number
     totalPages: number
     hasMore: boolean
-  }
-  stats: {
-    queued: number
-    processing: number
-    posted: number
-    failed: number
   }
 }
 
@@ -168,9 +170,9 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
         }
       })
 
-      queueItems.value = response.data || []
+      queueItems.value = response.data?.queue || []
       totalItems.value = response.pagination?.total || 0
-      stats.value = response.stats || stats.value
+      stats.value = response.data?.stats || stats.value
     } catch (error) {
       console.error('Failed to load social queue:', error)
       options.showErrorToast('Error', 'Failed to load social queue')
