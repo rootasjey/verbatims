@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.90.0",
+  "version": "0.91.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -21,7 +21,8 @@
     "version": "node ./scripts/tag-version.mjs",
     "typecheck": "nuxt typecheck",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.0.6",
