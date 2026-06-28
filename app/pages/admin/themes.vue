@@ -112,8 +112,12 @@
         <div class="space-y-6 px-4">
           <div v-if="!editMode" class="pb-2">
             <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
-              <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> Generate Suggestions</OutlinedButton>
-              <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> AI Suggestions</OutlinedButton>
+              <NTooltip content="Generates theme ideas from top tags, authors, and references using rule-based patterns. No AI configuration required." placement="top">
+                <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> Generate Suggestions</OutlinedButton>
+              </NTooltip>
+              <NTooltip content="Generates creative theme ideas using an AI language model. Requires AI provider configuration in settings." placement="top">
+                <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> AI Suggestions</OutlinedButton>
+              </NTooltip>
               <button class="ml-auto p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()"><NIcon name="i-ph-gear" class="w-4 h-4" /></button>
               <p class="w-full text-xs text-gray-400 mt-1">Auto-generate from top tags, authors, and references</p>
             </div>
