@@ -64,14 +64,35 @@ describe('Admin routes', () => {
   test('GET /api/admin/stats returns dashboard stats', async () => {
     const res = await $fetch('/api/admin/stats', adminHeaders())
     expect(res.success).toBe(true)
-    expect(res.data.quotes.total).toBeGreaterThanOrEqual(4)
+    expect(res.data.quotes.total).toBeGreaterThanOrEqual(5)
     expect(res.data.authors.total).toBeGreaterThanOrEqual(3)
   })
 
   test('GET /api/admin/quotes/pending returns pending quotes', async () => {
     const res = await $fetch('/api/admin/quotes/pending', adminHeaders())
     expect(res.success).toBe(true)
-    expect(Array.isArray(res.data)).toBe(true)
+    expect(res.data.length).toBeGreaterThanOrEqual(2)
+  })
+
+  test('POST /api/admin/quotes/6/moderate approves pending quote', async () => {
+    const res = await $fetch('/api/admin/quotes/6/moderate', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: { action: 'approve' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.quote.status).toBe('approved')
+  })
+
+  test('POST /api/admin/quotes/7/moderate rejects pending quote', async () => {
+    const res = await $fetch('/api/admin/quotes/7/moderate', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: { action: 'reject', rejection_reason: 'Duplicate' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.quote.status).toBe('rejected')
+    expect(res.data.quote.rejection_reason).toBe('Duplicate')
   })
 
   test('POST /api/admin/tags creates a new tag', async () => {
@@ -85,13 +106,42 @@ describe('Admin routes', () => {
   })
 
   test('POST /api/admin/tags rejects non-admin', async () => {
-    // Using API key (no session) should fail
     const res = await fetch('/api/admin/tags', {
       ...headers(),
       method: 'POST',
       body: { name: 'should-not-work', color: '#000' },
     })
     expect(res.status).toBe(401)
+  })
+
+  test('POST /api/admin/authors creates a new author', async () => {
+    const res = await $fetch('/api/admin/authors', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: { name: 'Seneca', is_fictional: false },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('Seneca')
+  })
+
+  test('PUT /api/admin/authors/1 updates an author', async () => {
+    const res = await $fetch('/api/admin/authors/1', {
+      ...adminHeaders(),
+      method: 'PUT',
+      body: { name: 'Marcus Aurelius (Emperor)', job: 'Roman Emperor' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.job).toBe('Roman Emperor')
+  })
+
+  test('POST /api/admin/references creates a new reference', async () => {
+    const res = await $fetch('/api/admin/references', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: { name: 'Letters from a Stoic', primary_type: 'book' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('Letters from a Stoic')
   })
 })
 
@@ -120,8 +170,8 @@ describe('GET /api/v1/quotes', () => {
   test('returns paginated quotes', async () => {
     const res = await $fetch('/api/v1/quotes', headers())
     expect(res.success).toBe(true)
-    expect(res.data).toHaveLength(4)
-    expect(res.pagination.total).toBe(4)
+    expect(res.data.length).toBeGreaterThanOrEqual(4)
+    expect(res.pagination.total).toBeGreaterThanOrEqual(4)
     expect(res.data[0]).toHaveProperty('content')
     expect(res.data[0]).toHaveProperty('author')
     expect(res.data[0]).toHaveProperty('tags')
@@ -152,7 +202,7 @@ describe('GET /api/v1/quotes/[id]', () => {
     expect(res.success).toBe(true)
     expect(res.data.content).toContain('happiness')
     expect(res.data.tags.length).toBeGreaterThanOrEqual(1)
-    expect(res.data.author.name).toBe('Marcus Aurelius')
+    expect(res.data.author.name).toContain('Marcus Aurelius')
     expect(res.data.reference.name).toBe('Meditations')
   })
 
@@ -171,7 +221,7 @@ describe('GET /api/v1/authors', () => {
   test('returns paginated authors', async () => {
     const res = await $fetch('/api/v1/authors', headers())
     expect(res.success).toBe(true)
-    expect(res.data).toHaveLength(3)
+    expect(res.data.length).toBeGreaterThanOrEqual(3)
     expect(res.data[0]).toHaveProperty('name')
     expect(res.data[0]).toHaveProperty('stats')
   })
@@ -187,7 +237,7 @@ describe('GET /api/v1/authors/[id]', () => {
   test('returns single author', async () => {
     const res = await $fetch('/api/v1/authors/1', headers())
     expect(res.success).toBe(true)
-    expect(res.data.name).toBe('Marcus Aurelius')
+    expect(res.data.name).toContain('Marcus Aurelius')
     expect(res.data.fictional).toBe(false)
   })
 
@@ -201,7 +251,7 @@ describe('GET /api/v1/references', () => {
   test('returns paginated references', async () => {
     const res = await $fetch('/api/v1/references', headers())
     expect(res.success).toBe(true)
-    expect(res.data).toHaveLength(3)
+    expect(res.data.length).toBeGreaterThanOrEqual(3)
     expect(res.data[0]).toHaveProperty('type')
   })
 })

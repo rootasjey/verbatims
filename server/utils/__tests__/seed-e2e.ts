@@ -59,6 +59,8 @@ export async function seedTestDb() {
     INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (3, 'God is dead.', 'en', 3, 1, 'approved');
     INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (4, 'La vraie générosité envers l''avenir consiste à tout donner au présent.', 'fr', 2, 1, 'approved');
     INSERT INTO quotes (id, name, language, user_id, status) VALUES (5, 'This is a draft quote not yet approved.', 'en', 1, 'draft');
+    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (6, 'A pending quote awaiting moderation.', 'en', 1, 1, 'pending');
+    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (7, 'Another pending quote.', 'en', 2, 1, 'pending');
 
     INSERT INTO quote_tags (quote_id, tag_id) VALUES (1, 1), (1, 2), (1, 3), (2, 2), (3, 2);
   `)
