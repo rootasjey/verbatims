@@ -143,6 +143,40 @@ describe('Admin routes', () => {
     expect(res.success).toBe(true)
     expect(res.data.name).toBe('Letters from a Stoic')
   })
+
+  test('DELETE /api/admin/tags/3 deletes a tag', async () => {
+    const res = await $fetch('/api/admin/tags/3', {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.deleted).toBe(true)
+  })
+
+  test('DELETE /api/admin/authors/3 deletes author with anonymize', async () => {
+    const res = await $fetch('/api/admin/authors/3', {
+      ...adminHeaders(),
+      method: 'DELETE',
+      body: { strategy: 'anonymize' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.quotesAffected).toBeGreaterThanOrEqual(1)
+  })
+
+  test('GET /api/admin/users returns paginated users', async () => {
+    const res = await $fetch('/api/admin/users', adminHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.length).toBeGreaterThanOrEqual(1)
+    expect(res.pagination.total).toBeGreaterThanOrEqual(1)
+    expect(res.data[0]).toHaveProperty('name')
+    expect(res.data[0]).toHaveProperty('role')
+  })
+
+  test('GET /api/admin/settings returns settings', async () => {
+    const res = await $fetch('/api/admin/settings', adminHeaders())
+    expect(res.success).toBe(true)
+    expect(typeof res.data).toBe('object')
+  })
 })
 
 // ── API v1 (unchanged) ──
