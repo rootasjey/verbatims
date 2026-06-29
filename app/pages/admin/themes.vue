@@ -12,6 +12,7 @@
           <select v-model="selectedSort" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
             <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
+          <OutlinedButton size="md" @click="openCreate"><span class="i-ph-plus" /> New theme</OutlinedButton>
         </div>
       </div>
       <div class="md:hidden mt-4">
@@ -159,8 +160,9 @@
               <div class="flex items-center justify-between mb-3">
                 <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Theme Suggestions</h4>
                 <div class="flex items-center gap-1">
-                  <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()"><NIcon name="i-ph-gear" class="w-4 h-4" /></button>
-                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" /> Refresh</OutlinedButton>
+                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" />Refresh</OutlinedButton>
+                  <OutlinedButton size="sm" @click="showAISettings = true; loadAISettings()"><span class="i-ph-gear" />Settings</OutlinedButton>
+                  <OutlinedButton size="sm" @click="cancelSuggestions()"><span class="i-ph-x" />Cancel</OutlinedButton>
                 </div>
               </div>
               <div class="relative">
@@ -587,6 +589,11 @@ const suggestions = ref<any[]>([])
 const loadingSuggestions = ref(false)
 const selectedSuggestionIndex = ref<number | null>(null)
 const suggestionScrollRef = ref<HTMLElement | null>(null)
+
+const cancelSuggestions = () => {
+  suggestions.value = []
+  selectedSuggestionIndex.value = null
+}
 
 const scrollSuggestions = (direction: number) => {
   const el = suggestionScrollRef.value
