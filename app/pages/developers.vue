@@ -211,6 +211,15 @@
         </div>
       </section>
 
+      <!-- Status -->
+      <section>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">API Status</h2>
+        <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          Check the real-time availability of the Verbatims API on our
+          <NuxtLink to="/status" class="underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500">status page</NuxtLink>.
+        </p>
+      </section>
+
       <!-- Errors -->
       <section>
         <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Error Codes</h2>
