@@ -205,12 +205,38 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Name *</label>
-              <NInput v-model="form.name" placeholder="e.g., To Infinity & Beyond" :disabled="submitting" required />
+              <NInput
+                v-model="form.name"
+                placeholder="e.g., To Infinity & Beyond"
+                :disabled="submitting"
+                class="pl-22"
+                required>
+                <template #leading>
+                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">Name *</span>
+                </template>
+                <template #trailing>
+                  <NButton
+                    icon size="xs" btn="soft-gray"
+                    :label="suggestingName ? 'i-lucide-loader-circle' : 'i-lucide-wand-sparkles'"
+                    :disabled="submitting || suggestingName"
+                    class="pointer-events-auto cursor-pointer"
+                    :class="suggestingName ? 'animate-spin' : ''"
+                    @click="suggestName"
+                  />
+                </template>
+              </NInput>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Slug *</label>
-              <NInput v-model="form.slug" placeholder="e.g., space" :disabled="submitting" required />
+              <NInput
+                v-model="form.slug"
+                placeholder="e.g., space"
+                :disabled="submitting"
+                class="pl-22"
+                required>
+                <template #leading>
+                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">Slug *</span>
+                </template>
+              </NInput>
             </div>
           </div>
 
@@ -529,6 +555,33 @@ onMounted(async () => {
     useLocation.value = res.data?.theme_suggestions_use_location !== '0'
   } catch {}
 })
+
+const suggestingName = ref(false)
+
+const suggestName = async () => {
+  const current = form.value.name.trim()
+  if (current.length < 3) {
+    useToast().toast({ toast: 'outline-warning', title: 'Enter at least 3 characters first' })
+    return
+  }
+
+  suggestingName.value = true
+  try {
+    const res = await $fetch<{ data: { name: string; slug: string; description: string } }>('/api/admin/themes/suggest-name', {
+      method: 'POST',
+      body: { name: current },
+    })
+    if (res?.data) {
+      form.value.name = res.data.name
+      form.value.slug = res.data.slug || ''
+      if (res.data.description) form.value.description = res.data.description
+    }
+  } catch (e: any) {
+    showErrorToast(e, { title: 'Error', fallback: 'Failed to generate name' })
+  } finally {
+    suggestingName.value = false
+  }
+}
 
 const suggestions = ref<any[]>([])
 const loadingSuggestions = ref(false)
