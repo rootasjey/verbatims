@@ -311,13 +311,15 @@ export default defineEventHandler(async (event) => {
   try {
     const q = getQuery(event)
     const useAI = q.ai === 'true'
+    const seedTagsParam = (q.tags as string) || ''
+    const seedTags = seedTagsParam ? seedTagsParam.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : []
 
     const existingRows = await db.select({ slug: schema.themes.slug })
       .from(schema.themes)
       .all()
     const existingSlugs = new Set(existingRows.map(r => r.slug))
 
-    const [topTags, topAuthors, topReferences] = await Promise.all([
+    let [topTags, topAuthors, topReferences] = await Promise.all([
       db.select({
         id: schema.tags.id,
         name: schema.tags.name,
@@ -359,8 +361,31 @@ export default defineEventHandler(async (event) => {
         .all(),
     ])
 
+    if (seedTags.length) {
+      const seedTagData = await db.select({
+        id: schema.tags.id,
+        name: schema.tags.name,
+        count: count(schema.quoteTags.quoteId),
+      })
+        .from(schema.tags)
+        .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+        .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+        .where(and(eq(schema.quotes.status, 'approved'), inArray(schema.tags.name, seedTags)))
+        .groupBy(schema.tags.id, schema.tags.name)
+        .orderBy(desc(count(schema.quoteTags.quoteId)))
+        .all()
+
+      if (seedTagData.length) {
+        const seedNames = new Set(seedTagData.map(t => t.name.toLowerCase()))
+        topTags = [...seedTagData, ...topTags.filter(t => !seedNames.has(t.name.toLowerCase()))]
+      }
+    }
+
     if (useAI) {
-      const context = await buildContext(event)
+      let context = await buildContext(event)
+      if (seedTags.length) {
+        context += `\n\nSeed tags to focus on: ${seedTags.join(', ')}.\nGenerate suggestions specifically related to these themes.`
+      }
       const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS, context)
       if (aiSuggestions) return { success: true, data: aiSuggestions }
     }
