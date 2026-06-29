@@ -106,7 +106,10 @@
 
     <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-5xl' }">
       <template #header>
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
+        <div>
+          <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
+          <p class="text-xs text-gray-400 dark:text-gray-600 italic ml-4">{{ editMode ? 'Edit the theme details below' : 'Create a new theme manually or using AI suggestions' }}</p>
+        </div>
       </template>
       <div class="max-h-[75vh] overflow-y-auto">
         <div class="space-y-6 px-4">
@@ -128,8 +131,23 @@
                   </div>
                 </template>
               </NTooltip>
-              <button class="ml-auto p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()"><NIcon name="i-ph-gear" class="w-4 h-4" /></button>
-              <p class="w-full text-xs text-gray-400 mt-1">Auto-generate from top tags, authors, and references</p>
+              <NTooltip>
+                <OutlinedButton icon size="sm" :class="useLocation ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="toggleLocation">
+                  <NIcon :name="useLocation ? 'i-lucide-map-pin-check-inside' : 'i-lucide-map-pin-minus-inside'" />
+                </OutlinedButton>
+                <template #content>
+                  <div class="max-w-sm"><p>{{ useLocation ? 'Location context is ON — AI suggestions consider the visitor\'s country.' : 'Location context is OFF — AI suggestions ignore location.' }}</p></div>
+                </template>
+              </NTooltip>
+
+              <NTooltip>
+                <OutlinedButton icon size="sm" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()">
+                  <NIcon name="i-ph-gear" />
+                </OutlinedButton>
+                <template #content>
+                  <div class="max-w-sm"><p>Settings</p></div>
+                </template>
+              </NTooltip>
             </div>
             <div v-else-if="loadingSuggestions && suggestions.length === 0">
               <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -361,9 +379,10 @@
             Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
           </p>
         </div>
+
       </div>
       <template #footer>
-        <div class="flex justify-end gap-3 px-4 pb-2">
+        <div class="flex justify-end gap-3 px-4 pt-2 pb-2">
           <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" @click="showAISettings = false">Cancel</button>
           <OutlinedButton variant="primary" :loading="savingAISettings" @click="saveAISettings">Save Settings</OutlinedButton>
         </div>
@@ -488,6 +507,28 @@ const saveAISettings = async () => {
     savingAISettings.value = false
   }
 }
+
+const useLocation = ref(true)
+
+const toggleLocation = async () => {
+  useLocation.value = !useLocation.value
+  try {
+    await $fetch('/api/admin/settings', {
+      method: 'PUT',
+      body: { settings: { theme_suggestions_use_location: useLocation.value ? '1' : '0' } },
+    })
+  } catch {
+    useLocation.value = !useLocation.value
+    showErrorToast(null, { title: 'Error', fallback: 'Failed to save location preference' })
+  }
+}
+
+onMounted(async () => {
+  try {
+    const res = await $fetch<{ data: Record<string, string> }>('/api/admin/settings')
+    useLocation.value = res.data?.theme_suggestions_use_location !== '0'
+  } catch {}
+})
 
 const suggestions = ref<any[]>([])
 const loadingSuggestions = ref(false)

@@ -69,6 +69,116 @@ const referencePatterns = [
 const MIN_QUOTES = 5
 const MAX_SUGGESTIONS = 6
 
+interface DateEvent {
+  month: number
+  day: number
+  context: string
+  keywords: string
+}
+
+const dateEvents: DateEvent[] = [
+  { month: 1, day: 1, context: "New Year's Day", keywords: "new beginnings, resolutions, fresh start" },
+  { month: 2, day: 14, context: "Valentine's Day", keywords: "love, romance, affection, hearts" },
+  { month: 3, day: 8, context: "International Women's Day", keywords: "women, feminism, equality, empowerment" },
+  { month: 3, day: 17, context: "St. Patrick's Day", keywords: "ireland, irish, luck, celebration" },
+  { month: 4, day: 1, context: "April Fools' Day", keywords: "humor, jokes, laughter, trickery" },
+  { month: 4, day: 22, context: "Earth Day", keywords: "environment, nature, ecology, planet" },
+  { month: 5, day: 1, context: "Labour Day / International Workers' Day", keywords: "labor, work, workers, solidarity" },
+  { month: 5, day: 8, context: "Victory in Europe Day", keywords: "wwii, liberation, peace, europe" },
+  { month: 6, day: 21, context: "Summer Solstice", keywords: "summer, solstice, light, warmth" },
+  { month: 7, day: 4, context: "US Independence Day", keywords: "independence, freedom, america, revolution" },
+  { month: 7, day: 14, context: "Bastille Day — French Revolution", keywords: "french revolution, liberté, égalité, fraternité, france, revolution" },
+  { month: 9, day: 21, context: "International Day of Peace", keywords: "peace, harmony, unity, nonviolence" },
+  { month: 10, day: 31, context: "Halloween", keywords: "horror, supernatural, mystery, dark, fear" },
+  { month: 11, day: 1, context: "All Saints' Day", keywords: "memory, remembrance, saints" },
+  { month: 11, day: 11, context: "Armistice Day / Remembrance Day", keywords: "peace, remembrance, veterans, war" },
+  { month: 12, day: 21, context: "Winter Solstice", keywords: "winter, solstice, darkness, light" },
+  { month: 12, day: 25, context: "Christmas Day", keywords: "christmas, peace, joy, family, giving" },
+  { month: 12, day: 31, context: "New Year's Eve", keywords: "celebration, reflection, midnight, new year" },
+]
+
+const wikiCache = new Map<string, { data: string[]; expiry: number }>()
+const CACHE_TTL = 24 * 60 * 60 * 1000
+
+async function fetchWikipediaEvents(month: number, day: number): Promise<string[]> {
+  const key = `${month}-${day}`
+  const cached = wikiCache.get(key)
+  if (cached && Date.now() < cached.expiry) return cached.data
+
+  try {
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`)
+    if (!res.ok) return []
+    const json: any = await res.json()
+    const events = ((json.events || []) as { year: number; text: string }[])
+      .slice(0, 5)
+      .map(e => `${e.year} – ${e.text.split('. ')[0]}`)
+    wikiCache.set(key, { data: events, expiry: Date.now() + CACHE_TTL })
+    return events
+  } catch {
+    return []
+  }
+}
+
+async function buildContext(event: any): Promise<string> {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const lines: string[] = []
+
+  const nearEvents: string[] = []
+  const keywords = new Set<string>()
+
+  // Wikipedia on-this-day events for today ±1 day
+  const wikiPromises: Promise<string[]>[] = []
+  for (let offset = -1; offset <= 1; offset++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() + offset)
+    wikiPromises.push(fetchWikipediaEvents(d.getMonth() + 1, d.getDate()))
+  }
+  const wikiResults = await Promise.all(wikiPromises)
+  const wikiLines = wikiResults.flat().slice(0, 12)
+  if (wikiLines.length > 0) {
+    nearEvents.push('On this day in history: ' + wikiLines.join('; '))
+  }
+
+  for (const de of dateEvents) {
+    const d = new Date(today.getFullYear(), de.month - 1, de.day)
+    const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
+    if (Math.abs(diff) <= 7) {
+      if (diff === 0) nearEvents.push(`Today: ${de.context}`)
+      else if (diff < 0) nearEvents.push(`${Math.abs(diff)} day(s) ago: ${de.context}`)
+      else nearEvents.push(`In ${diff} day(s): ${de.context}`)
+      de.keywords.split(', ').forEach(k => keywords.add(k))
+    }
+  }
+
+  if (nearEvents.length > 0) {
+    lines.push('Notable dates: ' + nearEvents.join('. ') + '.')
+  }
+  if (keywords.size > 0) {
+    lines.push('Suggested theme directions: ' + Array.from(keywords).join(', ') + '.')
+  }
+
+  let useLocation = true
+  try {
+    const setting = await db.select().from(schema.settings).where(eq(schema.settings.key, 'theme_suggestions_use_location')).get()
+    useLocation = setting?.value !== '0'
+  } catch {}
+
+  const countryCode = useLocation ? (event.headers.get('cf-ipcountry') || '') : ''
+  if (countryCode) {
+    const names: Record<string, string> = {
+      FR: 'France', US: 'the United States', GB: 'the United Kingdom',
+      DE: 'Germany', IT: 'Italy', ES: 'Spain', CA: 'Canada', AU: 'Australia',
+      JP: 'Japan', BR: 'Brazil', IN: 'India', CH: 'Switzerland',
+      BE: 'Belgium', NL: 'Netherlands', PT: 'Portugal',
+    }
+    const name = names[countryCode] || countryCode
+    lines.push(`Location: ${name}. If relevant, suggest themes connected to ${name} or its culture.`)
+  }
+
+  return lines.join('\n')
+}
+
 const providerDefaults: Record<string, { baseUrl: string; defaultModel: string }> = {
   openrouter: { baseUrl: 'https://openrouter.ai/api/v1', defaultModel: 'openai/gpt-4o-mini' },
   opencode: { baseUrl: 'https://opencode.ai/zen/go/v1', defaultModel: 'gpt-4o-mini' },
@@ -113,7 +223,7 @@ async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: 
   return { baseUrl, apiKey, model }
 }
 
-async function generateAISuggestions(topTags: { name: string; count: number }[], topAuthors: { name: string; count: number }[], topReferences: { name: string; count: number }[], suggestionCount: number): Promise<any[] | null> {
+async function generateAISuggestions(topTags: { name: string; count: number }[], topAuthors: { name: string; count: number }[], topReferences: { name: string; count: number }[], suggestionCount: number, context?: string): Promise<any[] | null> {
   const config = await getAIConfig()
   if (!config) return null
 
@@ -127,6 +237,7 @@ async function generateAISuggestions(topTags: { name: string; count: number }[],
 Top tags: ${tagList || 'none'}
 Top authors: ${authorList || 'none'}
 Top references: ${refList || 'none'}
+${context ? '\n' + context : ''}
 
 For each suggestion, pick a primary focus (tag, author, or reference) and optionally combine related tags/authors for a richer theme.
 
@@ -249,7 +360,8 @@ export default defineEventHandler(async (event) => {
     ])
 
     if (useAI) {
-      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS)
+      const context = await buildContext(event)
+      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS, context)
       if (aiSuggestions) return { success: true, data: aiSuggestions }
     }
 

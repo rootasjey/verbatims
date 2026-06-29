@@ -20,6 +20,7 @@ interface Props {
   disabled?: boolean
   loading?: boolean
   to?: string
+  icon?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,7 +37,9 @@ const btnClass = computed(() => {
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ]
 
-  if (props.size === 'sm') {
+  if (props.icon) {
+    base.push(props.size === 'sm' ? 'p-1.1' : 'p-1.5')
+  } else if (props.size === 'sm') {
     base.push('px-2 py-1')
   } else {
     base.push('px-3 py-1.5')
