@@ -149,6 +149,15 @@
                   <div class="max-w-sm"><p>Settings</p></div>
                 </template>
               </NTooltip>
+
+              <NTooltip>
+                <OutlinedButton icon size="sm" :class="promptTags.length ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="showTagInput = !showTagInput">
+                  <NIcon name="i-ph-hash" />
+                </OutlinedButton>
+                <template #content>
+                  <div class="max-w-sm"><p>Add seed tags to guide suggestion generation toward specific themes</p></div>
+                </template>
+              </NTooltip>
             </div>
             <div v-else-if="loadingSuggestions && suggestions.length === 0">
               <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -202,6 +211,21 @@
                   <span class="i-ph-caret-right text-sm" />
                 </button>
               </div>
+            </div>
+
+            <div v-if="showTagInput || promptTags.length" class="flex items-center gap-2 flex-wrap">
+              <span v-for="(tag, i) in promptTags" :key="i" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                {{ tag }}
+                <button class="ml-0.5 hover:text-red-500 transition-colors leading-none text-sm" @click="promptTags.splice(i, 1)">&times;</button>
+              </span>
+              <NInput
+                v-if="showTagInput"
+                v-model="tagInputValue"
+                placeholder="Type tag name and press Enter"
+                size="sm"
+                class="w-44"
+                @keydown.enter.prevent="addPromptTag"
+              />
             </div>
           </div>
 
@@ -590,9 +614,23 @@ const loadingSuggestions = ref(false)
 const selectedSuggestionIndex = ref<number | null>(null)
 const suggestionScrollRef = ref<HTMLElement | null>(null)
 
+const promptTags = ref<string[]>([])
+const showTagInput = ref(false)
+const tagInputValue = ref('')
+
+const addPromptTag = () => {
+  const tag = tagInputValue.value.trim().toLowerCase()
+  if (tag && !promptTags.value.includes(tag)) {
+    promptTags.value.push(tag)
+  }
+  tagInputValue.value = ''
+}
+
 const cancelSuggestions = () => {
   suggestions.value = []
   selectedSuggestionIndex.value = null
+  promptTags.value = []
+  showTagInput.value = false
 }
 
 const scrollSuggestions = (direction: number) => {
@@ -607,7 +645,9 @@ const loadSuggestions = async () => {
   loadingSuggestions.value = true
   selectedSuggestionIndex.value = null
   try {
-    const res = await $fetch('/api/admin/themes/suggestions')
+    const params: Record<string, string> = {}
+    if (promptTags.value.length) params.tags = promptTags.value.join(',')
+    const res = await $fetch('/api/admin/themes/suggestions', { params })
     suggestions.value = res?.data || []
   } catch {
     showErrorToast(null, { title: 'Error', fallback: 'Failed to load suggestions' })
@@ -620,7 +660,9 @@ const loadAISuggestions = async () => {
   loadingSuggestions.value = true
   selectedSuggestionIndex.value = null
   try {
-    const res = await $fetch('/api/admin/themes/suggestions?ai=true')
+    const params: Record<string, string> = { ai: 'true' }
+    if (promptTags.value.length) params.tags = promptTags.value.join(',')
+    const res = await $fetch('/api/admin/themes/suggestions', { params })
     if (!res?.data || !res.data.length) {
       useToast().toast({ toast: 'outline-warning', title: 'No AI suggestions', description: 'AI returned no results. Check your AI settings or fallback to regular suggestions.' })
     }
@@ -818,6 +860,8 @@ const resetForm = () => {
   filterRecommendations.value = []
   editingThemeId.value = null
   editMode.value = false
+  promptTags.value = []
+  showTagInput.value = false
 }
 
 const openCreate = () => {
