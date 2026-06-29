@@ -44,8 +44,11 @@
 
     <!-- New Key Display -->
     <div v-if="createdKey" class="border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-4 mb-6 rounded-sm">
-      <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-1">⚠️ Save this key — it won't be shown again!</p>
-      <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all bg-yellow-100 dark:bg-yellow-800/30 px-2 py-1 block rounded-sm">{{ createdKey }}</code>
+      <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">⚠️ Save this key — it won't be shown again!</p>
+      <div class="flex items-stretch gap-2">
+        <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all bg-yellow-100 dark:bg-yellow-800/30 px-2 py-1.5 flex-1 rounded-sm">{{ createdKey }}</code>
+        <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? 'Copied!' : 'Copy' }}</button>
+      </div>
       <button class="font-sans text-xs text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 mt-2 transition-colors" @click="createdKey = ''">Dismiss</button>
     </div>
 
@@ -148,6 +151,24 @@ const loading = ref(false)
 const newKeyName = ref('')
 const creating = ref(false)
 const createdKey = ref('')
+const copied = ref(false)
+
+const copyKey = async () => {
+  try {
+    await navigator.clipboard.writeText(createdKey.value)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = createdKey.value
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  }
+}
 
 const showDeleteDialog = ref(false)
 const deletingKey = ref<any | null>(null)

@@ -139,8 +139,11 @@
 
         <!-- Show plain key after creation -->
         <div v-if="createdKey" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded-sm">
-          <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-1">Save this key — it won't be shown again!</p>
-          <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all">{{ createdKey }}</code>
+          <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">Save this key — it won't be shown again!</p>
+          <div class="flex items-stretch gap-2">
+            <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all flex-1">{{ createdKey }}</code>
+            <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? 'Copied!' : 'Copy' }}</button>
+          </div>
         </div>
       </div>
       <template #footer>
@@ -184,6 +187,24 @@ const showDialog = ref(false)
 const editingKey = ref<any | null>(null)
 const saving = ref(false)
 const createdKey = ref('')
+const copied = ref(false)
+
+const copyKey = async () => {
+  try {
+    await navigator.clipboard.writeText(createdKey.value)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = createdKey.value
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  }
+}
 
 const showDeleteDialog = ref(false)
 const deletingKey = ref<any | null>(null)
