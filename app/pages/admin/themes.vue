@@ -371,10 +371,10 @@
 
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-2">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" :disabled="submitting" @click="showEditDialog = false">Cancel</button>
-          <OutlinedButton variant="primary" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
+          <NButton btn="gray-link" class="hover:underline decoration-offset-6" :disabled="submitting" @click="showEditDialog = false">Cancel</NButton>
+          <PrimaryButton class="px-6" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
             {{ editMode ? 'Update Theme' : 'Create Theme' }}
-          </OutlinedButton>
+          </PrimaryButton>
         </div>
       </template>
     </NDialog>
