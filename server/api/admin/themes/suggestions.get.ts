@@ -388,22 +388,47 @@ export default defineEventHandler(async (event) => {
 
       const filters: any[] = [{ type: 'tag_name', value: tag.name, match_mode: 'any' }]
 
+      const quotedByTag = db.select({ id: schema.quoteTags.quoteId }).from(schema.quoteTags).where(eq(schema.quoteTags.tagId, tag.id))
+
       const coTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
         .from(schema.quoteTags)
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
         .where(and(
-          inArray(schema.quoteTags.quoteId,
-            db.select({ id: schema.quoteTags.quoteId }).from(schema.quoteTags).where(eq(schema.quoteTags.tagId, tag.id))),
+          inArray(schema.quoteTags.quoteId, quotedByTag),
           ne(schema.quoteTags.tagId, tag.id),
         ))
         .groupBy(schema.tags.id, schema.tags.name)
         .orderBy(desc(count(schema.quoteTags.quoteId)))
-        .limit(2)
+        .limit(1)
         .all()
 
       for (const ct of coTags) filters.push({ type: 'tag_name', value: ct.name, match_mode: 'any' })
 
-      addSuggestion('tag', name, pattern!.desc(title), filters)
+      const [tagAuthors, tagRefs] = await Promise.all([
+        db.select({ name: schema.authors.name, count: count(schema.quotes.id) })
+          .from(schema.quoteTags)
+          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+          .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+          .where(and(eq(schema.quoteTags.tagId, tag.id), eq(schema.quotes.status, 'approved')))
+          .groupBy(schema.authors.id, schema.authors.name)
+          .orderBy(desc(count(schema.quotes.id)))
+          .limit(1)
+          .all(),
+        db.select({ name: schema.quoteReferences.name, count: count(schema.quotes.id) })
+          .from(schema.quoteTags)
+          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+          .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+          .where(and(eq(schema.quoteTags.tagId, tag.id), eq(schema.quotes.status, 'approved')))
+          .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
+          .orderBy(desc(count(schema.quotes.id)))
+          .limit(1)
+          .all(),
+      ])
+
+      for (const ta of tagAuthors) filters.push({ type: 'author_name', value: ta.name, match_mode: 'any' })
+      for (const tr of tagRefs) filters.push({ type: 'reference_name', value: tr.name, match_mode: 'any' })
+
+      addSuggestion('tag', name, pattern!.desc(title), filters.slice(0, 4))
     }
 
     // --- Author suggestions ---
@@ -418,19 +443,30 @@ export default defineEventHandler(async (event) => {
 
       const filters: any[] = [{ type: 'author_name', value: author.name, match_mode: 'any' }]
 
-      const authorTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
-        .from(schema.quoteTags)
-        .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-        .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .where(and(eq(schema.quotes.authorId, author.id), eq(schema.quotes.status, 'approved')))
-        .groupBy(schema.tags.id, schema.tags.name)
-        .orderBy(desc(count(schema.quoteTags.quoteId)))
-        .limit(2)
-        .all()
+      const [authorTags, authorRefs] = await Promise.all([
+        db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
+          .from(schema.quoteTags)
+          .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+          .where(and(eq(schema.quotes.authorId, author.id), eq(schema.quotes.status, 'approved')))
+          .groupBy(schema.tags.id, schema.tags.name)
+          .orderBy(desc(count(schema.quoteTags.quoteId)))
+          .limit(2)
+          .all(),
+        db.select({ name: schema.quoteReferences.name, count: count(schema.quotes.id) })
+          .from(schema.quotes)
+          .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+          .where(and(eq(schema.quotes.authorId, author.id), eq(schema.quotes.status, 'approved')))
+          .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
+          .orderBy(desc(count(schema.quotes.id)))
+          .limit(2)
+          .all(),
+      ])
 
       for (const t of authorTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
+      for (const r of authorRefs) filters.push({ type: 'reference_name', value: r.name, match_mode: 'any' })
 
-      addSuggestion('author', name, pattern!.desc(author.name), filters)
+      addSuggestion('author', name, pattern!.desc(author.name), filters.slice(0, 4))
     }
 
     // --- Reference suggestions ---
@@ -445,19 +481,30 @@ export default defineEventHandler(async (event) => {
 
       const filters: any[] = [{ type: 'reference_name', value: ref.name, match_mode: 'any' }]
 
-      const refTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
-        .from(schema.quoteTags)
-        .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-        .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .where(and(eq(schema.quotes.referenceId, ref.id), eq(schema.quotes.status, 'approved')))
-        .groupBy(schema.tags.id, schema.tags.name)
-        .orderBy(desc(count(schema.quoteTags.quoteId)))
-        .limit(2)
-        .all()
+      const [refTags, refAuthors] = await Promise.all([
+        db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
+          .from(schema.quoteTags)
+          .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+          .where(and(eq(schema.quotes.referenceId, ref.id), eq(schema.quotes.status, 'approved')))
+          .groupBy(schema.tags.id, schema.tags.name)
+          .orderBy(desc(count(schema.quoteTags.quoteId)))
+          .limit(2)
+          .all(),
+        db.select({ name: schema.authors.name, count: count(schema.quotes.id) })
+          .from(schema.quotes)
+          .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+          .where(and(eq(schema.quotes.referenceId, ref.id), eq(schema.quotes.status, 'approved')))
+          .groupBy(schema.authors.id, schema.authors.name)
+          .orderBy(desc(count(schema.quotes.id)))
+          .limit(2)
+          .all(),
+      ])
 
       for (const t of refTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
+      for (const a of refAuthors) filters.push({ type: 'author_name', value: a.name, match_mode: 'any' })
 
-      addSuggestion('reference', name, pattern!.desc(ref.name), filters)
+      addSuggestion('reference', name, pattern!.desc(ref.name), filters.slice(0, 4))
     }
 
     return { success: true, data: suggestions }
