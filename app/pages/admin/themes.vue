@@ -337,7 +337,7 @@
               <template v-if="filterRecommendations.length">
                 <span class="text-2xs text-gray-400">Suggestions:</span>
                 <button v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" class="text-2xs px-2 py-0.5 rounded-full border border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" @click="applyFilterRecommendation(r)">
-                  {{ r.label }}
+                  {{ r.label }}<span v-if="r.type !== 'tag_name'" class="ml-1 opacity-50">—{{ r.type.replace('_name', '').slice(0, 3) }}</span>
                 </button>
               </template>
             </div>
