@@ -100,6 +100,10 @@
 </template>
 
 <script lang="ts" setup>
+import { formatDate } from '~/utils/time-formatter'
+import { getReferenceIcon } from '~/utils/reference'
+import { getLanguageName } from '~/utils/quote'
+
 interface Props {
   quote: QuoteWithRelations;
   relatedQuotes?: QuoteWithRelations[];

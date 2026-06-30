@@ -64,6 +64,8 @@
 </template>
 
 <script lang="ts" setup>
+import { getReferenceIcon } from '~/utils/reference'
+
 interface Props {
   quote: QuoteWithRelations
   signature?: boolean

@@ -89,6 +89,8 @@
 </template>
 
 <script setup lang="ts">
+import { navigateTo } from 'nuxt/app'
+
 interface SimilarAuthor {
   id: number
   name: string

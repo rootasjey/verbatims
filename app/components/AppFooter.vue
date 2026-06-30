@@ -2,7 +2,7 @@
   <!-- Compact footer aligned with the home page spacing and typography -->
   <footer
     class="pt-8 border-gray-3/20 dark:border-gray-8/80"
-    :class="{ 'border-t': $route.path !== '/' }"
+    :class="{ 'border-t': route.path !== '/' }"
     role="contentinfo"
     aria-label="Site footer"
     data-testid="footer"
@@ -87,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
 const config = useRuntimeConfig()
 const version = config.public.appVersion
 

@@ -88,6 +88,8 @@
 </template>
 
 <script lang="ts" setup>
+import { formatNumber } from '~/utils/quote'
+
 interface Props {
   quote: QuoteWithMetadata
   index: number
