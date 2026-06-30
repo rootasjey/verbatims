@@ -51,13 +51,13 @@
               btn="soft-gray"
               size="xs"
               label="i-lucide-chevron-left"
-              class="bg-gray-100 min-w-0 min-h-0 p-1 h-auto w-auto rounded-2"
+              class="bg-gray-100 dark:bg-gray-800 min-w-0 min-h-0 p-1 h-auto w-auto rounded-2"
               @click.stop="$emit('navigate-back')"
             />
           </NTooltip>
 
           <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
-            <div class="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1 rounded-2 bg-gray-100 text-gray-600 dark:text-gray-300">
+            <div class="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1 rounded-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
               <NIcon name="i-ph-eye-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5" />
               <span class="text-xs md:text-xs font-500">{{ formatNumber(quote.views_count || 0) }}</span>
             </div>
@@ -68,7 +68,7 @@
               btn="~"
               size="xs"
               :disabled="sharePending"
-              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-2 text-gray-600 hover:text-primary-600 bg-gray-100 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
+              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-2 text-gray-600 hover:text-primary-600 bg-gray-100 dark:bg-gray-800 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
               @click="$emit('share')"
             >
               <NIcon name="i-ph-share-network-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5 mr-0.5 md:mr-1" />
@@ -85,7 +85,7 @@
                 'min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full',
                 isLiked
                   ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
-                  : 'bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
                 !user && 'cursor-not-allowed opacity-50'
               ]"
               @click="$emit('toggle-like')"

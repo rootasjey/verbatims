@@ -27,7 +27,7 @@
           required
           class="w-full font-subtitle text-xl font-500 text-gray-900
             dark:text-gray-100 rounded-2
-            bg-blue-400/10 dark:bg-blue-400/10
+            bg-blue-400/10 dark:bg-[#303841]/10
             px-4 py-4 placeholder-gray-400 dark:placeholder-gray-500
             focus:outline-none resize-none"
         />
@@ -47,7 +47,7 @@
             type="text"
             placeholder="Search for an author or enter a new one..."
             :disabled="submitting"
-            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             @input="onAuthorInput"
             @focus="handleAuthorInputFocus"
             @blur="handleAuthorInputBlur"
@@ -56,7 +56,7 @@
           <div
             v-if="showAuthorSuggestions && (authorSuggestions.length > 0 || authorQuery)"
             ref="authorSuggestionsRef"
-            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 max-h-48 overflow-auto"
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 max-h-48 overflow-auto"
             tabindex="-1"
             @blur="handleAuthorSuggestionsBlur"
             @keydown="handleAuthorKeydown"
@@ -106,7 +106,7 @@
             type="text"
             placeholder="Search for a reference or enter a new one..."
             :disabled="submitting"
-            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             @input="onReferenceInput"
             @focus="handleReferenceInputFocus"
             @blur="handleReferenceInputBlur"
@@ -161,7 +161,7 @@
         <select
           v-model="form.language"
           :disabled="submitting"
-          class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none"
+          class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none"
           @change="onLanguageSelected(form.language)"
         >
           <option v-for="opt in languageOptions" :key="opt.value" :value="opt" class="dark:bg-gray-800">{{ opt.label }}</option>
