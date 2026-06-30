@@ -467,7 +467,6 @@ watch(() => route.path, (newPath) => {
 
 const loadQuoteCounts = async () => {
   try {
-    // @ts-expect-error deep type instantiation from $fetch without explicit return type
     const stats = await $fetch('/api/admin/stats')
     if (stats?.data?.quotes) {
       publishedCount.value = stats.data.quotes.approved || 0
