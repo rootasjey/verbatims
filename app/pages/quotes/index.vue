@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import { useJsonLd } from '~/composables/useSeo'
 const { isMobile } = useMobileDetection()
 

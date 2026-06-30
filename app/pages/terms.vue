@@ -308,6 +308,8 @@
 </template>
 
 <script setup lang="ts">
+import { usePreferredDark } from '@vueuse/core'
+
 const isDark = usePreferredDark()
 const tocOpen = ref(false)
 

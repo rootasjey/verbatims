@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.99.0",
+  "version": "0.100.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -29,14 +29,14 @@
     "@dayflow/blossom-color-picker-vue": "^1.2.1",
     "@libsql/client": "^0.17.4",
     "@noble/hashes": "^2.2.0",
-    "@nuxt/image": "1.11.0",
-    "@nuxt/test-utils": "3.21.0",
+    "@nuxt/image": "2.0.0",
+    "@nuxt/test-utils": "4.0.3",
     "@nuxthub/core": "^0.10.7",
-    "@nuxtjs/sitemap": "^7.6.0",
+    "@nuxtjs/sitemap": "7.6.0",
     "@pinia/nuxt": "0.11.3",
     "@una-ui/nuxt": "^0.66.0",
     "@verbatims/social-autopost-core": "git+https://github.com/rootasjey/social-autopost-core.git#v0.1.0",
-    "@vueuse/nuxt": "12.8.2",
+    "@vueuse/nuxt": "14.3.0",
     "fflate": "^0.8.3",
     "html-to-image": "^1.11.13",
     "nuxt": "^4.4.8",
@@ -57,14 +57,14 @@
     "drizzle-orm": "^0.45.2",
     "jimp": "^1.6.1",
     "puppeteer": "^24.43.1",
-    "typescript": "^5.9.3",
+    "typescript": "5.9.3",
     "vitest": "^4.1.9",
     "vue-tsc": "^3.3.6",
     "wrangler": "^4.106.0"
   },
   "overrides": {
-    "@vueuse/core": "12.8.2",
-    "@vueuse/shared": "12.8.2"
+    "@vueuse/core": "14.3.0",
+    "@vueuse/shared": "14.3.0"
   },
   "trustedDependencies": [
     "@verbatims/social-autopost-core"
