@@ -168,6 +168,8 @@
 </template>
 
 <script setup lang="ts">
+import { navigateTo } from 'nuxt/app'
+
 definePageMeta({
   layout: 'default',
   middleware: 'auth'

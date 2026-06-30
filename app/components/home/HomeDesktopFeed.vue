@@ -397,6 +397,7 @@
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types'
 import type { UseHomeFeed } from '~/composables/useHomeFeed'
+import { navigateTo } from 'nuxt/app'
 
 interface Props {
   feed: UseHomeFeed

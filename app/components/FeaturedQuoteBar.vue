@@ -81,6 +81,7 @@
 
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types'
+import { navigateTo } from 'nuxt/app'
 
 const ROTATION_INTERVAL = 30_000
 

@@ -120,6 +120,8 @@
 </template>
 
 <script setup lang="ts">
+import { navigateTo } from 'nuxt/app'
+
 interface SimilarReference {
   id: number
   name: string

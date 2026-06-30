@@ -64,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { navigateTo } from 'nuxt/app'
+
 interface FeedView {
   quotes: Ref<any[]>
   hasMore?: Ref<boolean>

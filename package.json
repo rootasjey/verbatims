@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.100.0",
+  "version": "0.100.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -59,7 +59,7 @@
     "puppeteer": "^24.43.1",
     "typescript": "5.9.3",
     "vitest": "^4.1.9",
-    "vue-tsc": "^3.3.6",
+    "vue-tsc": "3.2.5",
     "wrangler": "^4.106.0"
   },
   "overrides": {

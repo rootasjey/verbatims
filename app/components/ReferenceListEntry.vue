@@ -31,6 +31,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatReferenceType, getReferenceIcon } from '~/utils/reference'
+
 interface Props {
   reference: QuoteReferenceWithMetadata
 }

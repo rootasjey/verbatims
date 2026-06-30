@@ -355,6 +355,9 @@ import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
 import { useMobileDetection } from '~/composables/useMobileDetection'
 import { useVerbatimsSeo } from '~/composables/useSeo'
+import { navigateTo } from 'nuxt/app'
+import { formatReferenceType, getReferenceIcon } from '~/utils/reference'
+
 const { isMobile } = useMobileDetection()
 const appReady = useState('app-ready', () => false)
 const hydrated = ref(appReady.value)

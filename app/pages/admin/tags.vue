@@ -153,6 +153,7 @@ import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
 import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
 import { hexToBlossomValue, getContrastColor, BLOSSOM_PALETTE } from '~/utils/color'
 import { useColorPickerEscape } from '~/composables/useColorPickerEscape'
+import { navigateTo } from 'nuxt/app'
 
 const { showErrorToast } = useErrorToast()
 
