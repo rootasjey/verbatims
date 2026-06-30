@@ -106,6 +106,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useDebounceFn } from '@vueuse/core'
 import { useJsonLd } from '~/composables/useSeo'
 import { useAuthorsListStore } from '~/stores/authors'
 import type { AuthorsListSnapshot } from '~/stores/authors'

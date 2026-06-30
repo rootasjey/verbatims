@@ -78,6 +78,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useDebounceFn } from '@vueuse/core'
+
 const { isMobile } = useMobileDetection()
 
 const quotesFeedStore = useQuotesFeedStore()

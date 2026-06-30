@@ -350,6 +350,7 @@
 </template>
 
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
 import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
 import { useMobileDetection } from '~/composables/useMobileDetection'
