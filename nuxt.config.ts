@@ -65,6 +65,7 @@ export default defineNuxtConfig({
     '@una-ui/nuxt',
     '@vueuse/nuxt',
     '@nuxtjs/sitemap',
+    '@polar-sh/nuxt',
   ],
 
   typescript: {
@@ -164,6 +165,12 @@ export default defineNuxtConfig({
     dataVerificationReviewGraceDays: process.env.NUXT_DATA_VERIFICATION_REVIEW_GRACE_DAYS || '14',
     resendApiKey: process.env.NUXT_RESEND_API_KEY || '',
     emailFromAddress: process.env.NUXT_EMAIL_FROM_ADDRESS || 'Verbatims <noreply@verbatims.cc>',
+
+    // Polar.sh
+    polarAccessToken: process.env.NUXT_POLAR_ACCESS_TOKEN || '',
+    polarWebhookSecret: process.env.NUXT_POLAR_WEBHOOK_SECRET || '',
+    polarSponsorProductId: process.env.NUXT_POLAR_SPONSOR_PRODUCT_ID || '',
+    polarServer: process.env.NUXT_POLAR_SERVER || 'sandbox',
 
     // Public keys (exposed to client-side)
     public: {
