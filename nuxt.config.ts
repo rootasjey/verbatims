@@ -165,11 +165,11 @@ export default defineNuxtConfig({
     resendApiKey: process.env.NUXT_RESEND_API_KEY || '',
     emailFromAddress: process.env.NUXT_EMAIL_FROM_ADDRESS || 'Verbatims <noreply@verbatims.cc>',
 
-    // Lemon Squeezy (payment processing for sponsored messages)
-    lemonsqueezyApiKey: process.env.NUXT_LEMONSQUEEZY_API_KEY || '',
-    lemonsqueezyWebhookSecret: process.env.NUXT_LEMONSQUEEZY_WEBHOOK_SECRET || '',
-    lemonsqueezyStoreId: process.env.NUXT_LEMONSQUEEZY_STORE_ID || '',
-    lemonsqueezyVariantId: process.env.NUXT_LEMONSQUEEZY_VARIANT_ID || '',
+    // Creem (payment processing for sponsored messages)
+    creemApiKey: process.env.NUXT_CREEM_API_KEY || '',
+    creemWebhookSecret: process.env.NUXT_CREEM_WEBHOOK_SECRET || '',
+    creemProductId: process.env.NUXT_CREEM_PRODUCT_ID || '',
+    creemTestMode: process.env.NUXT_CREEM_TEST_MODE || 'true',
 
     // Public keys (exposed to client-side)
     public: {
