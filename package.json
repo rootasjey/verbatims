@@ -1,6 +1,6 @@
 {
   "name": "verbatims",
-  "version": "0.101.0",
+  "version": "0.101.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -34,7 +34,6 @@
     "@nuxthub/core": "^0.10.7",
     "@nuxtjs/sitemap": "7.6.0",
     "@pinia/nuxt": "0.11.3",
-    "@polar-sh/nuxt": "^0.5.7",
     "@una-ui/nuxt": "^0.66.0",
     "@verbatims/social-autopost-core": "git+https://github.com/rootasjey/social-autopost-core.git#v0.1.0",
     "@vueuse/nuxt": "14.3.0",

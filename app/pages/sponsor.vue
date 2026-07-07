@@ -151,7 +151,7 @@ const submit = async () => {
   submitting.value = true
 
   try {
-    const { url } = await $fetch('/api/checkout/sponsor', {
+    const res = await $fetch<{ url: string }>('/api/checkout/sponsor', {
       method: 'POST',
       body: {
         message: form.message.trim(),
@@ -161,8 +161,8 @@ const submit = async () => {
       },
     })
 
-    if (url) {
-      window.location.href = url
+    if (res.url) {
+      window.location.href = res.url
     }
   } catch (error: any) {
     const msg = error?.data?.statusMessage || error?.message || 'Failed to create checkout'

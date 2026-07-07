@@ -1,5 +1,3 @@
-import { Polar } from '@polar-sh/sdk'
-
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
   const body = await readBody(event)
@@ -11,38 +9,71 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const siteUrl = config.public.siteUrl
-  const productId = config.polarSponsorProductId
+  const storeId = config.lemonsqueezyStoreId
+  const variantId = config.lemonsqueezyVariantId
 
-  if (!productId) {
-    throwServer(500, 'Polar sponsor product not configured')
+  if (!storeId || !variantId) {
+    throwServer(500, 'Lemon Squeezy not configured')
   }
 
-  const polar = new Polar({
-    accessToken: config.polarAccessToken,
-    server: (config.polarServer as 'sandbox' | 'production') || 'sandbox',
-  })
-
   try {
-    const checkout = await polar.checkouts.create({
-      products: [productId],
-      customerEmail: user.email || undefined,
-      customerName: user.name || undefined,
-      externalCustomerId: String(user.id),
-      metadata: {
-        sponsor_message: JSON.stringify({
-          message,
-          url: body.url || null,
-          leading_icon: body.leading_icon || null,
-          trailing_icon: body.trailing_icon || null,
-          user_id: user.id,
-        }),
+    const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.lemonsqueezyApiKey}`,
+        'Content-Type': 'application/vnd.api+json',
+        'Accept': 'application/vnd.api+json',
       },
-      successUrl: `${siteUrl}/sponsor/success`,
+      body: JSON.stringify({
+        data: {
+          type: 'checkouts',
+          attributes: {
+            product_options: {
+              redirect_url: `${siteUrl}/sponsor/success`,
+            },
+            checkout_data: {
+              email: user.email || '',
+              name: user.name || '',
+              custom: {
+                sponsor_message: JSON.stringify({
+                  message,
+                  url: body.url || null,
+                  leading_icon: body.leading_icon || null,
+                  trailing_icon: body.trailing_icon || null,
+                  user_id: user.id,
+                }),
+              },
+            },
+          },
+          relationships: {
+            store: {
+              data: { type: 'stores', id: String(storeId) },
+            },
+            variant: {
+              data: { type: 'variants', id: String(variantId) },
+            },
+          },
+        },
+      }),
     })
 
-    return { url: checkout.url }
+    if (!response.ok) {
+      const errText = await response.text()
+      console.error('Lemon Squeezy API error:', response.status, errText)
+      throwServer(502, 'Payment provider request failed')
+    }
+
+    const json: any = await response.json()
+    const checkoutUrl = json?.data?.attributes?.url
+
+    if (!checkoutUrl) {
+      throwServer(502, 'Invalid response from payment provider')
+    }
+
+    return { url: checkoutUrl }
   } catch (error: any) {
-    console.error('Failed to create Polar checkout:', error)
+    if ((error as any).statusCode) throw error
+    console.error('Failed to create Lemon Squeezy checkout:', error)
     throwServer(500, 'Failed to create checkout session')
   }
 })
