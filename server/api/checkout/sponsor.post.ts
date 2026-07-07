@@ -9,62 +9,48 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const siteUrl = config.public.siteUrl
-  const storeId = config.lemonsqueezyStoreId
-  const variantId = config.lemonsqueezyVariantId
+  const productId = config.creemProductId
 
-  if (!storeId || !variantId) {
-    throwServer(500, 'Lemon Squeezy not configured')
+  if (!productId) {
+    throwServer(500, 'Creem product not configured')
   }
 
+  const isTest = config.creemTestMode !== 'false'
+  const apiBase = isTest ? 'https://test-api.creem.io' : 'https://api.creem.io'
+
   try {
-    const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+    const response = await fetch(`${apiBase}/v1/checkouts`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${config.lemonsqueezyApiKey}`,
-        'Content-Type': 'application/vnd.api+json',
-        'Accept': 'application/vnd.api+json',
+        'x-api-key': config.creemApiKey,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: {
-          type: 'checkouts',
-          attributes: {
-            product_options: {
-              redirect_url: `${siteUrl}/sponsor/success`,
-            },
-            checkout_data: {
-              email: user.email || '',
-              name: user.name || '',
-              custom: {
-                sponsor_message: JSON.stringify({
-                  message,
-                  url: body.url || null,
-                  leading_icon: body.leading_icon || null,
-                  trailing_icon: body.trailing_icon || null,
-                  user_id: user.id,
-                }),
-              },
-            },
-          },
-          relationships: {
-            store: {
-              data: { type: 'stores', id: String(storeId) },
-            },
-            variant: {
-              data: { type: 'variants', id: String(variantId) },
-            },
-          },
+        product_id: productId,
+        success_url: `${siteUrl}/sponsor/success`,
+        customer: {
+          email: user.email || undefined,
+        },
+        metadata: {
+          sponsor_message: JSON.stringify({
+            message,
+            url: body.url || null,
+            leading_icon: body.leading_icon || null,
+            trailing_icon: body.trailing_icon || null,
+            user_id: user.id,
+          }),
         },
       }),
     })
 
     if (!response.ok) {
       const errText = await response.text()
-      console.error('Lemon Squeezy API error:', response.status, errText)
+      console.error('Creem API error:', response.status, errText)
       throwServer(502, 'Payment provider request failed')
     }
 
     const json: any = await response.json()
-    const checkoutUrl = json?.data?.attributes?.url
+    const checkoutUrl = json?.checkout_url
 
     if (!checkoutUrl) {
       throwServer(502, 'Invalid response from payment provider')
@@ -73,7 +59,7 @@ export default defineEventHandler(async (event) => {
     return { url: checkoutUrl }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
-    console.error('Failed to create Lemon Squeezy checkout:', error)
+    console.error('Failed to create Creem checkout:', error)
     throwServer(500, 'Failed to create checkout session')
   }
 })
