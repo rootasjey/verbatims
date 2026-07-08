@@ -270,6 +270,12 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    server: {
+      allowedHosts: [
+        'brakes-stored-scene-launch.trycloudflare.com',
+        'reference-fig-knowing-mortgages.trycloudflare.com'
+      ]
+    },
     ssr: {
       noExternal: ['@dayflow/blossom-color-picker', '@dayflow/blossom-color-picker-vue'],
     },
