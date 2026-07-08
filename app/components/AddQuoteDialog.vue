@@ -19,8 +19,8 @@
       <!-- Quote Content -->
       <div>
         <textarea
+          ref="quoteTextarea"
           v-model="form.content"
-          autofocus
           placeholder="Enter the quote content..."
           rows="4"
           :disabled="submitting"
@@ -194,6 +194,8 @@ const emit = defineEmits<Emits>()
 
 const { user } = useUserSession()
 
+const quoteTextarea = ref<HTMLTextAreaElement | null>(null)
+
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
@@ -251,6 +253,12 @@ const handleFormKeydown = (event: KeyboardEvent) => {
 const onAuthorInput = () => { void searchAuthors($fetch, { limit: 5, minLength: 1 }) }
 const onReferenceInput = () => { void searchReferences($fetch, { limit: 5, minLength: 1 }) }
 const closeDialog = () => { isOpen.value = false }
+
+watch(isOpen, (open) => {
+  if (open) {
+    nextTick(() => quoteTextarea.value?.focus())
+  }
+})
 
 watch(() => props.editQuote, (newQuote) => {
   if (newQuote) initializeFormForEdit(newQuote)

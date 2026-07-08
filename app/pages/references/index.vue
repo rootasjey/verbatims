@@ -11,6 +11,7 @@
 
     <div class="max-w-4xl mx-auto px-8 pb-16">
       <ReferencesSearch
+        v-if="loading || references.length > 0 || searchQuery || primaryType"
         ref="searchInput"
         :visible-count="references.length"
         :total-count="totalReferences || 0"
@@ -106,11 +107,16 @@
       :type-options="typeOptions"
       @toggle-sort-order="toggleSortOrder"
     />
+
+    <ClientOnly>
+      <AddQuoteDialog v-if="!isMobile" v-model="showSubmitModal" @quote-added="showSubmitModal = false; loadReferences()" />
+      <AddQuoteDrawer v-else v-model:open="showSubmitModal" @submitted="showSubmitModal = false; loadReferences()" />
+    </ClientOnly>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useMobileDetection } from '~/composables/useMobileDetection'
+import { ref, computed, watch, reactive, type Ref } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { useReferencesListStore } from '~/stores/references'
 import { useJsonLd } from '~/composables/useSeo'

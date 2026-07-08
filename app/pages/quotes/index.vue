@@ -17,6 +17,10 @@
       <!-- Mobile: list like MobileRecentQuotes -->
       <MobileRecentQuotes v-else :feed="feed" />
     </div>
+
+    <ClientOnly>
+      <AddQuoteDrawer v-model:open="showAddQuote" @submitted="showAddQuote = false; feed.refresh()" />
+    </ClientOnly>
   </div>
 </template>
 
@@ -56,6 +60,7 @@ useJsonLd({
 
 const feed = useQuoteSearchFeed()
 const searchInput = ref<any>(null)
+const showAddQuote = ref(false)
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,

@@ -11,6 +11,7 @@
 
     <div class="max-w-4xl mx-auto px-8 pb-16">
       <AuthorsSearch
+        v-if="loading || authors.length > 0 || searchQuery"
         ref="searchInput"
         :authors-count="authors.length"
         :total-authors="totalAuthors"
@@ -102,6 +103,11 @@
       :sort-options="sortOptions"
       @toggle-sort-order="toggleSortOrder"
     />
+
+    <ClientOnly>
+      <AddQuoteDialog v-if="!isMobile" v-model="showSubmitModal" @quote-added="showSubmitModal = false; loadAuthors()" />
+      <AddQuoteDrawer v-else v-model:open="showSubmitModal" @submitted="showSubmitModal = false; loadAuthors()" />
+    </ClientOnly>
   </div>
 </template>
 

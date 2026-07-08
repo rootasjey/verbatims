@@ -11,6 +11,7 @@
 
     <div class="max-w-6xl mx-auto px-8 pb-16">
       <TagSearch
+        v-if="loading || tags.length > 0 || searchQuery"
         ref="searchInput"
         :tags-count="tags.length"
         :total-tags="totalTags"
@@ -40,6 +41,7 @@
         :search-query="searchQuery"
         class="mt-24"
         @clear-filters="clearFilters"
+        @create-tag="showCreateTag = true"
       />
 
       <div v-else>
@@ -73,6 +75,10 @@
       :sort-options="sortOptions"
       @toggle-sort-order="toggleSortOrder"
     />
+
+    <ClientOnly>
+      <AddTagDialog v-model="showCreateTag" @tag-added="showCreateTag = false; loadTags()" />
+    </ClientOnly>
   </div>
 </template>
 
@@ -130,6 +136,7 @@ const currentPage = ref<number>(1)
 const totalTags = ref<number>(0)
 const searchInput = ref<any>(null)
 const mobileFiltersOpen = ref(false)
+const showCreateTag = ref(false)
 const isRestoringState = ref(false)
 
 const sortOptions = [
