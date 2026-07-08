@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
       endsAt: body.ends_at || null,
       maxViews: body.max_views || null,
       userId: user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }).returning()
 
     if (!result || result.length === 0) {

@@ -147,8 +147,8 @@ const { showErrorToast } = useErrorToast()
 
 const normalizeDatetime = (val: string) => {
   if (!val) return ''
-  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val + 'T01:00'
-  if (val.endsWith('T00:00')) return val.slice(0, -5) + '01:00'
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val + 'T00:01'
+  if (val.match(/^\d{4}-\d{2}-\d{2}T00:00$/)) return val.slice(0, -4) + '01'
   return val
 }
 

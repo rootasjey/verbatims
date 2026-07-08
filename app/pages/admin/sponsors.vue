@@ -67,9 +67,18 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <p class="font-sans text-sm text-gray-900 dark:text-gray-100 line-clamp-2">{{ msg.message }}</p>
+                <button class="font-sans text-sm text-gray-900 dark:text-gray-100 line-clamp-2 text-left hover:text-primary dark:hover:text-primary-light transition-colors cursor-pointer w-full" @click="editMessage(msg)">
+                  {{ msg.message }}
+                </button>
               </td>
-              <td class="px-3 py-3"><span class="font-sans text-xs px-1.5 py-0.5" :class="statusPillClass(getStatusText(msg))">{{ getStatusText(msg) }}</span></td>
+              <td class="px-3 py-3">
+                <NDropdownMenu :items="getStatusActions(msg)" :align="'start'">
+                  <button class="flex items-center gap-1 font-sans text-xs px-1.5 py-0.5 cursor-pointer" :class="statusPillClass(getStatusText(msg))">
+                    {{ getStatusText(msg) }}
+                    <NIcon name="i-ph-caret-down" class="w-3 h-3" />
+                  </button>
+                </NDropdownMenu>
+              </td>
               <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ msg.type }}</span></td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ msg.priority }}</td>
               <td class="px-3 py-3">
@@ -215,9 +224,40 @@ const statusPillClass = (status: string) => {
 }
 
 const getRowActions = (msg: any) => [
-  { label: 'Edit Message', leading: 'i-ph-pencil', onclick: () => { editingMessage.value = msg; showDialog.value = true } },
+  { label: 'Edit Message', leading: 'i-ph-pencil', onclick: () => editMessage(msg) },
   {}, { label: 'Delete Message', leading: 'i-ph-trash', onclick: () => { deletingMessage.value = { id: msg.id, message: msg.message }; showDeleteDialog.value = true } }
 ]
+
+const editMessage = (msg: any) => {
+  editingMessage.value = msg
+  showDialog.value = true
+}
+
+const getStatusActions = (msg: any) => {
+  const current = getStatusText(msg)
+  const options = current === 'Inactive'
+    ? [{ label: 'Activate', onclick: () => changeStatus(msg, true) }]
+    : [{ label: 'Deactivate', onclick: () => changeStatus(msg, false) }]
+  return options
+}
+
+const changeStatus = async (msg: any, active: boolean) => {
+  try {
+    const payload: any = { is_active: active }
+    if (active && !msg.startsAt) {
+      const now = new Date()
+      payload.starts_at = now.toISOString()
+      if (!msg.endsAt) {
+        const endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+        payload.ends_at = endsAt.toISOString()
+      }
+    }
+    await $fetch(`/api/admin/sponsors/${msg.id}`, { method: 'PUT', body: payload })
+    loadMessages()
+  } catch (e) {
+    showErrorToast(e, 'Failed to update status')
+  }
+}
 
 const loadMessages = async () => {
   try {
