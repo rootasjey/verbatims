@@ -26,9 +26,9 @@
           btn="soft-secondary"
           leading="i-ph-plus-circle"
           class="hover:scale-105 active:scale-99 transition-[transform] duration-150"
-          @click="$emit('openSubmitModal')"
+          @click="$emit('openSubmitAuthor')"
         >
-          Submit a quote
+          Submit an author
         </NButton>
       </div>
     </div>
@@ -43,5 +43,5 @@ const props = defineProps({
   }
 })
 
-defineEmits(['openSubmitModal', 'clearFilters'])
+defineEmits(['openSubmitAuthor', 'clearFilters'])
 </script>

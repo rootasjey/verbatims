@@ -55,7 +55,7 @@
         :search-query="searchQuery"
         class="mt-24"
         @clear-filters="clearFilters"
-        @open-submit-modal="openSubmitModal"
+        @open-submit-author="openSubmitAuthor"
       />
 
       <div v-else>
@@ -107,6 +107,10 @@
     <ClientOnly>
       <AddQuoteDialog v-if="!isMobile" v-model="showSubmitModal" @quote-added="showSubmitModal = false; loadAuthors()" />
       <AddQuoteDrawer v-else v-model:open="showSubmitModal" @submitted="showSubmitModal = false; loadAuthors()" />
+    </ClientOnly>
+
+    <ClientOnly>
+      <AddAuthorDialog v-model="showAddAuthorModal" @author-added="showAddAuthorModal = false; loadAuthors()" />
     </ClientOnly>
   </div>
 </template>
@@ -253,6 +257,9 @@ useFocusOnTyping(searchInput, {
 
 const showSubmitModal = ref<boolean>(false)
 const openSubmitModal = () => { showSubmitModal.value = true }
+
+const showAddAuthorModal = ref<boolean>(false)
+const openSubmitAuthor = () => { showAddAuthorModal.value = true }
 
 const clearFilters = async () => {
   searchQuery.value = ''
