@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
 
   const isTest = config.creemTestMode !== 'false'
   const apiBase = isTest ? 'https://test-api.creem.io' : 'https://api.creem.io'
+  const origin = isTest ? getHeader(event, 'origin') || `http://localhost:3002` : config.public.siteUrl
 
   try {
     const response = await fetch(`${apiBase}/v1/checkouts`, {
@@ -27,7 +28,7 @@ export default defineEventHandler(async (event) => {
       },
       body: JSON.stringify({
         product_id: productId,
-        success_url: `${siteUrl}/sponsor/success`,
+        success_url: `${origin}/sponsor/success`,
         customer: {
           email: user.email || undefined,
         },
