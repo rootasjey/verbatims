@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto px-8 pb-16">
     <!-- Sticky controls bar -->
-    <div class="sticky top-14 z-3 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6">
+    <div v-if="feed.quotesLoading?.value || feed.quotes.value.length > 0 || feed.searchQuery?.value" class="sticky top-14 z-3 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6">
       <div class="flex gap-3 items-center">
         <div class="hidden md:block">
           <LanguageSelector @language-changed="feed.onLanguageChange" />
@@ -46,15 +46,48 @@
 
     <ScrollableTags class="mb-2" />
 
-    <div class="flex flex-wrap gap-2 mt-16 mb-12">
-      <QuoteTextEntry
-        v-for="q in feed.quotes.value"
-        :key="q.id"
-        :quote="q"
-        @edit="openEdit"
-        @delete="openDelete"
-        @report="openReport"
-      />
+    <template v-if="feed.quotes.value.length > 0">
+      <div class="flex flex-wrap gap-2 mt-16 mb-12">
+        <QuoteTextEntry
+          v-for="q in feed.quotes.value"
+          :key="q.id"
+          :quote="q"
+          @edit="openEdit"
+          @delete="openDelete"
+          @report="openReport"
+        />
+      </div>
+    </template>
+
+    <div v-else-if="!feed.quotesLoading?.value" class="px-8 py-24 sm:py-32">
+      <div class="max-w-xl mx-auto text-center">
+        <p v-if="feed.searchQuery?.value" class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
+          No quotes match
+        </p>
+        <p v-else class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
+          No quotes yet.
+        </p>
+
+        <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
+          <template v-if="feed.searchQuery?.value">
+            No results for &ldquo;{{ feed.searchQuery.value }}&rdquo;.
+          </template>
+          <template v-else>
+            Every great quote starts somewhere. Add one and inspire the community.
+          </template>
+        </p>
+
+        <div v-if="!feed.searchQuery?.value" class="mt-8">
+          <NButton
+            btn="soft-secondary"
+            leading="i-ph-plus-circle"
+            class="hover:scale-105 active:scale-99 transition-[transform] duration-150"
+            @click="showNewQuoteDialog = true"
+          >
+            Submit a quote
+          </NButton>
+        </div>
+      </div>
     </div>
 
     <div v-if="feed.hasMore?.value" class="flex justify-center">
@@ -67,6 +100,7 @@
       />
     </div>
 
+    <AddQuoteDialog v-model="showNewQuoteDialog" @quote-added="feed.refresh()" />
     <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote as any"
       @quote-updated="closeEditAfterUpdate" />
 
@@ -84,6 +118,7 @@ const props = defineProps<{
 }>()
 
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
+const showNewQuoteDialog = ref(false)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
 const showReportDialog = ref(false)
