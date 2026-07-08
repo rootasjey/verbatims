@@ -9,10 +9,14 @@
         Payment successful!
       </h1>
 
-      <p class="font-body text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
+      <p class="font-body text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
         Your sponsored message has been submitted and is now awaiting
         <strong class="text-gray-700 dark:text-gray-300">moderation</strong>.
-        You'll receive a notification once it's approved and published.
+      </p>
+
+      <p class="font-body text-sm text-gray-400 dark:text-gray-500 mb-8">
+        You'll receive a notification once it's approved. The message will then
+        appear in the sponsor bar for <strong class="text-gray-600 dark:text-gray-400">7 days</strong>.
       </p>
 
       <div class="space-y-3">

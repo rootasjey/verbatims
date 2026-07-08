@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
             leading_icon: body.leading_icon || null,
             trailing_icon: body.trailing_icon || null,
             user_id: user.id,
+            duration_days: 7,
           }),
         },
       }),
