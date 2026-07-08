@@ -12,6 +12,9 @@
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
+          <button class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" @click="openAddReferenceDialog">
+            + Add New Reference
+          </button>
           <input
             v-model="searchQuery"
             type="text"
@@ -338,6 +341,8 @@ const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
 const viewReference = (reference: QuoteReferenceWithMetadata) => navigateTo(`/references/${reference.id}`)
 const hasPendingEnrichment = (reference: QuoteReferenceWithMetadata) => Number(reference.enrichment_pending_count || 0) > 0
 const goToReferenceEnrichmentQueue = (reference: QuoteReferenceWithMetadata) => navigateTo({ path: '/admin/enrichment', query: { entityType: 'reference', entityId: String(reference.id), status: 'completed' } })
+const openAddReferenceDialog = () => { selectedReference.value = undefined; showAddReferenceDialog.value = true }
+
 const editReference = (reference: QuoteReferenceWithMetadata) => { selectedReference.value = reference; showAddReferenceDialog.value = true }
 const deleteReference = async (reference: QuoteReferenceWithMetadata) => { referenceToDelete.value = reference; showDeleteReferenceDialog.value = true }
 const mergeReference = async (reference: QuoteReferenceWithMetadata) => { referenceToMerge.value = reference; initialMergeTarget.value = null; showMergeDialog.value = true }

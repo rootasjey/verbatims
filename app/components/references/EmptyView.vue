@@ -23,9 +23,9 @@
           btn="soft-secondary"
           leading="i-ph-plus-circle"
           class="hover:scale-105 active:scale-99 transition-[transform] duration-150"
-          @click="$emit('openSubmitModal')"
+          @click="$emit('openSubmitReference')"
         >
-          Submit a quote
+          Submit a reference
         </NButton>
       </div>
     </div>
@@ -44,7 +44,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['openSubmitModal', 'clearFilters'])
+defineEmits(['openSubmitReference', 'clearFilters'])
 
 const selectedTypeLabel = computed(() => {
   if (!props.selectedType) return ''

@@ -12,6 +12,9 @@
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
+          <button class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" @click="openAddAuthorDialog">
+            + Add New Author
+          </button>
           <input
             v-model="searchQuery"
             type="text"
@@ -407,6 +410,8 @@ const getAuthorActions = (author: Author) => [
 const viewAuthor = (author: Author) => navigateTo(`/authors/${author.id}`)
 const hasPendingEnrichment = (author: Author) => Number(author.enrichment_pending_count || 0) > 0
 const goToAuthorEnrichmentQueue = (author: Author) => navigateTo({ path: '/admin/enrichment', query: { entityType: 'author', entityId: String(author.id), status: 'completed' } })
+
+const openAddAuthorDialog = () => { selectedAuthor.value = undefined; showAddAuthorDialog.value = true }
 
 const editAuthor = async (author: Author) => {
   selectedAuthor.value = author; showAddAuthorDialog.value = true

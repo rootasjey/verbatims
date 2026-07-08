@@ -58,7 +58,7 @@
         :selected-type="primaryType"
         class="mt-24"
         @clear-filters="clearFilters"
-        @open-submit-modal="openSubmitModal"
+        @open-submit-reference="openSubmitReference"
       />
 
       <div v-else>
@@ -111,6 +111,10 @@
     <ClientOnly>
       <AddQuoteDialog v-if="!isMobile" v-model="showSubmitModal" @quote-added="showSubmitModal = false; loadReferences()" />
       <AddQuoteDrawer v-else v-model:open="showSubmitModal" @submitted="showSubmitModal = false; loadReferences()" />
+    </ClientOnly>
+
+    <ClientOnly>
+      <AddReferenceDialog v-model="showAddReferenceModal" @reference-added="showAddReferenceModal = false; loadReferences()" />
     </ClientOnly>
   </div>
 </template>
@@ -418,6 +422,9 @@ const debouncedSearch = useDebounceFn(() => {
 const openSubmitModal = () => {
   showSubmitModal.value = true
 }
+
+const showAddReferenceModal = ref<boolean>(false)
+const openSubmitReference = () => { showAddReferenceModal.value = true }
 
 const clearFilters = async () => {
   isProgrammaticReset.value = true
