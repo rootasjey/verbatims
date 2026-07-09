@@ -200,14 +200,20 @@ const saveEdit = async () => {
 
 const statusClass = (sponsor: any) => {
   if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
-  if (sponsor.status === 'approved') return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  if (sponsor.status === 'approved') {
+    if (sponsor.starts_at && new Date(sponsor.starts_at) > new Date()) return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+    return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  }
   if (sponsor.status === 'rejected') return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
   return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
 }
 
 const statusLabel = (sponsor: any) => {
-  if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return 'Expired'
-  if (sponsor.status === 'approved') return 'Active'
+  if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return `Expired on ${formatDate(sponsor.ends_at)}`
+  if (sponsor.status === 'approved') {
+    if (sponsor.starts_at && new Date(sponsor.starts_at) > new Date()) return `Will be live on ${formatDate(sponsor.starts_at)}`
+    return 'Active'
+  }
   if (sponsor.status === 'rejected') return 'Rejected'
   return 'Pending Moderation'
 }

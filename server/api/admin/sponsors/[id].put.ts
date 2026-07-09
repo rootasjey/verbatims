@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
         .limit(1)
 
       if (users.length > 0 && users[0]!.email) {
-        await sendSponsorStatusEmail(event, users[0]!.email, existingRecord.message, body.status, body.rejection_reason || null)
+        await sendSponsorStatusEmail(event, users[0]!.email, existingRecord.message, body.status, body.rejection_reason || null, updated[0]?.startsAt)
       }
     }
 
