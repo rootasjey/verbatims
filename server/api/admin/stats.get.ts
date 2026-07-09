@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, count, sum, avg, sql, desc } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/sqlite-core'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -88,15 +89,113 @@ export default defineEventHandler(async (event) => {
     ])
     
     // Get recent activity (last 30 days)
-    const recentActivity = await db.select({
-      date: sql<string>`DATE(${schema.quotes.createdAt})`.as('date'),
-      count: count()
+    const thirtyDaysAgoSec = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60
+    const mods = alias(schema.users, 'mods')
+
+    const [recentQuotes, recentModerations, recentUsers] = await Promise.all([
+      // Recent quote submissions
+      db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        status: schema.quotes.status,
+        createdAt: sql<number>`unixepoch(${schema.quotes.createdAt})`,
+        userName: schema.users.name,
+        userAvatar: schema.users.avatarUrl,
+        authorName: schema.authors.name
+      })
+        .from(schema.quotes)
+        .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+        .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+        .where(sql`unixepoch(${schema.quotes.createdAt}) >= ${thirtyDaysAgoSec}`)
+        .orderBy(desc(sql`unixepoch(${schema.quotes.createdAt})`))
+        .limit(20),
+
+      // Recent moderation actions
+      db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        status: schema.quotes.status,
+        moderatedAt: sql<number | null>`unixepoch(${schema.quotes.moderatedAt})`,
+        moderatorName: mods.name,
+        moderatorAvatar: mods.avatarUrl,
+        userName: schema.users.name
+      })
+        .from(schema.quotes)
+        .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+        .leftJoin(mods, eq(schema.quotes.moderatorId, mods.id))
+        .where(sql`unixepoch(${schema.quotes.moderatedAt}) >= ${thirtyDaysAgoSec}`)
+        .orderBy(desc(sql`unixepoch(${schema.quotes.moderatedAt})`))
+        .limit(20),
+
+      // Recent user registrations
+      db.select({
+        id: schema.users.id,
+        name: schema.users.name,
+        avatarUrl: schema.users.avatarUrl,
+        role: schema.users.role,
+        createdAt: sql<number>`unixepoch(${schema.users.createdAt})`
+      })
+        .from(schema.users)
+        .where(sql`unixepoch(${schema.users.createdAt}) >= ${thirtyDaysAgoSec}`)
+        .orderBy(desc(sql`unixepoch(${schema.users.createdAt})`))
+        .limit(20)
+    ])
+
+    const allActivities: Array<{
+      type: string
+      action: string
+      description: string
+      user_name: string
+      user_avatar: string | null
+      secondary_info: string | null
+      timestamp: number
+      quote_id?: number
+      quote_status?: string | null
+    }> = []
+
+    recentQuotes.forEach((q) => {
+      allActivities.push({
+        type: 'quote_submitted',
+        action: 'Submitted quote',
+        description: q.name,
+        user_name: q.userName || 'Unknown',
+        user_avatar: q.userAvatar,
+        secondary_info: q.authorName ? `by ${q.authorName}` : null,
+        timestamp: q.createdAt * 1000,
+        quote_id: q.id,
+        quote_status: q.status
+      })
     })
-    .from(schema.quotes)
-    .where(sql`${schema.quotes.createdAt} >= datetime('now', '-30 days')`)
-    .groupBy(sql`DATE(${schema.quotes.createdAt})`)
-    .orderBy(sql`date DESC`)
-    .limit(30)
+
+    recentModerations.forEach((m) => {
+      if (!m.moderatedAt) return
+      allActivities.push({
+        type: 'quote_moderated',
+        action: m.status === 'approved' ? 'Approved quote' : 'Rejected quote',
+        description: m.name,
+        user_name: m.moderatorName || m.userName || 'Unknown',
+        user_avatar: m.moderatorAvatar,
+        secondary_info: m.status,
+        timestamp: m.moderatedAt * 1000,
+        quote_id: m.id,
+        quote_status: m.status
+      })
+    })
+
+    recentUsers.forEach((u) => {
+      allActivities.push({
+        type: 'user_registered',
+        action: 'New user registered',
+        description: u.name,
+        user_name: u.name,
+        user_avatar: u.avatarUrl,
+        secondary_info: u.role,
+        timestamp: u.createdAt * 1000
+      })
+    })
+
+    allActivities.sort((a, b) => b.timestamp - a.timestamp)
+    const recentActivity = allActivities.slice(0, 30)
     
     // Get top contributors
     const topContributors = await db.select({
