@@ -51,7 +51,7 @@
               btn="soft-gray"
               size="xs"
               label="i-lucide-chevron-left"
-              class="bg-gray-100 dark:bg-gray-800 min-w-0 min-h-0 p-1 h-auto w-auto rounded-2"
+              class="md:hidden bg-gray-100 dark:bg-gray-800 min-w-0 min-h-0 p-1 h-auto w-auto rounded-2"
               @click.stop="$emit('navigate-back')"
             />
           </NTooltip>
