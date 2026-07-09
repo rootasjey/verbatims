@@ -85,14 +85,43 @@
 
           <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
             <div
-              v-for="(activity, idx) in stats.recent_activity.slice(0, 10)"
-              :key="activity.date"
-              class="py-3 first:pt-0 last:pb-0 animate-fade-in-up"
-              :style="{ animationDelay: `${idx * 0.05}s` }"
+              v-for="(activity, idx) in stats.recent_activity"
+              :key="activity.timestamp + activity.type + activity.user_name"
+              class="flex items-start gap-3 py-3 first:pt-0 last:pb-0 animate-fade-in-up"
+              :style="{ animationDelay: `${idx * 0.03}s` }"
             >
-              <div class="flex items-center justify-between">
-                <span class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ formatDate(activity.date) }}</span>
-                <span class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ activity.count }} submissions</span>
+              <div class="mt-0.5 flex-shrink-0">
+                <img
+                  v-if="activity.user_avatar"
+                  :src="activity.user_avatar"
+                  :alt="activity.user_name"
+                  class="w-6 h-6 rounded-full"
+                />
+                <div
+                  v-else
+                  class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                >
+                  <span class="font-sans text-xs font-500 text-gray-400 dark:text-gray-500">{{ activity.user_name.charAt(0).toUpperCase() }}</span>
+                </div>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="font-sans text-sm text-gray-700 dark:text-gray-300 leading-snug">
+                  <span class="font-500 text-gray-900 dark:text-gray-100">{{ activity.user_name }}</span>
+                  <span class="text-gray-500 dark:text-gray-400 ml-1">{{ getActionText(activity) }}</span>
+                  <NTooltip v-if="activity.description" :content="activity.description" :_tooltip-content="{ class: 'max-w-xs font-sans text-xs' }">
+                    <NuxtLink
+                      v-if="activity.quote_status === 'approved'"
+                      :to="`/quotes/${activity.quote_id}`"
+                      class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                      target="_blank"
+                    >&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</NuxtLink>
+                    <span v-else class="text-gray-900 dark:text-gray-100 ml-1">&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</span>
+                  </NTooltip>
+                </p>
+                <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {{ formatRelativeTime(activity.timestamp) }}
+                  <span v-if="activity.secondary_info" class="text-gray-400 dark:text-gray-500"> &middot; {{ activity.secondary_info }}</span>
+                </p>
               </div>
             </div>
           </div>
@@ -199,7 +228,19 @@
 </template>
 
 <script setup>
-import { formatDate } from '~/utils/time-formatter'
+import { formatDate, formatRelativeTime } from '~/utils/time-formatter'
+
+function getActionText(activity) {
+  if (activity.type === 'quote_submitted') return 'submitted'
+  if (activity.type === 'quote_moderated') return activity.action?.toLowerCase() || 'moderated'
+  if (activity.type === 'user_registered') return 'registered'
+  return activity.action?.toLowerCase() || ''
+}
+
+function truncate(text, max) {
+  if (!text) return ''
+  return text.length > max ? text.slice(0, max) + '…' : text
+}
 
 definePageMeta({
   layout: 'admin',
