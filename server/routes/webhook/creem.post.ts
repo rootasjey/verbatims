@@ -87,7 +87,8 @@ export default defineEventHandler(async (event) => {
   const userId = sponsorData.user_id ? Number(sponsorData.user_id) : null
   const durationDays = typeof sponsorData.duration_days === 'number' ? sponsorData.duration_days : 7
   const now = new Date()
-  const endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+  const startsAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)
+  const endsAt = new Date(startsAt.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString()
 
   try {
     await db.insert(schema.sponsorMessages).values({
@@ -98,7 +99,7 @@ export default defineEventHandler(async (event) => {
       type: 'sponsored',
       status: 'pending',
       priority: 0,
-      startsAt: now.toISOString(),
+      startsAt: startsAt.toISOString(),
       endsAt,
       userId,
       paid: true,

@@ -95,16 +95,28 @@ export async function sendSponsorStatusEmail(
   messageText: string,
   status: 'approved' | 'rejected',
   reason?: string | null,
+  startsAt?: string | null,
 ): Promise<void> {
   const origin = resolveAppOrigin(event)
   const dashboardUrl = `${origin}/dashboard/sponsors`
 
+  const isScheduled = status === 'approved' && startsAt && new Date(startsAt) > new Date()
+
   const subject = status === 'approved'
-    ? 'Your sponsored message is now live on Verbatims'
+    ? isScheduled
+      ? 'Your sponsored message has been approved on Verbatims'
+      : 'Your sponsored message is now live on Verbatims'
     : 'Your sponsored message was not approved'
 
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
   const bodyHtml = status === 'approved'
-    ? `
+    ? isScheduled
+      ? `
+      <p style="color: #374151; margin-bottom: 16px;">Your sponsored message has been approved and will go live on <strong>${formatDate(startsAt!)}</strong>.</p>
+      <blockquote style="border-left: 3px solid #3C82F6; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>`
+      : `
       <p style="color: #374151; margin-bottom: 16px;">Your sponsored message is now live and visible on Verbatims.</p>
       <blockquote style="border-left: 3px solid #3C82F6; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>`
     : `
@@ -112,6 +124,12 @@ export async function sendSponsorStatusEmail(
       ${reason ? `<p style="color: #6B7280; margin-bottom: 16px;"><strong>Reason:</strong> ${reason}</p>` : ''}
       <blockquote style="border-left: 3px solid #EF4444; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>
       <p style="color: #6B7280; font-size: 14px;">You can edit your message and resubmit it from your dashboard.</p>`
+
+  const textBody = status === 'approved'
+    ? isScheduled
+      ? `Your sponsored message has been approved and will go live on ${formatDate(startsAt!)}.\n\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
+      : `Your sponsored message is now live and visible on Verbatims.\n\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
+    : `Your sponsored message was reviewed and not approved.\n${reason ? `Reason: ${reason}\n` : ''}\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
 
   const resend = getResendClient()
   const { error } = await resend.emails.send({
@@ -129,7 +147,7 @@ export async function sendSponsorStatusEmail(
         <p style="color: #9CA3AF; font-size: 12px;">Verbatims &mdash; Modern Quotes Service</p>
       </div>
     `,
-    text: `${subject}\n\n${messageText}${reason ? `\n\nReason: ${reason}` : ''}\n\nView in dashboard: ${dashboardUrl}`,
+    text: textBody,
   })
 
   if (error) {
