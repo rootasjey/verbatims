@@ -8,6 +8,111 @@
       "when": 1767201614156,
       "tag": "0000_redundant_gladiator",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1767201615000,
+      "tag": "0001_add_latin_language",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1767201616000,
+      "tag": "0002_fix_quotes_old_references",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1767201617000,
+      "tag": "0003_add_social_queue_and_posts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1767201618000,
+      "tag": "0004_social_platform_add_instagram_fix_existing",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1767201619000,
+      "tag": "0005_add_entity_enrichment_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1767201620000,
+      "tag": "0006_add_enrichment_results",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1767201621000,
+      "tag": "0007_add_social_source_refs",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1767201622000,
+      "tag": "0008_add_quote_source_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1767201623000,
+      "tag": "0009_add_reference_id_filter",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1767201624000,
+      "tag": "0010_add_settings_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1767201625000,
+      "tag": "0011_add_language_filter",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1767201626000,
+      "tag": "0012_add_sponsor_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1767201627000,
+      "tag": "0013_add_api_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1767201628000,
+      "tag": "0014_add_api_key_usage_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1767201629000,
+      "tag": "0015_add_api_key_tier",
+      "breakpoints": true
     }
   ]
 }
