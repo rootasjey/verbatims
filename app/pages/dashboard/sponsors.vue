@@ -35,7 +35,7 @@
       <div
         v-for="sponsor in sponsors"
         :key="sponsor.id"
-        class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors"
+        class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors group"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0 flex-1">
@@ -60,9 +60,66 @@
               </span>
             </div>
           </div>
+          <button
+            v-if="canEdit(sponsor)"
+            class="flex-shrink-0 p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors opacity-0 group-hover:opacity-100 -mt-1 -mr-1"
+            @click="openEdit(sponsor)"
+          >
+            <NIcon name="i-ph-pencil-simple" class="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
+
+    <ClientOnly>
+      <NDialog
+        v-model:open="showEditDialog"
+        :title="'Edit Sponsored Message'"
+        :description="'Update your message while it awaits moderation.'"
+        class="max-w-md"
+      >
+        <div v-if="editingSponsor" class="space-y-4">
+          <div>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">Message *</label>
+            <NInput
+              v-model="editForm.message"
+              input="gray"
+              placeholder="Your sponsored message"
+            />
+          </div>
+          <div>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">Leading icon</label>
+            <NInput
+              v-model="editForm.leading_icon"
+              input="gray"
+              placeholder="e.g. 🔥"
+            />
+          </div>
+          <div>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">Trailing icon</label>
+            <NInput
+              v-model="editForm.trailing_icon"
+              input="gray"
+              placeholder="e.g. ✨"
+            />
+          </div>
+          <div>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">URL (optional)</label>
+            <NInput
+              v-model="editForm.url"
+              input="gray"
+              placeholder="https://example.com"
+            />
+          </div>
+        </div>
+        <template #footer>
+          <div class="flex items-center justify-end gap-2">
+            <NButton label="Cancel" btn="outline-gray" size="sm" @click="showEditDialog = false" />
+            <NButton label="Save" btn="solid-gray" size="sm" :loading="saving" @click="saveEdit" />
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
   </div>
 </template>
 
@@ -78,12 +135,17 @@ useHead({
 
 const pageHeader = usePageHeader()
 
-onMounted(() => {
-  pageHeader.setHeaderFromRoute()
-})
-
 const loading = ref(true)
 const sponsors = ref<any[]>([])
+const showEditDialog = ref(false)
+const editingSponsor = ref<any | null>(null)
+const saving = ref(false)
+const editForm = reactive({
+  message: '',
+  leading_icon: '',
+  trailing_icon: '',
+  url: '',
+})
 
 const loadSponsors = async () => {
   try {
@@ -96,17 +158,53 @@ const loadSponsors = async () => {
   }
 }
 
+const canEdit = (sponsor: any) => {
+  return !sponsor.is_active && (!sponsor.ends_at || new Date(sponsor.ends_at) >= new Date())
+}
+
+const openEdit = (sponsor: any) => {
+  editingSponsor.value = sponsor
+  editForm.message = sponsor.message || ''
+  editForm.leading_icon = sponsor.leading_icon || ''
+  editForm.trailing_icon = sponsor.trailing_icon || ''
+  editForm.url = sponsor.url || ''
+  showEditDialog.value = true
+}
+
+const saveEdit = async () => {
+  if (!editingSponsor.value) return
+  try {
+    saving.value = true
+    const res = await $fetch<{ data: any }>(`/api/dashboard/sponsors/${editingSponsor.value.id}`, {
+      method: 'PUT',
+      body: {
+        message: editForm.message,
+        leading_icon: editForm.leading_icon || null,
+        trailing_icon: editForm.trailing_icon || null,
+        url: editForm.url || null,
+      },
+    })
+    const idx = sponsors.value.findIndex(s => s.id === editingSponsor.value.id)
+    if (idx !== -1) sponsors.value[idx] = res.data
+    showEditDialog.value = false
+    editingSponsor.value = null
+  } catch (error) {
+    console.error('Failed to update sponsor:', error)
+  } finally {
+    saving.value = false
+  }
+}
+
 const statusClass = (sponsor: any) => {
-  if (!sponsor.is_active) return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
   if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
-  return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  if (sponsor.is_active) return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
 }
 
 const statusLabel = (sponsor: any) => {
-  if (!sponsor.is_active && (!sponsor.ends_at || new Date(sponsor.ends_at) >= new Date())) return 'Pending Moderation'
   if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return 'Expired'
   if (sponsor.is_active) return 'Active'
-  return 'Inactive'
+  return 'Pending Moderation'
 }
 
 const formatDate = (date: string | number | undefined) => {
@@ -119,6 +217,7 @@ const formatDate = (date: string | number | undefined) => {
 }
 
 onMounted(() => {
+  pageHeader.setHeaderFromRoute()
   loadSponsors()
 })
 </script>
