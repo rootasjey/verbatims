@@ -63,7 +63,13 @@
     </div>
 
     <div v-else-if="jobs.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No enrichment jobs found</p>
+      <NIcon name="i-ph-magic-wand" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+        {{ selectedStatus.value || selectedEntityType.value ? 'No matching jobs' : 'No enrichment jobs found' }}
+      </p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
+        {{ selectedStatus.value || selectedEntityType.value ? 'Try different filters.' : 'Enrichment jobs are created automatically when authors or references need metadata updates.' }}
+      </p>
     </div>
 
     <div v-else>
@@ -192,7 +198,12 @@ const loadQueue = async () => {
   try {
     const response = await $fetch('/api/admin/enrichment/status', { query: { page: currentPage.value, limit: pageSize.value, status: selectedStatus.value.value || undefined, entityType: selectedEntityType.value.value || undefined, entityId: selectedEntityId.value || undefined } }) as any
     jobs.value = response.data?.jobs || []; queueStats.value = response.data?.stats || queueStats.value; totalItems.value = response.pagination?.total || 0
-  } catch (error: any) { showErrorToast(error, 'Queue load failed') }
+  } catch (error: any) {
+    console.error('Queue load failed:', error)
+    if (error?.statusCode && error?.statusCode !== 500) {
+      showErrorToast(error, 'Queue load failed')
+    }
+  }
   finally { loading.value = false }
 }
 
@@ -274,8 +285,8 @@ const formatTimestamp = (value: string | number | Date | null | undefined) => {
 }
 
 watchDebounced([currentPage, selectedStatus, selectedEntityType], () => { loadQueue() }, { debounce: 200 })
-onMounted(() => { syncFiltersFromRoute(); loadQueue() })
 watch(() => route.query, () => { syncFiltersFromRoute(); loadQueue() })
+onMounted(() => { syncFiltersFromRoute(); loadQueue() })
 </script>
 
 <style scoped>

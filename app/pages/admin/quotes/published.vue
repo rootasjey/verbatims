@@ -195,11 +195,13 @@
       </div>
     </div>
 
-    <AddQuoteDialog
-      v-model="showEditQuoteDialog"
-      :edit-quote="selectedQuote"
-      @quote-updated="onQuoteUpdated"
-    />
+    <ClientOnly>
+      <AddQuoteDialog
+        v-model="showEditQuoteDialog"
+        :edit-quote="selectedQuote"
+        @quote-updated="onQuoteUpdated"
+      />
+    </ClientOnly>
 
     <AddToCollectionBulkModal
       v-if="selectedQuotes.length > 0"
@@ -208,27 +210,31 @@
       @added="handleBulkAddedToCollection"
     />
 
-    <BulkEditQuotesDialog
-      v-model:open="showBulkEditDialog"
-      :selected-quotes="selectedQuotesData"
-      @updated="onBulkEditComplete"
-    />
+    <ClientOnly>
+      <BulkEditQuotesDialog
+        v-model:open="showBulkEditDialog"
+        :selected-quotes="selectedQuotesData"
+        @updated="onBulkEditComplete"
+      />
+    </ClientOnly>
 
-    <NDialog v-model:open="showBulkUnpublishModal">
-      <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'Quote' : 'Quotes' }}</h3>
-      </template>
-      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
-        Are you sure you want to unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
-        They will be moved back to drafts.
-      </p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkUnpublishModal = false">Cancel</button>
-          <OutlinedButton variant="destructive" @click="bulkUnpublish(); showBulkUnpublishModal = false">Unpublish All</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+    <ClientOnly>
+      <NDialog v-model:open="showBulkUnpublishModal">
+        <template #header>
+          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'Quote' : 'Quotes' }}</h3>
+        </template>
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
+          Are you sure you want to unpublish {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?
+          They will be moved back to drafts.
+        </p>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkUnpublishModal = false">Cancel</button>
+            <OutlinedButton variant="destructive" @click="bulkUnpublish(); showBulkUnpublishModal = false">Unpublish All</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
   </div>
 </template>
 
@@ -356,7 +362,9 @@ const loadQuotes = async () => {
     clearHighlight()
   } catch (error) {
     console.error('Failed to load published quotes:', error)
-    showErrorToast(error, 'Failed to load published quotes')
+    if ((error as any)?.statusCode && (error as any).statusCode !== 500) {
+      showErrorToast(error, 'Failed to load published quotes')
+    }
   } finally {
     loading.value = false
     hasLoadedOnce.value = true

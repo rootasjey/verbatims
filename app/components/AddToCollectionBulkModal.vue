@@ -110,6 +110,8 @@
 </template>
 
 <script setup>
+import { ref, computed, watch, nextTick } from 'vue'
+
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   quoteIds: { type: Array, required: true }

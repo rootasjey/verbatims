@@ -178,6 +178,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { useQuoteForm } from '~/composables/useQuoteForm'
+
 interface Props {
   modelValue: boolean
   editQuote?: QuoteWithRelations | AdminQuote | null
@@ -204,8 +207,6 @@ const isOpen = computed({
 const isEditMode = computed(() => !!props.editQuote)
 const dialogTitle = computed(() => isEditMode.value ? 'Edit Quote' : 'Add New Quote')
 const submitButtonText = computed(() => isEditMode.value ? 'Update Quote' : 'Save as Draft')
-
-import { useQuoteForm } from '~/composables/useQuoteForm'
 const {
   form,
   languageOptions,

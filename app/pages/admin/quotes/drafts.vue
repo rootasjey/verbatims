@@ -166,24 +166,36 @@
       </div>
     </div>
 
-    <AdminQuoteDetailDialog v-model:open="showQuoteDialog" :quote="selectedQuote" @edit="editQuote" />
-    <DeleteDraftDialog v-model:open="showDeleteModal" :deleting="deleting" @delete-draft="deleteDraft" />
-    <DeleteQuoteInBulkDialog v-model:open="showBulkDeleteModal" :deleting="bulkProcessing" :selected-quotes="selectedQuotesData" @bulk-delete="bulkDelete" />
-    <BulkEditQuotesDialog v-model:open="showBulkEditDialog" :selected-quotes="selectedQuotesData" @updated="onBulkEditComplete" />
-    <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
+    <ClientOnly>
+      <AdminQuoteDetailDialog v-model:open="showQuoteDialog" :quote="selectedQuote" @edit="editQuote" />
+    </ClientOnly>
+    <ClientOnly>
+      <DeleteDraftDialog v-model:open="showDeleteModal" :deleting="deleting" @delete-draft="deleteDraft" />
+    </ClientOnly>
+    <ClientOnly>
+      <DeleteQuoteInBulkDialog v-model:open="showBulkDeleteModal" :deleting="bulkProcessing" :selected-quotes="selectedQuotesData" @bulk-delete="bulkDelete" />
+    </ClientOnly>
+    <ClientOnly>
+      <BulkEditQuotesDialog v-model:open="showBulkEditDialog" :selected-quotes="selectedQuotesData" @updated="onBulkEditComplete" />
+    </ClientOnly>
+    <ClientOnly>
+      <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
+    </ClientOnly>
 
-    <NDialog v-model:open="showBulkSubmitModal">
-      <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Submit {{ selectedQuotes.length }} Drafts</h3>
-      </template>
-      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Are you sure you want to submit {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} for review?</p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="bulkProcessing" @click="showBulkSubmitModal = false">Cancel</button>
-          <OutlinedButton variant="primary" :disabled="bulkProcessing" @click="bulkSubmit(); showBulkSubmitModal = false">Submit All</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+    <ClientOnly>
+      <NDialog v-model:open="showBulkSubmitModal">
+        <template #header>
+          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Submit {{ selectedQuotes.length }} Drafts</h3>
+        </template>
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Are you sure you want to submit {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'draft' : 'drafts' }} for review?</p>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="bulkProcessing" @click="showBulkSubmitModal = false">Cancel</button>
+            <OutlinedButton variant="primary" :disabled="bulkProcessing" @click="bulkSubmit(); showBulkSubmitModal = false">Submit All</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
   </div>
 </template>
 

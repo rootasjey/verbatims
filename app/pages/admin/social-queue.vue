@@ -64,7 +64,9 @@
 
       <!-- Empty -->
       <div v-else-if="queueItems.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">Queue is empty</p>
+        <NIcon name="i-ph-list-dashes" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? 'No matching items' : 'Queue is empty' }}</p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? 'Try a different search term.' : 'Add quotes to the queue for scheduled social media posting.' }}</p>
       </div>
 
       <!-- Table -->

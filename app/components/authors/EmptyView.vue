@@ -23,9 +23,9 @@
         </NButton>
 
         <NButton
-          btn="soft-secondary"
+          btn="light:soft-secondary dark:soft-blue"
           leading="i-ph-plus-circle"
-          class="hover:scale-105 active:scale-99 transition-[transform] duration-150"
+          class="hover:scale-102 active:scale-99 transition-[transform] duration-150"
           @click="$emit('openSubmitAuthor')"
         >
           Submit an author
