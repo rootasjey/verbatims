@@ -135,7 +135,7 @@ const notAdmin = (l: RouteLink) => !l.path.startsWith('/admin')
 
 // Curated sections
 const sectionExplore = allLinks
-  .filter(l => ['/', '/authors', '/references'].includes(l.path))
+  .filter(l => ['/', '/authors', '/references', '/sponsor'].includes(l.path))
   .filter(notAdmin)
 
 const sectionContribute = (isLoggedIn.value ? allLinks : [])
