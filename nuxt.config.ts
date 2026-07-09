@@ -115,6 +115,18 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
+
+    // OAuth provider credentials
+    oauth: {
+      github: {
+        clientId: process.env.NUXT_OAUTH_GITHUB_CLIENT_ID || '',
+        clientSecret: process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET || '',
+      },
+      google: {
+        clientId: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET || '',
+      },
+    },
     francisApiKey: process.env.NUXT_FRANCIS_API_KEY || '',
     francisApiUrl: process.env.NUXT_FRANCIS_API_URL || 'https://francis.verbatims.cc',
     xPostEnabled: process.env.NUXT_X_POST_ENABLED || 'true',

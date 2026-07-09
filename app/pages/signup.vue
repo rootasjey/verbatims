@@ -1,316 +1,304 @@
 <template>
-  <!-- Desktop layout: signup form over large alphabet background -->
-  <div v-if="!isMobile" class="relative min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0C0A09] py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-    <!-- Large repeating alphabet background -->
-    <div class="absolute inset-0 z-0 w-full h-full overflow-hidden flex items-start justify-start">
-      <div class="flex flex-wrap w-full h-full">
-        <template v-for="i in 90" :key="i">
-          <span class="mx-2 my-1">
-            <span
-              class="text-[10vw] font-extrabold text-gray-200 dark:text-gray-800 opacity-35 leading-none transition-all duration-300 cursor-pointer hover:text-white hover:opacity-80 hover:drop-shadow-[0_0_16px_#687FE5] dark:hover:text-primary-400 dark:hover:drop-shadow-[0_0_16px_#687FE5]"
-              @click="appendLetterToInput(String.fromCharCode(65 + ((i - 1) % 26)))"
-            >
-              {{ String.fromCharCode(65 + ((i - 1) % 26)) }}
-            </span>
-          </span>
-        </template>
-      </div>
-    </div>
-
-    <!-- Signup Form -->
-    <div class="relative z-10 max-w-md w-full space-y-8 p-8 bg-white dark:bg-[#18181B] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
-      <div>
-        <h3 class="mt-2 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white text-center">
-          Create your <span class="font-300">Verbatims</span> account
-        </h3>
-        <p class="text-sm text-gray-600 dark:text-gray-400 text-center">
+  <!-- Desktop: clean editorial layout -->
+  <div v-if="!isMobile" class="min-h-screen flex items-center justify-center bg-[#FAFAF9] dark:bg-[#0C0A09] py-16 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-sm">
+      <!-- Editorial header -->
+      <div class="text-center mb-10">
+        <div class="w-8 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-6" />
+        <h1 class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100">
+          Create your account
+        </h1>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-2">
           Join our community of quote enthusiasts
         </p>
       </div>
-      <div>
-        <div class="space-y-6">
-          <!-- Error Alert -->
-          <NAlert
-            v-if="error"
-            alert="soft-red"
-            :title="error"
-            :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
-            @close="error = ''"
-          />
-          <!-- Email/Password Sign Up Form -->
-          <form @submit.prevent="signUpWithEmail" class="space-y-3">
-            <div>
-              <NFormGroup label="" name="name" required>
-                <NInput
-                  v-model="form.name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  required
-                  class="rounded-3"
-                  :disabled="loading.email"
-                  @focus="handleInputFocus('name')"
-                />
-              </NFormGroup>
-            </div>
-            <div>
-              <NFormGroup label="" name="email" required>
-                <NInput
-                  v-model="form.email"
-                  type="email"
-                  placeholder="Enter your email"
-                  required
-                  class="rounded-3"
-                  :disabled="loading.email"
-                  @focus="handleInputFocus('email')"
-                />
-              </NFormGroup>
-            </div>
-            <div>
-              <NFormGroup label="" name="password" required>
-                <NInput
-                  v-model="form.password"
-                  required
-                  placeholder="Enter your password (min. 8 characters)"
-                  class="rounded-3"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :trailing="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                  :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                  @trailing="isPasswordVisible = !isPasswordVisible"
-                  :disabled="loading.email"
-                  @focus="handleInputFocus('password')"
-                />
-              </NFormGroup>
-            </div>
-            <div>
-              <NFormGroup label="" name="confirmPassword" required>
-                <NInput
-                  v-model="form.confirmPassword"
-                  required
-                  placeholder="Confirm your password"
-                  class="rounded-3"
-                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                  :trailing="isConfirmPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                  :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                  @trailing="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-                  :disabled="loading.email"
-                  @focus="handleInputFocus('confirmPassword')"
-                />
-              </NFormGroup>
-            </div>
-            <NButton
-              type="submit"
-              block
-              size="sm"
-              btn="light:solid dark:soft-blue"
-              rounded="3"
-              class="py-5 hover:scale-101 active:scale-99 transition-transform"
-              :loading="loading.email"
-            >
-              Create Account
-            </NButton>
-          </form>
-          <!-- Divider -->
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300 dark:border-gray-600" />
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white dark:bg-[#18181B] text-gray-500 dark:text-gray-400">
-                Or
-              </span>
-            </div>
-          </div>
-          <div>
-            <p>
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                Already have an account?
-              </span>
-              <NLink to="/login" class="text-sm text-primary-600 dark:text-lime hover:underline font-400">
-                Sign In
-              </NLink>
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              By creating an account, you agree to our
-              <NLink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">
-                Terms of Service
-              </NLink>
-              and
-              <NLink to="/privacy" class="text-primary-600 dark:text-primary-400 hover:underline">
-                Privacy Policy
-              </NLink>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Mobile, colorful layout -->
-  <div v-else class="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50 dark:from-#0B0A09 dark:via-#0C0A09 dark:to-black">
-    <!-- Decorative gradient header inspired by MobileHeroSection -->
-    <div class="relative px-6 pt-10 pb-12 rounded-b-8 bg-gradient-to-br from-green-50/80 to-purple-50/80 dark:from-#0B0A09 dark:to-black">
-      <!-- floating blobs -->
-      <div class="pointer-events-none absolute -top-12 -right-8 w-44 h-44 rounded-full bg-gradient-to-br from-#687FE5/40 to-pink-400/40 blur-2xl" />
-      <div class="pointer-events-none absolute top-6 -left-10 w-36 h-36 rounded-full bg-gradient-to-br from-amber-300/40 to-rose-300/40 blur-2xl" />
+      <!-- Form card -->
+      <div class="bg-gray-100 dark:bg-gray-900/20 rounded-sm px-6 py-6 border border-gray-200 dark:border-gray-700">
+        <!-- Error Alert -->
+        <NAlert
+          v-if="error"
+          alert="soft-red"
+          :title="error"
+          :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
+          class="mb-4"
+          @close="error = ''"
+        />
 
-      <div class="relative z-1">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 flex items-center justify-center">
-            <NIcon name="i-ph-quotes" class="w-6 h-6 text-#687FE5" />
-          </div>
-          <div>
-            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Get started</p>
-            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">Create your Verbatims account</h2>
-          </div>
-        </div>
+        <form @submit.prevent="signUpWithEmail" class="space-y-4">
+          <NFormGroup label="Name" name="name" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <NInput
+              v-model="form.name"
+              type="text"
+              placeholder="Your full name"
+              required
+              :disabled="loading.email"
+              class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
+            />
+          </NFormGroup>
 
-        <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-          Save favorite lines, build collections, and share quotes.
-        </p>
+          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <NInput
+              v-model="form.email"
+              type="email"
+              placeholder="you@example.com"
+              required
+              :disabled="loading.email"
+              class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
+            />
+          </NFormGroup>
 
-        <div class="mt-6 bg-white/85 dark:bg-gray-900/80 backdrop-blur-md rounded-4 p-4 border border-gray-200/60 dark:border-gray-800/60 shadow-lg/30">
-          <!-- Error Alert -->
-          <NAlert
-            v-if="error"
-            alert="soft-red"
-            :title="error"
-            :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
-            class="mb-3"
-            @close="error = ''"
-          />
-
-          <!-- Email/Password Sign Up Form -->
-          <form @submit.prevent="signUpWithEmail" class="space-y-3">
-            <NFormGroup label="" name="name" required>
-              <NInput
-                v-model="form.name"
-                type="text"
-                placeholder="Enter your full name"
-                required
-                class="rounded-3"
-                :disabled="loading.email"
-              />
-            </NFormGroup>
-
-            <NFormGroup label="" name="email" required>
-              <NInput
-                v-model="form.email"
-                type="email"
-                placeholder="Enter your email"
-                required
-                class="rounded-3"
-                :disabled="loading.email"
-              />
-            </NFormGroup>
-
-            <NFormGroup label="" name="password" required>
+          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <div class="relative">
               <NInput
                 v-model="form.password"
                 required
-                placeholder="Enter your password (min. 8 characters)"
-                class="rounded-3"
+                placeholder="Min. 8 characters"
                 :type="isPasswordVisible ? 'text' : 'password'"
-                :trailing="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                @trailing="isPasswordVisible = !isPasswordVisible"
                 :disabled="loading.email"
+                class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
               />
-            </NFormGroup>
+              <button
+                type="button"
+                @click="isPasswordVisible = !isPasswordVisible"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <NIcon :name="isPasswordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+              </button>
+            </div>
+          </NFormGroup>
 
-            <NFormGroup label="" name="confirmPassword" required>
+          <NFormGroup label="Confirm password" name="confirmPassword" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <div class="relative">
               <NInput
                 v-model="form.confirmPassword"
                 required
                 placeholder="Confirm your password"
-                class="rounded-3"
                 :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                :trailing="isConfirmPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                @trailing="isConfirmPasswordVisible = !isConfirmPasswordVisible"
                 :disabled="loading.email"
+                class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
               />
-            </NFormGroup>
-
-            <NButton
-              type="submit"
-              block
-              size="sm"
-              btn="primary"
-              rounded="3"
-              class="py-5 hover:scale-101 active:scale-99 transition-transform"
-              :loading="loading.email"
-            >
-              Create Account
-            </NButton>
-          </form>
-
-          <!-- Divider -->
-          <div class="relative my-4">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-200 dark:border-gray-800" />
+              <button
+                type="button"
+                @click="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <NIcon :name="isConfirmPasswordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+              </button>
             </div>
-            <div class="relative flex justify-center text-xs">
-              <span class="px-2 bg-white/85 dark:bg-gray-900/80 text-gray-500 dark:text-gray-400">Or continue with</span>
-            </div>
-          </div>
+          </NFormGroup>
 
-          <!-- Social providers -->
-          <div class="grid grid-cols-2 gap-3">
-            <NButton btn="soft-gray" :loading="loading.github" @click="signInWith('github')">
-              <template #leading>
-                <NIcon name="i-ph-github-logo" />
-              </template>
-              GitHub
-            </NButton>
-            <NButton btn="soft-blue" :loading="loading.google" @click="signInWith('google')">
-              <template #leading>
-                <NIcon name="i-ph-google-logo" />
-              </template>
-              Google
-            </NButton>
-          </div>
+          <NButton
+            type="submit"
+            block
+            size="sm"
+            btn="light:solid dark:soft-blue"
+            class="py-4 font-sans text-sm font-600 tracking-wide hover:scale-[1.02] active:scale-99 transition-[transform]"
+            :loading="loading.email"
+          >
+            Create Account
+          </NButton>
+        </form>
 
-          <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            By creating an account, you agree to our
-            <NLink to="/terms" class="text-primary-600 dark:text-primary-400 hover:underline">Terms of Service</NLink>
-            and
-            <NLink to="/privacy" class="text-primary-600 dark:text-primary-400 hover:underline">Privacy Policy</NLink>.
-          </p>
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-dashed border-gray-200 dark:border-gray-700" />
+          </div>
+          <div class="relative flex justify-center">
+            <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
+              or sign up with
+            </span>
+          </div>
         </div>
+
+        <!-- Social providers -->
+        <div class="grid grid-cols-2 gap-3">
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.github" @click="signInWith('github')">
+            <template #leading>
+              <NIcon name="i-ph-github-logo" class="w-4 h-4" />
+            </template>
+            GitHub
+          </NButton>
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
+            <template #leading>
+              <NIcon name="i-ph-google-logo" class="w-4 h-4" />
+            </template>
+            Google
+          </NButton>
+        </div>
+
+        <!-- Terms -->
+        <p class="mt-6 font-sans text-xs text-gray-400 dark:text-gray-500 text-center">
+          By creating an account, you agree to our
+          <NLink to="/terms" class="text-gray-600 dark:text-gray-300 hover:underline">Terms of Service</NLink>
+          and
+          <NLink to="/privacy" class="text-gray-600 dark:text-gray-300 hover:underline">Privacy Policy</NLink>.
+        </p>
+      </div>
+
+      <!-- Bottom link -->
+      <p class="text-center mt-8 font-sans text-sm text-gray-500 dark:text-gray-400">
+        Already have an account?&nbsp;
+        <NLink to="/login" class="text-gray-900 dark:text-gray-100 font-600 hover:underline">Sign in</NLink>
+      </p>
+    </div>
+  </div>
+
+  <!-- Mobile: editorial layout -->
+  <div v-else class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
+    <div class="px-6 pt-10 pb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Get started</p>
+      </div>
+      <h1 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
+        Create your <span class="font-600">Verbatims</span> account
+      </h1>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Save favorite lines, build collections, and share quotes
+      </p>
+    </div>
+
+    <div class="px-6">
+      <div class="bg-gray-100 dark:bg-gray-800 rounded-sm px-5 py-5 border border-dashed border-gray-200 dark:border-gray-700">
+        <!-- Error Alert -->
+        <NAlert
+          v-if="error"
+          alert="soft-red"
+          :title="error"
+          :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
+          class="mb-4"
+          @close="error = ''"
+        />
+
+        <form @submit.prevent="signUpWithEmail" class="space-y-4">
+          <NFormGroup label="Name" name="name" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <NInput
+              v-model="form.name"
+              type="text"
+              placeholder="Your full name"
+              required
+              :disabled="loading.email"
+              class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
+            />
+          </NFormGroup>
+
+          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <NInput
+              v-model="form.email"
+              type="email"
+              placeholder="you@example.com"
+              required
+              :disabled="loading.email"
+              class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
+            />
+          </NFormGroup>
+
+          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <div class="relative">
+              <NInput
+                v-model="form.password"
+                required
+                placeholder="Min. 8 characters"
+                :type="isPasswordVisible ? 'text' : 'password'"
+                :disabled="loading.email"
+                class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
+              />
+              <button
+                type="button"
+                @click="isPasswordVisible = !isPasswordVisible"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <NIcon :name="isPasswordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+              </button>
+            </div>
+          </NFormGroup>
+
+          <NFormGroup label="Confirm password" name="confirmPassword" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <div class="relative">
+              <NInput
+                v-model="form.confirmPassword"
+                required
+                placeholder="Confirm your password"
+                :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                :disabled="loading.email"
+                class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
+              />
+              <button
+                type="button"
+                @click="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <NIcon :name="isConfirmPasswordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+              </button>
+            </div>
+          </NFormGroup>
+
+          <NButton
+            type="submit"
+            block
+            size="sm"
+            btn="ghost-gray"
+            class="py-4 font-sans text-sm font-600 tracking-wide border border-dashed border-gray-300 dark:border-gray-600"
+            :loading="loading.email"
+          >
+            Create Account
+          </NButton>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-dashed border-gray-200 dark:border-gray-700" />
+          </div>
+          <div class="relative flex justify-center">
+            <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
+              or sign up with
+            </span>
+          </div>
+        </div>
+
+        <!-- Social providers -->
+        <div class="grid grid-cols-2 gap-3">
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.github" @click="signInWith('github')">
+            <template #leading>
+              <NIcon name="i-ph-github-logo" class="w-4 h-4" />
+            </template>
+            GitHub
+          </NButton>
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
+            <template #leading>
+              <NIcon name="i-ph-google-logo" class="w-4 h-4" />
+            </template>
+            Google
+          </NButton>
+        </div>
+
+        <!-- Terms -->
+        <p class="mt-6 font-sans text-xs text-gray-400 dark:text-gray-500 text-center leading-relaxed">
+          By creating an account, you agree to our
+          <NLink to="/terms" class="text-gray-600 dark:text-gray-300 hover:underline">Terms of Service</NLink>
+          and
+          <NLink to="/privacy" class="text-gray-600 dark:text-gray-300 hover:underline">Privacy Policy</NLink>.
+        </p>
       </div>
     </div>
 
     <!-- Bottom callout -->
-    <div class="px-6 pb-10 pt-2">
-      <div class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-dashed border-gray-300 dark:border-gray-800 rounded-4 p-4 flex items-center justify-between">
+    <div class="px-6 pb-10 pt-6">
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-5 py-4 flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-700 dark:text-gray-300">Already joined?</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Sign in and start saving quotes.</p>
+          <p class="font-sans text-sm text-gray-700 dark:text-gray-300">Already joined?</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">Sign in and start saving quotes.</p>
         </div>
-        <NButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">Sign in</NButton>
+        <NButton size="sm" btn="ghost-gray" to="/login" class="font-sans text-sm font-600">Sign in</NButton>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const lastFocusedInput = ref<'name' | 'email' | 'password' | 'confirmPassword'>('name')
-
-function handleInputFocus(input: 'name' | 'email' | 'password' | 'confirmPassword') {
-  lastFocusedInput.value = input
-}
-
-function appendLetterToInput(letter: string) {
-  if (lastFocusedInput.value === 'password') {
-    form.value.password += letter
-  } else if (lastFocusedInput.value === 'confirmPassword') {
-    form.value.confirmPassword += letter
-  } else if (lastFocusedInput.value === 'email') {
-    form.value.email += letter
-  } else {
-    form.value.name += letter
-  }
-}
 useHead({
   title: 'Sign Up - Verbatims',
   meta: [
@@ -392,7 +380,7 @@ const signUpWithEmail = async () => {
 const signInWith = async (provider: 'github' | 'google') => {
   loading.value[provider] = true
   try {
-    await navigateTo(`/auth/${provider}`, { external: true })
+    await navigateTo(`/api/auth/${provider}`, { external: true })
   } catch (error) {
     console.error(`${provider} auth error:`, error)
   } finally {

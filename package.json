@@ -1,11 +1,11 @@
 {
   "name": "verbatims",
-  "version": "0.109.0",
+  "version": "0.110.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=4096' nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --port 3002",
     "db:sync-local": "node ./scripts/sync-local-db-from-wrangler.mjs",
     "facebook:token": "node ./scripts/generate-facebook-page-token.mjs",
     "facebook:token:write": "node ./scripts/generate-facebook-page-token.mjs from-user-token --write-env",
