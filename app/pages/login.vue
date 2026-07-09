@@ -1,200 +1,232 @@
 <template>
-  <!-- Desktop layout: login form over large quote background -->
-  <div v-if="!isMobile" class="relative min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0C0A09] py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-    <!-- Large repeating alphabet background -->
-    <div class="absolute inset-0 z-0 w-full h-full overflow-hidden flex items-start justify-start">
-      <div class="flex flex-wrap w-full h-full">
-        <template v-for="i in 90" :key="i">
-          <span class="mx-2 my-1">
-            <span
-              class="text-[10vw] font-extrabold text-gray-200 dark:text-gray-800 opacity-35 leading-none transition-all duration-300 cursor-pointer hover:text-white hover:opacity-80 hover:drop-shadow-[0_0_16px_#687FE5] dark:hover:text-primary-400 dark:hover:drop-shadow-[0_0_16px_#687FE5]"
-              @click="appendLetterToInput(String.fromCharCode(65 + ((i - 1) % 26)))"
-            >
-              {{ String.fromCharCode(65 + ((i - 1) % 26)) }}
-            </span>
-          </span>
-        </template>
-      </div>
-    </div>
-    
-    <!-- Login Form -->
-    <div class="relative z-10 max-w-md w-full space-y-8 p-8 bg-white dark:bg-[#18181B] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
-      <div>
-        <h3 class="mt-2 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white text-center">
-          Sign in <span class="font-300">to Verbatims</span>
-        </h3>
-        <p class="text-sm text-gray-600 dark:text-gray-400 text-center">
-          Manage your quotes, collections, and account settings
+  <!-- Desktop: clean editorial layout -->
+  <div v-if="!isMobile" class="min-h-screen flex items-center justify-center bg-[#FAFAF9] dark:bg-[#0C0A09] py-16 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-sm">
+      <!-- Editorial header -->
+      <div class="text-center mb-10">
+        <div class="w-8 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-6" />
+        <h1 class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100">
+          Sign in
+        </h1>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-2">
+          to your Verbatims account
         </p>
       </div>
-      <div>
-        <div class="space-y-6">
-          <!-- Error Alert -->
-          <NAlert
-            v-if="error"
-            alert="soft-red"
-            :title="error"
-            :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
-            @close="error = ''"
-          />
-          <!-- Email/Password Sign In Form -->
-          <form @submit.prevent="signInWithEmail" class="space-y-3">
-            <div>
-              <NFormGroup label="" name="email" required>
-                <NInput
-                  v-model="form.email"
-                  type="email"
-                  placeholder="Enter your email"
-                  required
-                  class="rounded-3"
-                  :disabled="loading.email"
-                  @focus="handleInputFocus('email')"
-                />
-              </NFormGroup>
-            </div>
-            <div>
-              <NFormGroup label="" name="password" required>
-                <NInput
-                  v-model="form.password"
-                  required
-                  placeholder="Enter your password"
-                  class="rounded-3"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :trailing="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                  :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                  @trailing="isPasswordVisible = !isPasswordVisible"
-                  :disabled="loading.email"
-                  @focus="handleInputFocus('password')"
-                />
-              </NFormGroup>
-            </div>
-            <NButton
-              type="submit"
-              block
-              size="sm"
-              btn="light:solid dark:soft-blue"
-              rounded="3"
-              class="py-5 hover:scale-101 active:scale-99 transition-transform"
-              :loading="loading.email"
-            >
-              Sign In
-            </NButton>
-          </form>
-          
-          <!-- Divider -->
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300 dark:border-gray-600" />
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white dark:bg-[#18181B] text-gray-500 dark:text-gray-400">
-                Or
-              </span>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <NLink to="/forgot-password" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400">
-              Forgot password?
-            </NLink>
-            <p>
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                Don't have an account?
-              </span>
-              <NLink to="/signup" class="text-sm text-primary-600 dark:text-lime hover:underline font-400">
-                Sign Up
-              </NLink>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Mobile, colorful layout -->
-  <div v-else class="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50 dark:from-#0B0A09 dark:via-#0C0A09 dark:to-black">
-    <!-- Decorative gradient header inspired by MobileHeroSection -->
-    <div class="relative px-6 pt-10 pb-12 rounded-b-8 bg-gradient-to-br from-green-50/80 to-purple-50/80 dark:from-#0B0A09 dark:to-black">
-      <!-- floating blobs -->
-      <div class="pointer-events-none absolute -top-12 -right-8 w-44 h-44 rounded-full bg-gradient-to-br from-#687FE5/40 to-pink-400/40 blur-2xl" />
-      <div class="pointer-events-none absolute top-6 -left-10 w-36 h-36 rounded-full bg-gradient-to-br from-amber-300/40 to-rose-300/40 blur-2xl" />
+      <!-- Form card -->
+      <div class="bg-gray-100 dark:bg-gray-900/20 rounded-sm px-6 py-6 border border-gray-200 dark:border-gray-700">
+        <!-- Error Alert -->
+        <NAlert
+          v-if="error"
+          alert="soft-red"
+          :title="error"
+          :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
+          class="mb-4"
+          @close="error = ''"
+        />
 
-      <div class="relative z-1">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 flex items-center justify-center">
-            <NIcon name="i-ph-quotes" class="w-6 h-6 text-#687FE5" />
-          </div>
-          <div>
-            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Welcome back</p>
-            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">Sign in to Verbatims</h2>
-          </div>
-        </div>
+        <form @submit.prevent="signInWithEmail" class="space-y-4">
+          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <NInput
+              v-model="form.email"
+              type="email"
+              placeholder="you@example.com"
+              required
+              :disabled="loading.email"
+              class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
+            />
+          </NFormGroup>
 
-        <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-          Keep your favorite lines close — and add new gems.
-        </p>
-
-        <div class="mt-6 bg-white/85 dark:bg-gray-900/80 backdrop-blur-md rounded-4 p-4 border border-gray-200/60 dark:border-gray-800/60 shadow-lg/30">
-          <!-- Error Alert -->
-          <NAlert
-            v-if="error"
-            alert="soft-red"
-            :title="error"
-            :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
-            class="mb-3"
-            @close="error = ''"
-          />
-
-          <!-- Email/Password Sign In Form -->
-          <form @submit.prevent="signInWithEmail" class="space-y-3">
-            <NFormGroup label="" name="email" required>
-              <NInput
-                v-model="form.email"
-                type="email"
-                placeholder="Enter your email"
-                required
-                class="rounded-3"
-                :disabled="loading.email"
-              />
-            </NFormGroup>
-
-            <NFormGroup label="" name="password" required>
+          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <div class="relative">
               <NInput
                 v-model="form.password"
                 required
-                placeholder="Enter your password"
-                class="rounded-3"
+                placeholder="••••••••"
                 :type="isPasswordVisible ? 'text' : 'password'"
-                :trailing="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                :una="{ inputTrailing: 'pointer-events-auto cursor-pointer' }"
-                @trailing="isPasswordVisible = !isPasswordVisible"
                 :disabled="loading.email"
+                class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
               />
-            </NFormGroup>
+              <button
+                type="button"
+                @click="isPasswordVisible = !isPasswordVisible"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <NIcon :name="isPasswordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+              </button>
+            </div>
+          </NFormGroup>
 
-            <NButton
-              type="submit"
-              block
-              size="sm"
-              btn="primary"
-              rounded="3"
-              class="py-5 hover:scale-101 active:scale-99 transition-transform"
-              :loading="loading.email"
-            >
-              Sign In
-            </NButton>
-          </form>
+          <div class="flex items-center justify-end">
+            <NLink to="/forgot-password" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+              Forgot password?
+            </NLink>
+          </div>
+
+          <NButton
+            type="submit"
+            block
+            size="sm"
+            btn="light:solid dark:soft-blue"
+            class="py-4 font-sans text-sm font-600 tracking-wide hover:scale-[1.02] active:scale-99 transition-[transform]"
+            :loading="loading.email"
+          >
+            Sign In
+          </NButton>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-dashed border-gray-200 dark:border-gray-700" />
+          </div>
+          <div class="relative flex justify-center">
+            <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
+              or sign in with
+            </span>
+          </div>
+        </div>
+
+        <!-- Social providers -->
+        <div class="grid grid-cols-2 gap-3">
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.github" @click="signInWith('github')">
+            <template #leading>
+              <NIcon name="i-ph-github-logo" class="w-4 h-4" />
+            </template>
+            GitHub
+          </NButton>
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
+            <template #leading>
+              <NIcon name="i-ph-google-logo" class="w-4 h-4" />
+            </template>
+            Google
+          </NButton>
+        </div>
+      </div>
+
+      <!-- Bottom link -->
+      <p class="text-center mt-8 font-sans text-sm text-gray-500 dark:text-gray-400">
+        Don't have an account?&nbsp;
+        <NLink to="/signup" class="text-gray-900 dark:text-gray-100 font-600 hover:underline">Sign up</NLink>
+      </p>
+    </div>
+  </div>
+
+  <!-- Mobile: editorial layout -->
+  <div v-else class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
+    <div class="px-6 pt-10 pb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Welcome back</p>
+      </div>
+      <h1 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
+        Sign in to <span class="font-600">Verbatims</span>
+      </h1>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Keep your favorite lines close
+      </p>
+    </div>
+
+    <div class="px-6">
+      <div class="bg-gray-100 dark:bg-gray-800 rounded-sm px-5 py-5 border border-dashed border-gray-200 dark:border-gray-700">
+        <!-- Error Alert -->
+        <NAlert
+          v-if="error"
+          alert="soft-red"
+          :title="error"
+          :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
+          class="mb-4"
+          @close="error = ''"
+        />
+
+        <form @submit.prevent="signInWithEmail" class="space-y-4">
+          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <NInput
+              v-model="form.email"
+              type="email"
+              placeholder="you@example.com"
+              required
+              :disabled="loading.email"
+              class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
+            />
+          </NFormGroup>
+
+          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+            <div class="relative">
+              <NInput
+                v-model="form.password"
+                required
+                placeholder="••••••••"
+                :type="isPasswordVisible ? 'text' : 'password'"
+                :disabled="loading.email"
+                class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
+              />
+              <button
+                type="button"
+                @click="isPasswordVisible = !isPasswordVisible"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <NIcon :name="isPasswordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+              </button>
+            </div>
+          </NFormGroup>
+
+          <div class="flex items-center justify-end">
+            <NLink to="/forgot-password" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+              Forgot password?
+            </NLink>
+          </div>
+
+          <NButton
+            type="submit"
+            block
+            size="sm"
+            btn="ghost-gray"
+            class="py-4 font-sans text-sm font-600 tracking-wide border border-dashed border-gray-300 dark:border-gray-600"
+            :loading="loading.email"
+          >
+            Sign In
+          </NButton>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-dashed border-gray-200 dark:border-gray-700" />
+          </div>
+          <div class="relative flex justify-center">
+            <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
+              or sign in with
+            </span>
+          </div>
+        </div>
+
+        <!-- Social providers -->
+        <div class="grid grid-cols-2 gap-3">
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.github" @click="signInWith('github')">
+            <template #leading>
+              <NIcon name="i-ph-github-logo" class="w-4 h-4" />
+            </template>
+            GitHub
+          </NButton>
+          <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
+            <template #leading>
+              <NIcon name="i-ph-google-logo" class="w-4 h-4" />
+            </template>
+            Google
+          </NButton>
         </div>
       </div>
     </div>
 
     <!-- Bottom callout -->
-    <div class="px-6 pb-10 pt-2">
-      <div class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-dashed border-gray-300 dark:border-gray-800 rounded-4 p-4 flex items-center justify-between">
+    <div class="px-6 pb-10 pt-6">
+      <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-5 py-4 flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-700 dark:text-gray-300">New to Verbatims?</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Join and share your favorite lines.</p>
+          <p class="font-sans text-sm text-gray-700 dark:text-gray-300">New here?</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">Join and share your favorite lines.</p>
         </div>
-        <NButton size="sm" btn="light:soft dark:soft-blue" to="/signup" class="font-600">Sign up</NButton>
+        <NButton size="sm" btn="ghost-gray" to="/signup" class="font-sans text-sm font-600">Sign up</NButton>
       </div>
     </div>
   </div>
@@ -235,20 +267,6 @@ const loading = ref({
 
 const error = ref('')
 
-const lastFocusedInput = ref<'email' | 'password'>('email')
-
-function handleInputFocus(input: 'email' | 'password') {
-  lastFocusedInput.value = input
-}
-
-function appendLetterToInput(letter: string) {
-  if (lastFocusedInput.value === 'password') {
-    form.value.password += letter
-  } else {
-    form.value.email += letter
-  }
-}
-
 const signInWithEmail = async () => {
   if (!form.value.email || !form.value.password) {
     error.value = 'Please fill in all fields'
@@ -282,7 +300,7 @@ const signInWithEmail = async () => {
 const signInWith = async (provider: 'github' | 'google') => {
   loading.value[provider] = true
   try {
-    await navigateTo(`/auth/${provider}`, { external: true })
+    await navigateTo(`/api/auth/${provider}`, { external: true })
   } catch (error) {
     console.error(`${provider} sign in error:`, error)
   } finally {

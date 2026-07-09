@@ -249,6 +249,7 @@ Dev servers are long-running processes. Do not block your workflow on them unnec
   - The user explicitly asks you to, or
   - Restarting is necessary for changes to take effect (e.g. server-side code changes that aren't hot-reloaded).
 - **Restart when needed**: If the dev server needs a restart to pick up changes, first verify it's actually running, then stop it with `npx kill-port 3002` (targets only the process listening on that port) and restart deliberately.
+- **No manual restart for config**: Nuxt auto-reboots when `.env` or `nuxt.config.ts` changes — no need to kill and restart manually.
 
 ### Build policy
 
