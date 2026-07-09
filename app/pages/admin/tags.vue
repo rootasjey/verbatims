@@ -34,7 +34,9 @@
 
     <!-- Empty -->
     <div v-else-if="tags.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
+      <NIcon name="i-ph-hash" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? 'No matching tags found' : 'No tags yet' }}</p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? 'Try adjusting your search terms or clearing the search.' : 'Tags help organize quotes by topic and category.' }}</p>
     </div>
 
     <!-- Table -->

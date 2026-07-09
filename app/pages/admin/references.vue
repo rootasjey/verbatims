@@ -51,7 +51,13 @@
     <!-- Card View -->
     <div v-if="isCardView">
       <div v-if="filteredReferences.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No references found</p>
+        <NIcon name="i-ph-book" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+          {{ searchQuery || selectedTypeFilter.value ? 'No matching references' : 'No references yet' }}
+        </p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
+          {{ searchQuery || selectedTypeFilter.value ? 'Try adjusting your search.' : 'References appear once quotes reference works.' }}
+        </p>
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <div v-for="reference in filteredReferences" :key="reference.id" class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors rounded-sm">
@@ -97,7 +103,13 @@
       </div>
 
       <div v-else-if="hasLoadedOnce && filteredReferences.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No references found</p>
+        <NIcon name="i-ph-book" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+          {{ searchQuery || selectedTypeFilter.value ? 'No matching references' : 'No references yet' }}
+        </p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {{ searchQuery ? 'Try adjusting your search terms or filters.' : 'References will appear here once quotes reference books, films, and other works.' }}
+        </p>
       </div>
 
       <div v-else-if="hasLoadedOnce" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
@@ -167,27 +179,40 @@
       </div>
     </div>
 
-    <AddReferenceDialog v-model="showAddReferenceDialog" :edit-reference="convertToQuoteReference(selectedReference)" @reference-added="onReferenceAdded" @reference-updated="onReferenceUpdated" />
-    <DeleteReferenceDialog v-model="showDeleteReferenceDialog" :reference="referenceToDelete!" @reference-deleted="onReferenceDeleted" />
-    <AdminReferenceEnrichmentDialog :open="showEnrichmentDialog" :loading="enrichmentLoading" :applying="enrichmentApplying" :reference="convertToQuoteReference(enrichmentReferenceTarget) || null" :preview="enrichmentPreview" :job-id="enrichmentJobId" :selected-fields="selectedEnrichmentFields" @update:open="handleEnrichmentDialogOpenChange" @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)" @promote-candidate="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget, $event)" @toggle-field="toggleEnrichmentField" @select-recommended="selectRecommendedEnrichmentFields" @apply="applySelectedEnrichment" />
-    <AdminEnrichmentConfigDialog :open="showEnrichmentConfigDialog" :loading="enrichmentConfigLoading" :saving="enrichmentConfigSaving" :updated-at="enrichmentConfigUpdatedAt" :form="enrichmentConfigForm" :sources="enrichmentConfigSources" @update:open="showEnrichmentConfigDialog = $event" @save="saveEnrichmentConfig" />
+    <ClientOnly>
+      <AddReferenceDialog v-model="showAddReferenceDialog" :edit-reference="convertToQuoteReference(selectedReference)" @reference-added="onReferenceAdded" @reference-updated="onReferenceUpdated" />
+    </ClientOnly>
+    <ClientOnly>
+      <DeleteReferenceDialog v-model="showDeleteReferenceDialog" :reference="referenceToDelete!" @reference-deleted="onReferenceDeleted" />
+    </ClientOnly>
+    <ClientOnly>
+      <AdminReferenceEnrichmentDialog :open="showEnrichmentDialog" :loading="enrichmentLoading" :applying="enrichmentApplying" :reference="convertToQuoteReference(enrichmentReferenceTarget) || null" :preview="enrichmentPreview" :job-id="enrichmentJobId" :selected-fields="selectedEnrichmentFields" @update:open="handleEnrichmentDialogOpenChange" @refresh="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget)" @promote-candidate="enrichmentReferenceTarget && openEnrichmentPreview(enrichmentReferenceTarget, $event)" @toggle-field="toggleEnrichmentField" @select-recommended="selectRecommendedEnrichmentFields" @apply="applySelectedEnrichment" />
+    </ClientOnly>
+    <ClientOnly>
+      <AdminEnrichmentConfigDialog :open="showEnrichmentConfigDialog" :loading="enrichmentConfigLoading" :saving="enrichmentConfigSaving" :updated-at="enrichmentConfigUpdatedAt" :form="enrichmentConfigForm" :sources="enrichmentConfigSources" @update:open="showEnrichmentConfigDialog = $event" @save="saveEnrichmentConfig" />
+    </ClientOnly>
 
-    <NDialog v-model:open="showBulkDeleteDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3></template>
-      <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.</p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+    <ClientOnly>
+      <NDialog v-model:open="showBulkDeleteDialog">
+        <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3></template>
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.</p>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
+            <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
 
-    <MergeReferencesDialog v-model="showMergeDialog" :source-reference="referenceToMerge" :initial-target-reference="initialMergeTarget" @references-merged="onReferencesMerged" />
+    <ClientOnly>
+      <MergeReferencesDialog v-model="showMergeDialog" :source-reference="referenceToMerge" :initial-target-reference="initialMergeTarget" @references-merged="onReferencesMerged" />
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, reactive, nextTick } from 'vue'
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
@@ -197,7 +222,7 @@ const { showErrorToast } = useErrorToast()
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'References - Admin - Verbatims' })
 
-const loading = ref(false)
+const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const references = ref<QuoteReferenceWithMetadata[]>([])
 const totalReferences = ref(0)
@@ -320,7 +345,12 @@ const loadReferences = async () => {
     })
     references.value = response?.data || []; totalReferences.value = response?.pagination?.total || 0
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
-  } catch (error) { showErrorToast(error, 'Failed to load references') }
+  } catch (error) {
+    console.error('Failed to load references:', error)
+    if (error?.statusCode && error?.statusCode !== 500) {
+      showErrorToast(error, 'Failed to load references')
+    }
+  }
   finally { loading.value = false; hasLoadedOnce.value = true }
 }
 

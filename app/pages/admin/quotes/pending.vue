@@ -172,78 +172,90 @@
       </div>
     </div>
 
-    <AdminQuoteDetailDialog v-model:open="showQuoteDialog" :quote="selectedQuote" @edit="editQuote" />
+    <ClientOnly>
+      <AdminQuoteDetailDialog v-model:open="showQuoteDialog" :quote="selectedQuote" @edit="editQuote" />
+    </ClientOnly>
 
     <!-- Reject Quote Modal -->
-    <NDialog v-model:open="showRejectModal">
-      <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject Quote</h3>
-      </template>
-      <div class="space-y-4">
-        <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-900">
-          <blockquote class="font-sans text-sm font-500 text-gray-900 dark:text-white">&ldquo;{{ selectedQuote.name }}&rdquo;</blockquote>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">by {{ selectedQuote.user_name }}</p>
+    <ClientOnly>
+      <NDialog v-model:open="showRejectModal">
+        <template #header>
+          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject Quote</h3>
+        </template>
+        <div class="space-y-4">
+          <div v-if="selectedQuote" class="p-3 bg-gray-50 dark:bg-gray-900">
+            <blockquote class="font-sans text-sm font-500 text-gray-900 dark:text-white">&ldquo;{{ selectedQuote.name }}&rdquo;</blockquote>
+            <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">by {{ selectedQuote.user_name }}</p>
+          </div>
+          <div>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
+            <textarea
+              v-model="rejectionReason"
+              placeholder="Please provide a reason for rejecting this quote..."
+              rows="3"
+              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
+              :disabled="processing.has(selectedQuote?.id)"
+            />
+          </div>
         </div>
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
-          <textarea
-            v-model="rejectionReason"
-            placeholder="Please provide a reason for rejecting this quote..."
-            rows="3"
-            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
-            :disabled="processing.has(selectedQuote?.id)"
-          />
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showRejectModal = false" :disabled="processing.has(selectedQuote?.id)">Cancel</button>
-          <OutlinedButton variant="destructive" :disabled="processing.has(selectedQuote?.id)" @click="confirmRejectQuote">Reject Quote</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showRejectModal = false" :disabled="processing.has(selectedQuote?.id)">Cancel</button>
+            <OutlinedButton variant="destructive" :disabled="processing.has(selectedQuote?.id)" @click="confirmRejectQuote">Reject Quote</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
 
     <!-- Bulk Reject Modal -->
-    <NDialog v-model:open="showBulkRejectModal">
-      <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject {{ selectedQuotes.length }} Quotes</h3>
-      </template>
-      <div class="space-y-4">
-        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.</p>
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
-          <textarea
-            v-model="bulkRejectionReason"
-            placeholder="Please provide a reason for rejecting these quotes..."
-            rows="3"
-            class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
-            :disabled="bulkProcessing"
-          />
+    <ClientOnly>
+      <NDialog v-model:open="showBulkRejectModal">
+        <template #header>
+          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject {{ selectedQuotes.length }} Quotes</h3>
+        </template>
+        <div class="space-y-4">
+          <p class="font-sans text-sm text-gray-600 dark:text-gray-400">You are about to reject {{ selectedQuotes.length }} quotes. This action cannot be undone.</p>
+          <div>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
+            <textarea
+              v-model="bulkRejectionReason"
+              placeholder="Please provide a reason for rejecting these quotes..."
+              rows="3"
+              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
+              :disabled="bulkProcessing"
+            />
+          </div>
         </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkRejectModal = false" :disabled="bulkProcessing">Cancel</button>
-          <OutlinedButton variant="destructive" :disabled="bulkProcessing" @click="confirmBulkReject">Reject All</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkRejectModal = false" :disabled="bulkProcessing">Cancel</button>
+            <OutlinedButton variant="destructive" :disabled="bulkProcessing" @click="confirmBulkReject">Reject All</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
 
-    <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
-    <BulkEditQuotesDialog v-model:open="showBulkEditDialog" :selected-quotes="selectedQuotesData" @updated="onBulkEditComplete" />
+    <ClientOnly>
+      <AddQuoteDialog v-model="showEditQuoteDialog" :edit-quote="selectedQuote" @quote-updated="onQuoteUpdated" />
+    </ClientOnly>
+    <ClientOnly>
+      <BulkEditQuotesDialog v-model:open="showBulkEditDialog" :selected-quotes="selectedQuotesData" @updated="onBulkEditComplete" />
+    </ClientOnly>
 
-    <NDialog v-model:open="showBulkApproveModal">
-      <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Approve {{ selectedQuotes.length }} Quotes</h3>
-      </template>
-      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Are you sure you want to approve {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?</p>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="bulkProcessing" @click="showBulkApproveModal = false">Cancel</button>
-          <OutlinedButton variant="primary" :disabled="bulkProcessing" @click="bulkApprove(); showBulkApproveModal = false">Approve All</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+    <ClientOnly>
+      <NDialog v-model:open="showBulkApproveModal">
+        <template #header>
+          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Approve {{ selectedQuotes.length }} Quotes</h3>
+        </template>
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Are you sure you want to approve {{ selectedQuotes.length }} {{ selectedQuotes.length === 1 ? 'quote' : 'quotes' }}?</p>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="bulkProcessing" @click="showBulkApproveModal = false">Cancel</button>
+            <OutlinedButton variant="primary" :disabled="bulkProcessing" @click="bulkApprove(); showBulkApproveModal = false">Approve All</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
   </div>
 </template>
 

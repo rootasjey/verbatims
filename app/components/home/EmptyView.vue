@@ -15,8 +15,8 @@
           v-if="needsOnboarding && (onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser)"
           size="lg"
           to="/onboarding/admin"
-          btn="soft-secondary"
-          class="font-sans"
+          btn="light:soft-secondary dark:soft-blue"
+          class="font-sans hover:scale-102 active:scale-99 transition-[transform] duration-150"
         >
           <NIcon name="i-ph-rocket-launch" class="w-4 h-4" />
           Get Started

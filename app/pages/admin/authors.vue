@@ -68,7 +68,13 @@
     <!-- Card View -->
     <div v-if="isCardView">
       <div v-if="filteredAuthors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No authors found</p>
+        <NIcon name="i-ph-user" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+          {{ searchQuery ? 'No matching authors' : 'No authors yet' }}
+        </p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
+          {{ searchQuery ? 'Try adjusting your search.' : 'Authors will appear once quotes are submitted.' }}
+        </p>
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <div
@@ -128,7 +134,13 @@
       </div>
 
       <div v-else-if="hasLoadedOnce && filteredAuthors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">No authors found</p>
+        <NIcon name="i-ph-user" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
+          {{ searchQuery ? 'No matching authors' : 'No authors yet' }}
+        </p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {{ searchQuery ? 'Try adjusting your search terms or filters.' : 'Authors will appear here once quotes are submitted.' }}
+        </p>
       </div>
 
       <div v-else-if="hasLoadedOnce" class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
@@ -205,39 +217,52 @@
       </div>
     </div>
 
-    <AddAuthorDialog v-model="showAddAuthorDialog" :edit-author="selectedAuthor" @author-added="onAuthorAdded" @author-updated="onAuthorUpdated" />
-    <DeleteAuthorDialog v-model="showDeleteAuthorDialog" :author="authorToDelete" @author-deleted="onAuthorDeleted" />
-    <AdminEnrichmentConfigDialog :open="showEnrichmentConfigDialog" :loading="enrichmentConfigLoading" :saving="enrichmentConfigSaving" :updated-at="enrichmentConfigUpdatedAt" :form="enrichmentConfigForm" :sources="enrichmentConfigSources" @update:open="showEnrichmentConfigDialog = $event" @save="saveEnrichmentConfig" />
-    <AdminAuthorEnrichmentDialog :open="showEnrichmentDialog" :loading="enrichmentLoading" :applying="enrichmentApplying" :author="enrichmentAuthorTarget" :preview="enrichmentPreview" :job-id="enrichmentJobId" :selected-fields="selectedEnrichmentFields" @update:open="handleEnrichmentDialogOpenChange" @refresh="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget)" @promote-candidate="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget, $event)" @toggle-field="toggleEnrichmentField" @select-recommended="selectRecommendedEnrichmentFields" @apply="applySelectedEnrichment" />
+    <ClientOnly>
+      <AddAuthorDialog v-model="showAddAuthorDialog" :edit-author="selectedAuthor" @author-added="onAuthorAdded" @author-updated="onAuthorUpdated" />
+    </ClientOnly>
+    <ClientOnly>
+      <DeleteAuthorDialog v-model="showDeleteAuthorDialog" :author="authorToDelete" @author-deleted="onAuthorDeleted" />
+    </ClientOnly>
+    <ClientOnly>
+      <AdminEnrichmentConfigDialog :open="showEnrichmentConfigDialog" :loading="enrichmentConfigLoading" :saving="enrichmentConfigSaving" :updated-at="enrichmentConfigUpdatedAt" :form="enrichmentConfigForm" :sources="enrichmentConfigSources" @update:open="showEnrichmentConfigDialog = $event" @save="saveEnrichmentConfig" />
+    </ClientOnly>
+    <ClientOnly>
+      <AdminAuthorEnrichmentDialog :open="showEnrichmentDialog" :loading="enrichmentLoading" :applying="enrichmentApplying" :author="enrichmentAuthorTarget" :preview="enrichmentPreview" :job-id="enrichmentJobId" :selected-fields="selectedEnrichmentFields" @update:open="handleEnrichmentDialogOpenChange" @refresh="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget)" @promote-candidate="enrichmentAuthorTarget && openEnrichmentPreview(enrichmentAuthorTarget, $event)" @toggle-field="toggleEnrichmentField" @select-recommended="selectRecommendedEnrichmentFields" @apply="applySelectedEnrichment" />
+    </ClientOnly>
 
-    <NDialog v-model:open="showBulkDeleteDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Author' : 'Authors' }}</h3></template>
-      <div class="space-y-3">
-        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'author' : 'authors' }}. If they have related quotes, choose a strategy:</p>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
-            <input type="radio" v-model="bulkDeleteStrategy" value="anonymize" class="accent-gray-700 dark:accent-gray-300" />
-            Anonymize related quotes (keep quotes, remove author link)
-          </label>
-          <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
-            <input type="radio" v-model="bulkDeleteStrategy" value="delete" class="accent-gray-700 dark:accent-gray-300" />
-            Delete related quotes (remove quotes and the author)
-          </label>
+    <ClientOnly>
+      <NDialog v-model:open="showBulkDeleteDialog">
+        <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Author' : 'Authors' }}</h3></template>
+        <div class="space-y-3">
+          <p class="font-sans text-sm text-gray-600 dark:text-gray-400">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'author' : 'authors' }}. If they have related quotes, choose a strategy:</p>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
+              <input type="radio" v-model="bulkDeleteStrategy" value="anonymize" class="accent-gray-700 dark:accent-gray-300" />
+              Anonymize related quotes (keep quotes, remove author link)
+            </label>
+            <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
+              <input type="radio" v-model="bulkDeleteStrategy" value="delete" class="accent-gray-700 dark:accent-gray-300" />
+              Delete related quotes (remove quotes and the author)
+            </label>
+          </div>
         </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
-        </div>
-      </template>
-    </NDialog>
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
+            <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
+          </div>
+        </template>
+      </NDialog>
+    </ClientOnly>
 
-    <MergeAuthorsDialog v-model="showMergeDialog" :source-author="authorToMerge" :initial-target-author="initialMergeTarget" @authors-merged="onAuthorsMerged" />
+    <ClientOnly>
+      <MergeAuthorsDialog v-model="showMergeDialog" :source-author="authorToMerge" :initial-target-author="initialMergeTarget" @authors-merged="onAuthorsMerged" />
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, nextTick } from 'vue'
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
@@ -247,7 +272,7 @@ const { showErrorToast } = useErrorToast()
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Authors - Admin - Verbatims' })
 
-const loading = ref(false)
+const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const authors = ref<Author[]>([])
 const totalAuthors = ref(0)
@@ -389,7 +414,12 @@ const loadAuthors = async () => {
     authors.value = response?.data || []
     totalAuthors.value = response?.pagination?.total || 0
     rowSelection.value = {}; lastSelectedIndex.value = null; clearHighlight()
-  } catch (error) { showErrorToast(error, 'Failed to load authors') }
+  } catch (error) {
+    console.error('Failed to load authors:', error)
+    if (error?.statusCode && error?.statusCode !== 500) {
+      showErrorToast(error, 'Failed to load authors')
+    }
+  }
   finally { loading.value = false; hasLoadedOnce.value = true }
 }
 

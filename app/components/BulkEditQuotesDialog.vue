@@ -175,6 +175,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 
 interface Props {

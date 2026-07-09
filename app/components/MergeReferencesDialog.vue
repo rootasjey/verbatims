@@ -221,6 +221,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import type { QuoteReferencePrimaryType } from '#shared/types/quote-reference'
 
 interface ReferenceWithQuotes {

@@ -211,6 +211,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+
 interface Props {
   modelValue: boolean
   editReference?: QuoteReference | null
