@@ -242,6 +242,14 @@ Common commands include:
 
 Dev servers are long-running processes. Do not block your workflow on them unnecessarily.
 
+### Dev server lifecycle
+
+- **Check before starting**: Before running `bun run dev` (or `npm run dev`), check if a dev server is already running on `http://localhost:3002` (e.g. via `curl -o /dev/null -s -w "%{http_code}" http://localhost:3002`). If it's already up, reuse it — do not start a second instance.
+- **Don't kill for cleanup**: Never kill the dev server to "clean up" processes. Only stop it when:
+  - The user explicitly asks you to, or
+  - Restarting is necessary for changes to take effect (e.g. server-side code changes that aren't hot-reloaded).
+- **Restart when needed**: If the dev server needs a restart to pick up changes, first verify it's actually running, then stop it with `npx kill-port 3002` (targets only the process listening on that port) and restart deliberately.
+
 ### Build policy
 
 Do **not** run production build commands such as `npm run build`, `bun run build`, or `nuxt build` unless the user explicitly asks for them.
