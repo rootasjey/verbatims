@@ -558,7 +558,8 @@ export const sponsorMessages = sqliteTable('sponsor_messages', {
   trailingIcon: text('trailing_icon'),
   url: text('url'),
   type: text('type', { enum: ['internal', 'sponsored'] }).notNull().default('internal'),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().default('pending'),
+  rejectionReason: text('rejection_reason'),
   priority: integer('priority').notNull().default(0),
   startsAt: text('starts_at'),
   endsAt: text('ends_at'),
@@ -571,7 +572,7 @@ export const sponsorMessages = sqliteTable('sponsor_messages', {
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
-  activeIdx: index('idx_sponsor_messages_active').on(table.isActive),
+  statusIdx: index('idx_sponsor_messages_status').on(table.status),
   priorityIdx: index('idx_sponsor_messages_priority').on(table.priority),
   datesIdx: index('idx_sponsor_messages_dates').on(table.startsAt, table.endsAt),
   typeIdx: index('idx_sponsor_messages_type').on(table.type),

@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
       trailingIcon: body.trailing_icon || null,
       url: body.url || null,
       type: body.type || 'internal',
-      isActive: body.is_active !== undefined ? Boolean(body.is_active) : true,
+      status: 'pending',
       priority: typeof body.priority === 'number' ? body.priority : 0,
       startsAt: body.starts_at || null,
       endsAt: body.ends_at || null,

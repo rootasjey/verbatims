@@ -119,6 +119,26 @@
     <AddSponsorMessageDialog v-model="showDialog" :edit-message="editingMessage" :active-count="activeCount" @saved="reload" />
     <DeleteSponsorMessageDialog v-model="showDeleteDialog" :message="deletingMessage" @deleted="handleDeleted" />
 
+    <NDialog v-model:open="showRejectDialog">
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Reject Sponsor Message</h3></template>
+      <div class="space-y-3">
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Provide a reason for rejection (optional but recommended):</p>
+        <p v-if="rejectingMessage" class="font-sans text-sm text-gray-900 dark:text-gray-100 italic border-l-2 border-red-300 pl-3">&ldquo;{{ rejectingMessage.message }}&rdquo;</p>
+        <textarea
+          v-model="rejectionReason"
+          placeholder="Optional reason..."
+          rows="3"
+          class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none"
+        />
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showRejectDialog = false; rejectingMessage = null; rejectionReason = ''">Cancel</button>
+          <OutlinedButton @click="confirmReject">Reject Message</OutlinedButton>
+        </div>
+      </template>
+    </NDialog>
+
     <NDialog v-model:open="showBulkDeleteDialog">
       <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'message' : 'messages' }}</h3></template>
       <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">You are about to delete {{ selectedIds.length }} sponsor {{ selectedIds.length === 1 ? 'message' : 'messages' }}.</p>
@@ -208,11 +228,15 @@ const formatDate = (ts: number | string | null | undefined) => {
 }
 
 const getStatusText = (msg: any) => {
-  if (!msg.isActive) return 'Inactive'
-  const now = Date.now()
-  if (msg.startsAt && toMs(msg.startsAt) > now) return 'Scheduled'
-  if (msg.endsAt && toMs(msg.endsAt) < now) return 'Expired'
-  return 'Active'
+  if (msg.status === 'pending') return 'Pending'
+  if (msg.status === 'rejected') return 'Rejected'
+  if (msg.status === 'approved') {
+    const now = Date.now()
+    if (msg.startsAt && toMs(msg.startsAt) > now) return 'Scheduled'
+    if (msg.endsAt && toMs(msg.endsAt) < now) return 'Expired'
+    return 'Active'
+  }
+  return 'Pending'
 }
 
 const statusPillClass = (status: string) => {
@@ -220,7 +244,8 @@ const statusPillClass = (status: string) => {
     case 'Active': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
     case 'Scheduled': return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
     case 'Expired': return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
-    case 'Inactive': return 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
+    case 'Pending': return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
+    case 'Rejected': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
     default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
   }
 }
@@ -235,30 +260,59 @@ const editMessage = (msg: any) => {
   showDialog.value = true
 }
 
-const getStatusActions = (msg: any) => {
-  const current = getStatusText(msg)
-  const options = current === 'Inactive'
-    ? [{ label: 'Activate', onclick: () => changeStatus(msg, true) }]
-    : [{ label: 'Deactivate', onclick: () => changeStatus(msg, false) }]
-  return options
+const showRejectDialog = ref(false)
+const rejectingMessage = ref<any | null>(null)
+const rejectionReason = ref('')
+
+const openRejectDialog = (msg: any) => {
+  rejectingMessage.value = msg
+  rejectionReason.value = ''
+  showRejectDialog.value = true
 }
 
-const changeStatus = async (msg: any, active: boolean) => {
+const getStatusActions = (msg: any) => {
+  const actions = []
+  if (msg.status !== 'approved') {
+    actions.push({ label: 'Approve', onclick: () => changeStatus(msg, 'approved') })
+  }
+  if (msg.status !== 'pending') {
+    actions.push({ label: 'Mark as Pending', onclick: () => changeStatus(msg, 'pending') })
+  }
+  if (msg.status !== 'rejected') {
+    actions.push({ label: 'Reject', onclick: () => openRejectDialog(msg) })
+  }
+  return actions
+}
+
+const changeStatus = async (msg: any, newStatus: string, reason?: string) => {
   try {
-    const payload: any = { is_active: active }
-    if (active && !msg.startsAt) {
-      const now = new Date()
-      payload.starts_at = now.toISOString()
-      if (!msg.endsAt) {
-        const endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-        payload.ends_at = endsAt.toISOString()
+    const payload: any = { status: newStatus }
+    if (newStatus === 'approved') {
+      if (!msg.startsAt) {
+        const now = new Date()
+        payload.starts_at = now.toISOString()
+        if (!msg.endsAt) {
+          const endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+          payload.ends_at = endsAt.toISOString()
+        }
       }
+    }
+    if (newStatus === 'rejected' && reason) {
+      payload.rejection_reason = reason
     }
     await $fetch(`/api/admin/sponsors/${msg.id}`, { method: 'PUT', body: payload })
     loadMessages()
   } catch (e) {
     showErrorToast(e, 'Failed to update status')
   }
+}
+
+const confirmReject = () => {
+  if (!rejectingMessage.value) return
+  changeStatus(rejectingMessage.value, 'rejected', rejectionReason.value)
+  showRejectDialog.value = false
+  rejectingMessage.value = null
+  rejectionReason.value = ''
 }
 
 const loadMessages = async () => {

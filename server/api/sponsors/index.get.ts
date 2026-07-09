@@ -14,7 +14,7 @@ export default defineEventHandler(async () => {
     endsAt: schema.sponsorMessages.endsAt,
   })
     .from(schema.sponsorMessages)
-    .where(eq(schema.sponsorMessages.isActive, true))
+    .where(eq(schema.sponsorMessages.status, 'approved'))
     .orderBy(desc(schema.sponsorMessages.priority), sql`RANDOM()`)
 
   const now = Date.now()

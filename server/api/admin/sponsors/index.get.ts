@@ -49,13 +49,13 @@ export default defineEventHandler(async (event) => {
     const total = Number(totalResult[0]?.total || 0)
     const totalPages = Math.ceil(total / limit)
 
-    // Count currently active messages (isActive + within date range)
+    // Count currently approved messages (status approved + within date range)
     const now = new Date().toISOString().slice(0, 16)
     const activeResult = await db.select({ activeCount: count() })
       .from(schema.sponsorMessages)
       .where(
         and(
-          eq(schema.sponsorMessages.isActive, true),
+          eq(schema.sponsorMessages.status, 'approved'),
           or(sql`${schema.sponsorMessages.startsAt} IS NULL`, lte(schema.sponsorMessages.startsAt, now)),
           or(sql`${schema.sponsorMessages.endsAt} IS NULL`, gte(schema.sponsorMessages.endsAt, now))
         )

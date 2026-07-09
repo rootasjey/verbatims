@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
       trailingIcon: sponsorData.trailing_icon || null,
       url: sponsorData.url || null,
       type: 'sponsored',
-      isActive: false,
+      status: 'pending',
       priority: 0,
       startsAt: now.toISOString(),
       endsAt,
