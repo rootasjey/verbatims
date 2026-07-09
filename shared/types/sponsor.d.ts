@@ -5,7 +5,8 @@ export interface SponsorMessage {
   trailing_icon?: string | null
   url?: string | null
   type: 'internal' | 'sponsored'
-  is_active: boolean
+  status: 'pending' | 'approved' | 'rejected'
+  rejection_reason?: string | null
   priority: number
   starts_at?: string | null
   ends_at?: string | null
@@ -25,7 +26,7 @@ export interface SponsorMessageFormData {
   trailing_icon?: string | null
   url?: string | null
   type: 'internal' | 'sponsored'
-  is_active: boolean
+  status: 'pending' | 'approved' | 'rejected'
   priority: number
   starts_at?: string | null
   ends_at?: string | null

@@ -763,7 +763,8 @@ CREATE TABLE IF NOT EXISTS sponsor_messages (
   trailing_icon TEXT,
   url TEXT,
   type TEXT NOT NULL DEFAULT 'internal' CHECK (type IN ('internal', 'sponsored')),
-  is_active INTEGER DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  rejection_reason TEXT,
   priority INTEGER NOT NULL DEFAULT 0,
   starts_at TEXT,
   ends_at TEXT,
@@ -777,7 +778,7 @@ CREATE TABLE IF NOT EXISTS sponsor_messages (
   updated_at INTEGER DEFAULT (strftime('%s','now') * 1000)
 );
 
-CREATE INDEX IF NOT EXISTS idx_sponsor_messages_active ON sponsor_messages(is_active);
+CREATE INDEX IF NOT EXISTS idx_sponsor_messages_status ON sponsor_messages(status);
 CREATE INDEX IF NOT EXISTS idx_sponsor_messages_priority ON sponsor_messages(priority DESC);
 CREATE INDEX IF NOT EXISTS idx_sponsor_messages_dates ON sponsor_messages(starts_at, ends_at);
 CREATE INDEX IF NOT EXISTS idx_sponsor_messages_type ON sponsor_messages(type);

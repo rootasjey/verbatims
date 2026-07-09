@@ -59,6 +59,9 @@
                 {{ formatDate(sponsor.created_at) }}
               </span>
             </div>
+            <p v-if="sponsor.status === 'rejected' && sponsor.rejectionReason" class="font-sans text-xs text-red-600 dark:text-red-400 mt-1.5">
+              Rejection reason: {{ sponsor.rejectionReason }}
+            </p>
           </div>
           <button
             v-if="canEdit(sponsor)"
@@ -159,7 +162,7 @@ const loadSponsors = async () => {
 }
 
 const canEdit = (sponsor: any) => {
-  return !sponsor.is_active && (!sponsor.ends_at || new Date(sponsor.ends_at) >= new Date())
+  return sponsor.status !== 'approved' && (!sponsor.ends_at || new Date(sponsor.ends_at) >= new Date())
 }
 
 const openEdit = (sponsor: any) => {
@@ -197,13 +200,15 @@ const saveEdit = async () => {
 
 const statusClass = (sponsor: any) => {
   if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
-  if (sponsor.is_active) return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  if (sponsor.status === 'approved') return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+  if (sponsor.status === 'rejected') return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
   return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20'
 }
 
 const statusLabel = (sponsor: any) => {
   if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return 'Expired'
-  if (sponsor.is_active) return 'Active'
+  if (sponsor.status === 'approved') return 'Active'
+  if (sponsor.status === 'rejected') return 'Rejected'
   return 'Pending Moderation'
 }
 

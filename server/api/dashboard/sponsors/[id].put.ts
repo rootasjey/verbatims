@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
     }
 
     const sponsor = existing[0]!
-    if (sponsor.isActive) {
-      throwServer(403, 'Cannot edit an active sponsor message')
+    if (sponsor.status === 'approved') {
+      throwServer(403, 'Cannot edit an approved sponsor message')
     }
 
     const updates: any = {}

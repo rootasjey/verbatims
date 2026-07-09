@@ -88,3 +88,51 @@ export async function sendVerificationEmail(event: H3Event, toEmail: string, tok
     throwServer(500, 'Failed to send verification email')
   }
 }
+
+export async function sendSponsorStatusEmail(
+  event: H3Event,
+  toEmail: string,
+  messageText: string,
+  status: 'approved' | 'rejected',
+  reason?: string | null,
+): Promise<void> {
+  const origin = resolveAppOrigin(event)
+  const dashboardUrl = `${origin}/dashboard/sponsors`
+
+  const subject = status === 'approved'
+    ? 'Your sponsored message is now live on Verbatims'
+    : 'Your sponsored message was not approved'
+
+  const bodyHtml = status === 'approved'
+    ? `
+      <p style="color: #374151; margin-bottom: 16px;">Your sponsored message is now live and visible on Verbatims.</p>
+      <blockquote style="border-left: 3px solid #3C82F6; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>`
+    : `
+      <p style="color: #374151; margin-bottom: 16px;">Your sponsored message was reviewed and not approved.</p>
+      ${reason ? `<p style="color: #6B7280; margin-bottom: 16px;"><strong>Reason:</strong> ${reason}</p>` : ''}
+      <blockquote style="border-left: 3px solid #EF4444; margin: 16px 0; padding: 8px 16px; color: #374151; font-style: italic;">${messageText}</blockquote>
+      <p style="color: #6B7280; font-size: 14px;">You can edit your message and resubmit it from your dashboard.</p>`
+
+  const resend = getResendClient()
+  const { error } = await resend.emails.send({
+    from: getFromAddress(),
+    to: toEmail,
+    subject,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
+        <h2 style="color: #111827; margin-bottom: 16px;">${subject}</h2>
+        ${bodyHtml}
+        <a href="${dashboardUrl}" style="display: inline-block; background-color: #3C82F6; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 8px;">
+          View in Dashboard
+        </a>
+        <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 24px 0;" />
+        <p style="color: #9CA3AF; font-size: 12px;">Verbatims &mdash; Modern Quotes Service</p>
+      </div>
+    `,
+    text: `${subject}\n\n${messageText}${reason ? `\n\nReason: ${reason}` : ''}\n\nView in dashboard: ${dashboardUrl}`,
+  })
+
+  if (error) {
+    console.error('Failed to send sponsor status email:', error)
+  }
+}

@@ -121,8 +121,6 @@
           Consider lowering the priority or scheduling with future dates.
         </div>
       </div>
-
-      <CheckboxBadge v-model="form.is_active" label="Active" />
     </form>
   </AppDialog>
 </template>
@@ -137,7 +135,7 @@ const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 const isEdit = computed(() => !!props.editMessage)
 const showActiveWarning = computed(() => {
-  return (props.activeCount || 0) >= 10 && form.is_active
+  return (props.activeCount || 0) >= 10
 })
 const dialogTitle = computed(() => isEdit.value ? 'Edit Sponsor Message' : 'Create Sponsor Message')
 const submitText = computed(() => isEdit.value ? 'Update Message' : 'Create Message')
@@ -168,7 +166,6 @@ const form = reactive({
   trailing_icon: '',
   url: '',
   type: 'internal' as 'internal' | 'sponsored',
-  is_active: true,
   priority: 0,
   starts_at: '',
   ends_at: '',
@@ -181,7 +178,6 @@ watch(() => props.editMessage, (msg) => {
     form.trailing_icon = msg.trailingIcon || ''
     form.url = msg.url || ''
     form.type = msg.type || 'internal'
-    form.is_active = Boolean(msg.isActive)
     form.priority = msg.priority ?? 0
     form.starts_at = msg.startsAt || ''
     form.ends_at = msg.endsAt || ''
@@ -191,7 +187,6 @@ watch(() => props.editMessage, (msg) => {
     form.trailing_icon = ''
     form.url = ''
     form.type = 'internal'
-    form.is_active = true
     form.priority = 0
     form.starts_at = ''
     form.ends_at = ''
@@ -210,7 +205,6 @@ const submit = async () => {
       trailing_icon: form.trailing_icon.trim() || null,
       url: form.url.trim() || null,
       type: form.type,
-      is_active: form.is_active,
       priority: form.priority,
       starts_at: form.starts_at || null,
       ends_at: form.ends_at || null,
