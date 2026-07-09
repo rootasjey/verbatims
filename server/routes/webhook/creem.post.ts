@@ -1,4 +1,5 @@
 import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
 export default defineEventHandler(async (event) => {
@@ -65,6 +66,24 @@ export default defineEventHandler(async (event) => {
     return { received: true }
   }
 
+  const checkoutId = checkout.id
+  if (!checkoutId) {
+    console.warn('Webhook checkout.completed missing checkout id')
+    return { received: true }
+  }
+
+  // Idempotency: skip if already processed
+  const existing = await db
+    .select({ id: schema.sponsorMessages.id })
+    .from(schema.sponsorMessages)
+    .where(eq(schema.sponsorMessages.paymentRef, checkoutId))
+    .limit(1)
+
+  if (existing.length > 0) {
+    console.log('Sponsor message already exists for checkout', { checkoutId })
+    return { received: true }
+  }
+
   const userId = sponsorData.user_id ? Number(sponsorData.user_id) : null
   const durationDays = typeof sponsorData.duration_days === 'number' ? sponsorData.duration_days : 7
   const now = new Date()
@@ -83,11 +102,11 @@ export default defineEventHandler(async (event) => {
       endsAt,
       userId,
       paid: true,
-      paymentRef: checkout.id,
+      paymentRef: checkoutId,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
-    console.log('Sponsor message created from Creem checkout', { checkoutId: checkout.id, message })
+    console.log('Sponsor message created from Creem checkout', { checkoutId, message })
   } catch (err) {
     console.error('Failed to insert sponsor message from webhook', err)
   }
