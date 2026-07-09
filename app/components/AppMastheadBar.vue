@@ -158,6 +158,12 @@ const navMenuItems = computed(() => [
           showReportDrawer.value = true
         }
       },
+      {
+        label: 'Sponsor a Message',
+        leading: 'i-ph-megaphone-duotone',
+        description: 'Promote your brand or message',
+        to: '/sponsor'
+      },
     ]
   },
   {

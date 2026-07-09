@@ -13,11 +13,12 @@
         <a
           v-for="(item, index) in items"
           :key="`a-${index}`"
-          :href="item.url || undefined"
-          :target="item.url ? '_blank' : undefined"
-          :rel="item.url ? 'noopener noreferrer' : undefined"
+          :href="item.url && isExternal(item.url) ? item.url : undefined"
+          :target="item.url && isExternal(item.url) ? '_blank' : undefined"
+          :rel="item.url && isExternal(item.url) ? 'noopener noreferrer' : undefined"
           class="sponsor-item"
           :class="{ 'cursor-pointer hover:opacity-80': item.url }"
+          @click="handleItemClick($event, item)"
         >
           <NIcon v-if="item.leading" :name="item.leading" class="w-4 h-4 text-gray-400" />
           <span class="text-sm text-gray-300 whitespace-nowrap">{{ item.message }}</span>
@@ -30,11 +31,12 @@
         <a
           v-for="(item, index) in items"
           :key="`b-${index}`"
-          :href="item.url || undefined"
-          :target="item.url ? '_blank' : undefined"
-          :rel="item.url ? 'noopener noreferrer' : undefined"
+          :href="item.url && isExternal(item.url) ? item.url : undefined"
+          :target="item.url && isExternal(item.url) ? '_blank' : undefined"
+          :rel="item.url && isExternal(item.url) ? 'noopener noreferrer' : undefined"
           class="sponsor-item"
           :class="{ 'cursor-pointer hover:opacity-80': item.url }"
+          @click="handleItemClick($event, item)"
         >
           <NIcon v-if="item.leading" :name="item.leading" class="w-4 h-4 text-gray-400" />
           <span class="text-sm text-gray-300 whitespace-nowrap">{{ item.message }}</span>
@@ -43,13 +45,26 @@
         <div class="sponsor-gap" />
       </div>
     </div>
-    <button
-      class="sponsor-toggle"
-      :aria-label="isPaused ? 'Resume scrolling' : 'Pause scrolling'"
-      @click="togglePause"
-    >
-      <NIcon :name="isPaused ? 'i-ph-play' : 'i-ph-pause'" class="w-4 h-4" />
-    </button>
+    <div class="sponsor-actions">
+      <NTooltip content="Sponsor a message" placement="top">
+        <button
+          class="sponsor-btn"
+          aria-label="Sponsor a message"
+          @click="goToSponsor"
+        >
+          <NIcon name="i-ph-megaphone" class="w-4 h-4" />
+        </button>
+      </NTooltip>
+      <NTooltip :content="isPaused ? 'Resume scrolling' : 'Pause scrolling'" placement="top">
+        <button
+          class="sponsor-btn sponsor-toggle"
+          :aria-label="isPaused ? 'Resume scrolling' : 'Pause scrolling'"
+          @click="togglePause"
+        >
+          <NIcon :name="isPaused ? 'i-ph-play' : 'i-ph-pause'" class="w-4 h-4" />
+        </button>
+      </NTooltip>
+    </div>
   </div>
 </template>
 
@@ -64,7 +79,7 @@ interface SponsorItem {
 }
 
 const fallbackSponsors: SponsorItem[] = [
-  { message: 'You can display your brand here', leading: 'i-ph-star' },
+  { message: 'Promote your brand or message here →', leading: 'i-ph-star', url: '/sponsor' },
   { message: 'You can send a love message', leading: 'i-ph-star' },
   { message: 'This is the best quotes platform', trailing: 'i-ph-heart' },
   { message: 'You can submit your own quotes', leading: 'i-ph-quotes' },
@@ -80,6 +95,21 @@ const isPaused = useStorage('sponsor-paused', false)
 const togglePause = () => {
   isPaused.value = !isPaused.value
 }
+
+const isExternal = (url?: string) => {
+  if (!url) return false
+  return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')
+}
+
+const handleItemClick = (event: MouseEvent, item: SponsorItem) => {
+  if (!item.url) return
+  if (!isExternal(item.url)) {
+    event.preventDefault()
+    navigateTo(item.url)
+  }
+}
+
+const goToSponsor = () => navigateTo('/sponsor')
 
 const fetchSponsors = async () => {
   try {
@@ -163,12 +193,18 @@ const measureSetWidth = () => {
   flex-shrink: 0;
 }
 
-.sponsor-toggle {
+.sponsor-actions {
   position: absolute;
   right: 0;
   top: 0;
   height: 100%;
+  display: flex;
+  z-index: 1;
+}
+
+.sponsor-btn {
   width: 32px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,11 +213,10 @@ const measureSetWidth = () => {
   border-left: 1px solid #222;
   color: #9ca3af;
   cursor: pointer;
-  z-index: 1;
   transition: color 0.15s;
 }
 
-.sponsor-toggle:hover {
+.sponsor-btn:hover {
   color: #fff;
 }
 
