@@ -80,6 +80,9 @@ export default defineNuxtConfig({
     autoDetectLanguage: true,
     meta: true,
     redirects: false,
+    translationPayloads: {
+      prerenderRoutes: false,
+    },
   },
 
   typescript: {
