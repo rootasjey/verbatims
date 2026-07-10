@@ -80,6 +80,8 @@
 <script lang="ts" setup>
 import { useDebounceFn } from '@vueuse/core'
 
+const { $t, $ts } = useI18n()
+
 const { isMobile } = useMobileDetection()
 
 const quotesFeedStore = useQuotesFeedStore()
@@ -119,12 +121,12 @@ if (activeThemeData.value?.data) {
 
 const pageTitle = computed(() => {
   if (themeData.value) return `${themeData.value.name} — Verbatims`
-  return 'Verbatims • A flow of quotes'
+  return $ts('home.page_title')
 })
 
 const pageDescription = computed(() => {
   if (themeData.value?.description) return themeData.value.description
-  return 'Discover inspiring quotes from authors, films, books, and more.'
+  return $ts('home.page_desc')
 })
 
 useHead({
@@ -144,7 +146,7 @@ useJsonLd({
   '@type': 'WebSite',
   url: 'https://verbatims.cc',
   name: 'Verbatims',
-  description: 'A comprehensive, user-generated quotes service',
+  description: $t('home.jsonld_desc'),
   potentialAction: {
     '@type': 'SearchAction',
     target: 'https://verbatims.cc/search?q={search_term_string}',

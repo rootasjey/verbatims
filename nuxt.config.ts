@@ -65,7 +65,22 @@ export default defineNuxtConfig({
     '@una-ui/nuxt',
     '@vueuse/nuxt',
     '@nuxtjs/sitemap',
+    'nuxt-i18n-micro',
   ],
+
+  i18n: {
+    locales: [
+      { code: 'en', iso: 'en-US', dir: 'ltr', displayName: 'English' },
+      { code: 'fr', iso: 'fr-FR', dir: 'ltr', displayName: 'Français' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'no_prefix',
+    translationDir: 'locales',
+    localeCookie: 'verbatims-locale',
+    autoDetectLanguage: true,
+    meta: true,
+    redirects: false,
+  },
 
   typescript: {
     strict: false,

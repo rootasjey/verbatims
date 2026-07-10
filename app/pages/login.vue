@@ -6,10 +6,10 @@
       <div class="text-center mb-10">
         <div class="w-8 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-6" />
         <h1 class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100">
-          Sign in
+          {{ $t('auth.sign_in_title') }}
         </h1>
         <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-2">
-          to your Verbatims account
+          {{ $t('auth.sign_in_subtitle') }}
         </p>
       </div>
 
@@ -26,23 +26,23 @@
         />
 
         <form @submit.prevent="signInWithEmail" class="space-y-4">
-          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.email_label')" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <NInput
               v-model="form.email"
               type="email"
-              placeholder="you@example.com"
+              :placeholder="$ts('auth.email_placeholder')"
               required
               :disabled="loading.email"
               class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
             />
           </NFormGroup>
 
-          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.password_label')" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <div class="relative">
               <NInput
                 v-model="form.password"
                 required
-                placeholder="••••••••"
+                :placeholder="$ts('auth.password_placeholder')"
                 :type="isPasswordVisible ? 'text' : 'password'"
                 :disabled="loading.email"
                 class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
@@ -59,7 +59,7 @@
 
           <div class="flex items-center justify-end">
             <NLink to="/forgot-password" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
-              Forgot password?
+              {{ $t('auth.forgot_password') }}
             </NLink>
           </div>
 
@@ -71,7 +71,7 @@
             class="py-4 font-sans text-sm font-600 tracking-wide hover:scale-[1.02] active:scale-99 transition-[transform]"
             :loading="loading.email"
           >
-            Sign In
+            {{ $t('auth.sign_in_button') }}
           </NButton>
         </form>
 
@@ -82,7 +82,7 @@
           </div>
           <div class="relative flex justify-center">
             <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
-              or sign in with
+              {{ $t('auth.sign_in_with') }}
             </span>
           </div>
         </div>
@@ -93,21 +93,21 @@
             <template #leading>
               <NIcon name="i-ph-github-logo" class="w-4 h-4" />
             </template>
-            GitHub
+            {{ $t('auth.gitHub') }}
           </NButton>
           <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
             <template #leading>
               <NIcon name="i-ph-google-logo" class="w-4 h-4" />
             </template>
-            Google
+            {{ $t('auth.google') }}
           </NButton>
         </div>
       </div>
 
       <!-- Bottom link -->
       <p class="text-center mt-8 font-sans text-sm text-gray-500 dark:text-gray-400">
-        Don't have an account?&nbsp;
-        <NLink to="/signup" class="text-gray-900 dark:text-gray-100 font-600 hover:underline">Sign up</NLink>
+        {{ $t('auth.no_account') }}&nbsp;
+        <NLink to="/signup" class="text-gray-900 dark:text-gray-100 font-600 hover:underline">{{ $t('auth.sign_up_link') }}</NLink>
       </p>
     </div>
   </div>
@@ -117,13 +117,13 @@
     <div class="px-6 pt-10 pb-6">
       <div class="flex items-center gap-2 mb-3">
         <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
-        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Welcome back</p>
+        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $t('auth.sign_in_mobile_preamble') }}</p>
       </div>
       <h1 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
-        Sign in to <span class="font-600">Verbatims</span>
+        {{ $t('auth.sign_in_mobile_title') }} <span class="font-600">Verbatims</span>
       </h1>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-1">
-        Keep your favorite lines close
+        {{ $t('auth.sign_in_mobile_tagline') }}
       </p>
     </div>
 
@@ -140,23 +140,23 @@
         />
 
         <form @submit.prevent="signInWithEmail" class="space-y-4">
-          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.email_label')" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <NInput
               v-model="form.email"
               type="email"
-              placeholder="you@example.com"
+              :placeholder="$ts('auth.email_placeholder')"
               required
               :disabled="loading.email"
               class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
             />
           </NFormGroup>
 
-          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.password_label')" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <div class="relative">
               <NInput
                 v-model="form.password"
                 required
-                placeholder="••••••••"
+                :placeholder="$ts('auth.password_placeholder')"
                 :type="isPasswordVisible ? 'text' : 'password'"
                 :disabled="loading.email"
                 class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
@@ -173,7 +173,7 @@
 
           <div class="flex items-center justify-end">
             <NLink to="/forgot-password" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
-              Forgot password?
+              {{ $t('auth.forgot_password') }}
             </NLink>
           </div>
 
@@ -185,7 +185,7 @@
             class="py-4 font-sans text-sm font-600 tracking-wide border border-dashed border-gray-300 dark:border-gray-600"
             :loading="loading.email"
           >
-            Sign In
+            {{ $t('auth.sign_in_button') }}
           </NButton>
         </form>
 
@@ -196,7 +196,7 @@
           </div>
           <div class="relative flex justify-center">
             <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
-              or sign in with
+              {{ $t('auth.sign_in_with') }}
             </span>
           </div>
         </div>
@@ -207,13 +207,13 @@
             <template #leading>
               <NIcon name="i-ph-github-logo" class="w-4 h-4" />
             </template>
-            GitHub
+            {{ $t('auth.gitHub') }}
           </NButton>
           <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
             <template #leading>
               <NIcon name="i-ph-google-logo" class="w-4 h-4" />
             </template>
-            Google
+            {{ $t('auth.google') }}
           </NButton>
         </div>
       </div>
@@ -223,20 +223,22 @@
     <div class="px-6 pb-10 pt-6">
       <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-5 py-4 flex items-center justify-between">
         <div>
-          <p class="font-sans text-sm text-gray-700 dark:text-gray-300">New here?</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">Join and share your favorite lines.</p>
+          <p class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('auth.new_here') }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('auth.join_tagline') }}</p>
         </div>
-        <NButton size="sm" btn="ghost-gray" to="/signup" class="font-sans text-sm font-600">Sign up</NButton>
+        <NButton size="sm" btn="ghost-gray" to="/signup" class="font-sans text-sm font-600">{{ $t('auth.sign_up_link') }}</NButton>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Sign In - Verbatims',
+  title: $ts('auth.meta_title_sign_in'),
   meta: [
-    { name: 'description', content: 'Sign in to Verbatims to submit quotes, create collections, and join our community.' }
+    { name: 'description', content: $ts('auth.meta_desc_sign_in') }
   ]
 })
 
@@ -269,7 +271,7 @@ const error = ref('')
 
 const signInWithEmail = async () => {
   if (!form.value.email || !form.value.password) {
-    error.value = 'Please fill in all fields'
+    error.value = $ts('auth.error_fill_fields')
     return
   }
 
@@ -290,7 +292,7 @@ const signInWithEmail = async () => {
     await navigateTo('/')
   } catch (err: any) {
     console.error('Email sign in error:', err)
-    error.value = err.data?.message || 'Invalid email or password'
+    error.value = err.data?.message || $ts('auth.error_invalid_credentials')
   } finally {
     loading.value.email = false
   }

@@ -7,17 +7,17 @@
       <div class="pt-8 pb-12 hidden lg:block lg:col-span-2 border-r b-dashed border-gray-300 dark:border-gray-700">
         <nav class="flex flex-col space-y-2 font-500 px-4 md:px-8">
           <HomeNavLink to="/quotes">
-            Quotes
+            {{ $t('home.nav.quotes') }}
           </HomeNavLink>
           <HomeNavLink to="/authors">
-            Authors
+            {{ $t('home.nav.authors') }}
           </HomeNavLink>
           <HomeNavLink to="/references">
-            References
+            {{ $t('home.nav.references') }}
           </HomeNavLink>
           <button @click="showSearch = true"
             class="group relative inline-block overflow-hidden font-sans text-sm transition-colors duration-300 text-gray-700 dark:text-gray-300 hover:text-white dark:hover:text-[#0C0A09] group-active:scale-95 transition-transform text-left w-full">
-            <span class="relative z-1 transition-colors duration-300">Search</span>
+            <span class="relative z-1 transition-colors duration-300">{{ $t('home.nav.search') }}</span>
             <span class="absolute inset-0 w-0 group-hover:w-full transition-all duration-300 ease-out -z-0 bg-[#0C0A09] dark:bg-[#FAFAF9]" />
           </button>
         </nav>
@@ -25,20 +25,20 @@
         <div class="mt-6 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700">
           <div class="px-4 md:px-8">
             <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600 mb-4">
-              Stats
+              {{ $t('home.stats') }}
             </p>
             <div class="border border-gray-200 dark:border-gray-700 rounded-sm p-3 space-y-2">
               <div class="flex items-baseline justify-between gap-2">
                 <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.quotes.toLocaleString() }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">quotes</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.quotes_label') }}</span>
               </div>
               <div class="flex items-baseline justify-between gap-2">
                 <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.authors.toLocaleString() }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">authors</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.authors_label') }}</span>
               </div>
               <div class="flex items-baseline justify-between gap-2">
                 <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.references.toLocaleString() }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">references</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.references_label') }}</span>
               </div>
             </div>
           </div>
@@ -48,10 +48,10 @@
         <div class="mt-8 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700">
           <div class="px-4 md:px-8 mb-4 flex items-center justify-between">
             <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600">
-              Recent Quotes
+              {{ $t('home.recent_quotes') }}
             </p>
             <a href="/quotes" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              See All
+              {{ $t('home.see_all') }}
             </a>
           </div>
 
@@ -66,7 +66,7 @@
                 {{ truncateQuote(quote.name, 100) }}
               </blockquote>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {{ quote.author?.name || 'Unknown' }}
+                {{ quote.author?.name || $t('home.unknown') }}
               </p>
             </NuxtLink>
           </div>
@@ -79,8 +79,8 @@
         <div v-if="props.theme" class="lg:px-8 border-b b-dashed border-gray-300 dark:border-gray-700 pb-6 mb-6">
           <div class="flex items-center gap-2 mb-1">
             <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-primary, #6366f1)` }" />
-            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ color: `var(--theme-primary, #6366f1)` }">
-              Theme
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ color: `var(--theme-primary, #6366f1)` }">
+              {{ $t('home.theme') }}
             </p>
           </div>
           <h2 class="font-serif text-2xl font-300 text-gray-900 dark:text-gray-100">
@@ -96,7 +96,7 @@
           <div class="lg:px-8 flex items-center gap-2 mb-4">
             <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-secondary, #FAB95B)` }" />
             <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ backgroundColor: `var(--theme-secondary, #FAB95B)` }" >
-              Featured
+              {{ $t('home.featured') }}
             </p>
           </div>
           <NuxtLink
@@ -126,7 +126,7 @@
               </div>
               <div>
                 <p class="font-subtitle text-2xl font-600 text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                  {{ featuredQuote.author?.name || 'Unknown Author' }}
+                  {{ featuredQuote.author?.name || $t('home.unknown_author') }}
                 </p>
                 <p v-if="featuredQuote.reference" class="font-sans text-xs text-gray-500 dark:text-gray-400">
                   {{ featuredQuote.reference.name }}
@@ -141,7 +141,7 @@
               </div>
               <div>
                 <p class="font-serif text-sm font-600 text-gray-900 dark:text-gray-100">
-                  Unknown Author
+                  {{ $t('home.unknown_author') }}
                 </p>
               </div>
             </template>
@@ -153,7 +153,7 @@
           <div class="flex justify-center items-center gap-3 mb-4">
             <span class="flex-1 max-w-4 h-px bg-gray-200 dark:bg-gray-700" />
             <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0">
-              Spotlight
+              {{ $t('home.spotlight') }}
             </p>
              <span class="flex-1 max-w-4 h-px bg-gray-200 dark:bg-gray-700" />
           </div>
@@ -178,7 +178,7 @@
         <!-- Opinion section: Grid of small quotes -->
         <div class="mb-8 pb-8 border-b border-gray-300 dark:border-gray-700">
           <p class="font-sans text-xs italic uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500 mb-6 text-center">
-            Opinion
+            {{ $t('home.opinion') }}
           </p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mx-4">
             <div
@@ -222,10 +222,10 @@
                   :to="`/authors/${item.author.id}`"
                   class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1 inline-block hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                 >
-                  {{ item.author?.name || 'Unknown' }}
+                  {{ item.author?.name || $t('home.unknown') }}
                 </NuxtLink>
                 <p v-else class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Unknown
+                  {{ $t('home.unknown') }}
                 </p>
               </div>
             </div>
@@ -237,7 +237,7 @@
           <div class="flex justify-center items-center gap-3 mb-6 mx-6">
             <span class="flex-1 max-w-3 h-px bg-gray-200 dark:bg-gray-700" />
             <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0">
-              Stories
+              {{ $t('home.stories') }}
             </p>
             <span class="flex-1 max-w-3 h-px bg-gray-200 dark:bg-gray-700" />
           </div>
@@ -261,7 +261,7 @@
                 {{ item.author?.name }}
               </NuxtLink>
               <p v-else class="font-sans text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                Unknown
+                {{ $t('home.unknown') }}
               </p>
               <NuxtLink
                 v-if="item.reference"
@@ -282,10 +282,10 @@
       <div class="lg:col-span-3 lg:border-l b-dashed border-gray-300 dark:border-gray-700 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto pb-12">
         <div class="px-4 md:px-8 mt-4 mb-6 pb-4 border-b b-dashed border-gray-300 dark:border-gray-700 flex items-center justify-between">
           <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
-            Featured References
+            {{ $t('home.featured_references') }}
           </p>
           <a href="/references" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            See All
+            {{ $t('home.see_all') }}
           </a>
         </div>
 
@@ -324,7 +324,7 @@
           <NButton
             btn="link"
             to="/references"
-            label="See More"
+            :label="$ts('home.see_more')"
             trailing="i-ph-arrow-right"
             class="font-sans text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-2"
           />
@@ -334,10 +334,10 @@
         <div v-if="sidebarAuthors.length" class="px-4 md:px-8 mt-8 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700">
           <div class="mb-4 flex items-center justify-between">
             <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600">
-              Related Authors
+              {{ $t('home.related_authors') }}
             </p>
             <a href="/authors" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              See All
+              {{ $t('home.see_all') }}
             </a>
           </div>
           <div class="space-y-4">
@@ -362,10 +362,10 @@
               </div>
               <div class="min-w-0 flex-1">
                 <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                  {{ author.name || 'Unknown' }}
+                  {{ author.name || $t('home.unknown') }}
                 </p>
                 <p v-if="author.quotes_count" class="font-sans text-xs text-gray-500 dark:text-gray-400">
-                  {{ author.quotes_count }} {{ author.quotes_count === 1 ? 'quote' : 'quotes' }}
+                  {{ author.quotes_count }} {{ author.quotes_count === 1 ? $t('home.quote_singular') : $t('home.quote_plural') }}
                 </p>
               </div>
             </NuxtLink>
@@ -376,8 +376,8 @@
 
     <div v-if="feed.hasMore?.value" class="mt-12">
       <LoadMoreButton
-        idleText="Load More"
-        loadingText="Loading..."
+        :idleText="$ts('home.load_more')"
+        :loadingText="$ts('home.loading')"
         :isLoading="feed.loadingMore?.value || false"
         @load="feed.loadMore()"
       />
@@ -398,6 +398,8 @@
 import type { ProcessedQuoteResult } from '~~/server/types'
 import type { UseHomeFeed } from '~/composables/useHomeFeed'
 import { navigateTo } from 'nuxt/app'
+
+const { $t, $ts } = useI18n()
 
 interface Props {
   feed: UseHomeFeed
@@ -514,21 +516,8 @@ const truncateQuote = (text: string, maxLength: number) => {
 }
 
 const formatReferenceType = (type: string) => {
-  const map: Record<string, string> = {
-    film: 'Film',
-    book: 'Book',
-    tv_series: 'TV Series',
-    music: 'Music',
-    speech: 'Speech',
-    podcast: 'Podcast',
-    interview: 'Interview',
-    documentary: 'Documentary',
-    media_stream: 'Media Stream',
-    writings: 'Writings',
-    video_game: 'Video Game',
-    other: 'Other',
-  }
-  return map[type] || type
+  const t = $ts('reference_types.' + type)
+  return t || type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
 const getAuthorInitials = (name: string) => {

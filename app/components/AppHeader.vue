@@ -34,7 +34,7 @@
 
       <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
         <div class="flex">
-          <NTooltip v-if="user" content="Add Quote (Ctrl/Cmd+N)" placement="bottom">
+          <NTooltip v-if="user" :content="$t('nav.add_quote') + ' (Ctrl/Cmd+N)'" placement="bottom">
             <NButton
             icon
             btn="ghost-gray"
@@ -43,7 +43,7 @@
             />
           </NTooltip>
 
-          <NTooltip content="Search (Ctrl/Cmd+K)" placement="bottom">
+          <NTooltip :content="$t('nav.search') + ' (Ctrl/Cmd+K)'" placement="bottom">
             <NButton
               icon
               btn="ghost-gray"
@@ -52,9 +52,11 @@
             />
           </NTooltip>
 
+          <I18nSelector />
+
           <UserMenu v-if="user" :user="user" />
 
-          <NTooltip v-else content="Sign in">
+          <NTooltip v-else :content="$ts('nav.sign_in')">
             <NButton
               link
               icon
@@ -88,6 +90,8 @@
 
 <script lang="ts" setup>
   import { useStorage } from '@vueuse/core'
+
+const { $t, $ts } = useI18n()
   
 const config = useRuntimeConfig()
 const version: string = String((config.public as any).appVersion || '')
@@ -129,49 +133,49 @@ const shouldShowNavMenu = computed(() => {
 
 const navMenuItems = computed(() => [
   {
-    label: 'Explore',
+    label: $ts('nav.explore'),
     trailing: 'i-ph-dot-bold',
     items: [
       {
-        label: 'Authors',
+        label: $ts('nav.authors'),
         leading: 'i-ph-users-duotone',
-        description: 'Browse quotes by author',
+        description: $ts('nav.authors_desc'),
         to: '/authors'
       },
       {
-        label: 'References',
+        label: $ts('nav.references'),
         leading: 'i-ph-book-duotone',
-        description: 'Explore books, films, and more',
+        description: $ts('nav.references_desc'),
         to: '/references'
       },
       {
-        label: 'Quotes',
+        label: $ts('nav.quotes'),
         leading: 'i-ph-quotes',
-        description: 'Explore quotes from various sources',
+        description: $ts('nav.quotes_desc'),
         to: '/quotes'
       },
       {
-        label: 'Tags',
+        label: $ts('nav.tags'),
         leading: 'i-ph-tag-duotone',
-        description: 'Browse quote topics and themes',
+        description: $ts('nav.tags_desc'),
         to: '/tags'
       },
     ]
   },
   {
-    label: 'Contribute',
+    label: $ts('nav.contribute'),
     trailing: 'i-ph-dot-bold',
     items: [
       ...(user ? [{
-        label: 'Add Quote',
+        label: $ts('nav.add_quote'),
         leading: 'i-ph-quotes-duotone',
-        description: 'Contribute a new quote',
+        description: $ts('nav.add_quote_desc'),
         onclick: () => { showAddQuote.value = true }
       }] : []),
       {
-        label: 'Suggest Edit',
+        label: $ts('nav.suggest_edit'),
         leading: 'i-ph-pencil-duotone',
-        description: 'Suggest an edit to an existing quote',
+        description: $ts('nav.suggest_edit_desc'),
         onclick: () => {
           reportTargetType.value = 'quote'
           reportCategory.value = 'content'
@@ -179,9 +183,9 @@ const navMenuItems = computed(() => [
         }
       },
       {
-        label: 'Report Issue',
+        label: $ts('nav.report_issue'),
         leading: 'i-ph-bug-duotone',
-        description: 'Report a problem or bug',
+        description: $ts('nav.report_issue_desc'),
         onclick: () => {
           reportCategory.value = 'bug'
           showReportDrawer.value = true
@@ -190,17 +194,17 @@ const navMenuItems = computed(() => [
     ]
   },
   {
-    label: 'About',
+    label: $ts('nav.about'),
     trailing: 'i-ph-dot-bold',
     items: [
       {
-        label: 'About Verbatims',
-        description: 'Learn more about Verbatims',
+        label: $ts('nav.about_verbatims'),
+        description: $ts('nav.about_verbatims_desc'),
         to: '/about'
       },
       {
-        label: 'Contact',
-        description: 'Get in touch with us',
+        label: $ts('nav.contact'),
+        description: $ts('nav.contact_desc'),
         onclick: () => {
           reportTargetType.value = 'general'
           reportCategory.value = 'feedback'
@@ -208,31 +212,31 @@ const navMenuItems = computed(() => [
         }
       },
       {
-        label: 'Privacy Policy',
+        label: $ts('nav.privacy'),
         leading: 'i-ph-shield-check-duotone',
-        description: 'Read our privacy policy',
+        description: $ts('nav.privacy_desc'),
         to: '/privacy'
       },
       {
-        label: 'Terms',
+        label: $ts('nav.terms'),
         leading: 'i-ph-file-text-duotone',
-        description: 'Read our terms of service',
+        description: $ts('nav.terms_desc'),
         to: '/terms'
       },
       {
-        label: 'Developers',
+        label: $ts('nav.developers'),
         leading: 'i-ph-code-duotone',
-        description: 'API documentation',
+        description: $ts('nav.developers_desc'),
         to: '/developers'
       },
       {
-        label: 'Licenses',
+        label: $ts('nav.licenses'),
         leading: 'i-ph-book-open-duotone',
-        description: 'Read our licenses',
+        description: $ts('nav.licenses_desc'),
         to: '/licenses'
       },
       {
-        label: 'Version',
+        label: $ts('nav.version'),
         leading: 'i-ph-git-branch-duotone',
         description: version,
         to: 'https://github.com/rootasjey/verbatims',

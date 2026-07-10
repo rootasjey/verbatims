@@ -1,142 +1,132 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-5 py-12">
     <div class="mt-8">
-      <h1 class="font-serif font-size-32 font-600 line-height-tight">Privacy Policy</h1>
-      <p class="text-sm text-gray-500 relative -top-2">Effective date: {{ effectiveDate }}</p>
+      <h1 class="font-serif font-size-32 font-600 line-height-tight">{{ $t('privacy_title') }}</h1>
+      <p class="text-sm text-gray-500 relative -top-2">{{ $t('privacy_effective_date', { date: effectiveDate }) }}</p>
     </div>
 
     <section>
-      <h2>1 • Introduction and scope</h2>
-      <p>
-        We take your privacy seriously. This Privacy Policy explains what data we collect when you use our platform, how we use it, where it’s processed, and the choices and rights you have. Our goal is simple: measure how the platform is used so we can make it better—without ads, tracking profiles, or selling data.
-      </p>
-      <p>This policy applies to all use of our platform, services, and related pages.</p>
+      <h2>{{ $t('privacy_s1_title') }}</h2>
+      <p>{{ $t('privacy_s1_p1') }}</p>
+      <p>{{ $t('privacy_s1_p2') }}</p>
     </section>
 
     <section>
-      <h2>2 • What data we collect</h2>
-      <p>We only collect what’s necessary to measure audience and platform/service usage (analytics/usage metrics). This may include:</p>
+      <h2>{{ $t('privacy_s2_title') }}</h2>
+      <p>{{ $t('privacy_s2_p1') }}</p>
       <ul>
-        <li><strong>Device and technical information:</strong> browser type/version, operating system, screen size, preferred language, and privacy-preserving identifiers generated for analytics.</li>
-        <li><strong>Usage data:</strong> pages viewed, time on page, navigation paths, event counts (e.g., button clicks), referring/exit pages, and approximate location at the city/region level derived from IP for aggregate analytics.</li>
-        <li><strong>Log data:</strong> minimal server logs for reliability and security (timestamps, request URLs, status codes, and IP addresses).</li>
+        <li><strong>{{ $t('privacy_s2_li1_label') }}</strong> {{ $t('privacy_s2_li1_text') }}</li>
+        <li><strong>{{ $t('privacy_s2_li2_label') }}</strong> {{ $t('privacy_s2_li2_text') }}</li>
+        <li><strong>{{ $t('privacy_s2_li3_label') }}</strong> {{ $t('privacy_s2_li3_text') }}</li>
       </ul>
-      <p>
-        We do not collect personal data beyond what’s needed for these measurements unless you explicitly provide it (for example, if you sign up, submit content, or contact support). Any optional personal information you provide is used only for the purpose you provided it for.
-      </p>
+      <p>{{ $t('privacy_s2_p2') }}</p>
     </section>
 
     <section>
-      <h2>3 • How we use data</h2>
+      <h2>{{ $t('privacy_s3_title') }}</h2>
       <ul>
-        <li>Understand how people use the platform</li>
-        <li>Improve performance, reliability, and accessibility</li>
-        <li>Prioritize features and fix issues</li>
+        <li>{{ $t('privacy_s3_li1') }}</li>
+        <li>{{ $t('privacy_s3_li2') }}</li>
+        <li>{{ $t('privacy_s3_li3') }}</li>
       </ul>
-      <p>We do not use your data for advertising or profiling. No behavioral ads. No cross-site tracking.</p>
+      <p>{{ $t('privacy_s3_p1') }}</p>
     </section>
 
     <section>
-      <h2>4 • Third parties</h2>
-      <p>We do not share, sell, or rent your data to third parties.</p>
-      <p><strong>Infrastructure provider: Cloudflare</strong></p>
+      <h2>{{ $t('privacy_s4_title') }}</h2>
+      <p>{{ $t('privacy_s4_p1') }}</p>
+      <p><strong>{{ $t('privacy_s4_p2_label') }} {{ $t('privacy_s4_p2_value') }}</strong></p>
       <ul>
-        <li>We deploy our platform on Cloudflare. Cloudflare acts as an infrastructure provider and processor, helping us deliver the service securely and quickly (e.g., CDN, DDoS protection, caching, edge routing).</li>
-        <li>As part of operating the service, traffic may transit through Cloudflare’s network and be processed according to Cloudflare’s security measures. Cloudflare may temporarily process IP addresses and request metadata to provide its services.</li>
+        <li>{{ $t('privacy_s4_li1') }}</li>
+        <li>{{ $t('privacy_s4_li2') }}</li>
       </ul>
-      <p>We do not allow third-party analytics scripts that collect data for advertising or create user profiles.</p>
+      <p>{{ $t('privacy_s4_p3') }}</p>
     </section>
 
     <section>
-      <h2>5 • Data location and transfers</h2>
-      <p>
-        By default, data does not leave our platform except as necessary for delivery and protection through Cloudflare’s infrastructure. This means:
-      </p>
+      <h2>{{ $t('privacy_s5_title') }}</h2>
+      <p>{{ $t('privacy_s5_p1') }}</p>
       <ul>
-        <li>Requests and minimal logs may be processed through Cloudflare’s global network to route and protect traffic.</li>
-        <li>Cloudflare uses appropriate security controls and industry-standard protections to safeguard data in transit and at rest within its systems.</li>
-        <li>Where data may be transferred across regions to ensure availability and security, such transfers are protected by Cloudflare’s compliance frameworks and safeguards.</li>
+        <li>{{ $t('privacy_s5_li1') }}</li>
+        <li>{{ $t('privacy_s5_li2') }}</li>
+        <li>{{ $t('privacy_s5_li3') }}</li>
       </ul>
     </section>
 
     <section>
-      <h2>6 • Legal basis for processing</h2>
-      <p>Where applicable (e.g., under GDPR), our legal bases are:</p>
+      <h2>{{ $t('privacy_s6_title') }}</h2>
+      <p>{{ $t('privacy_s6_p1') }}</p>
       <ul>
-        <li><strong>Legitimate interests:</strong> Measuring service usage, ensuring reliability and security, and improving the platform in a privacy-preserving manner.</li>
-        <li><strong>Consent:</strong> If we ever request optional data beyond what’s necessary for analytics and service operation, we will ask for your explicit consent.</li>
+        <li><strong>{{ $t('privacy_s6_li1_label') }}</strong> {{ $t('privacy_s6_li1_text') }}</li>
+        <li><strong>{{ $t('privacy_s6_li2_label') }}</strong> {{ $t('privacy_s6_li2_text') }}</li>
       </ul>
     </section>
 
     <section>
-      <h2>7 • Data retention</h2>
+      <h2>{{ $t('privacy_s7_title') }}</h2>
       <ul>
-        <li><strong>Analytics and usage metrics:</strong> Retained only as long as necessary to analyze trends and improve the service. We aim to aggregate and/or anonymize data as early as possible.</li>
-        <li><strong>Server and security logs:</strong> Kept for a limited period needed for troubleshooting, reliability, and security, then deleted or anonymized.</li>
+        <li><strong>{{ $t('privacy_s7_li1_label') }}</strong> {{ $t('privacy_s7_li1_text') }}</li>
+        <li><strong>{{ $t('privacy_s7_li2_label') }}</strong> {{ $t('privacy_s7_li2_text') }}</li>
       </ul>
-      <p>When retention is no longer needed for the purposes stated above, we delete or irreversibly anonymize data according to standardized schedules.</p>
+      <p>{{ $t('privacy_s7_p1') }}</p>
     </section>
 
     <section>
-      <h2>8 • Your rights</h2>
-      <p>Depending on your location, you may have rights to:</p>
+      <h2>{{ $t('privacy_s8_title') }}</h2>
+      <p>{{ $t('privacy_s8_p1') }}</p>
       <ul>
-        <li>Access your data</li>
-        <li>Correct inaccurate data</li>
-        <li>Delete your data</li>
-        <li>Object to or restrict certain processing</li>
-        <li>Receive a copy (data portability), where applicable</li>
+        <li>{{ $t('privacy_s8_li1') }}</li>
+        <li>{{ $t('privacy_s8_li2') }}</li>
+        <li>{{ $t('privacy_s8_li3') }}</li>
+        <li>{{ $t('privacy_s8_li4') }}</li>
+        <li>{{ $t('privacy_s8_li5') }}</li>
       </ul>
-      <p>
-        To request an export or exercise your rights, contact us through the app form accessible in the header, with the email you used on the platform (if any). We may need to verify your identity to protect your account and data. We respond within the timeframes required by law.
-      </p>
+      <p>{{ $t('privacy_s8_p2') }}</p>
     </section>
 
     <section>
-      <h2>9 • Security</h2>
+      <h2>{{ $t('privacy_s9_title') }}</h2>
       <ul>
-        <li>Transport Layer Security (TLS) for data in transit</li>
-        <li>Hardened infrastructure and access controls</li>
-        <li>Least-privilege access and logging for administrative operations</li>
-        <li>Cloudflare’s network-level protections (e.g., DDoS mitigation, WAF, caching) to help secure traffic and improve reliability</li>
+        <li>{{ $t('privacy_s9_li1') }}</li>
+        <li>{{ $t('privacy_s9_li2') }}</li>
+        <li>{{ $t('privacy_s9_li3') }}</li>
+        <li>{{ $t('privacy_s9_li4') }}</li>
       </ul>
-      <p>While no system is perfectly secure, we continuously improve our safeguards to reduce risk.</p>
+      <p>{{ $t('privacy_s9_p1') }}</p>
     </section>
 
     <section>
-      <h2>10 • Children’s privacy</h2>
-      <p>
-        Our platform is not directed to children under the age of 13 (or the equivalent age of digital consent in your jurisdiction). We do not knowingly collect personal information from children. If you believe a child has provided us with personal data, contact us and we will take appropriate steps to delete it.
-      </p>
+      <h2>{{ $t('privacy_s10_title') }}</h2>
+      <p>{{ $t('privacy_s10_p1') }}</p>
     </section>
 
     <section>
-      <h2>11 • Changes to this policy</h2>
-      <p>
-        We may update this Privacy Policy to reflect improvements to the platform, changes in our practices, or legal requirements. We’ll post updates here and revise the effective date at the top. For significant changes, we’ll provide a more prominent notice.
-      </p>
+      <h2>{{ $t('privacy_s11_title') }}</h2>
+      <p>{{ $t('privacy_s11_p1') }}</p>
     </section>
 
     <section>
-      <h2>12 • Contact us</h2>
-      <p>Questions, privacy requests, or concerns? Reach us at:</p>
+      <h2>{{ $t('privacy_s12_title') }}</h2>
+      <p>{{ $t('privacy_s12_p1') }}</p>
       <ul>
-        <li>GitHub: <a href="https://github.com/rootasjey/verbatims/issues" target="_blank">Open a GitHub issue</a></li>
-        <li>Feedback form: Use the form in the app header</li>
-        <li>Address: Yvelines, France</li>
+        <li>{{ $t('privacy_s12_li1_label') }} <a :href="$ts('privacy_s12_li1_url')" target="_blank">{{ $t('privacy_s12_li1_link') }}</a></li>
+        <li>{{ $t('privacy_s12_li2') }}</li>
+        <li>{{ $t('privacy_s12_li3') }}</li>
       </ul>
 
-      <p class="font-medium mt-6">No ads. No profiling. Privacy-first by design.</p>
+      <p class="font-medium mt-6">{{ $t('privacy_tagline') }}</p>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Privacy Policy',
+  title: $ts('privacy_title'),
   meta: [
     { name: 'robots', content: 'index,follow' },
-    { name: 'description', content: 'Privacy-first policy: analytics-only, no ads, no profiling, Cloudflare as infrastructure provider.' },
+    { name: 'description', content: $ts('privacy_meta_desc') },
   ],
 });
 
@@ -146,8 +136,8 @@ useJsonLd({
   '@context': 'https://schema.org',
   '@type': 'PrivacyPolicy',
   url: 'https://verbatims.cc/privacy',
-  name: 'Privacy Policy',
-  description: 'Privacy-first policy: analytics-only, no ads, no profiling, Cloudflare as infrastructure provider.',
+  name: $ts('privacy_title'),
+  description: $ts('privacy_meta_desc'),
   datePublished: new Date().toISOString().split('T')[0]
 })
 definePageMeta({
