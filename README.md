@@ -78,6 +78,22 @@ NOTE: You can use any package manager, just replace `bun` with `npm`/`pnpm`/`yar
 
 Note: The legacy local CLI utilities under `scripts/` have been removed. Admin operations are now performed through the in-app Admin pages and server APIs (e.g., export, import, backup).
 
+## Localization
+
+The project uses `nuxt-i18n-micro` with English and French translations.
+
+Locale files live in `locales/` (root translations + page-specific files under `locales/pages/`).
+The module generates a dynamic server handler `/_locales/:page/:locale/data.json` to serve translations at runtime.
+
+### Build note (avoid OOM)
+
+The i18n config sets `prerenderRoutes: false` in `nuxt.config.ts`. This is intentional and safe:
+
+- The project uses the `cloudflare-module` Nitro preset (SSR), not SSG. Translation data is served at runtime by the dynamic handler described above, so pre-rendering static JSON files during the build is unnecessary.
+- Skipping pre-render prevents memory spikes during the Nitro bundling step, which otherwise processes ~114 locale routes (57 page names × 2 locales) and can trigger `FATAL ERROR: Reached heap limit Allocation failed` on memory-constrained CI environments.
+
+If you later switch to a static target, set `prerenderRoutes: true` (or remove the override) to restore static locale payloads.
+
 ## Data, privacy, and contributions
 
 - Submissions are verified for wording and authorship before publishing; misattributions may be corrected or declined.
