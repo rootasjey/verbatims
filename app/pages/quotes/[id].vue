@@ -104,12 +104,12 @@
           <div class="bg-gray-100 dark:bg-gray-800 w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto mb-8 flex items-center justify-center">
             <NIcon name="i-ph-warning-circle" class="w-12 h-12 md:w-16 md:h-16 text-gray-500 dark:text-gray-400" />
           </div>
-          <h2 class="text-3xl md:text-4xl font-serif font-bold text-gray-900 dark:text-white mb-4">Quote Not Found</h2>
+          <h2 class="text-3xl md:text-4xl font-serif font-bold text-gray-900 dark:text-white mb-4">{{ $ts('quote_detail_not_found_title') }}</h2>
           <p class="text-lg font-sans text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-            The quote you're looking for doesn't exist or has been removed.
+            {{ $ts('quote_detail_not_found_desc') }}
           </p>
           <NButton to="/" size="lg" class="font-sans">
-            Browse Quotes
+            {{ $ts('quote_detail_browse') }}
           </NButton>
         </div>
       </div>
@@ -181,6 +181,7 @@
 
 <script setup>import { useJsonLd } from '../../composables/useSeo'
 import { useQuotesFeedStore } from '~/stores/quotes'
+const { $t, $ts } = useI18n()
 const { isMobile } = useMobileDetection()
 const route = useRoute()
 const { user } = useUserSession()
@@ -209,8 +210,8 @@ useVerbatimsSeo(() => {
 
   if (!currentQuote) {
     return {
-      title: 'Quote - Verbatims',
-      description: 'Explore curated quotes, authors, and references on Verbatims.',
+      title: $ts('quote_detail_meta_title_fallback'),
+      description: $ts('quote_detail_meta_desc_fallback'),
       type: 'article'
     }
   }
@@ -253,7 +254,7 @@ watchEffect(() => {
     headline: q.name,
     description: q.name,
     image: `${site}/api/og/quotes/${q.id}.png`,
-    author: { '@type': 'Person', name: q.author?.name || 'Unknown' },
+    author: { '@type': 'Person', name: q.author?.name || $ts('quote_detail_jsonld_unknown') },
     datePublished: q.created_at,
     url: `${site}/quotes/${q.id}`,
     publisher: { '@type': 'Organization', name: 'Verbatims', url: 'https://verbatims.cc' }
@@ -411,17 +412,17 @@ const headerMenuItems = computed(() => {
   const isOwnerDraft = user.value && quote.value && quote.value.user && quote.value.user.id === user.value.id && quote.value.status === 'draft'
   if (isAdminMod || isOwnerDraft) {
     items.push({
-      label: 'Edit',
+      label: $ts('quote_detail_menu_edit'),
       leading: 'i-ph-pencil-simple',
       onclick: () => { showEditQuoteDialog.value = true }
     })
     items.push({
-      label: 'Edit tag',
+      label: $ts('quote_detail_menu_edit_tag'),
       leading: 'i-ph-tag',
       onclick: () => { showEditTagsDialog.value = true }
     })
     items.push({
-      label: 'Delete',
+      label: $ts('quote_detail_menu_delete'),
       leading: 'i-ph-trash',
       onclick: () => { showDeleteQuoteDialog.value = true }
     })
@@ -429,27 +430,27 @@ const headerMenuItems = computed(() => {
 
   items.push(
     {
-      label: 'Copy link',
+      label: $ts('quote_detail_menu_copy_link'),
       leading: 'i-ph-link',
       onclick: () => copyLink()
     },
     {
-      label: 'Copy text',
+      label: $ts('quote_detail_menu_copy_text'),
       leading: 'i-ph-quotes',
       onclick: () => copyQuoteText()
     },
     {
-      label: 'Share',
+      label: $ts('quote_detail_menu_share'),
       leading: 'i-ph-share-network',
       onclick: () => shareQuote()
     },
     {
-      label: 'Download image',
+      label: $ts('quote_detail_menu_download'),
       leading: 'i-ph-download-simple',
       onclick: () => downloadQuote()
     },
     {
-      label: 'Report',
+      label: $ts('quote_detail_menu_report'),
       leading: 'i-ph-flag',
       onclick: () => reportQuote()
     }
@@ -493,7 +494,7 @@ const shareQuote = async () => {
 
   try {
     const shareData = {
-      title: 'Quote from Verbatims',
+      title: $ts('quote_detail_share_title'),
       text: `"${quote.value.name}" ${quote.value.author ? `- ${quote.value.author.name}` : ''}`,
       url: typeof window !== 'undefined' ? window.location.href : ''
     }
@@ -501,14 +502,14 @@ const shareQuote = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
       // native share succeeded
-      useToast().toast({ title: 'Quote shared!', toast: 'outline-success' })
+      useToast().toast({ title: $ts('quote_detail_toast_shared'), toast: 'outline-success' })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
       // fallback copy succeeded
-      useToast().toast({ title: 'Quote link copied', toast: 'outline-success' })
+      useToast().toast({ title: $ts('quote_detail_toast_link_copied'), toast: 'outline-success' })
     }
 
     // Track share
@@ -516,7 +517,7 @@ const shareQuote = async () => {
     quote.value.shares_count++
   } catch (error) {
     console.error('Failed to share quote:', error)
-    useErrorToast().showErrorToast(error, 'Failed to share quote')
+    useErrorToast().showErrorToast(error, $ts('quote_detail_toast_share_failed'))
   } finally {
     sharePending.value = false
   }
@@ -567,7 +568,7 @@ const copyQuoteText = async () => {
     const referenceName = quote.value.reference?.name ? ` (${quote.value.reference.name})` : ''
     await navigator.clipboard.writeText(`"${quote.value.name}"${authorName}${referenceName}`)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('quote_detail_toast_copy_failed'))
   }
 }
 
@@ -588,7 +589,7 @@ const copyTextAndLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('quote_detail_toast_copy_failed'))
   }
 }
 
@@ -601,7 +602,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('quote_detail_toast_copy_failed'))
   }
 }
 

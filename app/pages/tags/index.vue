@@ -2,10 +2,10 @@
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
       <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
-        Tags
+        {{ $t('tags_title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
-        Browse quote topics and discover the ideas that resonate most.
+        {{ $t('tags_subtitle') }}
       </p>
     </header>
 
@@ -59,8 +59,8 @@
         <LoadMoreButton
           v-if="tags.length > 0 && hasMore"
           class="mb-4"
-          idleText="Load More Tags"
-          loadingText="Loading Tags..."
+          :idleText="$ts('tags_load_more')"
+          :loadingText="$ts('tags_loading')"
           :isLoading="loadingMore"
           @load="loadMore"
         />
@@ -95,12 +95,14 @@ definePageMeta({
   layout: 'default'
 })
 
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Tags - Verbatims',
+  title: $ts('tags_meta_title'),
   meta: [
     {
       name: 'description',
-      content: 'Browse tags and explore quote topics across Verbatims.'
+      content: $ts('tags_meta_desc'),
     }
   ]
 })
@@ -109,8 +111,8 @@ useJsonLd({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
-    { '@type': 'ListItem', position: 2, name: 'Tags', item: 'https://verbatims.cc/tags' }
+    { '@type': 'ListItem', position: 1, name: $t('tags_breadcrumb_home'), item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: $t('tags_breadcrumb'), item: 'https://verbatims.cc/tags' }
   ]
 })
 
@@ -140,9 +142,9 @@ const showCreateTag = ref(false)
 const isRestoringState = ref(false)
 
 const sortOptions = [
-  { label: 'Name', value: 'name' },
-  { label: 'Quote Count', value: 'quotes_count' },
-  { label: 'Recently Added', value: 'created_at' }
+  { label: $ts('tags_sort_name'), value: 'name' },
+  { label: $ts('tags_sort_quote_count'), value: 'quotes_count' },
+  { label: $ts('tags_sort_recent'), value: 'created_at' }
 ]
 
 useFocusOnTyping(searchInput, {

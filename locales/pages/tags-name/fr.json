@@ -1,1 +1,22 @@
-{}
+{
+  "tag_detail_meta_title_fallback": "Tag - Verbatims",
+  "tag_detail_meta_desc_fallback": "Parcourez les citations par tag sur Verbatims.",
+  "tag_detail_loading": "Chargement du tag...",
+  "tag_detail_general_label": "Général",
+  "tag_detail_sorted_by": "trié par",
+  "tag_detail_sort_placeholder": "Trier par",
+  "tag_detail_sort_most_recent": "Plus récents",
+  "tag_detail_sort_most_liked": "Les plus aimés",
+  "tag_detail_sort_most_viewed": "Les plus vues",
+  "tag_detail_sort_most_shared": "Les plus partagés",
+  "tag_detail_button_sort": "Trier",
+  "tag_detail_quote_singular": "citation",
+  "tag_detail_quote_plural": "citations",
+  "tag_detail_empty": "Aucune citation pour l'instant",
+  "tag_detail_empty_desc": "Aucune citation approuvée n'est actuellement taguée avec",
+  "tag_detail_load_more": "Voir plus de citations",
+  "tag_detail_loading_more": "Chargement des citations...",
+  "tag_detail_not_found_title": "Tag introuvable",
+  "tag_detail_not_found_desc": "Le tag que vous recherchez n'existe pas ou a été supprimé.",
+  "tag_detail_browse": "Parcourir les tags"
+}

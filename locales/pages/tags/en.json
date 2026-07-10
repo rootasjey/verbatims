@@ -1,1 +1,13 @@
-{}
+{
+  "tags_title": "Tags",
+  "tags_subtitle": "Browse quote topics and discover the ideas that resonate most.",
+  "tags_meta_title": "Tags - Verbatims",
+  "tags_meta_desc": "Browse tags and explore quote topics across Verbatims.",
+  "tags_breadcrumb_home": "Home",
+  "tags_breadcrumb": "Tags",
+  "tags_load_more": "Load More Tags",
+  "tags_loading": "Loading Tags...",
+  "tags_sort_name": "Name",
+  "tags_sort_quote_count": "Quote Count",
+  "tags_sort_recent": "Recently Added"
+}

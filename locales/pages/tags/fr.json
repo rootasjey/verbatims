@@ -1,1 +1,13 @@
-{}
+{
+  "tags_title": "Tags",
+  "tags_subtitle": "Parcourez les sujets de citations et découvrez les idées qui résonnent le plus.",
+  "tags_meta_title": "Tags - Verbatims",
+  "tags_meta_desc": "Parcourez les tags et explorez les sujets de citations sur Verbatims.",
+  "tags_breadcrumb_home": "Accueil",
+  "tags_breadcrumb": "Tags",
+  "tags_load_more": "Voir plus de tags",
+  "tags_loading": "Chargement des tags...",
+  "tags_sort_name": "Nom",
+  "tags_sort_quote_count": "Nombre de citations",
+  "tags_sort_recent": "Ajout récent"
+}

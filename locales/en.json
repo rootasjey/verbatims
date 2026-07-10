@@ -49,6 +49,7 @@
   },
   "common": {
     "loading": "Loading...",
+    "initializing": "Initializing...",
     "error": "An error occurred",
     "not_found": "Not found",
     "back": "Back",
@@ -61,6 +62,7 @@
     "search": "Search",
     "no_results": "No results found",
     "load_more": "Load more",
+    "most_recent": "Most Recent",
     "select_language": "Select language..."
   },
   "home": {
@@ -163,7 +165,19 @@
     "meta_title": "Terms of Service — Verbatims",
     "meta_desc": "Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more."
   },
+  "languages": {
+    "en": "English",
+    "fr": "French",
+    "es": "Spanish",
+    "de": "German",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "ja": "Japanese",
+    "zh": "Chinese"
+  },
   "reference_types": {
+    "all": "All Types",
     "film": "Film",
     "book": "Book",
     "tv_series": "TV Series",

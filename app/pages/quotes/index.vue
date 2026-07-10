@@ -2,10 +2,10 @@
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
       <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
-        Quotes
+        {{ $t('quotes_title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
-        Browse the latest quotes added by the community.
+        {{ $t('quotes_subtitle') }}
       </p>
     </header>
 
@@ -39,12 +39,14 @@ definePageMeta({
   scrollToTop: false
 })
 
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Quotes - Verbatims',
+  title: $ts('quotes_meta_title'),
   meta: [
     {
       name: 'description',
-      content: 'Discover the most recently added quotes on Verbatims.'
+      content: $ts('quotes_meta_desc'),
     }
   ]
 })
@@ -53,8 +55,8 @@ useJsonLd({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
-    { '@type': 'ListItem', position: 2, name: 'Quotes', item: 'https://verbatims.cc/quotes' }
+    { '@type': 'ListItem', position: 1, name: $t('quotes_breadcrumb_home'), item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: $t('quotes_breadcrumb'), item: 'https://verbatims.cc/quotes' }
   ]
 })
 
@@ -129,7 +131,7 @@ onMounted(async () => {
 
   if (!snapshot) {
     // Ensure we start with Most Recent (created_at desc)
-    feed.selectedSortBy.value = { label: 'Most Recent', value: 'created_at' }
+    feed.selectedSortBy.value = { label: $ts('common.most_recent'), value: 'created_at' }
     feed.isAsc.value = false
   }
 

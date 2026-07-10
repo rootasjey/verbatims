@@ -1,1 +1,15 @@
-{}
+{
+  "references_title": "References",
+  "references_subtitle": "Explore the sources behind your favorite quotes, from books and films to speeches and more.",
+  "references_meta_title": "References - Verbatims",
+  "references_meta_desc": "Browse quote references and discover the sources behind inspiring quotes. From books and films to speeches and more.",
+  "references_breadcrumb_home": "Home",
+  "references_breadcrumb": "References",
+  "references_load_more": "Load More References",
+  "references_loading": "Loading References...",
+  "references_sort_name": "Name",
+  "references_sort_quote_count": "Quote Count",
+  "references_sort_popularity": "Popularity",
+  "references_sort_release_date": "Release Date",
+  "references_sort_recent": "Recently Added"
+}

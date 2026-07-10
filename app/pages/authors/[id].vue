@@ -5,7 +5,7 @@
       <div class="flex items-center gap-3">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
         <span class="text-gray-600 dark:text-gray-400">
-          {{ !hydrated ? 'Loading...' : (!isLanguageReady ? 'Initializing...' : 'Loading author...') }}
+          {{ !hydrated ? $t('common.loading') : (!isLanguageReady ? $t('common.initializing') : $t('author_detail_loading')) }}
         </span>
       </div>
     </div>
@@ -53,7 +53,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full" :class="author.is_fictional ? 'bg-purple-500' : 'bg-blue-500'" />
-              <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Author</span>
+              <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $ts('author_detail_label') }}</span>
               <template v-if="author.job">
                 <span class="text-gray-300 dark:text-gray-600">·</span>
                 <span class="font-sans text-sm text-gray-400 dark:text-gray-400">{{ author.job }}</span>
@@ -107,7 +107,7 @@
             <div class="flex items-center gap-3 mb-6">
               <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
               <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
-                Quotes · {{ authorQuotes.length }}
+                {{ $ts('author_detail_quotes_heading') + ' ·' }} {{ authorQuotes.length }}
               </p>
               <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
             </div>
@@ -116,7 +116,7 @@
               <NSelect
                 v-model="sortBy"
                 :items="sortOptions"
-                placeholder="Sort"
+                :placeholder="$ts('author_detail_sort_placeholder')"
                 item-key="label"
                 value-key="label"
                 size="sm"
@@ -175,13 +175,13 @@
             </div>
 
             <div v-else class="text-center py-8">
-              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">No quotes yet</p>
+              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">{{ $ts('author_detail_empty') }}</p>
             </div>
 
             <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
               <LoadMoreButton
-                idleText="Load More Quotes"
-                loadingText="Loading Quotes..."
+                :idleText="$ts('author_detail_load_more')"
+                :loadingText="$ts('author_detail_loading_more')"
                 :isLoading="loadingMoreQuotes"
                 @load="loadMoreQuotes"
               />
@@ -199,12 +199,12 @@
     <div v-else class="p-8">
       <div class="text-center py-16">
         <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">Author Not Found</h2>
+        <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $ts('author_detail_not_found_title') }}</h2>
         <p class="font-serif text-gray-600 dark:text-gray-400 mb-6">
-          The author you're looking for doesn't exist or has been removed.
+          {{ $ts('author_detail_not_found_desc') }}
         </p>
         <NButton to="/authors" size="sm" btn="solid-black" class="px-8 py-3 rounded-3">
-          Browse Authors
+          {{ $ts('author_detail_browse') }}
         </NButton>
       </div>
     </div>
@@ -267,6 +267,7 @@ definePageMeta({ layout: 'default' })
 const route = useRoute()
 const router = useRouter()
 const { user } = useUserSession()
+const { $t, $ts } = useI18n()
 
 interface SortOption {
   label: string
@@ -311,8 +312,8 @@ useVerbatimsSeo(() => {
 
   if (!currentAuthor) {
     return {
-      title: 'Author - Verbatims',
-      description: 'Discover author profiles and quotes on Verbatims.',
+      title: $ts('author_detail_meta_title_fallback'),
+      description: $ts('author_detail_meta_desc_fallback'),
       type: 'profile'
     }
   }
@@ -357,9 +358,9 @@ const loadingMoreQuotes = ref<boolean>(false)
 const hasMoreQuotes = ref<boolean>(true)
 const currentQuotePage = ref<number>(1)
 const sortOptions: SortOption[] = [
-  { label: 'Most Recent', value: 'created_at' },
-  { label: 'Most Popular', value: 'likes_count' },
-  { label: 'Most Viewed', value: 'views_count' }
+  { label: $ts('author_detail_sort_most_recent'), value: 'created_at' },
+  { label: $ts('author_detail_sort_most_popular'), value: 'likes_count' },
+  { label: $ts('author_detail_sort_most_viewed'), value: 'views_count' }
 ]
 
 const sortBy = ref<SortOption>(sortOptions[0]!)
@@ -460,12 +461,12 @@ const headerMenuItems = computed<HeaderMenuItem[]>(() => {
 
   if (user.value && (user.value.role === 'admin' || user.value.role === 'moderator')) {
     items.push({
-      label: 'Edit',
+      label: $ts('author_detail_menu_edit'),
       leading: 'i-ph-pencil-simple',
       onclick: () => { showEditAuthorDialog.value = true }
     })
     items.push({
-      label: 'Delete',
+      label: $ts('author_detail_menu_delete'),
       leading: 'i-ph-trash',
       onclick: () => { showDeleteAuthorDialog.value = true }
     })
@@ -473,17 +474,17 @@ const headerMenuItems = computed<HeaderMenuItem[]>(() => {
 
   items.push(
     {
-      label: 'Copy link',
+      label: $ts('author_detail_menu_copy_link'),
       leading: 'i-ph-link',
       onclick: () => copyLink()
     },
     {
-      label: 'Share',
+      label: $ts('author_detail_menu_share'),
       leading: 'i-ph-share-network',
       onclick: () => shareAuthor()
     },
     {
-      label: 'Report',
+      label: $ts('author_detail_menu_report'),
       leading: 'i-ph-flag',
       onclick: () => reportAuthor()
     }
@@ -615,20 +616,20 @@ const shareAuthor = async () => {
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
-      toast({ title: 'Author shared successfully!', toast: 'outline-success' })
+      toast({ title: $ts('author_detail_toast_shared'), toast: 'outline-success' })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
-      toast({ title: 'Author link copied to clipboard!', toast: 'outline-success' })
+      toast({ title: $ts('author_detail_toast_link_copied'), toast: 'outline-success' })
     }
 
     // Optimistically increment local share count (no server endpoint yet)
     currentAuthor.shares_count = (currentAuthor.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share author:', error)
-    showErrorToast(error, 'Failed to share')
+    showErrorToast(error, $ts('author_detail_toast_share_failed'))
   } finally {
     sharePending.value = false
   }
@@ -648,7 +649,7 @@ const copyTextAndLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('author_detail_toast_copy_failed'))
   }
 }
 
@@ -664,7 +665,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('author_detail_toast_copy_failed'))
   }
 }
 

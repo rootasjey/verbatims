@@ -1,1 +1,21 @@
-{}
+{
+  "quote_detail_meta_title_fallback": "Citation - Verbatims",
+  "quote_detail_meta_desc_fallback": "Explorez des citations, auteurs et références sélectionnés sur Verbatims.",
+  "quote_detail_not_found_title": "Citation introuvable",
+  "quote_detail_not_found_desc": "La citation que vous recherchez n'existe pas ou a été supprimée.",
+  "quote_detail_browse": "Parcourir les citations",
+  "quote_detail_share_title": "Citation de Verbatims",
+  "quote_detail_menu_edit": "Modifier",
+  "quote_detail_menu_edit_tag": "Modifier le tag",
+  "quote_detail_menu_delete": "Supprimer",
+  "quote_detail_menu_copy_link": "Copier le lien",
+  "quote_detail_menu_copy_text": "Copier le texte",
+  "quote_detail_menu_share": "Partager",
+  "quote_detail_menu_download": "Télécharger l'image",
+  "quote_detail_menu_report": "Signaler",
+  "quote_detail_toast_shared": "Citation partagée !",
+  "quote_detail_toast_link_copied": "Lien de la citation copié",
+  "quote_detail_toast_share_failed": "Échec du partage de la citation",
+  "quote_detail_toast_copy_failed": "Échec de la copie",
+  "quote_detail_jsonld_unknown": "Inconnu"
+}

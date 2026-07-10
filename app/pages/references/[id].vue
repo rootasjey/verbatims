@@ -5,7 +5,7 @@
       <div class="flex items-center gap-3">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
         <span class="text-gray-600 dark:text-gray-400">
-          {{ !hydrated ? 'Loading...' : (!isLanguageReady ? 'Initializing...' : 'Loading reference...') }}
+          {{ !hydrated ? $t('common.loading') : (!isLanguageReady ? $t('common.initializing') : $t('reference_detail_loading')) }}
         </span>
       </div>
     </div>
@@ -56,7 +56,7 @@
                 v-if="canEditReference"
                 class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-all duration-200 hidden lg:flex"
                 @click.stop="openEditImageDialog"
-                title="Edit poster image"
+                :title="$ts('reference_detail_edit_poster')"
               >
                 <NIcon name="i-ph-pencil-simple-line" class="w-4 h-4" />
               </button>
@@ -73,7 +73,7 @@
           <div class="flex items-center gap-2 mb-4">
             <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: getTypeDotColor(reference.primaryType) }" />
             <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-600">
-              {{ reference.primaryType ? formatReferenceType(reference.primaryType) : 'Reference' }}
+              {{ reference.primaryType ? formatReferenceType(reference.primaryType) : $t('reference_detail_label') }}
             </span>
             <template v-if="reference.secondary_type || reference.release_date">
               <span class="text-gray-300 dark:text-gray-600">·</span>
@@ -112,7 +112,7 @@
           >
             <div v-if="reference.original_language && reference.original_language !== 'en'" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
               <NIcon name="i-ph-globe" class="w-4 h-4" />
-              <span>Original Language: {{ formatLanguage(reference.original_language as langCode) }}</span>
+              <span>{{ $t('reference_detail_original_language') }} {{ formatLanguage(reference.original_language as langCode) }}</span>
             </div>
 
             <ExternalLinksBadges :links="reference.urls" />
@@ -125,7 +125,7 @@
             <div class="flex items-center gap-3 mb-6">
               <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
               <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
-                Quotes · {{ referenceQuotes.length }}
+                {{ $ts('reference_detail_quotes_heading') + ' ·' }} {{ referenceQuotes.length }}
               </p>
               <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
             </div>
@@ -134,7 +134,7 @@
               <NSelect
                 v-model="sortBy"
                 :items="sortOptions"
-                placeholder="Sort by"
+                :placeholder="$ts('reference_detail_sort_placeholder')"
                 item-key="label"
                 value-key="label"
                 size="sm"
@@ -200,13 +200,13 @@
             </div>
 
             <div v-else class="text-center py-8">
-              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">No quotes yet</p>
+              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">{{ $ts('reference_detail_empty') }}</p>
             </div>
 
             <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
               <LoadMoreButton
-                idleText="Load More Quotes"
-                loadingText="Loading Quotes..."
+                :idleText="$ts('reference_detail_load_more')"
+                :loadingText="$ts('reference_detail_loading_more')"
                 :isLoading="loadingMoreQuotes"
                 @load="loadMoreQuotes"
               />
@@ -223,12 +223,12 @@
     <div v-else class="p-8">
       <div class="text-center py-16">
         <NIcon name="i-ph-warning" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">Reference Not Found</h2>
+        <h2 class="font-title text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $ts('reference_detail_not_found_title') }}</h2>
         <p class="font-serif text-gray-600 dark:text-gray-400 mb-6">
-          The reference you're looking for doesn't exist or has been removed.
+          {{ $ts('reference_detail_not_found_desc') }}
         </p>
         <NButton to="/references" size="sm" btn="solid-black" class="px-8 py-3 rounded-3">
-          Browse References
+          {{ $ts('reference_detail_browse') }}
         </NButton>
       </div>
     </div>
@@ -321,6 +321,7 @@ const { isMobile } = useMobileDetection()
 const route = useRoute()
 const { user } = useUserSession()
 const router = useRouter()
+const { $t, $ts } = useI18n()
 const languageStore = useLanguageStore()
 const { waitForLanguageStore, isLanguageReady } = useLanguageReady()
 const referencesListStore = useReferencesListStore()
@@ -344,7 +345,7 @@ useVerbatimsSeo(() => {
 
   if (!currentReference) {
     return {
-      title: 'Reference - Verbatims',
+      title: $ts('reference_detail_meta_title_fallback'),
       description: 'Discover reference pages and related quotes on Verbatims.',
       type: 'article'
     }
@@ -411,13 +412,13 @@ const quotesByAuthor = computed(() => {
   })
 })
 
-const sortBy = ref<{ label: string; value: string }>({ label: 'Most Recent', value: 'created_at' })
+const sortBy = ref<{ label: string; value: string }>({ label: $ts('reference_detail_sort_most_recent'), value: 'created_at' })
 const mobileFiltersOpen = ref<boolean>(false)
 
 const sortOptions = [
-  { label: 'Most Recent', value: 'created_at' },
-  { label: 'Most Popular', value: 'likes_count' },
-  { label: 'Most Viewed', value: 'views_count' }
+  { label: $ts('reference_detail_sort_most_recent'), value: 'created_at' },
+  { label: $ts('reference_detail_sort_most_popular'), value: 'likes_count' },
+  { label: $ts('reference_detail_sort_most_viewed'), value: 'views_count' }
 ]
 
 const isLiked = ref<boolean>(false)
@@ -455,12 +456,12 @@ const headerMenuItems = computed(() => {
 
   if (canEditReference.value) {
     items.push({
-      label: 'Edit',
+      label: $ts('reference_detail_menu_edit'),
       leading: 'i-ph-pencil-simple-line',
       onclick: () => openEditReference()
     })
     items.push({
-      label: 'Delete',
+      label: $ts('reference_detail_menu_delete'),
       leading: 'i-ph-trash',
       onclick: () => openDeleteReference()
     })
@@ -468,17 +469,17 @@ const headerMenuItems = computed(() => {
 
   items.push(
     {
-      label: 'Copy link',
+      label: $ts('reference_detail_menu_copy_link'),
       leading: 'i-ph-link',
       onclick: () => copyLink()
     },
     {
-      label: 'Share',
+      label: $ts('reference_detail_menu_share'),
       leading: 'i-ph-share-network',
       onclick: () => shareReference()
     },
     {
-      label: 'Report',
+      label: $ts('reference_detail_menu_report'),
       leading: 'i-ph-flag',
       onclick: () => reportReference()
     }
@@ -634,20 +635,20 @@ const shareReference = async () => {
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       await navigator.share(shareData)
-      toast({ title: 'Reference shared successfully!', toast: 'outline-success' })
+      toast({ title: $ts('reference_detail_toast_shared'), toast: 'outline-success' })
     } else {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
         throw new Error('clipboard-unavailable')
       }
       await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.url}`)
-      toast({ title: 'Reference link copied to clipboard!', toast: 'outline-success' })
+      toast({ title: $ts('reference_detail_toast_link_copied'), toast: 'outline-success' })
     }
 
     // Optimistically increment local share count (no server endpoint yet)
     reference.value.shares_count = (reference.value.shares_count || 0) + 1
   } catch (error) {
     console.error('Failed to share reference:', error)
-    showErrorToast(error, 'Failed to share')
+    showErrorToast(error, $ts('reference_detail_toast_share_failed'))
   } finally {
     sharePending.value = false
   }
@@ -667,7 +668,7 @@ const copyTextAndLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('reference_detail_toast_copy_failed'))
   }
 }
 
@@ -683,7 +684,7 @@ const copyLink = async () => {
     copyState.value = 'copied'
     setTimeout(() => { copyState.value = 'idle' }, 2000)
   } catch (error) {
-    useErrorToast().showErrorToast(error, 'Copy failed')
+    useErrorToast().showErrorToast(error, $ts('reference_detail_toast_copy_failed'))
   }
 }
 
@@ -791,37 +792,12 @@ const formatReleaseDate = (dateString: string) => {
 
 const formatReferenceType = (type: string): string => {
   if (!type) return ''
-  const typeMap: Record<string, string> = {
-    'film': 'Film',
-    'book': 'Book',
-    'tv_series': 'TV Series',
-    'tv_show': 'TV Show',
-    'music': 'Music',
-    'speech': 'Speech',
-    'podcast': 'Podcast',
-    'interview': 'Interview',
-    'documentary': 'Documentary',
-    'media_stream': 'Media Stream',
-    'writings': 'Writings',
-    'video_game': 'Video Game',
-    'other': 'Other'
-  }
-  return typeMap[type] || type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+  return $ts(`reference_types.${type}`)
 }
 
 const formatLanguage = (langCode: langCode) => {
-  const languages = {
-    'en': 'English',
-    'fr': 'French',
-    'es': 'Spanish',
-    'de': 'German',
-    'it': 'Italian',
-    'pt': 'Portuguese',
-    'ru': 'Russian',
-    'ja': 'Japanese',
-    'zh': 'Chinese'
-  }
-  return languages[langCode] || langCode.toUpperCase()
+  const t = $ts(`languages.${langCode}`)
+  return t || langCode.toUpperCase()
 }
 
 const formatNumber = (num: number | null | undefined) => {

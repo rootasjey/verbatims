@@ -2,10 +2,10 @@
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
       <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
-        References
+        {{ $t('references_title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
-        Explore the sources behind your favorite quotes, from books and films to speeches and more.
+        {{ $t('references_subtitle') }}
       </p>
     </header>
 
@@ -89,8 +89,8 @@
       <div v-if="references.length > 0 && hasMore" class="flex justify-center mt-8">
         <LoadMoreButton
           class="mb-4"
-          idleText="Load More References"
-          loadingText="Loading References..."
+          :idleText="$ts('references_load_more')"
+          :loadingText="$ts('references_loading')"
           :isLoading="loadingMore"
           @load="loadMore"
         />
@@ -134,12 +134,14 @@ definePageMeta({
   layout: 'default'
 })
 
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'References - Verbatims',
+  title: $ts('references_meta_title'),
   meta: [
     {
       name: 'description',
-      content: 'Browse quote references and discover the sources behind inspiring quotes. From books and films to speeches and more.',
+      content: $ts('references_meta_desc'),
     }
   ]
 })
@@ -148,8 +150,8 @@ useJsonLd({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
-    { '@type': 'ListItem', position: 2, name: 'References', item: 'https://verbatims.cc/references' }
+    { '@type': 'ListItem', position: 1, name: $t('references_breadcrumb_home'), item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: $t('references_breadcrumb'), item: 'https://verbatims.cc/references' }
   ]
 })
 
@@ -275,27 +277,27 @@ useFocusOnTyping(searchInput, {
 type Option = { label: string; value: string }
 
 const typeOptions: Option[] = [
-  { label: 'All Types', value: '' },
-  { label: 'Books', value: 'book' },
-  { label: 'Films', value: 'film' },
-  { label: 'TV Series', value: 'tv_series' },
-  { label: 'Music', value: 'music' },
-  { label: 'Speeches', value: 'speech' },
-  { label: 'Podcasts', value: 'podcast' },
-  { label: 'Interviews', value: 'interview' },
-  { label: 'Documentaries', value: 'documentary' },
-  { label: 'Media Streams', value: 'media_stream' },
-  { label: 'Writings', value: 'writings' },
-  { label: 'Video Games', value: 'video_game' },
-  { label: 'Other', value: 'other' }
+  { label: $ts('reference_types.all'), value: '' },
+  { label: $ts('reference_types.book'), value: 'book' },
+  { label: $ts('reference_types.film'), value: 'film' },
+  { label: $ts('reference_types.tv_series'), value: 'tv_series' },
+  { label: $ts('reference_types.music'), value: 'music' },
+  { label: $ts('reference_types.speech'), value: 'speech' },
+  { label: $ts('reference_types.podcast'), value: 'podcast' },
+  { label: $ts('reference_types.interview'), value: 'interview' },
+  { label: $ts('reference_types.documentary'), value: 'documentary' },
+  { label: $ts('reference_types.media_stream'), value: 'media_stream' },
+  { label: $ts('reference_types.writings'), value: 'writings' },
+  { label: $ts('reference_types.video_game'), value: 'video_game' },
+  { label: $ts('reference_types.other'), value: 'other' }
 ]
 
 const sortOptions: Option[] = [
-  { label: 'Name', value: 'name' },
-  { label: 'Quote Count', value: 'quotes_count' },
-  { label: 'Popularity', value: 'likes_count' },
-  { label: 'Release Date', value: 'release_date' },
-  { label: 'Recently Added', value: 'created_at' }
+  { label: $ts('references_sort_name'), value: 'name' },
+  { label: $ts('references_sort_quote_count'), value: 'quotes_count' },
+  { label: $ts('references_sort_popularity'), value: 'likes_count' },
+  { label: $ts('references_sort_release_date'), value: 'release_date' },
+  { label: $ts('references_sort_recent'), value: 'created_at' }
 ]
 
 const loadReferences = async (reset = true) => {
