@@ -3,40 +3,40 @@
     <div class="flex items-center justify-between pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <div>
         <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-          Developer
+          {{ $t('title') }}
         </h1>
         <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Manage your API keys for the Verbatims public API
+          {{ $t('subtitle') }}
         </p>
       </div>
       <div class="flex items-center gap-3">
         <NDropdownMenu :items="bulkActions">
           <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1">
-            Bulk actions
+            {{ $t('bulk_actions') }}
             <NIcon name="i-ph-caret-down" class="w-3 h-3" />
           </button>
         </NDropdownMenu>
-        <OutlinedButton @click="showCreateDialog = true">New Key</OutlinedButton>
+        <OutlinedButton @click="showCreateDialog = true">{{ $t('new_key') }}</OutlinedButton>
       </div>
     </div>
 
     <!-- New Key Display -->
     <div v-if="createdKey" class="border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-4 mb-6 rounded-sm">
-      <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">⚠️ Save this key — it won't be shown again!</p>
+      <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">{{ $t('warning_banner') }}</p>
       <div class="flex items-stretch gap-2">
         <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all bg-yellow-100 dark:bg-yellow-800/30 px-2 py-1.5 flex-1 rounded-sm">{{ createdKey }}</code>
-        <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? 'Copied!' : 'Copy' }}</button>
+        <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? $t('common.copied') : $t('common.copy') }}</button>
       </div>
-      <button class="font-sans text-xs text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 mt-2 transition-colors" @click="createdKey = ''">Dismiss</button>
+      <button class="font-sans text-xs text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 mt-2 transition-colors" @click="createdKey = ''">{{ $t('common.dismiss') }}</button>
     </div>
 
     <!-- Bulk action bar -->
     <div v-if="selectedKeys.size > 0" class="flex items-center justify-between px-1 py-2 mb-3">
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedKeys.size }} selected</span>
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedKeys.size }) }}</span>
       <div class="flex items-center gap-3">
-        <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="batchActivate">Activate</button>
-        <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="batchDeactivate">Deactivate</button>
-        <button class="font-sans text-xs text-red-500 hover:text-red-600 transition-colors" @click="showBatchDeleteDialog = true">Delete</button>
+        <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="batchActivate">{{ $t('bulk_activate') }}</button>
+        <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="batchDeactivate">{{ $t('bulk_deactivate') }}</button>
+        <button class="font-sans text-xs text-red-500 hover:text-red-600 transition-colors" @click="showBatchDeleteDialog = true">{{ $t('bulk_delete') }}</button>
       </div>
     </div>
 
@@ -50,9 +50,9 @@
 
     <!-- Empty -->
     <div v-else-if="keys.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-1">No API keys yet</p>
-      <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-6">Create one to get started.</p>
-      <OutlinedButton @click="showCreateDialog = true">Create API Key</OutlinedButton>
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-1">{{ $t('empty_title') }}</p>
+      <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-6">{{ $t('empty_desc') }}</p>
+      <OutlinedButton @click="showCreateDialog = true">{{ $t('empty_action') }}</OutlinedButton>
     </div>
 
     <!-- Keys List -->
@@ -65,7 +65,7 @@
           class="shrink-0 accent-gray-700 dark:accent-gray-300 cursor-pointer"
           @change="toggleSelectAll"
         />
-        <span class="font-sans text-xs text-gray-400 dark:text-gray-500">Select all</span>
+        <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('select_all') }}</span>
       </div>
       <div
         v-for="key in keys"
@@ -89,14 +89,14 @@
                 class="font-sans text-xs px-1.5 py-0.5 shrink-0"
                 :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'"
               >
-                {{ key.isActive ? 'Active' : 'Inactive' }}
+                {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
               </span>
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400 font-mono">
               <span>{{ key.keyPrefix }}...</span>
               <span class="font-sans">{{ key.rateLimit }} req / {{ formatWindow(key.windowSec) }}</span>
-              <span v-if="key.lastUsedAt" class="font-sans">Last used: {{ timeAgo(key.lastUsedAt) }}</span>
-              <span v-else class="font-sans">Never used</span>
+              <span v-if="key.lastUsedAt" class="font-sans">{{ $t('last_used') }}{{ timeAgo(key.lastUsedAt) }}</span>
+              <span v-else class="font-sans">{{ $t('never_used') }}</span>
             </div>
             <div class="flex gap-1.5 mt-1.5">
               <span v-for="perm in key.permissions" :key="perm" class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-sm">{{ perm }}</span>
@@ -108,12 +108,12 @@
               class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               @click="toggleKey(key)"
             >
-              {{ key.isActive ? 'Deactivate' : 'Activate' }}
+              {{ key.isActive ? $t('button_deactivate') : $t('button_activate') }}
             </button>
-            <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="openEditDialog(key)" title="Edit">
+            <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="openEditDialog(key)" :title="$t('common.edit') as string">
               <NIcon name="i-ph-pencil" class="w-3.5 h-3.5" />
             </button>
-            <button class="p-1 text-gray-400 hover:text-red-500 transition-colors" @click="confirmDelete(key)" title="Delete">
+            <button class="p-1 text-gray-400 hover:text-red-500 transition-colors" @click="confirmDelete(key)" :title="$t('common.delete') as string">
               <NIcon name="i-ph-trash" class="w-3.5 h-3.5" />
             </button>
           </div>
@@ -121,67 +121,67 @@
       </div>
 
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ page }} of {{ totalPages }}</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: page, m: totalPages }) }}</span>
         <div class="flex gap-3">
-          <OutlinedButton v-if="page > 1" @click="page -= 1">&larr; Previous</OutlinedButton>
-          <OutlinedButton v-if="page < totalPages" @click="page += 1">Next &rarr;</OutlinedButton>
+          <OutlinedButton v-if="page > 1" @click="page -= 1">&larr; {{ $t('common.previous') }}</OutlinedButton>
+          <OutlinedButton v-if="page < totalPages" @click="page += 1">{{ $t('common.next') }} &rarr;</OutlinedButton>
         </div>
       </div>
     </div>
 
     <!-- API Info -->
     <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4 mb-6 rounded-sm">
-      <h3 class="font-sans text-xs font-600 text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Public API</h3>
+      <h3 class="font-sans text-xs font-600 text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ $t('section_public_api') }}</h3>
       <p class="font-sans text-xs text-gray-600 dark:text-gray-400 mb-2">
-        Use your API keys to access quotes, authors, references, and more programmatically.
+        {{ $t('desc_public_api') }}
       </p>
       <div class="bg-gray-50 dark:bg-gray-900 p-3 font-mono text-xs text-gray-700 dark:text-gray-300 rounded-sm">
-        <p><span class="text-gray-400"># Authenticate with your key</span></p>
+        <p><span class="text-gray-400">{{ $t('code_auth') }}</span></p>
         <p>curl -H "Authorization: Bearer vbt_xxxxxxxx..." {{ siteUrl }}/api/v1/me</p>
-        <p class="mt-1"><span class="text-gray-400"># List approved quotes</span></p>
+        <p class="mt-1"><span class="text-gray-400">{{ $t('code_list_quotes') }}</span></p>
         <p>curl -H "Authorization: Bearer vbt_xxx..." {{ siteUrl }}/api/v1/quotes?page=1&limit=5</p>
       </div>
     </div>
 
     <!-- Create Key Dialog -->
     <NDialog v-model:open="showCreateDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Create API Key</h3></template>
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_create_title') }}</h3></template>
       <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">
-        Give your key a name so you can recognize it later.
+        {{ $t('dialog_create_desc') }}
       </p>
       <input
         v-model="newKeyName"
         type="text"
-        placeholder="e.g. My CLI tool"
+              :placeholder="$t('dialog_create_placeholder') as string"
         class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
         @keydown.enter="createKey"
       />
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showCreateDialog = false">Cancel</button>
-          <OutlinedButton :disabled="!newKeyName.trim()" :loading="creating" @click="createKey">Create</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showCreateDialog = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton :disabled="!newKeyName.trim()" :loading="creating" @click="createKey">{{ $t('dialog_create_button') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
 
     <!-- Edit Key Dialog -->
     <NDialog v-model:open="showEditDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Edit API Key</h3></template>
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_edit_title') }}</h3></template>
       <div class="space-y-4">
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">Name</label>
+          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_name') }}</label>
           <input
             v-model="editName"
             type="text"
-            placeholder="Key name"
+            :placeholder="$t('placeholder_name') as string"
             class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
             @keydown.enter="saveEdit"
           />
         </div>
         <div>
           <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">
-            Rate limit
-            <span class="text-gray-400 font-normal">(max {{ maxRatePerHour }} req/h for {{ editingKey?.tier }} tier)</span>
+            {{ $t('label_rate_limit') }}
+            <span class="text-gray-400 font-normal">{{ $t('helper_rate_limit', { n: maxRatePerHour, tier: editingKey?.tier }) }}</span>
           </label>
           <div class="flex gap-3 items-end">
             <input
@@ -194,55 +194,54 @@
               v-model="editWindowSec"
               class="w-28 font-sans text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-gray-400 cursor-pointer"
             >
-              <option :value="60">per minute</option>
-              <option :value="3600">per hour</option>
-              <option :value="86400">per day</option>
+              <option :value="60">{{ $t('option_per_minute') }}</option>
+              <option :value="3600">{{ $t('option_per_hour') }}</option>
+              <option :value="86400">{{ $t('option_per_day') }}</option>
             </select>
           </div>
           <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-            ⇢ {{ effectivePerHour }} req / hour
+            {{ $t('rate_display', { n: effectivePerHour }) }}
           </p>
         </div>
       </div>
       <div v-if="editError" class="font-sans text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-sm -mb-2">
         <p>{{ editError }}</p>
         <button class="mt-1.5 underline underline-offset-2 hover:text-red-800 dark:hover:text-red-300 transition-colors" @click="applyRecommendedRate">
-          Use recommended rate ({{ maxRatePerHour }} req/h)
+          {{ $t('rate_recommended', { n: maxRatePerHour }) }}
         </button>
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showEditDialog = false">Cancel</button>
-          <OutlinedButton :disabled="!editName.trim()" :loading="savingEdit" @click="saveEdit">Save</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showEditDialog = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton :disabled="!editName.trim()" :loading="savingEdit" @click="saveEdit">{{ $t('common.save') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
 
     <!-- Delete Dialog -->
     <NDialog v-model:open="showDeleteDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete API Key</h3></template>
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_delete_title') }}</h3></template>
       <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">
-        Delete <strong class="text-gray-900 dark:text-gray-100">{{ deletingKey?.name }}</strong>?
-        This cannot be undone.
+        {{ $t('dialog_delete_body', { name: deletingKey?.name }) }}
       </p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showDeleteDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="deleting" @click="doDelete">Delete</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showDeleteDialog = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton variant="destructive" :loading="deleting" @click="doDelete">{{ $t('common.delete') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
 
     <!-- Batch Delete Dialog -->
     <NDialog v-model:open="showBatchDeleteDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete API Keys</h3></template>
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_batch_delete_title') }}</h3></template>
       <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">
-        Delete <strong class="text-gray-900 dark:text-gray-100">{{ selectedKeys.size }}</strong> selected keys? This cannot be undone.
+        {{ $t('dialog_batch_delete_body', { n: selectedKeys.size }) }}
       </p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showBatchDeleteDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="batchDeleting" @click="doBatchDelete">Delete all</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showBatchDeleteDialog = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton variant="destructive" :loading="batchDeleting" @click="doBatchDelete">{{ $t('dialog_delete_all') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
@@ -251,7 +250,9 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
-useHead({ title: 'Developer - Verbatims' })
+const { $t } = useI18n()
+
+useHead({ title: $t('meta_title') as string })
 const { showErrorToast } = useErrorToast()
 const runtimeConfig = useRuntimeConfig()
 const siteUrl = runtimeConfig.public?.siteUrl || 'https://verbatims.cc'
@@ -306,9 +307,9 @@ const toggleSelectAll = () => {
 
 const clearSelection = () => { selectedKeys.value = new Set() }
 
-const bulkActions = computed(() => [
+const bulkActions = computed((): any[] => [
   {
-    label: 'Activate All',
+    label: $t('dropdown_activate_all') as string,
     leading: 'i-ph-play',
     onclick: async () => {
       await Promise.all(keys.value.filter(k => !k.isActive).map(k => toggleKey(k)))
@@ -317,7 +318,7 @@ const bulkActions = computed(() => [
   },
   {},
   {
-    label: 'Deactivate All',
+    label: $t('dropdown_deactivate_all') as string,
     leading: 'i-ph-pause',
     onclick: async () => {
       await Promise.all(keys.value.filter(k => k.isActive).map(k => toggleKey(k)))
@@ -352,7 +353,7 @@ const doBatchDelete = async () => {
     if (keys.value.length <= targets.length && page.value > 1) page.value -= 1
     loadKeys()
   } catch (e) {
-    showErrorToast(e, 'Failed to delete some keys')
+    showErrorToast(e, $t('error_bulk_delete') as string)
   } finally {
     batchDeleting.value = false
   }
@@ -436,11 +437,11 @@ const formatWindow = (s: number) => {
 const timeAgo = (ts: number | string) => {
   const diff = Date.now() - new Date(ts).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return $t('time_just_now')
+  if (mins < 60) return $t('time_m_ago', { m: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return $t('time_h_ago', { h: hours })
+  return $t('time_d_ago', { d: Math.floor(hours / 24) })
 }
 
 const createKey = async () => {
@@ -456,7 +457,7 @@ const createKey = async () => {
     newKeyName.value = ''
     loadKeys()
   } catch (e) {
-    showErrorToast(e, 'Failed to create API key')
+    showErrorToast(e, $t('error_create') as string)
   } finally {
     creating.value = false
   }
@@ -470,7 +471,7 @@ const toggleKey = async (key: any) => {
     })
     key.isActive = !key.isActive
   } catch (e) {
-    showErrorToast(e, 'Failed to update API key')
+    showErrorToast(e, $t('error_update') as string)
   }
 }
 
@@ -489,7 +490,7 @@ const doDelete = async () => {
     if (keys.value.length <= 1 && page.value > 1) page.value -= 1
     loadKeys()
   } catch (e) {
-    showErrorToast(e, 'Failed to delete API key')
+    showErrorToast(e, $t('error_delete') as string)
   } finally {
     deleting.value = false
   }
@@ -505,7 +506,7 @@ const loadKeys = async () => {
     total.value = res.pagination?.total || 0
     clearSelection()
   } catch (e) {
-    showErrorToast(e, 'Failed to load API keys')
+    showErrorToast(e, $t('error_load') as string)
   } finally {
     loading.value = false
   }

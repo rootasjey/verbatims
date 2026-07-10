@@ -1,1 +1,27 @@
-{}
+{
+  "meta_title": "Tableau de bord - Verbatims",
+  "greeting_fallback": "à vous",
+  "greeting_morning": "Bonjour",
+  "greeting_afternoon": "Bon après-midi",
+  "greeting_evening": "Bonsoir",
+  "section_recent_submissions": "Soumissions récentes",
+  "see_all": "Tout voir",
+  "empty_submissions_title": "Aucune soumission",
+  "empty_submissions_desc": "Soumettez votre première citation pour commencer",
+  "section_quick_links": "Liens rapides",
+  "link_manage_lists": "Gérer les listes",
+  "link_view_favourites": "Voir les favoris",
+  "link_my_drafts": "Mes brouillons",
+  "link_my_sponsorships": "Mes sponsors",
+  "section_my_lists": "Mes listes",
+  "empty_lists_title": "Aucune collection",
+  "empty_lists_action": "Créer une liste",
+  "section_submit_quote": "Soumettre une citation",
+  "submit_quote_desc": "Partagez une citation qui vous a touché. Retrouvez-la dans vos brouillons après soumission.",
+  "submit_quote_action": "Soumettre",
+  "stat_submitted": "Soumises",
+  "stat_published": "Publiées",
+  "stat_likes_received": "J'aimes reçus",
+  "stat_collections": "Collections",
+  "stat_likes_given": "J'aimes donnés"
+}

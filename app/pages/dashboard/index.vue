@@ -6,7 +6,7 @@
         {{ currentDate }}
       </p>
       <h1 class="font-serif text-3xl md:text-5xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
-        {{ greeting }}, <span class="font-600">{{ user?.name || 'there' }}</span>.
+        {{ greeting }}, <span class="font-600">{{ user?.name || $t('greeting_fallback') }}</span>.
       </h1>
     </div>
 
@@ -34,7 +34,7 @@
           <div class="flex items-center gap-2">
             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
             <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-              Recent Submissions
+              {{ $t('section_recent_submissions') }}
             </p>
           </div>
           <NuxtLink to="/dashboard/my-quotes/published" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
@@ -43,8 +43,8 @@
         </div>
 
         <div v-if="dataLoaded && recentSubmissions.length === 0" class="py-10 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-          <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">No submissions yet</p>
-          <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-2">Submit your first quote to get started</p>
+          <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">{{ $t('empty_submissions_title') }}</p>
+          <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-2">{{ $t('empty_submissions_desc') }}</p>
         </div>
 
         <div v-else-if="!dataLoaded" class="space-y-4">
@@ -89,32 +89,32 @@
           <div class="flex items-center gap-2 mb-4">
             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
             <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-              Quick Links
+              {{ $t('section_quick_links') }}
             </p>
           </div>
           <div class="space-y-1">
             <NuxtLink to="/dashboard/lists"
               class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors"
             >
-              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Manage Lists</span>
+              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('link_manage_lists') }}</span>
               <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
             </NuxtLink>
             <NuxtLink to="/dashboard/favourites"
               class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors"
             >
-              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">View Favourites</span>
+              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('link_view_favourites') }}</span>
               <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
             </NuxtLink>
             <NuxtLink to="/dashboard/my-quotes/drafts"
               class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors"
             >
-              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">My Drafts</span>
+              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('link_my_drafts') }}</span>
               <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
             </NuxtLink>
             <NuxtLink to="/dashboard/sponsors"
               class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors"
             >
-              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">My Sponsorships</span>
+              <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('link_my_sponsorships') }}</span>
               <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
             </NuxtLink>
           </div>
@@ -126,18 +126,18 @@
             <div class="flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
               <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                My Lists
+                {{ $t('section_my_lists') }}
               </p>
             </div>
             <NuxtLink to="/dashboard/lists" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              See All &rarr;
+            {{ $t('see_all') }} &rarr;
             </NuxtLink>
           </div>
 
           <div v-if="dataLoaded && recentCollections.length === 0" class="py-6 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-            <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic mb-3">No collections yet</p>
+            <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic mb-3">{{ $t('empty_lists_title') }}</p>
             <NuxtLink to="/dashboard/lists" class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 px-3 py-1.5 inline-block hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              Create List &rarr;
+              {{ $t('empty_lists_action') }} &rarr;
             </NuxtLink>
           </div>
 
@@ -157,10 +157,10 @@
                 <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {{ collection.name }}
                 </p>
-                <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} {{ collection.quotes_count === 1 ? 'quote' : 'quotes' }}</p>
+                <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} {{ collection.quotes_count === 1 ? $t('quote_singular') : $t('quote_plural') }}</p>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0 ml-3">
-                <span v-if="collection.is_public" class="font-sans text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5">Public</span>
+                <span v-if="collection.is_public" class="font-sans text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5">{{ $t('common.public') }}</span>
                 <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
               </div>
             </NuxtLink>
@@ -172,16 +172,16 @@
           <div class="flex items-center gap-2 mb-3">
             <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
             <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-              Submit a Quote
+              {{ $t('section_submit_quote') }}
             </p>
           </div>
           <p class="font-body text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
-            Share a quote that moved you. Find it in your drafts after submitting.
+            {{ $t('submit_quote_desc') }}
           </p>
           <NuxtLink to="/dashboard/my-quotes/drafts"
             class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
           >
-            Submit Quote &rarr;
+            {{ $t('submit_quote_action') }} &rarr;
           </NuxtLink>
         </div>
 
@@ -198,8 +198,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Dashboard - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const { user } = useUserSession()
@@ -221,9 +223,9 @@ const currentDate = today.toLocaleDateString('en-US', {
 
 const greeting = computed(() => {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return $t('greeting_morning')
+  if (hour < 18) return $t('greeting_afternoon')
+  return $t('greeting_evening')
 })
 
 const userStats = ref({
@@ -284,22 +286,22 @@ const statusPillClass = (status: string) => {
 
 const statusLabel = (status: string) => {
   switch (status) {
-    case 'approved': return 'Approved'
-    case 'rejected': return 'Rejected'
-    case 'draft': return 'Draft'
-    case 'pending': return 'Pending'
+    case 'approved': return $t('common.status_approved')
+    case 'rejected': return $t('common.status_rejected')
+    case 'draft': return $t('common.status_draft')
+    case 'pending': return $t('common.status_pending')
     default: return status
   }
 }
 
 const formatStatsLabel = (key: string) => {
   switch (key) {
-    case 'submitted': return 'Submitted'
-    case 'approved': return 'Published'
-    case 'likes': return 'Likes Received'
-    case 'collections': return 'Collections'
-    case 'likes_given': return 'Likes Given'
-    default: return 'Submitted'
+    case 'submitted': return $t('stat_submitted')
+    case 'approved': return $t('stat_published')
+    case 'likes': return $t('stat_likes_received')
+    case 'collections': return $t('stat_collections')
+    case 'likes_given': return $t('stat_likes_given')
+    default: return $t('stat_submitted')
   }
 }
 

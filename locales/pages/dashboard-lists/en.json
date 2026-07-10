@@ -1,1 +1,17 @@
-{}
+{
+  "meta_title": "Lists - Dashboard - Verbatims",
+  "title": "Lists",
+  "search_placeholder": "Search lists...",
+  "filter_all": "All Lists",
+  "filter_public": "Public Only",
+  "filter_private": "Private Only",
+  "create_button": "+ Create List",
+  "empty_search_title": "No matching lists",
+  "empty_search_desc": "Try adjusting your search terms.",
+  "empty_title": "No lists yet",
+  "empty_desc": "Create a list from any quote by tapping \"Add to collection\".",
+  "delete_dialog_title": "Delete List",
+  "delete_dialog_body": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "label_edit": "Edit",
+  "label_delete": "Delete"
+}

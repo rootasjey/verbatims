@@ -1,1 +1,17 @@
-{}
+{
+  "meta_title": "Listes - Tableau de bord - Verbatims",
+  "title": "Listes",
+  "search_placeholder": "Rechercher des listes...",
+  "filter_all": "Toutes les listes",
+  "filter_public": "Publiques uniquement",
+  "filter_private": "Privées uniquement",
+  "create_button": "+ Créer une liste",
+  "empty_search_title": "Aucune liste trouvée",
+  "empty_search_desc": "Essayez de modifier vos termes de recherche.",
+  "empty_title": "Aucune liste",
+  "empty_desc": "Créez une liste à partir de n'importe quelle citation en appuyant sur \"Ajouter à une collection\".",
+  "delete_dialog_title": "Supprimer la liste",
+  "delete_dialog_body": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
+  "label_edit": "Modifier",
+  "label_delete": "Supprimer"
+}

@@ -1,1 +1,20 @@
-{}
+{
+  "meta_title": "Favourites - Dashboard - Verbatims",
+  "title": "Favourites",
+  "search_placeholder": "Search favourites...",
+  "sort_most_recent": "Most Recent",
+  "sort_oldest_first": "Oldest First",
+  "sort_most_popular": "Most Popular",
+  "sort_author_az": "Author A-Z",
+  "empty_search_title": "No matching favourites",
+  "empty_search_desc": "Try adjusting your search terms.",
+  "empty_title": "No favourites yet",
+  "empty_desc": "Start exploring quotes and like the ones you love.",
+  "empty_action": "Discover Quotes",
+  "liked_prefix": "Liked ",
+  "tooltip_add_to_collection": "Add to Collection",
+  "tooltip_share": "Share",
+  "tooltip_remove": "Remove from favourites",
+  "share_title": "Quote from Verbatims",
+  "error_remove": "Failed to remove from favourites"
+}

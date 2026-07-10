@@ -2,10 +2,10 @@
   <div>
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-        My Sponsorships
+        {{ $t('title') }}
       </h1>
       <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-        {{ sponsors.length }} {{ sponsors.length === 1 ? 'sponsored message' : 'sponsored messages' }}
+        {{ sponsors.length }} {{ sponsors.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
       </p>
     </div>
 
@@ -18,16 +18,16 @@
 
     <div v-else-if="sponsors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        No sponsorships yet
+        {{ $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Sponsor a message to see it here.
+        {{ $t('empty_desc') }}
       </p>
       <NuxtLink
         to="/sponsor"
         class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
       >
-        Sponsor a Message &rarr;
+        {{ $t('empty_action') }} &rarr;
       </NuxtLink>
     </div>
 
@@ -53,14 +53,14 @@
                 {{ statusLabel(sponsor) }}
               </span>
               <span v-if="sponsor.paid" class="font-sans text-green-600 dark:text-green-400 flex items-center gap-0.5">
-                <NIcon name="i-ph-check" class="w-3 h-3" /> Paid
+                <NIcon name="i-ph-check" class="w-3 h-3" /> {{ $t('common.status_paid') }}
               </span>
               <span class="font-sans text-gray-400 dark:text-gray-500">
                 {{ formatDate(sponsor.created_at) }}
               </span>
             </div>
             <p v-if="sponsor.status === 'rejected' && sponsor.rejectionReason" class="font-sans text-xs text-red-600 dark:text-red-400 mt-1.5">
-              Rejection reason: {{ sponsor.rejectionReason }}
+              {{ $t('label_rejection_reason', { reason: sponsor.rejectionReason }) }}
             </p>
           </div>
           <button
@@ -77,48 +77,48 @@
     <ClientOnly>
       <NDialog
         v-model:open="showEditDialog"
-        :title="'Edit Sponsored Message'"
-        :description="'Update your message while it awaits moderation.'"
+        :title="$t('dialog_edit_title') as string"
+        :description="$t('dialog_edit_desc') as string"
         class="max-w-md"
       >
         <div v-if="editingSponsor" class="space-y-4">
           <div>
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">Message *</label>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">{{ $t('label_message') }}</label>
             <NInput
               v-model="editForm.message"
               input="gray"
-              placeholder="Your sponsored message"
+              :placeholder="$t('placeholder_message') as string"
             />
           </div>
           <div>
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">Leading icon</label>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">{{ $t('label_leading_icon') }}</label>
             <NInput
               v-model="editForm.leading_icon"
               input="gray"
-              placeholder="e.g. 🔥"
+              :placeholder="$t('placeholder_leading_icon') as string"
             />
           </div>
           <div>
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">Trailing icon</label>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">{{ $t('label_trailing_icon') }}</label>
             <NInput
               v-model="editForm.trailing_icon"
               input="gray"
-              placeholder="e.g. ✨"
+              :placeholder="$t('placeholder_trailing_icon')"
             />
           </div>
           <div>
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">URL (optional)</label>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1 block">{{ $t('label_url') }}</label>
             <NInput
               v-model="editForm.url"
               input="gray"
-              placeholder="https://example.com"
+              :placeholder="$t('placeholder_url')"
             />
           </div>
         </div>
         <template #footer>
           <div class="flex items-center justify-end gap-2">
-            <NButton label="Cancel" btn="outline-gray" size="sm" @click="showEditDialog = false" />
-            <NButton label="Save" btn="solid-gray" size="sm" :loading="saving" @click="saveEdit" />
+            <NButton :label="$t('common.cancel') as string" btn="outline-gray" size="sm" @click="showEditDialog = false" />
+            <NButton :label="$t('common.save') as string" btn="solid-gray" size="sm" :loading="saving" @click="saveEdit" />
           </div>
         </template>
       </NDialog>
@@ -132,8 +132,10 @@ definePageMeta({
   middleware: 'auth',
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'My Sponsorships - Dashboard - Verbatims',
+  title: $t('meta_title') as string,
 })
 
 const pageHeader = usePageHeader()
@@ -209,13 +211,13 @@ const statusClass = (sponsor: any) => {
 }
 
 const statusLabel = (sponsor: any) => {
-  if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return `Expired on ${formatDate(sponsor.ends_at)}`
+  if (sponsor.ends_at && new Date(sponsor.ends_at) < new Date()) return $t('status_expired', { date: formatDate(sponsor.ends_at) })
   if (sponsor.status === 'approved') {
-    if (sponsor.starts_at && new Date(sponsor.starts_at) > new Date()) return `Will be live on ${formatDate(sponsor.starts_at)}`
-    return 'Active'
+    if (sponsor.starts_at && new Date(sponsor.starts_at) > new Date()) return $t('status_live', { date: formatDate(sponsor.starts_at) })
+    return $t('status_active')
   }
-  if (sponsor.status === 'rejected') return 'Rejected'
-  return 'Pending Moderation'
+  if (sponsor.status === 'rejected') return $t('status_rejected')
+  return $t('status_pending_moderation')
 }
 
 const formatDate = (date: string | number | undefined) => {

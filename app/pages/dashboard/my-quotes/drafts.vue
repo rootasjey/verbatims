@@ -5,17 +5,17 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Drafts
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'draft' : 'drafts' }}
+            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? String($t('common.status_draft')).toLowerCase() : String($t('common.status_draft')).toLowerCase() + 's' }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search drafts..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 w-48"
           />
           <select
@@ -31,7 +31,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search drafts..."
+          :placeholder="$t('search_placeholder') as string"
           class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
       </div>
@@ -39,7 +39,7 @@
       <NAlert
         v-if="submissionRestrictionMessage"
         alert="soft-amber"
-        :title="submissionRestrictionMessage"
+        :title="submissionRestrictionMessage as string"
         class="mt-4"
       />
     </div>
@@ -56,10 +56,10 @@
     <!-- Empty -->
     <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? 'No matching drafts' : 'No drafts yet' }}
+        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? 'Try adjusting your search terms.' : 'Start writing your first quote draft.' }}
+        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
       </p>
     </div>
 
@@ -79,12 +79,12 @@
                 &ldquo;{{ quote.name }}&rdquo;
               </blockquote>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name || 'Unknown' }}</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name || $t('common.unknown') }}</span>
                 <span v-if="quote.reference?.name || (quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
                 <span v-if="quote.reference?.name || (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference?.name || (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
                 <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
-                <span class="font-sans text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">Draft</span>
+                <span class="font-sans text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ $t('common.status_draft') }}</span>
               </div>
             </NuxtLink>
             <NDropdownMenu :items="getMobileActions(quote)">
@@ -103,7 +103,7 @@
             class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
             @click="loadMore"
           >
-            {{ loadingMore ? 'Loading...' : 'Load More' }}
+            {{ loadingMore ? $t('common.loading') : $t('common.load_more') }}
           </button>
         </div>
       </div>
@@ -112,31 +112,31 @@
       <div class="hidden md:block">
         <!-- Bulk action bar -->
         <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
+          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
           <button
             v-if="canSubmitForReview"
             class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
             @click="bulkSubmit"
           >
-            Submit Selected
+            {{ $t('bulk_submit') }}
           </button>
           <button
             class="font-sans text-xs text-red-600 dark:text-red-400 border border-dashed border-red-300 dark:border-red-800 px-3 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-sm"
             @click="showBulkDeleteModal = true"
           >
-            Delete Selected
+            {{ $t('bulk_delete') }}
           </button>
           <button
             class="font-sans text-xs text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
             @click="showBulkEditDialog = true"
           >
-            Edit Selected
+            {{ $t('bulk_edit') }}
           </button>
           <button
             class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
             @click="clearSelection"
           >
-            Clear
+            {{ $t('common.clear') }}
           </button>
         </div>
 
@@ -153,11 +153,11 @@
                     />
                   </div>
                 </th>
-                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quote</th>
-                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Lang</th>
-                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Tags</th>
-                <th class="w-16 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</th>
+                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_lang') }}</th>
+                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_tags') }}</th>
+                <th class="w-16 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
                 <th class="w-10 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400"></th>
               </tr>
             </thead>
@@ -189,7 +189,7 @@
                   </div>
                 </td>
                 <td class="px-3 py-3 align-top">
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ quote.language || 'N/A' }}</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ quote.language || $t('common.na') }}</span>
                 </td>
                 <td class="px-3 py-3 align-top">
                   <div v-if="quote.tags?.length" class="flex flex-wrap gap-1">
@@ -211,7 +211,7 @@
                   <span v-else class="font-sans text-sm text-gray-400">&mdash;</span>
                 </td>
                 <td class="px-3 py-3 align-top">
-                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">Draft</span>
+                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ $t('common.status_draft') }}</span>
                 </td>
                 <td class="px-3 py-3 align-top">
                   <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
@@ -234,7 +234,7 @@
         <!-- Pagination -->
         <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
           <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ totalPages }}
+            {{ $t('common.page_of', { n: currentPage, m: totalPages }) }}
           </span>
           <div class="flex items-center gap-3">
             <button
@@ -242,21 +242,21 @@
               class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5"
               @click="currentPage = Math.max(1, currentPage - 1)"
             >
-              &larr; Previous
+              &larr; {{ $t('common.previous') }}
             </button>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
             <button
               v-if="currentPage < totalPages"
               class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5"
               @click="currentPage = Math.min(totalPages, currentPage + 1)"
             >
-              Next &rarr;
+              {{ $t('common.next') }} &rarr;
             </button>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
           </div>
         </div>
         <div v-else class="pt-4 text-center">
-          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
         </div>
       </div>
     </div>
@@ -320,8 +320,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Drafts - Dashboard - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const pageHeader = usePageHeader()
@@ -342,7 +344,6 @@ const bulkProcessing = ref(false)
 const deleting = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
-const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const sortValue = ref('recent')
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -350,9 +351,15 @@ const totalDrafts = ref(0)
 const totalPages = ref(0)
 const hasMore = ref(false)
 
-watch(sortValue, (val) => {
-  const option = sortOptions.find(o => o.value === val)
-  if (option) sortBy.value = option
+const sortOptions = computed(() => [
+  { label: $t('common.most_recent'), value: 'recent' },
+  { label: $t('common.oldest_first'), value: 'oldest' },
+  { label: $t('common.author_az'), value: 'author' }
+])
+
+const sortBy = computed(() => {
+  const option = sortOptions.value.find(o => o.value === sortValue.value)
+  return option || sortOptions.value[0]
 })
 
 const showDeleteModal = ref(false)
@@ -387,8 +394,8 @@ const canSubmitForReview = computed(() => {
 const submissionRestrictionMessage = computed(() => {
   if (canSubmitForReview.value) return ''
   if (!user.value || user.value.role !== 'user') return ''
-  if (!user.value.email_verified) return 'Verify your email before submitting drafts for review.'
-  return 'Your account must be at least 7 days old before submitting drafts for review.'
+  if (!user.value.email_verified) return $t('restriction_email')
+  return $t('restriction_age')
 })
 
 const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
@@ -396,15 +403,9 @@ const allSelectedOnPage = computed<boolean>(() =>
   visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
 )
 
-const sortOptions = [
-  { label: 'Most Recent', value: 'recent' },
-  { label: 'Oldest First', value: 'oldest' },
-  { label: 'Author A-Z', value: 'author' }
-]
-
 const filteredQuotes = computed(() => {
   const list = [...quotes.value]
-  switch (sortBy.value.value) {
+  switch (sortBy.value?.value) {
     case 'oldest':
       list.sort((a, b) => getDateTimestamp((a as any).createdAt || a.created_at) - getDateTimestamp((b as any).createdAt || b.created_at))
       break
@@ -481,20 +482,20 @@ watchDebounced([searchQuery, sortBy], () => {
 
 const getQuoteActions = (quote: DashboardQuote) => [
   {
-    label: 'Edit',
+    label: $t('action_edit') as string,
     leading: 'i-ph-pencil',
     onclick: () => editQuote(quote)
   },
   {},
   {
-    label: 'Submit for Review',
+    label: $t('action_submit') as string,
     leading: 'i-ph-paper-plane-tilt',
     disabled: !canSubmitForReview.value,
     onclick: () => submitQuote(quote)
   },
   {},
   {
-    label: 'Delete',
+    label: $t('action_delete') as string,
     leading: 'i-ph-trash',
     onclick: () => confirmDelete(quote)
   }
@@ -502,20 +503,20 @@ const getQuoteActions = (quote: DashboardQuote) => [
 
 const getMobileActions = (quote: any) => [
   {
-    label: 'Edit',
+    label: $t('action_edit') as string,
     leading: 'i-ph-pencil',
     onclick: () => handleEditQuote(quote)
   },
   {},
   {
-    label: 'Submit for Review',
+    label: $t('action_submit') as string,
     leading: 'i-ph-paper-plane-tilt',
     disabled: !canSubmitForReview.value,
     onclick: () => handleSubmitQuote(quote)
   },
   {},
   {
-    label: 'Delete',
+    label: $t('action_delete') as string,
     leading: 'i-ph-trash',
     onclick: () => handleDeleteQuote(quote)
   }
@@ -548,8 +549,8 @@ const handleEditQuote = (quote: ProcessedQuoteResult) => {
 const handleSubmitQuote = async (quote: ProcessedQuoteResult) => {
   if (!canSubmitForReview.value) {
     useToast().toast({
-      title: 'Submission unavailable',
-      description: submissionRestrictionMessage.value,
+      title: $t('toast_submit_unavailable') as string,
+      description: submissionRestrictionMessage.value as string,
       toast: 'outline-warning'
     })
     return
@@ -565,8 +566,8 @@ const handleDeleteQuote = (quote: ProcessedQuoteResult) => {
 const submitQuote = async (quote: DashboardQuote) => {
   if (!canSubmitForReview.value) {
     useToast().toast({
-      title: 'Submission unavailable',
-      description: submissionRestrictionMessage.value
+      title: $t('toast_submit_unavailable') as string,
+      description: submissionRestrictionMessage.value as string
     })
     return
   }
@@ -575,7 +576,7 @@ const submitQuote = async (quote: DashboardQuote) => {
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (error: any) {
     console.error('Failed to submit quote:', error)
-    showErrorToast(error, 'Failed to submit quote')
+    showErrorToast(error, $t('error_submit') as string)
   }
 }
 
@@ -657,8 +658,8 @@ const bulkSubmit = async () => {
   if (selectedQuotes.value.length === 0) return
   if (!canSubmitForReview.value) {
     useToast().toast({
-      title: 'Submission unavailable',
-      description: submissionRestrictionMessage.value,
+      title: $t('toast_submit_unavailable') as string,
+      description: submissionRestrictionMessage.value as string,
       toast: 'outline-warning'
     })
     return
@@ -676,7 +677,7 @@ const bulkSubmit = async () => {
     rowSelection.value = {}
   } catch (error) {
     console.error('Failed to bulk submit:', error)
-    showErrorToast(error, 'Bulk submit failed')
+    showErrorToast(error, $t('error_bulk_submit') as string)
   } finally {
     bulkProcessing.value = false
   }
@@ -698,7 +699,7 @@ const bulkDelete = async () => {
     showBulkDeleteModal.value = false
   } catch (error) {
     console.error('Failed to bulk delete:', error)
-    showErrorToast(error, 'Bulk delete failed')
+    showErrorToast(error, $t('error_bulk_delete') as string)
   } finally {
     bulkProcessing.value = false
   }
@@ -724,7 +725,6 @@ useAdminKeyboardShortcuts({
 
 const resetFilters = () => {
   searchQuery.value = ''
-  sortBy.value.value = 'recent'
   sortValue.value = 'recent'
   currentPage.value = 1
   loadDrafts(1)
@@ -744,20 +744,20 @@ const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedQuotes.value.length > 0) {
     actions.push({
-      label: 'Edit Selected',
+      label: $t('header_edit') as string,
       leading: 'i-ph-pencil',
       shortcut: 'E',
       onclick: () => { showBulkEditDialog.value = true }
     })
     actions.push({
-      label: 'Submit Selected',
+      label: $t('header_submit') as string,
       leading: 'i-ph-paper-plane-tilt',
       shortcut: 'S',
       disabled: !canSubmitForReview.value,
       onclick: () => bulkSubmit()
     })
     actions.push({
-      label: 'Delete Selected',
+      label: $t('header_delete') as string,
       leading: 'i-ph-trash',
       shortcut: 'D',
       onclick: () => { showBulkDeleteModal.value = true }
@@ -765,12 +765,12 @@ const headerActions = computed(() => {
   }
   if (actions.length > 0) actions.push({})
   actions.push({
-    label: 'Refresh',
+    label: $t('header_refresh') as string,
     leading: 'i-ph-arrows-clockwise',
     onclick: () => loadDrafts(currentPage.value)
   })
   actions.push({
-    label: 'Reset Filters',
+    label: $t('header_reset') as string,
     leading: 'i-ph-x',
     onclick: () => resetFilters()
   })

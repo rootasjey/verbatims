@@ -1,1 +1,27 @@
-{}
+{
+  "meta_title": "Dashboard - Verbatims",
+  "greeting_fallback": "there",
+  "greeting_morning": "Good morning",
+  "greeting_afternoon": "Good afternoon",
+  "greeting_evening": "Good evening",
+  "section_recent_submissions": "Recent Submissions",
+  "see_all": "See All",
+  "empty_submissions_title": "No submissions yet",
+  "empty_submissions_desc": "Submit your first quote to get started",
+  "section_quick_links": "Quick Links",
+  "link_manage_lists": "Manage Lists",
+  "link_view_favourites": "View Favourites",
+  "link_my_drafts": "My Drafts",
+  "link_my_sponsorships": "My Sponsorships",
+  "section_my_lists": "My Lists",
+  "empty_lists_title": "No collections yet",
+  "empty_lists_action": "Create List",
+  "section_submit_quote": "Submit a Quote",
+  "submit_quote_desc": "Share a quote that moved you. Find it in your drafts after submitting.",
+  "submit_quote_action": "Submit Quote",
+  "stat_submitted": "Submitted",
+  "stat_published": "Published",
+  "stat_likes_received": "Likes Received",
+  "stat_collections": "Collections",
+  "stat_likes_given": "Likes Given"
+}

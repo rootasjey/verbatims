@@ -1,1 +1,23 @@
-{}
+{
+  "meta_title": "{name} - Collections",
+  "meta_fallback": "Collection - Verbatims",
+  "meta_desc": "A curated collection of quotes from Verbatims",
+  "error_title": "Collection not found",
+  "error_desc": "The collection you're looking for doesn't exist.",
+  "back_to_lists": "Back to Lists",
+  "button_share": "Share",
+  "empty_title": "No quotes yet",
+  "empty_desc": "Add quotes to this collection from any quote page.",
+  "tooltip_share": "Share quote",
+  "tooltip_remove": "Remove from collection",
+  "dropdown_copy_link": "Copy Link",
+  "toast_link_copied": "Link copied",
+  "toast_url_copied": "URL copied to clipboard",
+  "toast_collection_shared": "Collection Shared",
+  "toast_collection_shared_desc": "The collection link has been copied to your clipboard.",
+  "toast_copied_clipboard": "Copied to clipboard",
+  "confirm_remove": "Remove this quote from the collection?",
+  "share_text": "Check out this collection of quotes: \"{name}\"",
+  "share_title": "Quote from Verbatims",
+  "error_remove": "Failed to remove quote"
+}

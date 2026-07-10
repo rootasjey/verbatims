@@ -5,17 +5,17 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Published
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? 'quote' : 'quotes' }}
+            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search published..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
@@ -31,7 +31,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search published..."
+          :placeholder="$t('search_placeholder') as string"
           class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
       </div>
@@ -49,17 +49,17 @@
     <!-- Empty -->
     <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
+        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? 'Try adjusting your search terms.' : 'Submit some quotes and get them approved to see them here.' }}
+        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
       </p>
       <NuxtLink
         v-if="!searchQuery"
         to="/dashboard/my-quotes/drafts"
         class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
       >
-        Create New Quote &rarr;
+        {{ $t('empty_action') }} &rarr;
       </NuxtLink>
     </div>
 
@@ -79,7 +79,7 @@
                 &ldquo;{{ quote.name }}&rdquo;
               </blockquote>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name || 'Unknown' }}</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name || $t('common.unknown') }}</span>
                 <span v-if="quote.reference?.name || (quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
                 <span v-if="quote.reference?.name || (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference?.name || (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
@@ -107,7 +107,7 @@
             class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
             @click="loadMore"
           >
-            {{ loadingMore ? 'Loading...' : 'Load More' }}
+            {{ loadingMore ? $t('common.loading') : $t('common.load_more') }}
           </button>
         </div>
       </div>
@@ -116,18 +116,18 @@
       <div class="hidden md:block">
         <!-- Bulk action bar -->
         <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
+          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
           <button
             class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
             @click="showBulkAddToCollection = true"
           >
-            Add to Collection
+            {{ $t('bulk_add_collection') }}
           </button>
           <button
             class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
             @click="clearSelection"
           >
-            Clear
+            {{ $t('common.clear') }}
           </button>
         </div>
 
@@ -142,11 +142,11 @@
                     @update:model-value="toggleAllSelection"
                   />
                 </th>
-                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quote</th>
-                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Lang</th>
-                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Tags</th>
-                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Stats</th>
-                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Published</th>
+                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</th>
+                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_lang') }}</th>
+                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_tags') }}</th>
+                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_stats') }}</th>
+                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_published') }}</th>
                 <th class="w-10 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400"></th>
               </tr>
             </thead>
@@ -178,7 +178,7 @@
                   </div>
                 </td>
                 <td class="px-3 py-3 align-top">
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ quote.language || 'N/A' }}</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ quote.language || $t('common.na') }}</span>
                 </td>
                 <td class="px-3 py-3 align-top">
                   <div v-if="quote.tags?.length" class="flex flex-wrap gap-1">
@@ -201,11 +201,11 @@
                 </td>
                 <td class="px-3 py-3 align-top">
                   <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                    <span class="flex items-center gap-1" :title="`${quote.likes_count || 0} likes`">
+                    <span class="flex items-center gap-1" :title="$t('tooltip_likes', { n: quote.likes_count || 0 }) as string">
                       <NIcon name="i-ph-heart" class="w-3 h-3" />
                       {{ quote.likes_count || 0 }}
                     </span>
-                    <span class="flex items-center gap-1" :title="`${quote.views_count || 0} views`">
+                    <span class="flex items-center gap-1" :title="$t('tooltip_views', { n: quote.views_count || 0 }) as string">
                       <NIcon name="i-ph-eye" class="w-3 h-3" />
                       {{ quote.views_count || 0 }}
                     </span>
@@ -232,7 +232,7 @@
         <!-- Pagination -->
         <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
           <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ totalPages }} &middot; {{ displayedCount }} of {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+            {{ $t('pagination_info', { n: currentPage, m: totalPages, n2: displayedCount, m2: totalQuotes }) }}
           </span>
           <div class="flex items-center gap-3">
             <button
@@ -240,21 +240,21 @@
               class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5"
               @click="currentPage = Math.max(1, currentPage - 1)"
             >
-              &larr; Previous
+              &larr; {{ $t('common.previous') }}
             </button>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
             <button
               v-if="currentPage < totalPages"
               class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5"
               @click="currentPage = Math.min(totalPages, currentPage + 1)"
             >
-              Next &rarr;
+              {{ $t('common.next') }} &rarr;
             </button>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
           </div>
         </div>
         <div v-else class="pt-4 text-center">
-          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
         </div>
       </div>
     </div>
@@ -306,8 +306,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Published Quotes - Dashboard - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const pageHeader = usePageHeader()
@@ -323,7 +325,6 @@ const hasLoadedOnce = ref(false)
 const loadingMore = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
-const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const sortValue = ref('recent')
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -331,9 +332,17 @@ const totalQuotes = ref(0)
 const totalPages = ref(0)
 const hasMore = ref(false)
 
-watch(sortValue, (val) => {
-  const option = sortOptions.find(o => o.value === val)
-  if (option) sortBy.value = option
+const sortOptions = computed(() => [
+  { label: $t('common.most_recent'), value: 'recent' },
+  { label: $t('common.oldest_first'), value: 'oldest' },
+  { label: $t('common.most_popular'), value: 'popular' },
+  { label: $t('sort_most_viewed'), value: 'views' },
+  { label: $t('common.author_az'), value: 'author' }
+])
+
+const sortBy = computed(() => {
+  const option = sortOptions.value.find(o => o.value === sortValue.value)
+  return option || sortOptions.value[0]!
 })
 
 const rowSelection = ref<Record<string, boolean>>({})
@@ -347,14 +356,6 @@ const showAddToCollectionDrawer = ref(false)
 const showAddQuoteToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 const showBulkAddToCollection = ref(false)
-
-const sortOptions = [
-  { label: 'Most Recent', value: 'recent' },
-  { label: 'Oldest First', value: 'oldest' },
-  { label: 'Most Popular', value: 'popular' },
-  { label: 'Most Viewed', value: 'views' },
-  { label: 'Author A-Z', value: 'author' }
-]
 
 const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
 const allSelectedOnPage = computed<boolean>(() =>
@@ -374,7 +375,7 @@ const filteredQuotes = computed(() => {
     )
   }
 
-  switch (sortBy.value.value) {
+  switch (sortBy.value?.value) {
     case 'oldest':
       filtered.sort((a, b) => getDateTimestamp((a as any).approvedAt || a.approved_at || (a as any).createdAt || a.created_at) - getDateTimestamp((b as any).approvedAt || b.approved_at || (b as any).createdAt || b.created_at))
       break
@@ -497,7 +498,7 @@ watchDebounced([searchQuery, sortBy], () => {
 const resetFilters = () => {
   searchQuery.value = ''
   sortValue.value = 'recent'
-  sortBy.value = { label: 'Most Recent', value: 'recent' }
+  sortValue.value = 'recent'
   currentPage.value = 1
   loadPublishedQuotes()
 }
@@ -509,13 +510,13 @@ const onLanguageChanged = async () => {
 
 const getQuoteActions = (quote: DashboardQuote) => [
   {
-    label: 'Add to Collection',
+    label: $t('action_add_collection') as string,
     leading: 'i-ph-bookmark',
     onclick: () => addToCollection(quote)
   },
   {},
   {
-    label: 'Share',
+    label: $t('action_share') as string,
     leading: 'i-ph-share',
     onclick: () => shareQuote(quote)
   }
@@ -523,13 +524,13 @@ const getQuoteActions = (quote: DashboardQuote) => [
 
 const getMobileActions = (quote: any) => [
   {
-    label: 'Add to Collection',
+    label: $t('action_add_collection') as string,
     leading: 'i-ph-bookmark',
     onclick: () => addToCollection(quote)
   },
   {},
   {
-    label: 'Share',
+    label: $t('action_share') as string,
     leading: 'i-ph-share',
     onclick: () => shareQuote(quote)
   }
@@ -543,7 +544,7 @@ const addToCollection = (quote: DashboardQuote) => {
 const shareQuote = (quote: DashboardQuote) => {
   const url = `${window.location.origin}/quotes/${quote.id}`
   navigator.clipboard.writeText(url)
-  useToast().toast({ title: 'Link copied', toast: 'outline-success' })
+  useToast().toast({ title: $t('toast_link_copied') as string, toast: 'outline-success' })
 }
 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }

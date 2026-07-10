@@ -1,1 +1,20 @@
-{}
+{
+  "meta_title": "En attente - Tableau de bord - Verbatims",
+  "title": "En attente de révision",
+  "search_placeholder": "Rechercher dans les en attente...",
+  "empty_search_title": "Aucune citation en attente trouvée",
+  "empty_search_desc": "Essayez de modifier vos termes de recherche.",
+  "empty_title": "Aucune citation en attente",
+  "empty_desc": "Soumettez des citations pour les voir ici en attendant leur révision.",
+  "empty_action": "Voir les brouillons",
+  "bulk_withdraw": "Retirer la sélection",
+  "col_quote": "Citation",
+  "col_lang": "Langue",
+  "col_tags": "Tags",
+  "col_status": "Statut",
+  "col_submitted": "Soumis le",
+  "action_view": "Voir les détails",
+  "action_withdraw": "Retirer",
+  "error_withdraw": "Échec du retrait",
+  "error_bulk_withdraw": "Échec du retrait groupé"
+}
