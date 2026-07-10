@@ -42,7 +42,7 @@
             <NuxtLink
               :to="`/authors/${quote.author.id}`"
               class="font-subtitle text-size-4  font-400 text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors block"
-              :aria-label="`${quote.author.name} — ${quote.author.is_fictional ? 'Fictional character' : 'Real person'}`"
+              :aria-label="`${quote.author.name} — ${quote.author.is_fictional ? $t('components.quote_author_ref.fictional') : $t('components.quote_author_ref.real')}`"
             >
               {{ quote.author.name }}
             </NuxtLink>
@@ -65,6 +65,7 @@
 
 <script lang="ts" setup>
 import { getReferenceIcon } from '~/utils/reference'
+const { $t } = useI18n()
 
 interface Props {
   quote: QuoteWithRelations

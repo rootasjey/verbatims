@@ -15,7 +15,7 @@
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">
-            {{ mode === 'nav' ? 'Quick Navigation' : mode === 'cmd' ? 'Commands' : 'Search Quotes' }}
+            {{ mode === 'nav' ? $t('components.search_box.quick_nav') : mode === 'cmd' ? $t('components.search_box.commands') : $t('components.search_box.search_quotes') }}
           </h3>
         </div>
       </template>
@@ -23,7 +23,7 @@
       <div class="space-y-4">
         <NInput
           v-model="storeQuery"
-          :placeholder="mode === 'nav' ? 'Navigate to a page...' : mode === 'cmd' ? 'Type a command...' : 'Search quotes, authors, or references...'"
+          :placeholder="mode === 'nav' ? $t('components.search_box.navigate_placeholder') as string : mode === 'cmd' ? $t('components.search_box.command_placeholder') as string : $t('components.search_box.search_placeholder') as string"
           leading="i-ph-magnifying-glass"
           size="md"
           autofocus
@@ -45,7 +45,7 @@
               <span>{{ selectedLanguageLabel }}</span>
               <button
                 class="ml-1 text-primary-700/70 hover:text-primary-900 dark:text-primary-300/80 dark:hover:text-primary-200"
-                aria-label="Remove language filter"
+                :aria-label="$t('components.search_box.remove_language') as string"
                 @click="removeLanguageFilter"
                 type="button"
               >
@@ -62,7 +62,7 @@
               <span>{{ selectedAuthorLabel }}</span>
               <button
                 class="ml-1 text-emerald-700/70 hover:text-emerald-900 dark:text-emerald-300/80 dark:hover:text-emerald-200"
-                aria-label="Remove author filter"
+                :aria-label="$t('components.search_box.remove_author') as string"
                 @click="removeAuthorFilter"
                 type="button"
               >
@@ -79,7 +79,7 @@
               <span>{{ selectedReferenceLabel }}</span>
               <button
                 class="ml-1 text-blue-700/70 hover:text-blue-900 dark:text-blue-300/80 dark:hover:text-blue-200"
-                aria-label="Remove reference filter"
+                :aria-label="$t('components.search_box.remove_reference') as string"
                 @click="removeReferenceFilter"
                 type="button"
               >
@@ -94,7 +94,7 @@
               rounded="full"
               @click="clearFilters"
             >
-              Clear all
+              {{ $t('components.search_box.clear_all') }}
             </NButton>
           </div>
 
@@ -102,7 +102,7 @@
             <NSelect
               v-model="selectedLanguage"
               :items="languageOptions"
-              placeholder="Language"
+              :placeholder="$t('components.search_box.language') as string"
               item-key="label"
               value-key="label"
               size="sm"
@@ -110,7 +110,7 @@
             <NSelect
               v-model="selectedAuthor"
               :items="authorOptions"
-              placeholder="Author"
+              :placeholder="$t('components.search_box.author') as string"
               item-key="label"
               value-key="label"
               size="sm"
@@ -119,7 +119,7 @@
             <NSelect
               v-model="selectedReference"
               :items="referenceOptions"
-              placeholder="Reference"
+              :placeholder="$t('components.search_box.reference') as string"
               item-key="label"
               value-key="label"
               size="sm"
@@ -140,7 +140,7 @@
 
             <div v-else-if="totalResults === 0 && storeQuery" class="text-center py-8">
               <NIcon name="i-ph-magnifying-glass" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 dark:text-gray-400">No results found for "{{ storeQuery }}"</p>
+              <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.no_results') }} "{{ storeQuery }}"</p>
             </div>
 
             <div v-else-if="totalResults > 0" class="space-y-4">
@@ -148,7 +148,7 @@
               <div v-if="searchResults.quotes?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                   <NIcon name="i-ph-quotes" class="w-4 h-4 mr-2" />
-                  Quotes ({{ searchResults.quotes.length }})
+                  {{ $t('components.search_box.results_quotes') }} ({{ searchResults.quotes.length }})
                 </h4>
                 <div class="space-y-2">
                   <div
@@ -180,7 +180,7 @@
               <div v-if="searchResults.authors?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                   <NIcon name="i-ph-user" class="w-4 h-4 mr-2" />
-                  Authors ({{ searchResults.authors.length }})
+                  {{ $t('components.search_box.results_authors') }} ({{ searchResults.authors.length }})
                 </h4>
                 <div class="space-y-2">
                   <div
@@ -213,7 +213,7 @@
               <div v-if="searchResults.references?.length > 0">
                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                   <NIcon name="i-ph-book" class="w-4 h-4 mr-2" />
-                  References ({{ searchResults.references.length }})
+                  {{ $t('components.search_box.results_references') }} ({{ searchResults.references.length }})
                 </h4>
                 <div class="space-y-2">
                   <div
@@ -245,7 +245,7 @@
 
             <div v-else class="text-center py-8">
               <NIcon name="i-ph-quotes" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 dark:text-gray-400">Start typing to search quotes, authors, and references...</p>
+              <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.empty_hint') }}</p>
             </div>
           </template>
 
@@ -253,7 +253,7 @@
             <div v-if="filteredNavItems.length > 0" class="space-y-1">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center px-1">
                 <NIcon name="i-ph-compass" class="w-4 h-4 mr-2" />
-                Quick Navigation
+                {{ $t('components.search_box.quick_nav') }}
               </h4>
               <div
                 v-for="(item, index) in filteredNavItems"
@@ -276,7 +276,7 @@
             </div>
             <div v-else class="text-center py-8">
               <NIcon name="i-ph-compass" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 dark:text-gray-400">No matching pages found</p>
+              <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.no_results') }}</p>
             </div>
           </template>
 
@@ -284,7 +284,7 @@
             <div v-if="filteredCmdItems.length > 0" class="space-y-1">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center px-1">
                 <NIcon name="i-ph-terminal" class="w-4 h-4 mr-2" />
-                Commands
+                {{ $t('components.search_box.commands') }}
               </h4>
               <div
                 v-for="(item, index) in filteredCmdItems"
@@ -308,7 +308,7 @@
             </div>
             <div v-else class="text-center py-8">
               <NIcon name="i-ph-terminal" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 dark:text-gray-400">Unknown command</p>
+              <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.no_results') }}</p>
             </div>
           </template>
         </div>
@@ -316,11 +316,11 @@
 
       <template #footer>
         <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <span>{{ mode === 'nav' ? `${filteredNavItems.length} pages` : mode === 'cmd' ? `${filteredCmdItems.length} commands` : `${totalResults} results` }}</span>
+          <span>{{ totalResults }} {{ $t('components.search_box.results') }}</span>
           <div class="flex items-center space-x-4">
-            <span>Press <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">↑↓</kbd> to navigate</span>
-            <span>Press <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Enter</kbd> to select</span>
-            <span>Press <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">Esc</kbd> to close</span>
+            <span>{{ $t('components.search_box.footer_navigate') }}</span>
+            <span>{{ $t('components.search_box.footer_select') }}</span>
+            <span>{{ $t('components.search_box.footer_close') }}</span>
           </div>
         </div>
       </template>
@@ -347,32 +347,33 @@ const isOpen = computed({
   set: (value: boolean) => emit('update:modelValue', value)
 })
 
+const { $t } = useI18n()
 const searchStore = useSearchStore()
 const storeQuery = computed({
   get: () => searchStore.query,
   set: (v: string) => searchStore.setQuery(v)
 })
 
-const navItems = [
-  { label: 'Home', icon: 'i-ph-house', description: 'Go to homepage', to: '/' },
-  { label: 'Authors', icon: 'i-ph-users-duotone', description: 'Browse quotes by author', to: '/authors' },
-  { label: 'References', icon: 'i-ph-book-duotone', description: 'Explore books, films, and more', to: '/references' },
-  { label: 'Quotes', icon: 'i-ph-quotes', description: 'Explore quotes from various sources', to: '/quotes' },
-  { label: 'Tags', icon: 'i-ph-tag-duotone', description: 'Browse quote topics and themes', to: '/tags' },
-  { label: 'Dashboard', icon: 'i-ph-square-split-vertical-duotone', description: 'Your dashboard', to: '/dashboard' },
-  { label: 'Admin', icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin' },
+const navItems = computed((): any[] => [
+  { label: $t('components.search_box.nav_home'), icon: 'i-ph-house', description: $t('components.search_box.nav_home_desc'), to: '/' },
+  { label: $t('nav.authors'), icon: 'i-ph-users-duotone', description: $t('nav.authors_desc'), to: '/authors' },
+  { label: $t('nav.references'), icon: 'i-ph-book-duotone', description: $t('nav.references_desc'), to: '/references' },
+  { label: $t('nav.quotes'), icon: 'i-ph-quotes', description: $t('nav.quotes_desc'), to: '/quotes' },
+  { label: $t('nav.tags'), icon: 'i-ph-tag-duotone', description: $t('nav.tags_desc'), to: '/tags' },
+  { label: $t('nav.dashboard'), icon: 'i-ph-square-split-vertical-duotone', description: $t('nav.overview'), to: '/dashboard' },
+  { label: $t('nav.admin'), icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin' },
   { label: 'Pending Quotes', icon: 'i-ph-clock-countdown', description: 'Review and moderate pending quotes', to: '/admin/quotes/pending' },
-  { label: 'Drafts', icon: 'i-ph-file-text', description: 'Manage quote drafts', to: '/admin/quotes/drafts' },
+  { label: $t('nav.drafts'), icon: 'i-ph-file-text', description: 'Manage quote drafts', to: '/admin/quotes/drafts' },
   { label: 'Social Queue', icon: 'i-ph-share-network', description: 'Manage scheduled social media posts', to: '/admin/social-queue' },
-  { label: 'Admin Tags', icon: 'i-ph-tag-duotone', description: 'Manage tag taxonomy', to: '/admin/tags' },
-]
+  { label: $t('nav.tags'), icon: 'i-ph-tag-duotone', description: 'Manage tag taxonomy', to: '/admin/tags' },
+])
 
-const cmdItems = [
-  { label: 'Add Quote', icon: 'i-ph-quotes-duotone', description: 'Contribute a new quote', shortcut: '⌘N', action: 'add-quote' },
-  { label: 'Suggest Edit', icon: 'i-ph-pencil-duotone', description: 'Suggest an edit to an existing quote', action: 'suggest-edit' },
-  { label: 'Report Issue', icon: 'i-ph-bug-duotone', description: 'Report a problem or bug', action: 'report-bug' },
-  { label: 'Contact', icon: 'i-ph-chat-circle-duotone', description: 'Get in touch with us', action: 'contact' },
-]
+const cmdItems = computed((): any[] => [
+  { label: $t('components.search_box.cmd_add_quote'), icon: 'i-ph-quotes-duotone', description: $t('components.search_box.cmd_add_quote_desc'), shortcut: '⌘N', action: 'add-quote' },
+  { label: $t('components.search_box.cmd_suggest_edit'), icon: 'i-ph-pencil-duotone', description: $t('components.search_box.cmd_suggest_edit_desc'), action: 'suggest-edit' },
+  { label: $t('components.search_box.cmd_report'), icon: 'i-ph-bug-duotone', description: $t('components.search_box.cmd_report_desc'), action: 'report-bug' },
+  { label: $t('components.search_box.cmd_contact'), icon: 'i-ph-chat-circle-duotone', description: $t('components.search_box.cmd_contact_desc'), action: 'contact' },
+])
 
 const mode = computed(() => {
   const q = storeQuery.value
@@ -388,9 +389,10 @@ const navQuery = computed(() => {
 })
 
 const filteredNavItems = computed(() => {
-  if (!navQuery.value) return navItems
+  const items = navItems.value
+  if (!navQuery.value) return items
   const q = navQuery.value.toLowerCase()
-  return navItems.filter(item =>
+  return items.filter((item: any) =>
     item.label.toLowerCase().includes(q) ||
     item.description.toLowerCase().includes(q)
   )
@@ -403,9 +405,10 @@ const cmdQuery = computed(() => {
 })
 
 const filteredCmdItems = computed(() => {
-  if (!cmdQuery.value) return cmdItems
+  const items = cmdItems.value
+  if (!cmdQuery.value) return items
   const q = cmdQuery.value.toLowerCase()
-  return cmdItems.filter(item =>
+  return items.filter((item: any) =>
     item.label.toLowerCase().includes(q) ||
     item.description.toLowerCase().includes(q) ||
     item.action.toLowerCase().includes(q)
@@ -425,9 +428,9 @@ const selectedAuthor = ref<{ label: string; value: string | number }>()
 const selectedReference = ref<{ label: string; value: string | number }>()
 
 const languageOptions = [
-  { label: 'English', value: 'en' },
-  { label: 'French', value: 'fr' },
-  { label: 'Latin', value: 'la' },
+  { label: $t('languages.en') as string, value: 'en' },
+  { label: $t('languages.fr') as string, value: 'fr' },
+  { label: $t('languages.la') as string, value: 'la' },
 ]
 
 const authorOptions: Ref<Array<{ label: string; value: number | string }>> = ref([])
@@ -585,7 +588,7 @@ const selectedLanguageLabel = computed<string | null>(() => {
   const val = selectedLanguage.value
   if (!val) return null
   const item = languageOptions.find(o => o.value === val.value || o.label === val.label)
-  return item ? item.label : String(val.label)
+  return item ? (item.label as string) : String(val.label)
 })
 
 const selectedAuthorLabel = computed<string | null>(() => {
@@ -636,12 +639,12 @@ const selectResult = (
   }
 }
 
-const navigateToNavItem = (item: typeof navItems[number]) => {
+const navigateToNavItem = (item: any) => {
   isOpen.value = false
   navigateTo(item.to)
 }
 
-const executeCmdItem = (item: typeof cmdItems[number]) => {
+const executeCmdItem = (item: any) => {
   isOpen.value = false
   emit('action', item.action)
 }

@@ -8,7 +8,7 @@
         </h3>
         <div class="flex items-center gap-2">
           <slot name="header-actions" />
-          <NTooltip content="Close">
+          <NTooltip :content="$t('components.app_dialog.close') as string">
             <NButton btn="~" @click="close" size="xs" label="i-ph-x-bold" icon class="dialog-close-btn hover:scale-110 active:scale-99 transition-[transform,color] duration-300" />
           </NTooltip>
         </div>
@@ -61,9 +61,11 @@ interface Emits {
   (e: 'close'): void
 }
 
+const { $t } = useI18n()
+
 const props = withDefaults(defineProps<Props>(), {
-  submitText: 'Save',
-  cancelText: 'Cancel',
+  submitText: String($t('components.app_dialog.save')),
+  cancelText: String($t('components.app_dialog.cancel')),
   submitting: false,
   canSubmit: true,
   maxWidth: 'sm',

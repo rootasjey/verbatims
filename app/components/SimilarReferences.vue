@@ -4,7 +4,7 @@
     <template v-if="compact">
       <div class="px-6 py-6 border-t b-dashed border-gray-200 dark:border-gray-700">
         <p class="font-sans text-[10px] font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-4">
-          See also
+          {{ $t('components.related.references') }}
         </p>
         <div
           ref="scrollContainer"
@@ -41,7 +41,7 @@
         <div class="max-w-6xl mx-auto mb-6">
           <div class="flex items-center justify-between">
             <h2 class="font-title text-2xl md:text-3xl font-400">
-              See also
+              {{ $t('components.related.references') }}
             </h2>
             <div class="flex items-center gap-2">
               <NButton
@@ -50,7 +50,7 @@
                 size="xs"
                 class="rounded-full min-w-0 min-h-0 h-8 w-8!"
                 :disabled="!canScrollLeft"
-                aria-label="Previous"
+                :aria-label="$t('common.previous') as string"
                 @click="scrollLeft"
               >
                 <NIcon name="i-ph-arrow-left" class="w-4 h-4" />
@@ -61,7 +61,7 @@
                 size="xs"
                 class="rounded-full min-w-0 min-h-0 h-8 w-8!"
                 :disabled="!canScrollRight"
-                aria-label="Next"
+                :aria-label="$t('common.next') as string"
                 @click="scrollRight"
               >
                 <NIcon name="i-ph-arrow-right" class="w-4 h-4" />
@@ -121,6 +121,7 @@
 
 <script setup lang="ts">
 import { navigateTo } from 'nuxt/app'
+const { $t } = useI18n()
 
 interface SimilarReference {
   id: number

@@ -1,6 +1,6 @@
 <template>
   <div v-if="relatedQuotes?.length" class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-16 mt-16">
-    <h3 class="max-w-3xl mx-auto text-size-12 font-title font-200 uppercase text-gray-900 dark:text-white mb-12">Related Quotes</h3>
+    <h3 class="max-w-3xl mx-auto text-size-12 font-title font-200 uppercase text-gray-900 dark:text-white mb-12">{{ $t('components.related.quotes') }}</h3>
     <div class="max-w-3xl space-y-6 mx-auto">
       <NLink
         v-for="relatedQuote in relatedQuotes"
@@ -31,6 +31,8 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const { $t } = useI18n()
 
 const truncateText = (text: string, max: number) => {
   if (text.length <= max) return text
