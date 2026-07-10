@@ -224,7 +224,8 @@
     "pt": "Portugais",
     "ru": "Russe",
     "ja": "Japonais",
-    "zh": "Chinois"
+    "zh": "Chinois",
+    "la": "Latin"
   },
   "reference_types": {
     "all": "Tous les types",
@@ -316,8 +317,12 @@
       "cmd_add_quote": "Ajouter une citation",
       "cmd_add_quote_desc": "Contribuer une nouvelle citation",
       "cmd_suggest_edit": "Suggérer une modification",
+      "cmd_suggest_edit_desc": "Suggérer une modification à une citation existante",
       "cmd_report": "Signaler un problème",
+      "cmd_report_desc": "Signaler un problème ou un bug",
       "cmd_contact": "Contact",
+      "cmd_contact_desc": "Nous contacter",
+      "results": "résultats",
       "footer_navigate": "↑↓ pour naviguer",
       "footer_select": "Entrée pour sélectionner",
       "footer_close": "Échap pour fermer"

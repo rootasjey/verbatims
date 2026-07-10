@@ -224,7 +224,8 @@
     "pt": "Portuguese",
     "ru": "Russian",
     "ja": "Japanese",
-    "zh": "Chinese"
+    "zh": "Chinese",
+    "la": "Latin"
   },
   "reference_types": {
     "all": "All Types",
@@ -316,8 +317,12 @@
       "cmd_add_quote": "Add Quote",
       "cmd_add_quote_desc": "Contribute a new quote",
       "cmd_suggest_edit": "Suggest Edit",
+      "cmd_suggest_edit_desc": "Suggest an edit to an existing quote",
       "cmd_report": "Report Issue",
+      "cmd_report_desc": "Report a problem or bug",
       "cmd_contact": "Contact",
+      "cmd_contact_desc": "Get in touch with us",
+      "results": "results",
       "footer_navigate": "Press ↑↓ to navigate",
       "footer_select": "Press Enter to select",
       "footer_close": "Press Esc to close"

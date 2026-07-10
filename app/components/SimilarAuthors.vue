@@ -4,7 +4,7 @@
     <template v-if="compact">
       <div class="px-6 py-6 border-t b-dashed border-gray-200 dark:border-gray-700">
         <p class="font-sans text-[10px] font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-4">
-          Similar Authors
+          {{ $t('components.related.authors') }}
         </p>
         <div class="space-y-3">
           <div
@@ -43,7 +43,7 @@
         <div class="mt-8 flex items-center justify-center gap-4 mb-12">
           <span class="flex-1 max-w-12 h-px bg-gray-300 dark:bg-gray-600"></span>
           <h2 class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 flex-shrink-0">
-            Similar Authors
+            {{ $t('components.related.authors') }}
           </h2>
           <span class="flex-1 max-w-12 h-px bg-gray-300 dark:bg-gray-600"></span>
         </div>
@@ -90,6 +90,7 @@
 
 <script setup lang="ts">
 import { navigateTo } from 'nuxt/app'
+const { $t } = useI18n()
 
 interface SimilarAuthor {
   id: number
