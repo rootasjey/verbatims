@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-        Settings
+        {{ $t('title') }}
       </h1>
       <div class="flex items-center gap-5 mt-4 overflow-x-auto">
         <button
@@ -25,34 +25,34 @@
       <!-- Profile Information -->
       <div class="pb-8 border-b border-dashed border-gray-200 dark:border-gray-700">
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
-          Profile Information
+          {{ $t('section_profile') }}
         </h2>
         <div class="space-y-5 max-w-lg">
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Display Name</label>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_display_name') }}</label>
             <input
               v-model="profileForm.name"
               type="text"
-              placeholder="Your display name"
+              :placeholder="$t('placeholder_display_name') as string"
               class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
             />
           </div>
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_email') }}</label>
             <input
               v-model="profileForm.email"
               type="email"
-              placeholder="your@email.com"
+              :placeholder="$t('placeholder_email') as string"
               disabled
               class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-400 dark:text-gray-500 cursor-not-allowed"
             />
-            <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">Email cannot be changed. Contact support if needed.</p>
+            <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $t('helper_email') }}</p>
           </div>
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Bio</label>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_bio') }}</label>
             <textarea
               v-model="profileForm.bio"
-              placeholder="Tell us about yourself..."
+              :placeholder="$t('placeholder_bio') as string"
               rows="4"
               class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
             />
@@ -63,7 +63,7 @@
               class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm disabled:opacity-50"
               @click="saveProfile"
             >
-              {{ savingProfile ? 'Saving...' : 'Save Profile' }}
+              {{ savingProfile ? $t('saving') : $t('save_profile') }}
             </button>
           </div>
         </div>
@@ -72,32 +72,32 @@
       <!-- Language Preferences -->
       <div class="pb-8 border-b border-dashed border-gray-200 dark:border-gray-700">
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
-          Language Preferences
+          {{ $t('section_language') }}
         </h2>
         <div class="max-w-lg">
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Preferred Language</label>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_preferred_language') }}</label>
           <LanguageSelector />
-          <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">This affects the quotes you see by default and your submissions.</p>
+          <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $t('helper_language') }}</p>
         </div>
       </div>
 
       <!-- Privacy & Visibility -->
       <div>
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
-          Privacy &amp; Visibility
+          {{ $t('section_privacy') }}
         </h2>
         <div class="space-y-5 max-w-lg">
           <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
             <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">Public Profile</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Allow others to see your profile and public collections.</p>
+              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_public_profile') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
             </div>
             <NSwitch v-model="privacySettings.public_profile" switch-checked="indigo" />
           </div>
           <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
             <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">Show Quote Attribution</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Display your name as the submitter on approved quotes.</p>
+              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_attribution') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
             </div>
             <NSwitch v-model="privacySettings.show_attribution" switch-checked="indigo" />
           </div>
@@ -109,17 +109,17 @@
     <div v-else-if="activeTab === 'ui'" class="space-y-8">
       <div>
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
-          User Interface
+          {{ $t('section_ui') }}
         </h2>
         <div class="max-w-lg">
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Theme</label>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">Choose your preferred theme for the application.</p>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_theme') }}</label>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">{{ $t('helper_theme') }}</p>
           <ThemeSelector />
         </div>
         <div class="flex items-center justify-between gap-4 py-3 mt-6 border-b border-dashed border-gray-100 dark:border-gray-800 max-w-lg">
           <div>
-            <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">Show Home Title</h3>
-            <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Show the big "VERBATIMS" title on the home page.</p>
+            <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_home_title') }}</h3>
+            <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_show_home_title') }}</p>
           </div>
           <NSwitch v-model="showHomeTitle" switch-checked="indigo" />
         </div>
@@ -130,27 +130,27 @@
     <div v-else-if="activeTab === 'notifications'" class="space-y-8">
       <div>
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
-          Notifications
+          {{ $t('section_notifications') }}
         </h2>
         <div class="space-y-1 max-w-lg">
           <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
             <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">Quote Approval</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Get notified when your submitted quotes are approved or rejected.</p>
+              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_quote_approval') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_quote_approval') }}</p>
             </div>
             <NSwitch v-model="notificationSettings.quote_approval" switch-checked="indigo" />
           </div>
           <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
             <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">Collection Updates</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Get notified when someone adds quotes to your public collections.</p>
+              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_collection_updates') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_collection_updates') }}</p>
             </div>
             <NSwitch v-model="notificationSettings.collection_updates" switch-checked="indigo" />
           </div>
           <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
             <div>
-              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">Weekly Digest</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Receive a weekly summary of new quotes and activity.</p>
+              <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_weekly_digest') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_weekly_digest') }}</p>
             </div>
             <NSwitch v-model="notificationSettings.weekly_digest" switch-checked="indigo" />
           </div>
@@ -162,18 +162,18 @@
     <div v-else-if="activeTab === 'data'">
       <div class="max-w-lg">
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
-          Danger Zone
+          {{ $t('section_danger_zone') }}
         </h2>
         <div class="border border-dashed border-red-200 dark:border-red-900 rounded-sm p-5">
-          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 mb-1">Delete Account</h3>
+          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 mb-1">{{ $t('heading_delete_account') }}</h3>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
-            Permanently delete your account and all associated data. This action cannot be undone.
+            {{ $t('desc_delete_account') }}
           </p>
           <button
             class="font-sans text-xs text-red-600 dark:text-red-400 border border-dashed border-red-300 dark:border-red-800 px-4 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-sm"
             @click="showDeleteModal = true"
           >
-            Delete Account
+            {{ $t('button_delete_account') }}
           </button>
         </div>
       </div>
@@ -184,27 +184,27 @@
       <NDialog v-model="showDeleteModal">
         <NCard>
           <template #header>
-            <h3 class="text-lg font-semibold text-red-600">Delete Account</h3>
+            <h3 class="text-lg font-semibold text-red-600">{{ $t('dialog_delete_title') }}</h3>
           </template>
           <div class="space-y-4">
             <p class="text-gray-600 dark:text-gray-400">
-              Are you sure you want to delete your account? This will permanently remove:
+              {{ $t('dialog_delete_body') }}
             </p>
             <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <li>Your profile and account information</li>
-              <li>All your submitted quotes (drafts, pending, and published)</li>
-              <li>Your collections and lists</li>
-              <li>Your likes and favorites</li>
-              <li>All associated data</li>
+              <li>{{ $t('dialog_delete_item_profile') }}</li>
+              <li>{{ $t('dialog_delete_item_quotes') }}</li>
+              <li>{{ $t('dialog_delete_item_collections') }}</li>
+              <li>{{ $t('dialog_delete_item_likes') }}</li>
+              <li>{{ $t('dialog_delete_item_data') }}</li>
             </ul>
             <p class="text-red-600 dark:text-red-400 font-medium">
-              This action cannot be undone.
+              {{ $t('dialog_delete_warning') }}
             </p>
           </div>
           <template #footer>
             <div class="flex justify-end space-x-3">
-              <NButton btn="outline" @click="showDeleteModal = false">Cancel</NButton>
-              <NButton color="red" :loading="deleting" @click="deleteAccount">Delete My Account</NButton>
+              <NButton btn="outline" @click="showDeleteModal = false">{{ $t('common.cancel') }}</NButton>
+              <NButton color="red" :loading="deleting" @click="deleteAccount">{{ $t('dialog_delete_confirm') }}</NButton>
             </div>
           </template>
         </NCard>
@@ -240,8 +240,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Settings - Dashboard - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const pageHeader = usePageHeader()
@@ -252,12 +254,12 @@ onMounted(() => {
 
 const { user } = useUserSession()
 
-const tabs = [
-  { name: 'Profile', value: 'profile' },
-  { name: 'User Interface', value: 'ui' },
-  { name: 'Notifications', value: 'notifications' },
-  { name: 'Data', value: 'data' }
-]
+const tabs = computed(() => [
+  { name: $t('tab_profile'), value: 'profile' },
+  { name: $t('tab_ui'), value: 'ui' },
+  { name: $t('tab_notifications'), value: 'notifications' },
+  { name: $t('tab_data'), value: 'data' }
+])
 
 const activeTab = ref('profile')
 
@@ -309,7 +311,7 @@ const saveProfile = async () => {
     })
   } catch (error) {
     console.error('Failed to save profile:', error)
-    showErrorToast(error, 'Failed to save profile information.')
+    showErrorToast(error, $t('error_save_profile') as string)
   } finally {
     savingProfile.value = false
   }
@@ -324,7 +326,7 @@ const saveNotifications = async () => {
     })
   } catch (error) {
     console.error('Failed to save notification settings:', error)
-    showErrorToast(error, 'Failed to save notification settings.')
+    showErrorToast(error, $t('error_save_notifications') as string)
   } finally {
     savingNotifications.value = false
   }
@@ -339,7 +341,7 @@ const savePrivacy = async () => {
     })
   } catch (error) {
     console.error('Failed to save privacy settings:', error)
-    showErrorToast(error, 'Failed to save privacy settings.')
+    showErrorToast(error, $t('error_save_privacy') as string)
   } finally {
     savingPrivacy.value = false
   }
@@ -354,7 +356,7 @@ const deleteAccount = async () => {
     await navigateTo('/')
   } catch (error) {
     console.error('Failed to delete account:', error)
-    showErrorToast(error, 'Failed to delete account.')
+    showErrorToast(error, $t('error_delete_account') as string)
   } finally {
     deleting.value = false
   }

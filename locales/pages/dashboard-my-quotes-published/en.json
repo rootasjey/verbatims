@@ -1,1 +1,23 @@
-{}
+{
+  "meta_title": "Published Quotes - Dashboard - Verbatims",
+  "title": "Published",
+  "search_placeholder": "Search published...",
+  "sort_most_viewed": "Most Viewed",
+  "empty_search_title": "No matching published quotes",
+  "empty_search_desc": "Try adjusting your search terms.",
+  "empty_title": "No published quotes yet",
+  "empty_desc": "Submit some quotes and get them approved to see them here.",
+  "empty_action": "Create New Quote",
+  "bulk_add_collection": "Add to Collection",
+  "col_quote": "Quote",
+  "col_lang": "Lang",
+  "col_tags": "Tags",
+  "col_stats": "Stats",
+  "col_published": "Published",
+  "tooltip_likes": "{n} likes",
+  "tooltip_views": "{n} views",
+  "pagination_info": "Page {n} of {m} · {n2} of {m2} quotes",
+  "action_add_collection": "Add to Collection",
+  "action_share": "Share",
+  "toast_link_copied": "Link copied"
+}

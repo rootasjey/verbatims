@@ -1,1 +1,20 @@
-{}
+{
+  "meta_title": "Favoris - Tableau de bord - Verbatims",
+  "title": "Favoris",
+  "search_placeholder": "Rechercher dans les favoris...",
+  "sort_most_recent": "Plus récents",
+  "sort_oldest_first": "Plus anciens",
+  "sort_most_popular": "Plus populaires",
+  "sort_author_az": "Auteur A-Z",
+  "empty_search_title": "Aucun favori trouvé",
+  "empty_search_desc": "Essayez de modifier vos termes de recherche.",
+  "empty_title": "Aucun favori",
+  "empty_desc": "Explorez les citations et ajoutez celles que vous aimez à vos favoris.",
+  "empty_action": "Découvrir des citations",
+  "liked_prefix": "Ajouté le ",
+  "tooltip_add_to_collection": "Ajouter à une collection",
+  "tooltip_share": "Partager",
+  "tooltip_remove": "Retirer des favoris",
+  "share_title": "Citation de Verbatims",
+  "error_remove": "Échec du retrait des favoris"
+}

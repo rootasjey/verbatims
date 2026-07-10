@@ -1,1 +1,23 @@
-{}
+{
+  "meta_title": "Citations publiées - Tableau de bord - Verbatims",
+  "title": "Publiées",
+  "search_placeholder": "Rechercher dans les publiées...",
+  "sort_most_viewed": "Plus vues",
+  "empty_search_title": "Aucune citation publiée trouvée",
+  "empty_search_desc": "Essayez de modifier vos termes de recherche.",
+  "empty_title": "Aucune citation publiée",
+  "empty_desc": "Soumettez des citations et faites-les approuver pour les voir ici.",
+  "empty_action": "Créer une citation",
+  "bulk_add_collection": "Ajouter à une collection",
+  "col_quote": "Citation",
+  "col_lang": "Langue",
+  "col_tags": "Tags",
+  "col_stats": "Stats",
+  "col_published": "Publié le",
+  "tooltip_likes": "{n} j'aimes",
+  "tooltip_views": "{n} vues",
+  "pagination_info": "Page {n} sur {m} · {n2} sur {m2} citations",
+  "action_add_collection": "Ajouter à une collection",
+  "action_share": "Partager",
+  "toast_link_copied": "Lien copié"
+}

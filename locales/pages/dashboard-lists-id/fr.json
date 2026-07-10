@@ -1,1 +1,23 @@
-{}
+{
+  "meta_title": "{name} - Collections",
+  "meta_fallback": "Collection - Verbatims",
+  "meta_desc": "Une collection de citations organisée depuis Verbatims",
+  "error_title": "Collection introuvable",
+  "error_desc": "La collection que vous recherchez n'existe pas.",
+  "back_to_lists": "Retour aux listes",
+  "button_share": "Partager",
+  "empty_title": "Aucune citation",
+  "empty_desc": "Ajoutez des citations à cette collection depuis n'importe quelle page de citation.",
+  "tooltip_share": "Partager la citation",
+  "tooltip_remove": "Retirer de la collection",
+  "dropdown_copy_link": "Copier le lien",
+  "toast_link_copied": "Lien copié",
+  "toast_url_copied": "URL copiée dans le presse-papier",
+  "toast_collection_shared": "Collection partagée",
+  "toast_collection_shared_desc": "Le lien de la collection a été copié dans le presse-papier.",
+  "toast_copied_clipboard": "Copié dans le presse-papier",
+  "confirm_remove": "Retirer cette citation de la collection ?",
+  "share_text": "Découvrez cette collection de citations : \"{name}\"",
+  "share_title": "Citation de Verbatims",
+  "error_remove": "Échec du retrait de la citation"
+}

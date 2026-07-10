@@ -17,7 +17,7 @@
         <div class="flex flex-col">
           <!-- Sidebar Header -->
           <div class="flex items-center justify-between px-3 py-4 border-b border-gray-100 dark:border-gray-800 lg:hidden">
-            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">Dashboard</h2>
+            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">{{ $t('nav.dashboard') }}</h2>
             <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               <NIcon name="i-ph-x" class="w-4 h-4" />
             </button>
@@ -26,7 +26,7 @@
           <!-- Desktop Collapse Toggle -->
           <div class="hidden lg:flex justify-center py-3 border-b border-gray-100 dark:border-gray-800">
             <button
-              :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+              :title="sidebarCollapsed ? ($t('nav.expand_sidebar') as string) : ($t('nav.collapse_sidebar') as string)"
               :aria-expanded="!sidebarCollapsed"
               aria-controls="dashboard-sidebar"
               class="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
@@ -43,7 +43,7 @@
               sidebarCollapsed ? 'px-2' : 'px-3'
             ]"
           >
-            <NTooltip v-for="item in navItems" :key="item.to" :content="sidebarCollapsed ? item.label : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
+            <NTooltip v-for="item in navItems" :key="item.to" :content="sidebarCollapsed ? (item.label as string) : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
               <NuxtLink
                 :to="item.to"
                 :class="[
@@ -75,10 +75,10 @@
                   sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100'
                 ]"
               >
-                My Quotes
+                {{ $t('nav.my_quotes') }}
               </h3>
 
-              <NTooltip v-for="item in quoteNavItems" :key="item.to" :content="sidebarCollapsed ? item.label : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
+              <NTooltip v-for="item in quoteNavItems" :key="item.to" :content="sidebarCollapsed ? (item.label as string) : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
                 <NuxtLink
                   :to="item.to"
                   :class="[
@@ -105,7 +105,7 @@
             </div>
 
             <div class="pt-3 border-t border-gray-100 dark:border-gray-800">
-              <NTooltip v-for="item in bottomNavItems" :key="item.to" :content="sidebarCollapsed ? item.label : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
+              <NTooltip v-for="item in bottomNavItems" :key="item.to" :content="sidebarCollapsed ? (item.label as string) : undefined" :disabled="!sidebarCollapsed" :_tooltip-content="{ side: 'right' }">
                 <NuxtLink
                   :to="item.to"
                   :class="[
@@ -168,6 +168,7 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(false)
@@ -217,23 +218,23 @@ const isActive = (to: string) => {
   return route.path.startsWith(to)
 }
 
-const navItems = [
-  { to: '/dashboard', label: 'Overview', icon: 'i-ph-house' },
-  { to: '/dashboard/favourites', label: 'Favourites', icon: 'i-ph-heart' },
-  { to: '/dashboard/lists', label: 'Lists', icon: 'i-ph-bookmark' },
-]
+const navItems = computed(() => [
+  { to: '/dashboard', label: $t('nav.overview'), icon: 'i-ph-house' },
+  { to: '/dashboard/favourites', label: $t('nav.favourites'), icon: 'i-ph-heart' },
+  { to: '/dashboard/lists', label: $t('nav.lists'), icon: 'i-ph-bookmark' },
+])
 
 const quoteNavItems = computed(() => [
-  { to: '/dashboard/my-quotes/drafts', label: 'Drafts', icon: 'i-ph-file-dashed', count: draftCount.value },
-  { to: '/dashboard/my-quotes/pending', label: 'Pending', icon: 'i-ph-clock', count: pendingCount.value },
-  { to: '/dashboard/my-quotes/published', label: 'Published', icon: 'i-ph-check-circle', count: publishedCount.value },
+  { to: '/dashboard/my-quotes/drafts', label: $t('nav.drafts'), icon: 'i-ph-file-dashed', count: draftCount.value },
+  { to: '/dashboard/my-quotes/pending', label: $t('nav.pending'), icon: 'i-ph-clock', count: pendingCount.value },
+  { to: '/dashboard/my-quotes/published', label: $t('nav.published'), icon: 'i-ph-check-circle', count: publishedCount.value },
 ])
 
 const bottomNavItems = computed(() => [
-  { to: '/dashboard/sponsors', label: 'Sponsorships', icon: 'i-ph-megaphone' },
-  { to: '/dashboard/settings', label: 'Settings', icon: 'i-ph-gear' },
-  { to: '/dashboard/developer', label: 'Developer', icon: 'i-ph-code' },
-  ...(user.value?.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: 'i-ph-shield-check' }] : []),
+  { to: '/dashboard/sponsors', label: $t('nav.sponsorships'), icon: 'i-ph-megaphone' },
+  { to: '/dashboard/settings', label: $t('nav.settings'), icon: 'i-ph-gear' },
+  { to: '/dashboard/developer', label: $t('nav.developer'), icon: 'i-ph-code' },
+  ...(user.value?.role === 'admin' ? [{ to: '/admin', label: $t('nav.admin'), icon: 'i-ph-shield-check' }] : []),
 ])
 
 onMounted(() => {

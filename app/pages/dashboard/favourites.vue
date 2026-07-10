@@ -5,17 +5,17 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Favourites
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ filteredQuotes.length }} liked {{ filteredQuotes.length === 1 ? 'quote' : 'quotes' }}
+            {{ filteredQuotes.length }} {{ $t('liked_prefix') }}{{ filteredQuotes.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-4">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search favourites..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
@@ -30,7 +30,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search favourites..."
+          :placeholder="$t('search_placeholder') as string"
           class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
       </div>
@@ -48,15 +48,15 @@
     <!-- Empty -->
     <div v-else-if="filteredQuotes.length === 0" class="py-16 text-center">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? 'No matching favourites' : 'No favourites yet' }}
+        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? 'Try adjusting your search terms.' : 'Start exploring quotes and like the ones you love.' }}
+        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
       </p>
       <NuxtLink v-if="!searchQuery" to="/"
         class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
       >
-        Discover Quotes &rarr;
+        {{ $t('empty_action') }} &rarr;
       </NuxtLink>
     </div>
 
@@ -74,25 +74,25 @@
               &ldquo;{{ quote.name }}&rdquo;
             </blockquote>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author?.name || quote.author_name || 'Unknown' }}</span>
+              <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author?.name || quote.author_name || $t('common.unknown') }}</span>
               <span v-if="quote.reference?.name || quote.reference_name" class="text-gray-300 dark:text-gray-600">·</span>
               <span v-if="quote.reference?.name || quote.reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.reference?.name || quote.reference_name }}</span>
               <span class="text-gray-300 dark:text-gray-600">·</span>
-              <span class="font-sans text-xs text-gray-400 dark:text-gray-500">Liked {{ formatDate(quote.liked_at) }}</span>
+              <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('liked_prefix') }}{{ formatDate(quote.liked_at) }}</span>
             </div>
           </NuxtLink>
           <div class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <NTooltip content="Add to Collection">
+            <NTooltip :content="$t('tooltip_add_to_collection') as string">
               <button @click.stop="handleAddToCollection(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                 <NIcon name="i-ph-folder-plus" class="w-4 h-4" />
               </button>
             </NTooltip>
-            <NTooltip content="Share">
+            <NTooltip :content="$t('tooltip_share') as string">
               <button @click.stop="handleShareQuote(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                 <NIcon name="i-ph-share" class="w-4 h-4" />
               </button>
             </NTooltip>
-            <NTooltip content="Remove from favourites">
+            <NTooltip :content="$t('tooltip_remove') as string">
               <button @click.stop="handleUnlike(quote)" class="p-1.5 rounded-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                 <NIcon name="i-ph-heart-break" class="w-4 h-4" />
               </button>
@@ -108,7 +108,7 @@
           class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
           @click="loadMore"
         >
-          {{ loadingMore ? 'Loading...' : 'Load More' }}
+          {{ loadingMore ? $t('common.loading') : $t('common.load_more') }}
         </button>
       </div>
     </div>
@@ -133,8 +133,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Favourites - Dashboard - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const pageHeader = usePageHeader()
@@ -161,25 +163,24 @@ const loading = ref(true)
 const loadingMore = ref(false)
 const quotes = ref<LikedQuote[]>([])
 const searchQuery = ref('')
-const sortBy = ref({ label: 'Most Recent', value: 'recent' })
 const sortValue = ref('recent')
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-watch(sortValue, (val) => {
-  const option = sortOptions.find(o => o.value === val)
-  if (option) sortBy.value = option
+const sortOptions = computed(() => [
+  { label: $t('sort_most_recent'), value: 'recent' },
+  { label: $t('sort_oldest_first'), value: 'oldest' },
+  { label: $t('sort_most_popular'), value: 'popular' },
+  { label: $t('sort_author_az'), value: 'author' }
+])
+
+const sortBy = computed(() => {
+  const option = sortOptions.value.find(o => o.value === sortValue.value)
+  return option || sortOptions.value[0]
 })
 
 const showAddQuoteToCollectionModal = ref(false)
 const selectedQuote = ref<LikedQuote | null>(null)
-
-const sortOptions = [
-  { label: 'Most Recent', value: 'recent' },
-  { label: 'Oldest First', value: 'oldest' },
-  { label: 'Most Popular', value: 'popular' },
-  { label: 'Author A-Z', value: 'author' }
-]
 
 const filteredQuotes = computed(() => {
   let filtered = [...quotes.value]
@@ -195,7 +196,7 @@ const filteredQuotes = computed(() => {
     )
   }
 
-  switch (sortBy.value.value) {
+  switch (sortBy.value?.value) {
     case 'oldest':
       filtered.sort((a, b) => getDateTimestamp(a.liked_at) - getDateTimestamp(b.liked_at))
       break
@@ -246,17 +247,17 @@ const handleUnlike = async (quote: LikedQuote) => {
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
   } catch (e) {
     console.error('Failed to unlike:', e)
-    showErrorToast(e, 'Failed to remove from favourites')
+    showErrorToast(e, $t('error_remove') as string)
   }
 }
 
 const handleShareQuote = (quote: LikedQuote) => {
   const text = `"${quote.name}"${quote.author?.name || quote.author_name ? ` - ${quote.author?.name || quote.author_name}` : ''}`
   if (navigator.share) {
-    navigator.share({ title: 'Quote from Verbatims', text, url: `${window.location.origin}/quotes/${quote.id}` })
+    navigator.share({ title: $t('share_title') as string, text, url: `${window.location.origin}/quotes/${quote.id}` })
   } else {
     navigator.clipboard.writeText(text)
-    useToast().toast({ title: 'Copied to clipboard', toast: 'outline-success' })
+    useToast().toast({ title: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
   }
 }
 

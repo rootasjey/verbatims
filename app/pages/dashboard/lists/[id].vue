@@ -18,10 +18,10 @@
 
     <!-- Error -->
     <div v-else-if="!collection" class="py-16 text-center">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">Collection not found</p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">The collection you're looking for doesn't exist.</p>
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ $t('error_title') }}</p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">{{ $t('error_desc') }}</p>
       <NuxtLink to="/dashboard/lists" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5">
-        &larr; Back to Lists
+        &larr; {{ $t('back_to_lists') }}
       </NuxtLink>
     </div>
 
@@ -30,7 +30,7 @@
       <!-- Header -->
       <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
         <NuxtLink to="/dashboard/lists" class="inline-flex items-center gap-1 font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors mb-4">
-          &larr; Back to Lists
+          &larr; {{ $t('back_to_lists') }}
         </NuxtLink>
 
         <div class="flex items-start justify-between gap-4">
@@ -43,13 +43,13 @@
                 v-if="collection.is_public"
                 class="hidden md:inline font-sans text-xs text-green-600 dark:text-green-400 flex-shrink-0"
               >
-                Public
+                {{ $t('common.public') }}
               </span>
               <span
                 v-else
                 class="hidden md:inline font-sans text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"
               >
-                Private
+                {{ $t('common.private') }}
               </span>
             </div>
 
@@ -58,11 +58,11 @@
             </p>
 
             <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-              <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+              <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
               <span class="text-gray-200 dark:text-gray-700">·</span>
-              <span>Created {{ formatDate(collection.created_at) }}</span>
+              <span>{{ $t('common.created') }} {{ formatDate(collection.created_at) }}</span>
               <span v-if="collection.updated_at" class="text-gray-200 dark:text-gray-700">·</span>
-              <span v-if="collection.updated_at">Updated {{ formatDate(collection.updated_at) }}</span>
+              <span v-if="collection.updated_at">{{ $t('common.updated') }} {{ formatDate(collection.updated_at) }}</span>
             </div>
           </div>
 
@@ -71,7 +71,7 @@
               @click="shareCollection"
               class="hidden md:inline-flex items-center gap-1.5 font-sans text-xs text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
             >
-              Share
+              {{ $t('button_share') }}
             </button>
             <NDropdownMenu :items="collectionActions">
               <NButton icon btn="ghost" size="xs" label="i-ph-dots-three-vertical" @click.stop />
@@ -84,17 +84,17 @@
             class="font-sans"
             :class="collection.is_public ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'"
           >
-            {{ collection.is_public ? 'Public' : 'Private' }}
+            {{ collection.is_public ? $t('common.public') : $t('common.private') }}
           </span>
           <span class="text-gray-200 dark:text-gray-700">·</span>
-          <button @click="shareCollection" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Share</button>
+          <button @click="shareCollection" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ $t('button_share') }}</button>
         </div>
       </div>
 
       <!-- Empty -->
       <div v-if="!collection.quotes?.length" class="py-16 text-center">
-        <p class="font-serif text-xl font-200 text-gray-400 dark:text-gray-500 mb-2">No quotes yet</p>
-        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">Add quotes to this collection from any quote page.</p>
+        <p class="font-serif text-xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ $t('empty_title') }}</p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('empty_desc') }}</p>
       </div>
 
       <!-- Quotes Feed -->
@@ -111,20 +111,20 @@
                 &ldquo;{{ quote.name }}&rdquo;
               </blockquote>
               <div class="flex items-center gap-2 mt-2 flex-wrap">
-                <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ (quote as any).author_name || 'Unknown' }}</span>
+                <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ (quote as any).author_name || $t('common.unknown') }}</span>
                 <span v-if="(quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
                 <span v-if="(quote as any).reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-xs text-gray-400 dark:text-gray-500">Added {{ formatDate(quote.added_at) }}</span>
+                <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('common.added') }} {{ formatDate(quote.added_at) }}</span>
               </div>
             </NuxtLink>
             <div class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <NTooltip content="Share quote">
+              <NTooltip :content="$t('tooltip_share') as string">
                 <button @click.stop="handleShareQuote(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                   <NIcon name="i-ph-share" class="w-4 h-4" />
                 </button>
               </NTooltip>
-              <NTooltip content="Remove from collection">
+              <NTooltip :content="$t('tooltip_remove') as string">
                 <button @click.stop="handleRemoveFromCollection(quote)" class="p-1.5 rounded-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                   <NIcon name="i-ph-x" class="w-4 h-4" />
                 </button>
@@ -141,7 +141,7 @@
           class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
           @click="loadMoreQuotes"
         >
-          {{ loadingMore ? 'Loading...' : 'Load More' }}
+          {{ loadingMore ? $t('common.loading') : $t('common.load_more') }}
         </button>
       </div>
     </div>
@@ -156,6 +156,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
 const route = useRoute()
 const collectionId = computed(() => String(route.params.id))
 const { showErrorToast } = useErrorToast()
@@ -167,15 +168,17 @@ onMounted(() => {
 
 const collection = ref<CollectionWithQuotes | null>(null)
 
-useHead({
-  title: computed(() => collection.value ? `${collection.value.name} - Collections` : 'Collection - Verbatims'),
-  meta: [
-    {
-      name: 'description',
-      content: computed(() => collection.value?.description || 'A curated collection of quotes from Verbatims')
-    }
-  ]
-})
+  const pageTitle = computed(() => collection.value
+    ? String($t('meta_title', { name: collection.value.name }))
+    : String($t('meta_fallback')))
+  const pageDesc = computed(() => collection.value?.description || String($t('meta_desc')))
+
+  useHead({
+    title: pageTitle,
+    meta: [
+      { name: 'description', content: pageDesc }
+    ]
+  })
 
 const loading = ref(true)
 const loadingMore = ref(false)
@@ -226,9 +229,10 @@ const shareCollection = async () => {
   if (!collection.value) return
 
   try {
+    const shareText = $t('share_text', { name: collection.value.name })
     const shareData = {
       title: `${collection.value.name} - Verbatims Collection`,
-      text: `Check out this collection of quotes: "${collection.value.name}"`,
+      text: shareText as string,
       url: window.location.href
     }
 
@@ -237,8 +241,8 @@ const shareCollection = async () => {
     } else {
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
       useToast().toast({
-        title: 'Collection Shared',
-        description: 'The collection link has been copied to your clipboard.',
+        title: $t('toast_collection_shared') as string,
+        description: $t('toast_collection_shared_desc') as string,
         toast: 'soft-success',
       })
     }
@@ -249,12 +253,12 @@ const shareCollection = async () => {
 
 const collectionActions = computed(() => ([
   {
-    label: 'Copy Link',
+    label: $t('dropdown_copy_link') as string,
     leading: 'i-ph-link',
     onclick: async () => {
       try {
         await navigator.clipboard.writeText(window.location.href)
-        useToast().toast({ title: 'Link copied', description: 'URL copied to clipboard', toast: 'soft-success' })
+        useToast().toast({ title: $t('toast_link_copied') as string, description: $t('toast_url_copied') as string, toast: 'soft-success' })
       } catch (error) {
         console.error('Failed to copy link:', error)
       }
@@ -266,18 +270,18 @@ const handleShareQuote = (quote: any) => {
   const text = `"${quote.name}"${quote.author_name ? ` - ${quote.author_name}` : ''}`
   if (navigator.share) {
     navigator.share({
-      title: 'Quote from Verbatims',
+      title: $t('share_title') as string,
       text,
       url: `${window.location.origin}/quotes/${quote.id}`
     })
   } else {
     navigator.clipboard.writeText(text)
-    useToast().toast({ title: 'Copied to clipboard', toast: 'outline-success' })
+    useToast().toast({ title: $t('toast_copied_clipboard') as string, toast: 'outline-success' })
   }
 }
 
 const handleRemoveFromCollection = async (quote: any) => {
-  if (!confirm('Remove this quote from the collection?')) return
+  if (!confirm($t('confirm_remove') as string)) return
 
   try {
     await $fetch(`/api/collections/${collectionId.value}/quotes/${quote.id}`, {
@@ -292,7 +296,7 @@ const handleRemoveFromCollection = async (quote: any) => {
     }
   } catch (error) {
     console.error('Failed to remove quote:', error)
-    showErrorToast(error, 'Failed to remove quote')
+    showErrorToast(error, $t('error_remove') as string)
   }
 }
 

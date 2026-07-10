@@ -5,17 +5,17 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Lists
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ filteredCollections.length }} {{ filteredCollections.length === 1 ? 'list' : 'lists' }}
+            {{ filteredCollections.length }} {{ filteredCollections.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-4">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search lists..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
@@ -27,7 +27,7 @@
           <OutlinedButton
             @click="openCreateModal"
           >
-            + Create List
+            {{ $t('create_button') }}
           </OutlinedButton>
         </div>
       </div>
@@ -35,7 +35,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search lists..."
+          :placeholder="$t('search_placeholder') as string"
           class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
         <div class="flex items-center gap-4">
@@ -64,17 +64,17 @@
     <!-- Empty -->
     <div v-else-if="filteredCollections.length === 0" class="py-16 text-center">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? 'No matching lists' : 'No lists yet' }}
+        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? 'Try adjusting your search terms.' : 'Create a list from any quote by tapping "Add to collection".' }}
+        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
       </p>
       <button
         v-if="!searchQuery"
         @click="openCreateModal"
         class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
       >
-        + Create List
+        {{ $t('create_button') }}
       </button>
     </div>
 
@@ -98,13 +98,13 @@
                 v-if="collection.isPublic"
                 class="font-sans text-xs text-green-600 dark:text-green-400 flex-shrink-0"
               >
-                Public
+                {{ $t('common.public') }}
               </span>
               <span
                 v-else
                 class="font-sans text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"
               >
-                Private
+                {{ $t('common.private') }}
               </span>
             </div>
 
@@ -123,11 +123,11 @@
             </div>
 
             <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-              <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}</span>
+              <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
               <span class="text-gray-200 dark:text-gray-700">·</span>
-              <span>Created {{ formatDate(collection.createdAt) }}</span>
+              <span>{{ $t('common.created') }} {{ formatDate(collection.createdAt) }}</span>
               <span class="text-gray-200 dark:text-gray-700">·</span>
-              <span v-if="collection.updatedAt">Updated {{ formatDate(collection.updatedAt) }}</span>
+              <span v-if="collection.updatedAt">{{ $t('common.updated') }} {{ formatDate(collection.updatedAt) }}</span>
             </div>
           </div>
 
@@ -153,7 +153,7 @@
         class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
         @click="loadMore"
       >
-        {{ loadingMore ? 'Loading...' : 'Load More' }}
+        {{ loadingMore ? $t('common.loading') : $t('common.load_more') }}
       </button>
     </div>
 
@@ -170,15 +170,15 @@
       <NDialog v-model="showDeleteModal">
         <NCard>
           <template #header>
-            <h3 class="text-lg font-semibold">Delete List</h3>
+            <h3 class="text-lg font-semibold">{{ $t('delete_dialog_title') }}</h3>
           </template>
           <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Are you sure you want to delete "{{ selectedCollection?.name }}"? This action cannot be undone.
+            {{ $t('delete_dialog_body', { name: selectedCollection?.name || '' }) }}
           </p>
           <template #footer>
             <div class="flex justify-end space-x-3">
-              <NButton btn="outline" @click="showDeleteModal = false">Cancel</NButton>
-              <NButton color="red" :loading="deleting" @click="deleteCollection">Delete</NButton>
+              <NButton btn="outline" @click="showDeleteModal = false">{{ $t('common.cancel') }}</NButton>
+              <NButton color="red" :loading="deleting" @click="deleteCollection">{{ $t('common.delete') }}</NButton>
             </div>
           </template>
         </NCard>
@@ -214,8 +214,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Lists - Dashboard - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const pageHeader = usePageHeader()
@@ -229,20 +231,19 @@ const loadingMore = ref(false)
 const deleting = ref(false)
 const collections = ref<DashboardCollection[]>([])
 const searchQuery = ref('')
-const visibilityOptions = [
-  { label: 'All Lists', value: 'all' },
-  { label: 'Public Only', value: 'public' },
-  { label: 'Private Only', value: 'private' }
-]
+const visibilityOptions = computed(() => [
+  { label: $t('filter_all'), value: 'all' },
+  { label: $t('filter_public'), value: 'public' },
+  { label: $t('filter_private'), value: 'private' }
+])
 
-const visibilityFilter = ref({ label: 'All Lists', value: 'all' })
 const visibilityValue = ref('all')
 const hasMore = ref(false)
 const currentPage = ref(1)
 
-watch(visibilityValue, (val) => {
-  const option = visibilityOptions.find(o => o.value === val)
-  if (option) visibilityFilter.value = option
+const visibilityFilter = computed(() => {
+  const option = visibilityOptions.value.find(o => o.value === visibilityValue.value)
+  return option || visibilityOptions.value[0]
 })
 
 const showFormModal = ref(false)
@@ -262,9 +263,9 @@ const filteredCollections = computed(() => {
     )
   }
 
-  if (visibilityFilter.value.value !== 'all') {
+  if (visibilityFilter.value?.value !== 'all') {
     filtered = filtered.filter(collection =>
-      visibilityFilter.value.value === 'public' ? collection.isPublic : !collection.isPublic
+      visibilityFilter.value?.value === 'public' ? collection.isPublic : !collection.isPublic
     )
   }
 
@@ -308,12 +309,12 @@ const navigateToCollection = (collection: DashboardCollection) => {
 
 const getCollectionActions = (collection: DashboardCollection) => [
   {
-    label: 'Edit',
+    label: $t('label_edit') as string,
     leading: 'i-ph-pencil',
     onclick: () => editCollection(collection)
   },
   {
-    label: 'Delete',
+    label: $t('label_delete') as string,
     leading: 'i-ph-trash',
     onclick: () => confirmDelete(collection)
   },

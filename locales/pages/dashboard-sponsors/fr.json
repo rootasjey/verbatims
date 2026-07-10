@@ -1,1 +1,23 @@
-{}
+{
+  "meta_title": "Mes sponsors - Tableau de bord - Verbatims",
+  "title": "Mes sponsors",
+  "empty_title": "Aucun sponsor",
+  "empty_desc": "Sponsorisez un message pour le voir apparaître ici.",
+  "empty_action": "Sponsoriser un message",
+  "label_rejection_reason": "Raison du rejet : {reason}",
+  "dialog_edit_title": "Modifier le message sponsorisé",
+  "dialog_edit_desc": "Modifiez votre message en attendant la modération.",
+  "label_message": "Message *",
+  "placeholder_message": "Votre message sponsorisé",
+  "label_leading_icon": "Icône de début",
+  "placeholder_leading_icon": "ex. 🔥",
+  "label_trailing_icon": "Icône de fin",
+  "placeholder_trailing_icon": "ex. ✨",
+  "label_url": "URL (optionnel)",
+  "placeholder_url": "https://example.com",
+  "status_expired": "Expiré le {date}",
+  "status_live": "Sera en ligne le {date}",
+  "status_active": "Actif",
+  "status_rejected": "Rejeté",
+  "status_pending_moderation": "En attente de modération"
+}

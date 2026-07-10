@@ -1,1 +1,23 @@
-{}
+{
+  "meta_title": "My Sponsorships - Dashboard - Verbatims",
+  "title": "My Sponsorships",
+  "empty_title": "No sponsorships yet",
+  "empty_desc": "Sponsor a message to see it here.",
+  "empty_action": "Sponsor a Message",
+  "label_rejection_reason": "Rejection reason: {reason}",
+  "dialog_edit_title": "Edit Sponsored Message",
+  "dialog_edit_desc": "Update your message while it awaits moderation.",
+  "label_message": "Message *",
+  "placeholder_message": "Your sponsored message",
+  "label_leading_icon": "Leading icon",
+  "placeholder_leading_icon": "e.g. 🔥",
+  "label_trailing_icon": "Trailing icon",
+  "placeholder_trailing_icon": "e.g. ✨",
+  "label_url": "URL (optional)",
+  "placeholder_url": "https://example.com",
+  "status_expired": "Expired on {date}",
+  "status_live": "Will be live on {date}",
+  "status_active": "Active",
+  "status_rejected": "Rejected",
+  "status_pending_moderation": "Pending Moderation"
+}

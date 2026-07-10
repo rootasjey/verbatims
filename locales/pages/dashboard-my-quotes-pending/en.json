@@ -1,1 +1,20 @@
-{}
+{
+  "meta_title": "Pending Review - Dashboard - Verbatims",
+  "title": "Pending Review",
+  "search_placeholder": "Search pending...",
+  "empty_search_title": "No matching pending quotes",
+  "empty_search_desc": "Try adjusting your search terms.",
+  "empty_title": "No pending quotes",
+  "empty_desc": "Submit some quotes to see them here while they await review.",
+  "empty_action": "View Drafts",
+  "bulk_withdraw": "Withdraw Selected",
+  "col_quote": "Quote",
+  "col_lang": "Lang",
+  "col_tags": "Tags",
+  "col_status": "Status",
+  "col_submitted": "Submitted",
+  "action_view": "View Details",
+  "action_withdraw": "Withdraw",
+  "error_withdraw": "Withdraw failed",
+  "error_bulk_withdraw": "Bulk withdraw failed"
+}
