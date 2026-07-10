@@ -19,22 +19,22 @@
       <!-- Loading state -->
       <div v-if="loading" class="text-center py-8">
         <NIcon name="i-ph-spinner" class="w-10 h-10 text-primary-500 animate-spin mx-auto" />
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">Verifying your email...</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">{{ $t('loading') }}</p>
       </div>
 
       <!-- Error state -->
       <div v-else-if="error" class="text-center">
         <NIcon name="i-ph-x-circle" class="w-16 h-16 text-red-500 mx-auto" />
         <h3 class="mt-4 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white">
-          Verification <span class="font-300">failed</span>
+          {{ $t('error_title') }}
         </h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">{{ error }}</p>
         <div class="mt-4 space-y-2">
           <NButton v-if="canResend" size="sm" btn="light:solid dark:soft-blue" rounded="3" class="w-full" @click="resendVerification" :loading="resending">
-            Resend verification email
+            {{ $t('error_resend') }}
           </NButton>
           <NLink to="/login" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400 block mt-2">
-            Back to sign in
+            {{ $t('error_link') }}
           </NLink>
         </div>
       </div>
@@ -43,10 +43,10 @@
       <div v-else class="text-center">
         <NIcon name="i-ph-check-circle" class="w-16 h-16 text-green-500 mx-auto" />
         <h3 class="mt-4 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white">
-          Email <span class="font-300">verified</span>
+          {{ $t('success_title') }}
         </h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-          Your email has been verified successfully. You can now submit quotes for review.
+          {{ $t('success_desc') }}
         </p>
         <NButton to="/dashboard" block size="sm" btn="light:solid dark:soft-blue" rounded="3" class="py-5 mt-6 hover:scale-101 active:scale-99 transition-transform">
           Go to Dashboard
@@ -67,8 +67,8 @@
             <NIcon name="i-ph-envelope-simple" class="w-6 h-6 text-#687FE5" />
           </div>
           <div>
-            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Verification</p>
-            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">Verify your email</h2>
+            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ $t('mobile_subheading') }}</p>
+            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">{{ $t('mobile_title') }}</h2>
           </div>
         </div>
 
@@ -76,7 +76,7 @@
           <!-- Loading state -->
           <div v-if="loading" class="text-center py-6">
             <NIcon name="i-ph-spinner" class="w-10 h-10 text-primary-500 animate-spin mx-auto" />
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">Verifying your email...</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">{{ $t('loading') }}</p>
           </div>
 
           <!-- Error state -->
@@ -84,16 +84,16 @@
             <NIcon name="i-ph-x-circle" class="w-12 h-12 text-red-500 mx-auto" />
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ error }}</p>
             <NButton v-if="canResend" size="sm" btn="primary" rounded="3" class="mt-4 w-full" @click="resendVerification" :loading="resending">
-              Resend verification email
+              {{ $t('error_resend') }}
             </NButton>
           </div>
 
           <!-- Success state -->
           <div v-else class="text-center py-2">
             <NIcon name="i-ph-check-circle" class="w-12 h-12 text-green-500 mx-auto" />
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Your email has been verified. You can now submit quotes for review.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('success_desc') }}</p>
             <NButton to="/dashboard" block size="sm" btn="primary" rounded="3" class="py-5 mt-4 hover:scale-101 active:scale-99 transition-transform">
-              Go to Dashboard
+          {{ $t('success_button') }}
             </NButton>
           </div>
         </div>
@@ -118,10 +118,12 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 useHead({
-  title: 'Verify Email - Verbatims',
+  title: $t('meta_title') as string,
   meta: [
-    { name: 'description', content: 'Verify your Verbatims email address.' }
+    { name: 'description', content: $t('meta_desc') as string }
   ]
 })
 
@@ -141,7 +143,7 @@ const resending = ref(false)
 
 const verifyEmail = async () => {
   if (!token.value) {
-    error.value = 'This verification link is invalid. Please request a new one.'
+    error.value = $t('error_invalid_token') as string
     loading.value = false
     return
   }
@@ -153,7 +155,7 @@ const verifyEmail = async () => {
     })
     success.value = true
   } catch (err: any) {
-    const message = err.data?.message || 'Verification failed. The link may have expired.'
+    const message = err.data?.message || ($t('error_generic') as string)
     error.value = message
     canResend.value = true
   } finally {
@@ -168,7 +170,7 @@ const resendVerification = async () => {
     error.value = ''
     canResend.value = false
   } catch (err: any) {
-    error.value = err.data?.message || 'Failed to resend verification email.'
+    error.value = err.data?.message || ($t('error_resend_failed') as string)
   } finally {
     resending.value = false
   }

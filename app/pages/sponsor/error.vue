@@ -6,24 +6,23 @@
       </div>
 
       <h1 class="font-title text-4xl font-600 mb-3">
-        Payment failed
+        {{ $t('title') }}
       </h1>
 
       <p class="font-body text-gray-500 dark:text-gray-400 leading-relaxed mb-8">
-        Something went wrong while processing your payment.
-        No charge has been made. You can try again whenever you're ready.
+        {{ $t('desc') }}
       </p>
 
       <div class="space-y-3">
         <NButton
-          label="Try again"
+          :label="$t('try_again') as string"
           btn="outline-gray"
           size="lg"
           to="/sponsor"
           class="w-full"
         />
         <NButton
-          label="Back to home"
+          :label="$t('back_home') as string"
           btn="ghost-gray"
           size="lg"
           to="/"
@@ -39,10 +38,12 @@ definePageMeta({
   layout: 'default',
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Payment Failed \u2022 Verbatims',
+  title: $t('meta_title') as string,
   meta: [
-    { name: 'description', content: 'Your sponsored message payment failed.' },
+    { name: 'description', content: $t('meta_desc') as string },
   ],
 })
 </script>

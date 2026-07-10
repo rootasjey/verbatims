@@ -1,1 +1,17 @@
-{}
+{
+  "meta_title": "Mot de passe oublié - Verbatims",
+  "meta_desc": "Réinitialisez votre mot de passe Verbatims.",
+  "desktop_title": "Mot de passe oublié",
+  "desktop_subtitle": "Saisissez votre email et nous vous enverrons un lien de réinitialisation",
+  "success_alert": "Lien de réinitialisation envoyé ! Vérifiez votre boîte de réception.",
+  "email_placeholder": "Saisissez votre email",
+  "submit_button": "Envoyer le lien",
+  "back_link": "Retour à la connexion",
+  "mobile_subheading": "Réinitialisation",
+  "mobile_title": "Mot de passe oublié ?",
+  "mobile_desc": "Nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+  "mobile_prompt": "Vous vous souvenez de votre mot de passe ?",
+  "mobile_sign_in": "Se connecter",
+  "error_required": "Veuillez saisir votre email",
+  "error_generic": "Une erreur est survenue. Veuillez réessayer."
+}

@@ -18,10 +18,10 @@
     <div class="relative z-10 max-w-md w-full space-y-8 p-8 bg-white dark:bg-[#18181B] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
       <div>
         <h3 class="mt-2 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white text-center">
-          Forgot <span class="font-300">password</span>
+          {{ $t('desktop_title') }}
         </h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 text-center">
-          Enter your email and we'll send you a reset link
+          {{ $t('desktop_subtitle') }}
         </p>
       </div>
       <div>
@@ -29,7 +29,7 @@
           <NAlert
             v-if="success"
             alert="soft-green"
-            title="Reset link sent! Check your inbox."
+            :title="$t('success_alert') as string"
             :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
             @close="success = ''"
           />
@@ -46,7 +46,7 @@
                 <NInput
                   v-model="email"
                   type="email"
-                  placeholder="Enter your email"
+                  :placeholder="$t('email_placeholder') as string"
                   required
                   class="rounded-3"
                   :disabled="loading"
@@ -62,12 +62,12 @@
               class="py-5 hover:scale-101 active:scale-99 transition-transform"
               :loading="loading"
             >
-              Send Reset Link
+              {{ $t('submit_button') }}
             </NButton>
           </form>
           <div>
             <NLink to="/login" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400">
-              Back to sign in
+              {{ $t('back_link') }}
             </NLink>
           </div>
         </div>
@@ -87,20 +87,20 @@
             <NIcon name="i-ph-key" class="w-6 h-6 text-#687FE5" />
           </div>
           <div>
-            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">Reset password</p>
-            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">Forgot your password?</h2>
+            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ $t('mobile_subheading') }}</p>
+            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">{{ $t('mobile_title') }}</h2>
           </div>
         </div>
 
         <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-          We'll send you a link to reset your password.
+          {{ $t('mobile_desc') }}
         </p>
 
         <div class="mt-6 bg-white/85 dark:bg-gray-900/80 backdrop-blur-md rounded-4 p-4 border border-gray-200/60 dark:border-gray-800/60 shadow-lg/30">
           <NAlert
             v-if="success"
             alert="soft-green"
-            title="Reset link sent! Check your inbox."
+            :title="$t('success_alert') as string"
             class="mb-3"
             :close-button="{ icon: 'i-ph-x', color: 'gray', btn: 'link', padded: false }"
             @close="success = ''"
@@ -118,7 +118,7 @@
               <NInput
                 v-model="email"
                 type="email"
-                placeholder="Enter your email"
+                :placeholder="$t('email_placeholder') as string"
                 required
                 class="rounded-3"
                 :disabled="loading"
@@ -133,7 +133,7 @@
               class="py-5 hover:scale-101 active:scale-99 transition-transform"
               :loading="loading"
             >
-              Send Reset Link
+              {{ $t('submit_button') }}
             </NButton>
           </form>
         </div>
@@ -143,19 +143,21 @@
     <div class="px-6 pb-10 pt-2">
       <div class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-dashed border-gray-300 dark:border-gray-800 rounded-4 p-4 flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-700 dark:text-gray-300">Remember your password?</p>
+          <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('mobile_prompt') }}</p>
         </div>
-        <NButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">Sign in</NButton>
+        <NButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">{{ $t('mobile_sign_in') }}</NButton>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 useHead({
-  title: 'Forgot Password - Verbatims',
+  title: $t('meta_title') as string,
   meta: [
-    { name: 'description', content: 'Reset your Verbatims password.' }
+    { name: 'description', content: $t('meta_desc') as string }
   ]
 })
 
@@ -176,7 +178,7 @@ const success = ref('')
 
 const submitForgotPassword = async () => {
   if (!email.value) {
-    error.value = 'Please enter your email'
+    error.value = $t('error_required') as string
     return
   }
 
@@ -190,7 +192,7 @@ const submitForgotPassword = async () => {
     })
     success.value = (result as any).message
   } catch (err: any) {
-    error.value = err.data?.message || 'Something went wrong. Please try again.'
+    error.value = err.data?.message || ($t('error_generic') as string)
   } finally {
     loading.value = false
   }

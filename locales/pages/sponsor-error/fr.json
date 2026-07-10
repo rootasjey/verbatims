@@ -1,1 +1,8 @@
-{}
+{
+  "meta_title": "Paiement échoué • Verbatims",
+  "meta_desc": "Le paiement de votre message sponsorisé a échoué.",
+  "title": "Paiement échoué",
+  "desc": "Une erreur est survenue lors du traitement de votre paiement. Aucun débit n'a été effectué. Vous pouvez réessayer quand vous le souhaitez.",
+  "try_again": "Réessayer",
+  "back_home": "Retour à l'accueil"
+}

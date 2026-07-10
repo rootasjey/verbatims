@@ -1,1 +1,14 @@
-{}
+{
+  "meta_title": "Statut - API Verbatims",
+  "title": "Statut",
+  "subtitle": "Disponibilité en temps réel de l'API Verbatims.",
+  "healthy": "Tous les systèmes opérationnels",
+  "degraded": "Panne partielle",
+  "loading_status": "Chargement…",
+  "last_checked_fallback": "—",
+  "component_api": "API",
+  "component_database": "Base de données",
+  "auto_refresh": "Mise à jour toutes les 30 secondes · actualisation {{ state }}",
+  "refresh_on": "activée",
+  "refresh_off": "désactivée"
+}

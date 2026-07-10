@@ -1,1 +1,20 @@
-{}
+{
+  "meta_title": "Verify Email - Verbatims",
+  "meta_desc": "Verify your Verbatims email address.",
+  "loading": "Verifying your email...",
+  "error_title": "Verification failed",
+  "error_resend": "Resend verification email",
+  "error_link": "Back to sign in",
+  "success_title": "Email verified",
+  "success_desc": "Your email has been verified successfully. You can now submit quotes for review.",
+  "success_button": "Go to Dashboard",
+  "mobile_subheading": "Verification",
+  "mobile_title": "Verify your email",
+  "mobile_prompt_error": "Need to sign in?",
+  "mobile_sign_in": "Sign in",
+  "mobile_prompt_success": "Go to dashboard?",
+  "mobile_dashboard": "Dashboard",
+  "error_invalid_token": "This verification link is invalid. Please request a new one.",
+  "error_generic": "Verification failed. The link may have expired.",
+  "error_resend_failed": "Failed to resend verification email."
+}

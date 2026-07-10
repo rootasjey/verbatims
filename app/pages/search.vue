@@ -62,7 +62,7 @@
       <div class="sticky top-14 bg-[#FAFAF9] dark:bg-[#0C0A09] border-b border-dashed border-gray-200 dark:border-gray-700 p-4 z-30">
         <NInput
           v-model="searchQuery"
-          placeholder="Search quotes, authors, references..."
+          :placeholder="$t('search_placeholder') as string"
           leading="i-ph-magnifying-glass"
           autofocus
           size="lg"
@@ -82,7 +82,7 @@
         <div v-if="!searchQuery.trim()" class="space-y-0">
           <!-- Recent searches -->
           <div v-if="recentSearches.length > 0" class="pb-6 animate-fade-in-up" style="animation-delay: 0s">
-            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-3">Recent searches</p>
+            <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-3">{{ $t('section_recent') }}</p>
             <div class="flex flex-wrap gap-2">
               <NBadge
                 v-for="search in recentSearches"
@@ -93,7 +93,7 @@
               >
               <NIcon name="i-ph-magnifying-glass-bold" @click="searchQuery = search" />
               <span class="font-400 font-size-3.5" @click="searchQuery = search">{{ search }}</span>
-              <NTooltip :content="`Remove ${search} from recent searches`">
+              <NTooltip :content="$t('remove_recent', { search }) as string">
                 <NIcon
                   name="i-ph-x-circle-duotone"
                   @click="searchStore.removeRecent(search)"
@@ -109,8 +109,8 @@
           <!-- Suggested searches -->
           <div class="py-6 animate-fade-in-up" style="animation-delay: 0.12s">
             <div class="flex items-center justify-between mb-4">
-              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Suggested searches</p>
-              <NTooltip content="Refresh suggestions">
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $t('section_suggested') }}</p>
+              <NTooltip :content="$t('refresh_suggestions') as string">
                 <NButton
                   @click="refreshSuggestions()"
                   icon
@@ -138,9 +138,9 @@
           <!-- Random authors -->
           <div class="py-6 animate-fade-in-up" style="animation-delay: 0.24s">
             <div class="flex items-center justify-between mb-5">
-              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Authors</p>
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $t('section_authors') }}</p>
               <div class="flex items-center gap-2">
-                <NTooltip content="Fetch new random authors">
+                <NTooltip :content="$t('refresh_authors') as string">
                   <NButton
                     @click="fetchRandomAuthors()"
                     icon
@@ -180,10 +180,10 @@
                   <NTooltip :content="author.name">
                     <div class="author-name font-600 text-gray-900 dark:text-white line-clamp-1">{{ author.name }}</div>
                   </NTooltip>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count }} quotes</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ $t('author_quotes_count', { count: author.quotes_count }) }}</div>
                 </div>
               </NuxtLink>
-              <div v-if="randomAuthors.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">No authors yet</div>
+              <div v-if="randomAuthors.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">{{ $t('empty_authors') }}</div>
             </div>
           </div>
 
@@ -192,9 +192,9 @@
           <!-- Random references -->
           <div class="py-6 animate-fade-in-up" style="animation-delay: 0.36s">
             <div class="flex items-center justify-between mb-5">
-              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">References</p>
+              <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $t('section_references') }}</p>
               <div class="flex items-center gap-2">
-                <NTooltip content="Fetch new random references">
+                <NTooltip :content="$t('refresh_references') as string">
                   <NButton
                     @click="fetchRandomReferences()"
                     icon
@@ -236,13 +236,13 @@
                   </NTooltip>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
                     {{ formatReferenceType(reference.primary_type) }} •
-                    <NTooltip :content="`${reference.quotes_count} quotes`">
+                    <NTooltip :content="$t('reference_meta', { type: formatReferenceType(reference.primary_type), count: reference.quotes_count }) as string">
                       <span>{{ reference.quotes_count }} <NIcon name="i-ph-quotes-duotone" /></span>
                     </NTooltip>
                   </div>
                 </div>
               </NuxtLink>
-              <div v-if="randomReferences.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">No references yet</div>
+              <div v-if="randomReferences.length === 0" class="col-span-2 text-sm text-gray-500 dark:text-gray-400">{{ $t('empty_references') }}</div>
             </div>
           </div>
         </div>
@@ -252,19 +252,19 @@
           <div v-if="loading" class="flex items-center justify-center py-8">
             <div class="flex items-center gap-3">
               <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-              <span class="text-gray-600 dark:text-gray-400">Searching...</span>
+              <span class="text-gray-600 dark:text-gray-400">{{ $t('status_searching') }}</span>
             </div>
           </div>
 
           <div v-else-if="searchResults.total > 0" class="space-y-6">
             <div class="text-center py-4">
               <p class="text-gray-600 dark:text-gray-400">
-                Found <b>{{ searchResults.total }}</b> results for "<b>{{ searchQuery }}</b>"
+                {{ $t('results_count', { count: searchResults.total, query: searchQuery }) }}
               </p>
             </div>
 
             <div v-if="searchResults.quotes.length > 0" class="space-y-4">
-              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">Quotes</h3>
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">{{ $t('section_quotes') }}</h3>
               <div class="space-y-0">
                 <QuoteListItem
                   v-for="quote in searchResults.quotes"
@@ -275,7 +275,7 @@
             </div>
 
             <div v-if="searchResults.authors.length > 0" class="space-y-4">
-              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">Authors</h3>
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">{{ $t('section_results_authors') }}</h3>
               <div class="grid gap-3">
                 <NuxtLink
                   v-for="author in searchResults.authors"
@@ -286,14 +286,14 @@
                   <div class="flex space-x-3">
                     <NuxtImg
                       :src="author.image_url"
-                      alt="Author Avatar"
+                      :alt="$t('alt_author') as string"
                       class="w-10 h-10 rounded-full object-cover"
                       width="40"
                       height="40"
                     />
                     <div>
                       <h4 class="font-600 text-gray-900 dark:text-white">{{ author.name }}</h4>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ author.quotes_count }} quotes</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('author_quotes_count', { count: author.quotes_count }) }}</p>
                     </div>
                   </div>
                   <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
@@ -302,7 +302,7 @@
             </div>
 
             <div v-if="searchResults.references.length > 0" class="space-y-4">
-              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">References</h3>
+              <h3 class="font-title uppercase text-lg font-600 text-gray-900 dark:text-white">{{ $t('section_results_references') }}</h3>
               <div class="grid gap-3">
                 <NuxtLink
                   v-for="reference in searchResults.references"
@@ -316,7 +316,7 @@
                   <div>
                     <h4 class="font-600 text-gray-900 dark:text-white">{{ reference.name }}</h4>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                      {{ reference.primary_type }} • {{ reference.quotes_count }} quotes
+                      {{ $t('reference_meta', { type: reference.primary_type, count: reference.quotes_count }) }}
                     </p>
                   </div>
                   <NIcon name="i-ph-arrow-right" class="w-5 h-5 text-gray-400" />
@@ -328,8 +328,8 @@
           <!-- No Results -->
           <div v-else-if="!loading" class="text-center py-8">
             <NIcon name="i-ph-magnifying-glass-minus" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">No results found</h3>
-            <p class="text-gray-600 dark:text-gray-400">Try adjusting your search terms</p>
+            <h3 class="text-lg font-600 text-gray-900 dark:text-white mb-2">{{ $t('empty_title') }}</h3>
+            <p class="text-gray-600 dark:text-gray-400">{{ $t('empty_desc') }}</p>
           </div>
         </div>
       </div>
@@ -339,10 +339,10 @@
     <div v-else class="flex items-center justify-center min-h-screen">
       <div class="text-center">
         <NIcon name="i-ph-desktop" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">Desktop Search</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Use the search button in the header or press Ctrl/Cmd+K</p>
+        <h2 class="text-xl font-600 text-gray-900 dark:text-white mb-4">{{ $t('desktop_title') }}</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">{{ $t('desktop_desc') }}</p>
         <NButton btn="solid-black" @click="navigateTo('/')">
-          Go to Home
+          {{ $t('desktop_button') }}
         </NButton>
       </div>
     </div>
@@ -375,9 +375,11 @@ definePageMeta({
   keepalive: true
 })
 
+const { $t } = useI18n()
+
 useVerbatimsSeo({
-  title: 'Search - Verbatims',
-  description: 'Search quotes, authors, and references on Verbatims. Find inspiring quotes from books, films, games, and more.',
+  title: $t('meta_title') as string,
+  description: $t('meta_desc') as string,
   type: 'website'
 })
 

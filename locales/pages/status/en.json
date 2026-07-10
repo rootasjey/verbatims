@@ -1,1 +1,14 @@
-{}
+{
+  "meta_title": "Status - Verbatims API",
+  "title": "Status",
+  "subtitle": "Real-time availability of the Verbatims API.",
+  "healthy": "All Systems Operational",
+  "degraded": "Partial Outage",
+  "loading_status": "Loading…",
+  "last_checked_fallback": "—",
+  "component_api": "API",
+  "component_database": "Database",
+  "auto_refresh": "Updates every 30 seconds · auto-refresh {{ state }}",
+  "refresh_on": "auto-refresh on",
+  "refresh_off": "auto-refresh off"
+}

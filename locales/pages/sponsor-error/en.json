@@ -1,1 +1,8 @@
-{}
+{
+  "meta_title": "Payment Failed • Verbatims",
+  "meta_desc": "Your sponsored message payment failed.",
+  "title": "Payment failed",
+  "desc": "Something went wrong while processing your payment. No charge has been made. You can try again whenever you're ready.",
+  "try_again": "Try again",
+  "back_home": "Back to home"
+}
