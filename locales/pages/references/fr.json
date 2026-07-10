@@ -1,1 +1,15 @@
-{}
+{
+  "references_title": "Références",
+  "references_subtitle": "Explorez les sources derrière vos citations préférées, des livres et films aux discours et plus.",
+  "references_meta_title": "Références - Verbatims",
+  "references_meta_desc": "Parcourez les références de citations et découvrez les sources derrière les citations inspirantes.",
+  "references_breadcrumb_home": "Accueil",
+  "references_breadcrumb": "Références",
+  "references_load_more": "Voir plus de références",
+  "references_loading": "Chargement des références...",
+  "references_sort_name": "Nom",
+  "references_sort_quote_count": "Nombre de citations",
+  "references_sort_popularity": "Popularité",
+  "references_sort_release_date": "Date de sortie",
+  "references_sort_recent": "Ajout récent"
+}

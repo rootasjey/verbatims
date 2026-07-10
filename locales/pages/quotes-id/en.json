@@ -1,1 +1,21 @@
-{}
+{
+  "quote_detail_meta_title_fallback": "Quote - Verbatims",
+  "quote_detail_meta_desc_fallback": "Explore curated quotes, authors, and references on Verbatims.",
+  "quote_detail_not_found_title": "Quote Not Found",
+  "quote_detail_not_found_desc": "The quote you're looking for doesn't exist or has been removed.",
+  "quote_detail_browse": "Browse Quotes",
+  "quote_detail_share_title": "Quote from Verbatims",
+  "quote_detail_menu_edit": "Edit",
+  "quote_detail_menu_edit_tag": "Edit tag",
+  "quote_detail_menu_delete": "Delete",
+  "quote_detail_menu_copy_link": "Copy link",
+  "quote_detail_menu_copy_text": "Copy text",
+  "quote_detail_menu_share": "Share",
+  "quote_detail_menu_download": "Download image",
+  "quote_detail_menu_report": "Report",
+  "quote_detail_toast_shared": "Quote shared!",
+  "quote_detail_toast_link_copied": "Quote link copied",
+  "quote_detail_toast_share_failed": "Failed to share quote",
+  "quote_detail_toast_copy_failed": "Copy failed",
+  "quote_detail_jsonld_unknown": "Unknown"
+}

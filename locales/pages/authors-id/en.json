@@ -1,1 +1,26 @@
-{}
+{
+  "author_detail_meta_title_fallback": "Author - Verbatims",
+  "author_detail_meta_desc_fallback": "Discover author profiles and quotes on Verbatims.",
+  "author_detail_loading": "Loading author...",
+  "author_detail_label": "Author",
+  "author_detail_quotes_heading": "Quotes",
+  "author_detail_sort_most_recent": "Most Recent",
+  "author_detail_sort_most_popular": "Most Popular",
+  "author_detail_sort_most_viewed": "Most Viewed",
+  "author_detail_sort_placeholder": "Sort",
+  "author_detail_empty": "No quotes yet",
+  "author_detail_load_more": "Load More Quotes",
+  "author_detail_loading_more": "Loading Quotes...",
+  "author_detail_not_found_title": "Author Not Found",
+  "author_detail_not_found_desc": "The author you're looking for doesn't exist or has been removed.",
+  "author_detail_browse": "Browse Authors",
+  "author_detail_menu_edit": "Edit",
+  "author_detail_menu_delete": "Delete",
+  "author_detail_menu_copy_link": "Copy link",
+  "author_detail_menu_share": "Share",
+  "author_detail_menu_report": "Report",
+  "author_detail_toast_shared": "Author shared successfully!",
+  "author_detail_toast_link_copied": "Author link copied to clipboard!",
+  "author_detail_toast_share_failed": "Failed to share",
+  "author_detail_toast_copy_failed": "Copy failed"
+}

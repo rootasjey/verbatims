@@ -1,1 +1,15 @@
-{}
+{
+  "authors_title": "Authors",
+  "authors_subtitle": "Discover quotes from your favorite authors, both real and fictional.",
+  "authors_meta_title": "Authors - Verbatims",
+  "authors_meta_desc": "Browse authors and discover their most inspiring quotes. From historical figures to fictional characters.",
+  "authors_breadcrumb_home": "Home",
+  "authors_breadcrumb": "Authors",
+  "authors_load_more": "Load More Authors",
+  "authors_loading": "Loading Authors...",
+  "authors_sort_name": "Name",
+  "authors_sort_quote_count": "Quote Count",
+  "authors_sort_popularity": "Popularity",
+  "authors_sort_recent": "Recently Added",
+  "authors_search_placeholder": "Search authors..."
+}

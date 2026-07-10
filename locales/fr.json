@@ -49,6 +49,7 @@
   },
   "common": {
     "loading": "Chargement...",
+    "initializing": "Initialisation...",
     "error": "Une erreur est survenue",
     "not_found": "Introuvable",
     "back": "Retour",
@@ -61,6 +62,7 @@
     "search": "Rechercher",
     "no_results": "Aucun résultat trouvé",
     "load_more": "Charger plus",
+    "most_recent": "Plus récents",
     "select_language": "Sélectionner une langue..."
   },
   "home": {
@@ -163,7 +165,19 @@
     "meta_title": "Conditions d'utilisation — Verbatims",
     "meta_desc": "Des conditions claires et accessibles pour utiliser notre plateforme de citations. Lisez les sections sur l'éligibilité, le contenu, l'attribution et plus."
   },
+  "languages": {
+    "en": "Anglais",
+    "fr": "Français",
+    "es": "Espagnol",
+    "de": "Allemand",
+    "it": "Italien",
+    "pt": "Portugais",
+    "ru": "Russe",
+    "ja": "Japonais",
+    "zh": "Chinois"
+  },
   "reference_types": {
+    "all": "Tous les types",
     "film": "Film",
     "book": "Livre",
     "tv_series": "Série TV",

@@ -2,10 +2,10 @@
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
       <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
-        Authors
+        {{ $t('authors_title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
-        Discover quotes from your favorite authors, both real and fictional.
+        {{ $t('authors_subtitle') }}
       </p>
     </header>
 
@@ -86,8 +86,8 @@
       <div v-if="authors.length > 0 && hasMore" class="flex justify-center mt-8">
         <LoadMoreButton
           class="mb-4"
-          idleText="Load More Authors"
-          loadingText="Loading Authors..."
+          :idleText="$ts('authors_load_more')"
+          :loadingText="$ts('authors_loading')"
           :isLoading="loadingMore"
           @load="loadMore"
           data-test="load-more-authors"
@@ -129,12 +129,14 @@ definePageMeta({
   layout: 'default'
 })
 
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Authors - Verbatims',
+  title: $ts('authors_meta_title'),
   meta: [
     {
       name: 'description',
-      content: 'Browse authors and discover their most inspiring quotes. From historical figures to fictional characters.',
+      content: $ts('authors_meta_desc'),
     }
   ]
 })
@@ -143,8 +145,8 @@ useJsonLd({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://verbatims.cc' },
-    { '@type': 'ListItem', position: 2, name: 'Authors', item: 'https://verbatims.cc/authors' }
+    { '@type': 'ListItem', position: 1, name: $t('authors_breadcrumb_home'), item: 'https://verbatims.cc' },
+    { '@type': 'ListItem', position: 2, name: $t('authors_breadcrumb'), item: 'https://verbatims.cc/authors' }
   ]
 })
 
@@ -244,15 +246,15 @@ const debouncedSaveScrollState = useDebounceFn(() => {
 }, 100)
 
 const sortOptions = [
-  { label: 'Name', value: 'name' },
-  { label: 'Quote Count', value: 'quotes_count' },
-  { label: 'Popularity', value: 'likes_count' },
-  { label: 'Recently Added', value: 'created_at' }
+  { label: $ts('authors_sort_name'), value: 'name' },
+  { label: $ts('authors_sort_quote_count'), value: 'quotes_count' },
+  { label: $ts('authors_sort_popularity'), value: 'likes_count' },
+  { label: $ts('authors_sort_recent'), value: 'created_at' }
 ]
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,
-  fallbackSelector: 'input[placeholder="Search authors..."]'
+  fallbackSelector: 'input[placeholder="' + $t('authors_search_placeholder') + '"]'
 })
 
 const showSubmitModal = ref<boolean>(false)

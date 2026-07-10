@@ -1,1 +1,22 @@
-{}
+{
+  "tag_detail_meta_title_fallback": "Tag - Verbatims",
+  "tag_detail_meta_desc_fallback": "Browse quotes by tag on Verbatims.",
+  "tag_detail_loading": "Loading tag...",
+  "tag_detail_general_label": "General",
+  "tag_detail_sorted_by": "sorted by",
+  "tag_detail_sort_placeholder": "Sort by",
+  "tag_detail_sort_most_recent": "Most Recent",
+  "tag_detail_sort_most_liked": "Most Liked",
+  "tag_detail_sort_most_viewed": "Most Viewed",
+  "tag_detail_sort_most_shared": "Most Shared",
+  "tag_detail_button_sort": "Sort",
+  "tag_detail_quote_singular": "quote",
+  "tag_detail_quote_plural": "quotes",
+  "tag_detail_empty": "No quotes yet",
+  "tag_detail_empty_desc": "No approved quotes are currently tagged with",
+  "tag_detail_load_more": "Load More Quotes",
+  "tag_detail_loading_more": "Loading Quotes...",
+  "tag_detail_not_found_title": "Tag Not Found",
+  "tag_detail_not_found_desc": "The tag you're looking for doesn't exist or has been removed.",
+  "tag_detail_browse": "Browse Tags"
+}

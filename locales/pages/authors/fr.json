@@ -1,1 +1,15 @@
-{}
+{
+  "authors_title": "Auteurs",
+  "authors_subtitle": "Découvrez les citations de vos auteurs préférés, réels et fictifs.",
+  "authors_meta_title": "Auteurs - Verbatims",
+  "authors_meta_desc": "Parcourez les auteurs et découvrez leurs citations les plus inspirantes. Des figures historiques aux personnages fictifs.",
+  "authors_breadcrumb_home": "Accueil",
+  "authors_breadcrumb": "Auteurs",
+  "authors_load_more": "Voir plus d'auteurs",
+  "authors_loading": "Chargement des auteurs...",
+  "authors_sort_name": "Nom",
+  "authors_sort_quote_count": "Nombre de citations",
+  "authors_sort_popularity": "Popularité",
+  "authors_sort_recent": "Ajout récent",
+  "authors_search_placeholder": "Rechercher des auteurs..."
+}
