@@ -1,1 +1,24 @@
-{}
+{
+  "meta_title": "Reset Password - Verbatims",
+  "meta_desc": "Set a new password for your Verbatims account.",
+  "error_title": "Invalid link",
+  "error_action": "Request a new reset link",
+  "success_title": "Password reset",
+  "success_desc": "Your password has been reset successfully.",
+  "success_button": "Sign In",
+  "form_title": "Reset password",
+  "form_desc": "Choose a new password for your account",
+  "password_placeholder": "New password (min. 8 characters)",
+  "confirm_placeholder": "Confirm new password",
+  "submit_button": "Reset Password",
+  "back_link": "Back to sign in",
+  "mobile_subheading": "New password",
+  "mobile_title": "Reset your password",
+  "mobile_prompt": "Remember your password?",
+  "mobile_sign_in": "Sign in",
+  "error_invalid_token": "This reset link is invalid. Please request a new one.",
+  "error_required": "Please fill in all fields",
+  "error_password_length": "Password must be at least 8 characters long",
+  "error_passwords_mismatch": "Passwords do not match",
+  "error_generic": "Failed to reset password. The link may have expired."
+}

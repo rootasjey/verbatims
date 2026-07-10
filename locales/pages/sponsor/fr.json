@@ -1,1 +1,26 @@
-{}
+{
+  "meta_title": "Sponsor • Verbatims",
+  "meta_desc": "Promouvez votre marque ou message sur Verbatims. Les messages sponsorisés apparaissent dans la barre de sponsor en bas de chaque page.",
+  "title": "Sponsor",
+  "subtitle": "Promouvez votre marque, projet ou message sur Verbatims.",
+  "pricing_title": "Message sponsorisé",
+  "pricing_desc": "Votre message affiché dans la barre de sponsor en bas de chaque page.",
+  "price": "5€",
+  "price_label": "paiement unique",
+  "feature_duration": "Visible pendant 7 jours dans la barre de sponsor",
+  "feature_content": "Incluez un message, des icônes et un lien optionnel",
+  "feature_approval": "Nécessite une validation manuelle avant publication",
+  "login_prompt": "Vous devez être connecté pour acheter un message sponsorisé.",
+  "login_button": "Se connecter",
+  "message_placeholder": "Votre message, ex. Découvrez notre nouvelle collection !",
+  "message_label": "Message *",
+  "leading_icon_placeholder": "i-ph-star",
+  "leading_icon_label": "Icône de début",
+  "trailing_icon_placeholder": "i-ph-heart",
+  "trailing_icon_label": "Icône de fin",
+  "url_placeholder": "https://example.com",
+  "url_label": "URL",
+  "submit_button": "Payer 5€ & Publier",
+  "toast_error": "Erreur",
+  "error_checkout": "Échec de la création du paiement"
+}

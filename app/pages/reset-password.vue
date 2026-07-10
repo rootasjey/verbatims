@@ -19,11 +19,11 @@
       <!-- Invalid/expired token state -->
       <div v-if="tokenError" class="text-center">
         <h3 class="mt-2 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white">
-          Invalid <span class="font-300">link</span>
+          {{ $t('error_title') }}
         </h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">{{ tokenError }}</p>
         <NLink to="/forgot-password" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400 mt-4 inline-block">
-          Request a new reset link
+          {{ $t('error_action') }}
         </NLink>
       </div>
 
@@ -31,13 +31,13 @@
       <div v-else-if="success" class="text-center">
         <NIcon name="i-ph-check-circle" class="w-16 h-16 text-green-500 mx-auto" />
         <h3 class="mt-4 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white">
-          Password <span class="font-300">reset</span>
+          {{ $t('success_title') }}
         </h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-          Your password has been reset successfully.
+          {{ $t('success_desc') }}
         </p>
         <NButton to="/login" block size="sm" btn="light:solid dark:soft-blue" rounded="3" class="py-5 mt-6 hover:scale-101 active:scale-99 transition-transform">
-          Sign In
+          {{ $t('success_button') }}
         </NButton>
       </div>
 
@@ -45,10 +45,10 @@
       <template v-else>
         <div>
           <h3 class="mt-2 font-title text-size-8 uppercase font-600 text-gray-900 dark:text-white text-center">
-            Reset <span class="font-300">password</span>
+            {{ $t('form_title') }}
           </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400 text-center">
-            Choose a new password for your account
+            {{ $t('form_desc') }}
           </p>
         </div>
         <div>
@@ -66,7 +66,7 @@
                   <NInput
                     v-model="password"
                     required
-                    placeholder="New password (min. 8 characters)"
+                    :placeholder="$t('password_placeholder') as string"
                     class="rounded-3"
                     :type="isPasswordVisible ? 'text' : 'password'"
                     :trailing="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
@@ -81,7 +81,7 @@
                   <NInput
                     v-model="confirmPassword"
                     required
-                    placeholder="Confirm new password"
+                    :placeholder="$t('confirm_placeholder') as string"
                     class="rounded-3"
                     :type="isConfirmPasswordVisible ? 'text' : 'password'"
                     :trailing="isConfirmPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
@@ -105,7 +105,7 @@
             </form>
             <div>
               <NLink to="/login" class="text-sm text-primary-600 dark:text-[#E79E4F] hover:underline font-400">
-                Back to sign in
+                {{ $t('back_link') }}
               </NLink>
             </div>
           </div>
@@ -126,8 +126,8 @@
             <NIcon name="i-ph-key" class="w-6 h-6 text-#687FE5" />
           </div>
           <div>
-            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">New password</p>
-            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">Reset your password</h2>
+            <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">{{ $t('mobile_subheading') }}</p>
+            <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100 leading-tight">{{ $t('mobile_title') }}</h2>
           </div>
         </div>
 
@@ -136,16 +136,16 @@
           <div v-if="tokenError" class="text-center py-2">
             <p class="text-sm text-gray-600 dark:text-gray-400">{{ tokenError }}</p>
             <NLink to="/forgot-password" class="text-sm text-primary-600 dark:text-primary-400 hover:underline mt-2 inline-block">
-              Request a new reset link
+              {{ $t('error_action') }}
             </NLink>
           </div>
 
           <!-- Success state -->
           <div v-else-if="success" class="text-center py-2">
             <NIcon name="i-ph-check-circle" class="w-12 h-12 text-green-500 mx-auto" />
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Your password has been reset successfully.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('success_desc') }}</p>
             <NButton to="/login" block size="sm" btn="primary" rounded="3" class="py-5 mt-4 hover:scale-101 active:scale-99 transition-transform">
-              Sign In
+              {{ $t('success_button') }}
             </NButton>
           </div>
 
@@ -164,7 +164,7 @@
                 <NInput
                   v-model="password"
                   required
-                  placeholder="New password (min. 8 characters)"
+                  :placeholder="$t('password_placeholder') as string"
                   class="rounded-3"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :trailing="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
@@ -177,7 +177,7 @@
                 <NInput
                   v-model="confirmPassword"
                   required
-                  placeholder="Confirm new password"
+                  :placeholder="$t('confirm_placeholder') as string"
                   class="rounded-3"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
                   :trailing="isConfirmPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
@@ -195,7 +195,7 @@
                 class="py-5 hover:scale-101 active:scale-99 transition-transform"
                 :loading="loading"
               >
-                Reset Password
+                {{ $t('submit_button') }}
               </NButton>
             </form>
           </template>
@@ -206,19 +206,21 @@
     <div class="px-6 pb-10 pt-2">
       <div class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-dashed border-gray-300 dark:border-gray-800 rounded-4 p-4 flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-700 dark:text-gray-300">Remember your password?</p>
+          <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('mobile_prompt') }}</p>
         </div>
-        <NButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">Sign in</NButton>
+        <NButton size="sm" btn="light:soft dark:soft-blue" to="/login" class="font-600">{{ $t('mobile_sign_in') }}</NButton>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 useHead({
-  title: 'Reset Password - Verbatims',
+  title: $t('meta_title') as string,
   meta: [
-    { name: 'description', content: 'Set a new password for your Verbatims account.' }
+    { name: 'description', content: $t('meta_desc') as string }
   ]
 })
 
@@ -240,22 +242,22 @@ const success = ref(false)
 const tokenError = ref('')
 
 if (!token.value) {
-  tokenError.value = 'This reset link is invalid. Please request a new one.'
+  tokenError.value = $t('error_invalid_token') as string
 }
 
 const submitResetPassword = async () => {
   if (!password.value || !confirmPassword.value) {
-    error.value = 'Please fill in all fields'
+    error.value = $t('error_required') as string
     return
   }
 
   if (password.value.length < 8) {
-    error.value = 'Password must be at least 8 characters long'
+    error.value = $t('error_password_length') as string
     return
   }
 
   if (password.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match'
+    error.value = $t('error_passwords_mismatch') as string
     return
   }
 
@@ -272,7 +274,7 @@ const submitResetPassword = async () => {
     })
     success.value = true
   } catch (err: any) {
-    error.value = err.data?.message || 'Failed to reset password. The link may have expired.'
+    error.value = err.data?.message || ($t('error_generic') as string)
   } finally {
     loading.value = false
   }

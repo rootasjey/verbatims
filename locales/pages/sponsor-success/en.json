@@ -1,1 +1,8 @@
-{}
+{
+  "meta_title": "Payment Successful • Verbatims",
+  "meta_desc": "Your sponsored message payment was successful.",
+  "title": "Payment successful!",
+  "desc_line1": "Your sponsored message has been submitted and is now awaiting moderation.",
+  "desc_line2": "You'll receive a notification once it's approved. The message will then appear in the sponsor bar for 7 days.",
+  "back_home": "Back to home"
+}

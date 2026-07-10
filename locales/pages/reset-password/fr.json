@@ -1,1 +1,24 @@
-{}
+{
+  "meta_title": "Réinitialisation du mot de passe - Verbatims",
+  "meta_desc": "Définissez un nouveau mot de passe pour votre compte Verbatims.",
+  "error_title": "Lien invalide",
+  "error_action": "Demander un nouveau lien",
+  "success_title": "Mot de passe réinitialisé",
+  "success_desc": "Votre mot de passe a été réinitialisé avec succès.",
+  "success_button": "Se connecter",
+  "form_title": "Nouveau mot de passe",
+  "form_desc": "Choisissez un nouveau mot de passe pour votre compte",
+  "password_placeholder": "Nouveau mot de passe (min. 8 caractères)",
+  "confirm_placeholder": "Confirmer le nouveau mot de passe",
+  "submit_button": "Réinitialiser",
+  "back_link": "Retour à la connexion",
+  "mobile_subheading": "Nouveau mot de passe",
+  "mobile_title": "Réinitialisez votre mot de passe",
+  "mobile_prompt": "Vous vous souvenez de votre mot de passe ?",
+  "mobile_sign_in": "Se connecter",
+  "error_invalid_token": "Ce lien de réinitialisation est invalide. Veuillez en demander un nouveau.",
+  "error_required": "Veuillez remplir tous les champs",
+  "error_password_length": "Le mot de passe doit contenir au moins 8 caractères",
+  "error_passwords_mismatch": "Les mots de passe ne correspondent pas",
+  "error_generic": "Échec de la réinitialisation. Le lien a peut-être expiré."
+}

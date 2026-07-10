@@ -2,10 +2,10 @@
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
       <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
-        Status
+        {{ $t('title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-        Real-time availability of the Verbatims API.
+        {{ $t('subtitle') }}
       </p>
     </header>
 
@@ -19,17 +19,17 @@
               :class="health?.status === 'healthy' ? 'bg-green-500' : health?.status === 'degraded' ? 'bg-orange-500' : 'bg-gray-400'"
             />
             <span class="font-serif text-lg font-300 text-gray-900 dark:text-gray-100">
-              {{ health?.status === 'healthy' ? 'All Systems Operational' : health?.status === 'degraded' ? 'Partial Outage' : 'Loading…' }}
+              {{ health?.status === 'healthy' ? $t('healthy') : health?.status === 'degraded' ? $t('degraded') : $t('loading_status') }}
             </span>
           </div>
-          <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ lastChecked || '—' }}</span>
+          <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ lastChecked || $t('last_checked_fallback') }}</span>
         </div>
       </div>
 
       <!-- Component statuses -->
       <div class="space-y-3">
         <div class="flex items-center justify-between py-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-          <span class="font-body text-sm text-gray-700 dark:text-gray-300">API</span>
+          <span class="font-body text-sm text-gray-700 dark:text-gray-300">{{ $t('component_api') }}</span>
           <div class="flex items-center gap-2">
             <span class="font-mono text-xs text-gray-400">{{ health?.response_time_ms }}ms</span>
             <span
@@ -40,7 +40,7 @@
         </div>
 
         <div class="flex items-center justify-between py-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-          <span class="font-body text-sm text-gray-700 dark:text-gray-300">Database</span>
+          <span class="font-body text-sm text-gray-700 dark:text-gray-300">{{ $t('component_database') }}</span>
           <div class="flex items-center gap-2">
             <span
               class="w-2 h-2 rounded-full"
@@ -52,14 +52,16 @@
 
       <!-- Auto-refresh -->
       <p class="text-center font-mono text-xs text-gray-400 dark:text-gray-500">
-        Updates every 30 seconds · {{ refreshing ? 'auto-refresh on' : 'auto-refresh off' }}
+        {{ $t('auto_refresh', { state: refreshing ? ($t('refresh_on') as string) : ($t('refresh_off') as string) }) }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'Status - Verbatims API' })
+const { $t } = useI18n()
+
+useHead({ title: $t('meta_title') as string })
 
 interface HealthData {
   status: 'healthy' | 'degraded'

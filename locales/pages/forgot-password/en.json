@@ -1,1 +1,17 @@
-{}
+{
+  "meta_title": "Forgot Password - Verbatims",
+  "meta_desc": "Reset your Verbatims password.",
+  "desktop_title": "Forgot password",
+  "desktop_subtitle": "Enter your email and we'll send you a reset link",
+  "success_alert": "Reset link sent! Check your inbox.",
+  "email_placeholder": "Enter your email",
+  "submit_button": "Send Reset Link",
+  "back_link": "Back to sign in",
+  "mobile_subheading": "Reset password",
+  "mobile_title": "Forgot your password?",
+  "mobile_desc": "We'll send you a link to reset your password.",
+  "mobile_prompt": "Remember your password?",
+  "mobile_sign_in": "Sign in",
+  "error_required": "Please enter your email",
+  "error_generic": "Something went wrong. Please try again."
+}

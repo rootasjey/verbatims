@@ -1,1 +1,20 @@
-{}
+{
+  "meta_title": "Vérification de l'email - Verbatims",
+  "meta_desc": "Vérifiez votre adresse email Verbatims.",
+  "loading": "Vérification de votre email...",
+  "error_title": "Échec de la vérification",
+  "error_resend": "Renvoyer l'email de vérification",
+  "error_link": "Retour à la connexion",
+  "success_title": "Email vérifié",
+  "success_desc": "Votre email a été vérifié avec succès. Vous pouvez maintenant soumettre des citations.",
+  "success_button": "Accéder au tableau de bord",
+  "mobile_subheading": "Vérification",
+  "mobile_title": "Vérifiez votre email",
+  "mobile_prompt_error": "Besoin de vous connecter ?",
+  "mobile_sign_in": "Se connecter",
+  "mobile_prompt_success": "Accéder au tableau de bord ?",
+  "mobile_dashboard": "Tableau de bord",
+  "error_invalid_token": "Ce lien de vérification est invalide. Veuillez en demander un nouveau.",
+  "error_generic": "Échec de la vérification. Le lien a peut-être expiré.",
+  "error_resend_failed": "Échec de l'envoi de l'email de vérification."
+}

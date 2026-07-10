@@ -6,22 +6,20 @@
       </div>
 
       <h1 class="font-title text-4xl font-600 mb-3">
-        Payment successful!
+        {{ $t('title') }}
       </h1>
 
       <p class="font-body text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
-        Your sponsored message has been submitted and is now awaiting
-        <strong class="text-gray-700 dark:text-gray-300">moderation</strong>.
+        {{ $t('desc_line1') }}
       </p>
 
       <p class="font-body text-sm text-gray-400 dark:text-gray-500 mb-8">
-        You'll receive a notification once it's approved. The message will then
-        appear in the sponsor bar for <strong class="text-gray-600 dark:text-gray-400">7 days</strong>.
+        {{ $t('desc_line2') }}
       </p>
 
       <div class="space-y-3">
         <NButton
-          label="Back to home"
+          :label="$t('back_home') as string"
           btn="outline-gray"
           size="lg"
           to="/"
@@ -37,10 +35,12 @@ definePageMeta({
   layout: 'default',
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Payment Successful \u2022 Verbatims',
+  title: $t('meta_title') as string,
   meta: [
-    { name: 'description', content: 'Your sponsored message payment was successful.' },
+    { name: 'description', content: $t('meta_desc') as string },
   ],
 })
 </script>
