@@ -42,48 +42,49 @@ const props = defineProps({
   }
 })
 
+const { $t } = useI18n()
 const { clear } = useUserSession()
 
 const menuItems = computed(() => [
   {
-    label: 'Home',
+    label: $t('components.user_menu.home'),
     leading: 'i-ph-house',
     onclick: () => navigateTo('/')
   },
   {
-    label: 'Dashboard',
+    label: $t('components.user_menu.dashboard'),
     leading: 'i-ph-square-split-vertical-duotone',
     onclick: () => navigateTo('/dashboard')
   },
   {
-    label: 'My Collections',
+    label: $t('components.user_menu.collections'),
     leading: 'i-ph-bookmark',
     onclick: () => navigateTo('/dashboard/lists')
   },
   {
-    label: 'My Submissions',
+    label: $t('components.user_menu.submissions'),
     leading: 'i-ph-file-text',
     onclick: () => navigateTo('/dashboard/my-quotes/pending')
   },
   {
-    label: 'Liked Quotes',
+    label: $t('components.user_menu.liked'),
     leading: 'i-ph-heart',
     onclick: () => navigateTo('/dashboard/favourites')
   },
   {
-    label: 'Settings',
+    label: $t('components.user_menu.settings'),
     leading: 'i-ph-gear',
     onclick: () => navigateTo('/dashboard/settings')
   },
   // Show admin menu for admins and moderators
   {},
   ...(props.user.role === 'admin' || props.user.role === 'moderator' ? [{
-    label: 'Admin Panel',
+    label: $t('components.user_menu.admin'),
     leading: 'i-ph-shield-check',
     onclick: () => navigateTo('/admin'),
   }] : []),
   {
-    label: 'Sign Out',
+    label: $t('components.user_menu.sign_out'),
     leading: 'i-ph-sign-out',
     onclick: async () => {
       await clear()

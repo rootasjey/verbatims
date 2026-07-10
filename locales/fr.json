@@ -255,5 +255,125 @@
     "en": "Anglais",
     "fr": "Français",
     "la": "Latin"
+  },
+  "components": {
+    "masthead": {
+      "search": "Rechercher (Ctrl/Cmd+K)",
+      "sign_in": "Se connecter",
+      "sponsor": "Sponsoriser un message",
+      "sponsor_desc": "Promouvez votre marque ou message"
+    },
+    "user_menu": {
+      "home": "Accueil",
+      "dashboard": "Tableau de bord",
+      "collections": "Mes collections",
+      "submissions": "Mes soumissions",
+      "liked": "Citations aimées",
+      "settings": "Paramètres",
+      "admin": "Panneau d'administration",
+      "sign_out": "Déconnexion"
+    },
+    "sponsor_bar": {
+      "sponsor": "Sponsoriser un message",
+      "resume": "Reprendre le défilement",
+      "pause": "Pause"
+    },
+    "featured_quote": {
+      "unknown_author": "Auteur inconnu",
+      "read_more": "Lire la suite",
+      "empty": "Aucune citation pour l'instant. Soyez le premier à en partager une."
+    },
+    "quote_card": {
+      "fictional": "Personnage fictif",
+      "from": "De :",
+      "featured": "À la une",
+      "view_details": "Voir les détails",
+      "share": "Partager",
+      "add_to_collection": "Ajouter à une collection",
+      "report": "Signaler"
+    },
+    "search_box": {
+      "quick_nav": "Navigation rapide",
+      "commands": "Commandes",
+      "search_quotes": "Rechercher des citations",
+      "navigate_placeholder": "Naviguer vers une page...",
+      "command_placeholder": "Taper une commande...",
+      "search_placeholder": "Rechercher citations, auteurs, références...",
+      "remove_language": "Supprimer le filtre de langue",
+      "remove_author": "Supprimer le filtre d'auteur",
+      "remove_reference": "Supprimer le filtre de référence",
+      "clear_all": "Tout effacer",
+      "language": "Langue",
+      "author": "Auteur",
+      "reference": "Référence",
+      "no_results": "Aucun résultat pour",
+      "results_quotes": "Citations",
+      "results_authors": "Auteurs",
+      "results_references": "Références",
+      "empty_hint": "Commencez à taper pour rechercher citations, auteurs, références...",
+      "nav_home": "Accueil",
+      "nav_home_desc": "Aller à l'accueil",
+      "cmd_add_quote": "Ajouter une citation",
+      "cmd_add_quote_desc": "Contribuer une nouvelle citation",
+      "cmd_suggest_edit": "Suggérer une modification",
+      "cmd_report": "Signaler un problème",
+      "cmd_contact": "Contact",
+      "footer_navigate": "↑↓ pour naviguer",
+      "footer_select": "Entrée pour sélectionner",
+      "footer_close": "Échap pour fermer"
+    },
+    "quote_actions": {
+      "quick_actions": "Actions rapides",
+      "edit": "Modifier",
+      "submit": "Soumettre",
+      "delete": "Supprimer",
+      "share": "Partager",
+      "download": "Télécharger",
+      "report": "Signaler",
+      "cancel": "Annuler",
+      "copy_link": "Copier le lien",
+      "copy_text": "Copier le texte",
+      "download_image": "Télécharger l'image",
+      "share_this": "Partager cette citation"
+    },
+    "quote_sticky": {
+      "back": "Retour à la liste des citations",
+      "views": "Nombre de vues",
+      "shares": "Nombre de partages",
+      "likes": "Nombre de j'aimes",
+      "copy_link": "Copier le lien de la citation",
+      "copied": "Copié",
+      "copy": "Copier",
+      "save": "Enregistrer dans une collection",
+      "saved": "Enregistré",
+      "more": "Plus d'actions"
+    },
+    "app_dialog": {
+      "close": "Fermer",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "quote_hero": {
+      "featured": "Citation à la une",
+      "unknown_author": "Auteur inconnu",
+      "from": "de"
+    },
+    "quote_author_ref": {
+      "fictional": "Personnage fictif",
+      "real": "Personne réelle"
+    },
+    "related": {
+      "quotes": "Citations associées",
+      "authors": "Auteurs similaires",
+      "references": "Voir aussi"
+    },
+    "mobile_actions": {
+      "unlike": "Ne plus aimer",
+      "like": "Aimer",
+      "likes": "J'aimes",
+      "views": "Vues",
+      "share": "Partager",
+      "shares": "Partages"
+    }
   }
 }

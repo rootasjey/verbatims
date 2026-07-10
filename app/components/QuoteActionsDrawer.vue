@@ -3,7 +3,7 @@
     <template #body>
       <div class="p-5 pb-6">
         <div class="flex items-center justify-between mb-5">
-          <h3 class="text-lg font-600 text-gray-900 dark:text-white">Quick actions</h3>
+          <h3 class="text-lg font-600 text-gray-900 dark:text-white">{{ $t('components.quote_actions.quick_actions') }}</h3>
           <NBadge 
             :color="statusColor" 
             badge="soft" 
@@ -44,7 +44,7 @@
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-800">
                 <NIcon name="i-ph-pencil" class="w-6 h-6 text-blue-600 dark:text-blue-300" />
               </div>
-              <span class="text-xs font-600 text-blue-900 dark:text-blue-100 text-center">Edit</span>
+              <span class="text-xs font-600 text-blue-900 dark:text-blue-100 text-center">{{ $t('components.quote_actions.edit') }}</span>
             </div>
 
             <!-- Submit Card -->
@@ -61,7 +61,7 @@
                   :class="{ 'animate-spin': submitting }"
                 />
               </div>
-              <span class="text-xs font-600 text-green-900 dark:text-green-100 text-center">Submit</span>
+              <span class="text-xs font-600 text-green-900 dark:text-green-100 text-center">{{ $t('components.quote_actions.submit') }}</span>
             </div>
 
             <!-- Delete/Remove Card -->
@@ -73,7 +73,7 @@
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-800">
                 <NIcon :name="deleteIcon" class="w-6 h-6 text-pink-600 dark:text-pink-300" />
               </div>
-              <span class="text-xs font-600 text-pink-900 dark:text-pink-100 text-center">{{ deleteLabel }}</span>
+              <span class="text-xs font-600 text-pink-900 dark:text-pink-100 text-center">{{ deleteLabel || $t('components.quote_actions.delete') }}</span>
             </div>
 
             <!-- Share Card -->
@@ -85,7 +85,7 @@
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-800">
                 <NIcon name="i-ph-share-network" class="w-6 h-6 text-purple-600 dark:text-purple-300" />
               </div>
-              <span class="text-xs font-600 text-purple-900 dark:text-purple-100 text-center">Share</span>
+              <span class="text-xs font-600 text-purple-900 dark:text-purple-100 text-center">{{ $t('components.quote_actions.share') }}</span>
             </div>
 
             <!-- Download Card -->
@@ -97,7 +97,7 @@
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-800">
                 <NIcon name="i-ph-download-simple" class="w-6 h-6 text-amber-600 dark:text-amber-300" />
               </div>
-              <span class="text-xs font-600 text-amber-900 dark:text-amber-100 text-center">Download</span>
+              <span class="text-xs font-600 text-amber-900 dark:text-amber-100 text-center">{{ $t('components.quote_actions.download') }}</span>
             </div>
 
             <!-- Report Card -->
@@ -109,14 +109,14 @@
               <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-red-100 dark:bg-red-800">
                 <NIcon name="i-ph-flag" class="w-6 h-6 text-red-600 dark:text-red-300" />
               </div>
-              <span class="text-xs font-600 text-red-900 dark:text-red-100 text-center">Report</span>
+              <span class="text-xs font-600 text-red-900 dark:text-red-100 text-center">{{ $t('components.quote_actions.report') }}</span>
             </div>
           </template>
         </div>
 
         <!-- Cancel Button -->
         <NButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
-          Cancel
+          {{ $t('components.quote_actions.cancel') }}
         </NButton>
       </div>
     </template>
@@ -161,6 +161,8 @@ interface Emits {
   (e: 'add-to-collection'): void
 }
 
+const { $t } = useI18n()
+
 const props = withDefaults(defineProps<Props>(), {
   open: false,
   submitting: false,
@@ -184,12 +186,12 @@ const isOpen = computed({
 
 const statusLabel = computed(() => {
   const labels: Record<string, string> = {
-    draft: 'Draft',
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected'
+    draft: String($t('common.status_draft')),
+    pending: String($t('common.status_pending')),
+    approved: String($t('common.status_approved')),
+    rejected: String($t('common.status_rejected'))
   }
-  return labels[props.status] || 'Draft'
+  return labels[props.status] || String($t('common.status_draft'))
 })
 
 const statusColor = computed(() => {

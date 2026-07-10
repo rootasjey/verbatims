@@ -255,5 +255,125 @@
     "en": "English",
     "fr": "French",
     "la": "Latin"
+  },
+  "components": {
+    "masthead": {
+      "search": "Search (Ctrl/Cmd+K)",
+      "sign_in": "Sign in",
+      "sponsor": "Sponsor a Message",
+      "sponsor_desc": "Promote your brand or message"
+    },
+    "user_menu": {
+      "home": "Home",
+      "dashboard": "Dashboard",
+      "collections": "My Collections",
+      "submissions": "My Submissions",
+      "liked": "Liked Quotes",
+      "settings": "Settings",
+      "admin": "Admin Panel",
+      "sign_out": "Sign Out"
+    },
+    "sponsor_bar": {
+      "sponsor": "Sponsor a message",
+      "resume": "Resume scrolling",
+      "pause": "Pause scrolling"
+    },
+    "featured_quote": {
+      "unknown_author": "Unknown Author",
+      "read_more": "Read more",
+      "empty": "No quotes yet. Be the first to share one."
+    },
+    "quote_card": {
+      "fictional": "Fictional Character",
+      "from": "From:",
+      "featured": "Featured",
+      "view_details": "View Details",
+      "share": "Share",
+      "add_to_collection": "Add to Collection",
+      "report": "Report"
+    },
+    "search_box": {
+      "quick_nav": "Quick Navigation",
+      "commands": "Commands",
+      "search_quotes": "Search Quotes",
+      "navigate_placeholder": "Navigate to a page...",
+      "command_placeholder": "Type a command...",
+      "search_placeholder": "Search quotes, authors, or references...",
+      "remove_language": "Remove language filter",
+      "remove_author": "Remove author filter",
+      "remove_reference": "Remove reference filter",
+      "clear_all": "Clear all",
+      "language": "Language",
+      "author": "Author",
+      "reference": "Reference",
+      "no_results": "No results found for",
+      "results_quotes": "Quotes",
+      "results_authors": "Authors",
+      "results_references": "References",
+      "empty_hint": "Start typing to search quotes, authors, and references...",
+      "nav_home": "Home",
+      "nav_home_desc": "Go to homepage",
+      "cmd_add_quote": "Add Quote",
+      "cmd_add_quote_desc": "Contribute a new quote",
+      "cmd_suggest_edit": "Suggest Edit",
+      "cmd_report": "Report Issue",
+      "cmd_contact": "Contact",
+      "footer_navigate": "Press ↑↓ to navigate",
+      "footer_select": "Press Enter to select",
+      "footer_close": "Press Esc to close"
+    },
+    "quote_actions": {
+      "quick_actions": "Quick actions",
+      "edit": "Edit",
+      "submit": "Submit",
+      "delete": "Delete",
+      "share": "Share",
+      "download": "Download",
+      "report": "Report",
+      "cancel": "Cancel",
+      "copy_link": "Copy link",
+      "copy_text": "Copy text",
+      "download_image": "Download image",
+      "share_this": "Share this quote"
+    },
+    "quote_sticky": {
+      "back": "Back to quotes list",
+      "views": "View count",
+      "shares": "Share count",
+      "likes": "Like count",
+      "copy_link": "Copy link to quote",
+      "copied": "Copied",
+      "copy": "Copy",
+      "save": "Save quote to collection",
+      "saved": "Saved",
+      "more": "More actions"
+    },
+    "app_dialog": {
+      "close": "Close",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "quote_hero": {
+      "featured": "Featured Quote",
+      "unknown_author": "Unknown Author",
+      "from": "from"
+    },
+    "quote_author_ref": {
+      "fictional": "Fictional character",
+      "real": "Real person"
+    },
+    "related": {
+      "quotes": "Related Quotes",
+      "authors": "Similar Authors",
+      "references": "See also"
+    },
+    "mobile_actions": {
+      "unlike": "Unlike",
+      "like": "Like",
+      "likes": "Likes",
+      "views": "Views",
+      "share": "Share",
+      "shares": "Shares"
+    }
   }
 }

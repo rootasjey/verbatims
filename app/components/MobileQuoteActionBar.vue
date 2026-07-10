@@ -5,7 +5,7 @@
       <div 
         class="bg-white/50 dark:bg-gray-900/50 rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-gray-200/40 dark:border-gray-700/40 transition-all hover:border-gray-300/60 dark:hover:border-gray-600/60"
         @click="onToggleLike"
-        :aria-label="localIsLiked ? 'Unlike' : 'Like'"
+        :aria-label="localIsLiked ? $t('components.mobile_actions.unlike') : $t('components.mobile_actions.like')"
         :aria-disabled="(!props.canInteract || props.likePending || localLikePending) ? 'true' : 'false'"
         :class="{
           'cursor-pointer': props.canInteract && !props.likePending && !localLikePending,
@@ -22,7 +22,7 @@
             }"
           />
           <div class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-200">{{ formatNumber(localLikeCount) }}</div>
-          <div class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Likes</div>
+          <div class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('components.mobile_actions.likes') }}</div>
         </div>
       </div>
 
@@ -31,20 +31,20 @@
         <div class="flex flex-col items-center justify-center space-y-2">
           <NIcon name="i-ph-eye" class="w-7 h-7 md:w-9 md:h-9 text-gray-500 dark:text-gray-400" />
           <div class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-200">{{ formatNumber(props.viewCount) }}</div>
-          <div class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Views</div>
+          <div class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('components.mobile_actions.views') }}</div>
         </div>
       </div>
 
       <!-- Shares Card -->
       <div 
-        aria-label="Share"
+        :aria-label="$t('components.mobile_actions.share')"
         @click="shareOpen = true"
         class="cursor-pointer bg-white/50 dark:bg-gray-900/50 rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-gray-200/40 dark:border-gray-700/40 transition-all hover:border-gray-300/60 dark:hover:border-gray-600/60"
       >
         <div class="flex flex-col items-center justify-center space-y-2">
           <NIcon name="i-ph-share-network" class="w-7 h-7 md:w-9 md:h-9 text-gray-500 dark:text-gray-400" />
           <div class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-200">{{ formatNumber(props.shareCount) }}</div>
-          <div class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Shares</div>
+          <div class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('components.mobile_actions.shares') }}</div>
         </div>
       </div>
     </div>
@@ -54,7 +54,7 @@
       <template #body>
         <div class="p-4">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Share this quote</h2>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('components.quote_actions.share_this') }}</h2>
             <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="shareOpen = false" />
           </div>
 
@@ -66,7 +66,7 @@
               @click="onCopyLink"
             >
               <NIcon name="i-ph-link" class="mr-3 text-gray-600 dark:text-gray-300" />
-              <span class="text-sm font-medium text-gray-900 dark:text-white">Copy link</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.quote_actions.copy_link') }}</span>
             </NButton>
 
             <NButton
@@ -76,7 +76,7 @@
               @click="onCopyText"
             >
               <NIcon name="i-ph-quotes" class="mr-3 text-gray-600 dark:text-gray-300" />
-              <span class="text-sm font-medium text-gray-900 dark:text-white">Copy text</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.quote_actions.copy_text') }}</span>
             </NButton>
 
             <NButton
@@ -87,7 +87,7 @@
               @click="onShare"
             >
               <NIcon name="i-ph-share-network" class="mr-3 text-gray-600 dark:text-gray-300" />
-              <span class="text-sm font-medium text-gray-900 dark:text-white">Share</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.quote_actions.share') }}</span>
             </NButton>
 
             <NButton
@@ -97,7 +97,7 @@
               @click="onDownloadImage"
             >
               <NIcon name="i-ph-download-simple" class="mr-3 text-gray-600 dark:text-gray-300" />
-              <span class="text-sm font-medium text-gray-900 dark:text-white">Download image</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.quote_actions.download_image') }}</span>
             </NButton>
           </div>
         </div>
@@ -120,6 +120,7 @@ const props = defineProps({
 
 import { ref, watch } from 'vue'
 
+const { $t } = useI18n()
 const emit = defineEmits(['toggle-like', 'share', 'save', 'copy-link', 'copy-text', 'download-image'])
 const shareOpen = ref(false)
 

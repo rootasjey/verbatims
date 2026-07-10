@@ -46,19 +46,19 @@
       </div>
     </div>
     <div class="sponsor-actions">
-      <NTooltip content="Sponsor a message" placement="top">
+      <NTooltip :content="String($t('components.sponsor_bar.sponsor'))" placement="top">
         <button
           class="sponsor-btn"
-          aria-label="Sponsor a message"
+          :aria-label="String($t('components.sponsor_bar.sponsor'))"
           @click="goToSponsor"
         >
           <NIcon name="i-ph-megaphone" class="w-4 h-4" />
         </button>
       </NTooltip>
-      <NTooltip :content="isPaused ? 'Resume scrolling' : 'Pause scrolling'" placement="top">
+      <NTooltip :content="isPaused ? String($t('components.sponsor_bar.resume')) : String($t('components.sponsor_bar.pause'))" placement="top">
         <button
           class="sponsor-btn sponsor-toggle"
-          :aria-label="isPaused ? 'Resume scrolling' : 'Pause scrolling'"
+          :aria-label="isPaused ? String($t('components.sponsor_bar.resume')) : String($t('components.sponsor_bar.pause'))"
           @click="togglePause"
         >
           <NIcon :name="isPaused ? 'i-ph-play' : 'i-ph-pause'" class="w-4 h-4" />
@@ -70,6 +70,7 @@
 
 <script setup lang="ts">
 import { useStorage } from '@vueuse/core'
+const { $t } = useI18n()
 
 interface SponsorItem {
   message: string

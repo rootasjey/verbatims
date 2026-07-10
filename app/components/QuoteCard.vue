@@ -62,7 +62,7 @@
             {{ quote.author.name }}
           </NuxtLink>
           <p v-if="quote.author.is_fictional" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Fictional Character
+            {{ $t('components.quote_card.fictional') }}
           </p>
         </div>
       </div>
@@ -70,7 +70,7 @@
       <!-- Reference -->
       <div v-if="quote.reference" class="flex items-center space-x-2 quote-reference mb-4">
         <NIcon :name="getReferenceIcon(quote.reference.type)" class="w-4 h-4 flex-shrink-0" />
-        <span>From:</span>
+        <span>{{ $t('components.quote_card.from') }}</span>
         <NuxtLink
           :to="`/references/${quote.reference.id}`"
           class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors truncate"
@@ -135,7 +135,7 @@
         <div class="flex items-center space-x-2">
           <!-- Featured badge -->
           <NBadge v-if="featured || quote.is_featured" color="yellow" badge="soft" size="xs">
-            Featured
+            {{ $t('components.quote_card.featured') }}
           </NBadge>
 
           <!-- View Details -->
@@ -143,7 +143,7 @@
             :to="`/quotes/${quote.id}`"
             class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
           >
-            View Details
+            {{ $t('components.quote_card.view_details') }}
           </NuxtLink>
         </div>
       </div>
@@ -245,20 +245,22 @@ const reportQuote = () => {
 
 const hasModeratorAccess = computed(() => user.value?.role === 'admin' || user.value?.role === 'moderator')
 
+const { $t } = useI18n()
+
 const dropdownItems = computed(() => [
   {
-    label: 'Share',
+    label: $t('components.quote_card.share'),
     leading: 'i-ph-share',
     onclick: shareQuote
   },
   ...(hasModeratorAccess.value ? [{
-    label: 'Add to Collection',
+    label: $t('components.quote_card.add_to_collection'),
     leading: 'i-ph-bookmark',
     onclick: addToCollection
   }] : []),
   {},
   {
-    label: 'Report',
+    label: $t('components.quote_card.report'),
     leading: 'i-ph-flag',
     onclick: reportQuote
   }
