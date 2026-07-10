@@ -2,17 +2,17 @@
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
       <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
-        Developers
+        {{ $t('developers_title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-        Integrate Verbatims quotes into your applications with the public API.
+        {{ $t('developers_subtitle') }}
       </p>
     </header>
 
     <div class="mt-8 max-w-4xl mx-auto px-8 pb-16 space-y-16">
       <!-- Overview -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Overview</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_overview') }}</h2>
         <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
           The Verbatims API provides programmatic access to our curated collection of quotes, authors, and references.
           All responses are in JSON format and follow a consistent structure.
@@ -24,7 +24,7 @@
 
       <!-- Authentication -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Authentication</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_authentication') }}</h2>
         <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
           All API requests require an API key sent via the <code class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-sm">Authorization</code> header.
           You can manage your keys from your <NuxtLink to="/dashboard/developer" class="underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500">developer dashboard</NuxtLink>.
@@ -41,7 +41,7 @@
 
       <!-- Rate Limiting -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Rate Limiting</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_rate_limiting') }}</h2>
         <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
           Rate limits depend on your API key's tier. Response headers include your remaining quota:
         </p>
@@ -67,7 +67,7 @@
 
       <!-- Response Format -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Response Format</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_response_format') }}</h2>
         <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
           All responses follow a consistent JSON structure:
         </p>
@@ -78,7 +78,7 @@
 
       <!-- Endpoints -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-6">Endpoints</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-6">{{ $t('developers_endpoints') }}</h2>
 
         <!-- Quotes -->
         <DevelopersEndpointBlock
@@ -202,7 +202,7 @@
 
       <!-- Example -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Example</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_example') }}</h2>
         <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
           Fetch the 5 most recent quotes in French:
         </p>
@@ -213,7 +213,7 @@
 
       <!-- Status -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">API Status</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_api_status') }}</h2>
         <p class="font-body text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
           Check the real-time availability of the Verbatims API on our
           <NuxtLink to="/status" class="underline underline-offset-2 decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500">status page</NuxtLink>.
@@ -222,7 +222,7 @@
 
       <!-- Errors -->
       <section>
-        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">Error Codes</h2>
+        <h2 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 mb-4">{{ $t('developers_error_codes') }}</h2>
         <div class="space-y-2">
           <div class="flex items-start gap-4 text-sm">
             <code class="font-mono text-xs text-red-600 dark:text-red-400 shrink-0 w-8">401</code>
@@ -251,7 +251,9 @@
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'Developers - Verbatims API Documentation' })
+const { $t, $ts } = useI18n()
+
+useHead({ title: $ts('developers_meta_title') })
 
 const runtimeConfig = useRuntimeConfig()
 const siteUrl = runtimeConfig.public?.siteUrl || 'https://verbatims.cc'

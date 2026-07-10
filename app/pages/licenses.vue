@@ -1,9 +1,9 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-5 py-12">
     <div class="mt-12">
-      <h1 class="font-serif font-size-32 font-600 line-height-tight">Licenses & attribution</h1>
+      <h1 class="font-serif font-size-32 font-600 line-height-tight">{{ $t('licenses_title') }}</h1>
       <p class="text-sm text-gray-500 relative -top-2">
-        License summary for Verbatims and credits for third‑party software and assets.
+        {{ $t('licenses_subtitle') }}
       </p>
     </div>
 
@@ -108,11 +108,13 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Licenses • Verbatims',
+  title: $ts('licenses_title'),
   meta: [
     { name: 'robots', content: 'index,follow' },
-    { name: 'description', content: 'License summary for Verbatims and attributions for third‑party libraries, icons, and assets.' },
+    { name: 'description', content: $ts('licenses_meta_desc') },
   ],
 })
 

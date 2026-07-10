@@ -3,10 +3,10 @@
     <div class="max-w-xl mx-auto text-center">
       <!-- Primary message -->
       <p class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-        No quotes yet.
+        {{ $t('home.empty.no_quotes') }}
       </p>
       <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
-        Be the first to share one.
+        {{ $t('home.empty.be_first') }}
       </p>
 
       <!-- CTA -->
@@ -19,7 +19,7 @@
           class="font-sans hover:scale-102 active:scale-99 transition-[transform] duration-150"
         >
           <NIcon name="i-ph-rocket-launch" class="w-4 h-4" />
-          Get Started
+          {{ $t('home.empty.get_started') }}
         </NButton>
         <NButton
           v-else-if="needsOnboarding && (onboardingStatus?.step === 'database_data' || !onboardingStatus?.hasData)"
@@ -29,7 +29,7 @@
           class="font-sans"
         >
           <NIcon name="i-ph-database" class="w-4 h-4" />
-          Initialize Database
+          {{ $t('home.empty.init_db') }}
         </NButton>
         <NButton
           v-else
@@ -39,7 +39,7 @@
           class="font-sans"
         >
           <NIcon name="i-ph-plus-circle" class="w-4 h-4" />
-          Add a Quote
+          {{ $t('home.empty.add_quote') }}
         </NButton>
       </div>
 
@@ -48,14 +48,15 @@
 
       <!-- Story -->
       <p class="font-sans text-xs text-gray-400 dark:text-gray-500 leading-relaxed max-w-sm mx-auto">
-        Verbatims is the 8th iteration of a 15-year obsession to build the right quotes platform.
-        Simple. Focused. Built to last.
+        {{ $t('home.empty.story') }}
       </p>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+const { $t } = useI18n()
+
 interface Props {
   needsOnboarding: boolean
   onboardingStatus: {

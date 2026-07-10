@@ -6,10 +6,10 @@
       <div class="text-center mb-10">
         <div class="w-8 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-6" />
         <h1 class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100">
-          Create your account
+          {{ $t('auth.sign_up_title') }}
         </h1>
         <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-2">
-          Join our community of quote enthusiasts
+          {{ $t('auth.sign_up_subtitle') }}
         </p>
       </div>
 
@@ -26,34 +26,34 @@
         />
 
         <form @submit.prevent="signUpWithEmail" class="space-y-4">
-          <NFormGroup label="Name" name="name" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.name_label')" name="name" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <NInput
               v-model="form.name"
               type="text"
-              placeholder="Your full name"
+              :placeholder="$ts('auth.name_placeholder')"
               required
               :disabled="loading.email"
               class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
             />
           </NFormGroup>
 
-          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.email_label')" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <NInput
               v-model="form.email"
               type="email"
-              placeholder="you@example.com"
+              :placeholder="$ts('auth.email_placeholder')"
               required
               :disabled="loading.email"
               class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
             />
           </NFormGroup>
 
-          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.password_label')" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <div class="relative">
               <NInput
                 v-model="form.password"
                 required
-                placeholder="Min. 8 characters"
+                :placeholder="$ts('auth.password_min_chars')"
                 :type="isPasswordVisible ? 'text' : 'password'"
                 :disabled="loading.email"
                 class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
@@ -68,12 +68,12 @@
             </div>
           </NFormGroup>
 
-          <NFormGroup label="Confirm password" name="confirmPassword" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.confirm_password_label')" name="confirmPassword" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <div class="relative">
               <NInput
                 v-model="form.confirmPassword"
                 required
-                placeholder="Confirm your password"
+                :placeholder="$ts('auth.confirm_password_placeholder')"
                 :type="isConfirmPasswordVisible ? 'text' : 'password'"
                 :disabled="loading.email"
                 class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
@@ -96,7 +96,7 @@
             class="py-4 font-sans text-sm font-600 tracking-wide hover:scale-[1.02] active:scale-99 transition-[transform]"
             :loading="loading.email"
           >
-            Create Account
+            {{ $t('auth.sign_up_button') }}
           </NButton>
         </form>
 
@@ -107,7 +107,7 @@
           </div>
           <div class="relative flex justify-center">
             <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
-              or sign up with
+              {{ $t('auth.sign_up_with') }}
             </span>
           </div>
         </div>
@@ -118,29 +118,29 @@
             <template #leading>
               <NIcon name="i-ph-github-logo" class="w-4 h-4" />
             </template>
-            GitHub
+            {{ $t('auth.gitHub') }}
           </NButton>
           <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
             <template #leading>
               <NIcon name="i-ph-google-logo" class="w-4 h-4" />
             </template>
-            Google
+            {{ $t('auth.google') }}
           </NButton>
         </div>
 
         <!-- Terms -->
         <p class="mt-6 font-sans text-xs text-gray-400 dark:text-gray-500 text-center">
-          By creating an account, you agree to our
-          <NLink to="/terms" class="text-gray-600 dark:text-gray-300 hover:underline">Terms of Service</NLink>
+          {{ $t('auth.terms_prefix') }}
+          <NLink to="/terms" class="text-gray-600 dark:text-gray-300 hover:underline">{{ $t('auth.terms_of_service') }}</NLink>
           and
-          <NLink to="/privacy" class="text-gray-600 dark:text-gray-300 hover:underline">Privacy Policy</NLink>.
+          <NLink to="/privacy" class="text-gray-600 dark:text-gray-300 hover:underline">{{ $t('auth.privacy_policy') }}</NLink>.
         </p>
       </div>
 
       <!-- Bottom link -->
       <p class="text-center mt-8 font-sans text-sm text-gray-500 dark:text-gray-400">
-        Already have an account?&nbsp;
-        <NLink to="/login" class="text-gray-900 dark:text-gray-100 font-600 hover:underline">Sign in</NLink>
+        {{ $t('auth.has_account') }}&nbsp;
+        <NLink to="/login" class="text-gray-900 dark:text-gray-100 font-600 hover:underline">{{ $t('auth.sign_in_link') }}</NLink>
       </p>
     </div>
   </div>
@@ -150,13 +150,13 @@
     <div class="px-6 pt-10 pb-6">
       <div class="flex items-center gap-2 mb-3">
         <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
-        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Get started</p>
+        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $t('auth.sign_up_mobile_preamble') }}</p>
       </div>
       <h1 class="font-serif text-2xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
-        Create your <span class="font-600">Verbatims</span> account
+        {{ $t('auth.sign_up_mobile_title') }} <span class="font-600">Verbatims</span>
       </h1>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mt-1">
-        Save favorite lines, build collections, and share quotes
+        {{ $t('auth.sign_up_mobile_tagline') }}
       </p>
     </div>
 
@@ -173,34 +173,34 @@
         />
 
         <form @submit.prevent="signUpWithEmail" class="space-y-4">
-          <NFormGroup label="Name" name="name" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.name_label')" name="name" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <NInput
               v-model="form.name"
               type="text"
-              placeholder="Your full name"
+              :placeholder="$ts('auth.name_placeholder')"
               required
               :disabled="loading.email"
               class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
             />
           </NFormGroup>
 
-          <NFormGroup label="Email" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.email_label')" name="email" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <NInput
               v-model="form.email"
               type="email"
-              placeholder="you@example.com"
+              :placeholder="$ts('auth.email_placeholder')"
               required
               :disabled="loading.email"
               class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm"
             />
           </NFormGroup>
 
-          <NFormGroup label="Password" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.password_label')" name="password" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <div class="relative">
               <NInput
                 v-model="form.password"
                 required
-                placeholder="Min. 8 characters"
+                :placeholder="$ts('auth.password_min_chars')"
                 :type="isPasswordVisible ? 'text' : 'password'"
                 :disabled="loading.email"
                 class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
@@ -215,12 +215,12 @@
             </div>
           </NFormGroup>
 
-          <NFormGroup label="Confirm password" name="confirmPassword" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
+          <NFormGroup :label="$ts('auth.confirm_password_label')" name="confirmPassword" class="font-sans text-sm text-gray-600 dark:text-gray-400" required>
             <div class="relative">
               <NInput
                 v-model="form.confirmPassword"
                 required
-                placeholder="Confirm your password"
+                :placeholder="$ts('auth.confirm_password_placeholder')"
                 :type="isConfirmPasswordVisible ? 'text' : 'password'"
                 :disabled="loading.email"
                 class="bg-white dark:bg-[#0C0A09] border border-dashed border-gray-300 dark:border-gray-600 rounded-none font-sans text-sm w-full pr-10"
@@ -243,7 +243,7 @@
             class="py-4 font-sans text-sm font-600 tracking-wide border border-dashed border-gray-300 dark:border-gray-600"
             :loading="loading.email"
           >
-            Create Account
+            {{ $t('auth.sign_up_button') }}
           </NButton>
         </form>
 
@@ -254,7 +254,7 @@
           </div>
           <div class="relative flex justify-center">
             <span class="px-2 bg-gray-100 dark:bg-gray-800 font-sans text-xs text-gray-400 dark:text-gray-500">
-              or sign up with
+              {{ $t('auth.sign_up_with') }}
             </span>
           </div>
         </div>
@@ -265,22 +265,22 @@
             <template #leading>
               <NIcon name="i-ph-github-logo" class="w-4 h-4" />
             </template>
-            GitHub
+            {{ $t('auth.gitHub') }}
           </NButton>
           <NButton btn="ghost-gray" class="font-sans text-sm border border-dashed border-gray-200 dark:border-gray-700" :loading="loading.google" @click="signInWith('google')">
             <template #leading>
               <NIcon name="i-ph-google-logo" class="w-4 h-4" />
             </template>
-            Google
+            {{ $t('auth.google') }}
           </NButton>
         </div>
 
         <!-- Terms -->
         <p class="mt-6 font-sans text-xs text-gray-400 dark:text-gray-500 text-center leading-relaxed">
-          By creating an account, you agree to our
-          <NLink to="/terms" class="text-gray-600 dark:text-gray-300 hover:underline">Terms of Service</NLink>
+          {{ $t('auth.terms_prefix') }}
+          <NLink to="/terms" class="text-gray-600 dark:text-gray-300 hover:underline">{{ $t('auth.terms_of_service') }}</NLink>
           and
-          <NLink to="/privacy" class="text-gray-600 dark:text-gray-300 hover:underline">Privacy Policy</NLink>.
+          <NLink to="/privacy" class="text-gray-600 dark:text-gray-300 hover:underline">{{ $t('auth.privacy_policy') }}</NLink>.
         </p>
       </div>
     </div>
@@ -289,20 +289,22 @@
     <div class="px-6 pb-10 pt-6">
       <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-5 py-4 flex items-center justify-between">
         <div>
-          <p class="font-sans text-sm text-gray-700 dark:text-gray-300">Already joined?</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">Sign in and start saving quotes.</p>
+          <p class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('auth.already_joined') }}</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('auth.sign_in_tagline') }}</p>
         </div>
-        <NButton size="sm" btn="ghost-gray" to="/login" class="font-sans text-sm font-600">Sign in</NButton>
+        <NButton size="sm" btn="ghost-gray" to="/login" class="font-sans text-sm font-600">{{ $t('auth.sign_in_link') }}</NButton>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 useHead({
-  title: 'Sign Up - Verbatims',
+  title: $ts('auth.meta_title_sign_up'),
   meta: [
-    { name: 'description', content: 'Create an account on Verbatims to submit quotes, create collections, and join our community.' }
+    { name: 'description', content: $ts('auth.meta_desc_sign_up') }
   ]
 })
 
@@ -339,17 +341,17 @@ const error = ref('')
 
 const signUpWithEmail = async () => {
   if (!form.value.name || !form.value.email || !form.value.password || !form.value.confirmPassword) {
-    error.value = 'Please fill in all fields'
+    error.value = $ts('auth.error_fill_fields')
     return
   }
 
   if (form.value.password.length < 8) {
-    error.value = 'Password must be at least 8 characters long'
+    error.value = $ts('auth.error_password_length')
     return
   }
 
   if (form.value.password !== form.value.confirmPassword) {
-    error.value = 'Passwords do not match'
+    error.value = $ts('auth.error_passwords_mismatch')
     return
   }
 
@@ -370,7 +372,7 @@ const signUpWithEmail = async () => {
     await navigateTo('/')
   } catch (err: any) {
     console.error('Email sign up error:', err)
-    error.value = err.data?.message || 'Failed to create account'
+    error.value = err.data?.message || $ts('auth.error_create_account')
   } finally {
     loading.value.email = false
   }

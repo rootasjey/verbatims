@@ -13,7 +13,7 @@
         <div class="max-w-xl">
           <AppIcon />
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Discover and share memorable quotes <br /> from films, books, music, and more.
+            {{ $t('footer.tagline') }}
           </p>
         </div>
 
@@ -25,7 +25,7 @@
             'grid-cols-2 sm:grid-cols-3': isAdmin && !sectionAccount.length
           }">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
-            <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Explore</h3>
+            <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.explore') }}</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionExplore" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -37,7 +37,7 @@
           </section>
 
           <section v-if="sectionContribute.length" aria-labelledby="footer-contribute" data-testid="footer-contribute">
-            <h3 id="footer-contribute" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Contribute</h3>
+            <h3 id="footer-contribute" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.contribute') }}</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionContribute" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -46,7 +46,7 @@
           </section>
 
           <section v-if="sectionAccount.length" aria-labelledby="footer-account" data-testid="footer-account">
-            <h3 id="footer-account" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Account</h3>
+            <h3 id="footer-account" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.account') }}</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionAccount" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -55,7 +55,7 @@
           </section>
 
           <section v-if="isAdmin && sectionAdmin.length" aria-labelledby="footer-admin" data-testid="footer-admin">
-            <h3 id="footer-admin" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">Admin</h3>
+            <h3 id="footer-admin" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.admin') }}</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionAdmin" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
@@ -68,17 +68,18 @@
       <!-- Bottom row -->
       <div class="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-testid="footer-copyright">
-          © {{ year }} Verbatims. All rights reserved.
+          {{ $t('footer.all_rights', { year }) }}
         </p>
 
         <div class="flex items-center gap-6 text-xs sm:text-sm">
-          <NuxtLink to="/developers" class="link-muted" data-testid="footer-developers">Developers</NuxtLink>
-          <NuxtLink to="/status" class="link-muted" data-testid="footer-status">API Status</NuxtLink>
-          <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">Licenses</NuxtLink>
-          <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">Privacy & Policy</NuxtLink>
-          <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">Terms & Condition</NuxtLink>
-          <span class="color-gray-500 font-600">Version: {{ version }}</span>
+          <NuxtLink to="/developers" class="link-muted" data-testid="footer-developers">{{ $t('footer.developers') }}</NuxtLink>
+          <NuxtLink to="/status" class="link-muted" data-testid="footer-status">{{ $t('footer.status') }}</NuxtLink>
+          <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">{{ $t('footer.licenses') }}</NuxtLink>
+          <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">{{ $t('footer.privacy') }}</NuxtLink>
+          <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">{{ $t('footer.terms') }}</NuxtLink>
+          <span class="color-gray-500 font-600">{{ $t('footer.version') }}: {{ version }}</span>
 
+          <I18nSelector />
           <ThemeSelector />
         </div>
       </div>
@@ -87,6 +88,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 const route = useRoute()
 const config = useRuntimeConfig()
 const version = config.public.appVersion

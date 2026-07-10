@@ -12,7 +12,7 @@
           </div>
           <div class="min-w-0">
             <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-              {{ quoteAuthor?.name || 'Unknown Author' }}
+              {{ quoteAuthor?.name || $t('home.unknown_author') }}
             </p>
             <p v-if="featuredQuote?.reference" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">
               {{ featuredQuote.reference.name }}
@@ -37,7 +37,7 @@
       <div class="flex items-center gap-2 mb-3">
         <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-primary, #6366f1)` }" />
         <p class="font-sans text-xs font-600 uppercase tracking-[0.2em]" :style="{ color: `var(--theme-primary, #6366f1)` }">
-          Theme
+          {{ $t('home.theme') }}
         </p>
       </div>
       <h2 class="font-serif text-lg font-200 text-gray-900 dark:text-gray-100 leading-tight">
@@ -48,10 +48,10 @@
       </p>
       <div v-if="stats" class="mt-2 inline-flex items-center gap-3 border border-dashed border-gray-200 dark:border-gray-700 rounded-sm px-3 py-2">
         <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.quotes?.toLocaleString() }}</span>
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">quotes</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.quotes_label') }}</span>
         <span class="text-gray-300 dark:text-gray-600">·</span>
         <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.authors?.toLocaleString() }}</span>
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">authors</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.authors_label') }}</span>
       </div>
     </div>
 
@@ -62,7 +62,7 @@
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-secondary, #6366f1)` }" />
           <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-            Authors
+            {{ $t('home.nav.authors') }}
           </p>
         </div>
 
@@ -74,7 +74,7 @@
             hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
             hover:scale-105 active:scale-99
             transition-[colors,transform]">
-          See All
+          {{ $t('home.see_all') }}
         </NuxtLink>
       </div>
 
@@ -97,7 +97,7 @@
                 {{ author.name }}
               </p>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}
+                {{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? $t('home.quote_singular') : $t('home.quote_plural') }}
               </p>
             </div>
           </NuxtLink>
@@ -121,7 +121,7 @@
     <div v-if="allReferences.length > 0 || curatedLoading" class="px-6 py-6 animate-fade-in-up" style="animation-delay: 0.15s">
       <div class="flex items-center justify-between mb-5">
         <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-          References
+          {{ $t('home.nav.references') }}
         </p>
 
         <NuxtLink
@@ -132,7 +132,7 @@
             hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
             hover:scale-105 active:scale-99
             transition-[colors,transform]">
-          See All
+          {{ $t('home.see_all') }}
         </NuxtLink>
       </div>
 
@@ -179,7 +179,7 @@
     <div v-if="quotesList.length > 0" class="px-6 py-5 animate-fade-in-up" style="animation-delay: 0.2s">
       <div class="flex items-center justify-between mb-8">
         <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-          Recent Quotes
+          {{ $t('home.recent_quotes') }}
         </p>
 
         <NuxtLink
@@ -190,7 +190,7 @@
             hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
             hover:scale-105 active:scale-99
             transition-[colors,transform]">
-          Browse All
+          {{ $t('home.browse_all') }}
         </NuxtLink>
       </div>
 
@@ -209,7 +209,7 @@
               {{ quote.name }}
             </blockquote>
             <p class="mt-1.5 font-sans text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors flex items-center gap-1.5 flex-wrap">
-              <span>{{ quote.author?.name || 'Unknown' }}</span>
+              <span>{{ quote.author?.name || $t('home.unknown') }}</span>
               <template v-if="quote.tags && quote.tags.length > 0">
                 <span v-for="tag in quote.tags.slice(0, 3)" :key="tag.name" class="w-2 h-2 rounded-full inline-block" :style="{ backgroundColor: tag.color || '#6366f1' }" />
               </template>
@@ -223,8 +223,8 @@
       <div v-if="hasMore" class="mt-6 flex justify-center">
         <LoadMoreButton
           :isLoading="loadingMore"
-          idleText="Load More"
-          loadingText="Loading..."
+          :idleText="$ts('home.load_more')"
+          :loadingText="$ts('home.loading')"
           @load="handleLoadMore"
         />
       </div>
@@ -236,7 +236,7 @@
       <div class="flex items-center gap-3 mb-4">
         <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0">
-          Spotlight
+           {{ $t('home.spotlight') }}
         </p>
         <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
       </div>
@@ -265,14 +265,16 @@
 
     <!-- ── Empty state when no quotes ── -->
     <div v-if="allAuthors.length === 0 && allReferences.length === 0 && quotesList.length === 0 && !curatedLoading" class="px-6 py-16 text-center">
-      <p class="font-serif text-xl text-gray-500 dark:text-gray-400">No content yet</p>
-      <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">Be the first to contribute</p>
+      <p class="font-serif text-xl text-gray-500 dark:text-gray-400">{{ $t('home.no_content') }}</p>
+      <p class="font-sans text-sm text-gray-400 dark:text-gray-500 mt-2">{{ $t('home.be_first_contribute') }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types'
+
+const { $t, $ts } = useI18n()
 
 const config = useRuntimeConfig()
 
@@ -353,21 +355,8 @@ const truncateText = (text: string, maxLength: number): string => {
 
 const formatReferenceType = (type?: string): string => {
   if (!type) return ''
-  const map: Record<string, string> = {
-    film: 'Film',
-    book: 'Book',
-    tv_series: 'TV Series',
-    music: 'Music',
-    speech: 'Speech',
-    podcast: 'Podcast',
-    interview: 'Interview',
-    documentary: 'Documentary',
-    media_stream: 'Media Stream',
-    writings: 'Writings',
-    video_game: 'Video Game',
-    other: 'Other'
-  }
-  return map[type] || type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  const t = $ts('reference_types.' + type)
+  return t || type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 </script>
 

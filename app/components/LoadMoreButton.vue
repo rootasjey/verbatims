@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
   idleText: 'load more',
   loadingText: 'loading...',
-  hintText: 'Keyboard: press Space or M while this button is visible.'
+  hintText: undefined
 })
 
 const emit = defineEmits<{

@@ -1,16 +1,16 @@
 <template>
   <div class="tos-root" :class="{ 'prefers-dark': isDark }">
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">{{ $t('terms_skip_link') }}</a>
 
     <header class="tos-header relative pt-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" role="banner">
-      <h1 class="title font-serif font-size-32 font-600 line-height-tight">Terms of Service</h1>
+      <h1 class="title font-serif font-size-32 font-600 line-height-tight">{{ $t('terms_title') }}</h1>
       <p class="subtitle">
-        Clear, simple terms for using our quotes platform.
+        {{ $t('terms_subtitle') }}
       </p>
       <p class="meta">
-        <span aria-label="Version">Version 0.1</span>
+        <span :aria-label="$ts('terms_version', { v: '0.1' })">{{ $t('terms_version', { v: '0.1' }) }}</span>
         <span aria-hidden="true">•</span>
-        <time datetime="2025-07-08">Last updated: 8 August 2025</time>
+        <time datetime="2025-07-08">{{ $t('terms_last_updated', { date: '8 August 2025' }) }}</time>
       </p>
     </header>
 
@@ -243,10 +243,7 @@
         </section>
 
         <footer class="doc-end" aria-label="Document end">
-          <p>
-            This document contains hidden legal postal addresses for privacy reasons (we do not have business addresses yet). 
-            The visible contact information is an email address. For any legal notices, please use the email provided above.
-          </p>
+          <p>{{ $t('terms_doc_end') }}</p>
         </footer>
       </main>
 
@@ -271,7 +268,7 @@
             <template #body>
               <div class="px-4 pb-4 overflow-y-auto">
                 <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
-                  <h3 class="font-serif text-4xl font-700">Contents</h3>
+                  <h3 class="font-serif text-4xl font-700">{{ $t('terms_toc_title') }}</h3>
                   <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
                 </div>
 
@@ -291,7 +288,7 @@
           <details :open="tocOpen" @toggle="onDetailsToggle">
             <summary class="toc-summary" :aria-expanded="tocOpen">
               <span class="toc-icon" aria-hidden="true">☰</span>
-              Contents
+              {{ $t('terms_toc_title') }}
             </summary>
             <ol class="toc-list">
               <li v-for="item in toc" :key="item.id">
@@ -310,6 +307,8 @@
 <script setup lang="ts">
 import { usePreferredDark } from '@vueuse/core'
 
+const { $t, $ts } = useI18n()
+
 const isDark = usePreferredDark()
 const tocOpen = ref(false)
 
@@ -319,10 +318,10 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Terms of Service — Verbatims',
-  ogTitle: 'Terms of Service — Verbatims',
-  description: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.',
-  ogDescription: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.'
+  title: $ts('terms_meta_title'),
+  ogTitle: $ts('terms_meta_title'),
+  description: $ts('terms_meta_desc'),
+  ogDescription: $ts('terms_meta_desc')
 })
 
 import { useJsonLd } from '../composables/useSeo'
@@ -331,8 +330,8 @@ useJsonLd({
   '@context': 'https://schema.org',
   '@type': 'TermsOfService',
   url: 'https://verbatims.cc/terms',
-  name: 'Terms of Service',
-  description: 'Clear, accessible Terms for using our quotes platform. Read about eligibility, content, attribution, and more.',
+  name: $ts('terms_title'),
+  description: $ts('terms_meta_desc'),
   datePublished: new Date().toISOString().split('T')[0]
 })
 
