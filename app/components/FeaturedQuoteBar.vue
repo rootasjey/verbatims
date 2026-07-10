@@ -40,7 +40,7 @@
             v-else
             class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400"
           >
-            Unknown Author
+            {{ $t('components.featured_quote.unknown_author') }}
           </p>
           <p
             v-if="currentQuote.reference"
@@ -54,7 +54,7 @@
 
       <!-- Subtle hint -->
       <p class="mt-4 text-xs text-gray-400 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 select-none">
-        Read more
+        {{ $t('components.featured_quote.read_more') }}
       </p>
     </div>
 
@@ -70,7 +70,7 @@
     <!-- Empty state -->
     <div v-else class="max-w-3xl mx-auto text-center py-4">
       <p class="font-serif text-2xl text-gray-500 dark:text-gray-400">
-        No quotes yet. Be the first to share one.
+        {{ $t('components.featured_quote.empty') }}
       </p>
     </div>
 
@@ -82,6 +82,8 @@
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types'
 import { navigateTo } from 'nuxt/app'
+
+const { $t } = useI18n()
 
 const ROTATION_INTERVAL = 30_000
 

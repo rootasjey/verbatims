@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between mb-4">
       <NBadge color="primary" badge="soft" size="sm">
         <NIcon name="i-ph-star-bold" class="w-3 h-3 mr-1" />
-        Featured Quote
+        {{ $t('components.quote_hero.featured') }}
       </NBadge>
       
       <!-- Share Button -->
@@ -34,14 +34,14 @@
         <!-- Author -->
         <div class="flex items-center space-x-2 mb-1">
           <span class="font-600 text-gray-900 dark:text-gray-100">
-            {{ quote.author?.name || 'Unknown Author' }}
+            {{ quote.author?.name || $t('components.quote_hero.unknown_author') }}
           </span>
         </div>
         
         <!-- Reference -->
         <div v-if="quote.reference" class="flex items-center space-x-2">
           <span class="text-sm text-gray-600 dark:text-gray-400">
-            from {{ quote.reference.name }}
+            {{ $t('components.quote_hero.from') }} {{ quote.reference.name }}
           </span>
           <NBadge
             v-if="quote.reference.primary_type"

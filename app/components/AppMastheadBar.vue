@@ -34,7 +34,7 @@
 
         <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
           <div class="flex">
-            <NTooltip content="Search (Ctrl/Cmd+K)" placement="bottom">
+            <NTooltip :content="String($t('components.masthead.search'))" placement="bottom">
               <NButton
                 icon
                 btn="ghost-gray"
@@ -45,7 +45,7 @@
 
             <UserMenu v-if="user" :user="user" />
 
-            <NTooltip v-else content="Sign in">
+            <NTooltip v-else :content="String($t('components.masthead.sign_in'))">
               <NButton
                 link
                 icon
@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
 const route = useRoute()
 const { user } = useUserSession()
 const scrollY = ref(0)
@@ -90,12 +91,7 @@ const reportCategory: Ref<ReportCategory> = ref('feedback')
 
 const currentDate = computed(() => {
   const now = new Date()
-  return now.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 })
 
 const navMenuItems = computed(() => [

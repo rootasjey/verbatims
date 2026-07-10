@@ -5,7 +5,7 @@
       <div class="flex flex-wrap items-center justify-between gap-1.5 md:gap-3">
         <!-- Left: compact quote title and context (hidden on mobile — visible in hero below) -->
         <div class="hidden md:flex min-w-0 items-center gap-3">
-          <NTooltip content="Back to quotes list" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.back')" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               icon
               btn="ghost-gray"
@@ -45,7 +45,7 @@
 
         <!-- Middle: stats chips -->
         <div class="flex items-center gap-2 md:gap-2">
-          <NTooltip content="Back to quotes list" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.back')" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               icon
               btn="soft-gray"
@@ -56,14 +56,14 @@
             />
           </NTooltip>
 
-          <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.views')" :_tooltip-content="{ side: 'bottom' }">
             <div class="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1 rounded-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
               <NIcon name="i-ph-eye-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5" />
               <span class="text-xs md:text-xs font-500">{{ formatNumber(quote.views_count || 0) }}</span>
             </div>
           </NTooltip>
 
-          <NTooltip content="Share count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.shares')" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               btn="~"
               size="xs"
@@ -76,7 +76,7 @@
             </NButton>
           </NTooltip>
 
-          <NTooltip content="Like count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.likes')" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               btn="~"
               size="xs"
@@ -98,7 +98,7 @@
 
         <!-- Right: quick actions -->
         <div class="flex items-center gap-1 md:gap-2">
-          <NTooltip content="Copy link to quote" :_tooltip-content="{ side: 'bottom' }">
+            <NTooltip :content="$t('components.quote_sticky.copy_link')" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
               size="xs"
@@ -106,11 +106,11 @@
               @click="$emit('copy-link')"
             >
               <NIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
-              <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
+              <span class="hidden sm:inline">{{ copyState === 'copied' ? $t('components.quote_sticky.copied') : $t('components.quote_sticky.copy') }}</span>
             </NButton>
           </NTooltip>
 
-          <NTooltip content="Save quote to collection" :_tooltip-content="{ side: 'bottom' }">
+            <NTooltip :content="$t('components.quote_sticky.save')" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               :btn="savedState === 'saved' ? 'soft-green' : 'soft-blue'"
               size="xs"
@@ -130,7 +130,7 @@
               label="i-ph-dots-three-vertical-bold"
               size="xs"
               class="min-w-0 min-h-0 h-auto w-auto p-1 md:px-2.5 md:py-1 rounded-full"
-              title="More actions"
+              title="            {{ $t('components.quote_sticky.more') }}"
             />
           </NDropdownMenu>
         </div>
@@ -150,6 +150,8 @@ const props = defineProps({
   copyState: { type: String, default: 'idle' },
   menuItems: { type: Array, default: () => [] }
 })
+
+const { $t } = useI18n()
 
 defineEmits(['share', 'toggle-like', 'add-to-collection', 'copy-link', 'navigate-back'])
 
