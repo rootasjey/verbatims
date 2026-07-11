@@ -21,7 +21,7 @@
         <textarea
           ref="quoteTextarea"
           v-model="form.content"
-          placeholder="Enter the quote content..."
+          :placeholder="$t('components.dialogs.quote_placeholder') as string"
           rows="4"
           :disabled="submitting"
           required
@@ -39,13 +39,13 @@
 
       <!-- Author -->
       <div>
-        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Author</label>
+        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.author_label') }}</label>
         <div class="relative">
           <input
             ref="authorInputRef"
             v-model="authorQuery"
             type="text"
-            placeholder="Search for an author or enter a new one..."
+            :placeholder="$t('components.dialogs.search_author') as string"
             :disabled="submitting"
             class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             @input="onAuthorInput"
@@ -83,7 +83,7 @@
               @click="createNewAuthor"
               @mouseenter="selectedAuthorIndex === authorSuggestions.length ? selectedAuthorIndex = authorSuggestions.length : null"
             >
-              <p class="text-sm text-blue-600 dark:text-blue-400">Create new author: &ldquo;{{ authorQuery }}&rdquo;</p>
+              <p class="text-sm text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.create_new_author', { name: authorQuery }) }}</p>
             </div>
           </div>
         </div>
@@ -98,13 +98,13 @@
 
       <!-- Reference -->
       <div>
-        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Reference</label>
+        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.reference_label') }}</label>
         <div class="relative">
           <input
             ref="referenceInputRef"
             v-model="referenceQuery"
             type="text"
-            placeholder="Search for a reference or enter a new one..."
+            :placeholder="$t('components.dialogs.search_reference') as string"
             :disabled="submitting"
             class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             @input="onReferenceInput"
@@ -142,7 +142,7 @@
               @click="createNewReference"
               @mouseenter="selectedReferenceIndex = referenceSuggestions.length"
             >
-              <p class="text-sm text-blue-600 dark:text-blue-400">Create new reference: &ldquo;{{ referenceQuery }}&rdquo;</p>
+              <p class="text-sm text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.create_new_reference', { name: referenceQuery }) }}</p>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@
 
       <!-- Language -->
       <div>
-        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Language</label>
+        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.language') }}</label>
         <select
           v-model="form.language"
           :disabled="submitting"
@@ -168,9 +168,9 @@
         </select>
         <div v-if="languageDetection.label" class="mt-2 flex flex-wrap items-center gap-2 font-sans text-xs">
           <span class="inline-flex items-center bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
-            {{ languageDetection.source === 'manual' ? `Language set to ${languageDetection.label}` : `Auto-detected: ${languageDetection.label}` }}
+            {{ languageDetection.source === 'manual' ? `${$t('components.dialogs.language')}: ${languageDetection.label}` : `${$t('components.dialogs.language')}: ${languageDetection.label}` }}
           </span>
-          <span v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'" class="text-amber-700 dark:text-amber-300">Low confidence &mdash; please confirm.</span>
+          <span v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'" class="text-amber-700 dark:text-amber-300">{{ $t('components.dialogs.language') }} &mdash; {{ $t('common.confirm') }}.</span>
         </div>
       </div>
     </form>
@@ -195,6 +195,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
 const { user } = useUserSession()
 
 const quoteTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -205,8 +206,8 @@ const isOpen = computed({
 })
 
 const isEditMode = computed(() => !!props.editQuote)
-const dialogTitle = computed(() => isEditMode.value ? 'Edit Quote' : 'Add New Quote')
-const submitButtonText = computed(() => isEditMode.value ? 'Update Quote' : 'Save as Draft')
+const dialogTitle = computed(() => isEditMode.value ? String($t('components.dialogs.edit_quote')) : String($t('components.dialogs.add_quote')))
+const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update')) : String($t('common.save')))
 const {
   form,
   languageOptions,
@@ -267,16 +268,16 @@ watch(() => props.editQuote, (newQuote) => {
 }, { immediate: true })
 
 const showContentEmptyError = () => {
-  useToast().toast({ title: 'Content Required', description: 'Please enter the quote content before submitting.' })
+  useToast().toast({ title: String($t('components.dialogs.toast_error')), description: String($t('components.dialogs.quote_placeholder')) })
 }
 
 const showNotLoggedInError = () => {
   useToast().toast({
-    title: 'Not Logged In',
-    description: 'You must be logged in to submit a quote.',
+    title: String($t('components.dialogs.toast_error')),
+    description: String($t('components.dialogs.quote_placeholder')),
     actions: [
-      { label: 'Log In', btn: 'primary', altText: 'Log in to your account', onClick: () => { navigateTo('/login'); closeDialog() } },
-      { label: 'Create Account', btn: 'ghost', altText: 'Create a new account', onClick: () => { navigateTo('/signup'); closeDialog() } }
+      { label: String($t('auth.sign_in_button')), btn: 'primary', altText: String($t('auth.sign_in_title')), onClick: () => { navigateTo('/login'); closeDialog() } },
+      { label: String($t('auth.sign_up_button')), btn: 'ghost', altText: String($t('auth.sign_up_title')), onClick: () => { navigateTo('/signup'); closeDialog() } }
     ]
   })
 }
@@ -295,7 +296,7 @@ const submitQuote = async () => {
     await submitCreateQuote(payload)
   } catch (error) {
     console.error('Error submitting quote:', error)
-    showErrorToast(error, isEditMode.value ? 'Failed to update quote. Please try again.' : 'Failed to add quote. Please try again.')
+    showErrorToast(error, isEditMode.value ? String($t('components.dialogs.toast_error')) : String($t('components.dialogs.toast_error')))
   } finally {
     submitting.value = false
   }

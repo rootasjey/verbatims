@@ -1,7 +1,7 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Edit Poster Image"
+    :title="$t('components.dialogs.poster_image') as string"
     submit-text="Save"
     :submitting="submitting"
     :can-submit="true"
@@ -16,13 +16,13 @@
         >
           <img
             :src="imagePreviewUrl"
-            alt="Poster preview"
+            :alt="$t('components.dialogs.poster_preview') as string"
             class="w-full object-cover"
             style="aspect-ratio: 3/4;"
             @error="previewErrored = true"
           />
           <div v-if="previewErrored" class="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-sm text-gray-400">
-            Failed to load image
+            {{ $t('components.dialogs.failed_load_image') }}
           </div>
         </div>
         <div v-else class="flex items-center justify-center py-16 text-gray-400">
@@ -31,18 +31,18 @@
       </div>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Image URL</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.image_url_label') }}</label>
         <NInput
           v-model="imageUrl"
           type="url"
-          placeholder="https://example.com/poster.jpg"
+          :placeholder="$t('components.dialogs.placeholder_url') as string"
           :disabled="submitting"
           class="bg-white dark:bg-gray-900 b-none shadow-none"
         />
       </div>
 
       <div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Or upload a file</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{{ $t('components.dialogs.or_upload') }}</p>
         <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileSelected">
         <NButton
           btn="outline-gray"
@@ -53,7 +53,7 @@
           <template #leading>
             <NIcon :name="uploading ? 'i-ph-circle-notch' : 'i-ph-upload'" :class="uploading ? 'animate-spin' : ''" class="w-4 h-4" />
           </template>
-          Choose Image
+          {{ $t('components.dialogs.choose_image') }}
         </NButton>
       </div>
     </div>
@@ -86,6 +86,7 @@ const imageUrl = ref(props.currentImageUrl || '')
 const submitting = ref(false)
 const previewErrored = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
+const { $t } = useI18n()
 const { uploading, uploadImage } = useImageUpload()
 const { showErrorToast } = useErrorToast()
 
@@ -124,7 +125,7 @@ const saveImage = async () => {
     emit('image-updated', imageUrl.value.trim() || null)
     isOpen.value = false
   } catch (error) {
-    showErrorToast(error, 'Failed to update poster image')
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: String($t('components.dialogs.failed_load_image')) })
   } finally {
     submitting.value = false
   }

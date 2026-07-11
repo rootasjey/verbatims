@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact author title and context -->
         <div @click.stop="$emit('scroll-to-top')" class="min-w-0 flex items-center gap-3">
-          <NTooltip content="Back to authors list" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.back') as string" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               icon
               btn="ghost-gray"
@@ -32,14 +32,14 @@
 
         <!-- Middle: stats chips -->
         <div class="hidden md:flex items-center gap-2">
-          <NTooltip content="View count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.views') as string" :_tooltip-content="{ side: 'bottom' }">
             <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
               <NIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
               <span class="font-medium">{{ formatNumber(author.views_count || 0) }}</span>
             </div>
           </NTooltip>
 
-          <NTooltip content="Share count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.shares') as string" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               btn="~"
               size="xs"
@@ -52,7 +52,7 @@
             </NButton>
           </NTooltip>
 
-          <NTooltip content="Like count" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.likes') as string" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               btn="~"
               size="xs"
@@ -74,7 +74,7 @@
 
         <!-- Right: quick actions -->
         <div class="flex items-center gap-2">
-          <NTooltip content="Copy link to author" :_tooltip-content="{ side: 'bottom' }">
+          <NTooltip :content="$t('components.quote_sticky.copy_link') as string" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
               size="xs"
@@ -82,7 +82,7 @@
               @click="$emit('copy-link')"
             >
               <NIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
-              <span class="hidden sm:inline">{{ copyState === 'copied' ? 'Copied' : 'Copy' }}</span>
+              <span class="hidden sm:inline">{{ copyState === 'copied' ? $t('components.quote_sticky.copied') : $t('components.quote_sticky.copy') }}</span>
             </NButton>
           </NTooltip>
 
@@ -93,7 +93,7 @@
             @click="$emit('scroll-to-quotes')"
           >
             <NIcon name="i-ph-quotes" class="w-3.5 h-3.5 mr-1" />
-            <span class="hidden sm:inline">Quotes</span>
+            <span class="hidden sm:inline">{{ $t('common.quote_plural') }}</span>
           </NButton>
 
           <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
@@ -103,7 +103,7 @@
               label="i-ph-dots-three-vertical-bold"
               size="xs"
               class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full"
-              title="More actions"
+              title="{{ $t('components.quote_sticky.more') }}"
             />
           </NDropdownMenu>
         </div>
@@ -113,6 +113,8 @@
 </template>
 
 <script lang="ts" setup>
+const { $t } = useI18n()
+
 interface HeaderMenuItem {
   label: string
   leading?: string

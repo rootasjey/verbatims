@@ -4,7 +4,7 @@
 			<div class="p-6 overflow-y-auto max-h-[85vh]">
 				<div class="flex items-center justify-between mb-6">
 					<h2 class="text-xl font-bold text-gray-900 dark:text-white">
-						{{ editMode ? 'Edit Quote' : 'Add New Quote' }}
+						{{ editMode ? $t('components.dialogs.edit_quote') : $t('components.dialogs.add_quote') }}
 					</h2>
 					<NButton
 						icon
@@ -23,7 +23,7 @@
 							v-model="form.content"
 							class="text-size-6 font-600 font-subtitle border-dashed
 								focus-visible:border-gray-700 ring-transparent light:focus-visible:ring-transparent dark:focus-visible:ring-transparent dark:focus-visible:border-gray-300"
-							placeholder="Enter the quote content..."
+							:placeholder="$t('components.dialogs.quote_placeholder') as string"
 							:rows="4"
 							:disabled="submitting"
 							required
@@ -31,7 +31,7 @@
 						<!-- Character Counter -->
 						<div class="mt-2 text-right">
 							<span class="text-xs text-gray-500 dark:text-gray-400">
-								{{ form.content.length }} characters
+								{{ form.content.length }} {{ $t('components.dialogs.language') }}
 							</span>
 						</div>
 					</div>
@@ -40,13 +40,13 @@
 						<!-- Language Selection -->
 						<div>
 							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-								Language
+								{{ $t('components.dialogs.language') }}
 							</label>
 							<div>
 								<NSelect
 									v-model="form.language"
 									:items="languageOptions"
-									placeholder="Select language"
+									:placeholder="$t('components.dialogs.select_language') as string"
 									item-key="label"
 									value-key="label"
 									:disabled="submitting"
@@ -58,8 +58,8 @@
 								>
 									<span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
 										{{ languageDetection.source === 'manual'
-											? `Language set to ${languageDetection.label}`
-											: `Auto-detected: ${languageDetection.label}`
+											? $t('components.dialogs.language') + ': ' + languageDetection.label
+											: $t('components.dialogs.select_language') + ': ' + languageDetection.label
 										}}
 									</span>
 									<span
@@ -75,13 +75,13 @@
 						<!-- Author Selection -->
 						<div>
 							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-								Author (Optional)
+								{{ $t('components.dialogs.author_label') }}
 							</label>
 							<div class="relative">
 								<NInput
 									ref="authorInputRef"
 									v-model="authorQuery"
-									placeholder="Search for an author or enter a new one..."
+									:placeholder="$t('components.dialogs.search_author') as string"
 									:disabled="submitting"
 									@input="onAuthorInput"
 									@focus="handleAuthorInputFocus"
@@ -126,7 +126,7 @@
 										@mouseenter="selectedAuthorIndex = authorSuggestions.length"
 									>
 										<div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-											Create new author: "{{ authorQuery }}"
+											{{ $t('components.dialogs.create_new_author', { name: authorQuery }) }}
 										</div>
 									</div>
 								</div>
@@ -150,13 +150,13 @@
 						<!-- Reference Selection -->
 						<div>
 							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-								Reference (Optional)
+								{{ $t('components.dialogs.reference_label') }}
 							</label>
 							<div class="relative">
 								<NInput
 									ref="referenceInputRef"
 									v-model="referenceQuery"
-									placeholder="Search for a reference or enter a new one..."
+									:placeholder="$t('components.dialogs.search_reference') as string"
 									:disabled="submitting"
 									@input="onReferenceInput"
 									@focus="handleReferenceInputFocus"
@@ -201,7 +201,7 @@
 										@mouseenter="selectedReferenceIndex = referenceSuggestions.length"
 									>
 										<div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-											Create new reference: "{{ referenceQuery }}"
+											{{ $t('components.dialogs.create_new_reference', { name: referenceQuery }) }}
 										</div>
 									</div>
 								</div>
@@ -230,7 +230,7 @@
 							:disabled="submitting"
 							class="flex-1"
 						>
-							Cancel
+							{{ $t('common.cancel') }}
 						</NButton>
 						<NButton
 							btn="soft-blue"
@@ -239,7 +239,7 @@
 							:disabled="!form.content.trim()"
 							class="flex-1"
 						>
-							{{ editMode ? 'Update Draft' : 'Save as Draft' }}
+							{{ editMode ? $t('components.dialogs.save') : $t('components.dialogs.save') }}
 						</NButton>
 					</div>
 				</form>
@@ -311,6 +311,7 @@ const {
 	initializeFormForEdit,
 } = useQuoteForm()
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const onAuthorInput = () => {
@@ -381,7 +382,7 @@ const submitQuote = async () => {
 		emit('submitted')
 	} catch (error: any) {
 		console.error('Error submitting quote:', error)
-		showErrorToast(error, 'Failed to save quote. Please try again.')
+		showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Failed to save quote. Please try again.' })
 	} finally {
 		submitting.value = false
 	}

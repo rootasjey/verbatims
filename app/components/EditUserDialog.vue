@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Edit User"
-    submit-text="Update"
+    :title="$t('components.dialogs.edit_user') as string"
+    :submit-text="$t('components.dialogs.update') as string"
     :submitting="submitting"
     :can-submit="!!user"
     max-width="md"
@@ -19,25 +19,25 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Role *</label>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.role_label') }}</label>
           <NSelect v-model="roleModel" :items="roleOptions" :disabled="submitting || isSelf" item-key="label" value-key="label" />
-          <p v-if="isSelf" class="text-amber-600 text-xs mt-1">You cannot change your own role.</p>
+          <p v-if="isSelf" class="text-amber-600 text-xs mt-1">{{ $t('components.dialogs.cannot_change_own_role') }}</p>
         </div>
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Active</label>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.user_active') }}</label>
           <NSwitch v-model="form.is_active" :disabled="submitting || isSelf" />
-          <p v-if="isSelf" class="text-amber-600 text-xs mt-1">You cannot deactivate your own account.</p>
+          <p v-if="isSelf" class="text-amber-600 text-xs mt-1">{{ $t('components.dialogs.cannot_deactivate_own') }}</p>
         </div>
       </div>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Email Verified</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.email_verified') }}</label>
         <NSwitch v-model="form.email_verified" :disabled="submitting" />
       </div>
     </div>
 
     <template #submit>
-      <NButton btn="soft-blue" :loading="submitting" :disabled="!user" @click="submit">Update</NButton>
+      <NButton btn="soft-blue" :loading="submitting" :disabled="!user" @click="submit">{{ $t('components.dialogs.update') }}</NButton>
     </template>
   </AppDialog>
 </template>
@@ -50,6 +50,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { user: currentUser } = useUserSession()
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
@@ -60,9 +61,9 @@ type Role = 'user' | 'moderator' | 'admin'
 type RoleOption = { label: string; value: Role }
 
 const roleOptions: RoleOption[] = [
-  { label: 'User', value: 'user' },
-  { label: 'Moderator', value: 'moderator' },
-  { label: 'Admin', value: 'admin' }
+  { label: String($t('components.dialogs.role_user')), value: 'user' },
+  { label: String($t('components.dialogs.role_moderator')), value: 'moderator' },
+  { label: String($t('components.dialogs.role_admin')), value: 'admin' }
 ]
 
 const form = ref({ role: 'user' as Role, is_active: true, email_verified: false })
@@ -86,12 +87,12 @@ const submit = async () => {
   submitting.value = true
   try {
     await $fetch(`/api/admin/users/${user.value.id}/update`, { method: 'POST', body: form.value })
-    useToast().toast({ toast: 'success', title: 'User updated', description: `${user.value.name} has been updated.` })
+    useToast().toast({ toast: 'soft-success', title: String($t('components.dialogs.toast_updated')), description: `${user.value.name} updated.` })
     emit('user-updated')
     isOpen.value = false
   } catch (e: any) {
     console.error('Update user failed', e)
-    showErrorToast(e, { title: 'Error', fallback: 'Failed to update user' })
+    showErrorToast(e, { title: String($t('components.dialogs.toast_error')), fallback: String($t('components.dialogs.toast_error')) })
   } finally {
     submitting.value = false
   }

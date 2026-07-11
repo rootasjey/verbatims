@@ -2,40 +2,40 @@
   <AppDialog
     v-model="isOpen"
     :title="title"
-    submit-text="Submit"
+    :submit-text="$t('components.dialogs.submit') as string"
     :submitting="pending"
     :can-submit="canSubmit"
     @submit="onSubmit"
   >
     <form class="space-y-6" @submit.prevent="onSubmit" @keydown.ctrl.enter.prevent="onSubmit" @keydown.meta.enter.prevent="onSubmit">
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Category</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.report_category') }}</label>
         <NSelect v-model="form.category" :items="categories" item-key="label" value-key="label" />
       </div>
 
       <template v-if="!isAuthenticated">
         <NInput
           v-model="form.name"
-          placeholder="Your name"
+          :placeholder="$t('components.dialogs.report_placeholder_name') as string"
           :disabled="pending"
           class="bg-white dark:bg-gray-900 b-none shadow-none"
           :una="{ inputTrailingWrapper: 'pr-1.5' }"
         >
           <template #trailing>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Name</NBadge>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.report_name') }}</NBadge>
           </template>
         </NInput>
 
         <NInput
           v-model="form.email"
           type="email"
-          placeholder="you@example.com"
+          :placeholder="$t('components.dialogs.report_placeholder_email') as string"
           :disabled="pending"
           class="bg-white dark:bg-gray-900 b-none shadow-none"
           :una="{ inputTrailingWrapper: 'pr-1.5' }"
         >
           <template #trailing>
-            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Email</NBadge>
+            <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.report_email') }}</NBadge>
           </template>
         </NInput>
       </template>
@@ -45,33 +45,33 @@
         type="textarea"
         v-model="form.message"
         :rows="5"
-        placeholder="Tell us what you found, what to improve, or your suggestion..."
+        :placeholder="$t('components.dialogs.report_placeholder_message') as string"
         required
         :disabled="pending"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{ inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial' }"
       >
         <template #trailing>
-          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Message</NBadge>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.report_message') }}</NBadge>
         </template>
       </NInput>
       <div class="-mt-4 text-right text-xs text-gray-500">{{ form.message.length }}/4000</div>
 
       <NInput
         v-model="tagsInput"
-        placeholder="Comma-separated (e.g. UI, accessibility)"
+        :placeholder="$t('components.dialogs.report_tags_placeholder') as string"
         :disabled="pending"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{ inputTrailingWrapper: 'pr-1.5' }"
       >
         <template #trailing>
-          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Tags</NBadge>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.report_tags') }}</NBadge>
         </template>
       </NInput>
     </form>
 
     <template #submit>
-      <NButton btn="soft-blue" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</NButton>
+      <NButton btn="soft-blue" :loading="pending" :disabled="!canSubmit" @click="onSubmit">{{ $t('components.dialogs.submit') }}</NButton>
     </template>
   </AppDialog>
 </template>
@@ -104,6 +104,7 @@ const isOpen = computed({
   set: v => emit('update:modelValue', v)
 })
 
+const { $t } = useI18n()
 const { toast } = useToast()
 const { showErrorToast } = useErrorToast()
 
@@ -144,12 +145,12 @@ const onSubmit = async () => {
       return
     }
 
-    toast({ title: 'Thanks for your message!', toast: 'success' })
+    toast({ title: String($t('components.dialogs.report_thanks')), toast: 'success' })
     emit('submitted')
     close()
   } catch (error) {
     console.error('Report submit error:', error)
-    showErrorToast(error, { title: 'Submission failed', fallback: 'Please try again.' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
   }
 }
 </script>

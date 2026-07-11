@@ -1,7 +1,7 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Download as image"
+    :title="$t('components.dialogs.download_image') as string"
     :submitting="downloading"
     @submit="download"
   >
@@ -34,7 +34,7 @@
                 />
               </div>
               <div v-else class="w-full h-full flex items-center justify-center text-xs text-gray-500 tracking-wide">
-                Loading font…
+                {{ $t('components.dialogs.loading_font') }}
               </div>
             </div>
           </div>
@@ -42,18 +42,18 @@
 
         <div class="flex-1 min-w-[200px] space-y-4">
           <div>
-            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Theme</label>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.theme') }}</label>
             <NSelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
           </div>
 
           <div>
-            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Size</label>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.size') }}</label>
             <NSelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
-            <p class="mt-1 text-xs text-gray-500">Export is always square; 1080px is good for most socials.</p>
+            <p class="mt-1 text-xs text-gray-500">{{ $t('components.dialogs.export_hint') }}</p>
           </div>
 
           <div>
-            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Background</label>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.background') }}</label>
             <NSelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
           </div>
         </div>
@@ -61,7 +61,7 @@
     </div>
 
     <template #submit>
-      <NButton btn="soft-blue" :loading="downloading" @click="download">Download</NButton>
+      <NButton btn="soft-blue" :loading="downloading" @click="download">{{ $t('components.dialogs.download') }}</NButton>
     </template>
   </AppDialog>
 </template>
@@ -96,14 +96,16 @@ interface ThemeOption {
 }
 interface BgOption { label: string; value: 'solid' | 'transparent' }
 
+const { $t } = useI18n()
+
 const themes: ThemeOption[] = [
-  { label: 'Light', value: 'light' },
-  { label: 'Dark', value: 'dark' },
+  { label: String($t('components.dialogs.light')), value: 'light' },
+  { label: String($t('components.dialogs.dark')), value: 'dark' },
 ]
 
 const backgrounds: BgOption[] = [
-  { label: 'Solid', value: 'solid' },
-  { label: 'Transparent', value: 'transparent' }
+  { label: String($t('components.dialogs.solid')), value: 'solid' },
+  { label: String($t('components.dialogs.transparent')), value: 'transparent' }
 ]
 
 const sizes = [
@@ -113,8 +115,8 @@ const sizes = [
 ]
 
 const form: { theme: ThemeOption; background: BgOption } = reactive({
-  theme: { label: 'Light', value: 'light' },
-  background: { label: 'Solid', value: 'solid' }
+  theme: { label: String($t('components.dialogs.light')), value: 'light' },
+  background: { label: String($t('components.dialogs.solid')), value: 'solid' }
 })
 const sizeOption = ref(sizes[0])
 const downloading = ref(false)
@@ -128,8 +130,8 @@ watch(isOpen, async open => {
   if (open) {
     const saved = loadDownloadImageSettings()
     if (saved) {
-      form.theme = saved.theme === 'dark' ? { label: 'Dark', value: 'dark' } : { label: 'Light', value: 'light' }
-      form.background = saved.background === 'transparent' ? { label: 'Transparent', value: 'transparent' } : { label: 'Solid', value: 'solid' }
+      form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
+      form.background = saved.background === 'transparent' ? { label: String($t('components.dialogs.transparent')), value: 'transparent' } : { label: String($t('components.dialogs.solid')), value: 'solid' }
       const found = sizes.find(s => s.value === saved.size)
       if (found) sizeOption.value = found
     }
@@ -141,8 +143,8 @@ onMounted(async () => {
   if (isOpen.value) {
     const saved = loadDownloadImageSettings()
     if (saved) {
-      form.theme = saved.theme === 'dark' ? { label: 'Dark', value: 'dark' } : { label: 'Light', value: 'light' }
-      form.background = saved.background === 'transparent' ? { label: 'Transparent', value: 'transparent' } : { label: 'Solid', value: 'solid' }
+      form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
+      form.background = saved.background === 'transparent' ? { label: String($t('components.dialogs.transparent')), value: 'transparent' } : { label: String($t('components.dialogs.solid')), value: 'solid' }
       const found = sizes.find(s => s.value === saved.size)
       if (found) sizeOption.value = found
     }

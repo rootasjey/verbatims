@@ -9,7 +9,7 @@
 
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div>
-            <label class="block text-sm font-medium mb-1">Category</label>
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_category') }}</label>
             <NSelect
               v-model="form.category"
               :items="categories"
@@ -19,36 +19,36 @@
           </div>
 
           <div v-if="!isAuthenticated">
-            <label class="block text-sm font-medium mb-1">Name</label>
-            <NInput v-model="form.name" placeholder="Your name" />
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_name') }}</label>
+            <NInput v-model="form.name" :placeholder="$t('components.dialogs.report_placeholder_name') as string" />
           </div>
 
           <div v-if="!isAuthenticated">
-            <label class="block text-sm font-medium mb-1">Email</label>
-            <NInput v-model="form.email" type="email" placeholder="you@example.com" />
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_email') }}</label>
+            <NInput v-model="form.email" type="email" :placeholder="$t('components.dialogs.report_placeholder_email') as string" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1">Message</label>
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_message') }}</label>
             <NInput
               type="textarea"
               v-model="form.message"
               :rows="5"
-              placeholder="Tell us what you found, what to improve, or your suggestion..."
+              :placeholder="$t('components.dialogs.report_placeholder_message') as string"
               required
             />
             <div class="mt-1 text-right text-xs text-gray-500">{{ form.message.length }}/4000</div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1">Tags (optional)</label>
-            <NInput v-model="tagsInput" placeholder="Comma-separated (e.g. UI, accessibility)" />
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_tags') }}</label>
+            <NInput v-model="tagsInput" :placeholder="$t('components.dialogs.report_tags_placeholder') as string" />
           </div>
         </form>
 
         <div class="mt-5 flex gap-2">
-          <NButton btn="light:soft dark:soft-white" class="flex-1" @click="close" :disabled="pending">Cancel</NButton>
-          <NButton btn="soft-blue" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">Submit</NButton>
+          <NButton btn="light:soft dark:soft-white" class="flex-1" @click="close" :disabled="pending">{{ $t('common.cancel') }}</NButton>
+          <NButton btn="soft-blue" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">{{ $t('components.dialogs.submit') }}</NButton>
         </div>
       </div>
     </template>
@@ -81,6 +81,7 @@ const isOpen = computed({
   set: v => emit('update:open', v)
 })
 
+const { $t } = useI18n()
 const { toast } = useToast()
 const { showErrorToast } = useErrorToast()
 
@@ -122,11 +123,11 @@ const onSubmit = async () => {
       return
     }
     
-    toast({ title: 'Thanks for your message!', toast: 'success' })
+    toast({ title: String($t('components.dialogs.report_thanks')), toast: 'success' })
     emit('submitted')
     close()
   } catch (error) {
-    showErrorToast(error, { title: 'Submission failed', fallback: 'Please try again.' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
   }
 }
 </script>

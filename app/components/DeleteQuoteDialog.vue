@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Delete Quote"
-    submit-text="Delete Quote"
+    :title="$t('components.dialogs.delete_quote') as string"
+    :submit-text="$t('components.dialogs.delete') as string"
     :submitting="submitting"
     :can-submit="canDelete"
     @submit="confirmDeletion"
@@ -11,8 +11,8 @@
       <div class="bg-pink-50 dark:bg-blue-800/20 border border-pink-200 dark:border-blue-800 rounded-md p-3 flex items-start">
         <NIcon name="i-ph-warning" class="w-5 h-5 text-pink-600 dark:text-blue-600 mt-0.5 mr-2" />
         <div class="text-sm text-pink-800 dark:text-blue-300">
-          <p class="font-medium">This action is permanent.</p>
-          <p class="mt-1">You're about to delete this quote.</p>
+          <p class="font-medium">{{ $t('components.dialogs.delete_permanent') }}</p>
+          <p class="mt-1">{{ $t('components.dialogs.confirm_delete_desc') }}</p>
         </div>
       </div>
 
@@ -24,7 +24,7 @@
           <span v-if="props.quote?.reference">{{ props.quote?.reference?.name }}</span>
         </p>
         <p v-if="!canDelete" class="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-2">
-          You can only delete your own draft quotes. Ask a moderator if you need help.
+          {{ $t('components.dialogs.confirm_delete') }}
         </p>
       </div>
     </div>
@@ -32,7 +32,7 @@
     <template #submit>
       <PrimaryButton :disabled="!canDelete" :loading="submitting" @click="confirmDeletion" class="rounded-0 px-3">
         <span class="flex items-center gap-2">
-          Delete Quote
+          {{ $t('common.delete') }}
           <NIcon v-if="!submitting" name="i-tabler-trash-filled" class="inline-block" />
         </span>
       </PrimaryButton>
@@ -54,6 +54,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
 const { user } = useUserSession()
 const { showErrorToast } = useErrorToast()
 
@@ -79,12 +80,12 @@ const confirmDeletion = async () => {
   submitting.value = true
   try {
     await $fetch(`/api/quotes/${props.quote.id}`, { method: 'DELETE' })
-    useToast().toast({ toast: 'success', title: 'Quote deleted' })
+    useToast().toast({ toast: 'soft-success', title: String($t('components.dialogs.delete_quote')) })
     emit('quote-deleted')
     isOpen.value = false
   } catch (error: any) {
     console.error('Delete quote failed:', error)
-    showErrorToast(error, { title: 'Error', fallback: 'Failed to delete quote' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: String($t('components.dialogs.delete_quote')) })
   } finally {
     submitting.value = false
   }

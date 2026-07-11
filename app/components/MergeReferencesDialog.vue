@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Merge References"
-    submit-text="Merge"
+    :title="$t('components.dialogs.merge_references') as string"
+    :submit-text="$t('components.dialogs.merge') as string"
     :submitting="submitting"
     :can-submit="!!selectedTarget && !!localSourceReference"
     :max-width="'lg'"
@@ -25,12 +25,12 @@
               <NTooltip v-if="localSourceReference?.name" :content="localSourceReference.name">
                 <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ localSourceReference?.name }}</p>
               </NTooltip>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ localSourceReference?.primary_type?.replace('_', ' ') }} &middot; {{ sourceQuotesCount }} quote{{ sourceQuotesCount !== 1 ? 's' : '' }}</p>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ localSourceReference?.primary_type?.replace('_', ' ') }} &middot; {{ sourceQuotesCount }} {{ $t('common.quote_plural') }}</p>
 
-              <NTooltip content="Source will be removed">
+              <NTooltip :content="$t('components.dialogs.will_drop') as string">
                 <div class="flex items-center gap-2 mt-1 rounded-4 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                    <NIcon name="i-tabler-trash-x" size="xs" class="text-red-600" />
-                   <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-red-600 dark:text-gray-400">Source</h4>
+                   <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-red-600 dark:text-gray-400">{{ $t('components.dialogs.source') }}</h4>
                 </div>
               </NTooltip>
             </div>
@@ -43,7 +43,7 @@
             v-if="selectedTarget"
             class="font-sans text-xs font-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors underline decoration-dashed underline-offset-2"
             @click="swapReferences"
-          >Switch</button>
+          >{{ $t('components.dialogs.switch') }}</button>
         </div>
 
         <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 overflow-hidden min-w-0">
@@ -61,30 +61,30 @@
               <NTooltip v-if="selectedTarget.name" :content="selectedTarget.name">
                 <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ selectedTarget.name }}</p>
               </NTooltip>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ selectedTarget.primary_type.replace('_', ' ') }} &middot; {{ targetQuotesCount }} quote{{ targetQuotesCount !== 1 ? 's' : '' }}</p>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ selectedTarget.primary_type.replace('_', ' ') }} &middot; {{ targetQuotesCount }} {{ $t('common.quote_plural') }}</p>
 
-              <NTooltip content="Target will be kept">
+              <NTooltip :content="$t('components.dialogs.keep_target') as string">
                 <div class="flex items-center gap-2 mt-1 rounded-4 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                   <NIcon name="i-tabler-heart-handshake" size="xs" class="text-blue-600" />
-                  <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-blue-600 dark:text-gray-400">Target</h4>
+                  <h4 class="font-sans text-xs font-500 lowercase tracking-wider text-blue-600 dark:text-gray-400">{{ $t('components.dialogs.target') }}</h4>
                 </div>
               </NTooltip>
             </div>
           </div>
           <div v-else class="flex items-center gap-2 text-gray-400 dark:text-gray-500">
             <NIcon name="i-ph-arrow-bend-right-down" class="w-4 h-4" />
-            <span class="font-sans text-xs">Search and select a reference below</span>
+            <span class="font-sans text-xs">{{ $t('components.dialogs.type_to_search') }}</span>
           </div>
         </div>
       </div>
 
       <div>
-        <label class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 block">Search target reference</label>
+        <label class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 block">{{ $t('components.dialogs.search_target') }}</label>
         <div :class="['relative', { 'min-h-14': searchResults.length > 0 }]">
           <NInput
             ref="searchInputRef"
             v-model="searchQuery"
-            placeholder="Type to search references..."
+            :placeholder="$t('components.dialogs.type_to_search') as string"
             leading="i-ph-magnifying-glass"
             input="outline-gray"
             @input="onSearchInput"
@@ -118,7 +118,7 @@
               </div>
             </div>
             <div v-if="searchResults.length === 0" class="px-3 py-4 text-center font-sans text-xs text-gray-400 dark:text-gray-500">
-              No references found
+              {{ $t('components.dialogs.no_results') }}
             </div>
           </div>
         </div>
@@ -129,18 +129,18 @@
           <table class="w-full text-sm table-fixed">
             <thead>
               <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 w-1/4">Field</th>
-                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 max-w-0">Source</th>
-                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 max-w-0">Target</th>
-                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 w-1/5">Action</th>
+                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 w-1/4">{{ $t('components.dialogs.field') }}</th>
+                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 max-w-0">{{ $t('components.dialogs.source') }}</th>
+                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 max-w-0">{{ $t('components.dialogs.target') }}</th>
+                <th class="px-3 py-2 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 w-1/5">{{ $t('components.dialogs.action') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               <tr>
-                <td class="px-3 py-2 font-sans text-xs text-gray-700 dark:text-gray-300">Name</td>
+                <td class="px-3 py-2 font-sans text-xs text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.name') }}</td>
                 <td class="px-3 py-2 font-sans text-xs text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors" @click="openExpanded('Name', 'source', localSourceReference.name, 'Will be dropped', $event)">{{ localSourceReference.name }}</td>
                 <td class="px-3 py-2 font-sans text-xs text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors" @click="openExpanded('Name', 'target', selectedTarget.name, 'Will be kept', $event)">{{ selectedTarget.name }}</td>
-                <td class="px-3 py-2 font-sans text-xs text-blue-600 dark:text-blue-400">Keep target</td>
+                <td class="px-3 py-2 font-sans text-xs text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.keep_target') }}</td>
               </tr>
               <tr v-for="field in diffFields" :key="field.name">
                 <td class="px-3 py-2 font-sans text-xs text-gray-700 dark:text-gray-300 capitalize">{{ field.label }}</td>
@@ -153,8 +153,8 @@
                   <span v-else>—</span>
                 </td>
                 <td class="px-3 py-2">
-                  <span v-if="field.sourceValue && !field.targetValue" class="font-sans text-xs text-lime-600 dark:text-lime-400">Will be copied</span>
-                  <span v-else-if="field.sourceValue && field.targetValue && field.sourceValue !== field.targetValue" class="font-sans text-xs text-gray-500 dark:text-gray-400">Keep target</span>
+                  <span v-if="field.sourceValue && !field.targetValue" class="font-sans text-xs text-lime-600 dark:text-lime-400">{{ $t('components.dialogs.will_copy') }}</span>
+                  <span v-else-if="field.sourceValue && field.targetValue && field.sourceValue !== field.targetValue" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.keep_target') }}</span>
                   <span v-else class="font-sans text-xs text-gray-400 dark:text-gray-500">—</span>
                 </td>
               </tr>
@@ -178,9 +178,9 @@
               <NIcon name="i-ph-dots-six" class="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span class="font-sans text-xs font-500 text-gray-900 dark:text-gray-100">{{ cell.label }}</span>
               <span class="font-sans text-xs text-gray-400 dark:text-gray-500">&middot;</span>
-              <span class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ cell.entity }}</span>
+              <span class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize">{{ cell.entity === 'source' ? $t('components.dialogs.source') : $t('components.dialogs.target') }}</span>
               <span class="font-sans text-xs text-gray-400 dark:text-gray-500">&middot;</span>
-              <span :class="['font-sans text-xs', cell.action === 'Will be kept' ? 'text-blue-600 dark:text-blue-400' : cell.action === 'Will be copied' ? 'text-lime-600 dark:text-lime-400' : 'text-red-600 dark:text-red-400']">{{ cell.action }}</span>
+              <span :class="['font-sans text-xs', cell.action === 'Will be kept' ? 'text-blue-600 dark:text-blue-400' : cell.action === 'Will be copied' ? 'text-lime-600 dark:text-lime-400' : 'text-red-600 dark:text-red-400']">{{ cell.action === 'Will be kept' ? $t('components.dialogs.keep_target') : cell.action === 'Will be copied' ? $t('components.dialogs.will_copy') : $t('components.dialogs.will_drop') }}</span>
             </div>
             <button class="flex-shrink-0 p-0.5 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="closeExpanded(cell.key)">
               <NIcon name="i-ph-x" class="w-4 h-4" />
@@ -194,12 +194,12 @@
         <div class="mt-2 p-3 flex items-center gap-2 bg-amber-50 dark:bg-pink-900/20 border border-amber-200 dark:border-pink-800">
           <NIcon name="i-ph-warning" class="text-amber-500 dark:text-pink-600 flex-shrink-0" />
           <div class="text-xs text-amber-500 dark:text-pink-300">
-            <p class="font-medium">This action merges two references into one and cannot be undone.</p>
+            <p class="font-medium">{{ $t('components.dialogs.merge_warning') }}</p>
           </div>
         </div>
 
         <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">
-          <strong>{{ sourceQuotesCount }}</strong> quote{{ sourceQuotesCount !== 1 ? 's' : '' }} will be reassigned from <strong>{{ localSourceReference.name }}</strong> to <strong>{{ selectedTarget.name }}</strong>.
+          {{ $t('components.dialogs.merge_quotes', { n: sourceQuotesCount, count: sourceQuotesCount }) }} {{ localSourceReference.name }} → {{ selectedTarget.name }}.
           View, like, and share counts will be summed.
         </p>
 
@@ -213,7 +213,7 @@
         class="px-6"
         @click="confirmMerge"
         >
-          <span class="ml-2">Merge References</span>
+          <span class="ml-2">{{ $t('components.dialogs.merge_button') }}</span>
           <NIcon name="i-tabler-arrow-merge-right" class="ml-2" />
         </PrimaryButton>
     </template>
@@ -247,6 +247,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const isOpen = computed({
@@ -455,14 +456,14 @@ const confirmMerge = async () => {
 
     useToast().toast({
       toast: 'soft-success',
-      title: 'References merged',
-      description: `${localSourceReference.value.name} → ${selectedTarget.value.name}. ${sourceQuotesCount.value} quote(s) reassigned.`,
+      title: String($t('components.dialogs.merge_references')),
+      description: `${localSourceReference.value.name} → ${selectedTarget.value.name}.`,
     })
 
     emit('references-merged')
     isOpen.value = false
   } catch (error: any) {
-    showErrorToast(error, { title: 'Error', fallback: 'Failed to merge references' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: String($t('components.dialogs.merge_references')) })
   } finally {
     submitting.value = false
   }

@@ -1,23 +1,23 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="'Edit ' + selectedCount + ' ' + (selectedCount === 1 ? 'Draft' : 'Drafts')"
-    :submit-text="'Update ' + (selectedCount > 1 ? 'All' : '')"
+    :title="$t('components.dialogs.bulk_edit_title', { n: selectedCount }) as string"
+    :submit-text="$t('components.dialogs.bulk_edit_update') as string"
     :submitting="submitting"
     :can-submit="canSubmit"
     @submit="submitEdit"
   >
     <div class="space-y-6">
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Fields you leave untouched will keep their current values on all selected quotes.
+        {{ $t('components.dialogs.bulk_edit_help') }}
       </p>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Language</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.language') }}</label>
         <NSelect
           v-model="selectedLanguage"
           :items="languageItems"
-          placeholder="Do not change"
+          :placeholder="$t('components.dialogs.bulk_no_change') as string"
           :disabled="submitting"
           item-key="label"
           value-key="label"
@@ -25,12 +25,12 @@
       </div>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Author</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.author_label') }}</label>
         <div class="relative">
           <NInput
             ref="authorInputRef"
             v-model="authorQuery"
-            placeholder="Search for an author or enter a new one..."
+            :placeholder="$t('components.dialogs.search_author') as string"
             :disabled="submitting"
             class="bg-white dark:bg-gray-900 b-none shadow-none"
             :una="{ inputTrailingWrapper: 'pr-1.5' }"
@@ -40,7 +40,7 @@
             @keydown="handleAuthorKeydown"
           >
             <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Author</NBadge>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.author_label') }}</NBadge>
             </template>
           </NInput>
           <div
@@ -79,7 +79,7 @@
               @click="onCreateNewAuthor"
               @mouseenter="selectedAuthorIndex = authorSuggestions.length"
             >
-              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">Create new author: "{{ authorQuery }}"</div>
+              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.create_new_author', { name: authorQuery }) }}</div>
             </div>
           </div>
         </div>
@@ -93,12 +93,12 @@
       </div>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Reference</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.reference_label') }}</label>
         <div class="relative">
           <NInput
             ref="referenceInputRef"
             v-model="referenceQuery"
-            placeholder="Search for a reference or enter a new one..."
+            :placeholder="$t('components.dialogs.search_reference') as string"
             :disabled="submitting"
             class="bg-white dark:bg-gray-900 b-none shadow-none"
             :una="{ inputTrailingWrapper: 'pr-1.5' }"
@@ -108,7 +108,7 @@
             @keydown="handleReferenceKeydown"
           >
             <template #trailing>
-              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Reference</NBadge>
+              <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.reference_label') }}</NBadge>
             </template>
           </NInput>
           <div
@@ -147,7 +147,7 @@
               @click="onCreateNewReference"
               @mouseenter="selectedReferenceIndex = referenceSuggestions.length"
             >
-              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">Create new reference: "{{ referenceQuery }}"</div>
+              <div class="text-sm font-medium text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.create_new_reference', { name: referenceQuery }) }}</div>
             </div>
           </div>
         </div>
@@ -161,14 +161,14 @@
       </div>
 
       <div v-if="summary.length > 0" class="bg-gray-50 dark:bg-gray-800/50 rounded-md p-3 text-sm space-y-1">
-        <p class="font-medium text-gray-700 dark:text-gray-300">Changes to apply:</p>
+        <p class="font-medium text-gray-700 dark:text-gray-300">{{ $t('components.dialogs.bulk_edit_changes') }}</p>
         <p v-for="item in summary" :key="item" class="text-gray-600 dark:text-gray-400">{{ item }}</p>
       </div>
     </div>
 
     <template #submit>
       <NButton btn="solid-indigo" class="px-6" :loading="submitting" :disabled="!canSubmit" @click="submitEdit">
-        {{ 'Update ' + (selectedCount > 1 ? 'All' : '') }}
+        {{ $t('components.dialogs.bulk_edit_update') }}
       </NButton>
     </template>
   </AppDialog>
@@ -230,15 +230,16 @@ const {
   resetForm
 } = useQuoteForm()
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const languageTouched = ref(false)
 const authorTouched = ref(false)
 const referenceTouched = ref(false)
 
-const selectedLanguage = ref<{ label: string, value: string }>({ label: 'Do not change', value: '' })
+const selectedLanguage = ref<{ label: string, value: string }>({ label: String($t('components.dialogs.bulk_no_change')), value: '' })
 const languageItems = computed(() => [
-  { label: 'Do not change', value: '' },
+  { label: String($t('components.dialogs.bulk_no_change')), value: '' },
   ...languageOptions
 ])
 
@@ -357,15 +358,16 @@ const submitt = async () => {
     } as any)
 
     useToast().toast({
-      title: 'Quotes Updated',
-      description: `${selectedCount.value} quote${selectedCount.value > 1 ? 's' : ''} updated successfully.`
+      title: String($t('components.dialogs.toast_updated')),
+      description: `${selectedCount.value} ${selectedCount.value > 1 ? $t('common.quote_plural') : $t('common.quote_singular')} updated successfully.`,
+      toast: 'soft-success'
     })
 
     emit('updated')
     isOpen.value = false
   } catch (error) {
     console.error('Failed to bulk edit quotes:', error)
-    showErrorToast(error, { title: 'Bulk Edit Failed', fallback: 'Please try again.' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
   } finally {
     submitting.value = false
   }
@@ -395,7 +397,7 @@ watch(isOpen, (open) => {
     languageTouched.value = false
     authorTouched.value = false
     referenceTouched.value = false
-    selectedLanguage.value = { label: 'Do not change', value: '' }
+    selectedLanguage.value = { label: String($t('components.dialogs.bulk_no_change')), value: '' }
   }
 })
 

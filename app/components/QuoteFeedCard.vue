@@ -27,7 +27,7 @@
         />
         <div class="min-w-0">
           <div class="text-sm font-500 text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-            {{ quote.author?.name || 'Unknown Author' }}
+            {{ quote.author?.name || $t('home.unknown_author') }}
           </div>
           <div v-if="quote.reference?.name" class="text-xs text-gray-400 dark:text-gray-500 truncate">
             {{ quote.reference.name }}
@@ -37,7 +37,7 @@
 
       <div class="flex items-center gap-2 shrink-0">
         <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs" class="opacity-0 group-hover:opacity-100 transition-opacity">
-          Featured
+          {{ $t('home.featured') }}
         </NBadge>
         <NDropdownMenu :items="menuItems">
           <NButton
@@ -56,6 +56,8 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types'
+
+const { $t } = useI18n()
 
 interface Props {
   quote: ProcessedQuoteResult
@@ -78,16 +80,16 @@ const menuItems = computed(() => {
   const role = user.value?.role
   if (role === 'admin' || role === 'moderator') {
     items.push(
-      { label: 'Edit', leading: 'i-ph-pencil-simple', onclick: () => emit('edit', props.quote) },
-      { label: 'Delete', leading: 'i-ph-trash', onclick: () => emit('delete', props.quote) }
+      { label: $t('components.quote_actions.edit') as string, leading: 'i-ph-pencil-simple', onclick: () => emit('edit', props.quote) },
+      { label: $t('components.quote_actions.delete') as string, leading: 'i-ph-trash', onclick: () => emit('delete', props.quote) }
     )
   }
 
   items.push(
-    { label: 'Copy link', leading: 'i-ph-link', onclick: () => copyLink() },
-    { label: 'Copy text', leading: 'i-ph-quotes', onclick: () => copyQuoteText() },
-    { label: 'Share', leading: 'i-ph-share-network', onclick: () => shareQuote() },
-    { label: 'Report', leading: 'i-ph-flag', onclick: () => emit('report', props.quote) }
+    { label: $t('components.quote_actions.copy_link') as string, leading: 'i-ph-link', onclick: () => copyLink() },
+    { label: $t('components.quote_actions.copy_text') as string, leading: 'i-ph-quotes', onclick: () => copyQuoteText() },
+    { label: $t('components.quote_actions.share') as string, leading: 'i-ph-share-network', onclick: () => shareQuote() },
+    { label: $t('components.quote_card.report') as string, leading: 'i-ph-flag', onclick: () => emit('report', props.quote) }
   )
 
   return items
@@ -99,7 +101,7 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    toast({ title: 'Link copied', toast: 'outline-success' })
+    toast({ title: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
   } catch {
     showErrorToast(null, { title: 'Copy failed', fallback: 'Could not copy the link.' })
   }

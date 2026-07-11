@@ -46,7 +46,7 @@
           <NAvatar
             v-if="showAvatar"
             :src="quote.author?.image_url || quote.author_image_url || undefined"
-            :alt="quote.author?.name || quote.author_name || 'Unknown Author'"
+            :alt="quote.author?.name || quote.author_name || $t('components.quote_hero.unknown_author')"
             size="sm"
             rounded="full"
             class="flex-shrink-0"
@@ -98,6 +98,8 @@
 <script lang="ts" setup>
 import type { ProcessedQuoteResult } from '~~/server/types'
 import { formatRelativeTime } from '~/utils/time-formatter'
+
+const { $t } = useI18n()
 
 interface Props {
   quote: ProcessedQuoteResult
@@ -159,19 +161,19 @@ const handleDeleteFromDrawer = () => {
 
 const dropdownActions = computed(() => [
   {
-    label: 'Edit',
+    label: $t('components.quote_actions.edit') as string,
     leading: 'i-ph-pencil',
     onclick: () => handleEdit()
   },
   {
-    label: 'Submit for Review',
+    label: $t('components.quote_actions.submit') as string,
     leading: 'i-ph-paper-plane-tilt',
     disabled: !props.canSubmitForReview,
     onclick: () => handleSubmit()
   },
   {}, // Divider
   {
-    label: 'Delete',
+    label: $t('components.quote_actions.delete') as string,
     leading: 'i-ph-trash',
     onclick: () => handleDelete()
   }

@@ -45,7 +45,7 @@
             class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
             :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
           >
-            Unknown Author
+            {{ $t('home.unknown_author') }}
           </span>
           
           <NDropdownMenu :items="menuItems">
@@ -56,7 +56,7 @@
               label="i-ph-dots-three-vertical"
               class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
               @click.stop
-              :title="'Quote actions'"
+              :title="String($t('components.quote_card.share'))"
             />
           </NDropdownMenu>
         </div>
@@ -82,7 +82,7 @@
           size="xs"
           class="absolute top-2 right-2"
         >
-          Featured
+          {{ $t('home.featured') }}
         </NBadge>
       </div>
     </NLink>
@@ -123,7 +123,7 @@
             class="font-medium text-gray-500 dark:text-gray-400 truncate transition-opacity duration-300"
             :class="{ 'group-hover:opacity-100': true, 'opacity-100': !isHovered, 'opacity-0': isHovered }"
           >
-            Unknown Author
+            {{ $t('home.unknown_author') }}
           </span>
           
           <NDropdownMenu :items="menuItems">
@@ -134,7 +134,7 @@
               label="i-ph-dots-three-vertical"
               class="opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-300"
               @click.stop
-              :title="'Quote actions'"
+              :title="String($t('components.quote_card.share'))"
             />
           </NDropdownMenu>
         </div>
@@ -160,7 +160,7 @@
           size="xs"
           class="absolute top-2 right-2"
         >
-          Featured
+          {{ $t('home.featured') }}
         </NBadge>
       </div>
     </div>
@@ -187,6 +187,7 @@ const emit = defineEmits<{
   (e: 'report', quote: ProcessedQuoteResult): void
 }>()
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const isHovered = ref(false)
@@ -226,12 +227,12 @@ const menuItems = computed(() => {
   if (role === 'admin' || role === 'moderator') {
     items.push(
       {
-        label: 'Edit',
+        label: $t('components.quote_actions.edit') as string,
         leading: 'i-ph-pencil-simple',
         onclick: () => emit('edit', props.quote)
       },
       {
-        label: 'Delete',
+        label: $t('components.quote_actions.delete') as string,
         leading: 'i-ph-trash',
         onclick: () => emit('delete', props.quote)
       }
@@ -240,22 +241,22 @@ const menuItems = computed(() => {
 
   items.push(
     {
-      label: 'Copy link',
+      label: $t('components.quote_actions.copy_link') as string,
       leading: 'i-ph-link',
       onclick: () => copyLink()
     },
     {
-      label: 'Copy text',
+      label: $t('components.quote_actions.copy_text') as string,
       leading: 'i-ph-quotes',
       onclick: () => copyQuoteText()
     },
     {
-      label: 'Share',
+      label: $t('components.quote_actions.share') as string,
       leading: 'i-ph-share-network',
       onclick: () => shareQuote()
     },
     {
-      label: 'Report',
+      label: $t('components.quote_card.report') as string,
       leading: 'i-ph-flag',
       onclick: () => emit('report', props.quote)
     }
@@ -270,7 +271,7 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    toast({ title: 'Link copied', toast: 'outline-success' })
+    toast({ title: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
   } catch (error) {
     showErrorToast(error, { title: 'Copy failed', fallback: 'Could not copy the link.' })
   }

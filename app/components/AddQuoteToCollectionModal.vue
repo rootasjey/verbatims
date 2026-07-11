@@ -1,7 +1,7 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Add to Collection"
+    :title="$t('components.dialogs.add_collection') as string"
     hide-footer
     @close="closeModal"
   >
@@ -10,7 +10,7 @@
         <NCollapsible v-model:open="createOpen">
           <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
             <NButton btn="ghost-gray" size="xs">
-              <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
+              <span class="font-medium text-sm text-gray-900 dark:text-white">{{ $t('components.dialogs.create_new') }}</span>
               <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
             </NButton>
           </NCollapsibleTrigger>
@@ -18,20 +18,20 @@
             <div class="m-2 mt-3 space-y-3">
               <NInput
                 v-model="newCollectionName"
-                placeholder="Collection name"
+                :placeholder="$t('components.dialogs.collection_name') as string"
                 :disabled="creating"
               />
               <NInput
                 type="textarea"
                 v-model="newCollectionDescription"
-                placeholder="Optional description"
+                :placeholder="$t('components.dialogs.collection_desc') as string"
                 :rows="2"
                 :disabled="creating"
               />
               <div class="flex items-center justify-between">
                 <NCheckbox
                   v-model="newCollectionPublic"
-                  label="Make public"
+                  :label="$t('components.dialogs.make_public') as string"
                   :disabled="creating"
                 />
                 <NButton
@@ -49,7 +49,7 @@
       </div>
 
       <div>
-        <h4 class="font-medium text-gray-900 dark:text-white mb-3">Your Collections</h4>
+        <h4 class="font-medium text-gray-900 dark:text-white mb-3">{{ $t('components.dialogs.your_collections') }}</h4>
 
         <div v-if="loading" class="space-y-2">
           <div v-for="i in 3" :key="i" class="animate-pulse">
@@ -69,9 +69,9 @@
             <div class="flex-1">
               <div class="flex items-center gap-2">
                 <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">Public</NBadge>
+                <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">{{ $t('common.public') }}</NBadge>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} quotes</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} {{ $t('common.quote_plural') }}</p>
             </div>
             <div class="mr-2">
               <NIcon v-if="!addingToCollections.has(collection.id)" name="i-ph-plus-bold" class="w-4 h-4 text-gray-400" />
@@ -82,15 +82,15 @@
 
         <div v-else class="text-center py-8">
           <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p class="text-gray-500 dark:text-gray-400 mb-4">You don't have any collections yet</p>
-          <NButton size="sm" btn="soft" @click="createOpen = true">Create Your First Collection</NButton>
+          <p class="text-gray-500 dark:text-gray-400 mb-4">{{ $t('components.dialogs.no_collections') }}</p>
+          <NButton size="sm" btn="soft" @click="createOpen = true">{{ $t('components.dialogs.create_first') }}</NButton>
         </div>
       </div>
     </div>
 
     <template #footer>
       <div class="flex justify-end">
-        <NButton btn="link-gray" @click="closeModal">Close</NButton>
+        <NButton btn="link-gray" @click="closeModal">{{ $t('common.close') }}</NButton>
       </div>
     </template>
   </AppDialog>
@@ -110,6 +110,7 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const collections = ref<CollectionWithStats[]>([])
@@ -162,10 +163,10 @@ const createAndAddToCollection = async () => {
     emit('added', createResponse.data)
     closeModal()
 
-    toast({ title: 'Collection created!', description: `"${createResponse.data.name}" created and quote added.`, toast: 'success' })
+    toast({ title: String($t('components.dialogs.toast_created')), description: `"${createResponse.data.name}" created and quote added.`, toast: 'soft-success' })
   } catch (error) {
     console.error('Failed to create collection and add quote:', error)
-    showErrorToast(error, { title: 'Failed to create collection', fallback: 'Please try again.' })
+      showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
   } finally {
     creating.value = false
   }
@@ -190,9 +191,9 @@ const addToCollection = async (collection: CollectionWithStats) => {
 
     const err = error as any
     if (err && err.statusCode === 409) {
-      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.` })
+      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.`, toast: 'outline-warning' })
     } else {
-      showErrorToast(error, { title: 'Failed to add quote', fallback: 'Please try again.' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
     }
   } finally {
     addingToCollections.value.delete(collection.id)

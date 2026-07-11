@@ -1,7 +1,7 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="'Add ' + quoteIds.length + ' ' + (quoteIds.length === 1 ? 'Quote' : 'Quotes') + ' to Collection'"
+    :title="$t('components.dialogs.bulk_add_title', { n: quoteIds.length }) as string"
     hide-footer
     @close="closeModal"
   >
@@ -10,7 +10,7 @@
         <NCollapsible>
           <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
             <NButton btn="ghost">
-              <span class="font-medium text-gray-900 dark:text-white">Create New Collection</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{ $t('components.dialogs.create_new') }}</span>
               <NIcon name="i-ph-caret-down" class="w-4 h-4" />
             </NButton>
           </NCollapsibleTrigger>
@@ -18,20 +18,20 @@
             <div class="m-2 mt-3 space-y-3">
               <NInput
                 v-model="newCollectionName"
-                placeholder="Collection name"
+                :placeholder="$t('components.dialogs.collection_name') as string"
                 :disabled="creating || processing"
               />
               <NInput
                 type="textarea"
                 v-model="newCollectionDescription"
-                placeholder="Optional description"
+                :placeholder="$t('components.dialogs.collection_desc') as string"
                 :rows="2"
                 :disabled="creating || processing"
               />
               <div class="flex items-center justify-between">
                 <NCheckbox
                   v-model="newCollectionPublic"
-                  label="Make public"
+                  :label="$t('components.dialogs.make_public') as string"
                   :disabled="creating || processing"
                 />
                 <NButton
@@ -40,7 +40,7 @@
                   :disabled="!newCollectionName.trim() || creating || processing"
                   @click="createAndAddToCollection"
                 >
-                  Create & Add All
+                  {{ $t('components.dialogs.bulk_add_create') }}
                 </NButton>
               </div>
             </div>
@@ -49,7 +49,7 @@
       </div>
 
       <div>
-        <h4 class="font-medium text-gray-900 dark:text-white mb-3">Your Collections</h4>
+        <h4 class="font-medium text-gray-900 dark:text-white mb-3">{{ $t('components.dialogs.your_collections') }}</h4>
 
         <div v-if="loading" class="space-y-2">
           <div v-for="i in 3" :key="i" class="animate-pulse">
@@ -67,9 +67,9 @@
             <div class="flex-1">
               <div class="flex items-center gap-2">
                 <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">Public</NBadge>
+                <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">{{ $t('common.public') }}</NBadge>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} quotes</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} {{ $t('common.quote_plural') }}</p>
             </div>
 
             <NButton
@@ -92,8 +92,8 @@
 
         <div v-else class="text-center py-8">
           <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p class="text-gray-500 dark:text-gray-400 mb-4">You don't have any collections yet</p>
-          <NButton size="sm" btn="soft" :disabled="processing" @click="showCreateForm = true">Create Your First Collection</NButton>
+          <p class="text-gray-500 dark:text-gray-400 mb-4">{{ $t('components.dialogs.no_collections') }}</p>
+          <NButton size="sm" btn="soft" :disabled="processing" @click="showCreateForm = true">{{ $t('components.dialogs.create_first') }}</NButton>
         </div>
       </div>
     </div>
@@ -101,16 +101,18 @@
     <template #footer>
       <div class="flex items-center justify-end w-full gap-3">
         <div v-if="processing" class="text-xs text-gray-500 dark:text-gray-400">
-          Processing {{ processedCount }} / {{ quoteIds.length }}
+          {{ $t('components.dialogs.bulk_add_processing', { n: processedCount, m: quoteIds.length }) }}
         </div>
-        <NButton btn="link-gray" :disabled="processing" @click="closeModal">Close</NButton>
+        <NButton btn="link-gray" :disabled="processing" @click="closeModal">{{ $t('common.close') }}</NButton>
       </div>
     </template>
   </AppDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+
+const { $t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -124,12 +126,12 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-const collections = ref([])
+const collections = ref<any[]>([])
 const loading = ref(false)
 const creating = ref(false)
 const processing = ref(false)
 const processedCount = ref(0)
-const addingToCollections = ref(new Set())
+const addingToCollections = ref(new Set<number>())
 
 const showCreateForm = ref(false)
 const newCollectionName = ref('')
@@ -148,7 +150,7 @@ const loadCollections = async () => {
   }
 }
 
-const addAllToCollection = async (collection) => {
+const addAllToCollection = async (collection: any) => {
   if (processing.value || !props.quoteIds?.length) return
   const { toast } = useToast()
   try {
@@ -178,10 +180,10 @@ const addAllToCollection = async (collection) => {
 
     emit('added', collection)
     closeModal()
-    toast({ title: 'Added to collection', description: `Added ${ids.length} quote(s) to "${collection.name}".` })
+    toast({ title: String($t('components.dialogs.toast_created')), description: `Added ${ids.length} quote(s) to "${collection.name}".`, toast: 'soft-success' })
   } catch (error) {
     console.error('Failed bulk add to collection:', error)
-    toast({ title: 'Bulk add failed', description: 'Please try again.' })
+    toast({ title: String($t('components.dialogs.toast_error')), description: 'Please try again.', toast: 'soft-error' })
   } finally {
     processing.value = false
     addingToCollections.value.delete(collection.id)
@@ -196,7 +198,7 @@ const createAndAddToCollection = async () => {
     creating.value = true
     processedCount.value = 0
 
-    const createResponse = await $fetch('/api/collections', {
+    const createResponse: any = await $fetch('/api/collections', {
       method: 'POST',
       body: {
         name: newCollectionName.value.trim(),
@@ -205,7 +207,7 @@ const createAndAddToCollection = async () => {
       }
     })
 
-    const collection = createResponse.data
+    const collection: any = createResponse.data
 
     const ids = [...props.quoteIds]
     const batchSize = 5
@@ -229,10 +231,10 @@ const createAndAddToCollection = async () => {
 
     emit('added', collection)
     closeModal()
-    toast({ title: 'Collection created', description: `"${collection.name}" created and ${ids.length} quote(s) added.` })
+    toast({ title: String($t('components.dialogs.toast_created')), description: `"${collection.name}" created and ${ids.length} quote(s) added.`, toast: 'soft-success' })
   } catch (error) {
     console.error('Failed to create collection and bulk add:', error)
-    toast({ title: 'Failed to create collection', description: 'Please try again.' })
+    toast({ title: String($t('components.dialogs.toast_error')), description: 'Please try again.', toast: 'soft-error' })
   } finally {
     creating.value = false
     processing.value = false

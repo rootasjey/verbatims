@@ -26,7 +26,7 @@
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-globe-hemisphere-east-duotone" class="w-4 h-4 mr-2 text-gray-400" />
-                Language
+                {{ $t('components.dialogs.language') }}
               </dt>
               <dd class=" text-size-3.5 ml-5.5 sm:ml-0 sm:col-span-2 text-base font-sans font-500 text-gray-900 dark:text-white">
                 {{ getLanguageName(quote.language) }}
@@ -39,7 +39,7 @@
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-person-arms-spread" class="w-4 h-4 mr-2 text-gray-400" />
-                Submitted by
+                {{ $t('common.submitted') }}
               </dt>
               <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user?.name }}</dd>
             </div>
@@ -50,7 +50,7 @@
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-calendar-dots-duotone" class="w-4 h-4 mr-2 text-gray-400" />
-                Added on
+                {{ $t('common.added') }}
               </dt>
               <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
             </div>
@@ -73,12 +73,12 @@
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
                 <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                   <NIcon name="i-ph-star" class="w-4 h-4 mr-2 text-yellow-500" />
-                  Status
+                  {{ $t('common.status') }}
                 </dt>
                 <dd class="sm:col-span-2">
                   <NBadge color="yellow" badge="soft" class="font-sans">
                     <NIcon name="i-ph-sparkle" class="w-3 h-3 mr-1" />
-                    Featured quote
+                    {{ $t('home.featured') }}
                   </NBadge>
                 </dd>
               </div>
@@ -103,6 +103,8 @@
 import { formatDate } from '~/utils/time-formatter'
 import { getReferenceIcon } from '~/utils/reference'
 import { getLanguageName } from '~/utils/quote'
+
+const { $t } = useI18n()
 
 interface Props {
   quote: QuoteWithRelations;

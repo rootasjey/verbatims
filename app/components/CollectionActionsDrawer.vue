@@ -3,13 +3,13 @@
     <template #body>
       <div class="p-5 pb-6">
         <div class="flex items-center justify-between mb-5">
-          <h3 class="text-lg font-600 text-gray-900 dark:text-white">Collection actions</h3>
+          <h3 class="text-lg font-600 text-gray-900 dark:text-white">{{ $t('components.quote_actions.quick_actions') }}</h3>
           <NBadge 
             :badge="collection?.is_public ? 'outline-green' : 'outline-red'" 
             size="xs"
             rounded="full"
           >
-            {{ collection?.is_public ? 'Public' : 'Private' }}
+            {{ collection?.is_public ? $t('common.public') : $t('common.private') }}
           </NBadge>
         </div>
 
@@ -22,7 +22,7 @@
             {{ collection.description }}
           </p>
           <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">
-            {{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? 'quote' : 'quotes' }}
+            {{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
           </p>
         </div>
 
@@ -35,7 +35,7 @@
             <div class="flex items-center justify-center w-12 h-12 rounded-xl">
               <NIcon name="i-ph-eye" class="w-6 h-6 text-blue-600" />
             </div>
-            <span class="text-xs font-600 text-blue-900 dark:text-blue-100 text-center">View</span>
+            <span class="text-xs font-600 text-blue-900 dark:text-blue-100 text-center">{{ $t('components.dialogs.view') }}</span>
           </div>
 
           <div
@@ -45,7 +45,7 @@
             <div class="flex items-center justify-center w-12 h-12 rounded-xl">
               <NIcon name="i-ph-pencil" class="w-6 h-6 text-yellow-600" />
             </div>
-            <span class="text-xs font-600 text-yellow-900 dark:text-yellow-100 text-center">Edit</span>
+            <span class="text-xs font-600 text-yellow-900 dark:text-yellow-100 text-center">{{ $t('components.dialogs.edit') }}</span>
           </div>
 
           <div
@@ -55,13 +55,13 @@
             <div class="flex items-center justify-center w-12 h-12 rounded-xl">
               <NIcon name="i-ph-trash" class="w-6 h-6 text-pink-600" />
             </div>
-            <span class="text-xs font-600 text-pink-900 dark:text-pink-100 text-center">Delete</span>
+            <span class="text-xs font-600 text-pink-900 dark:text-pink-100 text-center">{{ $t('components.dialogs.delete') }}</span>
           </div>
         </div>
 
         <!-- Cancel Button -->
         <NButton block btn="ghost-gray" size="md" class="rounded-xl" @click="handleClose">
-          Cancel
+          {{ $t('common.cancel') }}
         </NButton>
       </div>
     </template>
@@ -69,6 +69,8 @@
 </template>
 
 <script lang="ts" setup>
+const { $t } = useI18n()
+
 interface Props {
   open?: boolean
   collection?: CollectionWithStats | null

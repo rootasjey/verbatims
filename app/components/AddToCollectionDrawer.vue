@@ -4,7 +4,7 @@
       <div class="p-5 pb-6">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-600 text-gray-900 dark:text-white">Add to Collection</h3>
+          <h3 class="text-lg font-600 text-gray-900 dark:text-white">{{ $t('components.dialogs.add_collection') }}</h3>
           <NButton icon btn="ghost-gray" size="sm" label="i-ph-x-bold" @click="close" />
         </div>
 
@@ -14,7 +14,7 @@
             <NCollapsible v-model:open="createOpen">
               <NCollapsibleTrigger as-child class="flex items-center justify-between w-full">
                 <NButton btn="ghost" size="xs">
-                  <span class="font-medium text-sm text-gray-900 dark:text-white">Create New Collection</span>
+                  <span class="font-medium text-sm text-gray-900 dark:text-white">{{ $t('components.dialogs.create_new') }}</span>
                   <NIcon name="i-ph-caret-down-bold" :class="{ 'rotate-180': createOpen }" />
                 </NButton>
               </NCollapsibleTrigger>
@@ -22,13 +22,13 @@
                 <div class="m-2 mt-3 space-y-3">
                   <NInput
                     v-model="newCollectionName"
-                    placeholder="Collection name"
+                    :placeholder="$t('components.dialogs.collection_name') as string"
                     :disabled="creating"
                   />
                   <NInput
                     type="textarea"
                     v-model="newCollectionDescription"
-                    placeholder="Optional description"
+                    :placeholder="$t('components.dialogs.collection_desc') as string"
                     :rows="2"
                     :disabled="creating"
                   />
@@ -36,7 +36,7 @@
                     <NCheckbox
                       v-model="newCollectionPublic"
                       checkbox="blue"
-                      label="Make public"
+                      :label="$t('components.dialogs.make_public') as string"
                       :disabled="creating"
                     />
                     <NButton
@@ -56,7 +56,7 @@
 
           <!-- Existing Collections -->
           <div>
-            <h4 class="font-medium text-gray-900 dark:text-white mb-3">Your Collections</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-3">{{ $t('components.dialogs.your_collections') }}</h4>
 
             <!-- Loading State -->
             <div v-if="loading" class="space-y-2">
@@ -78,10 +78,10 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h5 class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</h5>
-                    <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">Public</NBadge>
+                    <NBadge v-if="collection.is_public" color="green" badge="soft" size="xs">{{ $t('common.public') }}</NBadge>
                   </div>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ collection.quotes_count }} {{ collection.quotes_count === 1 ? 'quote' : 'quotes' }}
+                    {{ collection.quotes_count }} {{ collection.quotes_count === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
                   </p>
                 </div>
                 <div class="mr-2">
@@ -95,16 +95,16 @@
             <div v-else class="text-center py-8">
               <NIcon name="i-ph-bookmark" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p class="text-gray-500 dark:text-gray-400 mb-4">
-                You don't have any collections yet
+                {{ $t('components.dialogs.no_collections') }}
               </p>
               <NButton size="sm" btn="soft-blue" @click="createOpen = true">
-                Create Your First Collection
+                {{ $t('components.dialogs.create_first') }}
               </NButton>
             </div>
           </div>
 
           <div class="pt-1">
-            <NButton block btn="ghost" @click="close">Close</NButton>
+            <NButton block btn="ghost" @click="close">{{ $t('common.close') }}</NButton>
           </div>
         </div>
       </div>
@@ -142,6 +142,7 @@ const newCollectionName = ref('')
 const newCollectionDescription = ref('')
 const newCollectionPublic = ref(false)
 
+const { $t } = useI18n()
 const { toast } = useToast()
 const { showErrorToast } = useErrorToast()
 
@@ -181,10 +182,10 @@ const createAndAddToCollection = async () => {
 
     emit('added', createResponse.data)
     close()
-    toast({ title: 'Collection created!', description: `"${createResponse.data.name}" created and quote added.`, toast: 'success' })
+    toast({ title: String($t('components.dialogs.toast_created')), description: `"${createResponse.data.name}" created and quote added.`, toast: 'success' })
   } catch (error) {
     console.error('Failed to create collection and add quote:', error)
-    showErrorToast(error, { title: 'Failed to create collection', fallback: 'Please try again.' })
+      showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
   } finally {
     creating.value = false
   }
@@ -204,9 +205,9 @@ const addToCollection = async (collection: CollectionWithStats) => {
     console.error('Failed to add quote to collection:', error)
     const err = error as any
     if (err && err.statusCode === 409) {
-      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.` })
+      toast({ title: 'Quote already in collection', description: `Quote is already in "${collection.name}" collection.`, toast: 'outline-warning' })
     } else {
-      showErrorToast(error, { title: 'Failed to add quote', fallback: 'Please try again.' })
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: 'Please try again.' })
     }
   } finally {
     addingToCollections.value.delete(collection.id)

@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Delete Selected Users"
-    submit-text="Delete Users"
+    :title="$t('components.dialogs.delete_users_selected') as string"
+    :submit-text="$t('components.dialogs.delete') as string"
     :submitting="deleting"
     :can-submit="deletableCount > 0"
     @submit="confirm"
@@ -11,52 +11,54 @@
       <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 flex items-start">
         <NIcon name="i-ph-warning" class="w-5 h-5 text-red-600 mt-0.5 mr-2" />
         <div class="text-sm text-red-800 dark:text-red-300">
-          <p class="font-medium">This action is permanent.</p>
+          <p class="font-medium">{{ $t('components.dialogs.delete_permanent') }}</p>
           <p class="mt-1">
             {{ deletableCount > 0
-              ? `You are about to delete ${deletableCount} ${deletableCount === 1 ? 'user' : 'users'}.`
-              : 'There are no eligible users to delete in the current selection.' }}
+              ? $t('components.dialogs.delete_users_selected_desc', { n: deletableCount })
+              : $t('components.dialogs.delete_users_none_eligible') }}
           </p>
         </div>
       </div>
 
       <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
         <p>
-          Selected: <span class="font-semibold">{{ selectedCount }}</span>
+          {{ $t('components.dialogs.selected_label') }} <span class="font-semibold">{{ selectedCount }}</span>
           <span class="mx-2">•</span>
-          Will delete: <span class="font-semibold">{{ deletableCount }}</span>
+          {{ $t('components.dialogs.will_delete') }} <span class="font-semibold">{{ deletableCount }}</span>
         </p>
         <p v-if="selfSelectedCount > 0" class="text-amber-700 dark:text-amber-300">
-          {{ selfSelectedCount }} {{ selfSelectedCount === 1 ? 'selected account is' : 'selected accounts are' }} your current session and will be skipped.
+          {{ $t('components.dialogs.delete_user_warning_list') }}
         </p>
         <p v-if="adminSelectedCount > 0" class="text-amber-700 dark:text-amber-300">
-          {{ adminSelectedCount }} {{ adminSelectedCount === 1 ? 'selected user is' : 'selected users are' }} an admin and will be skipped. Use the single-user delete flow for admin accounts.
+          {{ $t('components.dialogs.delete_user_warning_list') }}
         </p>
       </div>
 
       <div v-if="previewUsers.length > 0" class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-        <p class="font-medium">Users to be deleted:</p>
+        <p class="font-medium">{{ $t('components.dialogs.users_to_delete') }}</p>
         <div v-for="user in previewUsers" :key="user.id" class="border-l-2 border-gray-300 dark:border-gray-600 pl-3">
           <p class="font-medium">{{ user.name }}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ user.email || 'No email' }}
+            {{ user.email || $t('common.na') }}
             <span class="mx-1">•</span>
             {{ user.role }}
           </p>
         </div>
         <p v-if="deletableCount > previewUsers.length" class="text-xs text-gray-500 dark:text-gray-400">
-          And {{ deletableCount - previewUsers.length }} more.
+          {{ $t('components.dialogs.and_n_more', { n: deletableCount - previewUsers.length }) }}
         </p>
       </div>
     </div>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="deleting" :disabled="deletableCount === 0" @click="confirm">Delete Users</NButton>
+      <NButton btn="soft-red" :loading="deleting" :disabled="deletableCount === 0" @click="confirm">{{ $t('common.delete') }}</NButton>
     </template>
   </AppDialog>
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface AdminUser { id: number; name: string; email?: string; role: 'user'|'moderator'|'admin' }
 interface Props {
   open: boolean

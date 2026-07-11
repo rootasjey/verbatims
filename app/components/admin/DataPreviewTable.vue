@@ -26,6 +26,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 type ColumnType = 'text' | 'date' | 'list'
 
 interface Column {
@@ -49,7 +51,7 @@ const columns = computed<Column[]>((): Column[] => {
   switch (dataType) {
     case 'authors':
       return [
-        { label: 'Name', keys: ['name', 'full_name'], type: 'text' },
+        { label: $t('components.dialogs.name') as string, keys: ['name', 'full_name'], type: 'text' },
         { label: 'Born', keys: ['birth_date', 'born'], type: 'date' },
         { label: 'Died', keys: ['death_date', 'died'], type: 'date' },
         { label: 'Nationality', keys: ['nationality', 'country'], type: 'text' },
@@ -59,31 +61,31 @@ const columns = computed<Column[]>((): Column[] => {
       return [
         { label: 'Tag', keys: ['name', 'tag'], type: 'text' },
         { label: 'Slug', keys: ['slug'], type: 'text' },
-        { label: 'Description', keys: ['description', 'desc'], type: 'text' }
+        { label: $t('components.dialogs.description') as string, keys: ['description', 'desc'], type: 'text' }
       ]
     case 'users':
       return [
-        { label: 'Name', keys: ['name', 'full_name'], type: 'text' },
-        { label: 'Email', keys: ['email'], type: 'text' },
+        { label: $t('components.dialogs.name') as string, keys: ['name', 'full_name'], type: 'text' },
+        { label: $t('auth.email_label') as string, keys: ['email'], type: 'text' },
         { label: 'Role', keys: ['role'], type: 'text' },
         { label: 'Created At', keys: ['created_at', 'createdAt', 'signup_date'], type: 'date' },
-        { label: 'Status', keys: ['status', 'state'], type: 'text' }
+        { label: $t('common.status') as string, keys: ['status', 'state'], type: 'text' }
       ]
     case 'quotes':
       return [
         { label: 'Quote', keys: ['text', 'quote', 'content'], type: 'text' },
-        { label: 'Author', keys: ['author', 'author_name', 'author_id'], type: 'text' },
-        { label: 'Reference', keys: ['reference', 'reference_name', 'reference_id'], type: 'text' },
+        { label: $t('components.dialogs.author_label') as string, keys: ['author', 'author_name', 'author_id'], type: 'text' },
+        { label: $t('components.dialogs.reference_label') as string, keys: ['reference', 'reference_name', 'reference_id'], type: 'text' },
         { label: 'Tags', keys: ['tags'], type: 'list' },
         { label: 'Created At', keys: ['created_at', 'createdAt'], type: 'date' }
       ]
     default:
       return [
-        { label: 'Name', keys: ['name', 'title'], type: 'text' },
+        { label: $t('components.dialogs.name') as string, keys: ['name', 'title'], type: 'text' },
         { label: 'Type', keys: ['primary_type', 'type'], type: 'text' },
-        { label: 'Language', keys: ['original_language', 'language'], type: 'text' },
+        { label: $t('components.dialogs.language') as string, keys: ['original_language', 'language'], type: 'text' },
         { label: 'Release Date', keys: ['release_date', 'published_at', 'published'], type: 'date' },
-        { label: 'Description', keys: ['description', 'desc', 'summary'], type: 'text' }
+        { label: $t('components.dialogs.description') as string, keys: ['description', 'desc', 'summary'], type: 'text' }
       ]
   }
 })

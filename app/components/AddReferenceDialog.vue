@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="dialogTitle"
-    :submit-text="submitButtonText"
+    :title="dialogTitle as string"
+    :submit-text="submitButtonText as string"
     :submitting="submitting"
     :can-submit="!!titleQuery.trim()"
     max-width="md"
@@ -15,7 +15,7 @@
           <NInput
             ref="titleInputRef"
             v-model="titleQuery"
-            placeholder="Enter reference title..."
+            :placeholder="$t('components.dialogs.placeholder_title') as string"
             :disabled="submitting"
             required
             autofocus
@@ -30,7 +30,7 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Title *
+                {{ $t('components.dialogs.title') }}
               </NBadge>
             </template>
           </NInput>
@@ -71,7 +71,7 @@
               @mouseenter="selectedTitleIndex = titleSuggestions.length"
             >
               <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                Create new reference: "{{ titleQuery }}"
+                {{ $t('components.dialogs.create_new_reference', { name: titleQuery }) }}
               </div>
             </div>
           </div>
@@ -79,11 +79,11 @@
       </div>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Type *</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.genre') }}</label>
         <NSelect
           v-model="form.primary_type"
           :items="primaryTypeOptions"
-          placeholder="Select type"
+          :placeholder="$t('common.search') as string"
           :disabled="submitting"
           item-key="label"
           value-key="label"
@@ -93,7 +93,7 @@
 
       <NInput
         v-model="form.secondary_type"
-        placeholder="e.g., Horror, Comedy, Biography..."
+        :placeholder="$t('components.dialogs.genre') as string"
         :disabled="submitting"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{
@@ -102,7 +102,7 @@
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Genre/Category
+            {{ $t('components.dialogs.genre') }}
           </NBadge>
         </template>
       </NInput>
@@ -120,7 +120,7 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Release Date
+                {{ $t('components.dialogs.release_date') }}
               </NBadge>
             </template>
           </NInput>
@@ -130,12 +130,12 @@
           <NSelect
             v-model="form.original_language"
             :items="languageOptions"
-            placeholder="Select language"
+            :placeholder="$t('components.dialogs.select_language') as string"
             :disabled="submitting"
             item-key="label"
             value-key="label"
           />
-          <label class="mt-1 pl-1 block text-xs font-600 text-gray-900 dark:text-white">Original Language</label>
+          <label class="mt-1 pl-1 block text-xs font-600 text-gray-900 dark:text-white">{{ $t('components.dialogs.original_language') }}</label>
         </div>
       </div>
 
@@ -143,7 +143,7 @@
         <NInput
           v-model="form.image_url"
           type="url"
-          placeholder="https://example.com/cover.jpg"
+          :placeholder="$t('components.dialogs.placeholder_url') as string"
           :disabled="submitting"
           class="bg-white dark:bg-gray-900 b-none shadow-none"
           :una="{
@@ -152,7 +152,7 @@
         >
           <template #trailing>
             <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-              Cover Image URL
+              {{ $t('components.dialogs.image_url') }}
             </NBadge>
           </template>
         </NInput>
@@ -167,7 +167,7 @@
               <img
                 v-if="referencePreviewUrl && !referencePreviewErrored"
                 :src="referencePreviewUrl"
-                alt="Reference cover preview"
+                :alt="$t('components.dialogs.cover_preview') as string"
                 class="h-full w-full object-cover"
                 @error="referencePreviewErrored = true"
               />
@@ -179,10 +179,9 @@
               </div>
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">Cover preview</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.dialogs.cover_preview') }}</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                <span class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" @click="fileInputRef?.click()">Click to upload an image</span>
-                or paste an accessible cover or poster URL to preview it here.
+                <span class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" @click="fileInputRef?.click()">{{ $t('components.dialogs.upload_hint') }}</span>
               </p>
             </div>
           </div>
@@ -192,7 +191,7 @@
       <NInput
         type="textarea"
         v-model="form.description"
-        placeholder="Brief description or synopsis..."
+        :placeholder="$t('components.dialogs.placeholder_desc') as string"
         :rows="6"
         :disabled="submitting"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
@@ -202,7 +201,7 @@
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Description
+            {{ $t('components.dialogs.description') }}
           </NBadge>
         </template>
       </NInput>
@@ -227,14 +226,16 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
+
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
 const isEditMode = computed(() => !!props.editReference)
-const dialogTitle = computed(() => isEditMode.value ? 'Edit Reference' : 'Add New Reference')
-const submitButtonText = computed(() => isEditMode.value ? 'Update Reference' : 'Create Reference')
+const dialogTitle = computed(() => isEditMode.value ? $t('components.dialogs.edit_reference') : $t('components.dialogs.add_reference'))
+const submitButtonText = computed(() => isEditMode.value ? $t('components.dialogs.update_reference') : $t('components.dialogs.create_reference'))
 
 const form = ref({
   name: '',
@@ -511,7 +512,7 @@ const submitReference = async () => {
     closeDialog()
   } catch (error) {
     console.error('Error submitting reference:', error)
-    showErrorToast(error, isEditMode.value ? 'Failed to update reference. Please try again.' : 'Failed to create reference. Please try again.')
+    showErrorToast(error, isEditMode.value ? String($t('components.dialogs.toast_error')) : String($t('components.dialogs.toast_error')))
   } finally {
     submitting.value = false
   }

@@ -1,20 +1,20 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Edit Tags"
+    :title="$t('components.dialogs.edit_tags') as string"
     hide-footer
     @close="closeDialog"
   >
     <div class="space-y-6">
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Add Tag</label>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.add_tag_label') }}</label>
 
         <div class="flex gap-2">
           <div ref="suggestionAreaRef" class="flex-1 relative">
             <NInput
               ref="tagInputRef"
               v-model="tagQuery"
-              placeholder="Type to search or create a tag…"
+              :placeholder="$t('components.dialogs.tag_search') as string"
               :disabled="submitting"
               class="bg-white dark:bg-gray-900 b-none shadow-none"
               :una="{ inputTrailingWrapper: 'pr-1.5' }"
@@ -23,7 +23,7 @@
               @keydown="handleKeydown"
             >
               <template #trailing>
-                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Search</NBadge>
+                <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('common.search') }}</NBadge>
               </template>
             </NInput>
             <div
@@ -47,10 +47,10 @@
               >
                 <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: tag.color }" />
                 <span class="text-sm">#{{ tag.name }}</span>
-                <NTooltip v-if="tag.reason === 'popular'" content="Popular tag" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
+                  <NTooltip v-if="tag.reason === 'popular'" :content="$t('components.dialogs.tag_popular') as string" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
                   <NIcon name="i-ph-shooting-star" class="w-4 h-4 text-yellow-500" />
                 </NTooltip>
-                <NTooltip v-else-if="tag.reason === 'keyword'" content="Keyword match" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
+                  <NTooltip v-else-if="tag.reason === 'keyword'" :content="$t('components.dialogs.tag_keyword') as string" :_tooltip-content="{ side: 'top', sideOffset: 4 }">
                   <NIcon name="i-ph-stack-simple-duotone" class="w-4 h-4 text-green-500" />
                 </NTooltip>
               </div>
@@ -65,7 +65,7 @@
                 @click="createAndAddTag()"
                 @mouseenter="selectedIndex = safeSuggestions.length"
               >
-                <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Create "{{ tagQuery }}"</span>
+                <span class="text-sm font-medium text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.tag_create', { query: tagQuery }) }}</span>
                 <span class="inline-block w-3 h-3 rounded" :style="{ backgroundColor: defaultColor }" />
               </div>
             </div>
@@ -86,8 +86,8 @@
       </div>
 
       <div>
-        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Current Tags</label>
-        <div v-if="loading" class="text-sm text-gray-500">Loading…</div>
+        <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.tag_current') }}</label>
+        <div v-if="loading" class="text-sm text-gray-500">{{ $t('components.dialogs.tag_loading') }}</div>
         <div v-else>
           <div v-if="safeQuoteTags.length" class="flex flex-wrap gap-2">
             <div
@@ -109,26 +109,28 @@
                   icon
                   class="p-0 m-0 min-w-0 min-h-0"
                   label="i-ph-x"
-                  :aria-label="`Remove ${t.name}`"
+                  :aria-label="$t('components.dialogs.tag_remove', { name: t.name })"
                   @click="removeTag(t)"
                 />
               </NBadge>
             </div>
           </div>
-          <div v-else class="text-sm text-gray-500">No tags yet.</div>
+          <div v-else class="text-sm text-gray-500">{{ $t('components.dialogs.tag_empty') }}</div>
         </div>
       </div>
     </div>
 
     <template #footer>
       <div class="flex justify-end">
-        <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">Close</NButton>
+        <NButton btn="link-gray" @click="closeDialog" :disabled="submitting">{{ $t('common.close') }}</NButton>
       </div>
     </template>
   </AppDialog>
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface Props {
   modelValue: boolean
   quoteId: number
@@ -332,7 +334,7 @@ const addExistingTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
     await loadInitialSuggestions()
   } catch (e: any) {
     console.error('Failed to add tag', e)
-    error.value = e?.statusMessage || 'Failed to add tag'
+    error.value = e?.statusMessage || $t('components.dialogs.toast_error')
   } finally {
     submitting.value = false
   }
@@ -361,7 +363,7 @@ const createAndAddTag = async () => {
     await loadInitialSuggestions()
   } catch (e: any) {
     console.error('Failed to create/add tag', e)
-    error.value = e?.statusMessage || 'Failed to create tag'
+    error.value = e?.statusMessage || $t('components.dialogs.toast_error')
   } finally {
     submitting.value = false
   }
@@ -392,7 +394,7 @@ const removeTag = async (tag: Pick<Tag, 'id' | 'name' | 'color'>) => {
     }
   } catch (e: any) {
     console.error('Failed to remove tag', e)
-    error.value = e?.statusMessage || 'Failed to remove tag'
+    error.value = e?.statusMessage || $t('components.dialogs.toast_error')
   } finally {
     submitting.value = false
   }
