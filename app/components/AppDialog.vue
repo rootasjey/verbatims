@@ -61,11 +61,7 @@ interface Emits {
   (e: 'close'): void
 }
 
-const { $t } = useI18n()
-
 const props = withDefaults(defineProps<Props>(), {
-  submitText: String($t('components.app_dialog.save')),
-  cancelText: String($t('components.app_dialog.cancel')),
   submitting: false,
   canSubmit: true,
   maxWidth: 'sm',
@@ -76,6 +72,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
+
+const { $t } = useI18n()
+
+const submitText = computed(() => props.submitText ?? String($t('components.app_dialog.save')))
+const cancelText = computed(() => props.cancelText ?? String($t('components.app_dialog.cancel')))
 
 const DIALOG_COLOR = '#687FE5'
 const dialogContentRef = ref<HTMLElement | null>(null)
