@@ -1,1 +1,25 @@
-{}
+{
+  "meta_title": "Verbatims \u2022 Maintenance BDD - Admin",
+  "title": "Maintenance base de données",
+  "subtitle": "Effectuer des opérations de maintenance et gérer l'intégrité des données",
+  "section_reset": "Réinitialisation",
+  "warning_heading": "Avertissement : opération destructive",
+  "warning_body": "Cette opération supprimera définitivement TOUTES les données de la base, y compris :",
+  "warning_item_quotes": "Toutes les citations, auteurs et références",
+  "warning_item_users": "Tous les comptes utilisateurs et collections",
+  "warning_item_interactions": "Tous les tags, j'aimes et données d'interaction",
+  "warning_item_moderation": "Tout l'historique de modération et les signalements",
+  "warning_final": "Cette action est irréversible. Assurez-vous d'avoir une sauvegarde.",
+  "button_reset": "Réinitialiser la base",
+  "dialog_confirm_title": "Confirmer la réinitialisation",
+  "dialog_confirm_body": "Vous êtes sur le point de supprimer définitivement toutes les données...",
+  "dialog_what_happens": "Ce qui va se passer :",
+  "dialog_item_all_data": "Toutes les lignes de données de chaque table seront supprimées",
+  "dialog_label_confirm": "Tapez \"RÉINITIALISER\" pour confirmer :",
+  "dialog_placeholder_confirm": "RÉINITIALISER",
+  "dialog_checkbox_understand": "Je comprends que toutes les données seront supprimées",
+  "dialog_cancel": "Annuler",
+  "dialog_reset": "Réinitialiser",
+  "success_message": "Réinitialisation terminée avec succès ! {details}",
+  "error_message": "Échec de la réinitialisation. Veuillez réessayer."
+}

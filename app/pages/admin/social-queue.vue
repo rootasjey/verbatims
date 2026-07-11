@@ -3,9 +3,9 @@
     <!-- Editorial Header -->
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-        Social Queue
+        {{ $t('title') }}
       </h1>
-      <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }}</p>
+      <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} {{ totalItems === 1 ? 'item' : 'items' }}</p>
 
       <div class="flex flex-col sm:flex-row gap-3 mt-4">
         <div>
@@ -46,8 +46,8 @@
             </NToggleGroupItem>
           </NToggleGroup>
         </div>
-        <OutlinedButton :loading="providerCheckLoading" @click="checkProvider">Check provider</OutlinedButton>
-        <OutlinedButton variant="primary" :loading="runNowLoading" @click="runNow">Run now</OutlinedButton>
+        <OutlinedButton :loading="providerCheckLoading" @click="checkProvider">{{ $t('check_provider') }}</OutlinedButton>
+        <OutlinedButton variant="primary" :loading="runNowLoading" @click="runNow">{{ $t('run_now') }}</OutlinedButton>
         <NDropdownMenu :items="actionMenuItems">
           <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
         </NDropdownMenu>
@@ -65,8 +65,8 @@
       <!-- Empty -->
       <div v-else-if="queueItems.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
         <NIcon name="i-ph-list-dashes" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? 'No matching items' : 'Queue is empty' }}</p>
-        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? 'Try a different search term.' : 'Add quotes to the queue for scheduled social media posting.' }}</p>
+        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
+        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_desc') : $t('empty_desc_default') }}</p>
       </div>
 
       <!-- Table -->
@@ -75,11 +75,11 @@
           <table class="w-full">
             <thead>
               <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
-                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Position</th>
+                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_position') }}</th>
                 <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   <div class="flex items-center gap-4">
-                    <span>Content</span>
-                    <input v-model="searchQuery" type="text" placeholder="Search queue by content, author, reference..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-72" />
+                    <span>{{ $t('col_content') }}</span>
+                    <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-72" />
                   </div>
                 </th>
                 <th class="w-52 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -90,10 +90,10 @@
                       </template>
                       <template #content>
                         <div class="space-y-1 font-sans text-xs">
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400" /> {{ stats.queued }} Queued</div>
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500" /> {{ stats.processing }} Processing</div>
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" /> {{ stats.posted }} Posted</div>
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500" /> {{ stats.failed }} Failed</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400" /> {{ stats.queued }} {{ $t('status_queued') }}</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500" /> {{ stats.processing }} {{ $t('status_processing') }}</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" /> {{ stats.posted }} {{ $t('status_posted') }}</div>
+                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500" /> {{ stats.failed }} {{ $t('status_failed') }}</div>
                         </div>
                       </template>
                     </NTooltip>
@@ -102,9 +102,9 @@
                     </select>
                   </div>
                 </th>
-                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Posted Count</th>
-                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Posted</th>
-                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_posted_count') }}</th>
+                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_last_posted') }}</th>
+                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -117,7 +117,7 @@
                     <span v-else class="font-sans text-sm text-gray-900 dark:text-gray-100">#{{ item.position }}</span>
                     <NTooltip v-if="hasPublishedPostUrl(item)">
                       <template #default><NIcon name="i-ph-check-circle" class="w-3.5 h-3.5 text-green-600 dark:text-green-400" /></template>
-                      <template #content><span>Published post available</span></template>
+                      <template #content><span>{{ $t('tooltip_post_available') }}</span></template>
                     </NTooltip>
                   </div>
                 </td>
@@ -154,16 +154,16 @@
         </div>
 
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }}</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalItems }} {{ totalItems === 1 ? 'item' : 'items' }}</span>
         <div class="flex items-center gap-3">
-          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
         </div>
       </div>
       <div v-else class="pt-4 text-center">
-        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
         </div>
       </div>
     </div>
@@ -264,8 +264,10 @@ definePageMeta({
   middleware: 'admin'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Social Queue - Admin - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const { showErrorToast: showErrorToastFromComposable } = useErrorToast()
@@ -587,9 +589,9 @@ function toggleItemColorClass(platform: SocialPlatform) {
 
 function statusLabelFor(platform: SocialPlatform) {
   const st = getPlatformStatus(platform)
-  if (st.ok) return 'configured'
-  if (st.reason) return 'error'
-  return 'not configured'
+  if (st.ok) return $t('status_configured') as string
+  if (st.reason) return $t('status_error') as string
+  return $t('status_not_configured') as string
 }
 
 function statusClass(status: SocialQueueStatus) {
@@ -610,13 +612,13 @@ function statusColor(status: SocialQueueStatus) {
 }
 
 function formatLastPosted(value: string | null) {
-  if (!value) return 'Never'
+  if (!value) return $t('label_never') as string
   const formatted = formatDate(value)
-  return formatted === 'N/A' ? 'Never' : formatted
+  return formatted === 'N/A' ? $t('label_never') as string : formatted
 }
 
 function getQueueItemPrimaryText(item: SocialQueueItem) {
-  return item.resolved_content?.primary_text || item.quote_text || 'No content available'
+  return item.resolved_content?.primary_text || item.quote_text || $t('label_no_content') as string
 }
 
 function getQueueItemSecondaryText(item: SocialQueueItem) {
@@ -624,7 +626,7 @@ function getQueueItemSecondaryText(item: SocialQueueItem) {
     return item.resolved_content.secondary_text
   }
 
-  const parts = [item.author_name || 'Unknown author', item.reference_name].filter(Boolean)
+  const parts = [item.author_name || $t('label_unknown_author') as string, item.reference_name].filter(Boolean)
   return parts.length ? parts.join(' · ') : ''
 }
 
@@ -633,7 +635,7 @@ function getQueueItemPath(item: SocialQueueItem) {
 }
 
 function getQueueItemLinkLabel(item: SocialQueueItem) {
-  return item.source_type === 'quote' ? 'Open quote page' : 'Open source page'
+  return item.source_type === 'quote' ? $t('link_open_quote') as string : $t('link_open_source') as string
 }
 
 function formatQueueSourceLabel(item: SocialQueueItem) {
@@ -661,14 +663,14 @@ async function copyErrorIfFailed(item: SocialQueueItem) {
   try {
     await navigator.clipboard.writeText(item.error_message)
     useToast().toast({
-      title: 'Copied',
-      description: 'Error message copied to clipboard',
+      title: $t('toast_copied') as string,
+      description: $t('toast_copied_desc') as string,
       toast: 'outline-success'
     })
   } catch {
     useToast().toast({
-      title: 'Copy failed',
-      description: 'Could not copy to clipboard',
+      title: $t('toast_copy_failed') as string,
+      description: $t('toast_copy_failed_desc') as string,
       toast: 'outline-warning'
     })
   }
@@ -741,24 +743,24 @@ async function checkPlatform(platform: SocialPlatform, showToasts = true) {
       if (result?.ok) {
         if (result.account) {
           useToast().toast({
-            title: 'Provider ready',
-            description: `Connected as ${result.account}`,
+            title: $t('toast_provider_ready') as string,
+            description: $t('toast_provider_connected', { account: result.account }) as string,
             toast: 'outline-success'
           })
         } else {
           useToast().toast({
-            title: 'Provider ready',
-            description: 'Credentials look valid',
+            title: $t('toast_provider_ready') as string,
+            description: $t('toast_provider_valid') as string,
             toast: 'outline-success'
           })
         }
       } else {
-        showErrorToast('Provider check failed', result?.reason || 'Credentials or permissions are invalid')
+        showErrorToast($t('toast_provider_check_failed') as string, result?.reason || $t('toast_provider_check_failed_desc') as string)
       }
     }
   } catch (error) {
     console.error(`Failed to check provider ${platform}:`, error)
-    if (showToasts) showErrorToast('Error', 'Failed to run provider check')
+    if (showToasts) showErrorToast($t('toast_provider_check_error') as string, $t('toast_provider_check_error_desc') as string)
   } finally {
     status.loading = false
   }
@@ -791,39 +793,39 @@ watch(randomDialogOpen, (open) => {
 
 const actionMenuItems = computed(() => {
   const items: DropdownMenuItem[] = []
-  items.push({ label: 'Check provider', leading: 'i-ph-plugs-connected', onclick: checkProvider })
+  items.push({ label: $t('check_provider') as string, leading: 'i-ph-plugs-connected', onclick: checkProvider })
   if (selectedPlatform.value === 'threads') {
-    items.push({ label: 'Provider settings', leading: 'i-ph-gear', onclick: openProviderConfigDialog })
-    items.push({ label: 'Threads OAuth settings', leading: 'i-ph-sliders-horizontal', onclick: openThreadsOAuthConfigDialog })
-    items.push({ label: 'Reconnect Threads', leading: 'i-ph-arrow-clockwise', onclick: connectThreads })
-    items.push({ label: 'Threads API credentials', leading: 'i-ph-key', onclick: openThreadsConfigDialog })
+    items.push({ label: $t('dropdown_provider_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    items.push({ label: $t('dropdown_threads_oauth') as string, leading: 'i-ph-sliders-horizontal', onclick: openThreadsOAuthConfigDialog })
+    items.push({ label: $t('dropdown_reconnect_threads') as string, leading: 'i-ph-arrow-clockwise', onclick: connectThreads })
+    items.push({ label: $t('dropdown_threads_api') as string, leading: 'i-ph-key', onclick: openThreadsConfigDialog })
   } else if (selectedPlatform.value === 'instagram' || selectedPlatform.value === 'facebook') {
-    items.push({ label: 'Provider settings', leading: 'i-ph-gear', onclick: openProviderConfigDialog })
-    items.push({ label: 'Meta OAuth settings', leading: 'i-ph-sliders-horizontal', onclick: openMetaConfigDialog })
-    items.push({ label: 'Reconnect', leading: 'i-ph-arrow-clockwise', onclick: connectMeta })
+    items.push({ label: $t('dropdown_provider_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    items.push({ label: $t('dropdown_meta_oauth') as string, leading: 'i-ph-sliders-horizontal', onclick: openMetaConfigDialog })
+    items.push({ label: $t('dropdown_reconnect') as string, leading: 'i-ph-arrow-clockwise', onclick: connectMeta })
   } else if (isEditableProvider(selectedPlatform.value)) {
-    items.push({ label: 'Settings', leading: 'i-ph-gear', onclick: openProviderConfigDialog })
+    items.push({ label: $t('dropdown_settings') as string, leading: 'i-ph-gear', onclick: openProviderConfigDialog })
   }
-  items.push({ label: 'Run now', leading: 'i-ph-play', onclick: runNow })
+  items.push({ label: $t('run_now') as string, leading: 'i-ph-play', onclick: runNow })
   items.push({})
-  items.push({ label: 'Re-queue failed', leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
+  items.push({ label: $t('dropdown_requeue_failed') as string, leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
   items.push({})
-  items.push({ label: 'Add random (15)', leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
-  items.push({ label: 'Add random (custom)', leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
-  items.push({ label: 'Manually add quotes', leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
+  items.push({ label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
+  items.push({ label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
+  items.push({ label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
   return items
 })
 
 // items for the tiny dropdown in table header
 const tableHeaderMenuItems = computed(() => {
   const items: DropdownMenuItem[] = []
-  items.push({ label: 'Clear all', onclick: () => { showClearAllDialog.value = true } })
-  items.push({ label: 'Clear finished', onclick: () => { showClearFinishedDialog.value = true } })
-  items.push({ label: 'Re-queue failed', leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
+  items.push({ label: $t('dropdown_clear_all') as string, onclick: () => { showClearAllDialog.value = true } })
+  items.push({ label: $t('dropdown_clear_finished') as string, onclick: () => { showClearFinishedDialog.value = true } })
+  items.push({ label: $t('dropdown_requeue_failed') as string, leading: 'i-ph-arrow-counter-clockwise', onclick: () => requeueFailedPosts() })
   items.push({})
-  items.push({ label: 'Add random (15)', leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
-  items.push({ label: 'Add random (custom)', leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
-  items.push({ label: 'Manually add quotes', leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
+  items.push({ label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
+  items.push({ label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
+  items.push({ label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
   return items
 })
 
@@ -842,7 +844,7 @@ function rowActionItems(item: SocialQueueItem) {
   }
   if (hasPublishedPostUrl(item)) {
     actions.push({
-      label: 'Open post',
+      label: $t('dropdown_open_post') as string,
       leading: 'i-ph-arrow-square-out',
       onclick: () => openPublishedPost(item)
     })
@@ -852,13 +854,13 @@ function rowActionItems(item: SocialQueueItem) {
     actions.push({})
   }
   actions.push({
-    label: 'Move up',
+    label: $t('dropdown_move_up') as string,
     leading: 'i-ph-caret-up',
     disabled,
     onclick: () => moveQueueItem(item.id, 'up')
   })
   actions.push({
-    label: 'Move down',
+    label: $t('dropdown_move_down') as string,
     leading: 'i-ph-caret-down',
     disabled,
     onclick: () => moveQueueItem(item.id, 'down')
@@ -866,14 +868,14 @@ function rowActionItems(item: SocialQueueItem) {
   if (item.status === 'failed') {
     actions.push({})
     actions.push({
-      label: 'Re-queue',
+      label: $t('dropdown_requeue') as string,
       leading: 'i-ph-arrow-counter-clockwise',
       onclick: () => requeueSingleFailedItem(item.id)
     })
   }
   actions.push({})
   actions.push({
-    label: 'Remove',
+    label: $t('dropdown_remove') as string,
     leading: 'i-ph-trash',
     onclick: () => removeQueueItem(item.id)
   })
@@ -939,7 +941,7 @@ async function loadMetaStatus() {
     }
   } catch (error) {
     console.error('Failed to load Meta status:', error)
-    showErrorToast('Error', 'Failed to load Meta connection status')
+    showErrorToast($t('common.error') as string, 'Failed to load Meta connection status')
   } finally {
     metaStatusLoading.value = false
   }
@@ -977,7 +979,7 @@ async function loadMetaAppConfig() {
     }
   } catch (error) {
     console.error('Failed to load Meta app config:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to load Meta OAuth settings'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to load Meta OAuth settings'))
   } finally {
     metaConfigLoading.value = false
   }
@@ -1020,7 +1022,7 @@ async function loadThreadsOAuthConfig() {
     }
   } catch (error) {
     console.error('Failed to load Threads OAuth config:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to load Threads OAuth settings'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to load Threads OAuth settings'))
   } finally {
     threadsOAuthConfigLoading.value = false
   }
@@ -1071,7 +1073,7 @@ async function loadThreadsConfig() {
     }
   } catch (error) {
     console.error('Failed to load Threads credentials:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to load Threads API credentials'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to load Threads API credentials'))
   }
 }
 
@@ -1135,7 +1137,7 @@ async function loadProviderConfig(platform: EditableProvider) {
     }
   } catch (error) {
     console.error(`Failed to load provider settings for ${platform}:`, error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to load provider settings'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to load provider settings'))
   } finally {
     providerConfigLoading.value = false
   }
@@ -1144,8 +1146,8 @@ async function loadProviderConfig(platform: EditableProvider) {
 async function openProviderConfigDialog() {
   if (!isEditableProvider(selectedPlatform.value)) {
     useToast().toast({
-      title: 'Unsupported provider',
-      description: 'Settings are currently editable only for implemented providers',
+      title: $t('toast_unsupported_provider') as string,
+      description: $t('toast_unsupported_provider_desc') as string,
       toast: 'outline-warning'
     })
     return
@@ -1206,15 +1208,15 @@ async function saveProviderConfig() {
     providerConfigDialogOpen.value = false
 
     useToast().toast({
-      title: 'Saved',
-      description: `${SOCIAL_PLATFORM_LABELS[selectedPlatform.value] || selectedPlatform.value} settings updated`,
+      title: $t('toast_saved') as string,
+      description: $t('toast_saved_desc', { platform: SOCIAL_PLATFORM_LABELS[selectedPlatform.value] || selectedPlatform.value }) as string,
       toast: 'outline-success'
     })
 
     await checkPlatform(selectedPlatform.value, false)
   } catch (error) {
     console.error(`Failed to save provider settings for ${selectedPlatform.value}:`, error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to save provider settings'))
+    showErrorToast($t('toast_save_error') as string, readErrorMessage(error, $t('toast_save_error_desc') as string))
   } finally {
     providerConfigSaving.value = false
   }
@@ -1256,14 +1258,14 @@ async function saveMetaAppConfig() {
       metaConfigDialogOpen.value = false
 
       useToast().toast({
-        title: 'Saved',
-        description: 'Meta OAuth settings updated',
+        title: $t('toast_saved') as string,
+        description: $t('toast_oauth_saved') as string,
         toast: 'outline-success'
       })
     }
   } catch (error) {
     console.error('Failed to save Meta app config:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to save Meta OAuth settings'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to save Meta OAuth settings'))
   } finally {
     metaConfigSaving.value = false
   }
@@ -1305,14 +1307,14 @@ async function saveThreadsOAuthConfig() {
       threadsOAuthConfigDialogOpen.value = false
 
       useToast().toast({
-        title: 'Saved',
-        description: 'Threads OAuth settings updated',
+        title: $t('toast_saved') as string,
+        description: $t('toast_threads_oauth_saved') as string,
         toast: 'outline-success'
       })
     }
   } catch (error) {
     console.error('Failed to save Threads OAuth config:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to save Threads OAuth settings'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to save Threads OAuth settings'))
   } finally {
     threadsOAuthConfigSaving.value = false
   }
@@ -1349,8 +1351,8 @@ async function saveThreadsConfig() {
       threadsConfigDialogOpen.value = false
 
       useToast().toast({
-        title: 'Saved',
-        description: 'Threads API credentials updated',
+        title: $t('toast_saved') as string,
+        description: $t('toast_threads_api_saved') as string,
         toast: 'outline-success'
       })
 
@@ -1360,7 +1362,7 @@ async function saveThreadsConfig() {
     }
   } catch (error) {
     console.error('Failed to save Threads credentials:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to save Threads API credentials'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to save Threads API credentials'))
   } finally {
     threadsConfigSaving.value = false
   }
@@ -1375,8 +1377,8 @@ async function refreshThreadsToken() {
     })
 
     useToast().toast({
-      title: 'Token refreshed',
-      description: 'Threads long-lived token refreshed successfully',
+      title: $t('toast_token_refreshed') as string,
+      description: $t('toast_token_refreshed_desc') as string,
       toast: 'outline-success'
     })
 
@@ -1385,7 +1387,7 @@ async function refreshThreadsToken() {
     await checkPlatform('threads', false)
   } catch (error) {
     console.error('Failed to refresh Threads token:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to refresh Threads token'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to refresh Threads token'))
   } finally {
     threadsTokenRefreshLoading.value = false
   }
@@ -1417,7 +1419,7 @@ async function connectMeta() {
     }
   } catch (error) {
     console.error('Failed to start Meta OAuth:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to start Meta OAuth flow'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to start Meta OAuth flow'))
   } finally {
     metaConnectLoading.value = false
   }
@@ -1449,7 +1451,7 @@ async function connectThreads() {
     }
   } catch (error) {
     console.error('Failed to start Threads OAuth:', error)
-    showErrorToast('Error', readErrorMessage(error, 'Failed to start Threads OAuth flow'))
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to start Threads OAuth flow'))
   } finally {
     threadsOAuthConnectLoading.value = false
   }
@@ -1481,8 +1483,8 @@ onMounted(async () => {
   if (connectResult) {
     if (connectResult === 'ok') {
       useToast().toast({
-        title: 'Meta connected',
-        description: 'Instagram, Threads, and Facebook credentials were refreshed successfully',
+        title: $t('toast_meta_connected') as string,
+        description: $t('toast_meta_connected_desc') as string,
         toast: 'outline-success'
       })
     } else {
@@ -1494,15 +1496,15 @@ onMounted(async () => {
         readableReason = reason
       }
 
-      showErrorToast('Meta connection failed', readableReason)
+      showErrorToast($t('toast_meta_failed') as string, readableReason)
     }
   }
 
   if (threadsConnectResult) {
     if (threadsConnectResult === 'ok') {
       useToast().toast({
-        title: 'Threads connected',
-        description: 'Threads credentials were refreshed successfully',
+        title: $t('toast_threads_connected') as string,
+        description: $t('toast_threads_connected_desc') as string,
         toast: 'outline-success'
       })
     } else {
@@ -1514,7 +1516,7 @@ onMounted(async () => {
         readableReason = reason
       }
 
-      showErrorToast('Threads connection failed', readableReason)
+      showErrorToast($t('toast_threads_failed') as string, readableReason)
     }
   }
 

@@ -5,7 +5,7 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            References
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ totalReferences }} {{ totalReferences === 1 ? 'reference' : 'references' }}
@@ -13,12 +13,12 @@
         </div>
         <div class="hidden md:flex items-center gap-3">
           <button class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" @click="openAddReferenceDialog">
-            + Add New Reference
+            {{ $t('add_button') }}
           </button>
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search references..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
@@ -34,16 +34,16 @@
             <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
           <div class="flex items-center gap-1 border-l border-dashed border-gray-200 dark:border-gray-700 pl-3">
-            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = false">Table</button>
-            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = true">Cards</button>
+            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = false">{{ $t('view_table') }}</button>
+            <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = true">{{ $t('view_cards') }}</button>
           </div>
         </div>
       </div>
       <div class="md:hidden mt-4 flex gap-2">
-        <input v-model="searchQuery" type="text" placeholder="Search references..." class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400" />
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400" />
         <div class="flex items-center gap-1">
-          <button :class="['font-sans text-xs px-2 py-1 transition-colors', !isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']" @click="isCardView = false">Table</button>
-          <button :class="['font-sans text-xs px-2 py-1 transition-colors', isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']" @click="isCardView = true">Cards</button>
+          <button :class="['font-sans text-xs px-2 py-1 transition-colors', !isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']" @click="isCardView = false">{{ $t('view_table') }}</button>
+          <button :class="['font-sans text-xs px-2 py-1 transition-colors', isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']" @click="isCardView = true">{{ $t('view_cards') }}</button>
         </div>
       </div>
     </div>
@@ -53,10 +53,10 @@
       <div v-if="filteredReferences.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
         <NIcon name="i-ph-book" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-          {{ searchQuery || selectedTypeFilter.value ? 'No matching references' : 'No references yet' }}
+          {{ searchQuery || selectedTypeFilter.value ? $t('empty_search_title') : $t('empty_title') }}
         </p>
         <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {{ searchQuery || selectedTypeFilter.value ? 'Try adjusting your search.' : 'References appear once quotes reference works.' }}
+          {{ searchQuery || selectedTypeFilter.value ? $t('empty_search_desc') : $t('empty_desc') }}
         </p>
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -74,14 +74,14 @@
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 capitalize mt-0.5">{{ reference.primary_type.replace('_', ' ') }}</p>
               <div class="flex items-center gap-2 mt-1">
                 <span v-if="reference.release_date" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatYear(reference.release_date) }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ reference.quotes_count || 0 }} quotes</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ reference.quotes_count || 0 }} {{ $t('common.quote_plural') }}</span>
               </div>
             </div>
           </div>
           <div class="mt-3 flex justify-end gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3">
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentReferenceTarget?.id === reference.id" @click="openEnrichmentPreview(reference)">Enrich</button>
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editReference(reference)">Edit</button>
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewReference(reference)">View</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentReferenceTarget?.id === reference.id" @click="openEnrichmentPreview(reference)">{{ $t('action_enrich') }}</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editReference(reference)">{{ $t('action_edit') }}</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewReference(reference)">{{ $t('action_view') }}</button>
           </div>
         </div>
       </div>
@@ -90,10 +90,10 @@
     <!-- Table View -->
     <div v-else>
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
-        <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedReferences">Merge Selected</button>
-        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">Delete All</button>
-        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
+        <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedReferences">{{ $t('bulk_merge') }}</button>
+        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">{{ $t('bulk_delete') }}</button>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
       </div>
 
       <div v-if="loading && !hasLoadedOnce" class="space-y-5">
@@ -105,10 +105,10 @@
       <div v-else-if="hasLoadedOnce && filteredReferences.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
         <NIcon name="i-ph-book" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-          {{ searchQuery || selectedTypeFilter.value ? 'No matching references' : 'No references yet' }}
+          {{ searchQuery || selectedTypeFilter.value ? $t('empty_search_title') : $t('empty_title') }}
         </p>
         <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-          {{ searchQuery ? 'Try adjusting your search terms or filters.' : 'References will appear here once quotes reference books, films, and other works.' }}
+          {{ searchQuery ? $t('empty_table_search_desc') : $t('empty_table_desc') }}
         </p>
       </div>
 
@@ -117,11 +117,11 @@
           <thead>
             <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Reference</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Type</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Year</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quotes</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_reference') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_type') }}</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_year') }}</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -164,17 +164,17 @@
       <div v-if="hasLoadedOnce">
         <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
           <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalReferences }} {{ totalReferences === 1 ? 'reference' : 'references' }}
+            {{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalReferences }} {{ totalReferences === 1 ? 'reference' : 'references' }}
           </span>
           <div class="flex items-center gap-3">
-            <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-            <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+            <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+            <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
           </div>
         </div>
         <div v-else class="pt-4 text-center">
-          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
         </div>
       </div>
     </div>
@@ -194,12 +194,12 @@
 
     <ClientOnly>
       <NDialog v-model:open="showBulkDeleteDialog">
-        <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Reference' : 'References' }}</h3></template>
-        <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'reference' : 'references' }}. This will also remove their associations from related quotes.</p>
+        <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_delete_title', { n: selectedIds.length, count: selectedIds.length }) }}</h3></template>
+        <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">{{ $t('dialog_delete_body', { n: selectedIds.length, count: selectedIds.length }) }}</p>
         <template #footer>
           <div class="flex justify-end gap-3">
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
-            <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">{{ $t('common.cancel') }}</button>
+            <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">{{ $t('bulk_delete') }}</OutlinedButton>
           </div>
         </template>
       </NDialog>
@@ -220,7 +220,10 @@ import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 const { showErrorToast } = useErrorToast()
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'References - Admin - Verbatims' })
+
+const { $t } = useI18n()
+
+useHead({ title: $t('meta_title') as string })
 
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
@@ -348,7 +351,7 @@ const loadReferences = async () => {
   } catch (error) {
     console.error('Failed to load references:', error)
     if (error?.statusCode && error?.statusCode !== 500) {
-      showErrorToast(error, 'Failed to load references')
+      showErrorToast(error, $t('error_load') as string)
     }
   }
   finally { loading.value = false; hasLoadedOnce.value = true }
@@ -360,12 +363,12 @@ const resetFilters = () => {
 }
 
 const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
-  { label: 'View Public Page', leading: 'i-ph-eye', onclick: () => viewReference(reference) },
-  { label: 'Preview enrichment', leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(reference) },
-  ...(hasPendingEnrichment(reference) ? [{ label: 'Open enrichment queue', leading: 'i-ph-bell-ringing', onclick: () => goToReferenceEnrichmentQueue(reference) }] : []),
-  { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(reference) },
-  {}, { label: 'Merge into…', leading: 'i-ph-git-merge', onclick: () => mergeReference(reference) },
-  { label: 'Delete Reference', leading: 'i-ph-trash', onclick: () => deleteReference(reference) }
+  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewReference(reference) },
+  { label: $t('dropdown_enrich') as string, leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(reference) },
+  ...(hasPendingEnrichment(reference) ? [{ label: $t('dropdown_enrich_queue') as string, leading: 'i-ph-bell-ringing', onclick: () => goToReferenceEnrichmentQueue(reference) }] : []),
+  { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+  {}, { label: $t('dropdown_merge') as string, leading: 'i-ph-git-merge', onclick: () => mergeReference(reference) },
+  { label: $t('dropdown_delete') as string, leading: 'i-ph-trash', onclick: () => deleteReference(reference) }
 ]
 
 const viewReference = (reference: QuoteReferenceWithMetadata) => navigateTo(`/references/${reference.id}`)
@@ -396,8 +399,8 @@ const openEnrichmentPreview = async (reference: QuoteReferenceWithMetadata, pref
     const response = await ($fetch as any)(previewUrl, { method: 'POST', body: preferredExternalId ? { preferredExternalId } : undefined }) as { data?: { job?: any, preview?: any } }
     enrichmentPreview.value = response.data?.preview || null; enrichmentJobId.value = response.data?.job?.id || null
     selectedEnrichmentFields.value = enrichmentPreview.value?.proposals?.filter((p: any) => p.recommended)?.map((p: any) => p.field) || []
-    if (!enrichmentPreview.value) useToast().toast({ title: 'No preview available', description: 'This reference could not be enriched automatically right now.', toast: 'outline-warning' })
-  } catch (error: any) { showErrorToast(error, 'Enrichment preview failed'); showEnrichmentDialog.value = false }
+    if (!enrichmentPreview.value) useToast().toast({ title: $t('toast_no_preview') as string, description: $t('toast_no_preview_desc') as string, toast: 'outline-warning' })
+  } catch (error: any) { showErrorToast(error, $t('toast_enrich_failed') as string); showEnrichmentDialog.value = false }
   finally { enrichmentLoading.value = false }
 }
 
@@ -430,8 +433,8 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     const configUrl = '/api/admin/enrichment/config' as string
     const response = await ($fetch as any)(configUrl, { method: 'POST', body: { scheduleEnabled: form.scheduleEnabled, processEnabled: form.processEnabled, scheduleBatchSize: Number(form.scheduleBatchSize), processBatchSize: Number(form.processBatchSize), authorStaleDays: Number(form.authorStaleDays), referenceStaleDays: Number(form.referenceStaleDays), reviewGraceDays: Number(form.reviewGraceDays), authorMatchMinScore: Number(form.authorMatchMinScore), referenceMatchMinScore: Number(form.referenceMatchMinScore), ambiguousMatchGap: Number(form.ambiguousMatchGap) } }) as { data?: { updatedAt: string | null; values: Record<string, string | number | boolean>; sources: Record<string, 'kv' | 'env' | 'default' | 'none'> } }
     enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null; enrichmentConfigSources.value = response.data?.sources || {}
-    useToast().toast({ title: 'Enrichment settings saved', description: 'KV overrides are now active for the enrichment scheduler and processor.', toast: 'soft-success' }); showEnrichmentConfigDialog.value = false
-  } catch (error: any) { showErrorToast(error, 'Save failed') }
+    useToast().toast({ title: $t('toast_settings_saved') as string, description: 'KV overrides are now active for the enrichment scheduler and processor.', toast: 'soft-success' }); showEnrichmentConfigDialog.value = false
+  } catch (error: any) { showErrorToast(error, $t('toast_save_failed') as string) }
   finally { enrichmentConfigSaving.value = false }
 }
 
@@ -439,7 +442,7 @@ const applySelectedEnrichment = async () => {
   if (!enrichmentJobId.value || selectedEnrichmentFields.value.length === 0) return
   enrichmentApplying.value = true
   try { await $fetch(`/api/admin/enrichment/jobs/${enrichmentJobId.value}/apply`, { method: 'POST', body: { fields: selectedEnrichmentFields.value } }); closeEnrichmentDialog(); loadReferences() }
-  catch (error: any) { showErrorToast(error, 'Apply failed') }
+  catch (error: any) { showErrorToast(error, $t('toast_apply_failed') as string) }
   finally { enrichmentApplying.value = false }
 }
 
@@ -463,8 +466,8 @@ const confirmBulkDelete = async () => {
     const ids = [...selectedIds.value]
     const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/references/${id}`, { method: 'DELETE' })))
     const failed = results.filter(r => r.status === 'rejected').length; const succeeded = results.length - failed
-    useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} reference${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
-  } catch (e) { showErrorToast(e, 'Bulk delete failed') }
+    useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: $t('toast_bulk_deleted', { n: succeeded, s: succeeded !== 1 ? 's' : '' }) as string, description: failed ? `${failed} failed` : undefined })
+  } catch (e) { showErrorToast(e, $t('toast_bulk_delete_failed') as string) }
   finally { bulkProcessing.value = false; showBulkDeleteDialog.value = false; rowSelection.value = {}; loadReferences() }
 }
 </script>
