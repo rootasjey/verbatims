@@ -19,7 +19,7 @@
         <div class="flex flex-col">
           <!-- Sidebar Header (mobile) -->
           <div class="flex items-center justify-between px-3 py-4 border-b border-gray-100 dark:border-gray-800 lg:hidden">
-            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">Admin</h2>
+            <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">{{ $t('admin.title') }}</h2>
             <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               <NIcon name="i-ph-x" class="w-4 h-4" />
             </button>
@@ -28,7 +28,7 @@
           <!-- Desktop Collapse Toggle -->
           <div class="hidden lg:flex justify-center py-3 border-b border-gray-100 dark:border-gray-800">
             <button
-              :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+              :title="sidebarCollapsed ? ($t('admin.expand_sidebar') as string) : ($t('admin.collapse_sidebar') as string)"
               :aria-expanded="!sidebarCollapsed"
               aria-controls="admin-sidebar"
               class="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
@@ -41,7 +41,7 @@
           <!-- Navigation Menu -->
           <nav :class="['flex-1 py-6 space-y-1', sidebarCollapsed ? 'px-2' : 'px-3']">
             <!-- Admin Overview -->
-            <NTooltip :content="sidebarCollapsed ? 'Overview' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+            <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.overview') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
               <NuxtLink
                 to="/admin"
                 :class="[
@@ -54,18 +54,18 @@
                 @click="sidebarOpen = false"
               >
                 <NIcon name="i-ph-shield-check" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Overview</span>
+                <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.overview') }}</span>
               </NuxtLink>
             </NTooltip>
 
             <!-- Quotes Section -->
             <div class="pt-3">
               <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                Quotes Management
+                {{ $t('admin.nav.quotes_management') }}
               </h3>
               
               <!-- Published Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Published' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.published') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/quotes/published"
                   :class="[
@@ -78,13 +78,13 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-check-circle" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Published</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.published') }}</span>
                   <NBadge v-if="!sidebarCollapsed && publishedCount > 0" :label="`${publishedCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
 
               <!-- Pending Quotes -->
-              <NTooltip :content="sidebarCollapsed ? 'Pending' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+              <NTooltip :content="sidebarCollapsed ? ($t('admin.nav.pending') as string) : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink
                   to="/admin/quotes/pending"
                   :class="[
@@ -97,7 +97,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-clock" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Pending</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.pending') }}</span>
                   <NBadge v-if="!sidebarCollapsed && pendingCount > 0" :label="`${pendingCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
@@ -116,7 +116,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-file-dashed" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Drafts</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.drafts') }}</span>
                   <NBadge v-if="!sidebarCollapsed && draftCount > 0" :label="`${draftCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
@@ -135,7 +135,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-share-network" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Social Queue</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.social_queue') }}</span>
                 </NuxtLink>
               </NTooltip>
             </div>
@@ -143,7 +143,7 @@
             <!-- Content Management Section -->
             <div class="pt-3">
               <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                Content Management
+                {{ $t('admin.nav.content_management') }}
               </h3>
 
               <!-- Authors -->
@@ -160,7 +160,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-user" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Authors</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.authors') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -178,7 +178,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-book" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">References</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.references') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -196,7 +196,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-magic-wand" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Enrichment Queue</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.enrichment_queue') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -214,7 +214,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-plant" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Harvest Quotes</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.harvest_quotes') }}</span>
                   <NBadge v-if="!sidebarCollapsed && harvestedCount > 0" :label="`${harvestedCount}`" badge="soft-gray" size="xs" class="ml-auto" />
                 </NuxtLink>
               </NTooltip>
@@ -233,7 +233,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-hash" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Tags</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.tags') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -251,7 +251,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-megaphone" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Sponsors</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.sponsors') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -269,7 +269,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-palette" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Themes</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.themes') }}</span>
                 </NuxtLink>
               </NTooltip>
             </div>
@@ -277,7 +277,7 @@
             <!-- Development Section -->
             <div class="pt-3">
               <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                Development
+                {{ $t('admin.nav.development') }}
               </h3>
 
               <!-- API Keys -->
@@ -294,14 +294,14 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-key" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">API Keys</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.api_keys') }}</span>
                 </NuxtLink>
               </NTooltip>
             </div>
 
             <div class="pt-3">
               <h3 :class="['px-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 transition-opacity duration-200', sidebarCollapsed ? 'opacity-0 hidden' : 'opacity-100']">
-                System Management
+                {{ $t('admin.nav.system_management') }}
               </h3>
               
               <!-- Messages Inbox -->
@@ -318,7 +318,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-envelope" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Messages</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.messages') }}</span>
                 </NuxtLink>
               </NTooltip>
               
@@ -336,7 +336,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-users" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Users</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.users') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -354,7 +354,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-wrench" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Database Maintenance</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.database_maintenance') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -372,7 +372,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-upload" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Import Data</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.import_data') }}</span>
                 </NuxtLink>
               </NTooltip>
 
@@ -390,7 +390,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-download" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Export Data</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.export_data') }}</span>
                 </NuxtLink>
               </NTooltip>
             </div>
@@ -408,7 +408,7 @@
                   @click="sidebarOpen = false"
                 >
                   <NIcon name="i-ph-house" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
-                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Back to Dashboard</span>
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">{{ $t('admin.nav.back_to_dashboard') }}</span>
                 </NuxtLink>
               </NTooltip>
             </div>
@@ -445,6 +445,7 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(false)

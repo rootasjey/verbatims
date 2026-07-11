@@ -251,6 +251,36 @@
     "en": "English",
     "fr": "Français"
   },
+  "admin": {
+    "nav": {
+      "overview": "Aperçu",
+      "quotes_management": "Gestion des citations",
+      "published": "Publiées",
+      "pending": "En attente",
+      "drafts": "Brouillons",
+      "social_queue": "File d'attente sociale",
+      "content_management": "Gestion du contenu",
+      "authors": "Auteurs",
+      "references": "Références",
+      "enrichment_queue": "File d'enrichissement",
+      "harvest_quotes": "Récolter des citations",
+      "tags": "Tags",
+      "sponsors": "Sponsors",
+      "themes": "Thèmes",
+      "development": "Développement",
+      "api_keys": "Clés API",
+      "system_management": "Gestion système",
+      "messages": "Messages",
+      "users": "Utilisateurs",
+      "database_maintenance": "Maintenance BDD",
+      "import_data": "Importer",
+      "export_data": "Exporter",
+      "back_to_dashboard": "Retour au tableau de bord"
+    },
+    "expand_sidebar": "Déplier la barre latérale",
+    "collapse_sidebar": "Replier la barre latérale",
+    "title": "Admin"
+  },
   "content_language": {
     "all": "Toutes les langues",
     "en": "Anglais",
