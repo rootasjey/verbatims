@@ -75,13 +75,21 @@
         >
           <div class="flex items-start gap-3">
             <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
-              <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2">
-                &ldquo;{{ quote.name }}&rdquo;
-              </blockquote>
+              <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
+                <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2">
+                  &ldquo;{{ quote.name }}&rdquo;
+                </blockquote>
+              </ContextMenu>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name || $t('common.unknown') }}</span>
-                <span v-if="quote.reference?.name || (quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
-                <span v-if="quote.reference?.name || (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference?.name || (quote as any).reference_name }}</span>
+                <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
+                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
+                </ContextMenu>
+                <span v-if="!quote.author?.name && (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).author_name }}</span>
+                <span v-if="(quote.author?.name || (quote as any).author_name) && (quote.reference?.name || (quote as any).reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
+                <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
+                  <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference.name }}</span>
+                </ContextMenu>
+                <span v-if="!quote.reference?.name && (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
                 <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDate((quote as any).approvedAt || (quote as any).approved_at || (quote as any).createdAt || quote.created_at) }}</span>
               </div>
@@ -167,13 +175,19 @@
                 </td>
                 <td class="px-3 py-3 align-top">
                   <div class="max-w-md">
-                    <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed whitespace-normal break-words mb-1 line-clamp-2">
-                      {{ quote.name }}
-                    </blockquote>
+                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
+                      <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed whitespace-normal break-words mb-1 line-clamp-2">
+                        {{ quote.name }}
+                      </blockquote>
+                    </ContextMenu>
                     <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                      <span v-if="quote.author?.name">{{ quote.author.name }}</span>
+                      <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
+                        <span>{{ quote.author.name }}</span>
+                      </ContextMenu>
                       <span v-if="quote.author?.name && quote.reference?.name">·</span>
-                      <span v-if="quote.reference?.name">{{ quote.reference.name }}</span>
+                      <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
+                        <span>{{ quote.reference.name }}</span>
+                      </ContextMenu>
                     </div>
                   </div>
                 </td>
@@ -508,7 +522,13 @@ const onLanguageChanged = async () => {
   loadPublishedQuotes()
 }
 
-const getQuoteActions = (quote: DashboardQuote) => [
+const getQuoteActions = (quote: any) => [
+  {
+    label: $t('action_view_public') as string,
+    leading: 'i-ph-eye',
+    onclick: () => navigateTo(`/quotes/${quote.id}`)
+  },
+  {},
   {
     label: $t('action_add_collection') as string,
     leading: 'i-ph-bookmark',
@@ -524,6 +544,12 @@ const getQuoteActions = (quote: DashboardQuote) => [
 
 const getMobileActions = (quote: any) => [
   {
+    label: $t('action_view_public') as string,
+    leading: 'i-ph-eye',
+    onclick: () => navigateTo(`/quotes/${quote.id}`)
+  },
+  {},
+  {
     label: $t('action_add_collection') as string,
     leading: 'i-ph-bookmark',
     onclick: () => addToCollection(quote)
@@ -535,6 +561,38 @@ const getMobileActions = (quote: any) => [
     onclick: () => shareQuote(quote)
   }
 ]
+
+const getAuthorActions = (quote: any) => {
+  const author = quote.author
+  const authorId = author?.id || quote.authorId
+  if (!author?.name || !authorId) return []
+  return [
+    { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) },
+    { label: $t('action_share') as string, leading: 'i-ph-share', onclick: () => shareAuthor(authorId) }
+  ]
+}
+
+const getReferenceActions = (quote: any) => {
+  const reference = quote.reference
+  const referenceId = reference?.id || quote.referenceId
+  if (!reference?.name || !referenceId) return []
+  return [
+    { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${referenceId}`) },
+    { label: $t('action_share') as string, leading: 'i-ph-share', onclick: () => shareReference(referenceId) }
+  ]
+}
+
+const shareAuthor = (authorId: number) => {
+  const url = `${window.location.origin}/authors/${authorId}`
+  navigator.clipboard.writeText(url)
+  useToast().toast({ title: $t('action_share') as string, description: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
+}
+
+const shareReference = (referenceId: number) => {
+  const url = `${window.location.origin}/references/${referenceId}`
+  navigator.clipboard.writeText(url)
+  useToast().toast({ title: $t('action_share') as string, description: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
+}
 
 const addToCollection = (quote: DashboardQuote) => {
   selectedQuote.value = quote

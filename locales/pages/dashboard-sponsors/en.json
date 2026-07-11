@@ -19,5 +19,8 @@
   "status_live": "Will be live on {date}",
   "status_active": "Active",
   "status_rejected": "Rejected",
-  "status_pending_moderation": "Pending Moderation"
+  "status_pending_moderation": "Pending Moderation",
+  "action_edit": "Edit",
+  "action_view_url": "View URL",
+  "toast_link_copied": "Link copied"
 }

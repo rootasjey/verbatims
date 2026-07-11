@@ -18,6 +18,9 @@
   "tooltip_views": "{n} views",
   "pagination_info": "Page {n} of {m} · {n2} of {m2} quotes",
   "action_add_collection": "Add to Collection",
+  "action_view_public": "View Public Page",
   "action_share": "Share",
-  "toast_link_copied": "Link copied"
+  "toast_link_copied": "Link copied",
+  "action_view_author_page": "View Author Page",
+  "action_view_reference_page": "View Reference Page"
 }

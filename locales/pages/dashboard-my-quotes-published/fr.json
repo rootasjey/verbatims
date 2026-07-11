@@ -18,6 +18,9 @@
   "tooltip_views": "{n} vues",
   "pagination_info": "Page {n} sur {m} · {n2} sur {m2} citations",
   "action_add_collection": "Ajouter à une collection",
+  "action_view_public": "Voir la page publique",
   "action_share": "Partager",
-  "toast_link_copied": "Lien copié"
+  "toast_link_copied": "Lien copié",
+  "action_view_author_page": "Voir la page auteur",
+  "action_view_reference_page": "Voir la page référence"
 }

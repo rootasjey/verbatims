@@ -27,5 +27,8 @@
   "toast_submit_unavailable": "Submission unavailable",
   "error_submit": "Failed to submit quote",
   "error_bulk_submit": "Bulk submit failed",
-  "error_bulk_delete": "Bulk delete failed"
+  "error_bulk_delete": "Bulk delete failed",
+  "action_view_author_page": "View Author Page",
+  "action_view_reference_page": "View Reference Page",
+  "action_share": "Share"
 }

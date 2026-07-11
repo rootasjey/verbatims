@@ -16,5 +16,8 @@
   "tooltip_share": "Partager",
   "tooltip_remove": "Retirer des favoris",
   "share_title": "Citation de Verbatims",
-  "error_remove": "Échec du retrait des favoris"
+  "error_remove": "Échec du retrait des favoris",
+  "action_view_author_page": "Voir la page auteur",
+  "action_view_reference_page": "Voir la page référence",
+  "action_share": "Partager"
 }

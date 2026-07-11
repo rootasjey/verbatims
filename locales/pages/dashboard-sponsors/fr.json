@@ -19,5 +19,8 @@
   "status_live": "Sera en ligne le {date}",
   "status_active": "Actif",
   "status_rejected": "Rejeté",
-  "status_pending_moderation": "En attente de modération"
+  "status_pending_moderation": "En attente de modération",
+  "action_edit": "Modifier",
+  "action_view_url": "Voir l'URL",
+  "toast_link_copied": "Lien copié"
 }

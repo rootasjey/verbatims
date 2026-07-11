@@ -13,5 +13,6 @@
   "delete_dialog_title": "Supprimer la liste",
   "delete_dialog_body": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
   "label_edit": "Modifier",
-  "label_delete": "Supprimer"
+  "label_delete": "Supprimer",
+  "action_view": "Voir la collection"
 }
