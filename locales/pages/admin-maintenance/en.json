@@ -1,1 +1,25 @@
-{}
+{
+  "meta_title": "Verbatims \u2022 Database Maintenance - Admin",
+  "title": "Database Maintenance",
+  "subtitle": "Perform database maintenance operations and manage data integrity",
+  "section_reset": "Database Reset",
+  "warning_heading": "Destructive Operation Warning",
+  "warning_body": "This operation will permanently delete ALL data in the database including:",
+  "warning_item_quotes": "All quotes, authors, and references",
+  "warning_item_users": "All user accounts and collections",
+  "warning_item_interactions": "All tags, likes, and interaction data",
+  "warning_item_moderation": "All moderation history and reports",
+  "warning_final": "This action cannot be undone. Make sure you have a backup if needed.",
+  "button_reset": "Reset Entire Database",
+  "dialog_confirm_title": "Confirm Database Reset",
+  "dialog_confirm_body": "You are about to permanently delete all data in the database...",
+  "dialog_what_happens": "What will happen:",
+  "dialog_item_all_data": "All data rows in every table will be permanently deleted",
+  "dialog_label_confirm": "Type \"RESET DATABASE\" to confirm:",
+  "dialog_placeholder_confirm": "RESET DATABASE",
+  "dialog_checkbox_understand": "I understand that all data will be permanently deleted",
+  "dialog_cancel": "Cancel",
+  "dialog_reset": "Reset Database",
+  "success_message": "Database reset completed successfully! {details}",
+  "error_message": "Database reset failed. Please try again."
+}

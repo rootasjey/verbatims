@@ -5,7 +5,7 @@
       <div class="flex items-start justify-between gap-4 mb-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Enrichment Queue
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} job{{ totalItems !== 1 ? 's' : '' }}</p>
         </div>
@@ -17,12 +17,12 @@
             <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
           <div v-if="selectedEntityId" class="flex items-center gap-2 font-sans text-xs text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/20 border border-dashed border-cyan-200 dark:border-cyan-700 px-2 py-1">
-            <span>Filtered on {{ selectedEntityType.label }} #{{ selectedEntityId }}</span>
-            <button class="hover:underline" @click="clearEntityFilter">Clear</button>
+            <span>{{ $t('filter_label', { entity: selectedEntityType.label, id: selectedEntityId }) }}</span>
+            <button class="hover:underline" @click="clearEntityFilter">{{ $t('clear') }}</button>
           </div>
-          <OutlinedButton :loading="loading" @click="loadQueue">Refresh</OutlinedButton>
-          <OutlinedButton variant="primary" :loading="processing" @click="processQueuedJobs">Process queued</OutlinedButton>
-          <OutlinedButton @click="openEnrichmentConfigDialog">Settings</OutlinedButton>
+          <OutlinedButton :loading="loading" @click="loadQueue">{{ $t('refresh') }}</OutlinedButton>
+          <OutlinedButton variant="primary" :loading="processing" @click="processQueuedJobs">{{ $t('process_queued') }}</OutlinedButton>
+          <OutlinedButton @click="openEnrichmentConfigDialog">{{ $t('settings') }}</OutlinedButton>
         </div>
       </div>
       <div class="md:hidden flex gap-2 flex-wrap">
@@ -37,19 +37,19 @@
       <!-- Stats Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
         <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Queued jobs</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_queued') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.jobs.queued }}</p>
         </div>
         <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Processing</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_processing') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.jobs.processing }}</p>
         </div>
         <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Review pending</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_review') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.states.review }}</p>
         </div>
         <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Verified</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('stat_verified') }}</p>
           <p class="font-serif text-2xl font-600 text-gray-900 dark:text-gray-100 mt-1">{{ queueStats.states.verified }}</p>
         </div>
       </div>
@@ -65,10 +65,10 @@
     <div v-else-if="jobs.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
       <NIcon name="i-ph-magic-wand" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ selectedStatus.value || selectedEntityType.value ? 'No matching jobs' : 'No enrichment jobs found' }}
+        {{ selectedStatus.value || selectedEntityType.value ? $t('empty_search_title') : $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
-        {{ selectedStatus.value || selectedEntityType.value ? 'Try different filters.' : 'Enrichment jobs are created automatically when authors or references need metadata updates.' }}
+        {{ selectedStatus.value || selectedEntityType.value ? $t('empty_search_desc') : $t('empty_desc') }}
       </p>
     </div>
 
@@ -77,12 +77,12 @@
         <table class="w-full">
           <thead>
             <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Entity</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Trigger</th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Summary</th>
-              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
-              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Updated</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_entity') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_trigger') }}</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_summary') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_updated') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -97,7 +97,7 @@
                 <p class="font-sans text-sm text-gray-900 dark:text-gray-100 capitalize">{{ job.triggerSource }}</p>
                 <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ job.reason }}</p>
               </td>
-              <td class="px-3 py-3"><p class="font-sans text-sm text-gray-900 dark:text-gray-100 line-clamp-2 max-w-md">{{ job.resultSummary || job.errorMessage || 'No summary yet' }}</p></td>
+              <td class="px-3 py-3"><p class="font-sans text-sm text-gray-900 dark:text-gray-100 line-clamp-2 max-w-md">{{ job.resultSummary || job.errorMessage || $t('label_no_summary') }}</p></td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatTimestamp(job.createdAt) }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatTimestamp(job.updatedAt) }}</td>
               <td class="px-3 py-3">
@@ -112,16 +112,16 @@
 
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalItems }} job{{ totalItems !== 1 ? 's' : '' }}</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalItems }} {{ $t(totalItems === 1 ? 'common.quote_singular' : 'common.quote_plural') }}</span>
         <div class="flex items-center gap-3">
-          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
         </div>
       </div>
       <div v-else class="pt-4 text-center">
-        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
       </div>
     </div>
 
@@ -133,12 +133,13 @@
 <script setup lang="ts">
 import { formatRelativeTime, parseDateInput } from '~/utils/time-formatter'
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 const route = useRoute()
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'Enrichment Queue - Admin - Verbatims' })
+useHead({ title: $t('meta_title') as string })
 
 type FilterOption = { label: string, value: string }
 
@@ -150,18 +151,18 @@ const currentPage = ref(1)
 const pageSize = ref(20)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageSize.value)))
 
-const selectedStatus = ref<FilterOption>({ label: 'All statuses', value: '' })
-const selectedEntityType = ref<FilterOption>({ label: 'All entities', value: '' })
+const selectedStatus = ref<FilterOption>({ label: String($t('filter_all_statuses')), value: '' })
+const selectedEntityType = ref<FilterOption>({ label: String($t('filter_all_entities')), value: '' })
 const selectedEntityId = ref<number | null>(null)
 
-const statusOptions: FilterOption[] = [
-  { label: 'All statuses', value: '' }, { label: 'Queued', value: 'queued' }, { label: 'Processing', value: 'processing' },
-  { label: 'Completed', value: 'completed' }, { label: 'Failed', value: 'failed' }, { label: 'Cancelled', value: 'cancelled' },
-]
+const statusOptions = computed<FilterOption[]>(() => [
+  { label: String($t('filter_all_statuses')), value: '' }, { label: String($t('filter_queued')), value: 'queued' }, { label: String($t('filter_processing')), value: 'processing' },
+  { label: String($t('filter_completed')), value: 'completed' }, { label: String($t('filter_failed')), value: 'failed' }, { label: String($t('filter_cancelled')), value: 'cancelled' },
+])
 
-const entityTypeOptions: FilterOption[] = [
-  { label: 'All entities', value: '' }, { label: 'Authors', value: 'author' }, { label: 'References', value: 'reference' },
-]
+const entityTypeOptions = computed<FilterOption[]>(() => [
+  { label: String($t('filter_all_entities')), value: '' }, { label: String($t('filter_authors')), value: 'author' }, { label: String($t('filter_references')), value: 'reference' },
+])
 
 const queueStats = ref({ jobs: { queued: 0, processing: 0, completed: 0, failed: 0, cancelled: 0 }, states: { queued: 0, processing: 0, verified: 0, review: 0, failed: 0 } })
 
@@ -201,7 +202,7 @@ const loadQueue = async () => {
   } catch (error: any) {
     console.error('Queue load failed:', error)
     if (error?.statusCode && error?.statusCode !== 500) {
-      showErrorToast(error, 'Queue load failed')
+      showErrorToast(error, String($t('error_queue_load')))
     }
   }
   finally { loading.value = false }
@@ -209,8 +210,8 @@ const loadQueue = async () => {
 
 const syncFiltersFromRoute = () => {
   const queryEntityType = String(route.query.entityType || '').trim(); const queryEntityId = Number.parseInt(String(route.query.entityId || ''), 10); const queryStatus = String(route.query.status || '').trim()
-  selectedEntityType.value = entityTypeOptions.find(o => o.value === queryEntityType) ?? entityTypeOptions[0]!
-  selectedStatus.value = statusOptions.find(o => o.value === queryStatus) ?? statusOptions[0]!
+  selectedEntityType.value = entityTypeOptions.value.find(o => o.value === queryEntityType) ?? entityTypeOptions.value[0]!
+  selectedStatus.value = statusOptions.value.find(o => o.value === queryStatus) ?? statusOptions.value[0]!
   selectedEntityId.value = Number.isInteger(queryEntityId) && queryEntityId > 0 ? queryEntityId : null; currentPage.value = 1
 }
 
@@ -222,7 +223,7 @@ const openJob = async (job: any) => {
     const response = await $fetch(`/api/admin/enrichment/jobs/${job.id}`) as any
     selectedJobDetails.value = response.data
     selectedFields.value = response.data?.preview?.proposals?.filter((p: any) => p.recommended)?.map((p: any) => p.field) || []
-  } catch (error: any) { showErrorToast(error, 'Job load failed'); showJobDialog.value = false }
+  } catch (error: any) { showErrorToast(error, String($t('error_job_load'))); showJobDialog.value = false }
   finally { jobLoading.value = false }
 }
 
@@ -230,9 +231,9 @@ const processQueuedJobs = async () => {
   processing.value = true
   try {
     await $fetch('/api/admin/enrichment/process', { method: 'POST', body: { limit: 10 } })
-    useToast().toast({ title: 'Processing started', description: 'Queued enrichment jobs were processed.', toast: 'soft-success' })
+    useToast().toast({ title: String($t('toast_processing_started')), description: String($t('toast_processing_desc')), toast: 'soft-success' })
     await loadQueue()
-  } catch (error: any) { showErrorToast(error, 'Process failed') }
+  } catch (error: any) { showErrorToast(error, String($t('error_process'))) }
   finally { processing.value = false }
 }
 
@@ -246,7 +247,7 @@ const applySelectedFields = async () => {
   if (!selectedJob.value?.id || selectedFields.value.length === 0) return
   jobApplying.value = true
   try { await $fetch(`/api/admin/enrichment/jobs/${selectedJob.value.id}/apply`, { method: 'POST', body: { fields: selectedFields.value } }); await Promise.all([loadQueue(), openJob(selectedJob.value)]) }
-  catch (error: any) { showErrorToast(error, 'Apply failed') }
+  catch (error: any) { showErrorToast(error, String($t('error_apply'))) }
   finally { jobApplying.value = false }
 }
 
@@ -263,7 +264,7 @@ const openEnrichmentConfigDialog = async () => {
     enrichmentConfigForm.authorStaleDays = Number(response.data?.values?.authorStaleDays ?? 180); enrichmentConfigForm.referenceStaleDays = Number(response.data?.values?.referenceStaleDays ?? 365)
     enrichmentConfigForm.reviewGraceDays = Number(response.data?.values?.reviewGraceDays ?? 14); enrichmentConfigForm.authorMatchMinScore = Number(response.data?.values?.authorMatchMinScore ?? 60)
     enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58); enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
-  } catch (error: any) { showErrorToast(error, 'Failed to load settings'); showEnrichmentConfigDialog.value = false }
+  } catch (error: any) { showErrorToast(error, String($t('error_load_settings'))); showEnrichmentConfigDialog.value = false }
   finally { enrichmentConfigLoading.value = false }
 }
 
@@ -273,12 +274,12 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     const configUrl = '/api/admin/enrichment/config' as string
     const response = await ($fetch as any)(configUrl, { method: 'POST', body: { scheduleEnabled: form.scheduleEnabled, processEnabled: form.processEnabled, scheduleBatchSize: Number(form.scheduleBatchSize), processBatchSize: Number(form.processBatchSize), authorStaleDays: Number(form.authorStaleDays), referenceStaleDays: Number(form.referenceStaleDays), reviewGraceDays: Number(form.reviewGraceDays), authorMatchMinScore: Number(form.authorMatchMinScore), referenceMatchMinScore: Number(form.referenceMatchMinScore), ambiguousMatchGap: Number(form.ambiguousMatchGap) } }) as { data?: { updatedAt: string | null; values: Record<string, string | number | boolean>; sources: Record<string, 'kv' | 'env' | 'default' | 'none'> } }
     enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null; enrichmentConfigSources.value = response.data?.sources || {}
-    useToast().toast({ title: 'Enrichment settings saved', description: 'KV overrides are now active for the enrichment scheduler and processor.', toast: 'soft-success' }); showEnrichmentConfigDialog.value = false
-  } catch (error: any) { showErrorToast(error, 'Save failed') }
+    useToast().toast({ title: String($t('toast_settings_saved')), description: String($t('toast_settings_desc')), toast: 'soft-success' }); showEnrichmentConfigDialog.value = false
+  } catch (error: any) { showErrorToast(error, String($t('error_save'))) }
   finally { enrichmentConfigSaving.value = false }
 }
 
-const rowActionItems = (job: any) => [{ label: 'Review job', leading: 'i-ph-eye', onclick: () => openJob(job) }]
+const rowActionItems = (job: any) => [{ label: String($t('dropdown_review')), leading: 'i-ph-eye', onclick: () => openJob(job) }]
 
 const formatTimestamp = (value: string | number | Date | null | undefined) => {
   const date = parseDateInput(value as any); if (!date) return '\u2014'; return `${date.toLocaleDateString()} &middot; ${formatRelativeTime(date)}`

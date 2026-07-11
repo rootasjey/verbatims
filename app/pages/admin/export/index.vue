@@ -3,7 +3,7 @@
     <!-- Editorial Header -->
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-        Export Data
+        {{ $t('title') }}
       </h1>
     </div>
 
@@ -34,15 +34,15 @@
 
     <NDialog v-model:open="dataExport.state.showProgressDialog">
       <div class="border border-dashed border-gray-200 dark:border-gray-700 p-6">
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 mb-4">Export in Progress</h3>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 mb-4">{{ $t('dialog_in_progress') }}</h3>
 
         <div class="text-center py-8">
           <NIcon name="i-ph-spinner" class="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
-          <p class="font-sans text-sm text-gray-600 dark:text-gray-400">Processing export... This may take a few moments.</p>
+          <p class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ $t('dialog_body') }}</p>
         </div>
 
         <div class="flex justify-end">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="dataExport.state.isExporting" @click="closeProgressDialog">Close</button>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" :disabled="dataExport.state.isExporting" @click="closeProgressDialog">{{ $t('close') }}</button>
         </div>
       </div>
     </NDialog>
@@ -55,15 +55,16 @@ import ExportHistory from '~/components/admin/export/ExportHistory.vue'
 import { useLocalStorage } from '@vueuse/core'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'VERBATIMS - Export Data - Admin' })
+const { $t } = useI18n()
+useHead({ title: $t('meta_title') as string })
 
 const dataExport = useDataExport()
 
 const activeTab = useLocalStorage<'export' | 'history'>('verbatims-admin-export-active-tab', 'export')
 
 const mainTabs = [
-  { name: 'Export', value: 'export', icon: 'i-ph-quotes' },
-  { name: 'History', value: 'history', icon: 'i-ph-clock-countdown', class: 'border-l border-gray-200 dark:border-gray-700 ml-2 pl-2' }
+  { name: $t('tab_export'), value: 'export', icon: 'i-ph-quotes' },
+  { name: $t('tab_history'), value: 'history', icon: 'i-ph-clock-countdown', class: 'border-l border-gray-200 dark:border-gray-700 ml-2 pl-2' }
 ]
 
 const clearMessages = () => { dataExport.clearMessages() }

@@ -5,20 +5,20 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            API Keys
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ total }} {{ total === 1 ? 'key' : 'keys' }}
-            <span class="text-green-600 dark:text-green-400">&middot; Manage public API access</span>
+            <span class="text-green-600 dark:text-green-400">&middot; {{ $t('subtitle') }}</span>
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" placeholder="Search keys..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
-          <OutlinedButton @click="openCreateDialog">+ Create Key</OutlinedButton>
+          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
+          <OutlinedButton @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
         </div>
       </div>
       <div class="md:hidden mt-4">
-        <input v-model="searchQuery" type="text" placeholder="Search keys..." class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
       </div>
     </div>
 
@@ -31,9 +31,9 @@
 
     <!-- Empty -->
     <div v-else-if="keys.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? 'No matching keys' : 'No API keys yet' }}</p>
-      <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-4">Create your first API key to start using the public API.</p>
-      <OutlinedButton @click="openCreateDialog">+ Create Key</OutlinedButton>
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
+      <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-4">{{ $t('empty_desc') }}</p>
+      <OutlinedButton @click="openCreateDialog">{{ $t('create_button') }}</OutlinedButton>
     </div>
 
     <!-- Table -->
@@ -42,14 +42,14 @@
         <table class="w-full">
           <thead>
             <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Key</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Tier</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Rate Limit</th>
-              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Permissions</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Owner</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_name') }}</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_key') }}</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_tier') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_rate_limit') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_permissions') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_owner') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -66,7 +66,7 @@
               </td>
               <td class="px-3 py-3">
                 <span class="font-sans text-xs px-1.5 py-0.5" :class="key.isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'">
-                  {{ key.isActive ? 'Active' : 'Inactive' }}
+                  {{ key.isActive ? $t('common.status_active') : $t('common.status_inactive') }}
                 </span>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -91,12 +91,12 @@
 
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ total }} {{ total === 1 ? 'key' : 'keys' }}</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ total }} {{ total === 1 ? 'key' : 'keys' }}</span>
         <div class="flex items-center gap-3">
-          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">First page</span>
-          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">Last page</span>
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
         </div>
       </div>
     </div>
@@ -104,21 +104,21 @@
     <!-- Create/Edit Dialog -->
     <NDialog v-model:open="showDialog">
       <template #header>
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ editingKey ? 'Edit API Key' : 'Create API Key' }}</h3>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ editingKey ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
       </template>
       <div class="space-y-4">
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">Name</label>
-          <input v-model="form.name" type="text" placeholder="e.g. My mobile app" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400" />
+          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_name') }}</label>
+          <input v-model="form.name" type="text" :placeholder="$t('placeholder_name') as string" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-400" />
         </div>
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">Tier</label>
+          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_tier') }}</label>
           <select v-model="form.tier" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400 cursor-pointer">
             <option v-for="t in tierOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
           </select>
         </div>
         <div>
-          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">Permissions</label>
+          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_permissions') }}</label>
           <div class="flex gap-3 flex-wrap">
             <label v-for="perm in availablePermissions" :key="perm.value" class="flex items-center gap-2 font-sans text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
               <input type="checkbox" :value="perm.value" v-model="form.permissions" class="accent-gray-700 dark:accent-gray-300" />
@@ -128,43 +128,42 @@
         </div>
         <div class="flex gap-4">
           <div class="flex-1">
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">Rate limit (requests)</label>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_rate_limit') }}</label>
             <input v-model.number="form.rateLimit" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
           </div>
           <div class="flex-1">
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">Window (seconds)</label>
+            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_window') }}</label>
             <input v-model.number="form.windowSec" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
           </div>
         </div>
 
         <!-- Show plain key after creation -->
         <div v-if="createdKey" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded-sm">
-          <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">Save this key — it won't be shown again!</p>
+          <p class="font-sans text-xs text-yellow-800 dark:text-yellow-300 font-600 mb-2">{{ $t('warning_save') }}</p>
           <div class="flex items-stretch gap-2">
             <code class="font-mono text-sm text-yellow-900 dark:text-yellow-200 break-all select-all flex-1">{{ createdKey }}</code>
-            <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? 'Copied!' : 'Copy' }}</button>
+            <button class="font-sans text-xs font-500 px-3 py-1.5 rounded-sm transition-colors shrink-0" :class="copied ? 'text-green-800 dark:text-green-300 bg-green-200 dark:bg-green-700/40' : 'text-yellow-800 dark:text-yellow-300 bg-yellow-200 dark:bg-yellow-700/40 hover:bg-yellow-300 dark:hover:bg-yellow-700/60'" @click="copyKey">{{ copied ? $t('common.copied') : $t('common.copy') }}</button>
           </div>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="closeDialog">Cancel</button>
-          <OutlinedButton :loading="saving" :variant="editingKey ? undefined : undefined" @click="save">{{ editingKey ? 'Save' : 'Create' }}</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="closeDialog">{{ $t('common.cancel') }}</button>
+          <OutlinedButton :loading="saving" :variant="editingKey ? undefined : undefined" @click="save">{{ editingKey ? $t('common.save') : $t('dialog_create_title') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
 
     <!-- Delete Dialog -->
     <NDialog v-model:open="showDeleteDialog">
-      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete API Key</h3></template>
+      <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_delete_title') }}</h3></template>
       <p class="font-sans text-sm text-gray-600 dark:text-gray-400 mb-4">
-        Are you sure you want to delete the key <strong class="text-gray-900 dark:text-gray-100">{{ deletingKey?.name }}</strong>?
-        This action cannot be undone. Any applications using this key will lose access immediately.
+        {{ $t('dialog_delete_body', { name: deletingKey?.name }) }}
       </p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showDeleteDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="deleting" @click="confirmDelete">Delete</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showDeleteDialog = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton variant="destructive" :loading="deleting" @click="confirmDelete">{{ $t('common.delete') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
@@ -173,7 +172,8 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'API Keys - Admin - Verbatims' })
+const { $t } = useI18n()
+useHead({ title: $t('meta_title') as string })
 const { showErrorToast } = useErrorToast()
 
 const loading = ref(false)
@@ -211,15 +211,15 @@ const deletingKey = ref<any | null>(null)
 const deleting = ref(false)
 
 const availablePermissions = [
-  { label: 'Read', value: 'read' },
-  { label: 'Write', value: 'write' },
-  { label: 'Admin', value: 'admin' },
+  { label: String($t('perm_read')), value: 'read' },
+  { label: String($t('perm_write')), value: 'write' },
+  { label: String($t('perm_admin')), value: 'admin' },
 ]
 
 const tierOptions = [
-  { label: 'Free — 1,000 req/h', value: 'free' },
-  { label: 'Pro — 10,000 req/h', value: 'pro' },
-  { label: 'Enterprise — Custom', value: 'enterprise' },
+  { label: String($t('tier_free')), value: 'free' },
+  { label: String($t('tier_pro')), value: 'pro' },
+  { label: String($t('tier_enterprise')), value: 'enterprise' },
 ]
 
 const form = reactive({
@@ -270,7 +270,7 @@ const openCreateDialog = () => {
 
 const getRowActions = (key: any) => [
   {
-    label: key.isActive ? 'Deactivate' : 'Activate',
+    label: key.isActive ? String($t('dropdown_deactivate')) : String($t('dropdown_activate')),
     leading: key.isActive ? 'i-ph-pause' : 'i-ph-play',
     onclick: async () => {
       await $fetch(`/api/admin/api-keys/${key.id}`, { method: 'PUT', body: { isActive: !key.isActive } })
@@ -279,7 +279,7 @@ const getRowActions = (key: any) => [
   },
   {},
   {
-    label: 'Edit',
+    label: String($t('dropdown_edit')),
     leading: 'i-ph-pencil',
     onclick: () => {
       editingKey.value = key
@@ -293,7 +293,7 @@ const getRowActions = (key: any) => [
   },
   {},
   {
-    label: 'Delete',
+    label: String($t('dropdown_delete')),
     leading: 'i-ph-trash',
     onclick: () => {
       deletingKey.value = key
@@ -339,7 +339,7 @@ const save = async () => {
     }
     loadKeys()
   } catch (e) {
-    showErrorToast(e, 'Failed to save API key')
+    showErrorToast(e, String($t('error_save')))
   } finally {
     saving.value = false
   }
@@ -361,7 +361,7 @@ const confirmDelete = async () => {
     if (keys.value.length <= 1 && currentPage.value > 1) currentPage.value -= 1
     loadKeys()
   } catch (e) {
-    showErrorToast(e, 'Failed to delete API key')
+    showErrorToast(e, String($t('error_delete')))
   } finally {
     deleting.value = false
   }
@@ -381,7 +381,7 @@ const loadKeys = async () => {
     total.value = res.pagination?.total || 0
   } catch (e) {
     console.error('Failed to load API keys', e)
-    showErrorToast(e, 'Failed to load API keys')
+    showErrorToast(e, String($t('error_load')))
   } finally {
     loading.value = false
   }

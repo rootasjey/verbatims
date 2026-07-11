@@ -5,7 +5,7 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Authors
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ totalAuthors }} {{ totalAuthors === 1 ? 'author' : 'authors' }}
@@ -13,12 +13,12 @@
         </div>
         <div class="hidden md:flex items-center gap-3">
           <button class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" @click="openAddAuthorDialog">
-            + Add New Author
+            {{ $t('add_button') }}
           </button>
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search authors..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
           <select
@@ -37,11 +37,11 @@
             <button
               :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']"
               @click="isCardView = false"
-            >Table</button>
+            >{{ $t('view_table') }}</button>
             <button
               :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']"
               @click="isCardView = true"
-            >Cards</button>
+            >{{ $t('view_cards') }}</button>
           </div>
         </div>
       </div>
@@ -49,18 +49,18 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search authors..."
+          :placeholder="$t('search_placeholder') as string"
           class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
         <div class="flex items-center gap-1">
           <button
             :class="['font-sans text-xs px-2 py-1 transition-colors', !isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']"
             @click="isCardView = false"
-          >Table</button>
+          >{{ $t('view_table') }}</button>
           <button
             :class="['font-sans text-xs px-2 py-1 transition-colors', isCardView ? 'text-gray-900 dark:text-gray-100 border-b border-dashed border-gray-900 dark:border-gray-100' : 'text-gray-400 dark:text-gray-500']"
             @click="isCardView = true"
-          >Cards</button>
+          >{{ $t('view_cards') }}</button>
         </div>
       </div>
     </div>
@@ -70,10 +70,10 @@
       <div v-if="filteredAuthors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
         <NIcon name="i-ph-user" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-          {{ searchQuery ? 'No matching authors' : 'No authors yet' }}
+          {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
         </p>
         <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {{ searchQuery ? 'Try adjusting your search.' : 'Authors will appear once quotes are submitted.' }}
+          {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
         </p>
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -102,15 +102,15 @@
               </div>
               <p v-if="author.job" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ author.job }}</p>
               <div class="flex items-center gap-2 mt-1">
-                <span v-if="author.is_fictional" class="font-sans text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5">Fictional</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count || 0 }} quotes</span>
+                <span v-if="author.is_fictional" class="font-sans text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5">{{ $t('badge_fictional') }}</span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count || 0 }} {{ $t('common.quote_plural') }}</span>
               </div>
             </div>
           </div>
           <div class="mt-3 flex justify-end gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3">
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentAuthorTarget?.id === author.id" @click="openEnrichmentPreview(author)">Enrich</button>
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editAuthor(author)">Edit</button>
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewAuthor(author)">View</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentAuthorTarget?.id === author.id" @click="openEnrichmentPreview(author)">{{ $t('action_enrich') }}</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editAuthor(author)">{{ $t('action_edit') }}</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewAuthor(author)">{{ $t('action_view') }}</button>
           </div>
         </div>
       </div>
@@ -120,10 +120,10 @@
     <div v-else>
       <!-- Bulk action bar -->
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
-        <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedAuthors">Merge Selected</button>
-        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">Delete All</button>
-        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
+        <button v-if="selectedIds.length === 2" class="font-sans text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors" @click="mergeSelectedAuthors">{{ $t('bulk_merge') }}</button>
+        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showBulkDeleteDialog = true">{{ $t('bulk_delete') }}</button>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
       </div>
 
       <div v-if="loading && !hasLoadedOnce" class="space-y-5">
@@ -136,10 +136,10 @@
       <div v-else-if="hasLoadedOnce && filteredAuthors.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
         <NIcon name="i-ph-user" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-          {{ searchQuery ? 'No matching authors' : 'No authors yet' }}
+          {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
         </p>
         <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-          {{ searchQuery ? 'Try adjusting your search terms or filters.' : 'Authors will appear here once quotes are submitted.' }}
+          {{ searchQuery ? $t('empty_table_search_desc') : $t('empty_table_desc') }}
         </p>
       </div>
 
@@ -148,10 +148,10 @@
           <thead>
             <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Author</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Type</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quotes</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_author') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_type') }}</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quotes') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_created') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -184,8 +184,8 @@
                 </div>
               </td>
               <td class="px-3 py-3">
-                <span v-if="author.is_fictional" class="font-sans text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5">Fictional</span>
-                <span v-else class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">Real</span>
+                <span v-if="author.is_fictional" class="font-sans text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5">{{ $t('badge_fictional') }}</span>
+                <span v-else class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">{{ $t('badge_real') }}</span>
               </td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ author.quotes_count || 0 }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(author.created_at) }}</td>
@@ -202,17 +202,17 @@
       <div v-if="hasLoadedOnce">
         <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
           <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalAuthors }} {{ totalAuthors === 1 ? 'author' : 'authors' }}
+            {{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalAuthors }} {{ totalAuthors === 1 ? 'author' : 'authors' }}
           </span>
           <div class="flex items-center gap-3">
-            <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-            <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+            <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+            <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+            <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
           </div>
         </div>
         <div v-else class="pt-4 text-center">
-          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+          <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
         </div>
       </div>
     </div>
@@ -232,24 +232,24 @@
 
     <ClientOnly>
       <NDialog v-model:open="showBulkDeleteDialog">
-        <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'Author' : 'Authors' }}</h3></template>
+        <template #header><h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $t('dialog_delete_title', { n: selectedIds.length, count: selectedIds.length }) }}</h3></template>
         <div class="space-y-3">
-          <p class="font-sans text-sm text-gray-600 dark:text-gray-400">You are about to delete {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'author' : 'authors' }}. If they have related quotes, choose a strategy:</p>
+          <p class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ $t('dialog_delete_body', { n: selectedIds.length, count: selectedIds.length }) }}</p>
           <div class="space-y-2">
             <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
               <input type="radio" v-model="bulkDeleteStrategy" value="anonymize" class="accent-gray-700 dark:accent-gray-300" />
-              Anonymize related quotes (keep quotes, remove author link)
+              {{ $t('dialog_delete_anonymize') }}
             </label>
             <label class="flex items-center gap-2 font-sans text-sm text-gray-700 dark:text-gray-300">
               <input type="radio" v-model="bulkDeleteStrategy" value="delete" class="accent-gray-700 dark:accent-gray-300" />
-              Delete related quotes (remove quotes and the author)
+              {{ $t('dialog_delete_remove') }}
             </label>
           </div>
         </div>
         <template #footer>
           <div class="flex justify-end gap-3">
-            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">Cancel</button>
-            <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">Delete All</OutlinedButton>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-3 py-1.5" @click="showBulkDeleteDialog = false">{{ $t('common.cancel') }}</button>
+            <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="confirmBulkDelete">{{ $t('bulk_delete') }}</OutlinedButton>
           </div>
         </template>
       </NDialog>
@@ -270,7 +270,10 @@ import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 const { showErrorToast } = useErrorToast()
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'Authors - Admin - Verbatims' })
+
+const { $t } = useI18n()
+
+useHead({ title: $t('meta_title') as string })
 
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
@@ -417,7 +420,7 @@ const loadAuthors = async () => {
   } catch (error) {
     console.error('Failed to load authors:', error)
     if (error?.statusCode && error?.statusCode !== 500) {
-      showErrorToast(error, 'Failed to load authors')
+      showErrorToast(error, $t('error_load') as string)
     }
   }
   finally { loading.value = false; hasLoadedOnce.value = true }
@@ -429,12 +432,12 @@ const resetFilters = () => {
 }
 
 const getAuthorActions = (author: Author) => [
-  { label: 'View Public Page', leading: 'i-ph-eye', onclick: () => viewAuthor(author) },
-  { label: 'Edit Author', leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
-  { label: 'Preview enrichment', leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(author) },
-  ...(hasPendingEnrichment(author) ? [{ label: 'Open enrichment queue', leading: 'i-ph-bell-ringing', onclick: () => goToAuthorEnrichmentQueue(author) }] : []),
-  {}, { label: 'Merge into…', leading: 'i-ph-git-merge', onclick: () => mergeAuthor(author) },
-  { label: 'Delete Author', leading: 'i-ph-trash', onclick: () => deleteAuthor(author) }
+  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewAuthor(author) },
+  { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
+  { label: $t('dropdown_enrich') as string, leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(author) },
+  ...(hasPendingEnrichment(author) ? [{ label: $t('dropdown_enrich_queue') as string, leading: 'i-ph-bell-ringing', onclick: () => goToAuthorEnrichmentQueue(author) }] : []),
+  {}, { label: $t('dropdown_merge') as string, leading: 'i-ph-git-merge', onclick: () => mergeAuthor(author) },
+  { label: $t('dropdown_delete') as string, leading: 'i-ph-trash', onclick: () => deleteAuthor(author) }
 ]
 
 const viewAuthor = (author: Author) => navigateTo(`/authors/${author.id}`)
@@ -474,10 +477,10 @@ const openEnrichmentPreview = async (author: Author, preferredExternalId?: strin
     if (enrichmentAuthorTarget.value?.id !== author.id) return
     enrichmentPreview.value = response.data?.preview || null; enrichmentJobId.value = response.data?.job?.id || null
     selectedEnrichmentFields.value = enrichmentPreview.value?.proposals?.filter((p: any) => p.recommended)?.map((p: any) => p.field) || []
-    if (!enrichmentPreview.value) useToast().toast({ title: 'No preview available', description: 'This author could not be enriched automatically right now.', toast: 'outline-warning' })
+    if (!enrichmentPreview.value) useToast().toast({ title: $t('toast_no_preview') as string, description: $t('toast_no_preview_desc') as string, toast: 'outline-warning' })
   } catch (error: any) {
     if (enrichmentAuthorTarget.value?.id !== author.id) return
-    showErrorToast(error, 'Enrichment preview failed'); showEnrichmentDialog.value = false
+    showErrorToast(error, $t('toast_enrich_failed') as string); showEnrichmentDialog.value = false
   } finally { enrichmentLoading.value = false }
 }
 
@@ -502,7 +505,7 @@ const openEnrichmentConfigDialog = async () => {
     enrichmentConfigForm.authorStaleDays = Number(response.data?.values?.authorStaleDays ?? 180); enrichmentConfigForm.referenceStaleDays = Number(response.data?.values?.referenceStaleDays ?? 365)
     enrichmentConfigForm.reviewGraceDays = Number(response.data?.values?.reviewGraceDays ?? 14); enrichmentConfigForm.authorMatchMinScore = Number(response.data?.values?.authorMatchMinScore ?? 60)
     enrichmentConfigForm.referenceMatchMinScore = Number(response.data?.values?.referenceMatchMinScore ?? 58); enrichmentConfigForm.ambiguousMatchGap = Number(response.data?.values?.ambiguousMatchGap ?? 5)
-  } catch (error: any) { showErrorToast(error, 'Failed to load settings'); showEnrichmentConfigDialog.value = false }
+  } catch (error: any) { showErrorToast(error, $t('toast_settings_load_failed') as string); showEnrichmentConfigDialog.value = false }
   finally { enrichmentConfigLoading.value = false }
 }
 
@@ -512,9 +515,9 @@ const saveEnrichmentConfig = async (form: typeof enrichmentConfigForm) => {
     const configUrl = '/api/admin/enrichment/config' as string
     const response = await ($fetch as any)(configUrl, { method: 'POST', body: { scheduleEnabled: form.scheduleEnabled, processEnabled: form.processEnabled, scheduleBatchSize: Number(form.scheduleBatchSize), processBatchSize: Number(form.processBatchSize), authorStaleDays: Number(form.authorStaleDays), referenceStaleDays: Number(form.referenceStaleDays), reviewGraceDays: Number(form.reviewGraceDays), authorMatchMinScore: Number(form.authorMatchMinScore), referenceMatchMinScore: Number(form.referenceMatchMinScore), ambiguousMatchGap: Number(form.ambiguousMatchGap) } }) as { data?: { updatedAt: string | null; values: Record<string, string | number | boolean>; sources: Record<string, 'kv' | 'env' | 'default' | 'none'> } }
     enrichmentConfigUpdatedAt.value = response.data?.updatedAt || null; enrichmentConfigSources.value = response.data?.sources || {}
-    useToast().toast({ title: 'Enrichment settings saved', description: 'KV overrides are now active for the enrichment scheduler and processor.', toast: 'soft-success' })
+    useToast().toast({ title: $t('toast_settings_saved') as string, description: $t('toast_settings_saved_desc') as string, toast: 'soft-success' })
     showEnrichmentConfigDialog.value = false
-  } catch (error: any) { showErrorToast(error, 'Save failed') }
+  } catch (error: any) { showErrorToast(error, $t('toast_save_failed') as string) }
   finally { enrichmentConfigSaving.value = false }
 }
 
@@ -524,7 +527,7 @@ const applySelectedEnrichment = async () => {
   try {
     await $fetch(`/api/admin/enrichment/jobs/${enrichmentJobId.value}/apply`, { method: 'POST', body: { fields: selectedEnrichmentFields.value } })
     closeEnrichmentDialog(); loadAuthors()
-  } catch (error: any) { showErrorToast(error, 'Apply failed') }
+  } catch (error: any) { showErrorToast(error, $t('toast_apply_failed') as string) }
   finally { enrichmentApplying.value = false }
 }
 
@@ -543,8 +546,8 @@ const confirmBulkDelete = async () => {
     const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/authors/${id}`, { method: 'DELETE', body: { strategy: bulkDeleteStrategy.value } })))
     const failed = results.filter(r => r.status === 'rejected').length
     const succeeded = results.length - failed
-    useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${succeeded} author${succeeded !== 1 ? 's' : ''}`, description: failed ? `${failed} failed` : undefined })
-  } catch (e) { showErrorToast(e, 'Bulk delete failed') }
+    useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: $t('toast_bulk_deleted', { n: succeeded, s: succeeded !== 1 ? 's' : '' }) as string, description: failed ? `${failed} ${$t('toast_bulk_deleted_failed')}` : undefined })
+  } catch (e) { showErrorToast(e, $t('toast_bulk_delete_failed') as string) }
   finally { bulkProcessing.value = false; showBulkDeleteDialog.value = false; rowSelection.value = {}; lastSelectedIndex.value = null; loadAuthors() }
 }
 </script>

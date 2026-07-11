@@ -1,15 +1,15 @@
 <template>
   <div class="mb-8 space-y-6">
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">Import Data</h1>
+      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">{{ $t('title') }}</h1>
     </div>
 
     <NTabs v-model="activeTab" :items="tabs" class="w-full">
       <template #content="{ item }">
         <div v-if="item.value === 'import'" class="mt-6 space-y-6">
-          <NCollapsible v-model:open="openUpload" title="Upload Data File" :ui="{ base: 'border border-dashed rounded-xl' }">
+          <NCollapsible v-model:open="openUpload" :title="$t('section_upload')" :ui="{ base: 'border border-dashed rounded-xl' }">
             <div class="flex items-center justify-between px-4 space-x-4">
-              <h2 class="text-xl font-semibold">1 • Upload Data File</h2>
+              <h2 class="text-xl font-semibold">{{ $t('heading_upload') }}</h2>
               <NCollapsibleTrigger as-child>
                 <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
@@ -23,7 +23,7 @@
                   <div class="space-y-4">
                     <!-- File Upload -->
                     <div>
-                      <label class="block text-sm font-medium mb-2">Select File</label>
+                      <label class="block text-sm font-medium mb-2">{{ $t('label_select_file') }}</label>
                       <input
                         ref="fileInput"
                         type="file"
@@ -32,24 +32,24 @@
                         class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                       />
                       <p class="mt-1 text-sm text-gray-500">
-                        Supported formats: JSON (.json), CSV (.csv), XML (.xml), All (ZIP .zip)
+                        {{ $t('hint_formats') }}
                       </p>
                     </div>
 
                     <!-- Format Selection -->
                     <div>
                       <div class="flex items-center justify-between gap-2 mb-2">
-                        <label class="block text-sm font-medium">Data Format</label>
+                        <label class="block text-sm font-medium">{{ $t('label_data_format') }}</label>
                         <div class="flex items-center gap-2">
                           <NBadge
                             v-if="detectedFormat && selectedFormat?.value === detectedFormat?.value"
                             color="blue"
                             badge="soft"
                             size="xs"
-                          >Auto-detected</NBadge>
+                          >{{ $t('badge_auto') }}</NBadge>
                           <div v-if="detectedFormat && selectedFormat?.value !== detectedFormat?.value">
-                            <NTooltip :text="`Reset to detected (${detectedFormat.label})`">
-                              <OutlinedButton size="sm" @click="resetFormatToDetected" aria-label="Reset format to detected">
+                            <NTooltip :text="$t('tooltip_reset_format', { format: detectedFormat.label })">
+                              <OutlinedButton size="sm" @click="resetFormatToDetected" :aria-label="$t('aria_reset_format') as string">
                                 <NIcon name="i-ph-arrow-counter-clockwise" />
                               </OutlinedButton>
                             </NTooltip>
@@ -62,24 +62,24 @@
                         </select>
                       </div>
                       <p v-if="selectedFormat?.value === 'zip'" class="mt-2 text-xs text-gray-500">
-                        Dependency order for ALL imports: users → authors → references → tags → quotes
+                        {{ $t('hint_zip') }}
                       </p>
                     </div>
 
                     <!-- Data Type (for non-ZIP imports) -->
                     <div v-if="selectedFormat?.value !== 'zip'">
                       <div class="flex items-center justify-between gap-2 mb-2">
-                        <label class="block text-sm font-medium">Data Type</label>
+                        <label class="block text-sm font-medium">{{ $t('label_data_type') }}</label>
                         <div class="flex items-center gap-2">
                           <NBadge
                             v-if="detectedDataType && selectedDataType?.value === detectedDataType?.value"
                             color="blue"
                             badge="soft"
                             size="xs"
-                          >Auto-detected</NBadge>
+                          >{{ $t('badge_auto') }}</NBadge>
                           <div v-if="detectedDataType && selectedDataType?.value !== detectedDataType?.value">
-                            <NTooltip :text="`Reset to detected (${detectedDataType.label})`">
-                              <OutlinedButton size="sm" @click="resetTypeToDetected" aria-label="Reset data type to detected">
+                            <NTooltip :text="$t('tooltip_reset_format', { format: detectedDataType.label })">
+                              <OutlinedButton size="sm" @click="resetTypeToDetected" :aria-label="$t('aria_reset_type') as string">
                                 <NIcon name="i-ph-arrow-counter-clockwise" />
                               </OutlinedButton>
                             </NTooltip>
@@ -95,33 +95,33 @@
 
                     <!-- Import Options -->
                     <div class="space-y-3">
-                      <h3 class="text-sm font-medium">Import Options</h3>
+                      <h3 class="text-sm font-medium">{{ $t('heading_options') }}</h3>
                       <label class="flex items-center gap-2">
                         <input type="checkbox" v-model="importOptions.createBackup" class="accent-gray-700 dark:accent-gray-300" />
-                        <span class="text-sm">Create backup before import</span>
+                        <span class="text-sm">{{ $t('checkbox_backup') }}</span>
                       </label>
-                      <p class="text-xs text-gray-500 ml-6 -mt-2">Recommended for production imports</p>
+                      <p class="text-xs text-gray-500 ml-6 -mt-2">{{ $t('hint_backup') }}</p>
                       <label class="flex items-center gap-2">
                         <input type="checkbox" v-model="importOptions.ignoreValidationErrors" class="accent-gray-700 dark:accent-gray-300" />
-                        <span class="text-sm">Ignore validation errors</span>
+                        <span class="text-sm">{{ $t('checkbox_ignore_validation') }}</span>
                       </label>
-                      <p class="text-xs text-gray-500 ml-6 -mt-2">Import data even if validation fails (not recommended)</p>
+                      <p class="text-xs text-gray-500 ml-6 -mt-2">{{ $t('hint_ignore_validation') }}</p>
                       <label class="flex items-center gap-2">
                         <input type="checkbox" v-model="importOptions.preserveIds" class="accent-gray-700 dark:accent-gray-300" />
-                        <span class="text-sm">Preserve explicit IDs when present</span>
+                        <span class="text-sm">{{ $t('checkbox_preserve_ids') }}</span>
                       </label>
-                      <p class="text-xs text-gray-500 ml-6 -mt-2">Insert records using provided id fields and realign sequences. Use with caution.</p>
+                      <p class="text-xs text-gray-500 ml-6 -mt-2">{{ $t('hint_preserve_ids') }}</p>
                       <div>
-                        <label class="block text-sm font-medium mb-1">Batch Size</label>
+                        <label class="block text-sm font-medium mb-1">{{ $t('label_batch_size') }}</label>
                         <NNumberField v-model="importOptions.batchSize" :min="1" :max="1000" />
-                        <p class="mt-1 text-xs text-gray-500">Number of records to process at once (1-1000)</p>
+                        <p class="mt-1 text-xs text-gray-500">{{ $t('hint_batch_size') }}</p>
                       </div>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex gap-3 pt-4">
-                      <OutlinedButton variant="primary" :disabled="!selectedFile || !selectedFormat" :loading="isValidating" @click="validateData">Validate Data</OutlinedButton>
-                      <OutlinedButton v-if="validationResult" variant="primary" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" @click="startImport">Start Import</OutlinedButton>
+                      <OutlinedButton variant="primary" :disabled="!selectedFile || !selectedFormat" :loading="isValidating" @click="validateData">{{ $t('button_validate') }}</OutlinedButton>
+                      <OutlinedButton v-if="validationResult" variant="primary" :disabled="!validationResult.isValid && !importOptions.ignoreValidationErrors" :loading="isImporting" @click="startImport">{{ $t('button_start') }}</OutlinedButton>
                     </div>
                   </div>
                 </div>
@@ -129,41 +129,41 @@
                 <div v-if="validationResult" class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
                   <div class="flex items-center gap-2 mb-4">
                     <NIcon :name="validationResult.isValid ? 'i-ph-check-circle' : 'i-ph-x-circle'" :class="validationResult.isValid ? 'text-green-500' : 'text-red-500'" />
-                    <h3 class="text-lg font-semibold">Validation {{ validationResult.isValid ? 'Passed' : 'Failed' }}</h3>
+                    <h3 class="text-lg font-semibold">{{ validationResult.isValid ? $t('status_passed') : $t('status_failed') }}</h3>
                   </div>
                   <div class="space-y-4">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div class="text-2xl font-bold">{{ previewData.length }}</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Total Records</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">{{ $t('stat_total') }}</div>
                       </div>
                       <div class="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                         <div class="text-2xl font-bold text-red-600">{{ validationResult.errorCount }}</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Errors</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">{{ $t('stat_errors') }}</div>
                       </div>
                       <div class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                         <div class="text-2xl font-bold text-yellow-600">{{ validationResult.warningCount }}</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Warnings</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">{{ $t('stat_warnings') }}</div>
                       </div>
                       <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                         <div class="text-2xl font-bold text-green-600">{{ previewData.length - validationResult.errorCount }}</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Valid Records</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">{{ $t('stat_valid') }}</div>
                       </div>
                     </div>
 
                     <div v-if="validationResult.errors.length > 0">
-                      <h4 class="font-medium text-red-600 mb-2">Validation Errors</h4>
+                      <h4 class="font-medium text-red-600 mb-2">{{ $t('heading_validation_errors') }}</h4>
                       <div class="max-h-40 overflow-y-auto space-y-1">
                         <div v-for="(error, index) in validationResult.errors.slice(0, 10)" :key="index" class="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-2 rounded">{{ error }}</div>
-                        <div v-if="validationResult.errors.length > 10" class="text-sm text-gray-500">... and {{ validationResult.errors.length - 10 }} more errors</div>
+                        <div v-if="validationResult.errors.length > 10" class="text-sm text-gray-500">{{ $t('label_more_errors', { n: validationResult.errors.length - 10 }) }}</div>
                       </div>
                     </div>
 
                     <div v-if="validationResult.warnings.length > 0">
-                      <h4 class="font-medium text-yellow-600 mb-2">Validation Warnings</h4>
+                      <h4 class="font-medium text-yellow-600 mb-2">{{ $t('heading_validation_warnings') }}</h4>
                       <div class="max-h-40 overflow-y-auto space-y-1">
                         <div v-for="(warning, index) in validationResult.warnings.slice(0, 5)" :key="index" class="text-sm text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">{{ warning }}</div>
-                        <div v-if="validationResult.warnings.length > 5" class="text-sm text-gray-500">... and {{ validationResult.warnings.length - 5 }} more warnings</div>
+                        <div v-if="validationResult.warnings.length > 5" class="text-sm text-gray-500">{{ $t('label_more_warnings', { n: validationResult.warnings.length - 5 }) }}</div>
                       </div>
                     </div>
                   </div>
@@ -175,9 +175,9 @@
           </NCollapsible>
 
           <!-- Import Progress -->
-          <NCollapsible v-model:open="openProgress" title="Import Progress" :ui="{ base: 'border border-dashed rounded-xl' }">
+          <NCollapsible v-model:open="openProgress" :title="$t('heading_progress_1')" :ui="{ base: 'border border-dashed rounded-xl' }">
             <div class="flex items-center justify-between px-4 space-x-4">
-              <h2 class="text-xl font-semibold">2 • Import Progress</h2>
+              <h2 class="text-xl font-semibold">{{ $t('heading_progress_1') }}</h2>
               <NCollapsibleTrigger as-child>
                 <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
@@ -192,15 +192,15 @@
                   @finished="() => { currentImportId = null; openProgress = false }"
                   @not-found="() => { currentImportId = null; openProgress = false }"
                 />
-                <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">No active import. Start an import from the Upload section.</div>
+                <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">{{ $t('empty_progress') }}</div>
               </div>
             </NCollapsibleContent>
           </NCollapsible>
 
           <!-- Relink Relations -->
-          <NCollapsible v-model:open="openRelink" title="Relink Relations" :ui="{ base: 'border border-dashed rounded-xl' }">
+          <NCollapsible v-model:open="openRelink" :title="$t('heading_progress_2')" :ui="{ base: 'border border-dashed rounded-xl' }">
             <div class="flex items-center justify-between px-4 space-x-4">
-              <h2 class="text-xl font-semibold">3 • Relink Post-Quote Relations</h2>
+              <h2 class="text-xl font-semibold">{{ $t('heading_progress_2') }}</h2>
               <NCollapsibleTrigger as-child>
                 <OutlinedButton>
                   <NIcon name="i-radix-icons-caret-sort" />
@@ -212,12 +212,12 @@
                 <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
                   <div class="flex items-center gap-2 mb-4">
                     <NIcon name="i-ph-link-simple" />
-                    <h2 class="text-xl font-semibold">Relink Post-Quote Relations</h2>
+                    <h2 class="text-xl font-semibold">{{ $t('heading_relink') }}</h2>
                   </div>
 
                   <div class="space-y-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                      Use this to re-import relation datasets after a quotes import. Supported keys: 
+                      {{ $t('desc_relink') }}
                       <span class="font-medium">quote_tags</span>, <span class="font-medium">user_likes</span>, 
                       <span class="font-medium">user_collections</span>, <span class="font-medium">collection_quotes</span>,
                       <span class="font-medium">user_sessions</span>, <span class="font-medium">user_messages</span>,
@@ -227,7 +227,7 @@
 
                     <!-- Relink File Upload -->
                     <div>
-                      <label class="block text-sm font-medium mb-2">Select Relink Bundle (JSON or ZIP)</label>
+                      <label class="block text-sm font-medium mb-2">{{ $t('label_relink_bundle') }}</label>
                       <input
                         ref="relinkFileInput"
                         type="file"
@@ -236,7 +236,7 @@
                         class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                       />
                       <p class="mt-1 text-xs text-gray-500">
-                        JSON: object with arrays under supported keys. ZIP: server will parse counts.
+                        {{ $t('hint_relink') }}
                       </p>
                     </div>
 
@@ -251,12 +251,12 @@
                     <!-- Actions -->
                     <div class="flex gap-3 pt-2">
                       <OutlinedButton variant="primary" :disabled="!selectedRelinkFile" :loading="isRelinking" @click="startRelink">
-                        Start Relink
+                        {{ $t('button_start_relink') }}
                       </OutlinedButton>
                     </div>
 
                     <p class="mt-2 text-xs text-gray-500">
-                      Tip: If collection/quote IDs are missing, include <code>collection_name</code> and/or <code>quote_name</code> (and optional <code>language</code> or <code>user_id</code>) to resolve links.
+                      {{ $t('hint_relink_tip') }}
                     </p>
                   </div>
                 </div>
@@ -282,6 +282,7 @@ import ImportHistory from '~/components/admin/import/ImportHistory.vue'
 import DataPreviewTable from '~/components/admin/DataPreviewTable.vue'
 import { useErrorToast } from '~/composables/useErrorToast'
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 definePageMeta({
@@ -290,7 +291,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'verbatims • [admin] Data Import'
+  title: $t('meta_title') as string
 })
 
 type SelectOption = { label: string; value: string }
@@ -408,23 +409,23 @@ watch(importOptions, (current) => {
 }, { deep: true, immediate: true })
 
 const formatOptions: SelectOption[] = [
-  { label: 'JSON File', value: 'json' },
-  { label: 'CSV File', value: 'csv' },
-  { label: 'XML File', value: 'xml' },
-  { label: 'All (ZIP)', value: 'zip' }
+  { label: String($t('option_json')), value: 'json' },
+  { label: String($t('option_csv')), value: 'csv' },
+  { label: String($t('option_xml')), value: 'xml' },
+  { label: String($t('option_all')), value: 'zip' }
 ]
 
 const dataTypeOptions: SelectOption[] = [
-  { label: 'References', value: 'references' },
-  { label: 'Authors', value: 'authors' },
-  { label: 'Tags', value: 'tags' },
-  { label: 'Users', value: 'users' },
-  { label: 'Quotes', value: 'quotes' },
+  { label: String($t('type_references')), value: 'references' },
+  { label: String($t('type_authors')), value: 'authors' },
+  { label: String($t('type_tags')), value: 'tags' },
+  { label: String($t('type_users')), value: 'users' },
+  { label: String($t('type_quotes')), value: 'quotes' },
 ]
 
 const tabs = [
-  { name: 'Import', value: 'import', icon: 'i-ph-upload-simple' },
-  { name: 'History', value: 'history', icon: 'i-ph-clock-countdown', class: 'border-l border-gray-200 dark:border-gray-700 ml-2 pl-2' }
+  { name: $t('tab_import'), value: 'import', icon: 'i-ph-upload-simple' },
+  { name: $t('tab_history'), value: 'history', icon: 'i-ph-clock-countdown', class: 'border-l border-gray-200 dark:border-gray-700 ml-2 pl-2' }
 ]
 
 const activeTab = useLocalStorage<'import' | 'history'>(
@@ -559,7 +560,7 @@ const startRelink = async (): Promise<void> => {
     openProgress.value = true
   } catch (error: any) {
     console.error('Relink failed:', error)
-    showErrorToast(error, { title: 'Relink Failed', fallback: 'An error occurred during relink.' })
+    showErrorToast(error, { title: String($t('error_relink_failed')), fallback: 'An error occurred during relink.' })
   } finally {
     isRelinking.value = false
   }
@@ -642,7 +643,7 @@ const validateData = async (): Promise<void> => {
   } catch (error: any) {
     console.error('Validation failed:', error)
 
-    showErrorToast(error, { title: 'Import Failed', fallback: 'An error occurred during import.' })
+    showErrorToast(error, { title: String($t('error_import_failed')), fallback: 'An error occurred during import.' })
   } finally {
     isValidating.value = false
   }
@@ -686,7 +687,7 @@ const startImport = async (): Promise<void> => {
     openProgress.value = true
   } catch (error: any) {
     console.error('Import failed:', error)
-    showErrorToast(error, { title: 'Import Failed', fallback: 'An error occurred during import.' })
+    showErrorToast(error, { title: String($t('error_import_failed')), fallback: 'An error occurred during import.' })
   } finally {
     isImporting.value = false
   }

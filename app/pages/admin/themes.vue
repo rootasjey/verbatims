@@ -4,19 +4,19 @@
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">Themes</h1>
+          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">{{ $t('title') }}</h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalThemes }} {{ totalThemes === 1 ? 'theme' : 'themes' }}</p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" placeholder="Search themes..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
+          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48" />
           <select v-model="selectedSort" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
             <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
-          <OutlinedButton size="md" @click="openCreate"><span class="i-ph-plus" /> New theme</OutlinedButton>
+          <OutlinedButton size="md" @click="openCreate"><span class="i-ph-plus" /> {{ $t('new_theme') }}</OutlinedButton>
         </div>
       </div>
       <div class="md:hidden mt-4">
-        <input v-model="searchQuery" type="text" placeholder="Search themes..." class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
       </div>
     </div>
 
@@ -30,16 +30,16 @@
     <!-- Empty -->
     <div v-else-if="themes.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
       <NIcon name="i-ph-palette" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? 'No matching themes' : 'No themes yet' }}</p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? 'Try adjusting your search terms.' : 'Create themes to feature curated collections of quotes on the homepage.' }}</p>
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}</p>
     </div>
 
     <!-- Table -->
     <div v-else>
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
-        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showDeleteDialog = true">Delete All</button>
-        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
+        <button class="font-sans text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors" @click="showDeleteDialog = true">{{ $t('common.delete') }}</button>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
       </div>
 
       <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
@@ -47,11 +47,11 @@
           <thead>
             <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="themes.length > 0 && themes.every(t => !!rowSelection[t.id])" @update:model-value="selectAllOnPage" /></th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Schedule</th>
-              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Filters</th>
-              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Priority</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_name') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_schedule') }}</th>
+              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_filters') }}</th>
+              <th class="w-16 px-3 py-3 text-center font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_priority') }}</th>
               <th class="w-10 px-3 py-3 text-left">
                 <NDropdownMenu :items="headerActions">
                   <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-caret-down" class="w-4 h-4" /></button>
@@ -74,10 +74,10 @@
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
-                  <span v-if="theme.isActive" class="font-sans text-xs px-1.5 py-0.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20">Active</span>
-                  <span v-else-if="theme.isDefault" class="font-sans text-xs px-1.5 py-0.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20">Default</span>
-                  <span v-else-if="theme.scheduledDate" class="font-sans text-xs px-1.5 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">Scheduled</span>
-                  <span v-else class="font-sans text-xs px-1.5 py-0.5 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">Inactive</span>
+                  <span v-if="theme.isActive" class="font-sans text-xs px-1.5 py-0.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20">{{ $t('status_active') }}</span>
+                  <span v-else-if="theme.isDefault" class="font-sans text-xs px-1.5 py-0.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20">{{ $t('status_default') }}</span>
+                  <span v-else-if="theme.scheduledDate" class="font-sans text-xs px-1.5 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">{{ $t('status_scheduled') }}</span>
+                  <span v-else class="font-sans text-xs px-1.5 py-0.5 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">{{ $t('status_inactive') }}</span>
                 </div>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ theme.scheduledDate || (theme.scheduledStart ? formatDate(theme.scheduledStart) : '—') }}</td>
@@ -94,24 +94,24 @@
       </div>
 
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalThemes }} total</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalThemes }} total</span>
         <div class="flex items-center gap-3">
-          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
         </div>
       </div>
       <div v-else class="pt-4 text-center">
-        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
       </div>
     </div>
 
     <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-5xl' }">
       <template #header>
         <div>
-          <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? 'Edit Theme' : 'Create Theme' }}</h3>
-          <p class="text-xs text-gray-400 dark:text-gray-600 italic ml-4">{{ editMode ? 'Edit the theme details below' : 'Create a new theme manually or using AI suggestions' }}</p>
+          <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
+          <p class="text-xs text-gray-400 dark:text-gray-600 italic ml-4">{{ editMode ? $t('dialog_edit_desc') : $t('dialog_create_desc') }}</p>
         </div>
       </template>
       <div class="max-h-[75vh] overflow-y-auto">
@@ -119,18 +119,18 @@
           <div v-if="!editMode" class="pb-2">
             <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
               <NTooltip>
-                <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> Generate Suggestions</OutlinedButton>
+                <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> {{ $t('dialog_generate') }}</OutlinedButton>
                 <template #content>
                   <div class="max-w-sm">
-                    <p>Generates theme ideas from top tags, authors, and references using rule-based patterns. No AI configuration required.</p>
+                    <p>{{ $t('dialog_generate_tooltip') }}</p>
                   </div>
                 </template>
               </NTooltip>
               <NTooltip>
-                <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> AI Suggestions</OutlinedButton>
+                <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> {{ $t('dialog_ai') }}</OutlinedButton>
                 <template #content>
                   <div class="max-w-sm">
-                    <p>Generates creative theme ideas using an AI language model. Requires AI provider configuration in settings.</p>
+                    <p>{{ $t('dialog_ai_tooltip') }}</p>
                   </div>
                 </template>
               </NTooltip>
@@ -148,7 +148,7 @@
                   <NIcon name="i-ph-gear" />
                 </OutlinedButton>
                 <template #content>
-                  <div class="max-w-sm"><p>Settings</p></div>
+                  <div class="max-w-sm"><p>{{ $t('dialog_settings') }}</p></div>
                 </template>
               </NTooltip>
 
@@ -157,23 +157,23 @@
                   <NIcon name="i-ph-hash" />
                 </OutlinedButton>
                 <template #content>
-                  <div class="max-w-sm"><p>Add seed tags to guide suggestion generation toward specific themes</p></div>
+                  <div class="max-w-sm"><p>{{ $t('dialog_seed_tooltip') }}</p></div>
                 </template>
               </NTooltip>
             </div>
             <div v-else-if="loadingSuggestions && suggestions.length === 0">
               <div class="flex items-center gap-2 text-sm text-gray-500">
                 <span class="i-ph-circle-notch animate-spin" />
-                Generating suggestions...
+                {{ $t('dialog_generate') }}...
               </div>
             </div>
             <div v-else-if="suggestions.length > 0">
               <div class="flex items-center justify-between mb-3">
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Theme Suggestions</h4>
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $t('dialog_suggestions') }}</h4>
                 <div class="flex items-center gap-1">
-                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" />Refresh</OutlinedButton>
-                  <OutlinedButton size="sm" @click="showAISettings = true; loadAISettings()"><span class="i-ph-gear" />Settings</OutlinedButton>
-                  <OutlinedButton size="sm" @click="cancelSuggestions()"><span class="i-ph-x" />Cancel</OutlinedButton>
+                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" />{{ $t('dialog_refresh') }}</OutlinedButton>
+                  <OutlinedButton size="sm" @click="showAISettings = true; loadAISettings()"><span class="i-ph-gear" />{{ $t('dialog_settings') }}</OutlinedButton>
+                  <OutlinedButton size="sm" @click="cancelSuggestions()"><span class="i-ph-x" />{{ $t('dialog_cancel') }}</OutlinedButton>
                 </div>
               </div>
               <div class="relative">
@@ -223,7 +223,7 @@
               <NInput
                 v-if="showTagInput"
                 v-model="tagInputValue"
-                placeholder="Type tag name and press Enter"
+                :placeholder="$t('dialog_tag_placeholder') as string"
                 size="xs"
                 class="w-44 seed-tag-input"
                 @keydown="onTagInputKeydown"
@@ -235,12 +235,12 @@
             <div>
               <NInput
                 v-model="form.name"
-                placeholder="e.g., To Infinity & Beyond"
+                :placeholder="$t('dialog_name_placeholder') as string"
                 :disabled="submitting"
                 class="pl-22"
                 required>
                 <template #leading>
-                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">Name *</span>
+                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_name_label') }}</span>
                 </template>
                 <template #trailing>
                   <NButton
@@ -257,27 +257,27 @@
             <div>
               <NInput
                 v-model="form.slug"
-                placeholder="e.g., space"
+                :placeholder="$t('dialog_slug_placeholder') as string"
                 :disabled="submitting"
                 class="pl-22"
                 required>
                 <template #leading>
-                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">Slug *</span>
+                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_slug_label') }}</span>
                 </template>
               </NInput>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Description</label>
-            <NInput type="textarea" v-model="form.description" :rows="2" placeholder="Short theme description" :disabled="submitting" />
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_desc_label') }}</label>
+            <NInput type="textarea" v-model="form.description" :rows="2" :placeholder="$t('dialog_desc_placeholder') as string" :disabled="submitting" />
           </div>
 
           <div class="bg-gray-50 dark:bg-gray-800 rounded-2 px-18 py-6">
-            <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">Theme Colors</h4>
+            <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">{{ $t('dialog_colors') }}</h4>
             <div class="flex gap-16">
               <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white">Primary</label>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_primary') }}</label>
                 <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_primary }}</span>
                 <div class="flex items-center gap-3">
                   <BlossomColorPicker
@@ -290,7 +290,7 @@
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white">Secondary</label>
+                <label class="block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_secondary') }}</label>
                 <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_secondary }}</span>
                 <div class="flex items-center gap-3">
                   <BlossomColorPicker
@@ -306,38 +306,38 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Image URL</label>
-            <NInput v-model="form.image_url" placeholder="https://..." :disabled="submitting" />
+            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_image_url') }}</label>
+            <NInput v-model="form.image_url" :placeholder="$t('dialog_image_placeholder') as string" :disabled="submitting" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Priority</label>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_priority') }}</label>
               <NNumberField v-model="form.priority" :min="0" :disabled="submitting" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Date</label>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_date') }}</label>
               <NInput v-model="form.scheduled_date" type="date" :disabled="submitting" />
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled Start</label>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_start') }}</label>
               <NInput v-model="form.scheduled_start" type="datetime-local" :disabled="submitting" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Scheduled End</label>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_end') }}</label>
               <NInput v-model="form.scheduled_end" type="datetime-local" :disabled="submitting" />
             </div>
             <div class="flex items-end gap-4 pb-1">
-              <NCheckbox v-model="form.is_active" label="Active" />
-              <NCheckbox v-model="form.is_default" label="Default fallback" />
+              <NCheckbox v-model="form.is_active" :label="$t('dialog_active') as string" />
+              <NCheckbox v-model="form.is_default" :label="$t('dialog_default_fallback') as string" />
             </div>
           </div>
 
           <div class="border-t pt-4">
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Content Filters</h4>
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ $t('dialog_filters') }}</h4>
             <div class="space-y-2 mb-3">
               <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[9rem_1fr_auto] gap-2 items-center">
                 <NSelect
@@ -348,7 +348,7 @@
                   @update:model-value="onFilterValueInput(idx)"
                 />
                 <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
-                  <NInput v-model="filter.value" placeholder="Value" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
+                  <NInput v-model="filter.value" :placeholder="$t('dialog_filter_value') as string" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
                   <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                     <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                       :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
                       {{ s.label }}
@@ -359,9 +359,9 @@
               </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
-              <OutlinedButton size="sm" @click="addFilter"><span class="i-ph-plus" /> Add Filter</OutlinedButton>
+              <OutlinedButton size="sm" @click="addFilter"><span class="i-ph-plus" /> {{ $t('dialog_add_filter') }}</OutlinedButton>
               <template v-if="filterRecommendations.length">
-                <span class="text-2xs text-gray-400">Suggestions:</span>
+                <span class="text-2xs text-gray-400">{{ $t('dialog_suggestions_label') }}</span>
                 <button v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" class="text-2xs px-2 py-0.5 rounded-full border border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" @click="applyFilterRecommendation(r)">
                   {{ r.label }}<span v-if="r.type !== 'tag_name'" class="ml-1 opacity-50">—{{ r.type.replace('_name', '').slice(0, 3) }}</span>
                 </button>
@@ -373,9 +373,9 @@
 
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-2">
-          <NButton btn="gray-link" class="hover:underline decoration-offset-6" :disabled="submitting" @click="showEditDialog = false">Cancel</NButton>
+          <NButton btn="gray-link" class="hover:underline decoration-offset-6" :disabled="submitting" @click="showEditDialog = false">{{ $t('common.cancel') }}</NButton>
           <PrimaryButton class="px-6" :loading="submitting" :disabled="!form.name.trim() || !form.slug.trim()" @click="saveTheme">
-            {{ editMode ? 'Update Theme' : 'Create Theme' }}
+            {{ editMode ? $t('dialog_update') : $t('dialog_create') }}
           </PrimaryButton>
         </div>
       </template>
@@ -383,30 +383,30 @@
 
     <NDialog v-model:open="showDeleteDialog" :una="{ dialogContent: 'md:max-w-sm' }">
       <div>
-        <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">Delete Theme</h3>
+        <h3 class="font-title uppercase text-size-4 font-600 mb-3 ml-4">{{ $t('dialog_delete_title') }}</h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          Are you sure you want to delete <span class="font-medium">{{ themeToDelete?.name }}</span>? This will remove all its content filters.
+          {{ $t('dialog_delete_body', { name: themeToDelete?.name }) }}
         </p>
         <div class="flex justify-end gap-3">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" :disabled="submitting" @click="showDeleteDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="submitting" @click="confirmDelete">Delete</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" :disabled="submitting" @click="showDeleteDialog = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton variant="destructive" :loading="submitting" @click="confirmDelete">{{ $t('common.delete') }}</OutlinedButton>
         </div>
       </div>
     </NDialog>
 
     <NDialog v-model:open="showAISettings" :una="{ dialogContent: 'md:max-w-md' }">
       <template #header>
-        <h3 class="font-title uppercase text-size-4 font-600 ml-4">AI Suggestions Settings</h3>
+        <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ $t('dialog_ai_settings') }}</h3>
       </template>
       <div class="space-y-4 px-4">
         <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Provider</label>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_ai_provider') }}</label>
           <NSelect v-model="aiSettings.provider" :items="providerOptions" size="sm" />
           <p class="text-xs text-gray-400 mt-1 capitalize">Selected: {{ aiSettings.provider }}</p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2 capitalize">API Key ({{ aiSettings.provider }})</label>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2 capitalize">{{ $t('dialog_ai_api_key') }} ({{ aiSettings.provider }})</label>
           <NInput
             :model-value="activeProviderSettings.apiKey"
             @update:model-value="(v) => setProviderSetting('api_key', v)"
@@ -416,7 +416,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Model</label>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_ai_model') }}</label>
           <NInput
             :model-value="activeProviderSettings.model"
             @update:model-value="(v) => setProviderSetting('model', v)"
@@ -425,20 +425,20 @@
         </div>
 
         <div v-if="aiSettings.provider === 'custom'">
-          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">API Base URL</label>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_ai_base_url') }}</label>
           <NInput v-model="aiSettings.custom_base_url" placeholder="https://..." size="sm" />
         </div>
         <div v-else>
           <p class="text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-            Base URL: <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
+            {{ $t('dialog_ai_base_url_label') }} <code class="text-xs px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800">{{ aiSettings.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : aiSettings.provider === 'opencode' ? 'https://opencode.ai/zen/go/v1' : 'https://api.openai.com/v1' }}</code>
           </p>
         </div>
 
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pt-2 pb-2">
-          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" @click="showAISettings = false">Cancel</button>
-          <OutlinedButton variant="primary" :loading="savingAISettings" @click="saveAISettings">Save Settings</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" @click="showAISettings = false">{{ $t('common.cancel') }}</button>
+          <OutlinedButton variant="primary" :loading="savingAISettings" @click="saveAISettings">{{ $t('common.save') }}</OutlinedButton>
         </div>
       </template>
     </NDialog>
@@ -453,10 +453,11 @@ import { BlossomColorPicker } from '@dayflow/blossom-color-picker-vue'
 import type { BlossomColorPickerColor } from '@dayflow/blossom-color-picker-vue'
 import { ensureHexColor, hexToBlossomValue } from '~/utils/color'
 
+const { $t } = useI18n()
 const { showErrorToast } = useErrorToast()
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'Themes - Admin - Verbatims' })
+useHead({ title: $t('meta_title') as string })
 
 const loading = ref(false)
 const themes = ref<any[]>([])
@@ -554,9 +555,9 @@ const saveAISettings = async () => {
       },
     })
     showAISettings.value = false
-    useToast().toast({ toast: 'outline-success', title: 'AI settings saved' })
+    useToast().toast({ toast: 'outline-success', title: $t('toast_ai_saved') as string })
   } catch {
-    showErrorToast(null, { title: 'Error', fallback: 'Failed to save AI settings' })
+    showErrorToast(null, { title: $t('toast_error') as string, fallback: 'Failed to save AI settings' })
   } finally {
     savingAISettings.value = false
   }
@@ -573,7 +574,7 @@ const toggleLocation = async () => {
     })
   } catch {
     useLocation.value = !useLocation.value
-    showErrorToast(null, { title: 'Error', fallback: 'Failed to save location preference' })
+    showErrorToast(null, { title: $t('toast_error') as string, fallback: 'Failed to save location preference' })
   }
 }
 
@@ -589,7 +590,7 @@ const suggestingName = ref(false)
 const suggestName = async () => {
   const current = form.value.name.trim()
   if (current.length < 3) {
-    useToast().toast({ toast: 'outline-warning', title: 'Enter at least 3 characters first' })
+    useToast().toast({ toast: 'outline-warning', title: $t('toast_min_chars') as string })
     return
   }
 
@@ -605,7 +606,7 @@ const suggestName = async () => {
       if (res.data.description) form.value.description = res.data.description
     }
   } catch (e: any) {
-    showErrorToast(e, { title: 'Error', fallback: 'Failed to generate name' })
+    showErrorToast(e, { title: $t('toast_error') as string, fallback: $t('toast_name_failed') as string })
   } finally {
     suggestingName.value = false
   }
@@ -669,7 +670,7 @@ const loadSuggestions = async () => {
     const res = await $fetch('/api/admin/themes/suggestions', { params })
     suggestions.value = res?.data || []
   } catch {
-    showErrorToast(null, { title: 'Error', fallback: 'Failed to load suggestions' })
+    showErrorToast(null, { title: $t('toast_error') as string, fallback: 'Failed to load suggestions' })
   } finally {
     loadingSuggestions.value = false
   }
@@ -683,11 +684,11 @@ const loadAISuggestions = async () => {
     if (promptTags.value.length) params.tags = promptTags.value.join(',')
     const res = await $fetch('/api/admin/themes/suggestions', { params })
     if (!res?.data || !res.data.length) {
-      useToast().toast({ toast: 'outline-warning', title: 'No AI suggestions', description: 'AI returned no results. Check your AI settings or fallback to regular suggestions.' })
+      useToast().toast({ toast: 'outline-warning', title: $t('toast_no_ai') as string, description: 'AI returned no results. Check your AI settings or fallback to regular suggestions.' })
     }
     suggestions.value = res?.data || []
   } catch {
-    showErrorToast(null, { title: 'AI Error', fallback: 'Failed to generate AI suggestions. Check your AI settings.' })
+    showErrorToast(null, { title: $t('toast_error') as string, fallback: 'Failed to generate AI suggestions. Check your AI settings.' })
   } finally {
     loadingSuggestions.value = false
   }
@@ -790,12 +791,12 @@ useAdminKeyboardShortcuts({
 })
 
 const sortOptions = [
-  { label: 'Priority (High-Low)', value: 'priority_desc' },
-  { label: 'Priority (Low-High)', value: 'priority_asc' },
-  { label: 'Name A-Z', value: 'name_asc' },
-  { label: 'Name Z-A', value: 'name_desc' },
-  { label: 'Slug A-Z', value: 'slug_asc' },
-  { label: 'Scheduled Date', value: 'scheduled_date_desc' },
+  { label: $t('sort_priority_high') as string, value: 'priority_desc' },
+  { label: $t('sort_priority_low') as string, value: 'priority_asc' },
+  { label: $t('sort_name_az') as string, value: 'name_asc' },
+  { label: $t('sort_name_za') as string, value: 'name_desc' },
+  { label: $t('sort_slug_az') as string, value: 'slug_asc' },
+  { label: $t('sort_scheduled') as string, value: 'scheduled_date_desc' },
 ]
 
 const tableColumns = [
@@ -812,27 +813,27 @@ const totalPages = computed(() => Math.ceil(totalThemes.value / pageSize.value))
 const headerActions = computed(() => {
   const actions: any[] = []
   if (selectedIds.value.length > 0) {
-    actions.push({ label: 'Delete Selected', leading: 'i-ph-trash', shortcut: 'D', onclick: () => { showDeleteDialog.value = true } })
+    actions.push({ label: $t('dropdown_delete_selected'), leading: 'i-ph-trash', shortcut: 'D', onclick: () => { showDeleteDialog.value = true } })
   }
   if (actions.length > 0) actions.push({})
-  actions.push({ label: 'Add New Theme', leading: 'i-ph-plus', onclick: () => { openCreate() } })
+  actions.push({ label: $t('dropdown_add'), leading: 'i-ph-plus', onclick: () => { openCreate() } })
   actions.push({})
-  actions.push({ label: 'Refresh', leading: 'i-ph-arrows-clockwise', onclick: () => loadThemes() })
-  actions.push({ label: 'Reset Filters', leading: 'i-ph-x', onclick: () => resetFilters() })
+  actions.push({ label: $t('dropdown_refresh'), leading: 'i-ph-arrows-clockwise', onclick: () => loadThemes() })
+  actions.push({ label: $t('dropdown_reset'), leading: 'i-ph-x', onclick: () => resetFilters() })
   return actions
 })
 
 const getThemeActions = (theme: any) => {
   const actions: any[] = [
-    { label: 'Edit Theme', leading: 'i-ph-pencil', onclick: () => openEdit(theme) },
+    { label: $t('row_edit'), leading: 'i-ph-pencil', onclick: () => openEdit(theme) },
     theme.isActive
-      ? { label: 'Deactivate', leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) }
-      : { label: 'Activate', leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },
+      ? { label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) }
+      : { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },
     theme.isDefault
-      ? { label: 'Remove from Defaults', leading: 'i-ph-star-slash', onclick: () => toggleDefault(theme, false) }
-      : { label: 'Set as Default', leading: 'i-ph-star', onclick: () => toggleDefault(theme, true) },
+      ? { label: $t('row_remove_default'), leading: 'i-ph-star-slash', onclick: () => toggleDefault(theme, false) }
+      : { label: $t('row_set_default'), leading: 'i-ph-star', onclick: () => toggleDefault(theme, true) },
     {},
-    { label: 'Delete Theme', leading: 'i-ph-trash', onclick: () => { themeToDelete.value = theme; showDeleteDialog.value = true } },
+    { label: $t('row_delete'), leading: 'i-ph-trash', onclick: () => { themeToDelete.value = theme; showDeleteDialog.value = true } },
   ]
   return actions
 }
@@ -859,7 +860,7 @@ const loadThemes = async () => {
     rowSelection.value = {}
     clearHighlight()
   } catch (e) {
-    showErrorToast(e, 'Failed to load themes')
+    showErrorToast(e, $t('error_load') as string)
   } finally {
     loading.value = false
   }
@@ -919,7 +920,7 @@ const openEdit = async (theme: any) => {
     initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
   } catch (e) {
-    showErrorToast(e, 'Failed to load theme details')
+    showErrorToast(e, $t('error_load') as string)
     return
   }
   showEditDialog.value = true
@@ -1112,7 +1113,7 @@ const removeFilter = async (idx: number) => {
     try {
       await $fetch(`/api/admin/themes/${editingThemeId.value}/filters/${filter.id}`, { method: 'DELETE' })
     } catch {
-      showErrorToast(null, { title: 'Error', fallback: 'Failed to delete filter' })
+      showErrorToast(null, { title: $t('toast_error') as string, fallback: $t('error_delete_filter') as string })
       return
     }
   }
@@ -1173,10 +1174,10 @@ const saveTheme = async () => {
   } catch (error: any) {
     console.error('Error saving theme:', error)
     if (error?.statusCode === 409) {
-      showErrorToast(error, { title: 'Duplicate slug' })
+      showErrorToast(error, { title: $t('error_duplicate_slug') as string })
       return
     }
-    showErrorToast(error, { title: 'Error' })
+    showErrorToast(error, { title: $t('toast_error') as string })
   } finally {
     submitting.value = false
   }
@@ -1193,14 +1194,14 @@ const confirmDelete = async () => {
       const ids = [...selectedIds.value]
       const results = await Promise.allSettled(ids.map(id => $fetch(`/api/admin/themes/${id}`, { method: 'DELETE' })))
       const failed = results.filter(r => r.status === 'rejected').length
-      useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: `Deleted ${ids.length - failed} theme${ids.length - failed !== 1 ? 's' : ''}` })
+      useToast().toast({ toast: failed ? 'outline-warning' : 'soft-success', title: $t('toast_deleted', { n: ids.length - failed, s: ids.length - failed !== 1 ? 's' : '' }) as string })
     }
     showDeleteDialog.value = false
     themeToDelete.value = null
     rowSelection.value = {}
     await loadThemes()
   } catch (e) {
-    showErrorToast(e, 'Failed to delete theme')
+    showErrorToast(e, $t('error_delete_theme') as string)
   } finally {
     submitting.value = false
   }
@@ -1211,7 +1212,7 @@ const toggleActive = async (theme: any, isActive: boolean) => {
     await $fetch(`/api/admin/themes/${theme.id}/activate`, { method: 'PUT', body: { is_active: isActive } })
     await loadThemes()
   } catch {
-    showErrorToast(null, { title: 'Error', fallback: 'Failed to toggle theme' })
+    showErrorToast(null, { title: $t('toast_error') as string, fallback: $t('error_toggle') as string })
   }
 }
 
@@ -1220,7 +1221,7 @@ const toggleDefault = async (theme: any, isDefault: boolean) => {
     await $fetch(`/api/admin/themes/${theme.id}/default`, { method: 'PUT', body: { is_default: isDefault } })
     await loadThemes()
   } catch {
-    showErrorToast(null, { title: 'Error', fallback: 'Failed to toggle default' })
+    showErrorToast(null, { title: $t('toast_error') as string, fallback: $t('error_toggle_default') as string })
   }
 }
 

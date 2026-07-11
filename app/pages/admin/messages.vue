@@ -5,14 +5,14 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Messages
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
             {{ totalMessages }} {{ totalMessages === 1 ? 'message' : 'messages' }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <input v-model="searchQuery" type="text" placeholder="Search name, email, or message..." class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
+          <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
           <select v-model="statusFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
             <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
           </select>
@@ -25,7 +25,7 @@
         </div>
       </div>
       <div class="md:hidden mt-4 flex gap-2">
-        <input v-model="searchQuery" type="text" placeholder="Search messages..." class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
+        <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder_mobile') as string" class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" />
       </div>
     </div>
 
@@ -39,18 +39,18 @@
     <!-- Empty -->
     <div v-else-if="hasLoadedOnce && messages.length === 0" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
       <NIcon name="i-ph-chat-circle" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value ? 'No matching messages' : 'No messages yet' }}</p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value ? 'Try adjusting your filters.' : 'User messages will appear here when someone contacts you through the site.' }}</p>
+      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value ? $t('empty_search_title') : $t('empty_title') }}</p>
+      <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery || statusFilter.value || categoryFilter.value || targetFilter.value ? $t('empty_search_desc') : $t('empty_desc') }}</p>
     </div>
 
     <!-- Table -->
     <div v-else-if="hasLoadedOnce">
       <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedIds.length }} selected</span>
-        <OutlinedButton size="sm" @click="bulkSetStatus('triaged')">Mark Triaged</OutlinedButton>
-        <OutlinedButton size="sm" variant="primary" @click="bulkSetStatus('resolved')">Mark Resolved</OutlinedButton>
-        <OutlinedButton size="sm" variant="destructive" @click="bulkSetStatus('spam')">Mark Spam</OutlinedButton>
-        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">Clear</button>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedIds.length }) }}</span>
+        <OutlinedButton size="sm" @click="bulkSetStatus('triaged')">{{ $t('bulk_triaged') }}</OutlinedButton>
+        <OutlinedButton size="sm" variant="primary" @click="bulkSetStatus('resolved')">{{ $t('bulk_resolved') }}</OutlinedButton>
+        <OutlinedButton size="sm" variant="destructive" @click="bulkSetStatus('spam')">{{ $t('bulk_spam') }}</OutlinedButton>
+        <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto" @click="clearSelection">{{ $t('common.clear') }}</button>
       </div>
 
       <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
@@ -58,11 +58,11 @@
           <thead>
             <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
               <th class="w-10 px-3 py-3 text-left"><NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" /></th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Message</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Category</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Target</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Date</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_message') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_category') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_target') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_date') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -80,8 +80,8 @@
                   <span v-if="msg.target_type !== 'general'"> &middot; {{ formatTarget(msg) }}</span>
                 </div>
                 <div class="flex items-center gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 mt-2 pt-2">
-                  <span class="font-sans text-xs font-500 italic text-gray-500 dark:text-gray-400">From:</span>
-                  <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ msg.user_name || msg.name || 'Anonymous' }}</span>
+                  <span class="font-sans text-xs font-500 italic text-gray-500 dark:text-gray-400">{{ $t('label_from') }}</span>
+                  <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ msg.user_name || msg.name || $t('label_anonymous') }}</span>
                   <span v-if="msg.user_email || msg.email" class="font-sans text-xs text-gray-500 dark:text-gray-400">({{ msg.user_email || msg.email }})</span>
                 </div>
               </td>
@@ -108,16 +108,16 @@
 
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalMessages }} {{ totalMessages === 1 ? 'message' : 'messages' }}</span>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalMessages }} {{ totalMessages === 1 ? 'message' : 'messages' }}</span>
         <div class="flex items-center gap-3">
-          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
+          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
         </div>
       </div>
       <div v-else class="pt-4 text-center">
-        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.no_more_pages') }}</span>
       </div>
     </div>
   </div>
@@ -129,8 +129,10 @@ import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcu
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 type MessageStatus = AdminUserMessage['status']
 
+const { $t } = useI18n()
+
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-useHead({ title: 'Messages - Admin - Verbatims' })
+useHead({ title: $t('meta_title') as string })
 
 const messages: Ref<AdminUserMessage[]> = ref([])
 const loading = ref(true)
@@ -142,25 +144,25 @@ const totalPages = ref(0)
 const bulkLoading = ref(false)
 
 const searchQuery = ref('')
-const statusFilter = ref({ label: 'All statuses', value: '' })
-const categoryFilter = ref({ label: 'All categories', value: '' })
-const targetFilter = ref({ label: 'All targets', value: '' })
+const statusFilter = ref({ label: $t('filter_all_statuses') as string, value: '' })
+const categoryFilter = ref({ label: $t('filter_all_categories') as string, value: '' })
+const targetFilter = ref({ label: $t('filter_all_targets') as string, value: '' })
 
-const statusOptions = [
-  { label: 'All statuses', value: '' },
-  { label: 'New', value: 'new' }, { label: 'Triaged', value: 'triaged' },
-  { label: 'Resolved', value: 'resolved' }, { label: 'Spam', value: 'spam' }
-]
+const statusOptions = computed(() => [
+  { label: $t('filter_all_statuses') as string, value: '' },
+  { label: $t('filter_new') as string, value: 'new' }, { label: $t('filter_triaged') as string, value: 'triaged' },
+  { label: $t('filter_resolved') as string, value: 'resolved' }, { label: $t('filter_spam') as string, value: 'spam' }
+])
 
-const categoryOptions = [
-  { label: 'All categories', value: '' }, { label: 'Bug', value: 'bug' }, { label: 'Feature', value: 'feature' },
-  { label: 'Feedback', value: 'feedback' }, { label: 'Content', value: 'content' }, { label: 'Other', value: 'other' }
-]
+const categoryOptions = computed(() => [
+  { label: $t('filter_all_categories') as string, value: '' }, { label: $t('filter_bug') as string, value: 'bug' }, { label: $t('filter_feature') as string, value: 'feature' },
+  { label: $t('filter_feedback') as string, value: 'feedback' }, { label: $t('filter_content') as string, value: 'content' }, { label: $t('filter_other') as string, value: 'other' }
+])
 
-const targetOptions = [
-  { label: 'All targets', value: '' }, { label: 'General', value: 'general' }, { label: 'Quote', value: 'quote' },
-  { label: 'Author', value: 'author' }, { label: 'Reference', value: 'reference' }
-]
+const targetOptions = computed(() => [
+  { label: $t('filter_all_targets') as string, value: '' }, { label: $t('filter_target_general') as string, value: 'general' }, { label: $t('filter_target_quote') as string, value: 'quote' },
+  { label: $t('filter_target_author') as string, value: 'author' }, { label: $t('filter_target_reference') as string, value: 'reference' }
+])
 
 const rowSelection: Ref<Record<number, boolean>> = ref({})
 const lastSelectedIndex = ref<number | null>(null)
@@ -189,8 +191,8 @@ const loadMessages = async (page = 1) => {
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''; statusFilter.value = { label: 'All statuses', value: '' }
-  categoryFilter.value = { label: 'All categories', value: '' }; targetFilter.value = { label: 'All targets', value: '' }
+  searchQuery.value = ''; statusFilter.value = statusOptions.value[0]!
+  categoryFilter.value = categoryOptions.value[0]!; targetFilter.value = targetOptions.value[0]!
   currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 
@@ -198,7 +200,7 @@ watchDebounced([searchQuery, statusFilter, categoryFilter, targetFilter], () => 
 watch(currentPage, () => { loadMessages(currentPage.value) })
 
 const truncate = (t: string, n: number): string => t?.length > n ? t.slice(0, n) + '\u2026' : t
-const formatTarget = (row: AdminUserMessage) => row.target_type === 'quote' ? `Quote: ${truncate(row.target_label, 40)}` : row.target_type === 'author' ? `Author: ${row.target_label}` : row.target_type === 'reference' ? `Reference: ${row.target_label}` : 'General'
+const formatTarget = (row: AdminUserMessage) => row.target_type === 'quote' ? `${$t('filter_target_quote')}: ${truncate(row.target_label, 40)}` : row.target_type === 'author' ? `${$t('filter_target_author')}: ${row.target_label}` : row.target_type === 'reference' ? `${$t('filter_target_reference')}: ${row.target_label}` : $t('filter_target_general')
 
 const statusPillClass = (status: string) => {
   switch (status) {
@@ -216,17 +218,17 @@ const setStatus = async (row: AdminUserMessage, status: MessageStatus) => {
 }
 
 const statusItems = (row: AdminUserMessage) => ([
-  { label: 'New', leading: 'i-ph-star-four-duotone', onclick: () => setStatus(row, 'new') },
-  { label: 'Triaged', leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
-  { label: 'Resolved', leading: 'i-ph-check', onclick: () => setStatus(row, 'resolved') },
-  { label: 'Spam', leading: 'i-ph-warning', onclick: () => setStatus(row, 'spam') }
+  { label: $t('status_new') as string, leading: 'i-ph-star-four-duotone', onclick: () => setStatus(row, 'new') },
+  { label: $t('status_triaged') as string, leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
+  { label: $t('status_resolved') as string, leading: 'i-ph-check', onclick: () => setStatus(row, 'resolved') },
+  { label: $t('status_spam') as string, leading: 'i-ph-warning', onclick: () => setStatus(row, 'spam') }
 ])
 
 const rowActions = (row: AdminUserMessage) => ([
-  { label: 'Copy details', leading: 'i-ph-copy', onclick: async () => { const summary = `From: ${row.user_name || row.name || 'Anonymous'} <${row.user_email || row.email || ''}>\nCategory: ${row.category}\nTarget: ${row.target_type}${row.target_label ? ` (${row.target_label})` : ''}\nTags: ${(row.tags || []).join(', ')}\nMessage: ${row.message}`; try { await navigator.clipboard.writeText(summary) } catch {} } },
-  {}, { label: 'Mark triaged', leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
-  { label: 'Mark resolved', leading: 'i-ph-check', onclick: () => setStatus(row, 'resolved') },
-  { label: 'Mark spam', leading: 'i-ph-warning', onclick: () => setStatus(row, 'spam') }
+  { label: $t('dropdown_copy') as string, leading: 'i-ph-copy', onclick: async () => { const summary = `${$t('label_from')} ${row.user_name || row.name || $t('label_anonymous')} <${row.user_email || row.email || ''}>\nCategory: ${row.category}\nTarget: ${row.target_type}${row.target_label ? ` (${row.target_label})` : ''}\nTags: ${(row.tags || []).join(', ')}\nMessage: ${row.message}`; try { await navigator.clipboard.writeText(summary) } catch {} } },
+  {}, { label: $t('dropdown_triaged') as string, leading: 'i-ph-play-duotone', onclick: () => setStatus(row, 'triaged') },
+  { label: $t('dropdown_resolved') as string, leading: 'i-ph-check', onclick: () => setStatus(row, 'resolved') },
+  { label: $t('dropdown_spam') as string, leading: 'i-ph-warning', onclick: () => setStatus(row, 'spam') }
 ])
 
 const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {

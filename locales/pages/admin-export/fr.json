@@ -1,1 +1,9 @@
-{}
+{
+  "meta_title": "VERBATIMS - Export - Admin",
+  "title": "Export de données",
+  "tab_export": "Export",
+  "tab_history": "Historique",
+  "dialog_in_progress": "Export en cours",
+  "dialog_body": "Traitement de l'export... Cela peut prendre quelques instants.",
+  "close": "Fermer"
+}
