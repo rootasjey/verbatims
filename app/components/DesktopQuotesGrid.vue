@@ -11,7 +11,7 @@
             ref="searchInput"
             :model-value="feed.searchQuery?.value"
             @update:model-value="val => (feed.searchQuery.value = val)"
-            placeholder="Search quotes..."
+            :placeholder="$t('desktop_quotes_grid.search_placeholder') as string"
             leading="i-ph-magnifying-glass"
             :trailing="feed.searchQuery?.value ? 'i-ph-x' : undefined"
             size="md"
@@ -27,7 +27,7 @@
             :model-value="feed.selectedSortBy?.value"
             @update:model-value="(val) => { feed.selectedSortBy.value = val }"
             :items="feed.sortByOptions"
-            placeholder="Sort by"
+            :placeholder="$t('desktop_quotes_grid.sort_by') as string"
             size="sm"
             item-key="label"
             value-key="label"
@@ -62,18 +62,18 @@
     <div v-else-if="!feed.quotesLoading?.value" class="px-8 py-24 sm:py-32">
       <div class="max-w-xl mx-auto text-center">
         <p v-if="feed.searchQuery?.value" class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-          No quotes match
+          {{ $t('desktop_quotes_grid.no_quotes_match') }}
         </p>
         <p v-else class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-          No quotes yet.
+          {{ $t('desktop_quotes_grid.no_quotes_yet') }}
         </p>
 
         <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
           <template v-if="feed.searchQuery?.value">
-            No results for &ldquo;{{ feed.searchQuery.value }}&rdquo;.
+            {{ $t('desktop_quotes_grid.no_results_for', { query: feed.searchQuery.value }) }}
           </template>
           <template v-else>
-            Every great quote starts somewhere. Add one and inspire the community.
+            {{ $t('desktop_quotes_grid.empty_description') }}
           </template>
         </p>
 
@@ -84,7 +84,7 @@
             class="hover:scale-102 active:scale-99 transition-[transform] duration-150"
             @click="showNewQuoteDialog = true"
           >
-            Submit a quote
+            {{ $t('desktop_quotes_grid.submit_quote') }}
           </NButton>
         </div>
       </div>
@@ -93,8 +93,8 @@
     <div v-if="feed.hasMore?.value" class="flex justify-center">
       <LoadMoreButton
         class="mb-4"
-        idleText="Load More Quotes"
-        loadingText="Loading Quotes..."
+        :idleText="$t('desktop_quotes_grid.load_more') as string"
+        :loadingText="$t('desktop_quotes_grid.loading') as string"
         :isLoading="feed.quotesLoading?.value"
         @load="feed.loadMore()"
       />
@@ -112,6 +112,8 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types';
+
+const { $t } = useI18n()
 
 const props = defineProps<{
   feed: UseQuoteSearchFeed

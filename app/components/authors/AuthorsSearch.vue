@@ -6,7 +6,7 @@
           ref="searchInput"
           input="outline-gray"
           v-model="searchQueryModel"
-          :placeholder="`Search among ${totalAuthors || 0} authors...`"
+          :placeholder="$t('authors.search.search_placeholder', { count: totalAuthors || 0 }) as string"
           leading="i-ph-magnifying-glass"
           :trailing="searchQueryModel ? 'i-ph-x' : undefined"
           size="md"
@@ -22,7 +22,7 @@
         <NSelect
           v-model="sortByModel"
           :items="sortOptions"
-          placeholder="Sort by"
+          :placeholder="$t('authors.search.sort_by') as string"
           item-key="label"
           value-key="label"
           select="outline-gray"
@@ -50,6 +50,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface Option { label: string; value: string }
 
 const searchInput = ref<any>(null)

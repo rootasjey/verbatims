@@ -3,7 +3,7 @@
     <!-- Primary Type Filter -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Primary Type
+        {{ $ts('filters.primary_type') }}
       </label>
       <div>
         <select
@@ -20,12 +20,12 @@
     <!-- Search -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Reference Name (search)
+        {{ $ts('filters.reference_name') }}
       </label>
       <input
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
-        placeholder="Search by reference name"
+        :placeholder="$ts('filters.search_reference')"
         class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
@@ -33,21 +33,21 @@
     <!-- Date Range -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Date Range
+        {{ $ts('filters.date_range') }}
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
           :model-value="modelValue.date_range?.start || ''"
           @update:model-value="updateDateRange('start', $event)"
           type="date"
-          placeholder="Start date"
+          :placeholder="$ts('filters.start_date')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
         <input
           :model-value="modelValue.date_range?.end || ''"
           @update:model-value="updateDateRange('end', $event)"
           type="date"
-          placeholder="End date"
+          :placeholder="$ts('filters.end_date')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
@@ -57,7 +57,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Min Views
+          {{ $ts('filters.min_views') }}
         </label>
         <input
           :model-value="modelValue.min_views"
@@ -70,7 +70,7 @@
       </div>
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Min Quotes
+          {{ $ts('filters.min_quotes') }}
         </label>
         <input
           :model-value="modelValue.min_quotes"
@@ -86,6 +86,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 interface Props {
   modelValue: ReferenceExportFilters
   primaryTypeOptions: Array<{ label: string; value: string }>

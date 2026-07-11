@@ -3,12 +3,12 @@
     <!-- Search -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        User Search (name or email)
+        {{ $ts('filters.user_search') }}
       </label>
       <input
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
-        placeholder="Search by name or email"
+        :placeholder="$ts('filters.search_user')"
         class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
@@ -16,7 +16,7 @@
     <!-- Role Filter -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        User Role
+        {{ $ts('filters.user_role') }}
       </label>
       <div>
         <select
@@ -34,15 +34,15 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Account Status
-        </label>
+        {{ $ts('filters.account_status') }}
+      </label>
         <div>
           <select
             :value="activeStatusModel?.value === undefined ? '' : String(activeStatusModel.value)"
             @change="activeStatusModel = (($event.target as HTMLSelectElement).value === '' ? null : activeStatusOptions.find(o => String(o.value) === ($event.target as HTMLSelectElement).value) ?? null)"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
           >
-            <option value="">All accounts</option>
+            <option value="">{{ $ts('filters.all_accounts') }}</option>
             <option v-for="opt in activeStatusOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</option>
           </select>
         </div>
@@ -50,15 +50,15 @@
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Email Verification
-        </label>
+        {{ $ts('filters.email_verification') }}
+      </label>
         <div>
           <select
             :value="emailVerifiedModel?.value === undefined ? '' : String(emailVerifiedModel.value)"
             @change="emailVerifiedModel = (($event.target as HTMLSelectElement).value === '' ? null : verificationOptions.find(o => String(o.value) === ($event.target as HTMLSelectElement).value) ?? null)"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
           >
-            <option value="">All users</option>
+            <option value="">{{ $ts('filters.all_users') }}</option>
             <option v-for="opt in verificationOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</option>
           </select>
         </div>
@@ -69,7 +69,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Language Preference
+          {{ $ts('filters.language_preference') }}
         </label>
         <div>
           <select
@@ -85,12 +85,12 @@
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Location (search)
+          {{ $ts('filters.location_search') }}
         </label>
         <input
           :model-value="modelValue.location"
           @update:model-value="updateFilter('location', $event)"
-          placeholder="Search by location"
+          :placeholder="$ts('filters.search_location')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
@@ -99,12 +99,12 @@
     <!-- Job/Profession Filter -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Job/Profession (search)
+        {{ $ts('filters.job_profession_search') }}
       </label>
       <input
         :model-value="modelValue.job"
         @update:model-value="updateFilter('job', $event)"
-        placeholder="Search by job or profession"
+        :placeholder="$ts('filters.search_job')"
         class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
@@ -112,7 +112,7 @@
     <!-- Creation Date Range -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Registration Date Range
+        {{ $ts('filters.registration_date') }}
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
@@ -135,7 +135,7 @@
     <!-- Last Login Date Range -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Last Login Date Range
+        {{ $ts('filters.last_login_date') }}
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
@@ -159,7 +159,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Minimum Quotes Created
+          {{ $ts('filters.min_quotes_created') }}
         </label>
         <input
           :model-value="modelValue.min_quotes"
@@ -173,7 +173,7 @@
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Minimum Collections Created
+          {{ $ts('filters.min_collections') }}
         </label>
         <input
           :model-value="modelValue.min_collections"
@@ -189,6 +189,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 interface Props {
   modelValue: UserExportFilters
 }
@@ -202,34 +204,34 @@ const emit = defineEmits<{
 
 // const currentRole = ref<{ label: string; value: string } | null>(null)
 const roleOptions = [
-  { label: 'User', value: 'user' },
-  { label: 'Moderator', value: 'moderator' },
-  { label: 'Admin', value: 'admin' }
+  { label: $ts('filters.role_user'), value: 'user' },
+  { label: $ts('filters.role_moderator'), value: 'moderator' },
+  { label: $ts('filters.role_admin'), value: 'admin' }
 ]
 
 // Options for active status filter
 const activeStatusOptions = [
-  { label: 'Active Accounts', value: true },
-  { label: 'Inactive Accounts', value: false }
+  { label: $ts('filters.active_accounts'), value: true },
+  { label: $ts('filters.inactive_accounts'), value: false }
 ]
 
 // Options for email verification filter
 const verificationOptions = [
-  { label: 'Verified Email', value: true },
-  { label: 'Unverified Email', value: false }
+  { label: $ts('filters.verified_email'), value: true },
+  { label: $ts('filters.unverified_email'), value: false }
 ]
 
 // Options for language filter
 const languageOptions = [
-  { label: 'English', value: 'en' },
-  { label: 'French', value: 'fr' },
-  { label: 'Spanish', value: 'es' },
-  { label: 'German', value: 'de' },
-  { label: 'Italian', value: 'it' },
-  { label: 'Portuguese', value: 'pt' },
-  { label: 'Russian', value: 'ru' },
-  { label: 'Japanese', value: 'ja' },
-  { label: 'Chinese', value: 'zh' }
+  { label: $ts('languages.en'), value: 'en' },
+  { label: $ts('languages.fr'), value: 'fr' },
+  { label: $ts('languages.es'), value: 'es' },
+  { label: $ts('languages.de'), value: 'de' },
+  { label: $ts('languages.it'), value: 'it' },
+  { label: $ts('languages.pt'), value: 'pt' },
+  { label: $ts('languages.ru'), value: 'ru' },
+  { label: $ts('languages.ja'), value: 'ja' },
+  { label: $ts('languages.zh'), value: 'zh' }
 ]
 
 const updateFilter = (key: keyof UserExportFilters, value: any) => {

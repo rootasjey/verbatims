@@ -6,8 +6,8 @@
         <div class="max-w-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center gap-3 mb-4">
             <div>
-              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Export Data</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Download your export</p>
+              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.title') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $ts('export_create.description') }}</p>
             </div>
           </div>
 
@@ -22,10 +22,10 @@
                 <NIcon :name="dataExport.exportOptions.value.download_after_export ? 'i-ph-download' : 'i-ph-export-duotone'" />
                 {{
                   dataExport.state.isExporting
-                    ? 'Exporting...'
+                    ? $ts('export_create.exporting')
                     : (dataExport.exportOptions.value.download_after_export
-                        ? 'Generate & Download Export'
-                        : 'Generate Export')
+                        ? $ts('export_create.generate_download_export')
+                        : $ts('export_create.generate_export'))
                 }}
               </OutlinedButton>
 
@@ -35,13 +35,13 @@
                 @click="() => dataExport.resetFilters({ clearStorage: true })"
               >
                 <NIcon name="i-ph-arrow-clockwise" />
-                Reset All
+                {{ $ts('export_create.reset_all') }}
               </button>
             </div>
 
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" v-model="dataExport.exportOptions.value.download_after_export" class="accent-gray-700 dark:accent-gray-300" />
-              <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Download after export</span>
+              <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('export_create.download_after_export') }}</span>
             </label>
           </div>
         </div>
@@ -50,8 +50,8 @@
         <div class="max-w-2xl min-w-md border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center gap-3 mb-4">
             <div>
-              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Preview Export</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Review data before export</p>
+              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.preview_title') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $ts('export_create.preview_desc') }}</p>
             </div>
           </div>
 
@@ -62,7 +62,7 @@
                 @click="dataExport.validateExport"
               >
                 <NIcon name="i-ph-magnifying-glass" />
-                Generate Preview
+                {{ $ts('export_create.generate_preview') }}
               </OutlinedButton>
             </div>
 
@@ -74,31 +74,31 @@
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
                       {{ dataExport.state.previewData?.estimated_count?.toLocaleString() || 0 }}
                     </div>
-                    <div class="text-gray-600 dark:text-gray-400">Records</div>
+                    <div class="text-gray-600 dark:text-gray-400">{{ $ts('export_create.records') }}</div>
                   </div>
                   <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
                       {{ dataExport.formatFileSize(dataExport.state.previewData?.estimated_size || 0) }}
                     </div>
-                    <div class="text-gray-600 dark:text-gray-400">Estimated Size</div>
+                    <div class="text-gray-600 dark:text-gray-400">{{ $ts('export_create.estimated_size') }}</div>
                   </div>
                   <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
                       {{ dataExport.exportOptions.value.format.label }}
                     </div>
-                    <div class="text-gray-600 dark:text-gray-400">Format</div>
+                    <div class="text-gray-600 dark:text-gray-400">{{ $ts('export_create.format') }}</div>
                   </div>
                 </div>
 
                 <div v-if="(dataExport.state.previewData?.warnings.length ?? 0) > 0" class="space-y-2">
-                  <h4 class="font-medium text-yellow-700 dark:text-yellow-300">Warnings:</h4>
+                  <h4 class="font-medium text-yellow-700 dark:text-yellow-300">{{ $ts('export_create.warnings') }}</h4>
                   <ul class="list-disc list-inside text-sm text-yellow-600 dark:text-yellow-400 space-y-1">
                     <li v-for="warning in dataExport.state.previewData?.warnings" :key="warning">{{ warning }}</li>
                   </ul>
                 </div>
 
                 <div v-if="(dataExport.state.previewData?.errors.length ?? 0) > 0" class="space-y-2">
-                  <h4 class="font-medium text-red-700 dark:text-red-300">Errors:</h4>
+                  <h4 class="font-medium text-red-700 dark:text-red-300">{{ $ts('export_create.errors') }}</h4>
                   <ul class="list-disc list-inside text-sm text-red-600 dark:text-red-400 space-y-1">
                     <li v-for="error in dataExport.state.previewData?.errors" :key="error">{{ error }}</li>
                   </ul>
@@ -114,15 +114,15 @@
         <div class="max-w-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4">
           <div class="flex items-center gap-3 mb-4">
             <div>
-              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Export Configuration</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Choose data type and format</p>
+              <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.config_title') }}</h3>
+              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $ts('export_create.config_desc') }}</p>
             </div>
           </div>
 
           <div class="space-y-6">
             <div>
               <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-3">
-                Data Type
+                {{ $ts('export_create.data_type') }}
               </label>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <button
@@ -147,7 +147,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-                  Export Format
+                  {{ $ts('export_create.export_format') }}
                 </label>
                 <div>
                   <select
@@ -155,18 +155,18 @@
                     @change="formatModel = dataExport.formatOptions.find(o => o.label === ($event.target as HTMLSelectElement).value) ?? dataExport.exportOptions.value.format"
                     class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer"
                   >
-                    <option value="" disabled>Select format</option>
+                    <option value="" disabled>{{ $ts('export_create.select_format') }}</option>
                     <option v-for="opt in dataExport.formatOptions" :key="opt.label" :value="opt.label">{{ opt.label }}</option>
                   </select>
                   <p v-if="dataExport.isAllSelected.value" class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">
-                    The result will be a ZIP archive containing one file per data type in the selected format (CSV/JSON/XML).
+                    {{ $ts('export_create.zip_hint') }}
                   </p>
                 </div>
               </div>
 
               <div>
                 <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-                  Record Limit (0 = no limit)
+                  {{ $ts('export_create.record_limit') }}
                 </label>
                 <input
                   v-model.number="dataExport.exportOptions.value.limit"
@@ -180,7 +180,7 @@
 
             <div>
               <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-3">
-                Include Data
+                {{ $ts('export_create.include_data') }}
               </label>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label class="flex items-center gap-2 cursor-pointer">
@@ -189,19 +189,19 @@
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" v-model="dataExport.exportOptions.value.include_user_data" class="accent-gray-700 dark:accent-gray-300" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include user information</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('export_create.include_user_info') }}</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" v-model="dataExport.exportOptions.value.include_moderation_data" class="accent-gray-700 dark:accent-gray-300" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include moderation history</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('export_create.include_moderation') }}</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" v-model="dataExport.exportOptions.value.include_analytics" class="accent-gray-700 dark:accent-gray-300" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include analytics (views, likes, shares)</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('export_create.include_analytics') }}</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" v-model="dataExport.exportOptions.value.include_metadata" class="accent-gray-700 dark:accent-gray-300" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Include export metadata</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('export_create.include_metadata') }}</span>
                 </label>
               </div>
             </div>
@@ -215,8 +215,8 @@
               <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-3">
                   <div class="text-left">
-                    <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Filters</h3>
-                    <p class="font-sans text-xs text-gray-500 dark:text-gray-400">Optional filtering criteria</p>
+                    <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_create.filters_title') }}</h3>
+                    <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $ts('export_create.filters_desc') }}</p>
                   </div>
                 </div>
                 <NIcon name="i-ph-caret-down" class="w-5 h-5 text-gray-400 transition-transform ui-open:rotate-180" />
@@ -226,7 +226,7 @@
             <NCollapsibleContent>
               <div class="pt-4 space-y-6">
                 <div v-if="dataExport.isAllSelected.value" class="rounded-md border border-dashed border-gray-200 dark:border-gray-700 p-3 font-sans text-xs text-gray-500 dark:text-gray-400">
-                  Using the last saved filters of each data type (Quotes, Authors, References, Users, Tags). To change them, switch to a specific data type and adjust its filters.
+                  {{ $ts('export_create.filters_saved_hint') }}
                 </div>
                 <!-- Dynamic Filters based on Data Type -->
                 <div v-if="dataExport.exportOptions.value.data_type.value === 'quotes' && !dataExport.isAllSelected.value">
@@ -271,6 +271,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 import QuotesFilters from '~/components/admin/export/QuotesFilters.vue'
 import ReferencesFilters from '~/components/admin/export/ReferencesFilters.vue'
 import AuthorsFilters from '~/components/admin/export/AuthorsFilters.vue'
@@ -296,12 +298,12 @@ const formatModel = computed({
 })
 
 const dataTypeOptions: Array<{ label: string; value: ExportDataType; icon: string; description: string; available: boolean }> = [
-  { label: 'Everything', value: 'all', icon: 'i-ph-stack', description: 'Export all together', available: true },
-  { label: 'Quotes', value: 'quotes', icon: 'i-ph-quotes', description: 'Export quotes', available: true },
-  { label: 'References', value: 'references', icon: 'i-ph-book', description: 'Export references', available: true },
-  { label: 'Authors', value: 'authors', icon: 'i-ph-user-circle', description: 'Export authors', available: true },
-  { label: 'Users', value: 'users', icon: 'i-ph-users', description: 'Export users', available: true },
-  { label: 'Tags', value: 'tags', icon: 'i-ph-tag', description: 'Export tags', available: true }
+  { label: $ts('export_create.data_type_everything'), value: 'all', icon: 'i-ph-stack', description: $ts('export_create.data_type_everything_desc'), available: true },
+  { label: $ts('export_create.data_type_quotes'), value: 'quotes', icon: 'i-ph-quotes', description: $ts('export_create.data_type_quotes_desc'), available: true },
+  { label: $ts('export_create.data_type_references'), value: 'references', icon: 'i-ph-book', description: $ts('export_create.data_type_references_desc'), available: true },
+  { label: $ts('export_create.data_type_authors'), value: 'authors', icon: 'i-ph-user-circle', description: $ts('export_create.data_type_authors_desc'), available: true },
+  { label: $ts('export_create.data_type_users'), value: 'users', icon: 'i-ph-users', description: $ts('export_create.data_type_users_desc'), available: true },
+  { label: $ts('export_create.data_type_tags'), value: 'tags', icon: 'i-ph-tag', description: $ts('export_create.data_type_tags_desc'), available: true }
 ]
 
 onMounted(() => {

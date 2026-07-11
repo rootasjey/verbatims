@@ -3,7 +3,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Quote Status
+          {{ $t('filters.quote_status') }}
         </label>
         <select
           multiple
@@ -17,7 +17,7 @@
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Language
+          {{ $t('filters.language') }}
         </label>
         <select
           multiple
@@ -33,45 +33,45 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Author Name
+          {{ $t('filters.author_name') }}
         </label>
         <input
           :model-value="modelValue.author_name"
           @update:model-value="updateFilter('author_name', $event)"
-          placeholder="Search by author name"
+          :placeholder="$ts('filters.search_author')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Quote Content
+          {{ $t('filters.quote_content') }}
         </label>
         <input
           :model-value="modelValue.search"
           @update:model-value="updateFilter('search', $event)"
-          placeholder="Search in quote content"
+          :placeholder="$ts('filters.search_content')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
     </div>
 
     <div>
-      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Date Range
-      </label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
+          {{ $t('filters.date_range') }}
+        </label>
       <div class="grid grid-cols-2 gap-3">
         <input
           :model-value="modelValue.date_range?.start"
           @update:model-value="updateDateRange('start', $event)"
           type="date"
-          placeholder="Start date"
+          :placeholder="$ts('filters.start_date')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
         <input
           :model-value="modelValue.date_range?.end"
           @update:model-value="updateDateRange('end', $event)"
           type="date"
-          placeholder="End date"
+          :placeholder="$ts('filters.end_date')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
@@ -85,7 +85,7 @@
           :checked="modelValue.featured_only"
           @change="updateFilter('featured_only', ($event.target as HTMLInputElement).checked)"
         />
-        <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Featured quotes only</span>
+        <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $t('filters.featured_only') }}</span>
       </label>
     </div>
 
@@ -93,7 +93,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Min Views
+          {{ $t('filters.min_views') }}
         </label>
         <input
           :model-value="modelValue.min_views"
@@ -106,7 +106,7 @@
       </div>
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Min Likes
+          {{ $t('filters.min_likes') }}
         </label>
         <input
           :model-value="modelValue.min_likes"
@@ -122,6 +122,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 type Option<T extends string> = { label: string; value: T }
 
 interface Props {

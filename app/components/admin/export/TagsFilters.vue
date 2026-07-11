@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-4">
     <div>
-      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Search</label>
-      <input v-model="model.search" placeholder="Search tags by name or description" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
+      <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">{{ $ts('filters.search_label') }}</label>
+      <input v-model="model.search" :placeholder="$ts('filters.search_tags')" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Category</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">{{ $ts('filters.category') }}</label>
         <div>
           <select
             multiple
@@ -20,7 +20,7 @@
         </div>
       </div>
       <div>
-        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Color</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">{{ $ts('filters.color') }}</label>
         <div>
           <select
             multiple
@@ -36,15 +36,15 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Created from</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">{{ $ts('filters.created_from') }}</label>
         <input v-model="dateStart" type="date" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
       </div>
       <div>
-        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Created to</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">{{ $ts('filters.created_to') }}</label>
         <input v-model="dateEnd" type="date" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full" />
       </div>
       <div>
-        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">Minimum usage</label>
+        <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">{{ $ts('filters.minimum_usage') }}</label>
         <input type="number" v-model.number="model.min_usage" :min="0" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 w-24 focus:outline-none" />
       </div>
     </div>
@@ -52,20 +52,22 @@
     <div>
       <label class="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" v-model="model.unused_only" class="accent-gray-700 dark:accent-gray-300" />
-        <span class="font-sans text-sm text-gray-700 dark:text-gray-300">Only tags with no usage</span>
+        <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ $ts('filters.unused_only') }}</span>
       </label>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 const model = defineModel<TagExportFilters>({ default: {} as any })
 
 // Simple in-UI category/color options. You can replace with API-fed options later.
 const categoryOptions = [
-  { label: 'General', value: 'General' },
-  { label: 'Theme', value: 'Theme' },
-  { label: 'Topic', value: 'Topic' },
+  { label: $ts('filters.category_general'), value: 'General' },
+  { label: $ts('filters.category_theme'), value: 'Theme' },
+  { label: $ts('filters.category_topic'), value: 'Topic' },
 ]
 
 const colorOptions = [

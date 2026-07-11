@@ -6,7 +6,7 @@
           ref="searchInput"
           input="outline-gray"
           v-model="searchModel"
-          :placeholder="`Search among ${totalCount || 0} references...`"
+          :placeholder="$t('references.search.search_placeholder', { count: totalCount || 0 }) as string"
           leading="i-ph-magnifying-glass"
           :trailing="searchModel ? 'i-ph-x' : undefined"
           size="md"
@@ -21,7 +21,7 @@
         <NSelect
           v-model="primaryTypeModel"
           :items="typeOptions"
-          placeholder="All Types"
+          :placeholder="$t('references.search.all_types') as string"
           item-key="label"
           value-key="label"
           select="outline-gray"
@@ -29,7 +29,7 @@
         <NSelect
           v-model="sortByModel"
           :items="sortOptions"
-          placeholder="Sort by"
+          :placeholder="$t('references.search.sort_by') as string"
           item-key="label"
           value-key="label"
           select="outline-gray"
@@ -56,6 +56,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface Option { label: string; value: string }
 
 const searchInput = ref<any>(null)

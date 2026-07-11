@@ -1,12 +1,12 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Add random quotes"
-    submit-text="Add"
+    :title="$t('admin_social.add_random') as string"
+    :submit-text="$t('admin_social.add_random_button') as string"
     :submitting="loading"
     @submit="emit('confirm')"
   >
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Specify how many random approved quotes to enqueue.</p>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">{{ $t('admin_social.add_random_desc') }}</p>
 
     <NInput
       v-model="countModel"
@@ -16,7 +16,7 @@
       :una="{ inputTrailingWrapper: 'pr-1.5' }"
     >
       <template #trailing>
-        <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Count</NBadge>
+        <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('admin_social.count_badge') }}</NBadge>
       </template>
     </NInput>
 
@@ -24,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface Props {
   open: boolean
   count: string

@@ -3,12 +3,12 @@
     <!-- Search -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Author Name (search)
+        {{ $ts('filters.author_name_search') }}
       </label>
       <input
         :model-value="modelValue.search"
         @update:model-value="updateFilter('search', $event)"
-        placeholder="Search by author name"
+        :placeholder="$ts('filters.search_author')"
         class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
@@ -16,7 +16,7 @@
     <!-- Fictional Status Filter -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Author Type
+        {{ $ts('filters.author_type') }}
       </label>
       <div>
         <select
@@ -24,7 +24,7 @@
           @change="fictionalModel = (($event.target as HTMLSelectElement).value === '' ? null : fictionalOptions.find(o => String(o.value) === ($event.target as HTMLSelectElement).value) ?? null)"
           class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer w-full"
         >
-          <option value="">All authors</option>
+          <option value="">{{ $ts('filters.all_authors') }}</option>
           <option v-for="opt in fictionalOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</option>
         </select>
       </div>
@@ -33,12 +33,12 @@
     <!-- Job/Profession Filter -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Job/Profession (search)
+        {{ $ts('filters.job_profession') }}
       </label>
       <input
         :model-value="modelValue.job"
         @update:model-value="updateFilter('job', $event)"
-        placeholder="Search by job or profession"
+        :placeholder="$ts('filters.search_job')"
         class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
       />
     </div>
@@ -46,21 +46,21 @@
     <!-- Creation Date Range -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Creation Date Range
+        {{ $ts('filters.creation_date_range') }}
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
           :model-value="modelValue.date_range?.start"
           @update:model-value="updateDateRange('date_range', 'start', $event)"
           type="date"
-          placeholder="Start date"
+          :placeholder="$ts('filters.start_date')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
         <input
           :model-value="modelValue.date_range?.end"
           @update:model-value="updateDateRange('date_range', 'end', $event)"
           type="date"
-          placeholder="End date"
+          :placeholder="$ts('filters.end_date')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
@@ -69,21 +69,21 @@
     <!-- Birth Date Range -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Birth Date Range
+        {{ $ts('filters.birth_date_range') }}
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
           :model-value="modelValue.birth_date_range?.start"
           @update:model-value="updateDateRange('birth_date_range', 'start', $event)"
           type="date"
-          placeholder="Birth start date"
+          :placeholder="$ts('filters.birth_start')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
         <input
           :model-value="modelValue.birth_date_range?.end"
           @update:model-value="updateDateRange('birth_date_range', 'end', $event)"
           type="date"
-          placeholder="Birth end date"
+          :placeholder="$ts('filters.birth_end')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
@@ -92,21 +92,21 @@
     <!-- Death Date Range -->
     <div>
       <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-        Death Date Range
+        {{ $ts('filters.death_date_range') }}
       </label>
       <div class="grid grid-cols-2 gap-3">
         <input
           :model-value="modelValue.death_date_range?.start"
           @update:model-value="updateDateRange('death_date_range', 'start', $event)"
           type="date"
-          placeholder="Death start date"
+          :placeholder="$ts('filters.death_start')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
         <input
           :model-value="modelValue.death_date_range?.end"
           @update:model-value="updateDateRange('death_date_range', 'end', $event)"
           type="date"
-          placeholder="Death end date"
+          :placeholder="$ts('filters.death_end')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
         />
       </div>
@@ -116,24 +116,24 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Birth Location (search)
+          {{ $ts('filters.birth_location') }}
         </label>
         <input
           :model-value="modelValue.birth_location"
           @update:model-value="updateFilter('birth_location', $event)"
-          placeholder="Search by birth location"
+          :placeholder="$ts('filters.search_birth_location')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Death Location (search)
+          {{ $ts('filters.death_location') }}
         </label>
         <input
           :model-value="modelValue.death_location"
           @update:model-value="updateFilter('death_location', $event)"
-          placeholder="Search by death location"
+          :placeholder="$ts('filters.search_death_location')"
           class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none w-full"
         />
       </div>
@@ -143,7 +143,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Minimum Views
+          {{ $ts('filters.minimum_views') }}
         </label>
         <input
           :model-value="modelValue.min_views"
@@ -157,7 +157,7 @@
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Minimum Likes
+          {{ $ts('filters.minimum_likes') }}
         </label>
         <input
           :model-value="modelValue.min_likes"
@@ -171,7 +171,7 @@
 
       <div>
         <label class="block font-sans text-sm font-500 text-gray-700 dark:text-gray-300 mb-2">
-          Minimum Quotes
+          {{ $ts('filters.minimum_quotes') }}
         </label>
         <input
           :model-value="modelValue.min_quotes"
@@ -187,6 +187,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 interface Props {
   modelValue: AuthorExportFilters
 }
@@ -213,8 +215,8 @@ const fictionalModel = computed<Option<boolean> | null>({
 })
 // Options for fictional status filter
 const fictionalOptions = [
-  { label: 'Real People', value: false },
-  { label: 'Fictional Characters', value: true }
+  { label: $ts('filters.author_type_real'), value: false },
+  { label: $ts('filters.author_type_fictional'), value: true }
 ]
 
 const updateFilter = (key: keyof AuthorExportFilters, value: any) => {

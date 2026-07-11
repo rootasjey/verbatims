@@ -3,29 +3,29 @@
     <template #body>
       <div class="p-5 space-y-5">
         <div class="flex items-center justify-between">
-          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Filters</h3>
+          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">{{ $t('mobile.author_filters.filters') }}</h3>
           <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="openModel = false" />
         </div>
 
         <div class="space-y-3">
-          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sort by</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('mobile.author_filters.sort_by') }}</label>
           <NSelect
             v-model="sortByModel"
             :items="sortOptions"
-            placeholder="Sort by"
+            :placeholder="$t('mobile.author_filters.sort_by') as string"
             item-key="label"
             value-key="label"
           />
         </div>
 
         <div class="space-y-3">
-          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Language</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('mobile.author_filters.language') }}</label>
           <LanguageSelector @language-changed="$emit('language-changed')" />
         </div>
 
         <div class="pt-2">
           <NButton btn="solid-black" class="w-full rounded-sm" size="sm" @click="openModel = false">
-            Apply
+            {{ $t('mobile.author_filters.apply') }}
           </NButton>
         </div>
       </div>
@@ -34,6 +34,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface SortOption { label: string; value: string }
 
 const props = defineProps<{

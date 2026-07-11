@@ -4,10 +4,10 @@
     <div class="border b-dashed b-gray-200 dark:border-gray-400 p-6 rounded-lg hover:shadow-lg transition-all duration-300">
       <div class="flex items-center mb-4">
         <NIcon name="i-ph-book" class="w-8 h-8 text-blue-500 mr-3" />
-        <h3 class="font-subtitle text-xl font-600">Books & Literature</h3>
+        <h3 class="font-subtitle text-xl font-600">{{ $t('references.empty_bento.books_literature') }}</h3>
       </div>
       <p class="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-        Discover quotes from novels, poetry, essays, and literary works that have shaped human thought and culture.
+        {{ $t('references.empty_bento.books_literature_desc') }}
       </p>
     </div>
 
@@ -15,10 +15,10 @@
     <div class="border b-dashed b-gray-200 dark:border-gray-400 p-6 rounded-lg hover:shadow-lg transition-all duration-300">
       <div class="flex items-center mb-4">
         <NIcon name="i-ph-film-strip" class="w-8 h-8 text-red-500 mr-3" />
-        <h3 class="font-subtitle text-xl font-600">Films & Cinema</h3>
+        <h3 class="font-subtitle text-xl font-600">{{ $t('references.empty_bento.films_cinema') }}</h3>
       </div>
       <p class="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-        Memorable quotes from movies across all genres, from classic cinema to modern blockbusters and indie films.
+        {{ $t('references.empty_bento.films_cinema_desc') }}
       </p>
     </div>
 
@@ -26,10 +26,10 @@
     <div class="border b-dashed b-gray-200 dark:border-gray-400 p-6 rounded-lg hover:shadow-lg transition-all duration-300">
       <div class="flex items-center mb-4">
         <NIcon name="i-ph-television" class="w-8 h-8 text-purple-500 mr-3" />
-        <h3 class="font-subtitle text-xl font-600">TV Series</h3>
+        <h3 class="font-subtitle text-xl font-600">{{ $t('references.empty_bento.tv_series') }}</h3>
       </div>
       <p class="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-        Iconic lines from television shows, from sitcoms to dramas, that have become part of popular culture.
+        {{ $t('references.empty_bento.tv_series_desc') }}
       </p>
     </div>
 
@@ -37,10 +37,10 @@
     <div class="border b-dashed b-gray-200 dark:border-gray-400 p-6 rounded-lg hover:shadow-lg transition-all duration-300">
       <div class="flex items-center mb-4">
         <NIcon name="i-ph-music-notes" class="w-8 h-8 text-green-500 mr-3" />
-        <h3 class="font-subtitle text-xl font-600">Music & Lyrics</h3>
+        <h3 class="font-subtitle text-xl font-600">{{ $t('references.empty_bento.music_lyrics') }}</h3>
       </div>
       <p class="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-        Powerful lyrics and quotes from songs across all genres that resonate with the human experience.
+        {{ $t('references.empty_bento.music_lyrics_desc') }}
       </p>
     </div>
 
@@ -48,10 +48,10 @@
     <div class="border b-dashed b-gray-200 dark:border-gray-400 p-6 rounded-lg hover:shadow-lg transition-all duration-300">
       <div class="flex items-center mb-4">
         <NIcon name="i-ph-microphone" class="w-8 h-8 text-orange-500 mr-3" />
-        <h3 class="font-subtitle text-xl font-600">Speeches & Interviews</h3>
+        <h3 class="font-subtitle text-xl font-600">{{ $t('references.empty_bento.speeches_interviews') }}</h3>
       </div>
       <p class="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-        Inspiring words from public speeches, interviews, and conversations that have moved and motivated people.
+        {{ $t('references.empty_bento.speeches_interviews_desc') }}
       </p>
     </div>
 
@@ -59,15 +59,15 @@
     <div class="border b-dashed b-gray-200 dark:border-gray-400 p-6 rounded-lg hover:shadow-lg transition-all duration-300">
       <div class="flex items-center mb-4">
         <NIcon name="i-ph-globe" class="w-8 h-8 text-cyan-500 mr-3" />
-        <h3 class="font-subtitle text-xl font-600">Digital Media</h3>
+        <h3 class="font-subtitle text-xl font-600">{{ $t('references.empty_bento.digital_media') }}</h3>
       </div>
       <p class="font-sans text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-        Quotes from podcasts, documentaries, video games, and online content that reflect our digital age.
+        {{ $t('references.empty_bento.digital_media_desc') }}
       </p>
     </div>
   </div>
 </template>
 
 <script setup>
-// This component doesn't need any reactive logic
+const { $t } = useI18n()
 </script>
