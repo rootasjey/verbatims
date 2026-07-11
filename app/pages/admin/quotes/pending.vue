@@ -116,9 +116,11 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
-                  &ldquo;{{ quote.name }}&rdquo;
-                </blockquote>
+                <ContextMenu size="xs" :items="getQuoteActions(quote)">
+                  <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                    &ldquo;{{ quote.name }}&rdquo;
+                  </blockquote>
+                </ContextMenu>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="quote.author_name">{{ quote.author_name }}</span>
                   <span v-if="quote.author_name && quote.reference_name">&middot;</span>
