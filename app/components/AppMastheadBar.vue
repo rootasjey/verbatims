@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n()
+const { $t, locale: i18nLocale } = useI18n() as any
 const route = useRoute()
 const { user } = useUserSession()
 const scrollY = ref(0)
@@ -91,7 +91,7 @@ const reportCategory: Ref<ReportCategory> = ref('feedback')
 
 const currentDate = computed(() => {
   const now = new Date()
-  return now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  return now.toLocaleDateString(i18nLocale.value === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 })
 
 const runtimeConfig = useRuntimeConfig()
