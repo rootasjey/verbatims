@@ -115,21 +115,21 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <ContextMenu size="xs" :items="getQuoteActions(quote)">
+                <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
                   <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
                     &ldquo;{{ quote.name }}&rdquo;
                   </blockquote>
                 </ContextMenu>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <template v-if="quote.author?.name">
-                    <ContextMenu v-if="quote.author?.id" size="xs" :items="getAuthorActions(quote)">
+                    <ContextMenu v-if="quote.author?.id" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
                       <span class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ quote.author.name }}</span>
                     </ContextMenu>
                     <span v-else>{{ quote.author.name }}</span>
                   </template>
                   <span v-if="quote.author?.name && quote.reference?.name">&middot;</span>
                   <template v-if="quote.reference?.name">
-                    <ContextMenu v-if="quote.reference?.id" size="xs" :items="getReferenceActions(quote)">
+                    <ContextMenu v-if="quote.reference?.id" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
                       <span class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ quote.reference.name }}</span>
                     </ContextMenu>
                     <span v-else>{{ quote.reference.name }}</span>

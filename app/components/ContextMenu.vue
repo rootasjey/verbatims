@@ -1,8 +1,10 @@
 <template>
   <ContextMenuRoot>
-    <ContextMenuTrigger>
-      <slot />
-    </ContextMenuTrigger>
+    <div @contextmenu.capture="onCapture">
+      <ContextMenuTrigger>
+        <slot />
+      </ContextMenuTrigger>
+    </div>
     <ContextMenuPortal to="body">
       <ContextMenuContent
         :class="['z-50 min-w-40 overflow-hidden rounded-md border border-base bg-popover p-1 text-popover shadow-md',
@@ -108,6 +110,13 @@
             <span v-if="item.shortcut" :class="[shortcutClass]">{{ item.shortcut }}</span>
           </ContextMenuItem>
         </template>
+        <template v-if="nativeOnModifier">
+          <ContextMenuSeparator class="my-1 -mx-1 h-px bg-border" />
+          <div class="px-2.5 py-1.5 flex items-center gap-1.5 select-none pointer-events-none opacity-50">
+            <span class="i-ph-info w-3 h-3 flex-shrink-0" />
+            <span class="text-[0.7em] leading-tight">Press Ctrl + right-click for browser menu</span>
+          </div>
+        </template>
       </ContextMenuContent>
     </ContextMenuPortal>
   </ContextMenuRoot>
@@ -139,6 +148,7 @@ interface ContextMenuItem {
 interface Props {
   items: ContextMenuItem[]
   size?: 'sm' | 'xs'
+  nativeOnModifier?: 'ctrl' | 'shift' | 'alt'
   contentClass?: string
 }
 
@@ -146,6 +156,15 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'sm',
   contentClass: ''
 })
+
+const onCapture = (e: MouseEvent) => {
+  if (!props.nativeOnModifier) return
+  const modKey = props.nativeOnModifier
+  const hasMod = modKey === 'ctrl' ? e.ctrlKey : modKey === 'shift' ? e.shiftKey : e.altKey
+  if (hasMod) {
+    e.stopPropagation()
+  }
+}
 
 const itemClass = computed(() => {
   const base = 'w-full justify-start font-normal h-auto text-left transition-color focus-visible:outline-0 select-none flex items-center gap-2 rounded-sm cursor-pointer'
