@@ -25,6 +25,22 @@ export async function uploadAndStoreImage(
   entityId: number,
 ): Promise<string | null> {
   try {
+    // If the image is already in R2, re-key it to the entity path
+    if (isR2ImageUrl(sourceUrl)) {
+      const sourceKey = sourceUrl.replace('/blob/', '')
+      const existing = await blob.get(sourceKey)
+      if (existing) {
+        const data = await existing.arrayBuffer()
+        const contentType = existing.type || 'image/jpeg'
+        const ext = extFromContentType(contentType)
+        const key = `${IMAGES_PREFIX}/${entityType}/${entityId}${ext}`
+        await blob.put(key, data, { contentType, addRandomSuffix: false })
+        return `/blob/${key}`
+      }
+      // Fallback: return original URL if blob can't be read
+      return sourceUrl
+    }
+
     const response = await fetch(sourceUrl, {
       signal: AbortSignal.timeout(15_000),
     })

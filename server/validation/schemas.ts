@@ -10,6 +10,14 @@ const nullablePositiveInt = z.preprocess((val) => {
   return Number.isFinite(n) && n > 0 ? n : null
 }, z.number().int().positive().nullable())
 
+const imageUrlField = z.string().refine(
+  (val) => {
+    if (val.startsWith('/blob/')) return true
+    try { new URL(val); return true } catch { return false }
+  },
+  { message: 'Must be a valid URL or a /blob/ path' },
+).optional().nullable()
+
 export const createQuoteSchema = z.object({
   name: z.string().min(2).max(4000).trim(),
   language: z.enum(validLanguages).optional().default('en'),
@@ -78,7 +86,7 @@ export const createAuthorSchema = z.object({
   birth_location: z.string().max(200).trim().optional().nullable(),
   death_date: z.string().max(50).trim().optional().nullable(),
   death_location: z.string().max(200).trim().optional().nullable(),
-  image_url: z.string().url().optional().nullable(),
+  image_url: imageUrlField,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -89,7 +97,7 @@ export const createReferenceSchema = z.object({
   description: z.string().max(5000).trim().optional().nullable(),
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
-  image_url: z.string().url().optional().nullable(),
+  image_url: imageUrlField,
   urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
@@ -116,7 +124,7 @@ export const updateAuthorSchema = z.object({
   birth_location: z.string().max(200).trim().optional().nullable(),
   death_date: z.string().max(50).trim().optional().nullable(),
   death_location: z.string().max(200).trim().optional().nullable(),
-  image_url: z.string().url().optional().nullable(),
+  image_url: imageUrlField,
   socials: z.record(z.string(), z.string()).optional().nullable(),
 })
 
@@ -127,7 +135,7 @@ export const updateReferenceSchema = z.object({
   description: z.string().max(5000).trim().optional().nullable(),
   release_date: z.string().max(50).trim().optional().nullable(),
   original_language: z.enum(validLanguages).optional().nullable(),
-  image_url: z.string().url().optional().nullable(),
+  image_url: imageUrlField,
   urls: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
