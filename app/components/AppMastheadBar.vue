@@ -94,51 +94,53 @@ const currentDate = computed(() => {
   return now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 })
 
-const navMenuItems = computed(() => [
+const runtimeConfig = useRuntimeConfig()
+
+const navMenuItems = computed((): any[] => [
   {
-    label: 'Explore',
+    label: $t('nav.explore'),
     trailing: '',
     items: [
       {
-        label: 'Authors',
+        label: $t('nav.authors'),
         leading: 'i-ph-users-duotone',
-        description: 'Browse quotes by author',
+        description: $t('nav.authors_desc'),
         to: '/authors'
       },
       {
-        label: 'References',
+        label: $t('nav.references'),
         leading: 'i-ph-book-duotone',
-        description: 'Explore books, films, and more',
+        description: $t('nav.references_desc'),
         to: '/references'
       },
       {
-        label: 'Quotes',
+        label: $t('nav.quotes'),
         leading: 'i-ph-quotes',
-        description: 'Explore quotes from various sources',
+        description: $t('nav.quotes_desc'),
         to: '/quotes'
       },
       {
-        label: 'Tags',
+        label: $t('nav.tags'),
         leading: 'i-ph-tag-duotone',
-        description: 'Browse quote topics and themes',
+        description: $t('nav.tags_desc'),
         to: '/tags'
       },
     ]
   },
   {
-    label: 'Contribute',
+    label: $t('nav.contribute'),
     trailing: '',
     items: [
       {
-        label: 'Add Quote',
+        label: $t('nav.add_quote'),
         leading: 'i-ph-quotes-duotone',
-        description: 'Contribute a new quote',
+        description: $t('nav.add_quote_desc'),
         onclick: () => { showAddQuote.value = true }
       },
       {
-        label: 'Suggest Edit',
+        label: $t('nav.suggest_edit'),
         leading: 'i-ph-pencil-duotone',
-        description: 'Suggest an edit to an existing quote',
+        description: $t('nav.suggest_edit_desc'),
         onclick: () => {
           reportTargetType.value = 'quote'
           reportCategory.value = 'content'
@@ -146,35 +148,35 @@ const navMenuItems = computed(() => [
         }
       },
       {
-        label: 'Report Issue',
+        label: $t('nav.report_issue'),
         leading: 'i-ph-bug-duotone',
-        description: 'Report a problem or bug',
+        description: $t('nav.report_issue_desc'),
         onclick: () => {
           reportCategory.value = 'bug'
           showReportDrawer.value = true
         }
       },
       {
-        label: 'Sponsor a Message',
+        label: $t('components.masthead.sponsor'),
         leading: 'i-ph-megaphone-duotone',
-        description: 'Promote your brand or message',
+        description: $t('components.masthead.sponsor_desc'),
         to: '/sponsor'
       },
     ]
   },
   {
-    label: 'About',
+    label: $t('nav.about'),
     trailing: '',
     items: [
       {
-        label: 'About Verbatims',
-        description: 'Learn more about Verbatims',
+        label: $t('nav.about_verbatims'),
+        description: $t('nav.about_verbatims_desc'),
         to: '/about'
       },
       {
-        label: 'Contact',
+        label: $t('nav.contact'),
         leading: 'i-ph-envelope-duotone',
-        description: 'Get in touch with us',
+        description: $t('nav.contact_desc'),
         onclick: () => {
           reportTargetType.value = 'general'
           reportCategory.value = 'feedback'
@@ -182,27 +184,27 @@ const navMenuItems = computed(() => [
         }
       },
       {
-        label: 'Privacy Policy',
+        label: $t('nav.privacy'),
         leading: 'i-ph-shield-check-duotone',
-        description: 'Read our privacy policy',
+        description: $t('nav.privacy_desc'),
         to: '/privacy'
       },
       {
-        label: 'Terms',
+        label: $t('nav.terms'),
         leading: 'i-ph-file-text-duotone',
-        description: 'Read our terms of service',
+        description: $t('nav.terms_desc'),
         to: '/terms'
       },
       {
-        label: 'Licenses',
+        label: $t('nav.licenses'),
         leading: 'i-ph-book-open-duotone',
-        description: 'Read our licenses',
+        description: $t('nav.licenses_desc'),
         to: '/licenses'
       },
       {
-        label: 'Version',
+        label: $t('nav.version'),
         leading: 'i-ph-git-branch-duotone',
-        description: '0.47.0',
+        description: `v${runtimeConfig.public.appVersion}`,
         to: 'https://github.com/rootasjey/verbatims',
         target: '_blank'
       },
