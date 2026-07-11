@@ -175,7 +175,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { $t } = useI18n()
+const { $t, locale: locale } = useI18n() as any
 
 useHead({
   title: $t('meta_title') as string,
@@ -204,7 +204,7 @@ const libraryItems = computed(() => [
 ])
 
 const today = new Date()
-const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
+const dayName = today.toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long' })
 const dayGreetings: Record<string, string> = {
   Monday: $t('greeting_monday') as string,
   Tuesday: $t('greeting_tuesday') as string,
@@ -216,7 +216,7 @@ const dayGreetings: Record<string, string> = {
 }
 const dayGreeting = dayGreetings[dayName] || $t('greeting_fallback') as string
 
-const formattedDate = today.toLocaleDateString('en-US', {
+const formattedDate = today.toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
   weekday: 'short',
   month: 'short',
   day: 'numeric',

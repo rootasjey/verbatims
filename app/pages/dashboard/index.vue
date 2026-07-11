@@ -198,7 +198,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { $t } = useI18n()
+const { $t, locale: locale } = useI18n() as any
 
 useHead({
   title: $t('meta_title') as string
@@ -214,7 +214,7 @@ onMounted(() => {
 const dataLoaded = ref(false)
 
 const today = new Date()
-const currentDate = today.toLocaleDateString('en-US', {
+const currentDate = today.toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
   weekday: 'short',
   month: 'short',
   day: 'numeric',
