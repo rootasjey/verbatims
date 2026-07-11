@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="dialogTitle"
-    :submit-text="submitButtonText"
+    :title="dialogTitle as string"
+    :submit-text="submitButtonText as string"
     :submitting="submitting"
     :can-submit="!!form.name.trim()"
     @submit="submitTag"
@@ -13,7 +13,7 @@
           <NInput
             v-model="form.name"
             class="bg-white dark:bg-gray-900 b-none shadow-none"
-            placeholder="e.g., inspiration"
+            :placeholder="$t('components.dialogs.placeholder_name') as string"
             :disabled="submitting"
             required
             autofocus
@@ -23,7 +23,7 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Name *
+                {{ $t('components.dialogs.name') }}
               </NBadge>
             </template>
           </NInput>
@@ -32,7 +32,7 @@
           <NInput
             v-model="form.category"
             class="bg-white dark:bg-gray-900 b-none shadow-none"
-            placeholder="e.g., emotion, philosophy"
+            :placeholder="$t('components.dialogs.genre') as string"
             :disabled="submitting"
             :una="{
               inputTrailingWrapper: 'pr-1.5'
@@ -40,7 +40,7 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Category
+                {{ $t('components.dialogs.genre') }}
               </NBadge>
             </template>
           </NInput>
@@ -51,7 +51,7 @@
             v-model="form.description"
             class="bg-white dark:bg-gray-900 b-none shadow-none"
             :rows="3"
-            placeholder="Short description"
+            :placeholder="$t('components.dialogs.placeholder_desc') as string"
             :disabled="submitting"
             :una="{
               inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial'
@@ -59,13 +59,13 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Description
+                {{ $t('components.dialogs.description') }}
               </NBadge>
             </template>
           </NInput>
         </div>
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Color</label>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.theme') }}</label>
           <div class="flex items-center gap-2">
             <div class="relative top-1">
               <BlossomColorPicker
@@ -78,7 +78,7 @@
               />
             </div>
             <div class="max-w-[100px]">
-              <NInput v-model="form.color" class="bg-white dark:bg-gray-900 b-none shadow-none" placeholder="#687FE5" :disabled="submitting" />
+              <NInput v-model="form.color" class="bg-white dark:bg-gray-900 b-none shadow-none" :placeholder="$t('components.dialogs.theme') as string" :disabled="submitting" />
             </div>
           </div>
         </div>
@@ -99,10 +99,12 @@ interface Emits { (e:'update:modelValue', v:boolean):void; (e:'tag-added'):void;
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
+
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 const isEditMode = computed(() => !!props.editTag)
-const dialogTitle = computed(() => isEditMode.value ? 'Edit Tag' : 'Create Tag')
-const submitButtonText = computed(() => isEditMode.value ? 'Update Tag' : 'Create Tag')
+const dialogTitle = computed(() => isEditMode.value ? $t('components.dialogs.edit_tag') : $t('components.dialogs.add_tag'))
+const submitButtonText = computed(() => isEditMode.value ? $t('components.dialogs.update') : $t('components.dialogs.create'))
 
 useColorPickerEscape()
 const { showErrorToast } = useErrorToast()
@@ -210,10 +212,10 @@ const submitTag = async () => {
   } catch (error: any) {
     console.error('Error saving tag:', error)
     if (error?.statusCode === 409) {
-      showErrorToast(null, { title: 'Duplicate name', fallback: 'A tag with this name already exists.' })
+      showErrorToast(null, { title: String($t('components.dialogs.name')), fallback: String($t('components.dialogs.toast_error')) })
       return
     }
-    showErrorToast(error, 'Failed to save tag')
+    showErrorToast(error, String($t('components.dialogs.toast_error')))
   } finally {
     submitting.value = false
   }

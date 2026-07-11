@@ -18,7 +18,7 @@
         <div v-if="quote.author" class="flex items-center gap-4">
           <NIcon name="i-ph-person-simple-walk" class="w-4 h-4 text-gray-500" />
           <span class="text-sm text-gray-900 dark:text-white">{{ quote.author.name }}</span>
-          <NBadge v-if="quote.author.is_fictional" badge="soft-purple" size="xs">Fictional</NBadge>
+          <NBadge v-if="quote.author.is_fictional" badge="soft-purple" size="xs">{{ $t('components.quote_card.fictional') }}</NBadge>
         </div>
         <div v-if="quote.reference" class="flex items-center gap-4">
           <NIcon name="i-ph-book-open-text-duotone" class="w-4 h-4 text-gray-500" />
@@ -35,7 +35,7 @@
           <div class="space-y-3 text-sm p-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">Created by</span>
+                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.created') }}</span>
                 <div class="mt-1">
                   <div class="text-xs text-gray-500 dark:text-blue" title="Email">{{ quote.user?.email }}</div>
                   <div class="flex items-center gap-2">
@@ -44,19 +44,19 @@
                 </div>
               </div>
               <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">Status</span>
+                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.status') }}</span>
                 <div class="mt-1">
-                  <NBadge badge="soft-gray" size="xs">{{ quote.status || 'Draft' }}</NBadge>
+                  <NBadge badge="soft-gray" size="xs">{{ quote.status || $t('common.status_draft') }}</NBadge>
                 </div>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">Created at:</span>
+                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.created') }}:</span>
                 <div class="text-gray-900 dark:text-white mt-1">{{ formatRelativeTime(quote.created_at) }}</div>
               </div>
               <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">Updated at:</span>
+                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.updated') }}:</span>
                 <div class="text-gray-900 dark:text-white mt-1">{{ formatRelativeTime(quote.updated_at) }}</div>
               </div>
             </div>
@@ -65,8 +65,8 @@
       </NAccordion>
 
       <div class="flex justify-end gap-2">
-        <NButton btn="soft-blue" @click="$emit('edit', quote)">Edit</NButton>
-        <NButton btn="link-gray" @click="emit('update:open', false)">Close</NButton>
+        <NButton btn="soft-blue" @click="$emit('edit', quote)">{{ $t('common.edit') }}</NButton>
+        <NButton btn="link-gray" @click="emit('update:open', false)">{{ $t('components.dialogs.close') }}</NButton>
       </div>
     </div>
   </AppDialog>
@@ -75,6 +75,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { formatRelativeTime } from '~/utils/time-formatter'
+
+const { $t } = useI18n()
 
 interface Props {
   quote: AdminQuote | null
@@ -103,7 +105,7 @@ const accordionItems = computed(() => {
       label: 'Metadata',
       defaultOpen: false,
       slot: 'metadata',
-      content: props.quote.status || 'Draft',
+      content: props.quote.status || $t('common.status_draft'),
     }
   ]
 })

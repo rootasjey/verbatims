@@ -3,7 +3,7 @@
     <template #body>
       <div class="p-4 overflow-y-auto">
         <div class="relative flex items-center justify-center mb-3">
-          <h3 class="font-title uppercase text-size-4 font-600 text-gray-500 black:text-gray-400">Download as image</h3>
+          <h3 class="font-title uppercase text-size-4 font-600 text-gray-500 black:text-gray-400">{{ $t('components.dialogs.download_image') }}</h3>
           <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="xs" @click="isOpen = false" class="absolute top-0 right-0" />
         </div>
 
@@ -24,22 +24,22 @@
         <!-- Options -->
         <div class="grid grid-cols-1 gap-3 border-t b-dashed mt-8 pt-4 mb-8">
           <div>
-            <label class="block text-sm font-medium mb-1">Theme</label>
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.theme') }}</label>
             <NSelect v-model="form.theme" :items="themes" item-key="label" value-key="label" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Size</label>
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.size') }}</label>
             <NSelect v-model="sizeOption" :items="sizes" item-key="label" value-key="label" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Background</label>
+            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.background') }}</label>
             <NSelect v-model="form.background" :items="backgrounds" item-key="label" value-key="label" />
           </div>
         </div>
 
         <div class="mt-4 flex gap-2">
           <NButton btn="light:soft dark:soft-white" label="i-ph-x-bold" icon @click="isOpen = false"></NButton>
-          <NButton btn="soft-blue" :loading="downloading" class="flex-1" @click="download">Download</NButton>
+          <NButton btn="soft-blue" :loading="downloading" class="flex-1" @click="download">{{ $t('components.dialogs.download') }}</NButton>
         </div>
       </div>
     </template>
@@ -69,8 +69,10 @@ interface ThemeOption {
 }
 interface BgOption { label: string; value: 'solid' | 'transparent' }
 
-const themes: ThemeOption[] = [ { label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' } ]
-const backgrounds: BgOption[] = [ { label: 'Solid', value: 'solid' }, { label: 'Transparent', value: 'transparent' } ]
+const { $t } = useI18n()
+
+const themes: ThemeOption[] = [ { label: String($t('components.dialogs.light')), value: 'light' }, { label: String($t('components.dialogs.dark')), value: 'dark' } ]
+const backgrounds: BgOption[] = [ { label: String($t('components.dialogs.solid')), value: 'solid' }, { label: String($t('components.dialogs.transparent')), value: 'transparent' } ]
 const sizes: { label: string; value: number }[] = [
   { label: '1080 x 1080 (recommended)', value: 1080 },
   { label: '2048 x 2048', value: 2048 },
@@ -78,8 +80,8 @@ const sizes: { label: string; value: number }[] = [
 ]
 
 const form: { theme: ThemeOption; background: BgOption } = reactive({
-  theme: { label: 'Light', value: 'light' },
-  background: { label: 'Solid', value: 'solid' }
+  theme: { label: String($t('components.dialogs.light')), value: 'light' },
+  background: { label: String($t('components.dialogs.solid')), value: 'solid' }
 })
 const sizeOption = ref(sizes[0])
 const previewSize = 320
@@ -94,8 +96,8 @@ watch(isOpen, async open => {
   if (open) {
     const saved = loadDownloadImageSettings()
     if (saved) {
-      form.theme = saved.theme === 'dark' ? { label: 'Dark', value: 'dark' } : { label: 'Light', value: 'light' }
-      form.background = saved.background === 'transparent' ? { label: 'Transparent', value: 'transparent' } : { label: 'Solid', value: 'solid' }
+      form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
+      form.background = saved.background === 'transparent' ? { label: String($t('components.dialogs.transparent')), value: 'transparent' } : { label: String($t('components.dialogs.solid')), value: 'solid' }
       const found = sizes.find(s => s.value === saved.size)
       if (found) sizeOption.value = found
     }
@@ -107,8 +109,8 @@ onMounted(async () => {
   if (isOpen.value) {
     const saved = loadDownloadImageSettings()
     if (saved) {
-      form.theme = saved.theme === 'dark' ? { label: 'Dark', value: 'dark' } : { label: 'Light', value: 'light' }
-      form.background = saved.background === 'transparent' ? { label: 'Transparent', value: 'transparent' } : { label: 'Solid', value: 'solid' }
+      form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
+      form.background = saved.background === 'transparent' ? { label: String($t('components.dialogs.transparent')), value: 'transparent' } : { label: String($t('components.dialogs.solid')), value: 'solid' }
       const found = sizes.find(s => s.value === saved.size)
       if (found) sizeOption.value = found
     }

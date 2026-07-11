@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Create User"
-    submit-text="Create User"
+    :title="$t('components.dialogs.add_user') as string"
+    :submit-text="$t('components.dialogs.create') as string"
     :submitting="submitting"
     :can-submit="canSubmit"
     @submit="submit"
@@ -10,7 +10,7 @@
     <form @submit.prevent="submit" @keydown.ctrl.enter.prevent="submit" @keydown.meta.enter.prevent="submit" class="space-y-6">
       <NInput
         v-model="form.name"
-        placeholder="Jane Doe"
+        :placeholder="$t('components.dialogs.placeholder_name') as string"
         :disabled="submitting"
         required
         class="bg-white dark:bg-gray-900 b-none shadow-none"
@@ -18,7 +18,7 @@
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Name *
+            {{ $t('components.dialogs.name') }}
           </NBadge>
         </template>
       </NInput>
@@ -26,7 +26,7 @@
       <NInput
         v-model="form.email"
         type="email"
-        placeholder="jane@example.com"
+        :placeholder="$t('auth.email_placeholder') as string"
         :disabled="submitting"
         required
         class="bg-white dark:bg-gray-900 b-none shadow-none"
@@ -34,28 +34,28 @@
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Email *
+            {{ $t('auth.email_label') }}
           </NBadge>
         </template>
       </NInput>
 
       <div>
-        <PasswordInput v-model="form.password" placeholder="••••••••" :disabled="submitting" required />
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">At least 8 characters</p>
+        <PasswordInput v-model="form.password" :placeholder="$t('auth.password_placeholder') as string" :disabled="submitting" required />
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ $t('auth.password_min_chars') }}</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
         <div>
-          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">Role *</label>
+          <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ $t('components.dialogs.role_label') }}</label>
           <NSelect v-model="roleModel" :items="roleOptions" select="soft-blue" select-item="blue" :disabled="submitting" item-key="label" value-key="label" />
         </div>
         <div class="flex gap-4 justify-around items-center">
           <div>
-            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.is_active ? 'Active' : 'Inactive' }}</label>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.is_active ? $t('components.dialogs.user_active') : $t('components.dialogs.user_inactive') }}</label>
             <NSwitch v-model="form.is_active" switch-checked="blue" :disabled="submitting" />
           </div>
           <div>
-            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.email_verified ? 'Verified' : 'Unverified' }}</label>
+            <label class="block text-xs font-600 text-gray-900 dark:text-white mb-2">{{ form.email_verified ? $t('components.dialogs.user_verified') : $t('components.dialogs.user_unverified') }}</label>
             <NSwitch v-model="form.email_verified" switch-checked="blue" :disabled="submitting" />
           </div>
         </div>
@@ -64,14 +64,14 @@
       <NInput
         v-model="form.avatar_url"
         type="url"
-        placeholder="https://…"
+        :placeholder="$t('components.dialogs.placeholder_url') as string"
         :disabled="submitting"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{ inputTrailingWrapper: 'pr-1.5' }"
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Avatar URL
+            {{ $t('components.dialogs.image_url') }}
           </NBadge>
         </template>
       </NInput>
@@ -88,16 +88,18 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
+
 const isOpen = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 
 type Role = 'user' | 'moderator' | 'admin'
 type RoleOption = { label: string; value: Role }
 
-const roleOptions: RoleOption[] = [
-  { label: 'User', value: 'user' },
-  { label: 'Moderator', value: 'moderator' },
-  { label: 'Admin', value: 'admin' }
-]
+const roleOptions = computed<RoleOption[]>(() => [
+  { label: String($t('components.dialogs.role_user')), value: 'user' },
+  { label: String($t('components.dialogs.role_moderator')), value: 'moderator' },
+  { label: String($t('components.dialogs.role_admin')), value: 'admin' }
+])
 
 const form = ref({
   name: '',
@@ -110,7 +112,7 @@ const form = ref({
 })
 
 const roleModel = computed({
-  get: () => roleOptions.find(o => o.value === form.value.role) ?? roleOptions[0]!,
+  get: () => roleOptions.value.find(o => o.value === form.value.role) ?? roleOptions.value[0]!,
   set: (opt: RoleOption) => { form.value.role = opt.value }
 })
 
@@ -131,12 +133,12 @@ const submit = async () => {
   submitting.value = true
   try {
     await $fetch('/api/admin/users', { method: 'POST', body: form.value })
-    useToast().toast({ toast: 'success', title: 'User created', description: `${form.value.name} has been created.` })
+    useToast().toast({ toast: 'success', title: String($t('components.dialogs.toast_created')), description: `${form.value.name} ${String($t('common.created'))}` })
     emit('user-added')
     isOpen.value = false
   } catch (e: any) {
     console.error('Create user failed', e)
-    showErrorToast(e, { title: 'Error', fallback: 'Failed to create user' })
+    showErrorToast(e, { title: String($t('components.dialogs.toast_error')), fallback: String($t('components.dialogs.toast_error')) })
   } finally {
     submitting.value = false
   }

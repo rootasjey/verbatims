@@ -46,13 +46,13 @@
         <NAvatar
           v-if="showAvatar"
           :src="quote.author?.image_url || quote.author_image_url || undefined"
-          :alt="quote.author?.name || quote.author_name || 'Unknown Author'"
+          :alt="quote.author?.name || quote.author_name || $t('components.quote_hero.unknown_author')"
           size="sm"
           rounded="full"
           class="flex-shrink-0"
         />
         <div class="flex-1 min-w-0">
-          <div class="text-sm font-600 text-gray-900 dark:text-white truncate">{{ quote.author?.name || quote.author_name || 'Unknown Author' }}</div>
+          <div class="text-sm font-600 text-gray-900 dark:text-white truncate">{{ quote.author?.name || quote.author_name || $t('components.quote_hero.unknown_author') }}</div>
           <div v-if="quote.reference?.name || quote.reference_name" class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ quote.reference?.name || quote.reference_name }}</div>
         </div>
       </div>
@@ -87,7 +87,7 @@
         </template>
 
         <!-- Featured Badge (if any) -->
-        <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs">Featured</NBadge>
+        <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs">{{ $t('home.featured') }}</NBadge>
       </div>
     </div>
 
@@ -114,6 +114,8 @@
 import type { ProcessedQuoteResult } from '~~/server/types'
 import { getTopicBorderStyle } from '~/utils/tagAccent'
 import { formatDate } from '~/utils/time-formatter'
+
+const { $t } = useI18n()
 
 interface DropdownAction {
   label: string
@@ -145,18 +147,18 @@ const emit = defineEmits<{
 
 const defaultActions: DropdownAction[] = [
   {
-    label: 'Edit',
+    label: $t('components.quote_actions.edit') as string,
     leading: 'i-ph-pencil',
     onclick: () => emit('edit', props.quote)
   },
   {
-    label: 'Share',
+    label: $t('components.quote_actions.share') as string,
     leading: 'i-ph-share',
     onclick: () => emit('share', props.quote)
   },
   { divider: true } as DropdownAction,
   {
-    label: 'Remove',
+    label: $t('components.quote_actions.delete') as string,
     leading: 'i-ph-trash',
     onclick: () => emit('delete', props.quote)
   }
@@ -196,9 +198,9 @@ const drawerActions = computed(() => {
   }
   // Default drawer actions
   return [
-    { label: 'Edit', leading: 'i-ph-pencil' },
-    { label: 'Share', leading: 'i-ph-share' },
-    { label: 'Remove', leading: 'i-ph-trash' }
+    { label: $t('components.quote_actions.edit') as string, leading: 'i-ph-pencil' },
+    { label: $t('components.quote_actions.share') as string, leading: 'i-ph-share' },
+    { label: $t('components.quote_actions.delete') as string, leading: 'i-ph-trash' }
   ]
 })
 

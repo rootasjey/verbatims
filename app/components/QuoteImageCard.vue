@@ -28,7 +28,7 @@
         <div v-if="authorImage" class="w-[120px] h-[120px] rounded-full overflow-hidden border-4" :class="themeClasses.avatarBorder" :style="{ borderColor: accentColor }">
           <img
             :src="authorImage"
-            alt="author"
+            :alt="String($t('components.dialogs.author_label'))"
             class="w-full h-full object-cover"
             crossorigin="anonymous"
           />
@@ -52,6 +52,8 @@
 
 <script setup lang="ts">
 import { getRandomTagBorderColor } from '~~/shared/constants/tag'
+
+const { $t } = useI18n()
 
 interface Props {
   quote: QuoteWithRelations

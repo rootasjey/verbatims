@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="'Delete ' + selectedCount + ' ' + (selectedCount === 1 ? 'Draft' : 'Drafts')"
-    submit-text="Delete All"
+    :title="$t('components.dialogs.delete_quote') as string"
+    :submit-text="$t('components.dialogs.delete') as string"
     :submitting="deleting"
     @submit="confirmDeletion"
   >
@@ -10,13 +10,13 @@
       <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-3 flex items-start">
         <NIcon name="i-ph-warning" class="w-5 h-5 text-indigo-600 mt-0.5 mr-2" />
         <div class="text-sm text-indigo-800 dark:text-indigo-300">
-          <p class="font-medium">This action is permanent.</p>
-          <p class="mt-1">You are about to delete {{ selectedCount }} {{ selectedCount === 1 ? 'draft' : 'drafts' }}. This action cannot be undone.</p>
+          <p class="font-medium">{{ $t('components.dialogs.delete_permanent') }}</p>
+          <p class="mt-1">{{ $t('components.dialogs.confirm_delete_desc') }}</p>
         </div>
       </div>
 
       <div v-if="selectedCount > 0 && selectedCount <= 3" class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-        <p class="font-medium mb-2">Quotes to be deleted:</p>
+        <p class="font-medium mb-2">{{ $t('components.dialogs.users_to_delete') }}</p>
         <div v-for="quote in quotesToShow" :key="quote.id" class="border-l-2 border-gray-300 dark:border-gray-600 pl-3">
           <p class="italic font-body text-xs">"{{ truncateText(quote.name, 100) }}"</p>
           <p v-if="quote.author || quote.reference" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -31,7 +31,7 @@
     <template #submit>
       <PrimaryButton :disabled="deleting" :loading="deleting" @click="confirmDeletion" class="rounded-0 px-3">
         <span class="flex items-center gap-2">
-          Delete All
+          {{ $t('common.delete') }}
           <NIcon v-if="!deleting" name="i-tabler-trash-filled" class="inline-block" />
         </span>
       </PrimaryButton>
@@ -41,6 +41,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+
+const { $t } = useI18n()
 
 interface Props {
   open: boolean

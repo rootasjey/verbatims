@@ -1,18 +1,18 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Delete Draft"
+    :title="$t('components.dialogs.delete_draft') as string"
     :submitting="deleting"
     @submit="emit('delete-draft')"
   >
     <p class="text-sm text-gray-600 dark:text-gray-400">
-      Are you sure you want to delete this draft? This action cannot be undone.
+      {{ $t('components.dialogs.confirm_delete') }} {{ $t('components.dialogs.confirm_delete_desc') }}
     </p>
 
     <template #submit>
       <PrimaryButton :disabled="deleting" :loading="deleting" @click="emit('delete-draft')" class="rounded-0 px-3">
         <span class="flex items-center gap-2">
-          Delete
+          {{ $t('common.delete') }}
           <NIcon v-if="!deleting" name="i-tabler-trash-filled" class="inline-block" />
         </span>
       </PrimaryButton>
@@ -22,6 +22,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+
+const { $t } = useI18n()
 
 interface Props {
   open: boolean

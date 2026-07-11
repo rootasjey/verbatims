@@ -1,19 +1,19 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Delete Sponsor Message"
-    submit-text="Delete"
+    :title="$t('components.dialogs.delete_sponsor') as string"
+    :submit-text="$t('common.delete') as string"
     :submitting="submitting"
     @submit="confirmDelete"
   >
     <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-      Are you sure you want to delete this sponsor message?
+      {{ $t('components.dialogs.confirm_delete') }}
       <br>
       <span class="font-medium">"{{ message?.message }}"</span>
     </p>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="submitting" @click="confirmDelete">Delete</NButton>
+      <NButton btn="soft-red" :loading="submitting" @click="confirmDelete">{{ $t('common.delete') }}</NButton>
     </template>
   </AppDialog>
 </template>
@@ -25,6 +25,7 @@ interface Emits { (e: 'update:modelValue', v: boolean): void; (e: 'deleted'): vo
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const isOpen = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
+const { $t } = useI18n()
 const submitting = ref(false)
 const { showErrorToast } = useErrorToast()
 
@@ -37,7 +38,7 @@ const confirmDelete = async () => {
     isOpen.value = false
   } catch (error) {
     console.error('Failed to delete sponsor message', error)
-    showErrorToast(error, 'Failed to delete sponsor message')
+    showErrorToast(error, { title: String($t('components.dialogs.toast_error')), fallback: String($t('components.dialogs.delete_sponsor')) })
   } finally {
     submitting.value = false
   }

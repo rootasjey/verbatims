@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="dialogTitle"
-    :submit-text="submitText"
+    :title="dialogTitle as string"
+    :submit-text="submitText as string"
     :submitting="loading"
     :can-submit="!!state.name.trim()"
     @submit="save"
@@ -10,7 +10,7 @@
     <form @submit.prevent="save" @keydown.ctrl.enter.prevent="save" @keydown.meta.enter.prevent="save" class="space-y-6">
       <NInput
         v-model="state.name"
-        placeholder="Enter collection name"
+        :placeholder="$t('components.dialogs.placeholder_name') as string"
         :disabled="loading"
         required
         autofocus
@@ -18,26 +18,26 @@
         :una="{ inputTrailingWrapper: 'pr-1.5' }"
       >
         <template #trailing>
-          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Collection Name *</NBadge>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.collection_name') }}</NBadge>
         </template>
       </NInput>
 
       <NInput
         type="textarea"
         v-model="state.description"
-        placeholder="Optional description for your collection"
+        :placeholder="$t('components.dialogs.collection_desc') as string"
         :rows="3"
         :disabled="loading"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{ inputTrailingWrapper: 'pr-1.5 bottom-2 top-initial' }"
       >
         <template #trailing>
-          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">Description</NBadge>
+          <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.description') }}</NBadge>
         </template>
       </NInput>
 
-      <CheckboxBadge v-model="state.is_public" label="Public collection" />
-      <p class="text-xs text-gray-500 dark:text-gray-400 -mt-4">Public collections can be viewed by anyone</p>
+      <CheckboxBadge v-model="state.is_public" :label="$t('components.dialogs.make_public') as string" />
+      <p class="text-xs text-gray-500 dark:text-gray-400 -mt-4">{{ $t('common.public') }} {{ $t('components.dialogs.collection_desc') }}</p>
     </form>
   </AppDialog>
 </template>
@@ -66,9 +66,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
+
 const isEdit = computed(() => !!props.collection)
-const dialogTitle = computed(() => isEdit.value ? `Edit "${props.collection!.name}" Collection` : 'Create New Collection')
-const submitText = computed(() => isEdit.value ? 'Update Collection' : 'Create Collection')
+const dialogTitle = computed(() => isEdit.value ? `${$t('components.dialogs.edit_collection')}: "${props.collection!.name}"` : $t('components.dialogs.create_new'))
+const submitText = computed(() => isEdit.value ? $t('components.dialogs.update') : $t('components.dialogs.create'))
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -108,7 +110,7 @@ const save = async () => {
     state.value = { name: '', description: '', is_public: false }
   } catch (error: any) {
     console.error('Failed to save collection:', error)
-    showErrorToast(error, { title: isEdit.value ? 'Update failed' : 'Creation failed', fallback: 'Please try again.' })
+    showErrorToast(error, { title: isEdit.value ? String($t('components.dialogs.toast_error')) : String($t('components.dialogs.toast_error')), fallback: String($t('common.confirm')) })
   } finally {
     loading.value = false
   }

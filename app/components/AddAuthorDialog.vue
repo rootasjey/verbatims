@@ -1,8 +1,8 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="dialogTitle"
-    :submit-text="submitButtonText"
+    :title="dialogTitle as string"
+    :submit-text="submitButtonText as string"
     :submitting="submitting"
     :can-submit="!!nameQuery.trim()"
     max-width="md"
@@ -15,7 +15,7 @@
           <NInput
             ref="nameInputRef"
             v-model="nameQuery"
-            placeholder="Enter author name..."
+            :placeholder="$t('components.dialogs.placeholder_name') as string"
             :disabled="submitting"
             required
             autofocus
@@ -30,7 +30,7 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Author Name *
+                {{ $t('components.dialogs.name') }}
               </NBadge>
             </template>
           </NInput>
@@ -71,7 +71,7 @@
               @mouseenter="selectedNameIndex = nameSuggestions.length"
             >
               <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                Create new author: "{{ nameQuery }}"
+                {{ $t('components.dialogs.create_new_author', { name: nameQuery }) }}
               </div>
             </div>
           </div>
@@ -80,7 +80,7 @@
 
       <NInput
         v-model="form.job"
-        placeholder="e.g., Writer, Philosopher, Actor..."
+        :placeholder="$t('components.dialogs.job_title') as string"
         :disabled="submitting"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
         :una="{
@@ -89,7 +89,7 @@
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Job/Title
+            {{ $t('components.dialogs.job_title') }}
           </NBadge>
         </template>
       </NInput>
@@ -108,7 +108,7 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Birth Date
+                {{ $t('components.dialogs.birth_date') }}
               </NBadge>
             </template>
           </NInput>
@@ -126,12 +126,12 @@
           >
             <template #trailing>
               <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-                Death Date
+                {{ $t('components.dialogs.death_date') }}
               </NBadge>
             </template>
           </NInput>
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Leave empty if the author is still alive
+            {{ $t('components.dialogs.alive_hint') }}
           </p>
         </div>
       </div>
@@ -140,7 +140,7 @@
         <NInput
           v-model="form.image_url"
           type="url"
-          placeholder="https://example.com/image.jpg"
+          :placeholder="$t('components.dialogs.placeholder_url') as string"
           :disabled="submitting"
           class="bg-white dark:bg-gray-900 b-none shadow-none"
           :una="{
@@ -149,7 +149,7 @@
         >
           <template #trailing>
             <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-              Avatar/Image URL
+              {{ $t('components.dialogs.image_url') }}
             </NBadge>
           </template>
         </NInput>
@@ -164,7 +164,7 @@
               <img
                 v-if="authorPreviewUrl && !authorPreviewErrored"
                 :src="authorPreviewUrl"
-                alt="Author avatar preview"
+                :alt="$t('components.dialogs.avatar_preview') as string"
                 class="h-full w-full object-cover"
                 @error="authorPreviewErrored = true"
               />
@@ -176,10 +176,9 @@
               </div>
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">Avatar preview</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('components.dialogs.avatar_preview') }}</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                <span class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" @click="fileInputRef?.click()">Click to upload an image</span>
-                or paste an accessible image URL to preview it here.
+                <span class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" @click="fileInputRef?.click()">{{ $t('components.dialogs.upload_hint') }}</span>
               </p>
             </div>
           </div>
@@ -190,10 +189,10 @@
         <label class="flex items-center justify-between gap-4">
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white">
-              This is a fictional character
+              {{ $t('components.dialogs.fictional_char') }}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              Enable this for invented people or characters from fictional worlds.
+              {{ $t('components.dialogs.fictional_hint') }}
             </p>
           </div>
           <NSwitch
@@ -206,7 +205,7 @@
       <NInput
         type="textarea"
         v-model="form.description"
-        placeholder="Brief biographical description..."
+        :placeholder="$t('components.dialogs.placeholder_desc') as string"
         :rows="6"
         :disabled="submitting"
         class="bg-white dark:bg-gray-900 b-none shadow-none"
@@ -216,7 +215,7 @@
       >
         <template #trailing>
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">
-            Description
+            {{ $t('components.dialogs.description') }}
           </NBadge>
         </template>
       </NInput>
@@ -239,14 +238,16 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { $t } = useI18n()
+
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
 const isEditMode = computed(() => !!props.editAuthor)
-const dialogTitle = computed(() => isEditMode.value ? 'Edit Author' : 'Add New Author')
-const submitButtonText = computed(() => isEditMode.value ? 'Update Author' : 'Create Author')
+const dialogTitle = computed(() => isEditMode.value ? String($t('components.dialogs.edit_author')) : String($t('components.dialogs.add_author')))
+const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update_author')) : String($t('components.dialogs.create_author')))
 
 const form = ref({
   name: '',
@@ -478,8 +479,8 @@ const submitAuthor = async () => {
 
       useToast().toast({
         toast: 'success',
-        title: 'Author Updated',
-        description: 'The author has been updated successfully.'
+        title: String($t('components.dialogs.toast_updated')),
+        description: String($t('components.dialogs.toast_updated'))
       })
 
       emit('author-updated')
@@ -491,8 +492,8 @@ const submitAuthor = async () => {
 
       useToast().toast({
         toast: 'success',
-        title: 'Author Created',
-        description: 'The author has been created successfully.'
+        title: String($t('components.dialogs.toast_created')),
+        description: String($t('components.dialogs.toast_created'))
       })
 
       emit('author-added')
@@ -501,7 +502,7 @@ const submitAuthor = async () => {
     closeDialog()
   } catch (error) {
     console.error('Error submitting author:', error)
-    showErrorToast(error, isEditMode.value ? 'Failed to update author. Please try again.' : 'Failed to create author. Please try again.')
+    showErrorToast(error, isEditMode.value ? String($t('components.dialogs.toast_error')) : String($t('components.dialogs.toast_error')))
   } finally {
     submitting.value = false
   }
