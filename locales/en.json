@@ -251,6 +251,36 @@
     "en": "English",
     "fr": "Français"
   },
+  "admin": {
+    "nav": {
+      "overview": "Overview",
+      "quotes_management": "Quotes Management",
+      "published": "Published",
+      "pending": "Pending",
+      "drafts": "Drafts",
+      "social_queue": "Social Queue",
+      "content_management": "Content Management",
+      "authors": "Authors",
+      "references": "References",
+      "enrichment_queue": "Enrichment Queue",
+      "harvest_quotes": "Harvest Quotes",
+      "tags": "Tags",
+      "sponsors": "Sponsors",
+      "themes": "Themes",
+      "development": "Development",
+      "api_keys": "API Keys",
+      "system_management": "System Management",
+      "messages": "Messages",
+      "users": "Users",
+      "database_maintenance": "Database Maintenance",
+      "import_data": "Import Data",
+      "export_data": "Export Data",
+      "back_to_dashboard": "Back to Dashboard"
+    },
+    "expand_sidebar": "Expand sidebar",
+    "collapse_sidebar": "Collapse sidebar",
+    "title": "Admin"
+  },
   "content_language": {
     "all": "All Languages",
     "en": "English",
