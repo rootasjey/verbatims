@@ -113,7 +113,8 @@
     "added": "Ajouté",
     "quote_singular": "citation",
     "quote_plural": "citations",
-    "unknown": "Inconnu"
+    "unknown": "Inconnu",
+    "status": "Statut"
   },
   "home": {
     "page_title": "Verbatims • Un flux de citations",

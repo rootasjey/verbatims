@@ -1,1 +1,25 @@
-{}
+{
+  "meta_title": "Published Quotes - Admin - Verbatims",
+  "title": "Published",
+  "search_placeholder": "Search quotes, authors, or references...",
+  "search_placeholder_mobile": "Search published...",
+  "sort_most_liked": "Most Liked",
+  "empty_search_title": "No matching published quotes",
+  "empty_title": "No published quotes yet",
+  "empty_desc": "Try adjusting your search terms.",
+  "empty_desc_default": "Published quotes will appear here once users submit and quotes are approved.",
+  "bulk_edit": "Edit Selected",
+  "bulk_unpublish": "Unpublish All",
+  "col_user": "User",
+  "col_language": "Language",
+  "col_stats": "Stats",
+  "col_published": "Published",
+  "dialog_unpublish_title": "Unpublish {n} {count, plural, one {Quote} other {Quotes}}",
+  "dialog_unpublish_body": "Are you sure you want to unpublish {n} {count, plural, one {quote} other {quotes}}? They will be moved back to drafts.",
+  "dialog_unpublish_button": "Unpublish All",
+  "action_view_public": "View Public Page",
+  "action_edit": "Edit Quote",
+  "action_unpublish": "Unpublish",
+  "error_unpublish": "Failed to unpublish quote",
+  "error_bulk_unpublish": "Failed to unpublish selected quotes"
+}

@@ -1,1 +1,25 @@
-{}
+{
+  "meta_title": "Citations publiées - Admin - Verbatims",
+  "title": "Publiées",
+  "search_placeholder": "Rechercher citations, auteurs ou références...",
+  "search_placeholder_mobile": "Rechercher publiées...",
+  "sort_most_liked": "Plus aimées",
+  "empty_search_title": "Aucune citation publiée trouvée",
+  "empty_title": "Aucune citation publiée",
+  "empty_desc": "Essayez de modifier vos termes de recherche.",
+  "empty_desc_default": "Les citations publiées apparaîtront ici une fois soumises et approuvées.",
+  "bulk_edit": "Modifier la sélection",
+  "bulk_unpublish": "Dépublier tout",
+  "col_user": "Utilisateur",
+  "col_language": "Langue",
+  "col_stats": "Stats",
+  "col_published": "Publié le",
+  "dialog_unpublish_title": "Dépublier {n} {count, plural, one {citation} other {citations}}",
+  "dialog_unpublish_body": "Êtes-vous sûr de vouloir dépublier {n} {count, plural, one {citation} other {citations}} ? Elles seront remises en brouillon.",
+  "dialog_unpublish_button": "Tout dépublier",
+  "action_view_public": "Voir la page publique",
+  "action_edit": "Modifier",
+  "action_unpublish": "Dépublier",
+  "error_unpublish": "Échec de la dépublication",
+  "error_bulk_unpublish": "Échec de la dépublication groupée"
+}

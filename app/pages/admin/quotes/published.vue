@@ -5,17 +5,17 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            Published
+            {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+            {{ totalQuotes }} {{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-3">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search quotes, authors, or references..."
+            :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
           />
           <select
@@ -37,7 +37,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search published..."
+          :placeholder="$t('search_placeholder_mobile') as string"
           class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
         <select
@@ -61,10 +61,10 @@
     <!-- Empty State -->
     <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
       <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? 'No matching published quotes' : 'No published quotes yet' }}
+        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
       </p>
       <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? 'Try adjusting your search terms.' : 'Published quotes will appear here once users submit and quotes are approved.' }}
+        {{ searchQuery ? $t('empty_desc') : $t('empty_desc_default') }}
       </p>
     </div>
 
@@ -72,20 +72,20 @@
     <div v-else-if="hasLoadedOnce">
       <!-- Bulk action bar -->
       <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ selectedQuotes.length }} selected</span>
-        <OutlinedButton size="sm" @click="showBulkEditDialog = true">Edit Selected</OutlinedButton>
-        <OutlinedButton size="sm" @click="showBulkAddToCollection = true">Add to Collection</OutlinedButton>
+        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
+        <OutlinedButton size="sm" @click="showBulkEditDialog = true">{{ $t('bulk_edit') }}</OutlinedButton>
+        <OutlinedButton size="sm" @click="showBulkAddToCollection = true">{{ $t('common.add_to_collection') }}</OutlinedButton>
         <button
           class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
           @click="clearSelection"
         >
-          Clear
+          {{ $t('common.clear') }}
         </button>
         <button
           class="font-sans text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
           @click="showBulkUnpublishModal = true"
         >
-          Unpublish All
+          {{ $t('bulk_unpublish') }}
         </button>
       </div>
 
@@ -100,12 +100,12 @@
                   @update:model-value="toggleAllSelection"
                 />
               </th>
-              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Quote</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Language</th>
-              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">User</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Stats</th>
-              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">Published</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.quote_singular') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_language') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_stats') }}</th>
+              <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.status') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_published') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
             </tr>
           </thead>
@@ -252,8 +252,10 @@ definePageMeta({
   middleware: 'admin'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Published Quotes - Admin - Verbatims'
+  title: $t('meta_title') as string
 })
 
 const quotes = ref<AdminQuote[]>([])
