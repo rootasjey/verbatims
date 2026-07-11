@@ -86,9 +86,9 @@
         class="group py-5 first:pt-0 last:pb-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.02] -mx-2 px-2 rounded-sm transition-colors animate-fade-in-up"
         :style="{ animationDelay: `${idx * 0.05}s` }"
         @click="navigateToCollection(collection)"
-        @contextmenu.prevent="handleCollectionLongPress(collection)"
       >
-        <div class="flex items-start justify-between gap-4">
+        <ContextMenu size="xs" native-on-modifier="ctrl" :items="getCollectionContextMenuActions(collection)">
+          <div class="flex items-start justify-between gap-4">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-3 mb-1.5">
               <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
@@ -143,6 +143,7 @@
             </NDropdownMenu>
           </div>
         </div>
+      </ContextMenu>
       </div>
     </div>
 
@@ -318,6 +319,25 @@ const getCollectionActions = (collection: DashboardCollection) => [
     leading: 'i-ph-trash',
     onclick: () => confirmDelete(collection)
   },
+]
+
+const getCollectionContextMenuActions = (collection: DashboardCollection) => [
+  {
+    label: $t('action_view') as string,
+    leading: 'i-ph-eye',
+    onclick: () => navigateToCollection(collection)
+  },
+  {},
+  {
+    label: $t('label_edit') as string,
+    leading: 'i-ph-pencil',
+    onclick: () => editCollection(collection)
+  },
+  {
+    label: $t('label_delete') as string,
+    leading: 'i-ph-trash',
+    onclick: () => confirmDelete(collection)
+  }
 ]
 
 const openCreateModal = () => {

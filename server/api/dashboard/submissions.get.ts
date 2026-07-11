@@ -75,10 +75,12 @@ export default defineEventHandler(async (event) => {
       return {
         ...submission,
         author: submission.author_name ? {
+          id: submission.authorId,
           name: submission.author_name,
           is_fictional: submission.author_is_fictional
         } : null,
         reference: submission.reference_name ? {
+          id: submission.referenceId,
           name: submission.reference_name,
           primary_type: submission.reference_type
         } : null,

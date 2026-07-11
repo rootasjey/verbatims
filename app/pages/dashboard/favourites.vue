@@ -70,13 +70,21 @@
       >
         <div class="flex items-start gap-4">
           <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
-            <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-              &ldquo;{{ quote.name }}&rdquo;
-            </blockquote>
+            <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
+              <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                &ldquo;{{ quote.name }}&rdquo;
+              </blockquote>
+            </ContextMenu>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author?.name || quote.author_name || $t('common.unknown') }}</span>
-              <span v-if="quote.reference?.name || quote.reference_name" class="text-gray-300 dark:text-gray-600">·</span>
-              <span v-if="quote.reference?.name || quote.reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.reference?.name || quote.reference_name }}</span>
+              <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
+                <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author.name }}</span>
+              </ContextMenu>
+              <span v-if="!quote.author?.name && quote.author_name" class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author_name }}</span>
+              <span v-if="(quote.author?.name || quote.author_name) && (quote.reference?.name || quote.reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
+              <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.reference.name }}</span>
+              </ContextMenu>
+              <span v-if="!quote.reference?.name && quote.reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.reference_name }}</span>
               <span class="text-gray-300 dark:text-gray-600">·</span>
               <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('liked_prefix') }}{{ formatDate(quote.liked_at) }}</span>
             </div>
@@ -239,6 +247,58 @@ const loadFavourites = async (page = 1) => {
 const loadMore = async () => {
   loadingMore.value = true
   await loadFavourites(currentPage.value + 1)
+}
+
+const getQuoteActions = (quote: any) => [
+  {
+    label: $t('tooltip_add_to_collection') as string,
+    leading: 'i-ph-folder-plus',
+    onclick: () => handleAddToCollection(quote)
+  },
+  {},
+  {
+    label: $t('tooltip_share') as string,
+    leading: 'i-ph-share',
+    onclick: () => handleShareQuote(quote)
+  },
+  {},
+  {
+    label: $t('tooltip_remove') as string,
+    leading: 'i-ph-heart-break',
+    onclick: () => handleUnlike(quote)
+  }
+]
+
+const getAuthorActions = (quote: any) => {
+  const author = quote.author
+  const authorId = author?.id || quote.authorId || quote.author_id
+  if (!author?.name || !authorId) return []
+  return [
+    { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) },
+    { label: $t('action_share') as string, leading: 'i-ph-share', onclick: () => shareAuthor(authorId) }
+  ]
+}
+
+const getReferenceActions = (quote: any) => {
+  const reference = quote.reference
+  const referenceId = reference?.id || quote.referenceId || quote.reference_id
+  if (!reference?.name || !referenceId) return []
+  return [
+    { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${referenceId}`) },
+    { label: $t('action_share') as string, leading: 'i-ph-share', onclick: () => shareReference(referenceId) }
+  ]
+}
+
+const shareAuthor = (authorId: number) => {
+  const url = `${window.location.origin}/authors/${authorId}`
+  navigator.clipboard.writeText(url)
+  useToast().toast({ title: $t('action_share') as string, description: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
+}
+
+const shareReference = (referenceId: number) => {
+  const url = `${window.location.origin}/references/${referenceId}`
+  navigator.clipboard.writeText(url)
+  useToast().toast({ title: $t('action_share') as string, description: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
 }
 
 const handleUnlike = async (quote: LikedQuote) => {

@@ -13,5 +13,6 @@
   "delete_dialog_title": "Delete List",
   "delete_dialog_body": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
   "label_edit": "Edit",
-  "label_delete": "Delete"
+  "label_delete": "Delete",
+  "action_view": "View Collection"
 }

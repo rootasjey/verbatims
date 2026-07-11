@@ -38,31 +38,33 @@
         class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm p-4 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors group"
       >
         <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0 flex-1">
-            <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 italic leading-relaxed line-clamp-2 mb-1">
-              {{ sponsor.leading_icon }}&ldquo;{{ sponsor.message }}&rdquo;{{ sponsor.trailing_icon }}
-            </blockquote>
-            <div v-if="sponsor.url" class="font-sans text-xs text-gray-400 dark:text-gray-500 truncate mb-2">
-              {{ sponsor.url }}
+          <ContextMenu size="xs" native-on-modifier="ctrl" :items="getSponsorActions(sponsor)">
+            <div class="min-w-0 flex-1">
+              <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 italic leading-relaxed line-clamp-2 mb-1">
+                {{ sponsor.leading_icon }}&ldquo;{{ sponsor.message }}&rdquo;{{ sponsor.trailing_icon }}
+              </blockquote>
+              <div v-if="sponsor.url" class="font-sans text-xs text-gray-400 dark:text-gray-500 truncate mb-2">
+                {{ sponsor.url }}
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span
+                  class="font-sans px-1.5 py-0.5"
+                  :class="statusClass(sponsor)"
+                >
+                  {{ statusLabel(sponsor) }}
+                </span>
+                <span v-if="sponsor.paid" class="font-sans text-green-600 dark:text-green-400 flex items-center gap-0.5">
+                  <NIcon name="i-ph-check" class="w-3 h-3" /> {{ $t('common.status_paid') }}
+                </span>
+                <span class="font-sans text-gray-400 dark:text-gray-500">
+                  {{ formatDate(sponsor.created_at) }}
+                </span>
+              </div>
+              <p v-if="sponsor.status === 'rejected' && sponsor.rejectionReason" class="font-sans text-xs text-red-600 dark:text-red-400 mt-1.5">
+                {{ $t('label_rejection_reason', { reason: sponsor.rejectionReason }) }}
+              </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span
-                class="font-sans px-1.5 py-0.5"
-                :class="statusClass(sponsor)"
-              >
-                {{ statusLabel(sponsor) }}
-              </span>
-              <span v-if="sponsor.paid" class="font-sans text-green-600 dark:text-green-400 flex items-center gap-0.5">
-                <NIcon name="i-ph-check" class="w-3 h-3" /> {{ $t('common.status_paid') }}
-              </span>
-              <span class="font-sans text-gray-400 dark:text-gray-500">
-                {{ formatDate(sponsor.created_at) }}
-              </span>
-            </div>
-            <p v-if="sponsor.status === 'rejected' && sponsor.rejectionReason" class="font-sans text-xs text-red-600 dark:text-red-400 mt-1.5">
-              {{ $t('label_rejection_reason', { reason: sponsor.rejectionReason }) }}
-            </p>
-          </div>
+          </ContextMenu>
           <button
             v-if="canEdit(sponsor)"
             class="flex-shrink-0 p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors opacity-0 group-hover:opacity-100 -mt-1 -mr-1"
@@ -198,6 +200,36 @@ const saveEdit = async () => {
   } finally {
     saving.value = false
   }
+}
+
+const getSponsorActions = (sponsor: any) => {
+  const actions: any[] = []
+  if (canEdit(sponsor)) {
+    actions.push({
+      label: $t('action_edit') as string,
+      leading: 'i-ph-pencil',
+      onclick: () => openEdit(sponsor)
+    })
+  }
+  if (sponsor.url) {
+    if (actions.length > 0) actions.push({})
+    actions.push({
+      label: $t('action_view_url') as string,
+      leading: 'i-ph-arrow-square-out',
+      onclick: () => window.open(sponsor.url, '_blank')
+    })
+    actions.push({
+      label: $t('action_share') as string,
+      leading: 'i-ph-share',
+      onclick: () => shareSponsorUrl(sponsor.url)
+    })
+  }
+  return actions
+}
+
+const shareSponsorUrl = (url: string) => {
+  navigator.clipboard.writeText(url)
+  useToast().toast({ title: $t('toast_link_copied') as string, toast: 'outline-success' })
 }
 
 const statusClass = (sponsor: any) => {

@@ -16,5 +16,8 @@
   "action_view": "Voir les détails",
   "action_withdraw": "Retirer",
   "error_withdraw": "Échec du retrait",
-  "error_bulk_withdraw": "Échec du retrait groupé"
+  "error_bulk_withdraw": "Échec du retrait groupé",
+  "action_view_author_page": "Voir la page auteur",
+  "action_view_reference_page": "Voir la page référence",
+  "action_share": "Partager"
 }

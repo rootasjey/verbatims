@@ -16,5 +16,8 @@
   "tooltip_share": "Share",
   "tooltip_remove": "Remove from favourites",
   "share_title": "Quote from Verbatims",
-  "error_remove": "Failed to remove from favourites"
+  "error_remove": "Failed to remove from favourites",
+  "action_view_author_page": "View Author Page",
+  "action_view_reference_page": "View Reference Page",
+  "action_share": "Share"
 }

@@ -16,5 +16,8 @@
   "action_view": "View Details",
   "action_withdraw": "Withdraw",
   "error_withdraw": "Withdraw failed",
-  "error_bulk_withdraw": "Bulk withdraw failed"
+  "error_bulk_withdraw": "Bulk withdraw failed",
+  "action_view_author_page": "View Author Page",
+  "action_view_reference_page": "View Reference Page",
+  "action_share": "Share"
 }

@@ -27,5 +27,8 @@
   "toast_submit_unavailable": "Soumission indisponible",
   "error_submit": "Échec de la soumission",
   "error_bulk_submit": "Échec de la soumission groupée",
-  "error_bulk_delete": "Échec de la suppression groupée"
+  "error_bulk_delete": "Échec de la suppression groupée",
+  "action_view_author_page": "Voir la page auteur",
+  "action_view_reference_page": "Voir la page référence",
+  "action_share": "Partager"
 }
