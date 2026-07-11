@@ -131,9 +131,11 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
-                  &ldquo;{{ quote.name }}&rdquo;
-                </blockquote>
+                <ContextMenu size="xs" :items="getQuoteActions(quote)">
+                  <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed line-clamp-2 mb-1">
+                    &ldquo;{{ quote.name }}&rdquo;
+                  </blockquote>
+                </ContextMenu>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="quote.author?.name">{{ quote.author.name }}</span>
                   <span v-if="quote.author?.name && quote.reference?.name">&middot;</span>
@@ -384,14 +386,14 @@ const resetFilters = () => {
 
 const getQuoteActions = (quote: AdminQuote) => [
   {
-    label: 'View Public Page',
-    leading: 'i-ph-eye',
-    onclick: () => viewQuote(quote)
-  },
-  {
     label: 'Edit Quote',
     leading: 'i-ph-pencil',
     onclick: () => editQuote(quote)
+  },
+  {
+    label: 'View Public Page',
+    leading: 'i-ph-eye',
+    onclick: () => viewQuote(quote)
   },
   {},
   {
