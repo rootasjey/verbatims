@@ -4,7 +4,7 @@
     <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
       <div class="flex items-center justify-between gap-4">
         <h1 class="font-serif text-3xl md:text-5xl font-200 text-gray-900 dark:text-gray-100 leading-tight">
-          Admin Overview
+          {{ $t('title') }}
         </h1>
         <p class="font-sans text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{{ currentDate }}</p>
       </div>
@@ -39,33 +39,33 @@
       <div class="border border-dashed border-gray-200 dark:border-gray-700 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 md:flex mb-8">
         <div class="px-4 py-4 md:flex-1">
           <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.quotes?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Quotes</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.quotes?.approved || 0 }} approved &middot; {{ stats.quotes?.pending || 0 }} pending</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_quotes') }}</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.quotes?.approved || 0 }} {{ $t('stat_approved') }} &middot; {{ stats.quotes?.pending || 0 }} {{ $t('stat_pending') }}</p>
         </div>
         <div class="px-4 py-4 md:flex-1">
           <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.users?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Users</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.users?.active || 0 }} active</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_users') }}</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.users?.active || 0 }} {{ $t('stat_active') }}</p>
         </div>
         <div class="px-4 py-4 md:flex-1">
           <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.authors?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Authors</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.authors?.fictional || 0 }} fictional</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_authors') }}</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.authors?.fictional || 0 }} {{ $t('stat_fictional') }}</p>
         </div>
         <div class="px-4 py-4 md:flex-1">
           <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.collections?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Collections</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.collections?.public || 0 }} public</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_collections') }}</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.collections?.public || 0 }} {{ $t('stat_public') }}</p>
         </div>
         <div class="px-4 py-4 md:flex-1">
           <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.likes?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Likes</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.likes?.unique_users || 0 }} users</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_likes') }}</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.likes?.unique_users || 0 }} {{ $t('stat_users') }}</p>
         </div>
         <div class="px-4 py-4 md:flex-1">
           <p class="font-serif text-2xl md:text-3xl font-600 text-gray-900 dark:text-gray-100 tabular-nums leading-none">{{ stats.views?.total || 0 }}</p>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">Total Views</p>
-          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.views?.unique_users || 0 }} users</p>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1.5">{{ $t('stat_total_views') }}</p>
+          <p class="font-sans text-[10px] text-gray-400 dark:text-gray-500">{{ stats.views?.unique_users || 0 }} {{ $t('stat_users') }}</p>
         </div>
       </div>
 
@@ -77,10 +77,10 @@
             <div class="flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
               <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                Recent Activity
+                {{ $t('section_recent_activity') }}
               </p>
             </div>
-            <span class="font-sans text-xs text-gray-400 dark:text-gray-500">30 days</span>
+            <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('period_30_days') }}</span>
           </div>
 
           <div v-if="stats.recent_activity && stats.recent_activity.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -126,7 +126,7 @@
             </div>
           </div>
           <div v-else class="py-10 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-            <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">No recent activity</p>
+            <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">{{ $t('empty_activity') }}</p>
           </div>
         </div>
 
@@ -137,14 +137,14 @@
             <div class="flex items-center gap-2 mb-4">
               <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
               <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                Quick Actions
+                {{ $t('section_quick_actions') }}
               </p>
             </div>
             <div class="space-y-1">
               <NuxtLink to="/admin/quotes/pending" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
                 <div class="flex items-center gap-2">
                   <NIcon name="i-ph-clock" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Review Pending</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_review_pending') }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <NBadge v-if="stats.quotes?.pending > 0" :label="`${stats.quotes.pending}`" badge="soft-gray" size="xs" />
@@ -154,35 +154,35 @@
               <NuxtLink to="/admin/quotes/published" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
                 <div class="flex items-center gap-2">
                   <NIcon name="i-ph-check-circle" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Published Quotes</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_published_quotes') }}</span>
                 </div>
                 <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
               </NuxtLink>
               <NuxtLink to="/admin/quotes/drafts" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
                 <div class="flex items-center gap-2">
                   <NIcon name="i-ph-file-dashed" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Draft Quotes</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_draft_quotes') }}</span>
                 </div>
                 <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
               </NuxtLink>
               <NuxtLink to="/admin/authors" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
                 <div class="flex items-center gap-2">
                   <NIcon name="i-ph-user" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Authors</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('admin.nav.authors') }}</span>
                 </div>
                 <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
               </NuxtLink>
               <NuxtLink to="/admin/import" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors">
                 <div class="flex items-center gap-2">
                   <NIcon name="i-ph-upload" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Import Data</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_import_data') }}</span>
                 </div>
                 <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
               </NuxtLink>
               <NuxtLink to="/admin/export" class="group flex items-center justify-between py-2.5 border-b border-dashed border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 -mx-2 px-2 rounded-sm transition-colors last:border-b-0">
                 <div class="flex items-center gap-2">
                   <NIcon name="i-ph-download" class="w-4 h-4 text-gray-400" />
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">Export Data</span>
+                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{{ $t('action_export_data') }}</span>
                 </div>
                 <span class="font-sans text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">&rarr;</span>
               </NuxtLink>
@@ -194,7 +194,7 @@
             <div class="flex items-center gap-2 mb-4">
               <span class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
               <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                Top Contributors
+                {{ $t('section_top_contributors') }}
               </p>
             </div>
 
@@ -213,12 +213,12 @@
                 />
                 <div class="min-w-0 flex-1">
                   <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate">{{ contributor.name }}</p>
-                  <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ contributor.quote_count }} quotes &middot; {{ contributor.total_likes }} likes</p>
+                  <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ contributor.quote_count }} {{ $t('stat_quotes') }} &middot; {{ contributor.total_likes }} {{ $t('stat_likes') }}</p>
                 </div>
               </div>
             </div>
             <div v-else class="py-8 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-              <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">No contributors yet</p>
+              <p class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">{{ $t('empty_contributors') }}</p>
             </div>
           </div>
         </div>
@@ -231,9 +231,9 @@
 import { formatDate, formatRelativeTime } from '~/utils/time-formatter'
 
 function getActionText(activity) {
-  if (activity.type === 'quote_submitted') return 'submitted'
-  if (activity.type === 'quote_moderated') return activity.action?.toLowerCase() || 'moderated'
-  if (activity.type === 'user_registered') return 'registered'
+  if (activity.type === 'quote_submitted') return String($t('action_submitted'))
+  if (activity.type === 'quote_moderated') return activity.action?.toLowerCase() || String($t('action_moderated'))
+  if (activity.type === 'user_registered') return String($t('action_registered'))
   return activity.action?.toLowerCase() || ''
 }
 
@@ -247,8 +247,10 @@ definePageMeta({
   middleware: 'admin'
 })
 
+const { $t } = useI18n()
+
 useHead({
-  title: 'Admin Dashboard - Verbatims'
+  title: String($t('meta_title'))
 })
 
 const stats = ref({})

@@ -113,7 +113,8 @@
     "added": "Added",
     "quote_singular": "quote",
     "quote_plural": "quotes",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "status": "Status"
   },
   "home": {
     "page_title": "Verbatims • A flow of quotes",
