@@ -1,24 +1,24 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Clear finished queue items"
+    :title="$t('admin_social.clear_finished') as string"
     :submitting="loading"
     @submit="emit('confirm')"
   >
     <p class="text-gray-600 dark:text-gray-400">
-      Remove all items with status <em>posted</em> or <em>failed</em> for
-      {{ platformLabels[selectedPlatform] || selectedPlatform }}? This will
-      keep queued and processing entries intact.
+      {{ $t('admin_social.clear_finished_desc', { platform: platformLabels[selectedPlatform] || selectedPlatform }) }}
     </p>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="loading" @click="emit('confirm')">Clear finished</NButton>
+      <NButton btn="soft-red" :loading="loading" @click="emit('confirm')">{{ $t('admin_social.clear_finished_button') }}</NButton>
     </template>
   </AppDialog>
 </template>
 
 <script setup lang="ts">
 import type { SocialPlatform } from '~~/shared/constants/social'
+
+const { $t } = useI18n()
 
 interface Props {
   open: boolean

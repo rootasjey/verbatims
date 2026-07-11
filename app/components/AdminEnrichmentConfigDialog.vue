@@ -1,24 +1,24 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Enrichment settings"
+    :title="$t('admin_enrichment.enrichment_title') as string"
     :submitting="saving"
     scrollable
     max-width="lg"
     @submit="emit('save', localForm)"
   >
     <p class="text-sm text-gray-400 dark:text-gray-400 mb-6">
-      Saved values are stored in KV and override env variables. Cron expressions still require a deploy to change.
+      {{ $t('admin_enrichment.saved_values_hint') }}
     </p>
 
     <div class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <CheckboxBadge v-model="localForm.scheduleEnabled" label="Enable scheduling task" />
+          <CheckboxBadge v-model="localForm.scheduleEnabled" :label="$t('admin_enrichment.enable_schedule') as string" />
           <p class="ml-9 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('scheduleEnabled') }}</p>
         </div>
         <div>
-          <CheckboxBadge v-model="localForm.processEnabled" label="Enable processing task" />
+          <CheckboxBadge v-model="localForm.processEnabled" :label="$t('admin_enrichment.enable_process') as string" />
           <p class="ml-9 text-xs text-gray-500 dark:text-gray-400">Source: {{ sourceLabel('processEnabled') }}</p>
         </div>
       </div>
@@ -153,12 +153,12 @@
       </div>
 
       <p v-if="updatedAt" class="text-xs text-gray-400">
-        Last updated {{ formatDate(updatedAt) }}
+        {{ $t('admin_social.last_updated', { date: formatDate(updatedAt) }) }}
       </p>
     </div>
 
     <template #submit>
-      <PrimaryButton :loading="loading || saving" @click="emit('save', localForm)" class="px-4">Save settings</PrimaryButton>
+      <PrimaryButton :loading="loading || saving" @click="emit('save', localForm)" class="px-4">{{ $t('admin_social.save_settings') }}</PrimaryButton>
     </template>
   </AppDialog>
 </template>
@@ -166,6 +166,8 @@
 <script setup lang="ts">
 import { computed, watch, reactive } from 'vue'
 import { formatDateTime } from '~/utils/time-formatter'
+
+const { $t } = useI18n()
 
 interface EnrichmentConfigForm {
   scheduleEnabled: boolean

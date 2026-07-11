@@ -8,7 +8,7 @@
   >
     <template #title>
       <div class="flex items-center gap-3">
-        <NTooltip content="Refresh preview">
+        <NTooltip :content="$t('admin_enrichment.refresh_preview') as string">
           <NButton
             v-if="author"
             icon
@@ -20,18 +20,18 @@
           />
         </NTooltip>
         <span>
-          {{ preview?.author_name || author?.name || 'Author' }}<span class="font-300"> → Author enrichment preview</span>
+          {{ preview?.author_name || author?.name || $t('common.unknown') }}<span class="font-300"> → {{ $t('admin_enrichment.author_preview_title') }}</span>
         </span>
       </div>
     </template>
 
     <div>
       <div v-if="loading && !preview" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-        Building enrichment preview from Wikidata and Wikimedia Commons...
+        {{ $t('admin_enrichment.building_preview') }}
       </div>
 
       <div v-else-if="!preview && !loading" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-        No preview data available.
+        {{ $t('admin_enrichment.no_preview') }}
       </div>
 
       <div v-else ref="contentWrapper" class="pt-2 space-y-6" style="transition: height .3s ease; overflow: hidden">
@@ -160,11 +160,11 @@
           </Transition>
 
           <div v-if="!promoting && !selectedCandidateData && candidates.length > 0" class="text-center text-xs text-gray-400 dark:text-gray-500 py-2">
-            Click a candidate above to review their matching signals.
+            {{ $t('admin_enrichment.click_candidate') }}
           </div>
 
           <div v-if="!promoting && candidates.length === 0 && preview" class="text-center text-sm py-4 space-y-2">
-            <p class="font-medium text-amber-600 dark:text-amber-400">No matching Wikidata candidate found</p>
+            <p class="font-medium text-amber-600 dark:text-amber-400">{{ $t('admin_enrichment.no_candidate_found') }}</p>
             <p v-if="preview.notes?.length" class="text-xs text-gray-500 dark:text-gray-400">
               {{ preview.notes.join(' ') }}
             </p>
@@ -174,10 +174,10 @@
             <PrimaryButton class="py-2 px-6" :disabled="promoting" @click="view = 'proposals'">
               <template v-if="promoting">
                 <NIcon name="i-ph-spinner" class="w-4 h-4 animate-spin" />
-                Regenerating proposals…
+                {{ $t('admin_enrichment.regenerating') }}
               </template>
               <template v-else>
-                Continue to field proposals
+                {{ $t('admin_enrichment.continue_proposals') }}
                 <NIcon name="i-ph-arrow-right" />
               </template>
             </PrimaryButton>
@@ -210,7 +210,7 @@
           </div>
 
           <div v-if="preview.proposals.length === 0" class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-            No field update is currently recommended for this author.
+            {{ $t('admin_enrichment.no_field_update') }}
           </div>
 
           <div v-else class="space-y-3">
@@ -222,32 +222,33 @@
                     <div class="flex flex-wrap items-center gap-2">
                       <h5 class="text-sm font-medium text-gray-900 dark:text-white">{{ proposal.label }}</h5>
 
-                      <NTooltip :content="proposal.recommended ? 'Recommended' : 'Optional'">
-                        <NBadge :badge="proposal.recommended ? 'soft-green' : 'solid-gray'" size="xs">
-                          <NIcon v-if="proposal.recommended" name="i-tabler-thumb-up" />
-                          <NIcon v-else name="i-tabler-question-mark" />
-                        </NBadge>
+                      <NTooltip :content="(proposal.recommended ? $t('admin_enrichment.recommended') : $t('admin_enrichment.optional')) as string">
+                          <NBadge :badge="proposal.recommended ? 'soft-green' : 'solid-gray'" size="xs">
+                            <NIcon v-if="proposal.recommended" name="i-tabler-thumb-up" />
+                            <NIcon v-else name="i-tabler-question-mark" />
+                          </NBadge>
+                          <span class="sr-only">{{ proposal.recommended ? $t('admin_enrichment.recommended') : $t('admin_enrichment.optional') }}</span>
                       </NTooltip>
-                      <NBadge :badge="proposal.overwrite ? 'solid-pink' : 'soft-blue'" size="xs">{{ proposal.overwrite ? 'Overwrite' : 'Fill missing' }}</NBadge>
+                      <NBadge :badge="proposal.overwrite ? 'solid-pink' : 'soft-blue'" size="xs">{{ proposal.overwrite ? $t('admin_enrichment.overwrite') : $t('admin_enrichment.fill_missing') }}</NBadge>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Confidence {{ proposal.confidence }} · {{ proposal.rationale }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $t('admin_enrichment.confidence', { score: proposal.confidence }) }} · {{ proposal.rationale }}</p>
                   </div>
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ proposal.source_labels.join(' / ') }}</div>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 <div class="rounded-md bg-white dark:bg-gray-900/40 p-3">
-                  <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Current</p>
-                  <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ proposal.current_value || 'Empty' }}</pre>
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">{{ $t('admin_enrichment.current') }}</p>
+                    <pre class="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">{{ proposal.current_value || $t('admin_enrichment.empty') }}</pre>
                 </div>
                 <div class="rounded-md bg-blue-50/70 dark:bg-blue-950/20 p-3 border border-dashed border-blue-200 dark:border-blue-800/60">
-                  <p class="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-300 mb-2">Proposed</p>
-                  <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ proposal.proposed_value || 'Empty' }}</pre>
+                    <p class="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-300 mb-2">{{ $t('admin_enrichment.proposed') }}</p>
+                    <pre class="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-words">{{ proposal.proposed_value || $t('admin_enrichment.empty') }}</pre>
                 </div>
               </div>
               <div v-if="proposal.source_urls?.length" class="mt-3 flex flex-wrap gap-2">
                 <div class="w-full p-3 bg-white dark:bg-gray-800 rounded-2">
-                  <h3 class="text-xs font-600 text-gray-600 dark:text-gray-300 mb-2">Source URLs</h3>
+                  <h3 class="text-xs font-600 text-gray-600 dark:text-gray-300 mb-2">{{ $t('admin_enrichment.source_urls') }}</h3>
                   <div class="flex flex-wrap gap-2">
                     <NTooltip v-for="url in proposal.source_urls" :key="url"  :content="url">
                       <NButton icon link btn="soft-blue" :to="url" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 underline">
@@ -267,16 +268,16 @@
 
     <template #footer>
       <div v-if="view === 'candidate'" class="w-full flex items-center justify-end gap-3 border-t b-dashed px-4 py-3">
-        <NButton btn="link-gray" @click="emit('update:open', false)">Close</NButton>
+        <NButton btn="link-gray" @click="emit('update:open', false)">{{ $t('common.close') }}</NButton>
       </div>
       <div v-else class="w-full flex items-center justify-between gap-3 border-t b-dashed px-4 py-3">
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          {{ selectedFields.length }} field{{ selectedFields.length !== 1 ? 's' : '' }} selected
+          {{ $t('admin_enrichment.fields_selected', { count: selectedFields.length }) }}
         </div>
         <div class="flex gap-3">
-          <NButton btn="link-gray" @click="emit('update:open', false)">Close</NButton>
-          <NButton btn="text-gray" :disabled="!preview?.proposals?.length" @click="emit('select-recommended')">Select recommended</NButton>
-          <PrimaryButton class="px-4" :loading="applying" :disabled="selectedFields.length === 0 || !jobId" @click="emit('apply')">Apply selected</PrimaryButton>
+        <NButton btn="link-gray" @click="emit('update:open', false)">{{ $t('common.close') }}</NButton>
+          <NButton btn="text-gray" :disabled="!preview?.proposals?.length" @click="emit('select-recommended')">{{ $t('admin_enrichment.select_recommended') }}</NButton>
+          <PrimaryButton class="px-4" :loading="applying" :disabled="selectedFields.length === 0 || !jobId" @click="emit('apply')">{{ $t('admin_enrichment.apply_selected') }}</PrimaryButton>
         </div>
       </div>
     </template>
@@ -284,6 +285,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface Props {
   open: boolean
   loading: boolean
@@ -400,27 +403,27 @@ const enrichmentStatus = computed<EnrichmentStatus | null>(() => {
     return {
       variantClass: 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
       icon: 'i-ph-check-circle',
-      title: 'High confidence — safe to apply',
+      title: $t('admin_enrichment.high_confidence_safe') as string,
       description: null,
     }
   }
 
   if (confidence === 'ambiguous' || reviewRequired) {
-    const label = matchConfidenceLabel(confidence)
+    const label = matchConfidenceLabel(confidence) as string
     return {
       variantClass: 'bg-amber-50 dark:bg-pink-950/20 text-amber-700 dark:text-pink-300 border-amber-200 dark:border-amber-800',
       icon: 'i-ph-warning',
-      title: `${label} confidence — review required`,
+      title: $t('admin_enrichment.review_required', { label }) as string,
       description: notes,
     }
   }
 
   if (confidence === 'low') {
-    const label = matchConfidenceLabel(confidence)
+    const label = matchConfidenceLabel(confidence) as string
     return {
       variantClass: 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
       icon: 'i-ph-warning',
-      title: `${label} confidence — review recommended`,
+      title: $t('admin_enrichment.review_recommended', { label }) as string,
       description: notes,
     }
   }
@@ -429,7 +432,7 @@ const enrichmentStatus = computed<EnrichmentStatus | null>(() => {
     return {
       variantClass: 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
       icon: 'i-ph-info',
-      title: 'Medium confidence',
+      title: $t('admin_enrichment.medium_confidence') as string,
       description: notes,
     }
   }
@@ -438,10 +441,10 @@ const enrichmentStatus = computed<EnrichmentStatus | null>(() => {
 })
 
 function matchConfidenceLabel(confidence?: string | null) {
-  if (confidence === 'high') return 'High'
-  if (confidence === 'medium') return 'Medium'
-  if (confidence === 'low') return 'Low'
-  return 'Ambiguous'
+  if (confidence === 'high') return $t('admin_enrichment.confidence_high')
+  if (confidence === 'medium') return $t('admin_enrichment.confidence_medium')
+  if (confidence === 'low') return $t('admin_enrichment.confidence_low')
+  return $t('admin_enrichment.confidence_ambiguous')
 }
 
 const previousAuthorId = ref<number | null>(null)
@@ -496,13 +499,13 @@ function scoreRingColor(score: number) {
 }
 
 function formatSignalForDetail(signal: string) {
-  if (/^Name match/i.test(signal)) return 'The name matches the selected Wikidata entry.'
-  if (/^Description overlap/i.test(signal)) return 'Existing biography context overlaps with the selected Wikidata description.'
-  if (/^Occupation match/i.test(signal)) return 'Existing profession aligns with the selected Wikidata occupation.'
-  if (/^Birth year/i.test(signal)) return 'Existing birth details match Wikidata records.'
-  if (/^Death year/i.test(signal)) return 'Existing death details align with Wikidata records.'
-  if (/^Birth location/i.test(signal)) return 'Existing birth location matches Wikidata records.'
-  if (/^Death location/i.test(signal)) return 'Existing death location matches Wikidata records.'
+  if (/^Name match/i.test(signal)) return $t('admin_enrichment.signal_name_match')
+  if (/^Description overlap/i.test(signal)) return $t('admin_enrichment.signal_description_overlap')
+  if (/^Occupation match/i.test(signal)) return $t('admin_enrichment.signal_occupation_match')
+  if (/^Birth year/i.test(signal)) return $t('admin_enrichment.signal_birth_year')
+  if (/^Death year/i.test(signal)) return $t('admin_enrichment.signal_death_year')
+  if (/^Birth location/i.test(signal)) return $t('admin_enrichment.signal_birth_location')
+  if (/^Death location/i.test(signal)) return $t('admin_enrichment.signal_death_location')
   return signal
 }
 </script>

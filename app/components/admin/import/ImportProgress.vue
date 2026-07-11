@@ -4,10 +4,10 @@
     <NCard>
       <template #header>
         <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold">Import Progress</h2>
+          <h2 class="text-xl font-semibold">{{ $ts('import_progress.title') }}</h2>
           <NBadge
             :color="getStatusColor(progress?.status)"
-            :label="progress?.status?.toUpperCase() || 'UNKNOWN'"
+            :label="progress?.status?.toUpperCase() || $ts('import_progress.status_unknown')"
           />
         </div>
       </template>
@@ -16,7 +16,7 @@
         <!-- Progress Bar -->
         <div>
           <div class="flex justify-between text-sm mb-2">
-            <span>Progress</span>
+            <span>{{ $ts('import_progress.progress') }}</span>
             <span>{{ progress.progressPercentage }}%</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
@@ -31,33 +31,33 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div class="text-2xl font-bold">{{ progress.totalRecords }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Total</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ $ts('import_progress.total') }}</div>
           </div>
           <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div class="text-2xl font-bold text-blue-600">{{ progress.processedRecords }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Processed</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ $ts('import_progress.processed') }}</div>
           </div>
           <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div class="text-2xl font-bold text-green-600">{{ progress.successfulRecords }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Success</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ $ts('import_progress.success') }}</div>
           </div>
           <div class="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <div class="text-2xl font-bold text-red-600">{{ progress.failedRecords }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Failed</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ $ts('import_progress.failed') }}</div>
           </div>
         </div>
 
         <!-- Quote Import Specific Stats -->
         <div v-if="progress.createdAuthors !== undefined || progress.createdReferences !== undefined" class="mt-4">
-          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created During Import</h4>
+          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ $ts('import_progress.created_during_import') }}</h4>
           <div class="grid grid-cols-2 gap-4">
             <div v-if="progress.createdAuthors !== undefined" class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <div class="text-xl font-bold text-blue-600">{{ progress.createdAuthors }}</div>
-              <div class="text-sm text-gray-600 dark:text-gray-400">New Authors</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">{{ $ts('import_progress.new_authors') }}</div>
             </div>
             <div v-if="progress.createdReferences !== undefined" class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
               <div class="text-xl font-bold text-purple-600">{{ progress.createdReferences }}</div>
-              <div class="text-sm text-gray-600 dark:text-gray-400">New References</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">{{ $ts('import_progress.new_references') }}</div>
             </div>
           </div>
         </div>
@@ -65,19 +65,19 @@
         <!-- Time Information -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
-            <span class="font-medium">Started:</span>
+            <span class="font-medium">{{ $ts('import_progress.started') }}</span>
             {{ formatDate(progress.startedAt) }}
           </div>
           <div v-if="progress.completedAt">
-            <span class="font-medium">Completed:</span>
+            <span class="font-medium">{{ $ts('import_progress.completed') }}</span>
             {{ formatDate(progress.completedAt) }}
           </div>
           <div>
-            <span class="font-medium">Duration:</span>
+            <span class="font-medium">{{ $ts('import_progress.duration') }}</span>
             {{ formatDuration(progress.duration) }}
           </div>
           <div v-if="progress.estimatedTimeRemaining && progress.status === 'processing'">
-            <span class="font-medium">ETA:</span>
+            <span class="font-medium">{{ $ts('import_progress.eta') }}</span>
             {{ formatDuration(progress.estimatedTimeRemaining) }}
           </div>
         </div>
@@ -90,7 +90,7 @@
             color="red"
             @click="cancelImport"
           >
-            Cancel Import
+            {{ $ts('import_progress.cancel_import') }}
           </NButton>
 
           <NButton
@@ -99,7 +99,7 @@
             color="yellow"
             @click="showFailedRecords = true"
           >
-            View Failed Records
+            {{ $ts('import_progress.view_failed_records') }}
           </NButton>
 
           <NButton
@@ -107,11 +107,11 @@
             btn="soft-blue"
             @click="downloadUnresolved"
           >
-            Download Unresolved Rows
+            {{ $ts('import_progress.download_unresolved_rows') }}
           </NButton>
 
           <div v-if="progress.status === 'completed' && progress.failedRecords > 0" class="flex items-center gap-2">
-            <span class="text-xs text-gray-500">Format</span>
+            <span class="text-xs text-gray-500">{{ $ts('import_progress.format') }}</span>
             <NRadio
               v-model="reportFormat"
               :items="[
@@ -127,7 +127,7 @@
             btn="soft-indigo"
             @click="downloadReport"
           >
-            Download Report
+            {{ $ts('import_progress.download_report') }}
           </NButton>
 
           <NButton
@@ -136,21 +136,21 @@
             color="blue"
             @click="retryImport"
           >
-            Retry Import
+            {{ $ts('import_progress.retry_import') }}
           </NButton>
         </div>
       </div>
 
       <div v-else class="text-center py-8">
         <NIcon name="i-ph-spinner" class="animate-spin text-2xl mb-2" />
-        <p>Loading import progress...</p>
+        <p>{{ $ts('import_progress.loading') }}</p>
       </div>
     </NCard>
 
     <!-- Recent Errors -->
   <NCard v-if="recentErrors.length > 0">
       <template #header>
-        <h3 class="text-lg font-semibold text-red-600">Recent Errors</h3>
+        <h3 class="text-lg font-semibold text-red-600">{{ $ts('import_progress.recent_errors') }}</h3>
       </template>
       
       <div class="space-y-2">
@@ -162,7 +162,7 @@
           {{ error }}
         </div>
         <div v-if="errorCount > recentErrors.length" class="text-sm text-gray-500">
-          ... and {{ errorCount - recentErrors.length }} more errors
+          {{ $ts('import_progress.more_errors', { count: errorCount - recentErrors.length }) }}
         </div>
       </div>
     </NCard>
@@ -170,7 +170,7 @@
     <!-- Recent Warnings -->
   <NCard v-if="recentWarnings.length > 0">
       <template #header>
-        <h3 class="text-lg font-semibold text-yellow-600">Recent Warnings</h3>
+        <h3 class="text-lg font-semibold text-yellow-600">{{ $ts('import_progress.recent_warnings') }}</h3>
       </template>
       
       <div class="space-y-2">
@@ -182,7 +182,7 @@
           {{ warning }}
         </div>
         <div v-if="warningCount > recentWarnings.length" class="text-sm text-gray-500">
-          ... and {{ warningCount - recentWarnings.length }} more warnings
+          {{ $ts('import_progress.more_warnings', { count: warningCount - recentWarnings.length }) }}
         </div>
       </div>
     </NCard>
@@ -191,7 +191,7 @@
     <NDialog v-model:open="showFailedRecords">
       <NCard>
         <template #header>
-          <h3 class="text-lg font-semibold">Failed Records</h3>
+          <h3 class="text-lg font-semibold">{{ $ts('import_progress.failed_records') }}</h3>
         </template>
 
         <div class="space-y-2 max-h-96 overflow-y-auto">
@@ -206,7 +206,7 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <NButton @click="showFailedRecords = false">Close</NButton>
+            <NButton @click="showFailedRecords = false">{{ $ts('common.close') }}</NButton>
           </div>
         </template>
       </NCard>
@@ -216,6 +216,8 @@
 
 <script setup lang="ts">
 import type { ImportProgress as BaseImportProgress } from '~~/server/types'
+
+const { $t, $ts } = useI18n()
 
 // Extend server ImportProgress with optional UI-only fields we render
 type UiImportProgress = BaseImportProgress & {
@@ -367,8 +369,8 @@ const fetchProgress = async (): Promise<void> => {
     if (statusCode === 404) {
       emit('not-found')
       toast().toast({
-        title: 'Import Not Found',
-        description: 'This import may have finished or expired.',
+        title: $ts('import_progress.toast.import_not_found_title'),
+        description: $ts('import_progress.toast.import_not_found_desc'),
         toast: 'outline-warning',
       })
     } else {
@@ -503,10 +505,10 @@ watch(
     if (previousStatus.value === newStatus) return
     previousStatus.value = newStatus
     if (newStatus === 'completed') {
-      toast().toast({ title: 'Import Completed', description: 'Your data import has finished successfully.', toast: 'soft-success' })
+      toast().toast({ title: $ts('import_progress.toast.import_completed_title'), description: $ts('import_progress.toast.import_completed_desc'), toast: 'soft-success' })
       emit('finished', { status: 'completed' })
     } else if (newStatus === 'failed') {
-      showErrorToast(null, { title: 'Import Failed', fallback: 'The import encountered errors and stopped.' })
+      showErrorToast(null, { title: $ts('import_progress.toast.import_failed_title'), fallback: $ts('import_progress.toast.import_failed_fallback') })
       emit('finished', { status: 'failed' })
     }
   }

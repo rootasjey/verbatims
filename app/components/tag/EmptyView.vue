@@ -2,14 +2,14 @@
   <div class="px-8 py-6 sm:py-12">
     <div class="max-w-xl mx-auto text-center">
       <p v-if="searchQuery" class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-        No tags match
+        {{ $t('tags.empty_view.no_match') }}
       </p>
       <p v-else class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-        No tags yet.
+        {{ $t('tags.empty_view.no_tags') }}
       </p>
 
       <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
-        {{ searchQuery ? `No results for &ldquo;${searchQuery}&rdquo;.` : 'Tags organize quotes by topic. Create one or submit a quote with tags. They also appear once quotes are submitted and categorized.' }}
+        {{ searchQuery ? $t('tags.empty_view.no_results_for', { query: searchQuery }) : $t('tags.empty_view.empty_description') }}
       </p>
 
       <div v-if="searchQuery" class="mt-8">
@@ -18,7 +18,7 @@
           btn="soft-gray"
           @click="$emit('clearFilters')"
         >
-          Clear search
+          {{ $t('tags.empty_view.clear_search') }}
         </NButton>
       </div>
 
@@ -30,7 +30,7 @@
             class="hover:scale-102 active:scale-99 transition-[transform] duration-150"
             @click="$emit('createTag')"
           >
-            Create a tag
+            {{ $t('tags.empty_view.create_tag') }}
           </NButton>
         </div>
       </template>
@@ -39,6 +39,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 const props = defineProps({
   searchQuery: {
     type: String,

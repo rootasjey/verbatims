@@ -2,7 +2,7 @@
   <div class="px-8 py-6 sm:py-12">
     <div class="max-w-xl mx-auto text-center">
       <p class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-        {{ hasActiveFilters ? 'No references match' : 'No references yet.' }}
+        {{ hasActiveFilters ? $t('references.empty_view.no_match') : $t('references.empty_view.no_references') }}
       </p>
 
       <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
@@ -16,7 +16,7 @@
           btn="soft-gray"
           @click="$emit('clearFilters')"
         >
-          Clear filters
+          {{ $t('references.empty_view.clear_filters') }}
         </NButton>
 
         <NButton
@@ -25,7 +25,7 @@
           class="hover:scale-102 active:scale-99 transition-[transform] duration-150"
           @click="$emit('openSubmitReference')"
         >
-          Submit a reference
+          {{ $t('references.empty_view.submit_reference') }}
         </NButton>
       </div>
     </div>
@@ -33,6 +33,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 const props = defineProps({
   searchQuery: {
     type: String,
@@ -66,17 +68,17 @@ const hasActiveFilters = computed(() => {
 
 const emptyDescription = computed(() => {
   if (props.searchQuery?.trim() && selectedTypeLabel.value) {
-    return `No results for &ldquo;${props.searchQuery}&rdquo; in ${selectedTypeLabel.value}. Try a broader search or clear filters.`
+    return $t('references.empty_view.no_results_for_type', { query: props.searchQuery, type: selectedTypeLabel.value })
   }
 
   if (props.searchQuery?.trim()) {
-    return `No references match &ldquo;${props.searchQuery}&rdquo;. Try another keyword or clear filters.`
+    return $t('references.empty_view.no_match_with_query', { query: props.searchQuery })
   }
 
   if (selectedTypeLabel.value) {
-    return `No references are available in ${selectedTypeLabel.value} yet. Try another type or submit a quote to add one.`
+    return $t('references.empty_view.no_references_in_type', { type: selectedTypeLabel.value })
   }
 
-  return 'Every quote comes from somewhere. Add a source when you submit a quote and help build the reference library.'
+  return $t('references.empty_view.empty_description')
 })
 </script>

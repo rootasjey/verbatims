@@ -3,15 +3,15 @@
     <div class="space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">Export History</h2>
+          <h2 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">{{ $ts('export_history.title') }}</h2>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            View and manage your previous exports
+            {{ $ts('export_history.description') }}
           </p>
         </div>
         <div class="flex items-center gap-3">
           <OutlinedButton size="sm" @click="refresh">
             <NIcon name="i-ph-arrow-clockwise" />
-            Refresh
+            {{ $ts('common.refresh') }}
           </OutlinedButton>
           <OutlinedButton
             size="sm"
@@ -20,7 +20,7 @@
             @click="showClearHistoryDialog = true"
           >
             <NIcon name="i-ph-trash" />
-            Clear All
+            {{ $ts('export_history.clear_all') }}
           </OutlinedButton>
         </div>
       </div>
@@ -33,14 +33,14 @@
         <div v-else-if="dataExport.state.exportHistory.length === 0" class="text-center py-12">
           <NIcon name="i-ph-clock-countdown" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
-            No Export History
+            {{ $ts('export_history.no_history_title') }}
           </h3>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Your export history will appear here once you start creating exports.
+            {{ $ts('export_history.no_history_desc') }}
           </p>
           <OutlinedButton @click="emit('go-to-export')">
             <NIcon name="i-ph-download" />
-            Create Your First Export
+            {{ $ts('export_history.create_first') }}
           </OutlinedButton>
         </div>
 
@@ -51,22 +51,22 @@
                 <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
                   <div class="flex items-center justify-between">
                     <span class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">
-                      {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'entry' : 'entries' }} selected
+                      {{ selectedEntries.length === 1 ? $ts('export_history.entry_selected', { count: selectedEntries.length }) : $ts('export_history.entries_selected', { count: selectedEntries.length }) }}
                     </span>
                     <div class="flex items-center gap-3">
                       <OutlinedButton size="sm" :loading="bulkDownloading" @click="bulkDownload">
                         <NIcon name="i-ph-download" />
-                        Download Selected
+                        {{ $ts('export_history.download_selected') }}
                       </OutlinedButton>
                       <OutlinedButton size="sm" variant="destructive" :loading="bulkProcessing" @click="showBulkDeleteModal = true">
                         <NIcon name="i-ph-trash" />
-                        Delete Selected
+                        {{ $ts('export_history.delete_selected') }}
                       </OutlinedButton>
                       <button
                         class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                         @click="clearSelection"
                       >
-                        Clear Selection
+                        {{ $ts('export_history.clear_selection') }}
                       </button>
                     </div>
                   </div>
@@ -82,27 +82,27 @@
                   <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-6">
                     <div class="flex items-center justify-center gap-1">
                       <template v-if="selectionMode">
-                        <NTooltip text="Select all on page">
+                        <NTooltip :text="$ts('export_history.select_all_page')">
                           <OutlinedButton size="sm" :disabled="allSelectedOnPage" @click="selectAllOnPage">
                             <NIcon name="i-ph-checks" />
                           </OutlinedButton>
                         </NTooltip>
                       </template>
-                      <NTooltip :text="selectionMode ? 'Deactivate selection' : 'Activate selection'">
+                      <NTooltip :text="selectionMode ? $ts('export_history.deactivate_selection') : $ts('export_history.activate_selection')">
                         <OutlinedButton size="sm" @click="toggleSelectionMode">
                           <NIcon :name="selectionMode ? 'i-ph-x' : 'i-solar-check-square-linear'" />
                         </OutlinedButton>
                       </NTooltip>
                     </div>
                   </th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left min-w-80">Filename</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-24">Format</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-28">Records</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-24">Size</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-36">Storage</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-40">User</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-36">Created</th>
-                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-28">Downloads</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left min-w-80">{{ $ts('export_history.filename') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-24">{{ $ts('export_history.column_format') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-28">{{ $ts('export_history.records') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-24">{{ $ts('export_history.size') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-36">{{ $ts('export_history.storage') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-40">{{ $ts('export_history.user') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-36">{{ $ts('export_history.created') }}</th>
+                  <th class="font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 py-2 text-left w-28">{{ $ts('export_history.downloads') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,7 +126,7 @@
                   </td>
                   <td class="px-3 py-2">
                     <div class="font-medium text-gray-900 dark:text-white">{{ entry.filename }}</div>
-                    <div v-if="entry.filters_applied" class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">Filters applied</div>
+                    <div v-if="entry.filters_applied" class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $ts('export_history.filters_applied') }}</div>
                   </td>
                   <td class="px-3 py-2">
                     <NBadge
@@ -149,7 +149,7 @@
                       />
                       <NBadge
                         v-else
-                        label="Legacy"
+                        :label="$ts('export_history.badge_legacy')"
                         color="gray"
                         badge="soft"
                         size="xs"
@@ -158,7 +158,7 @@
                         v-if="entry.backup_file && entry.backup_file.storage_status === 'stored'"
                         name="i-ph-cloud-check"
                         class="w-4 h-4 text-green-500"
-                        title="Stored in R2"
+                        :title="$ts('export_history.title_stored_r2')"
                       />
                     </div>
                   </td>
@@ -172,15 +172,15 @@
 
           <div class="flex-shrink-0 flex items-center justify-between mt-4 p-4 border border-dashed border-gray-200 dark:border-gray-700">
             <div class="font-sans text-xs text-gray-500 dark:text-gray-400">
-              Page {{ dataExport.state.historyPagination.page }} of {{ dataExport.state.historyPagination.totalPages }} &bull; {{ dataExport.state.historyPagination.total }} total exports
+              {{ $ts('export_history.page_info', { page: dataExport.state.historyPagination.page, totalPages: dataExport.state.historyPagination.totalPages, total: dataExport.state.historyPagination.total }) }}
             </div>
             <div class="flex items-center gap-2">
               <OutlinedButton size="sm" :disabled="dataExport.state.historyPagination.page <= 1" @click="dataExport.state.historyPagination.page--">
                 <NIcon name="i-ph-caret-left" />
-                Previous
+                {{ $ts('common.previous') }}
               </OutlinedButton>
               <OutlinedButton size="sm" :disabled="dataExport.state.historyPagination.page >= dataExport.state.historyPagination.totalPages" @click="dataExport.state.historyPagination.page++">
-                Next
+                {{ $ts('common.next') }}
                 <NIcon name="i-ph-caret-right" />
               </OutlinedButton>
             </div>
@@ -191,46 +191,46 @@
 
     <NDialog v-model:open="showBulkDeleteModal">
       <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 mb-4">Delete {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'Entry' : 'Entries' }}</h3>
+        <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100 mb-4">{{ $ts('export_history.bulk_delete_title', { count: selectedEntries.length }) }}</h3>
 
         <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">
-          You are about to delete {{ selectedEntries.length }} {{ selectedEntries.length === 1 ? 'export history entry' : 'export history entries' }}. This action cannot be undone.
+          {{ $ts('export_history.bulk_delete_desc', { count: selectedEntries.length }) }}
         </p>
 
         <div class="flex justify-end space-x-3">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="showBulkDeleteModal = false">Cancel</button>
-          <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="bulkDelete">Delete All</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="showBulkDeleteModal = false">{{ $ts('export_history.bulk_delete_cancel') }}</button>
+          <OutlinedButton variant="destructive" :loading="bulkProcessing" @click="bulkDelete">{{ $ts('export_history.bulk_delete_confirm') }}</OutlinedButton>
         </div>
       </div>
     </NDialog>
 
     <NDialog v-model:open="showClearHistoryDialog">
       <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-        <h3 class="font-sans text-sm font-600 text-red-600 dark:text-red-400 mb-4">Clear All Export History</h3>
+        <h3 class="font-sans text-sm font-600 text-red-600 dark:text-red-400 mb-4">{{ $ts('export_history.clear_dialog_title') }}</h3>
 
         <div class="space-y-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Are you sure you want to clear all export history? This action cannot be undone.
+            {{ $ts('export_history.clear_dialog_confirm') }}
           </p>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-500">
-            This will permanently delete {{ dataExport.state.exportHistory.length }} export history entries.
+            {{ $ts('export_history.clear_dialog_delete_count', { count: dataExport.state.exportHistory.length }) }}
           </p>
         </div>
 
         <div class="flex justify-end gap-3 mt-4">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="showClearHistoryDialog = false">Cancel</button>
-          <OutlinedButton variant="destructive" @click="handleClearAllHistory">Clear All History</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="showClearHistoryDialog = false">{{ $ts('export_history.clear_dialog_cancel') }}</button>
+          <OutlinedButton variant="destructive" @click="handleClearAllHistory">{{ $ts('export_history.clear_dialog_confirm_button') }}</OutlinedButton>
         </div>
       </div>
     </NDialog>
 
     <NDialog v-model:open="showDeleteEntryDialog">
       <div class="border border-dashed border-gray-200 dark:border-gray-700 p-4">
-        <h3 class="font-sans text-sm font-600 text-red-600 dark:text-red-400 mb-4">Delete Export Entry</h3>
+        <h3 class="font-sans text-sm font-600 text-red-600 dark:text-red-400 mb-4">{{ $ts('export_history.delete_entry_title') }}</h3>
 
         <div class="space-y-4">
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Are you sure you want to delete this export history entry?
+            {{ $ts('export_history.delete_entry_confirm') }}
           </p>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-500">
             {{ deleteEntryData.filename }}
@@ -238,8 +238,8 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-4">
-          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="showDeleteEntryDialog = false">Cancel</button>
-          <OutlinedButton @click="handleDeleteEntry">Delete Entry</OutlinedButton>
+          <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="showDeleteEntryDialog = false">{{ $ts('export_history.delete_entry_cancel') }}</button>
+          <OutlinedButton @click="handleDeleteEntry">{{ $ts('export_history.delete_entry_confirm_button') }}</OutlinedButton>
         </div>
       </div>
     </NDialog>
@@ -247,6 +247,8 @@
 </template>
 
 <script setup lang="ts">
+const { $t, $ts } = useI18n()
+
 import { useDataExport } from '~/composables/useDataExport'
 
 const emit = defineEmits<{ (e: 'go-to-export'): void }>()
@@ -313,10 +315,10 @@ const getEntryActions = (entry: any) => {
   const items: any[] = []
 
   if (dataExport.isExpired(entry.expires_at)) {
-    items.push({ label: 'Expired', leading: 'i-ph-clock', disabled: true })
+    items.push({ label: $ts('export_history.action_expired'), leading: 'i-ph-clock', disabled: true })
   } else {
     items.push({
-      label: 'Execute Query',
+      label: $ts('export_history.action_execute_query'),
       leading: 'i-ph-caret-double-right-duotone',
       onclick: () => dataExport.downloadExport(entry.id)
     })
@@ -324,7 +326,7 @@ const getEntryActions = (entry: any) => {
 
   if (entry.backup_file && entry.backup_file.storage_status === 'stored') {
     items.push({
-      label: 'Download',
+      label: $ts('export_history.action_download'),
       leading: 'i-ph-download',
       onclick: () => dataExport.downloadBackup(entry.backup_file.id)
     })
@@ -333,7 +335,7 @@ const getEntryActions = (entry: any) => {
   if (items.length) items.push({})
 
   items.push({
-    label: 'Delete',
+    label: $ts('export_history.action_delete'),
     leading: 'i-ph-trash',
     onclick: () => confirmDeleteEntry(entry.id, entry.filename)
   })
@@ -358,7 +360,7 @@ const bulkDelete = async () => {
     showBulkDeleteModal.value = false
   } catch (error) {
     console.error('Failed to bulk delete export history entries:', error)
-    showErrorToast(error, { title: 'Bulk Delete Failed', fallback: 'Please try again.' })
+    showErrorToast(error, { title: $ts('export_history.toast_bulk_delete_failed_title'), fallback: $ts('export_history.toast_bulk_delete_failed_fallback') })
   } finally {
     bulkProcessing.value = false
   }
@@ -398,12 +400,12 @@ const bulkDownload = async () => {
   }
 
   const parts = [] as string[]
-  parts.push(`${success} downloaded`)
-  if (skipped) parts.push(`${skipped} skipped`)
-  if (failed) parts.push(`${failed} failed`)
+  parts.push($ts('export_history.toast_bulk_download_downloaded', { count: success }))
+  if (skipped) parts.push($ts('export_history.toast_bulk_download_skipped', { count: skipped }))
+  if (failed) parts.push($ts('export_history.toast_bulk_download_failed', { count: failed }))
 
   useToast().toast({
-    title: 'Bulk download complete',
+    title: $ts('export_history.toast_bulk_download_title'),
     description: parts.join(', ') + '.',
     toast: 'outline-success',
   })
@@ -413,14 +415,14 @@ const bulkDownload = async () => {
 
 const historyColumns = [
   { header: '', accessorKey: 'actions', enableSorting: false, meta: { una: { tableHead: 'w-6', tableCell: 'w-6' } } },
-  { header: 'Filename', accessorKey: 'filename', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
-  { header: 'Format', accessorKey: 'format', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Records', accessorKey: 'records', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
-  { header: 'Size', accessorKey: 'size', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
-  { header: 'Storage', accessorKey: 'storage', enableSorting: false, meta: { una: { tableHead: 'w-36', tableCell: 'w-36' } } },
-  { header: 'User', accessorKey: 'user', enableSorting: false, meta: { una: { tableHead: 'w-40', tableCell: 'w-40' } } },
-  { header: 'Created', accessorKey: 'created', enableSorting: false, meta: { una: { tableHead: 'w-36', tableCell: 'w-36' } } },
-  { header: 'Downloads', accessorKey: 'downloads', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } }
+  { header: $ts('export_history.filename'), accessorKey: 'filename', enableSorting: false, meta: { una: { tableHead: 'min-w-80', tableCell: 'min-w-80' } } },
+  { header: $ts('export_history.column_format'), accessorKey: 'format', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: $ts('export_history.records'), accessorKey: 'records', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } },
+  { header: $ts('export_history.size'), accessorKey: 'size', enableSorting: false, meta: { una: { tableHead: 'w-24', tableCell: 'w-24' } } },
+  { header: $ts('export_history.storage'), accessorKey: 'storage', enableSorting: false, meta: { una: { tableHead: 'w-36', tableCell: 'w-36' } } },
+  { header: $ts('export_history.user'), accessorKey: 'user', enableSorting: false, meta: { una: { tableHead: 'w-40', tableCell: 'w-40' } } },
+  { header: $ts('export_history.created'), accessorKey: 'created', enableSorting: false, meta: { una: { tableHead: 'w-36', tableCell: 'w-36' } } },
+  { header: $ts('export_history.downloads'), accessorKey: 'downloads', enableSorting: false, meta: { una: { tableHead: 'w-28', tableCell: 'w-28' } } }
 ]
 
 const refresh = () => dataExport.loadExportHistory(dataExport.state.historyPagination.page)

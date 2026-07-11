@@ -1,7 +1,7 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    title="Manually add quote"
+    :title="$t('admin_social.manual_add') as string"
     hide-footer
     @close="isOpen = false"
   >
@@ -9,13 +9,13 @@
       <div class="flex items-center gap-2">
         <NInput
           v-model="searchModel"
-          placeholder="Search approved quotes..."
+          :placeholder="$t('admin_social.search_approved') as string"
           leading="i-ph-magnifying-glass"
           :loading="loading"
           class="bg-white dark:bg-gray-900 b-none shadow-none"
           @keyup.enter="emit('search')"
         />
-        <NButton btn="soft-gray" :loading="loading" @click="emit('search')">Search</NButton>
+        <NButton btn="soft-gray" :loading="loading" @click="emit('search')">{{ $t('admin_social.search_button') }}</NButton>
       </div>
       <div class="mt-3 max-h-44 overflow-auto space-y-2">
         <div
@@ -26,27 +26,29 @@
           <div class="min-w-0">
             <p class="text-sm text-gray-900 dark:text-white">{{ quote.name }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              {{ quote.author?.name || 'Unknown author' }}
+              {{ quote.author?.name || $t('common.unknown') }}
               <span v-if="quote.reference?.name"> · {{ quote.reference.name }}</span>
             </p>
           </div>
-          <NButton btn="soft-blue" size="xs" @click="emit('add', quote.id)">Add</NButton>
+          <NButton btn="soft-blue" size="xs" @click="emit('add', quote.id)">{{ $t('admin_social.add_button') }}</NButton>
         </div>
         <p v-if="loaded && !quotes.length" class="text-xs text-gray-500 dark:text-gray-400">
-          No approved quote found.
+          {{ $t('admin_social.no_approved_found') }}
         </p>
       </div>
     </div>
 
     <template #footer>
       <div class="flex justify-end">
-        <NButton btn="link-gray" @click="isOpen = false">Close</NButton>
+        <NButton btn="link-gray" @click="isOpen = false">{{ $t('common.close') }}</NButton>
       </div>
     </template>
   </AppDialog>
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface PickerQuote {
   id: number
   name: string

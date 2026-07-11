@@ -1,24 +1,24 @@
 <template>
   <AppDialog
     v-model="isOpen"
-    :title="'Clear all queue items'"
+    :title="$t('admin_social.clear_all') as string"
     :submitting="loading"
     @submit="emit('confirm')"
   >
     <p class="text-gray-600 dark:text-gray-400">
-      Are you sure you want to remove <strong>all</strong> items from the queue for
-      {{ platformLabels[selectedPlatform] || selectedPlatform }}? This
-      action cannot be undone.
+      {{ $t('admin_social.clear_all_confirm', { platform: platformLabels[selectedPlatform] || selectedPlatform }) }}
     </p>
 
     <template #submit>
-      <NButton btn="soft-red" :loading="loading" @click="emit('confirm')">Clear all</NButton>
+      <NButton btn="soft-red" :loading="loading" @click="emit('confirm')">{{ $t('admin_social.clear_all_button') }}</NButton>
     </template>
   </AppDialog>
 </template>
 
 <script setup lang="ts">
 import type { SocialPlatform } from '~~/shared/constants/social'
+
+const { $t } = useI18n()
 
 interface Props {
   open: boolean
