@@ -670,14 +670,14 @@ const onBulkRejected = () => {
 
 const getQuoteActions = (quote: any): any[] => {
   const actions: any[] = [
-    { label: 'View Details', leading: 'i-ph-eye', onclick: () => viewQuote(quote) },
-    { label: 'Edit Quote', leading: 'i-ph-pencil', onclick: () => editQuote(quote) }
+    { label: $t('action_view') as string, leading: 'i-ph-eye', onclick: () => viewQuote(quote) },
+    { label: $t('action_edit') as string, leading: 'i-ph-pencil', onclick: () => editQuote(quote) }
   ]
   if (quote.status === 'pending') {
     actions.push(
       {},
-      { label: 'Approve', leading: 'i-ph-check', onclick: () => approveQuote(quote) },
-      { label: 'Reject', leading: 'i-ph-x', onclick: () => rejectQuote(quote) }
+      { label: $t('action_approve') as string, leading: 'i-ph-check', onclick: () => approveQuote(quote) },
+      { label: $t('action_reject') as string, leading: 'i-ph-x', onclick: () => rejectQuote(quote) }
     )
   }
   return actions
@@ -701,8 +701,8 @@ const getAuthorActions = (quote: any) => {
   const authorId = quote.author_id
   if (!authorId) return []
   return [
-    { label: 'Edit Author', leading: 'i-ph-pencil', onclick: () => editAuthor(authorId) },
-    { label: 'View Author Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) }
+    { label: $t('action_edit_author') as string, leading: 'i-ph-pencil', onclick: () => editAuthor(authorId) },
+    { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) }
   ]
 }
 
@@ -724,8 +724,8 @@ const getReferenceActions = (quote: any) => {
   const refId = quote.reference_id
   if (!refId) return []
   return [
-    { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(refId) },
-    { label: 'View Reference Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${refId}`) }
+    { label: $t('action_edit_reference') as string, leading: 'i-ph-pencil', onclick: () => editReference(refId) },
+    { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${refId}`) }
   ]
 }
 

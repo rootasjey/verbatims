@@ -114,7 +114,8 @@
     "quote_singular": "citation",
     "quote_plural": "citations",
     "unknown": "Inconnu",
-    "status": "Statut"
+    "status": "Statut",
+    "context_menu_native_hint": "Ctrl + clic droit pour le menu navigateur"
   },
   "home": {
     "page_title": "Verbatims • Un flux de citations",

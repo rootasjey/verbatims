@@ -236,6 +236,7 @@ import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
 import { useErrorToast } from '~/composables/useErrorToast'
 
 const { showErrorToast } = useErrorToast()
+const { $t } = useI18n()
 
 definePageMeta({
   layout: 'admin',
@@ -473,11 +474,11 @@ const resetFilters = () => {
 }
 
 const getQuoteActions = (quote: AdminQuote) => [
-  { label: 'View Details', leading: 'i-ph-eye', onclick: () => viewQuote(quote) },
-  { label: 'Edit Quote', leading: 'i-ph-pencil', onclick: () => editQuote(quote) },
-  { label: 'Submit for Review', leading: 'i-ph-paper-plane-tilt', onclick: () => submitForReview(quote) },
+  { label: $t('action_view') as string, leading: 'i-ph-eye', onclick: () => viewQuote(quote) },
+  { label: $t('action_edit') as string, leading: 'i-ph-pencil', onclick: () => editQuote(quote) },
+  { label: $t('action_submit') as string, leading: 'i-ph-paper-plane-tilt', onclick: () => submitForReview(quote) },
   {},
-  { label: 'Delete Draft', leading: 'i-ph-trash', onclick: () => confirmDelete(quote) }
+  { label: $t('action_delete') as string, leading: 'i-ph-trash', onclick: () => confirmDelete(quote) }
 ]
 
 const showEditAuthorDialog = ref(false)
@@ -511,8 +512,8 @@ const getAuthorActions = (quote: AdminQuote) => {
   const author = quote.author
   if (!author?.id) return []
   return [
-    { label: 'Edit Author', leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
-    { label: 'View Author Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${author.id}`) }
+    { label: $t('action_edit_author') as string, leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
+    { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${author.id}`) }
   ]
 }
 
@@ -520,8 +521,8 @@ const getReferenceActions = (quote: AdminQuote) => {
   const reference = quote.reference
   if (!reference?.id) return []
   return [
-    { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(reference) },
-    { label: 'View Reference Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${reference.id}`) }
+    { label: $t('action_edit_reference') as string, leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+    { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${reference.id}`) }
   ]
 }
 
