@@ -114,7 +114,7 @@
           <ContextMenuSeparator class="my-1 -mx-1 h-px bg-border" />
           <div class="px-2.5 py-1.5 flex items-center gap-1.5 select-none pointer-events-none opacity-50">
             <span class="i-ph-info w-3 h-3 flex-shrink-0" />
-            <span class="text-[0.7em] leading-tight">Press Ctrl + right-click for browser menu</span>
+            <span class="text-[0.7em] leading-tight">{{ $t('common.context_menu_native_hint') }}</span>
           </div>
         </template>
       </ContextMenuContent>
@@ -137,9 +137,9 @@ import {
 } from 'reka-ui'
 
 interface ContextMenuItem {
-  label?: string
+  label?: string | null
   leading?: string
-  shortcut?: string
+  shortcut?: string | null
   disabled?: boolean
   items?: ContextMenuItem[]
   onclick?: () => void
@@ -151,6 +151,8 @@ interface Props {
   nativeOnModifier?: 'ctrl' | 'shift' | 'alt'
   contentClass?: string
 }
+
+const { $t } = useI18n()
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'sm',

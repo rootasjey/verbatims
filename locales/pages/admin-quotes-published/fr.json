@@ -19,6 +19,10 @@
   "dialog_unpublish_button": "Tout dépublier",
   "action_view_public": "Voir la page publique",
   "action_edit": "Modifier",
+  "action_edit_author": "Modifier l'auteur",
+  "action_view_author_page": "Voir la page auteur",
+  "action_edit_reference": "Modifier la référence",
+  "action_view_reference_page": "Voir la page référence",
   "action_unpublish": "Dépublier",
   "error_unpublish": "Échec de la dépublication",
   "error_bulk_unpublish": "Échec de la dépublication groupée"

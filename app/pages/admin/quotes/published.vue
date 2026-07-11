@@ -412,18 +412,18 @@ const resetFilters = () => {
 
 const getQuoteActions = (quote: AdminQuote) => [
   {
-    label: 'Edit Quote',
+    label: $t('action_edit') as string,
     leading: 'i-ph-pencil',
     onclick: () => editQuote(quote)
   },
   {
-    label: 'View Public Page',
+    label: $t('action_view_public') as string,
     leading: 'i-ph-eye',
     onclick: () => viewQuote(quote)
   },
   {},
   {
-    label: 'Unpublish',
+    label: $t('action_unpublish') as string,
     leading: 'i-ph-eye-slash',
     onclick: () => unpublishQuote(quote)
   }
@@ -460,8 +460,8 @@ const getAuthorActions = (quote: AdminQuote) => {
   const author = quote.author
   if (!author?.id) return []
   return [
-    { label: 'Edit Author', leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
-    { label: 'View Author Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${author.id}`) }
+    { label: $t('action_edit_author') as string, leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
+    { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${author.id}`) }
   ]
 }
 
@@ -469,8 +469,8 @@ const getReferenceActions = (quote: AdminQuote) => {
   const reference = quote.reference
   if (!reference?.id) return []
   return [
-    { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(reference) },
-    { label: 'View Reference Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${reference.id}`) }
+    { label: $t('action_edit_reference') as string, leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+    { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${reference.id}`) }
   ]
 }
 
