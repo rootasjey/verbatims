@@ -198,7 +198,8 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { $t, locale: locale } = useI18n() as any
+const { $t } = useI18n() as any
+const { locale } = useI18nLocale()
 
 useHead({
   title: $t('meta_title') as string
