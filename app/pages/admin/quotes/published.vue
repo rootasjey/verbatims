@@ -137,9 +137,19 @@
                   </blockquote>
                 </ContextMenu>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span v-if="quote.author?.name">{{ quote.author.name }}</span>
+                  <template v-if="quote.author?.name">
+                    <ContextMenu v-if="quote.author?.id" size="xs" :items="getAuthorActions(quote)">
+                      <span class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ quote.author.name }}</span>
+                    </ContextMenu>
+                    <span v-else>{{ quote.author.name }}</span>
+                  </template>
                   <span v-if="quote.author?.name && quote.reference?.name">&middot;</span>
-                  <span v-if="quote.reference?.name">{{ quote.reference.name }}</span>
+                  <template v-if="quote.reference?.name">
+                    <ContextMenu v-if="quote.reference?.id" size="xs" :items="getReferenceActions(quote)">
+                      <span class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{{ quote.reference.name }}</span>
+                    </ContextMenu>
+                    <span v-else>{{ quote.reference.name }}</span>
+                  </template>
                 </div>
               </td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">
@@ -202,6 +212,22 @@
         v-model="showEditQuoteDialog"
         :edit-quote="selectedQuote"
         @quote-updated="onQuoteUpdated"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <AddAuthorDialog
+        v-model="showEditAuthorDialog"
+        :edit-author="authorToEdit"
+        @author-updated="onAuthorUpdated"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <AddReferenceDialog
+        v-model="showEditReferenceDialog"
+        :edit-reference="referenceToEdit"
+        @reference-updated="onReferenceUpdated"
       />
     </ClientOnly>
 
@@ -402,6 +428,51 @@ const getQuoteActions = (quote: AdminQuote) => [
     onclick: () => unpublishQuote(quote)
   }
 ]
+
+const showEditAuthorDialog = ref(false)
+const authorToEdit = ref<Author | null>(null)
+const showEditReferenceDialog = ref(false)
+const referenceToEdit = ref<QuoteReference | null>(null)
+
+const editAuthor = (author: Partial<Author>) => {
+  authorToEdit.value = author as Author
+  showEditAuthorDialog.value = true
+}
+
+const onAuthorUpdated = () => {
+  showEditAuthorDialog.value = false
+  authorToEdit.value = null
+  loadQuotes()
+}
+
+const editReference = (reference: Partial<QuoteReference>) => {
+  referenceToEdit.value = reference as QuoteReference
+  showEditReferenceDialog.value = true
+}
+
+const onReferenceUpdated = () => {
+  showEditReferenceDialog.value = false
+  referenceToEdit.value = null
+  loadQuotes()
+}
+
+const getAuthorActions = (quote: AdminQuote) => {
+  const author = quote.author
+  if (!author?.id) return []
+  return [
+    { label: 'Edit Author', leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
+    { label: 'View Author Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${author.id}`) }
+  ]
+}
+
+const getReferenceActions = (quote: AdminQuote) => {
+  const reference = quote.reference
+  if (!reference?.id) return []
+  return [
+    { label: 'Edit Reference', leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+    { label: 'View Reference Page', leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${reference.id}`) }
+  ]
+}
 
 const viewQuote = (quote: AdminQuote) => {
   navigateTo(`/quotes/${quote.id}`)
