@@ -1,9 +1,21 @@
 import { db, schema } from 'hub:db'
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, count, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
     const { user } = await requireAuth(event)
+
+    const query = getQuery(event)
+    const page = Math.max(1, parseInt(String(query.page), 10) || 1)
+    const limit = Math.min(50, Math.max(1, parseInt(String(query.limit), 10) || 20))
+    const offset = (page - 1) * limit
+
+    const totalResult = await db
+      .select({ total: count() })
+      .from(schema.sponsorMessages)
+      .where(eq(schema.sponsorMessages.userId, user.id))
+
+    const total = totalResult[0]?.total ?? 0
 
     const sponsors = await db
       .select({
@@ -26,10 +38,22 @@ export default defineEventHandler(async (event) => {
       .from(schema.sponsorMessages)
       .where(eq(schema.sponsorMessages.userId, user.id))
       .orderBy(desc(schema.sponsorMessages.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    const totalPages = Math.ceil(total / limit)
+    const hasMore = offset + sponsors.length < total
 
     return {
       success: true,
       data: sponsors,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore,
+      },
     }
   } catch (error: any) {
     if (error?.statusCode) {
