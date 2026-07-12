@@ -1,24 +1,22 @@
 <template>
   <ClientOnly>
-    <NDialog v-model:open="isOpen" :_dialog-content="{ class : 'p-0' }">
-      <template #header>
-        <div class="px-6 pt-6">
-          <h3 class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
-            Jump to page
-          </h3>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400">
-            Enter a page number between 1 and {{ totalPages }}.
-          </p>
-        </div>
-      </template>
-      <div class="px-6 space-y-4">
+    <AppDialog
+      v-model="isOpen"
+      :title="$t('components.dialogs.jump_to_page.title') as string"
+      :submit-text="$t('components.dialogs.jump_to_page.go') as string"
+      @submit="jumpToPage"
+    >
+      <div class="space-y-4">
+        <p class="font-sans text-xs text-gray-500 dark:text-gray-400">
+          {{ $t('components.dialogs.jump_to_page.description', { n: totalPages }) }}
+        </p>
         <input
           ref="pageJumpInput"
           v-model="pageJumpValue"
           type="text"
           inputmode="numeric"
           pattern="[0-9]*"
-          :placeholder="`1 – ${totalPages}`"
+          :placeholder="$t('components.dialogs.jump_to_page.placeholder', { n: totalPages }) as string"
           class="w-full font-sans text-sm bg-gray-100 dark:bg-gray-900 px-3 py-2 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
           @keydown.enter.prevent="jumpToPage"
         />
@@ -26,7 +24,7 @@
           <p class="font-sans text-xs">
             {{ pageJumpWarning || ' ' }}
           </p>
-          <NTooltip content="Fix the number">
+          <NTooltip :content="$t('components.dialogs.jump_to_page.fix_tooltip') as string">
             <div
               class="ml-1 flex items-center bg-blue-100 dark:bg-blue-900 p-.5 rounded-1 cursor-pointer hover:scale-105 active:scale-99 transition-[transform]"
               @click="fixPageJumpWarning"
@@ -36,22 +34,13 @@
           </NTooltip>
         </NBadge>
       </div>
-      <template #footer>
-        <div class="pb-3 px-6 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 pt-3 w-full m-0 p-0">
-          <NButton
-            btn="link-gray"
-            @click="isOpen = false"
-          >
-            Cancel
-          </NButton>
-          <PrimaryButton @click="jumpToPage" class="min-w-[60px] py-2">Go</PrimaryButton>
-        </div>
-      </template>
-    </NDialog>
+    </AppDialog>
   </ClientOnly>
 </template>
 
 <script setup lang="ts">
+const { $t } = useI18n()
+
 interface Props {
   modelValue: boolean
   totalPages: number
@@ -78,8 +67,8 @@ const pageJumpWarning = computed(() => {
   if (!val) return ''
   const page = parseInt(val, 10)
   if (isNaN(page)) return ''
-  if (page < 1) return 'Value is too low. You will be redirected to page 1.'
-  if (page > props.totalPages) return `Value exceeds the maximum. You will be redirected to page ${props.totalPages}.`
+  if (page < 1) return $t('components.dialogs.jump_to_page.warning_low')
+  if (page > props.totalPages) return $t('components.dialogs.jump_to_page.warning_high', { page: props.totalPages })
   return ''
 })
 
