@@ -190,20 +190,35 @@
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex items-center justify-between pt-4">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
-        </span>
-        <div class="flex items-center gap-3">
-          <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-          <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-          <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
-        </div>
-      </div>
-      <div v-else class="pt-4 text-center">
-        <span class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">No more pages to show</span>
+      <div v-if="totalPages > 1" class="h-20" />
+    </div>
+
+    <div
+      v-if="totalPages > 1"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
+    >
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+        Page
+        <button
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          @click="showPageJumpDialog = true"
+        >
+          {{ currentPage }}
+        </button>
+        of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+      </span>
+      <div class="flex items-center gap-3">
+        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+        <button
+          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
+          @click="showPageJumpDialog = true"
+        >
+          {{ currentPage }} / {{ totalPages }}
+        </button>
+        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>
 
@@ -263,6 +278,12 @@
         </template>
       </NDialog>
     </ClientOnly>
+
+    <PageJumpDialog
+      v-model="showPageJumpDialog"
+      :total-pages="totalPages"
+      @jump="onPageJump"
+    />
   </div>
 </template>
 
@@ -320,6 +341,9 @@ const selectedQuotesData = computed<AdminQuote[]>(() =>
 const showBulkAddToCollection = ref(false)
 const showBulkEditDialog = ref(false)
 const showBulkUnpublishModal = ref(false)
+const showPageJumpDialog = ref(false)
+const footerLeftOffset = ref(0)
+const footerWidth = ref('100%')
 
 const sortOptions = [
   { label: 'Most Recent', value: 'newest' },
@@ -520,7 +544,8 @@ const selectAllOnPage = () => {
 
 const isAnyDialogOpen = computed(() =>
   showEditQuoteDialog.value || showBulkAddToCollection.value ||
-  showBulkEditDialog.value || showBulkUnpublishModal.value
+  showBulkEditDialog.value || showBulkUnpublishModal.value ||
+  showPageJumpDialog.value
 )
 
 const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
@@ -634,6 +659,37 @@ const bulkUnpublish = async () => {
     showErrorToast(e, 'Failed to unpublish selected quotes')
   }
 }
+
+const onPageJump = (page: number) => {
+  currentPage.value = page
+}
+
+let footerObserver: ResizeObserver | null = null
+
+const updateFooterPosition = () => {
+  const mainEl = document.querySelector('main')
+  if (!mainEl) {
+    footerLeftOffset.value = 0
+    footerWidth.value = '100%'
+    return
+  }
+  const rect = mainEl.getBoundingClientRect()
+  footerLeftOffset.value = rect.left
+  footerWidth.value = `${rect.width}px`
+}
+
+onMounted(() => {
+  updateFooterPosition()
+  footerObserver = new ResizeObserver(updateFooterPosition)
+  const mainEl = document.querySelector('main')
+  if (mainEl) footerObserver.observe(mainEl)
+  window.addEventListener('resize', updateFooterPosition)
+})
+
+onUnmounted(() => {
+  if (footerObserver) footerObserver.disconnect()
+  window.removeEventListener('resize', updateFooterPosition)
+})
 
 watchDebounced([currentPage, searchQuery, selectedLanguage, selectedSort], () => {
   loadQuotes()
