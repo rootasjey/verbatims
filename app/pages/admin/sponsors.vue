@@ -69,9 +69,11 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-md">
-                <button class="font-sans text-sm text-gray-900 dark:text-gray-100 line-clamp-2 text-left hover:text-primary dark:hover:text-primary-light transition-colors cursor-pointer w-full" @click="editMessage(msg)">
-                  {{ msg.message }}
-                </button>
+                <ContextMenu size="xs" native-on-modifier="ctrl" :items="getRowActions(msg)">
+                  <button class="font-sans text-sm text-gray-900 dark:text-gray-100 line-clamp-2 text-left hover:text-primary dark:hover:text-primary-light transition-colors cursor-pointer w-full" @click="editMessage(msg)">
+                    {{ msg.message }}
+                  </button>
+                </ContextMenu>
               </td>
               <td class="px-3 py-3">
                 <NDropdownMenu :items="getStatusActions(msg)" :align="'start'">

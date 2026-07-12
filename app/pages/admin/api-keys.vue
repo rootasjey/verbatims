@@ -56,7 +56,9 @@
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
             <tr v-for="key in keys" :key="key.id" class="transition-colors group hover:bg-[#FAFAF9] dark:hover:bg-[#1C1B1A]">
               <td class="px-3 py-3">
-                <p class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ key.name }}</p>
+                <ContextMenu size="xs" native-on-modifier="ctrl" :items="getRowActions(key)">
+                  <p class="font-sans text-sm text-gray-900 dark:text-gray-100 cursor-pointer" @click="editKey(key)">{{ key.name }}</p>
+                </ContextMenu>
               </td>
               <td class="px-3 py-3">
                 <code class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{{ key.keyPrefix }}...</code>
@@ -268,27 +270,29 @@ const openCreateDialog = () => {
   showDialog.value = true
 }
 
+const editKey = (key: any) => {
+  editingKey.value = key
+  form.name = key.name
+  form.permissions = [...key.permissions]
+  form.rateLimit = key.rateLimit
+  form.windowSec = key.windowSec
+  form.tier = key.tier
+  showDialog.value = true
+}
+
 const getRowActions = (key: any) => [
+  {
+    label: String($t('dropdown_edit')),
+    leading: 'i-ph-pencil',
+    onclick: () => editKey(key),
+  },
+  {},
   {
     label: key.isActive ? String($t('dropdown_deactivate')) : String($t('dropdown_activate')),
     leading: key.isActive ? 'i-ph-pause' : 'i-ph-play',
     onclick: async () => {
       await $fetch(`/api/admin/api-keys/${key.id}`, { method: 'PUT', body: { isActive: !key.isActive } })
       loadKeys()
-    },
-  },
-  {},
-  {
-    label: String($t('dropdown_edit')),
-    leading: 'i-ph-pencil',
-    onclick: () => {
-      editingKey.value = key
-      form.name = key.name
-      form.permissions = [...key.permissions]
-      form.rateLimit = key.rateLimit
-      form.windowSec = key.windowSec
-      form.tier = key.tier
-      showDialog.value = true
     },
   },
   {},

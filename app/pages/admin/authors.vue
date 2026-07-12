@@ -171,12 +171,16 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
-                    <img v-if="author.image_url" :src="author.image_url" :alt="author.name" class="w-8 h-8 rounded-full object-cover" />
-                    <div v-else class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><NIcon name="i-ph-user" class="w-4 h-4 text-gray-500" /></div>
+                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getAuthorActions(author)">
+                      <img v-if="author.image_url" :src="author.image_url" :alt="author.name" class="w-8 h-8 rounded-full object-cover cursor-pointer" @click="editAuthor(author)" />
+                      <div v-else class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center cursor-pointer" @click="editAuthor(author)"><NIcon name="i-ph-user" class="w-4 h-4 text-gray-500" /></div>
+                    </ContextMenu>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 min-w-0">
-                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ author.name }}</p>
+                      <ContextMenu size="xs" native-on-modifier="ctrl" :items="getAuthorActions(author)">
+                        <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ author.name }}</p>
+                      </ContextMenu>
                       <button v-if="hasPendingEnrichment(author)" type="button" class="inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" :title="`${author.enrichment_pending_count} pending enrichment suggestion(s)`" @click="goToAuthorEnrichmentQueue(author)" />
                     </div>
                     <p v-if="author.job" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ author.job }}</p>
@@ -432,10 +436,10 @@ const resetFilters = () => {
 }
 
 const getAuthorActions = (author: Author) => [
-  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewAuthor(author) },
   { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
   { label: $t('dropdown_enrich') as string, leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(author) },
   ...(hasPendingEnrichment(author) ? [{ label: $t('dropdown_enrich_queue') as string, leading: 'i-ph-bell-ringing', onclick: () => goToAuthorEnrichmentQueue(author) }] : []),
+  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewAuthor(author) },
   {}, { label: $t('dropdown_merge') as string, leading: 'i-ph-git-merge', onclick: () => mergeAuthor(author) },
   { label: $t('dropdown_delete') as string, leading: 'i-ph-trash', onclick: () => deleteAuthor(author) }
 ]

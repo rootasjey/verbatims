@@ -135,12 +135,16 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
-                    <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="w-8 h-10 object-cover" />
-                    <div v-else class="w-8 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
+                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getReferenceActions(ref)">
+                      <img v-if="ref.image_url" :src="ref.image_url" :alt="ref.name" class="w-8 h-10 object-cover cursor-pointer" @click="editReference(ref)" />
+                      <div v-else class="w-8 h-10 bg-gray-200 dark:bg-gray-700 flex items-center justify-center cursor-pointer" @click="editReference(ref)"><NIcon :name="getTypeIcon(ref.primary_type)" class="w-4 h-4 text-gray-500" /></div>
+                    </ContextMenu>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 min-w-0">
-                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ ref.name }}</p>
+                      <ContextMenu size="xs" native-on-modifier="ctrl" :items="getReferenceActions(ref)">
+                        <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ ref.name }}</p>
+                      </ContextMenu>
                       <button v-if="hasPendingEnrichment(ref)" type="button" class="inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" :title="`${ref.enrichment_pending_count} pending enrichment suggestion(s)`" @click="goToReferenceEnrichmentQueue(ref)" />
                     </div>
                     <p v-if="ref.secondary_type" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ ref.secondary_type }}</p>
@@ -363,10 +367,10 @@ const resetFilters = () => {
 }
 
 const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
-  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewReference(reference) },
+  { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editReference(reference) },
   { label: $t('dropdown_enrich') as string, leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(reference) },
   ...(hasPendingEnrichment(reference) ? [{ label: $t('dropdown_enrich_queue') as string, leading: 'i-ph-bell-ringing', onclick: () => goToReferenceEnrichmentQueue(reference) }] : []),
-  { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewReference(reference) },
   {}, { label: $t('dropdown_merge') as string, leading: 'i-ph-git-merge', onclick: () => mergeReference(reference) },
   { label: $t('dropdown_delete') as string, leading: 'i-ph-trash', onclick: () => deleteReference(reference) }
 ]
