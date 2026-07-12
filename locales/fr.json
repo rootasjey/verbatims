@@ -750,7 +750,16 @@
       "image_url_label": "URL de l'image",
       "or_upload": "Ou téléchargez un fichier",
       "choose_image": "Choisir une image",
-      "failed_load_image": "Échec du chargement de l'image"
+      "failed_load_image": "Échec du chargement de l'image",
+      "jump_to_page": {
+        "title": "Aller à la page",
+        "description": "Entrez un numéro de page entre 1 et {n}.",
+        "go": "Aller",
+        "warning_low": "Valeur trop basse. Vous serez redirigé•e vers la page 1.",
+        "warning_high": "Valeur trop élevée. Vous serez redirigé•e vers la page {page}.",
+        "fix_tooltip": "Corriger le nombre",
+        "placeholder": "1 – {n}"
+      }
     }
   }
 }

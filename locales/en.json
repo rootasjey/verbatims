@@ -750,7 +750,16 @@
       "image_url_label": "Image URL",
       "or_upload": "Or upload a file",
       "choose_image": "Choose Image",
-      "failed_load_image": "Failed to load image"
+      "failed_load_image": "Failed to load image",
+      "jump_to_page": {
+        "title": "Jump to page",
+        "description": "Enter a page number between 1 and {n}.",
+        "go": "Go",
+        "warning_low": "Value is too low. You will be redirected to page 1.",
+        "warning_high": "Value exceeds the maximum. You will be redirected to page {page}.",
+        "fix_tooltip": "Fix the number",
+        "placeholder": "1 – {n}"
+      }
     }
   },
   "import_progress": {
