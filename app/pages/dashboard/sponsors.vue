@@ -40,7 +40,10 @@
         <div class="flex items-start justify-between gap-4">
           <ContextMenu size="xs" native-on-modifier="ctrl" :items="getSponsorActions(sponsor)">
             <div class="min-w-0 flex-1">
-              <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 italic leading-relaxed line-clamp-2 mb-1">
+              <blockquote
+                :class="['font-body text-sm italic leading-relaxed line-clamp-2 mb-1', canEdit(sponsor) ? 'cursor-pointer text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500']"
+                @click="canEdit(sponsor) && openEdit(sponsor)"
+              >
                 {{ sponsor.leading_icon }}&ldquo;{{ sponsor.message }}&rdquo;{{ sponsor.trailing_icon }}
               </blockquote>
               <div v-if="sponsor.url" class="font-sans text-xs text-gray-400 dark:text-gray-500 truncate mb-2">
