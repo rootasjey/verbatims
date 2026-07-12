@@ -120,12 +120,35 @@
         </div>
       </div>
 
-      <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
-        <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.page_of', { n: page, m: totalPages }) }}</span>
-        <div class="flex gap-3">
-          <OutlinedButton v-if="page > 1" @click="page -= 1">&larr; {{ $t('common.previous') }}</OutlinedButton>
-          <OutlinedButton v-if="page < totalPages" @click="page += 1">{{ $t('common.next') }} &rarr;</OutlinedButton>
-        </div>
+      <div v-if="totalPages > 1" class="h-20" />
+    </div>
+
+    <div
+      v-if="totalPages > 1"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
+    >
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+        Page
+        <button
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          @click="showPageJumpDialog = true"
+        >
+          {{ page }}
+        </button>
+        of {{ totalPages }}
+      </span>
+      <div class="flex items-center gap-3">
+        <OutlinedButton v-if="page > 1" @click="page = Math.max(1, page - 1)">&larr; Previous</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+        <button
+          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
+          @click="showPageJumpDialog = true"
+        >
+          {{ page }} / {{ totalPages }}
+        </button>
+        <OutlinedButton v-if="page < totalPages" @click="page = Math.min(totalPages, page + 1)">Next &rarr;</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
       </div>
     </div>
 
@@ -245,6 +268,12 @@
         </div>
       </template>
     </NDialog>
+
+    <PageJumpDialog
+      v-model="showPageJumpDialog"
+      :total-pages="totalPages"
+      @jump="onPageJump"
+    />
   </div>
 </template>
 
@@ -522,6 +551,41 @@ const tierClass = (tier: string) => {
 
 watch(page, () => loadKeys())
 onMounted(() => loadKeys())
+
+const showPageJumpDialog = ref(false)
+const footerLeftOffset = ref(0)
+const footerWidth = ref('100%')
+
+const onPageJump = (pageNum: number) => {
+  page.value = pageNum
+}
+
+let footerObserver: ResizeObserver | null = null
+
+const updateFooterPosition = () => {
+  const mainEl = document.querySelector('main')
+  if (!mainEl) {
+    footerLeftOffset.value = 0
+    footerWidth.value = '100%'
+    return
+  }
+  const rect = mainEl.getBoundingClientRect()
+  footerLeftOffset.value = rect.left
+  footerWidth.value = `${rect.width}px`
+}
+
+onMounted(() => {
+  updateFooterPosition()
+  footerObserver = new ResizeObserver(updateFooterPosition)
+  const mainEl = document.querySelector('main')
+  if (mainEl) footerObserver.observe(mainEl)
+  window.addEventListener('resize', updateFooterPosition)
+})
+
+onUnmounted(() => {
+  if (footerObserver) footerObserver.disconnect()
+  window.removeEventListener('resize', updateFooterPosition)
+})
 </script>
 
 <style scoped>
