@@ -3,22 +3,39 @@
     v-model="selected"
     :items="localeOptions"
     by="value"
-    :_combobox-input="{
-      placeholder: 'Select language...',
-      class: 'text-sm',
+    :_combobox-input="comboboxInputProps"
+    :_combobox-list="{
+      class: 'min-w-[160px]',
     }"
     :_combobox-trigger="{
       btn: 'ghost-gray',
       size: 'sm',
-      class: 'gap-1 px-2 text-sm font-normal',
+      trailing: '',
+      class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
     }"
   >
     <template #trigger="{ modelValue }">
-      <span>{{ modelValue ? modelValue.label : 'EN' }}</span>
+      <div class="flex items-center gap-1.5">
+        <img
+          v-if="modelValue"
+          :src="modelValue.flag"
+          alt=""
+          class="w-5 h-3.5 object-cover rounded-[2px] shrink-0"
+        />
+        <span v-if="modelValue" class="text-xs font-medium leading-none">{{ modelValue.value === 'en' ? 'EN' : 'FRA' }}</span>
+        <span v-else class="text-xs font-medium leading-none">EN</span>
+      </div>
     </template>
 
     <template #label="{ item }">
-      <span>{{ item.label }}</span>
+      <div class="flex items-center gap-2">
+        <img
+          :src="item.flag"
+          alt=""
+          class="w-5 h-3.5 object-cover rounded-[2px] shrink-0"
+        />
+        <span>{{ item.label }}</span>
+      </div>
     </template>
   </NCombobox>
 </template>
@@ -31,12 +48,20 @@ const { syncLocale } = useI18nContentSync()
 interface LocaleOption {
   value: string
   label: string
+  flag: string
 }
 
 const localeOptions: LocaleOption[] = [
-  { value: 'en', label: 'English' },
-  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'English', flag: '/images/languages/england.png' },
+  { value: 'fr', label: 'Français', flag: '/images/languages/france.png' },
 ]
+
+const { $t } = useI18n()
+
+const comboboxInputProps = computed(() => ({
+  placeholder: $t('components.dialogs.select_language'),
+  class: 'text-sm',
+}))
 
 const selected = computed({
   get: () => localeOptions.find(o => o.value === (locale.value || 'en')) || localeOptions[0],
