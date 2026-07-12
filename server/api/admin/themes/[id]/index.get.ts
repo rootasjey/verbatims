@@ -21,14 +21,20 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Theme not found')
     }
 
-    const filters = await db.select()
-      .from(schema.themeContentFilters)
-      .where(eq(schema.themeContentFilters.themeId, themeId))
-      .all()
+    const [filters, translations] = await Promise.all([
+      db.select()
+        .from(schema.themeContentFilters)
+        .where(eq(schema.themeContentFilters.themeId, themeId))
+        .all(),
+      db.select()
+        .from(schema.themeTranslations)
+        .where(eq(schema.themeTranslations.themeId, themeId))
+        .all(),
+    ])
 
     return {
       success: true,
-      data: { ...theme, filters },
+      data: { ...theme, filters, translations },
     }
   } catch (error: any) {
     if ((error as any).statusCode) throw error

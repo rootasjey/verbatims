@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
     const slug = String(body?.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-')
     const name = String(body?.name || '').trim()
     const description = body?.description || null
+    const language = body?.language || null
+    const translations = Array.isArray(body?.translations) ? body.translations : []
     const imageUrl = body?.image_url || null
     const isActive = body?.is_active === true
     const isDefault = body?.is_default === true
@@ -38,6 +40,7 @@ export default defineEventHandler(async (event) => {
       slug,
       name,
       description,
+      language,
       imageUrl,
       config,
       isActive,
@@ -48,11 +51,23 @@ export default defineEventHandler(async (event) => {
       priority,
     }).returning()
 
-    if (!result || result.length === 0) {
+    const theme = result?.[0]
+    if (!theme) {
       throwServer(500, 'Failed to create theme')
     }
 
-    return { success: true, data: result[0] }
+    if (translations.length > 0) {
+      await db.insert(schema.themeTranslations).values(
+        translations.map((t: { language: string; name: string; description?: string | null }) => ({
+          themeId: theme.id,
+          language: t.language,
+          name: t.name,
+          description: t.description || null,
+        }))
+      )
+    }
+
+    return { success: true, data: theme }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error creating theme:', error)

@@ -524,6 +524,7 @@ export const themes = sqliteTable('themes', {
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   description: text('description'),
+  language: text('language', { enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'] }),
   imageUrl: text('image_url'),
   config: text('config').default('{}'),
   isActive: integer('is_active', { mode: 'boolean' }).default(false),
@@ -539,6 +540,7 @@ export const themes = sqliteTable('themes', {
   activeIdx: index('idx_themes_active').on(table.isActive),
   defaultIdx: index('idx_themes_default').on(table.isDefault),
   scheduledIdx: index('idx_themes_scheduled').on(table.scheduledDate),
+  languageIdx: index('idx_themes_language').on(table.language),
 }))
 
 export const themeContentFilters = sqliteTable('theme_content_filters', {
@@ -549,6 +551,18 @@ export const themeContentFilters = sqliteTable('theme_content_filters', {
   matchMode: text('match_mode', { enum: ['any', 'all'] }).default('any'),
 }, (table) => ({
   themeIdx: index('idx_theme_filters_theme').on(table.themeId),
+}))
+
+export const themeTranslations = sqliteTable('theme_translations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),
+  language: text('language').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+}, (table) => ({
+  themeIdx: index('idx_theme_translations_theme').on(table.themeId),
+  languageIdx: index('idx_theme_translations_language').on(table.language),
+  uniqueThemeLang: uniqueIndex('idx_theme_translations_unique').on(table.themeId, table.language),
 }))
 
 export const sponsorMessages = sqliteTable('sponsor_messages', {

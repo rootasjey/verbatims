@@ -1,8 +1,17 @@
+export interface ThemeTranslation {
+  id: number
+  theme_id: number
+  language: string
+  name: string
+  description: string | null
+}
+
 export interface Theme {
   id: number
   slug: string
   name: string
   description: string | null
+  language: string | null
   image_url: string | null
   config: Record<string, any> | null
   is_active: boolean
@@ -14,6 +23,7 @@ export interface Theme {
   created_at: string
   updated_at: string
   filters?: ThemeContentFilter[]
+  translations?: ThemeTranslation[]
 }
 
 export interface ThemeContentFilter {
@@ -24,10 +34,18 @@ export interface ThemeContentFilter {
   match_mode: 'any' | 'all'
 }
 
+export interface CreateThemeTranslationData {
+  language: string
+  name: string
+  description?: string | null
+}
+
 export interface CreateThemeData {
   slug: string
   name: string
   description?: string | null
+  language?: string | null
+  translations?: CreateThemeTranslationData[]
   image_url?: string | null
   config?: Record<string, any>
   is_active?: boolean

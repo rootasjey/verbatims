@@ -5,7 +5,10 @@ export default defineEventHandler(async (event): Promise<ApiResponse<ThemeFeedRe
       throwServer(400, 'Theme slug is required')
     }
 
-    const feed = await getThemeFeed(slug!)
+    const query = getQuery(event)
+    const language = (query.language as string) || undefined
+
+    const feed = await getThemeFeed(slug!, language)
     if (!feed) {
       throwServer(404, 'Theme not found')
     }

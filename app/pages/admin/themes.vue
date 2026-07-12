@@ -294,6 +294,26 @@
             <NInput type="textarea" v-model="form.description" :rows="2" :placeholder="$t('dialog_desc_placeholder') as string" :disabled="submitting" />
           </div>
 
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_lang_label') }}</label>
+              <NSelect v-model="form.language" :items="['', 'en', 'fr']" size="sm" class="w-full" />
+              <p class="text-xs text-gray-400 mt-1">{{ $t('dialog_lang_hint') }}</p>
+            </div>
+            <div />
+          </div>
+
+          <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-2 px-4 py-4 space-y-4">
+            <h4 class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium">{{ $t('dialog_i18n_title') }}</h4>
+            <div v-for="(t, idx) in translations" :key="t._key" class="grid grid-cols-[6rem_1fr_1fr_auto] gap-2 items-start">
+              <NSelect v-model="t.language" :items="['en', 'fr']" size="sm" class="w-full" :disabled="submitting" />
+              <NInput v-model="t.name" :placeholder="$t('dialog_i18n_name_placeholder') as string" size="sm" :disabled="submitting" />
+              <NInput v-model="t.description" :placeholder="$t('dialog_i18n_desc_placeholder') as string" size="sm" :disabled="submitting" />
+              <button class="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors mt-1" @click="removeTranslation(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
+            </div>
+            <OutlinedButton size="sm" @click="addTranslation"><span class="i-ph-plus" /> {{ $t('dialog_add_translation') }}</OutlinedButton>
+          </div>
+
           <div class="bg-gray-50 dark:bg-gray-800 rounded-2 px-18 py-6">
             <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">{{ $t('dialog_colors') }}</h4>
             <div class="flex gap-16">
@@ -737,10 +757,14 @@ const applySuggestion = (index: number) => {
   filters.value = s.filters.map((f: any) => ({ id: undefined as number | undefined, type: f.type, value: f.value }))
 }
 
+let translationKeyCounter = 0
+const translations = ref<{ _key: number; language: string; name: string; description: string }[]>([])
+
 const form = ref({
   slug: '',
   name: '',
   description: '',
+  language: '',
   image_url: '',
   is_active: false,
   is_default: false,
@@ -903,11 +927,26 @@ const resetFilters = () => {
   rowSelection.value = {}
 }
 
+const addTranslation = () => {
+  const usedLangs = translations.value.map(t => t.language)
+  const nextLang = ['en', 'fr'].find(l => !usedLangs.includes(l))
+  if (!nextLang) {
+    useToast().toast({ toast: 'outline-warning', title: $t('toast_all_langs') as string })
+    return
+  }
+  translations.value.push({ _key: translationKeyCounter++, language: nextLang, name: '', description: '' })
+}
+
+const removeTranslation = (idx: number) => {
+  translations.value.splice(idx, 1)
+}
+
 const resetForm = () => {
-  form.value = { slug: '', name: '', description: '', image_url: '', is_active: false, is_default: false, scheduled_date: '', scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b' }
+  form.value = { slug: '', name: '', description: '', language: '', image_url: '', is_active: false, is_default: false, scheduled_date: '', scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b' }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
+  translations.value = []
   editingThemeId.value = null
   editMode.value = false
   promptTags.value = []
@@ -937,6 +976,7 @@ const openEdit = async (theme: any) => {
       slug: data.slug || '',
       name: data.name || '',
       description: data.description || '',
+      language: data.language || '',
       image_url: data.imageUrl || '',
       is_active: data.isActive || false,
       is_default: data.isDefault || false,
@@ -947,6 +987,12 @@ const openEdit = async (theme: any) => {
       color_primary: colorPrimary,
       color_secondary: colorSecondary,
     }
+    translations.value = (data.translations || []).map((t: any) => ({
+      _key: translationKeyCounter++,
+      language: t.language,
+      name: t.name,
+      description: t.description || '',
+    }))
     initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
   } catch (e) {
@@ -1159,6 +1205,10 @@ const saveTheme = async () => {
       slug: form.value.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-'),
       name: form.value.name.trim(),
       description: form.value.description.trim() || null,
+      language: form.value.language || null,
+      translations: translations.value
+        .filter(t => t.language && t.name.trim())
+        .map(t => ({ language: t.language, name: t.name.trim(), description: t.description.trim() || null })),
       image_url: form.value.image_url.trim() || null,
       is_active: form.value.is_active,
       is_default: form.value.is_default,

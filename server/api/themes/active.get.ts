@@ -1,4 +1,4 @@
-export default defineEventHandler(async (_event): Promise<ApiResponse<{
+export default defineEventHandler(async (event): Promise<ApiResponse<{
   slug: string
   name: string
   description: string | null
@@ -7,7 +7,9 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<{
   filters_count: number
 } | null>> => {
   try {
-    const theme = await resolveActiveTheme()
+    const query = getQuery(event)
+    const language = (query.language as string) || undefined
+    const theme = await resolveActiveTheme(language)
     if (!theme) {
       return { success: true, data: null }
     }
@@ -36,15 +38,20 @@ export default defineEventHandler(async (_event): Promise<ApiResponse<{
       }
     }
 
-    const filters = await getThemeFilters(theme!.id)
+    const [filters, translations] = await Promise.all([
+      getThemeFilters(theme.id),
+      getThemeTranslations(theme.id),
+    ])
+
+    const localized = resolveLocalizedField(translations, language, theme.name, theme.description)
 
     return {
       success: true,
       data: {
-        slug: theme!.slug,
-        name: theme!.name,
-        description: theme!.description,
-        image_url: theme!.image_url,
+        slug: theme.slug,
+        name: localized.name,
+        description: localized.description,
+        image_url: theme.image_url,
         config,
         filters_count: filters.length,
       },
