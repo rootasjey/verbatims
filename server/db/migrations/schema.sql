@@ -731,6 +731,7 @@ CREATE TABLE IF NOT EXISTS themes (
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   description TEXT,
+  language TEXT,
   image_url TEXT,
   config TEXT DEFAULT '{}',
   is_active INTEGER DEFAULT 0,
@@ -746,6 +747,7 @@ CREATE INDEX IF NOT EXISTS idx_themes_slug ON themes(slug);
 CREATE INDEX IF NOT EXISTS idx_themes_active ON themes(is_active);
 CREATE INDEX IF NOT EXISTS idx_themes_default ON themes(is_default);
 CREATE INDEX IF NOT EXISTS idx_themes_scheduled ON themes(scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_themes_language ON themes(language);
 
 CREATE TABLE IF NOT EXISTS theme_content_filters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -755,6 +757,17 @@ CREATE TABLE IF NOT EXISTS theme_content_filters (
   match_mode TEXT DEFAULT 'any' CHECK (match_mode IN ('any', 'all'))
 );
 CREATE INDEX IF NOT EXISTS idx_theme_filters_theme ON theme_content_filters(theme_id);
+
+CREATE TABLE IF NOT EXISTS theme_translations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  theme_id INTEGER NOT NULL REFERENCES themes(id) ON DELETE CASCADE,
+  language TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  UNIQUE(theme_id, language)
+);
+CREATE INDEX IF NOT EXISTS idx_theme_translations_theme ON theme_translations(theme_id);
+CREATE INDEX IF NOT EXISTS idx_theme_translations_language ON theme_translations(language);
 
 CREATE TABLE IF NOT EXISTS sponsor_messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -43,6 +43,9 @@ export default defineEventHandler(async (event) => {
     if (body.description !== undefined) {
       updates.description = body.description
     }
+    if (body.language !== undefined) {
+      updates.language = body.language
+    }
     if (body.image_url !== undefined) {
       updates.imageUrl = body.image_url
     }
@@ -68,13 +71,33 @@ export default defineEventHandler(async (event) => {
       updates.config = typeof body.config === 'string' ? body.config : JSON.stringify(body.config)
     }
 
-    if (Object.keys(updates).length === 0) {
-      return { success: true, data: existing[0] }
+    const stmts: any[] = []
+
+    if (Object.keys(updates).length > 0) {
+      stmts.push(db.update(schema.themes)
+        .set(updates)
+        .where(eq(schema.themes.id, themeId)))
     }
 
-    await db.update(schema.themes)
-      .set(updates)
-      .where(eq(schema.themes.id, themeId))
+    if (Array.isArray(body.translations)) {
+      stmts.push(db.delete(schema.themeTranslations)
+        .where(eq(schema.themeTranslations.themeId, themeId)))
+
+      if (body.translations.length > 0) {
+        stmts.push(db.insert(schema.themeTranslations).values(
+          body.translations.map((t: { language: string; name: string; description?: string | null }) => ({
+            themeId,
+            language: t.language,
+            name: t.name,
+            description: t.description || null,
+          }))
+        ))
+      }
+    }
+
+    if (stmts.length > 0) {
+      await db.batch(stmts as any)
+    }
 
     const updated = await db.select()
       .from(schema.themes)

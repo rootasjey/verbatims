@@ -101,6 +101,7 @@ type StatsResponse = { quotes: number; authors: number; references: number; user
 type OnboardingResponse = { needsOnboarding?: boolean; step?: string; hasAdminUser?: boolean; hasData?: boolean }
 
 const { isLanguageReady } = useLanguageReady()
+const languageStore = useLanguageStore()
 const feed = useHomeFeed()
 
 const themeData = ref<{
@@ -114,7 +115,11 @@ const themeData = ref<{
 const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
 const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
 
-const { data: activeThemeData } = await useFetch<{ data?: typeof themeData.value }>('/api/themes/active')
+const themeQuery = computed(() => languageStore.getLanguageQuery())
+
+const { data: activeThemeData, refresh: refreshActiveTheme } = await useFetch<{ data?: typeof themeData.value }>('/api/themes/active', {
+  query: themeQuery,
+})
 if (activeThemeData.value?.data) {
   themeData.value = activeThemeData.value.data
 }
@@ -249,6 +254,20 @@ const restoreFeedFromSnapshot = async () => {
   quotesFeedStore.clearRestoreSnapshot()
   return true
 }
+
+// Refresh active theme when content language changes
+watch(() => languageStore.currentLanguageValue, async (newLang, oldLang) => {
+  if (!import.meta.client || newLang === oldLang) return
+  await refreshActiveTheme()
+  if (activeThemeData.value?.data) {
+    themeData.value = activeThemeData.value.data
+    await feed.setTheme(themeData.value)
+  } else {
+    themeData.value = null
+    await feed.setTheme(null)
+    await feed.init()
+  }
+})
 
 onMounted(() => {
   const snapshot = getRestorableSnapshot()

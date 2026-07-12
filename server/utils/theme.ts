@@ -1,11 +1,20 @@
 import { db, schema } from 'hub:db'
 import { eq, and, or, like, inArray, desc, sql, count } from 'drizzle-orm'
 
+export interface ThemeTranslationRow {
+  id: number
+  theme_id: number
+  language: string
+  name: string
+  description: string | null
+}
+
 export interface ThemeRow {
   id: number
   slug: string
   name: string
   description: string | null
+  language: string | null
   image_url: string | null
   config: string | null
   is_active: boolean
@@ -41,7 +50,33 @@ export interface ThemeFeedResult {
   total: number
 }
 
-export async function resolveActiveTheme(): Promise<ThemeRow | null> {
+function themeMatchesLanguage(theme: typeof schema.themes.$inferSelect, language?: string): boolean {
+  if (!language) return true
+  if (!theme.language) return true
+  return theme.language === language
+}
+
+export function resolveLocalizedField(
+  translations: ThemeTranslationRow[],
+  language: string | undefined,
+  fallbackName: string,
+  fallbackDescription: string | null
+): { name: string; description: string | null } {
+  if (language && translations.length) {
+    const t = translations.find(t => t.language === language)
+    if (t) return { name: t.name, description: t.description ?? fallbackDescription }
+  }
+  return { name: fallbackName, description: fallbackDescription }
+}
+
+export async function getThemeTranslations(themeId: number): Promise<ThemeTranslationRow[]> {
+  return db.select()
+    .from(schema.themeTranslations)
+    .where(eq(schema.themeTranslations.themeId, themeId))
+    .all() as unknown as ThemeTranslationRow[]
+}
+
+export async function resolveActiveTheme(language?: string): Promise<ThemeRow | null> {
   const now = Date.now()
   const today = new Date().toISOString().split('T')[0]
 
@@ -52,7 +87,10 @@ export async function resolveActiveTheme(): Promise<ThemeRow | null> {
 
   if (!allThemes.length) return null
 
-  const scheduled = allThemes.find(t =>
+  const byLanguage = language ? allThemes.filter(t => themeMatchesLanguage(t, language)) : allThemes
+  const candidates = byLanguage.length ? byLanguage : allThemes
+
+  const scheduled = candidates.find(t =>
     t.scheduledDate === today ||
     (t.scheduledStart && t.scheduledEnd &&
       now >= t.scheduledStart.getTime() &&
@@ -60,13 +98,17 @@ export async function resolveActiveTheme(): Promise<ThemeRow | null> {
   )
   if (scheduled) return scheduled as unknown as ThemeRow
 
-  const active = allThemes.find(t => t.isActive)
+  const active = candidates.find(t => t.isActive)
   if (active) return active as unknown as ThemeRow
 
-  const defaults = allThemes.filter(t => t.isDefault)
+  const defaults = candidates.filter(t => t.isDefault)
   if (defaults.length) {
     const randomIndex = Math.floor(Math.random() * defaults.length)
     return defaults[randomIndex] as unknown as ThemeRow
+  }
+
+  if (byLanguage.length === 0 && language) {
+    return resolveActiveTheme()
   }
 
   return null
@@ -208,7 +250,7 @@ function buildThemeReferenceConditions(filters: FilterRow[]) {
   return conditions.length === 1 ? conditions[0] : or(...conditions)
 }
 
-export async function getThemeFeed(themeSlug: string): Promise<ThemeFeedResult | null> {
+export async function getThemeFeed(themeSlug: string, language?: string): Promise<ThemeFeedResult | null> {
   const themeRow = await db.select()
     .from(schema.themes)
     .where(eq(schema.themes.slug, themeSlug))
@@ -368,11 +410,14 @@ export async function getThemeFeed(themeSlug: string): Promise<ThemeFeedResult |
     }
   }
 
+  const translations = await getThemeTranslations(themeRow.id)
+  const localized = resolveLocalizedField(translations, language, themeRow.name, themeRow.description)
+
   return {
     theme: {
       slug: themeRow.slug,
-      name: themeRow.name,
-      description: themeRow.description,
+      name: localized.name,
+      description: localized.description,
       image_url: themeRow.imageUrl,
       config,
       filters_count: filters.length,

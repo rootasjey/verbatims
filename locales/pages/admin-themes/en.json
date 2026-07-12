@@ -90,5 +90,13 @@
   "error_toggle": "Failed to toggle theme",
   "error_toggle_default": "Failed to toggle default",
   "error_delete_theme": "Failed to delete theme",
-  "toast_deleted": "Deleted {n} theme{s}"
+  "toast_deleted": "Deleted {n} theme{s}",
+  "dialog_lang_label": "Language",
+  "dialog_lang_all": "All languages",
+  "dialog_lang_hint": "Only show this theme when browsing in the selected language.",
+  "dialog_i18n_title": "Translations",
+  "dialog_i18n_name_placeholder": "Translated name",
+  "dialog_i18n_desc_placeholder": "Translated description (optional)",
+  "dialog_add_translation": "Add Translation",
+  "toast_all_langs": "All languages already added"
 }

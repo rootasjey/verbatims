@@ -79,7 +79,9 @@ export function useHomeFeed() {
     if (!theme) return
     themedLoading.value = true
     try {
-      const res = await $fetch<ApiResponse<{ quotes: ProcessedQuoteResult[]; authors: Author[]; references: QuoteReference[] }>>(`/api/themes/${theme.slug}/feed`)
+      const languageStore = useLanguageStore()
+      const query = languageStore.getLanguageQuery()
+      const res = await $fetch<ApiResponse<{ quotes: ProcessedQuoteResult[]; authors: Author[]; references: QuoteReference[] }>>(`/api/themes/${theme.slug}/feed`, { query })
       if (res.success && res.data) {
         themedQuotes.value = res.data.quotes || []
         authors.value = res.data.authors || []
