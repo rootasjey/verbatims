@@ -74,7 +74,9 @@
                 </div>
               </td>
               <td class="px-3 py-3 max-w-xl">
-                <div class="font-sans text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap line-clamp-3">{{ truncate(msg.message, 280) }}</div>
+                <ContextMenu size="xs" native-on-modifier="ctrl" :items="rowActions(msg)">
+                  <div class="font-sans text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap line-clamp-3">{{ truncate(msg.message, 280) }}</div>
+                </ContextMenu>
                 <div class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
                   <span class="capitalize">{{ msg.category }}</span>
                   <span v-if="msg.target_type !== 'general'"> &middot; {{ formatTarget(msg) }}</span>

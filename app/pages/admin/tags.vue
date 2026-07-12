@@ -69,10 +69,12 @@
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2 min-w-0">
                   <BlossomColorPicker :value="hexToBlossomValue(tag.color)" @change="(color) => updateTagColor(tag, color)" :colors="BLOSSOM_PALETTE" :show-alpha-slider="false" :core-size="18" :petal-size="18" class="relative top-0.6" />
-                  <span class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0" :style="{ '--hover-text': getContrastColor(tag.color) === 'white' ? '#FAFAF9' : '#0C0A09' }" @click="editTag(tag)">
-                    <span class="tag-name relative z-1 truncate font-sans text-sm font-500 transition-colors duration-300">#{{ tag.name }}</span>
-                    <span class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0" :style="{ backgroundColor: tag.color }" />
-                  </span>
+                  <ContextMenu size="xs" native-on-modifier="ctrl" :items="getTagActions(tag)">
+                    <span class="group/tag relative inline-block px-2 overflow-hidden cursor-pointer shrink min-w-0 rounded-0" :style="{ '--hover-text': getContrastColor(tag.color) === 'white' ? '#FAFAF9' : '#0C0A09' }" @click="editTag(tag)">
+                      <span class="tag-name relative z-1 truncate font-sans text-sm font-500 transition-colors duration-300">#{{ tag.name }}</span>
+                      <span class="absolute inset-0 w-0 group-hover/tag:w-full transition-all duration-300 ease-out -z-0 rounded-0" :style="{ backgroundColor: tag.color }" />
+                    </span>
+                  </ContextMenu>
                   <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-1 opacity-0 group-hover:opacity-100" @click.stop="navigateTo(`/tags/${encodeURIComponent(tag.name)}`)">{{ $t('action_view') }}</button>
                 </div>
               </td>
@@ -272,8 +274,8 @@ const loadTags = async () => {
 const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const getTagActions = (tag: any) => [
-  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/tags/${encodeURIComponent(tag.name)}`) },
   { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => { selectedTag.value = tag; showAddDialog.value = true } },
+  { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/tags/${encodeURIComponent(tag.name)}`) },
   {}, { label: $t('dropdown_delete') as string, leading: 'i-ph-trash', onclick: () => { tagToDelete.value = tag; showDeleteDialog.value = true } }
 ]
 

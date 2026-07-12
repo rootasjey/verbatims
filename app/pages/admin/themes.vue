@@ -68,7 +68,9 @@
               </td>
               <td class="px-3 py-3">
                 <div class="min-w-0">
-                  <div class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ theme.name }}</div>
+                  <ContextMenu size="xs" native-on-modifier="ctrl" :items="getThemeActions(theme)">
+                    <div class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer" @click="openEdit(theme)">{{ theme.name }}</div>
+                  </ContextMenu>
                   <code class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ theme.slug }}</code>
                 </div>
               </td>

@@ -123,7 +123,9 @@
                 </td>
                 <td class="px-3 py-3 max-w-md">
                   <div class="flex items-start gap-2">
-                    <p class="font-sans text-sm text-gray-900 dark:text-gray-100 leading-relaxed flex-1">{{ getQueueItemPrimaryText(item) }}</p>
+                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="rowActionItems(item)">
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 leading-relaxed flex-1">{{ getQueueItemPrimaryText(item) }}</p>
+                    </ContextMenu>
                     <NLink v-if="getQueueItemPath(item)" :to="getQueueItemPath(item)!" class="mt-0.5 inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" :title="getQueueItemLinkLabel(item)">
                       <NIcon name="i-ph-arrow-up-right-duotone" class="w-4 h-4" />
                     </NLink>

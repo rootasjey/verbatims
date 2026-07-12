@@ -74,7 +74,9 @@
                 <div class="flex items-center gap-3">
                   <NAvatar :src="user.avatar_url" :alt="user.name" size="xs" />
                   <div class="min-w-0">
-                    <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ user.name }}</p>
+                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getUserActions(user)">
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ user.name }}</p>
+                    </ContextMenu>
                     <p v-if="user.email" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
                   </div>
                 </div>
