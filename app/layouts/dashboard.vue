@@ -14,7 +14,7 @@
           sidebarOpen ? 'translate-x-0 mt-0' : '-translate-x-full mt-1.5',
         ]"
       >
-        <div class="flex flex-col">
+        <div class="flex flex-col h-full overflow-hidden">
           <!-- Sidebar Header -->
           <div class="flex items-center justify-between px-3 py-4 border-b border-gray-100 dark:border-gray-800 lg:hidden">
             <h2 class="font-sans text-sm font-500 text-gray-500 dark:text-gray-400">{{ $t('nav.dashboard') }}</h2>
@@ -39,7 +39,7 @@
           <!-- Navigation Menu -->
           <nav
             :class="[
-              'flex-1 py-6 space-y-1',
+              'flex-1 py-6 space-y-1 overflow-y-auto',
               sidebarCollapsed ? 'px-2' : 'px-3'
             ]"
           >
