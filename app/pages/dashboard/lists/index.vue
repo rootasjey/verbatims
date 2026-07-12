@@ -8,7 +8,7 @@
             {{ $t('title') }}
           </h1>
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ filteredCollections.length }} {{ filteredCollections.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
+            {{ totalCollections }} {{ totalCollections === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
           </p>
         </div>
         <div class="hidden md:flex items-center gap-4">
@@ -147,16 +147,8 @@
       </div>
     </div>
 
-    <!-- Load More -->
-    <div v-if="hasMore" class="text-center pt-6">
-      <button
-        :disabled="loadingMore"
-        class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b border-dashed border-gray-300 dark:border-gray-600 pb-0.5 disabled:opacity-50"
-        @click="loadMore"
-      >
-        {{ loadingMore ? $t('common.loading') : $t('common.load_more') }}
-      </button>
-    </div>
+    <!-- Spacer for sticky footer -->
+    <div v-if="totalPages > 1" class="h-20" />
 
     <!-- Create / Edit Collection Modal -->
     <CollectionFormModal
@@ -193,6 +185,43 @@
         @delete="handleDeleteFromDrawer"
       />
     </ClientOnly>
+
+    <!-- Sticky Pagination Footer -->
+    <div
+      v-if="totalPages > 1"
+      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
+    >
+      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+        Page
+        <button
+          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          @click="showPageJumpDialog = true"
+        >
+          {{ currentPage }}
+        </button>
+        of {{ totalPages }}
+      </span>
+      <div class="flex items-center gap-3">
+        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+        <button
+          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
+          @click="showPageJumpDialog = true"
+        >
+          {{ currentPage }} / {{ totalPages }}
+        </button>
+        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+      </div>
+    </div>
+
+    <!-- Page Jump Dialog -->
+    <PageJumpDialog
+      v-model="showPageJumpDialog"
+      :total-pages="totalPages"
+      @jump="onPageJump"
+    />
   </div>
 </template>
 
@@ -228,7 +257,6 @@ onMounted(() => {
 })
 
 const loading = ref(true)
-const loadingMore = ref(false)
 const deleting = ref(false)
 const collections = ref<DashboardCollection[]>([])
 const searchQuery = ref('')
@@ -239,8 +267,9 @@ const visibilityOptions = computed(() => [
 ])
 
 const visibilityValue = ref('all')
-const hasMore = ref(false)
 const currentPage = ref(1)
+const totalPages = ref(0)
+const totalCollections = ref(0)
 
 const visibilityFilter = computed(() => {
   const option = visibilityOptions.value.find(o => o.value === visibilityValue.value)
@@ -273,36 +302,30 @@ const filteredCollections = computed(() => {
   return filtered
 })
 
-const loadCollections = async (page = 1) => {
+const loadCollections = async () => {
   try {
+    loading.value = true
     const response = await $fetch<{
       success: boolean
       data: { results: DashboardCollection[] }
-      pagination: { page: number; limit: number; total: number; hasMore: boolean; totalPages: number }
+      pagination: { page: number; limit: number; total: number; totalPages: number }
     }>('/api/dashboard/collections', {
-      query: { page, limit: 12 }
+      query: { page: currentPage.value, limit: 12 }
     })
 
-    if (page === 1) {
-      collections.value = response.data?.results || []
-    } else {
-      collections.value.push(...(response.data?.results || []))
-    }
-
-    hasMore.value = response.pagination?.hasMore || false
-    currentPage.value = page
+    collections.value = response.data?.results || []
+    totalCollections.value = response.pagination?.total ?? 0
+    totalPages.value = response.pagination?.totalPages ?? 1
   } catch (error) {
     console.error('Failed to load collections:', error)
   } finally {
     loading.value = false
-    loadingMore.value = false
   }
 }
 
-const loadMore = async () => {
-  loadingMore.value = true
-  await loadCollections(currentPage.value + 1)
-}
+watch(currentPage, () => {
+  loadCollections()
+})
 
 const navigateToCollection = (collection: DashboardCollection) => {
   navigateTo(`/dashboard/lists/${collection.id}`)
@@ -406,8 +429,41 @@ const handleDeleteFromDrawer = () => {
   showDeleteModal.value = true
 }
 
+const showPageJumpDialog = ref(false)
+
+const onPageJump = (page: number) => {
+  currentPage.value = page
+}
+
+const footerLeftOffset = ref(0)
+const footerWidth = ref('100%')
+
+let footerObserver: ResizeObserver | null = null
+
+const updateFooterPosition = () => {
+  const mainEl = document.querySelector('main')
+  if (!mainEl) {
+    footerLeftOffset.value = 0
+    footerWidth.value = '100%'
+    return
+  }
+  const rect = mainEl.getBoundingClientRect()
+  footerLeftOffset.value = rect.left
+  footerWidth.value = `${rect.width}px`
+}
+
 onMounted(() => {
   loadCollections()
+  updateFooterPosition()
+  footerObserver = new ResizeObserver(updateFooterPosition)
+  const mainEl = document.querySelector('main')
+  if (mainEl) footerObserver.observe(mainEl)
+  window.addEventListener('resize', updateFooterPosition)
+})
+
+onUnmounted(() => {
+  if (footerObserver) footerObserver.disconnect()
+  window.removeEventListener('resize', updateFooterPosition)
 })
 </script>
 
