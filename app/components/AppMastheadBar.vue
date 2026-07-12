@@ -32,6 +32,8 @@
           </template>
         </NNavigationMenu>
 
+        <I18nSelector />
+
         <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
           <div class="flex">
             <NTooltip :content="String($t('components.masthead.search'))" placement="bottom">

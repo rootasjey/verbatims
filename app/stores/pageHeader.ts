@@ -69,115 +69,59 @@ export const usePageHeaderStore = defineStore('pageHeader', () => {
       return
     }
 
-    const routeMap: Record<string, PageHeaderInfo> = {
+    const { $t } = useI18n()
+
+    const section = route.startsWith('/admin') ? 'admin' as const : 'dashboard' as const
+
+    const routeKeyMap: Record<string, { titleKey: string; subtitleKey?: string }> = {
       // Admin routes
-      '/admin': {
-        title: 'Admin Panel',
-        subtitle: 'System administration and content management',
-        section: 'admin'
-      },
-      '/admin/quotes/published': {
-        title: 'Published Quotes',
-        subtitle: 'Manage all approved and published quotes in the system',
-        section: 'admin'
-      },
-      '/admin/quotes/pending': {
-        title: 'Pending Quotes',
-        subtitle: 'Review and moderate quotes awaiting approval',
-        section: 'admin'
-      },
-      '/admin/quotes/drafts': {
-        title: 'Draft Quotes',
-        subtitle: 'Manage user draft quotes and submissions',
-        section: 'admin'
-      },
-      '/admin/authors': {
-        title: 'Authors',
-        subtitle: 'Manage all authors in the system',
-        section: 'admin'
-      },
-      '/admin/references': {
-        title: 'References',
-        subtitle: 'Manage all references and sources in the system',
-        section: 'admin'
-      },
-      '/admin/enrichment': {
-        title: 'Enrichment Queue',
-        subtitle: 'Review scheduled suggestions, queued jobs, and applied enrichment changes',
-        section: 'admin'
-      },
-      '/admin/users': {
-        title: 'Users',
-        subtitle: 'Manage user accounts and permissions',
-        section: 'admin'
-      },
-      '/admin/maintenance': {
-        title: 'Database Maintenance',
-        subtitle: 'System maintenance and database operations',
-        section: 'admin'
-      },
-      '/admin/import': {
-        title: 'Import Data',
-        subtitle: 'Import quotes, authors, and references from external sources',
-        section: 'admin'
-      },
-      '/admin/export': {
-        title: 'Export Data',
-        subtitle: 'Export system data in various formats',
-        section: 'admin'
-      },
+      '/admin': { titleKey: 'admin.headers.panel', subtitleKey: 'admin.headers.panel_desc' },
+      '/admin/quotes/published': { titleKey: 'admin.headers.published', subtitleKey: 'admin.headers.published_desc' },
+      '/admin/quotes/pending': { titleKey: 'admin.headers.pending', subtitleKey: 'admin.headers.pending_desc' },
+      '/admin/quotes/drafts': { titleKey: 'admin.headers.drafts', subtitleKey: 'admin.headers.drafts_desc' },
+      '/admin/authors': { titleKey: 'admin.headers.authors', subtitleKey: 'admin.headers.authors_desc' },
+      '/admin/references': { titleKey: 'admin.headers.references', subtitleKey: 'admin.headers.references_desc' },
+      '/admin/enrichment': { titleKey: 'admin.headers.enrichment', subtitleKey: 'admin.headers.enrichment_desc' },
+      '/admin/harvest': { titleKey: 'admin.headers.harvest' },
+      '/admin/tags': { titleKey: 'admin.headers.tags' },
+      '/admin/sponsors': { titleKey: 'admin.headers.sponsors' },
+      '/admin/themes': { titleKey: 'admin.headers.themes' },
+      '/admin/social-queue': { titleKey: 'admin.headers.social_queue', subtitleKey: 'admin.headers.social_queue_desc' },
+      '/admin/users': { titleKey: 'admin.headers.users', subtitleKey: 'admin.headers.users_desc' },
+      '/admin/maintenance': { titleKey: 'admin.headers.maintenance', subtitleKey: 'admin.headers.maintenance_desc' },
+      '/admin/import': { titleKey: 'admin.headers.import', subtitleKey: 'admin.headers.import_desc' },
+      '/admin/export': { titleKey: 'admin.headers.export', subtitleKey: 'admin.headers.export_desc' },
+      '/admin/api-keys': { titleKey: 'admin.headers.api_keys' },
+      '/admin/messages': { titleKey: 'admin.headers.messages' },
 
       // Dashboard routes
-      '/dashboard': {
-        title: 'Dashboard',
-        subtitle: 'Your personal quote management hub',
-        section: 'dashboard'
-      },
-      '/dashboard/favourites': {
-        title: 'Favourites',
-        subtitle: 'Your liked quotes and saved favourites',
-        section: 'dashboard'
-      },
-      '/dashboard/lists': {
-        title: 'Lists',
-        subtitle: 'Your personal quote collections and lists',
-        section: 'dashboard'
-      },
-      '/dashboard/my-quotes/drafts': {
-        title: 'Draft Quotes',
-        subtitle: 'Your unpublished quote drafts',
-        section: 'dashboard'
-      },
-      '/dashboard/my-quotes/pending': {
-        title: 'Pending Quotes',
-        subtitle: 'Your quotes awaiting moderation',
-        section: 'dashboard'
-      },
-      '/dashboard/my-quotes/published': {
-        title: 'Published Quotes',
-        subtitle: 'Your approved and published quotes',
-        section: 'dashboard'
-      },
-      '/dashboard/settings': {
-        title: 'Settings',
-        subtitle: 'Manage your account preferences and settings',
-        section: 'dashboard'
-      }
+      '/dashboard': { titleKey: 'dashboard.headers.overview', subtitleKey: 'dashboard.headers.overview_desc' },
+      '/dashboard/favourites': { titleKey: 'dashboard.headers.favourites', subtitleKey: 'dashboard.headers.favourites_desc' },
+      '/dashboard/lists': { titleKey: 'dashboard.headers.lists', subtitleKey: 'dashboard.headers.lists_desc' },
+      '/dashboard/my-quotes/drafts': { titleKey: 'dashboard.headers.drafts', subtitleKey: 'dashboard.headers.drafts_desc' },
+      '/dashboard/my-quotes/pending': { titleKey: 'dashboard.headers.pending', subtitleKey: 'dashboard.headers.pending_desc' },
+      '/dashboard/my-quotes/published': { titleKey: 'dashboard.headers.published', subtitleKey: 'dashboard.headers.published_desc' },
+      '/dashboard/settings': { titleKey: 'dashboard.headers.settings', subtitleKey: 'dashboard.headers.settings_desc' },
+      '/dashboard/sponsors': { titleKey: 'dashboard.headers.sponsors' },
+      '/dashboard/developer': { titleKey: 'dashboard.headers.developer' },
     }
 
-    const pageInfo = routeMap[route]
-    if (pageInfo) {
-      setPageHeader(pageInfo)
+    const keys = routeKeyMap[route]
+    if (keys) {
+      setPageHeader({
+        title: $t(keys.titleKey) as string,
+        subtitle: keys.subtitleKey ? ($t(keys.subtitleKey) as string) : undefined,
+        section
+      })
     } else {
       // For unknown routes, try to extract a reasonable title
       const segments = route.split('/').filter(Boolean)
       if (segments.length > 0) {
         const lastSegment = segments[segments.length - 1] ?? ''
         const title = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ')
-        const section = segments[0] as 'admin' | 'dashboard' | 'public'
         setPageHeader({
           title,
-          section: ['admin', 'dashboard'].includes(section) ? section : 'public'
+          section
         })
       } else {
         clearHeader()

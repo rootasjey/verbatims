@@ -92,7 +92,8 @@
   import { useStorage } from '@vueuse/core'
 
 const { $t, $ts } = useI18n()
-  
+const { locale } = useI18nLocale()
+
 const config = useRuntimeConfig()
 const version: string = String((config.public as any).appVersion || '')
 
@@ -305,6 +306,10 @@ const handleSearchAction = (action: string) => {
       break
   }
 }
+
+watch(locale, () => {
+  pageHeader.setHeaderFromRoute()
+})
 
 onMounted(() => {
   const handler = (e: KeyboardEvent) => {
