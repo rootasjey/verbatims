@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, asc, count, desc, eq, inArray, like, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, like, notInArray, or, sql } from 'drizzle-orm'
 import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constants/social'
 import { isSocialQueueStatus } from '#shared/constants/social'
 import type { SocialSourceDisplay } from '@verbatims/social-autopost-core'
@@ -119,10 +119,14 @@ export default defineEventHandler(async (event) => {
   const conditions = [eq(schema.socialQueue.platform, platform as any)]
 
   if (status) {
-    if (!isSocialQueueStatus(status)) {
-      throwServer(400, 'status must be queued, processing, posted, or failed')
+    if (status === 'active') {
+      conditions.push(notInArray(schema.socialQueue.status, ['posted']))
+    } else {
+      if (!isSocialQueueStatus(status)) {
+        throwServer(400, 'status must be queued, processing, posted, or failed')
+      }
+      conditions.push(eq(schema.socialQueue.status, status))
     }
-    conditions.push(eq(schema.socialQueue.status, status))
   }
 
   if (search) {

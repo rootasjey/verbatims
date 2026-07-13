@@ -46,69 +46,69 @@
             </NToggleGroupItem>
           </NToggleGroup>
         </div>
-        <OutlinedButton :loading="providerCheckLoading" @click="checkProvider">{{ $t('check_provider') }}</OutlinedButton>
-        <OutlinedButton variant="primary" :loading="runNowLoading" @click="runNow">{{ $t('run_now') }}</OutlinedButton>
-        <NDropdownMenu :items="actionMenuItems">
-          <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
-        </NDropdownMenu>
+        <div class="flex gap-2">
+          <NSeparator orientation="vertical" />
+          <NTooltip :content="$t('check_provider')?.toString() ?? ''">
+            <NButton btn="soft-gray" icon label="i-ph-plugs-connected" :loading="providerCheckLoading" @click="checkProvider" />
+          </NTooltip>
+          <PrimaryButton :loading="runNowLoading" @click="runNow" class="px-6">
+            {{ $t('run_now') }}
+            <NIcon name="i-tabler-play" class="ml-2" />
+          </PrimaryButton>
+          <NDropdownMenu :items="actionMenuItems">
+            <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+          </NDropdownMenu>
+        </div>
       </div>
     </div>
 
     <div class="flex flex-col min-h-0">
-      <!-- Skeleton -->
+      <!-- Skeleton (only when loading and no cache) -->
       <div v-if="loading && queueItems.length === 0" class="space-y-5">
         <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
           <div class="h-4 bg-gray-100 dark:bg-gray-900 rounded w-3/4 mb-2" /><div class="h-3 bg-gray-100 dark:bg-gray-900 rounded w-1/4" />
         </div>
       </div>
 
-      <!-- Empty -->
-      <div v-else-if="queueItems.length === 0 && !loading" class="py-16 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-sm">
-        <NIcon name="i-ph-list-dashes" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-        <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
-        <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_desc') : $t('empty_desc_default') }}</p>
-      </div>
-
-      <!-- Table -->
-      <div v-else>
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
-                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_position') }}</th>
-                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  <div class="flex items-center gap-4">
-                    <span>{{ $t('col_content') }}</span>
-                    <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-72" />
-                  </div>
-                </th>
-                <th class="w-52 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  <div class="flex items-center gap-1">
-                    <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
-                      <template #default>
-                        <NIcon name="i-ph-info" class="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-pointer" />
-                      </template>
-                      <template #content>
-                        <div class="space-y-1 font-sans text-xs">
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400" /> {{ stats.queued }} {{ $t('status_queued') }}</div>
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500" /> {{ stats.processing }} {{ $t('status_processing') }}</div>
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" /> {{ stats.posted }} {{ $t('status_posted') }}</div>
-                          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500" /> {{ stats.failed }} {{ $t('status_failed') }}</div>
-                        </div>
-                      </template>
-                    </NTooltip>
-                    <select v-model="selectedStatus" class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-1.5 py-1 text-gray-700 dark:text-gray-300 cursor-pointer">
-                      <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-                    </select>
-                  </div>
-                </th>
-                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_posted_count') }}</th>
-                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_last_posted') }}</th>
-                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_actions') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr v-for="(item, idx) in queueItems" :key="item.id" class="animate-fade-in-up transition-colors group" :style="{ animationDelay: `${idx * 0.03}s` }">
+      <!-- Table (always visible, even when empty) -->
+      <div v-else class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
+              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_position') }}</th>
+              <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-4">
+                  <span>{{ $t('col_content') }}</span>
+                  <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-72" />
+                </div>
+              </th>
+              <th class="w-52 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-1">
+                  <NTooltip :_tooltip-content="{ class: 'py-2 light:bg-gray-100 dark:bg-gray-950 light:b-gray-2 dark:b-gray-9 shadow-lg dark:shadow-gray-800/50' }">
+                    <template #default>
+                      <NIcon name="i-ph-info" class="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-pointer" />
+                    </template>
+                    <template #content>
+                      <div class="space-y-1 font-sans text-xs">
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400" /> {{ stats.queued }} {{ $t('status_queued') }}</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500" /> {{ stats.processing }} {{ $t('status_processing') }}</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" /> {{ stats.posted }} {{ $t('status_posted') }}</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500" /> {{ stats.failed }} {{ $t('status_failed') }}</div>
+                      </div>
+                    </template>
+                  </NTooltip>
+                  <select v-model="selectedStatus" class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-1.5 py-1 text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
+                  </select>
+                </div>
+              </th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_posted_count') }}</th>
+              <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_last_posted') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_actions') }}</th>
+            </tr>
+          </thead>
+          <tbody v-if="queueItems.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr v-for="(item, idx) in queueItems" :key="item.id" class="animate-fade-in-up transition-colors group" :style="{ animationDelay: `${idx * 0.03}s` }">
                 <td class="px-3 py-3">
                   <div class="flex items-center gap-1.5">
                     <NLink v-if="hasPublishedPostUrl(item)" :to="item.published_post_url!" target="_blank" class="inline-flex items-center gap-1 font-sans text-sm text-green-700 dark:text-green-400 hover:underline">
@@ -152,11 +152,19 @@
                 </td>
               </tr>
             </tbody>
+            <tbody v-else>
+              <tr>
+                <td colspan="6" class="py-16 text-center">
+                  <NIcon name="i-ph-list-dashes" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                  <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">{{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}</p>
+                  <p class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ searchQuery ? $t('empty_desc') : $t('empty_desc_default') }}</p>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
       <div v-if="totalPages > 1" class="h-20" />
-    </div>
 
     <div
       v-if="totalPages > 1"
