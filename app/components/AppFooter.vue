@@ -7,30 +7,31 @@
     aria-label="Site footer"
     data-testid="footer"
   >
-    <div class="u-container px-8 py-12">
-      <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+    <div class="u-container py-12">
+      <div class="px-8 flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
           <AppIcon />
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mt-2 text-lg text-gray-600 dark:text-gray-400 max-w-sm">
             {{ $t('footer.tagline') }}
           </p>
         </div>
 
         <!-- Simple nav groups -->
-        <nav aria-label="Footer navigation" class="grid grid-cols-2 gap-8"
-          :class="{
-            'grid-cols-2': !isAdmin,
-            'grid-cols-2 sm:grid-cols-4': isAdmin && sectionAccount.length,
-            'grid-cols-2 sm:grid-cols-3': isAdmin && !sectionAccount.length
-          }">
+        <nav aria-label="Footer navigation" class="grid grid-cols-2 sm:grid-cols-4 gap-8">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
             <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.explore') }}</h3>
             <ul class="mt-3 space-y-2 text-sm">
               <li v-for="link in sectionExplore" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
-              <li v-for="link in sectionAbout" :key="link.path + '-about'">
+            </ul>
+          </section>
+
+          <section aria-labelledby="footer-about" data-testid="footer-about">
+            <h3 id="footer-about" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.about') }}</h3>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li v-for="link in sectionAbout" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
             </ul>
@@ -66,21 +67,25 @@
       </div>
 
       <!-- Bottom row -->
-      <div class="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="mt-10 px-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t pt-2">
         <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-testid="footer-copyright">
           {{ $t('footer.all_rights', { year }) }}
         </p>
 
-        <div class="flex items-center gap-6 text-xs sm:text-sm">
-          <NuxtLink to="/developers" class="link-muted" data-testid="footer-developers">{{ $t('footer.developers') }}</NuxtLink>
-          <NuxtLink to="/status" class="link-muted" data-testid="footer-status">{{ $t('footer.status') }}</NuxtLink>
-          <NuxtLink to="/licenses" class="link-muted" data-testid="footer-licenses">{{ $t('footer.licenses') }}</NuxtLink>
-          <NuxtLink to="/privacy" class="link-muted" data-testid="footer-privacy">{{ $t('footer.privacy') }}</NuxtLink>
-          <NuxtLink to="/terms" class="link-muted" data-testid="footer-terms">{{ $t('footer.terms') }}</NuxtLink>
-          <span class="color-gray-500 font-600">{{ $t('footer.version') }}: {{ version }}</span>
+        <div class="flex items-center gap-1 sm:gap-6 xl:gap-6 text-xs sm:text-sm flex-wrap xl:flex-nowrap">
+          <template v-for="{ to, labelKey, icon } in bottomLinks" :key="to">
+            <NTooltip :content="$t(labelKey) as string">
+              <NuxtLink :to="to" class="link-muted flex items-center xl:hidden" :aria-label="$t(labelKey) as string" :data-testid="`footer-${to.slice(1)}`">
+                <NIcon :name="icon" size="5" />
+              </NuxtLink>
+            </NTooltip>
+            <NuxtLink :to="to" class="link-muted hidden xl:inline" :data-testid="`footer-${to.slice(1)}`">{{ $t(labelKey) }}</NuxtLink>
+          </template>
 
           <I18nSelector />
           <ThemeSelector />
+
+          <span class="color-gray-500 font-600 whitespace-nowrap">{{ $t('footer.version') }}: {{ version }}</span>
         </div>
       </div>
     </div>
@@ -157,11 +162,25 @@ const sectionAccount = (!isLoggedIn.value ? allLinks : [])
   .filter(notAdmin)
 
 const sectionAbout = allLinks
-  .filter(l => ['/about'].includes(l.path))
+  .filter(l => ['/about', '/presskit/logo'].includes(l.path))
   .filter(notAdmin)
 
 const sectionAdmin = allLinks
   .filter(l => l.path.startsWith('/admin'))
+
+interface BottomLink {
+  to: string
+  labelKey: string
+  icon: string
+}
+
+const bottomLinks: BottomLink[] = [
+  { to: '/developers', labelKey: 'footer.developers', icon: 'i-tabler-terminal-2' },
+  { to: '/status', labelKey: 'footer.status', icon: 'i-tabler-activity-heartbeat' },
+  { to: '/licenses', labelKey: 'footer.licenses', icon: 'i-tabler-box' },
+  { to: '/privacy', labelKey: 'footer.privacy', icon: 'i-tabler-key' },
+  { to: '/terms', labelKey: 'footer.terms', icon: 'i-tabler-align-box-center-middle' },
+]
 </script>
 
 <style scoped>
