@@ -1,7 +1,7 @@
 <template>
   <main class="prose mx-auto max-w-3xl px-5 py-12">
     <div class="mt-8">
-      <h1 class="font-serif font-size-32 font-600 line-height-tight">{{ $t('privacy_title') }}</h1>
+      <h1 class="font-serif font-size-24 md:font-size-32 font-600 line-height-tight">{{ $t('privacy_title') }}</h1>
       <p class="text-sm text-gray-500 relative -top-2">{{ $t('privacy_effective_date', { date: effectiveDate }) }}</p>
     </div>
 
@@ -178,15 +178,26 @@ const effectiveDate = new Date().toLocaleDateString('fr-FR', {
   font-family: 'Nunito';
   margin-top: 1em;
   margin-bottom: 1em;
+
+  font-size: 1.5rem; /* 24px */
+  line-height: 2rem; /* 32px */
+  font-weight: 200;
 }
 .prose :where(ul, ol) {
   font-family: 'Nunito';
   margin-top: 1em;
   margin-bottom: 1.25em;
   padding-left: 1.4em;
+
+  font-size: 1.3rem;
+  line-height: 2rem;
+  font-weight: 300;
+}
+.prose :where(ul) {
+  list-style-type: disc;
 }
 .prose :where(li + li) {
-  margin-top: 0.4em;
+  margin-top: 1em;
 }
 
 /* Strong emphasis slightly toned for long-form text */
