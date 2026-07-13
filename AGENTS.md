@@ -121,6 +121,7 @@ Nuxt runs composables, components, and pages on **both server (SSR) and client**
 - **Safe pattern for persisted state**: keep the composable SSR-safe (default value), then read/write browser APIs in the **page's** `onMounted` / `watch`. This ensures SSR and first client render match exactly.
 - **Layout switching masks SSR issues**: Components rendered only in layouts that are switched to client-side via `setPageLayout()` (e.g. `mobile.vue`) never run during SSR. If you remove layout switching and put them in a default SSR layout, wrap them in `<ClientOnly>` or ensure they're SSR-safe.
 - **reka-ui / vaul-vue modals crash SSR**: `NDialog`, `NDrawer`, and similar components built on `reka-ui` (through `vaul-vue`) throw `Cannot read properties of null (reading 'ce')` during server render because `DialogRoot.renderSlot` receives null slots. Always wrap these in `<ClientOnly>` — they start closed, so no content is lost.
+- **`useFetch` with a computed `query` can lose SSR data**: Nuxt's payload key is a hash of the URL + options. If you pass a `computed` ref to the `query` option, the client-side key may differ from the SSR key (depending on how the ref is serialized). The SSR-payload data is silently discarded, and `useFetch` resolves asynchronously after setup. Code that reads `data.value?.xxx` immediately after `await useFetch()` sees `null` and never retries. **Fix**: watch the data ref reactively, or use a simple ref/object for `query` and call `refresh()` when the query value changes.
 
 ```ts
 // ❌ Bad - composable runs on server, localStorage is undefined
@@ -131,6 +132,15 @@ onMounted(() => {
   const saved = localStorage.getItem('key')
   if (saved) selectedPlatform.value = saved
 })
+
+```ts
+// ❌ Bad - useFetch with computed query, data read once after await
+const { data, refresh } = await useFetch('/api/items', { query: myComputed })
+if (data.value?.items) items.value = data.value.items  // null on hydration
+
+// ✅ Good - watch the data ref reactively
+const { data } = await useFetch('/api/items', { query: myComputed })
+watch(data, (d) => { if (d?.items) items.value = d.items }, { immediate: true })
 ```
 
 ## Admin UI conventions
