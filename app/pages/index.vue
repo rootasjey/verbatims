@@ -256,8 +256,12 @@ const restoreFeedFromSnapshot = async () => {
 }
 
 // Refresh active theme when content language changes
+// Guard: skip during SSR→client hydration to preserve SSR-fetched theme data.
+// Without this, the language store initializing from localStorage would discard
+// the theme fetched during server render.
 watch(() => languageStore.currentLanguageValue, async (newLang, oldLang) => {
   if (!import.meta.client || newLang === oldLang) return
+  if (!hydrated.value) return
   await refreshActiveTheme()
   if (activeThemeData.value?.data) {
     themeData.value = activeThemeData.value.data
