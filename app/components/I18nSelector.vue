@@ -20,7 +20,7 @@
           v-if="modelValue"
           :src="modelValue.flag"
           alt=""
-          class="w-5 h-3.5 object-cover rounded-[2px] shrink-0"
+          class="w-5 h-5 object-cover rounded-[2px] shrink-0"
         />
         <span v-if="modelValue" class="text-xs font-medium leading-none">{{ modelValue.value === 'en' ? 'EN' : 'FRA' }}</span>
         <span v-else class="text-xs font-medium leading-none">EN</span>
@@ -32,7 +32,7 @@
         <img
           :src="item.flag"
           alt=""
-          class="w-5 h-3.5 object-cover rounded-[2px] shrink-0"
+          class="w-5 h-5 object-cover rounded-[2px] shrink-0"
         />
         <span>{{ item.label }}</span>
       </div>
@@ -52,7 +52,7 @@ interface LocaleOption {
 }
 
 const localeOptions: LocaleOption[] = [
-  { value: 'en', label: 'English', flag: '/images/languages/england.png' },
+  { value: 'en', label: 'English', flag: '/images/languages/usa.png' },
   { value: 'fr', label: 'Français', flag: '/images/languages/france.png' },
 ]
 
