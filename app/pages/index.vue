@@ -120,9 +120,26 @@ const themeQuery = computed(() => languageStore.getLanguageQuery())
 const { data: activeThemeData, refresh: refreshActiveTheme } = await useFetch<{ data?: typeof themeData.value }>('/api/themes/active', {
   query: themeQuery,
 })
+// Set themeData from available data (SSR payload on first pass, or async fetch)
 if (activeThemeData.value?.data) {
   themeData.value = activeThemeData.value.data
 }
+// Track whether feed.setTheme() has been called to avoid redundant
+// themed-feed fetches (watcher + onMounted both try to call it).
+const themeFeedStarted = ref(false)
+
+// Reactively sync themeData with useFetch whenever its payload arrives
+// (SSR hydration or async client fetch). Also calls feed.setTheme() so
+// the theme activates even when the if-check above misses the payload.
+watch(activeThemeData, async (data) => {
+  if (data?.data) {
+    themeData.value = data.data
+    if (import.meta.client && !themeFeedStarted.value) {
+      themeFeedStarted.value = true
+      await feed.setTheme(data.data)
+    }
+  }
+}, { immediate: true })
 
 const pageTitle = computed(() => {
   if (themeData.value) return `${themeData.value.name} — Verbatims`
@@ -256,9 +273,10 @@ const restoreFeedFromSnapshot = async () => {
 }
 
 // Refresh active theme when content language changes
-// Guard: skip during SSR→client hydration to preserve SSR-fetched theme data.
-// Without this, the language store initializing from localStorage would discard
-// the theme fetched during server render.
+// Skip during SSR→client hydration: the language store initializes from
+// localStorage after onNuxtReady fires, which would discard the SSR-fetched
+// theme before the UI becomes visible. Without this guard, refreshing the
+// page shows no theme until a client navigation re-fetches it.
 watch(() => languageStore.currentLanguageValue, async (newLang, oldLang) => {
   if (!import.meta.client || newLang === oldLang) return
   if (!hydrated.value) return
@@ -266,7 +284,7 @@ watch(() => languageStore.currentLanguageValue, async (newLang, oldLang) => {
   if (activeThemeData.value?.data) {
     themeData.value = activeThemeData.value.data
     await feed.setTheme(themeData.value)
-  } else {
+  } else if (!themeData.value) {
     themeData.value = null
     await feed.setTheme(null)
     await feed.init()
@@ -277,9 +295,10 @@ onMounted(() => {
   const snapshot = getRestorableSnapshot()
 
   void (async () => {
-    if (themeData.value) {
+    if (themeData.value && !themeFeedStarted.value) {
+      themeFeedStarted.value = true
       await feed.setTheme(themeData.value)
-    } else {
+    } else if (!themeData.value) {
       await feed.init(snapshot)
     }
 
