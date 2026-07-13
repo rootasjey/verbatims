@@ -18,7 +18,7 @@
         <li>The software is provided “as is”, without warranties.</li>
       </ul>
       <p>
-        Read the full text in the repository: 
+        Read the full text in the repository:
         <a
           href="https://github.com/rootasjey/verbatims/blob/main/LICENSE"
           target="_blank"
@@ -81,6 +81,12 @@
         </li>
         <li>
           <a href="https://www.flaticon.com/free-icons/3d-v" title="3d-v icons">3d-v icons created by cubydesign - Flaticon</a>
+        </li>
+        <li>
+          <a href="https://www.flaticon.com/free-icons/statue-of-liberty" title="statue of liberty icons">Statue of liberty icons created by justicon - Flaticon</a>
+        </li>
+        <li>
+          <a href="https://www.flaticon.com/free-icons/france" title="france icons">France icons created by Freepik - Flaticon</a>
         </li>
       </ul>
       <p class="text-sm text-gray-500">
@@ -152,12 +158,21 @@ definePageMeta({
   font-family: 'Nunito';
   margin-top: 1em;
   margin-bottom: 1em;
+
+  font-size: 1.5rem; /* 24px */
+  line-height: 2rem; /* 32px */
+  font-weight: 200;
 }
 .prose :where(ul, ol) {
   font-family: 'Nunito';
   margin-top: 1em;
   margin-bottom: 1.25em;
   padding-left: 1.4em;
+
+  font-size: 1.4rem; /* 22px */
+  line-height: 1.8rem; /* 32px */
+  font-weight: 300;
+
   list-style: disc;
 }
 .prose :where(li + li) {
@@ -173,11 +188,14 @@ definePageMeta({
 .prose :where(a) {
   color: inherit;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-style: dashed;
+  text-underline-offset: 12px;
   text-decoration-thickness: 0.08em;
+  text-decoration-color: rgba(17, 24, 39, 0.6);
 }
 .prose :where(a:hover, a:focus-visible) {
   text-decoration-thickness: 0.12em;
+  text-decoration-style: solid;
 }
 
 /* Improve focus outlines for accessibility */
@@ -202,6 +220,15 @@ definePageMeta({
 }
 
 /* Dark mode via prefers-dark class */
+.prefers-dark .prose :where(a) {
+  text-decoration-color: rgba(229, 231, 235, 0.4);
+}
+.dark .prose :where(a) {
+  text-decoration-color: rgba(229, 231, 235, 0.4);
+}
+.dark .prose :where(a:hover, a:focus-visible) {
+  text-decoration-color: rgba(255, 255, 255, 0.8);
+}
 .prefers-dark .prose :where(a:focus-visible) {
   outline-color: #a9c3ff;
 }

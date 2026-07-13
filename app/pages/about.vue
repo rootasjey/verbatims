@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen">
     <header class="mt-10 md:mt-6 p-8">
-      <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
+      <h1 class="font-serif font-size-24 md:font-size-32 font-600 text-center">
         {{ $t('about_title') }}
       </h1>
       <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
@@ -81,7 +81,7 @@
 
       <!-- Purpose -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_purpose_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_purpose_title') }}</h2>
         <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_purpose_1') }}</p>
         </div>
@@ -91,7 +91,7 @@
 
       <!-- A short history -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_history_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_history_title') }}</h2>
         <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_history_1') }}</p>
           <p>{{ $t('about_history_2') }}</p>
@@ -103,7 +103,7 @@
 
       <!-- What you can do -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_features_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_features_title') }}</h2>
         <ul class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed space-y-3 list-disc pl-5">
           <li>{{ $t('about_features_1') }}</li>
           <li>{{ $t('about_features_2') }}</li>
@@ -117,7 +117,7 @@
 
       <!-- Curation & accuracy -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_curation_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_curation_title') }}</h2>
         <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_curation_1') }}</p>
           <p>{{ $t('about_curation_2') }}</p>
@@ -129,7 +129,7 @@
 
       <!-- Community & contribution -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_community_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_community_title') }}</h2>
         <ul class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed space-y-3 list-disc pl-5">
           <li>{{ $t('about_community_1') }}</li>
           <li>{{ $t('about_community_2') }}</li>
@@ -142,7 +142,7 @@
 
       <!-- Accessibility & inclusivity -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_accessibility_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_accessibility_title') }}</h2>
         <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_accessibility_1') }}</p>
           <p>{{ $t('about_accessibility_2') }}</p>
@@ -153,7 +153,7 @@
 
       <!-- Privacy & data -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_privacy_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_privacy_title') }}</h2>
         <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_privacy_1') }}</p>
           <p>
@@ -169,7 +169,7 @@
 
       <!-- Roadmap highlights -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_roadmap_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_roadmap_title') }}</h2>
         <ul class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed space-y-3 list-disc pl-5">
           <li>{{ $t('about_roadmap_1') }}</li>
           <li>{{ $t('about_roadmap_2') }}</li>
@@ -183,8 +183,8 @@
 
       <!-- Tech stack -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-2">{{ $t('about_tech_title') }}</h2>
-        <div class="font-body text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-2">{{ $t('about_tech_title') }}</h2>
+        <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_tech_intro') }}</p>
           <ul class="list-disc font-600 pl-7 space-y-2 py-6">
             <li>{{ $t('about_tech_1') }}</li>
@@ -201,8 +201,8 @@
 
       <!-- Suggestions & next steps -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_suggestions_title') }}</h2>
-        <div class="font-body text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_suggestions_title') }}</h2>
+        <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>{{ $t('about_suggestions_intro') }}</p>
           <ul class="list-disc pl-5 space-y-2">
             <li>{{ $t('about_suggestions_1') }}</li>
@@ -217,7 +217,7 @@
 
       <!-- Contact & support -->
       <section class="mb-16">
-        <h2 class="font-title text-3xl md:text-4xl font-600 mb-6">{{ $t('about_contact_title') }}</h2>
+        <h2 class="font-serif text-3xl md:text-4xl font-600 mb-6">{{ $t('about_contact_title') }}</h2>
         <div class="font-body text-2xl font-200 text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl space-y-4">
           <p>
             {{ $t('about_contact_1') }} <NIcon name="i-ph-flag" class="mb-1 align-middle inline-block" />.

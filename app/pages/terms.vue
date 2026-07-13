@@ -253,15 +253,15 @@
         role="navigation"
       >
         <template v-if="isMobile">
-          <NButton 
-            btn="soft-gray" 
-            size="md" 
-            icon 
-            label="i-ph-list-bold" 
+          <NButton
+            btn="soft-gray"
+            size="md"
+            icon
+            label="i-ph-list-bold"
             rounded="2xl"
-            class="toc-fab fixed right-4 bottom-10 border border-gray-100 p-6 shadow-lg" 
-            aria-label="Open contents" 
-            @click="tocOpen = !tocOpen" 
+            class="toc-fab fixed right-4 bottom-10 border border-gray-100 p-6 shadow-lg"
+            aria-label="Open contents"
+            @click="tocOpen = !tocOpen"
           />
 
           <NDrawer v-model:open="tocOpen" direction="bottom">
@@ -636,6 +636,10 @@ onMounted(() => {
   font-family: 'Nunito';
   color: #1b1b1b;
   margin: 0.4rem 0 0.9rem;
+
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 200;
 }
 .tos-root.prefers-dark .section-body p {
   color: #e7e7ea;
@@ -649,10 +653,21 @@ onMounted(() => {
 .section-body ul {
   padding-left: 1.1rem;
   margin: 0.2rem 0 1rem;
+  margin-top: 1em;
+
+  font-size: 1.3rem;
+  line-height: 2rem;
+  font-weight: 300;
+
+  list-style-type: disc;
 }
 
 .section-body li {
   margin: 0.2rem 0;
+  margin-top: 1em;
+}
+.prose :where(li + li) {
+  margin-top: 1em;
 }
 
 .section-body h3, .section-body h4 {
