@@ -114,6 +114,7 @@ const platformIcons: Record<SocialPlatform, string> = {
 }
 
 const statusOptions: SelectOption[] = [
+  { label: 'Active', value: 'active' },
   { label: 'All statuses', value: '' },
   { label: 'Queued', value: 'queued' },
   { label: 'Processing', value: 'processing' },
@@ -138,7 +139,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
   const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / pageSize.value)))
 
   const searchQuery = ref('')
-  const selectedStatus = ref<SelectOption>({ label: 'All statuses', value: '' })
+  const selectedStatus = ref<SelectOption>({ label: 'Active', value: 'active' })
   const selectedPlatform = ref<SocialPlatform>('x')
   const platformOptions: PlatformOption[] = SOCIAL_PLATFORMS.map(platform => ({
     label: platformIcons[platform],
