@@ -297,14 +297,14 @@ const formatModel = computed({
   }
 })
 
-const dataTypeOptions: Array<{ label: string; value: ExportDataType; icon: string; description: string; available: boolean }> = [
-  { label: $ts('export_create.data_type_everything'), value: 'all', icon: 'i-ph-stack', description: $ts('export_create.data_type_everything_desc'), available: true },
-  { label: $ts('export_create.data_type_quotes'), value: 'quotes', icon: 'i-ph-quotes', description: $ts('export_create.data_type_quotes_desc'), available: true },
-  { label: $ts('export_create.data_type_references'), value: 'references', icon: 'i-ph-book', description: $ts('export_create.data_type_references_desc'), available: true },
-  { label: $ts('export_create.data_type_authors'), value: 'authors', icon: 'i-ph-user-circle', description: $ts('export_create.data_type_authors_desc'), available: true },
-  { label: $ts('export_create.data_type_users'), value: 'users', icon: 'i-ph-users', description: $ts('export_create.data_type_users_desc'), available: true },
-  { label: $ts('export_create.data_type_tags'), value: 'tags', icon: 'i-ph-tag', description: $ts('export_create.data_type_tags_desc'), available: true }
-]
+const dataTypeOptions = computed(() => [
+  { label: $ts('export_create.data_type_everything'), value: 'all' as const, icon: 'i-ph-stack', description: $ts('export_create.data_type_everything_desc'), available: true },
+  { label: $ts('export_create.data_type_quotes'), value: 'quotes' as const, icon: 'i-ph-quotes', description: $ts('export_create.data_type_quotes_desc'), available: true },
+  { label: $ts('export_create.data_type_references'), value: 'references' as const, icon: 'i-ph-book', description: $ts('export_create.data_type_references_desc'), available: true },
+  { label: $ts('export_create.data_type_authors'), value: 'authors' as const, icon: 'i-ph-user-circle', description: $ts('export_create.data_type_authors_desc'), available: true },
+  { label: $ts('export_create.data_type_users'), value: 'users' as const, icon: 'i-ph-users', description: $ts('export_create.data_type_users_desc'), available: true },
+  { label: $ts('export_create.data_type_tags'), value: 'tags' as const, icon: 'i-ph-tag', description: $ts('export_create.data_type_tags_desc'), available: true }
+])
 
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
