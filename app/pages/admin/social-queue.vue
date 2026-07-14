@@ -108,7 +108,7 @@
             </tr>
           </thead>
           <tbody v-if="queueItems.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-for="(item, idx) in queueItems" :key="item.id" class="animate-fade-in-up transition-colors group" :style="{ animationDelay: `${idx * 0.03}s` }">
+            <tr v-for="(item, idx) in queueItems" :key="item.id" :data-id="item.id" :class="['animate-fade-in-up transition-colors group', rowDropClass(item.id), { 'drag-over': isDragging }]" :style="{ animationDelay: `${idx * 0.03}s` }" :draggable="item.status === 'queued'" @dragstart="onDragStart" @dragend="onDragEnd" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
                 <td class="px-3 py-3">
                   <div class="flex items-center gap-1.5">
                     <NLink v-if="hasPublishedPostUrl(item)" :to="item.published_post_url!" target="_blank" class="inline-flex items-center gap-1 font-sans text-sm text-green-700 dark:text-green-400 hover:underline">
@@ -361,6 +361,7 @@ const {
   loadQuotePicker,
   addQuoteToQueue,
   moveQueueItem,
+  reorderQueueItem,
   removeQueueItem,
   clearAllQueue: clearAllQueueRequest,
   clearFinishedQueue: clearFinishedQueueRequest,
@@ -370,6 +371,94 @@ const {
   showErrorToast
 })
 
+/* ---- Drag-and-drop reorder state ---- */
+const draggedItemId = ref<number | null>(null)
+const dropTargetId = ref<number | null>(null)
+const dropPosition = ref<'before' | 'after' | null>(null)
+const isDragging = ref(false)
+
+function onDragStart(ev: DragEvent) {
+  const target = ev.target as HTMLElement
+  if (target.tagName !== 'TD' && target.tagName !== 'TR') {
+    ev.preventDefault()
+    return
+  }
+
+  const row = (ev.currentTarget as HTMLElement)
+  const id = Number(row.dataset.id)
+  if (!id) { ev.preventDefault(); return }
+
+  const item = queueItems.value.find(i => i.id === id)
+  if (!item || item.status !== 'queued') { ev.preventDefault(); return }
+
+  draggedItemId.value = id
+  isDragging.value = true
+  ev.dataTransfer!.effectAllowed = 'move'
+  ev.dataTransfer!.setData('text/plain', String(id))
+}
+
+function onDragEnd() {
+  draggedItemId.value = null
+  dropTargetId.value = null
+  dropPosition.value = null
+  isDragging.value = false
+}
+
+function onDragOver(ev: DragEvent) {
+  ev.preventDefault()
+  if (!draggedItemId.value) return
+
+  const row = (ev.currentTarget as HTMLElement)
+  const rect = row.getBoundingClientRect()
+  const y = ev.clientY - rect.top
+  const mid = rect.height / 2
+
+  dropTargetId.value = Number(row.dataset.id)
+  dropPosition.value = y <= mid ? 'before' : 'after'
+}
+
+function onDragLeave(ev: DragEvent) {
+  const row = (ev.currentTarget as HTMLElement)
+  if (!row.contains(ev.relatedTarget as Node)) {
+    dropTargetId.value = null
+    dropPosition.value = null
+  }
+}
+
+function onDrop(ev: DragEvent) {
+  ev.preventDefault()
+  if (!draggedItemId.value) return
+
+  const targetRow = (ev.currentTarget as HTMLElement)
+  const targetId = Number(targetRow.dataset.id)
+  if (!targetId || targetId === draggedItemId.value) {
+    onDragEnd()
+    return
+  }
+
+  const rect = targetRow.getBoundingClientRect()
+  const y = ev.clientY - rect.top
+  const isTopHalf = y < rect.height / 2
+
+  let beforeId: number | null
+  if (isTopHalf) {
+    beforeId = targetId
+  } else {
+    const nextRow = targetRow.nextElementSibling as HTMLElement | null
+    beforeId = nextRow ? Number(nextRow.dataset.id) : null
+  }
+
+  reorderQueueItem(draggedItemId.value, beforeId)
+  onDragEnd()
+}
+
+function rowDropClass(itemId: number) {
+  if (!draggedItemId.value || dropTargetId.value !== itemId || !dropPosition.value) return ''
+  if (itemId === draggedItemId.value) return ''
+  return dropPosition.value === 'before' ? 'drop-before' : 'drop-after'
+}
+
+/* ---- end drag-drop ---- */
 
 const safeSelectedPlatform = computed<SocialPlatform>({
   get: () => selectedPlatform.value,
@@ -1597,4 +1686,11 @@ onUnmounted(() => {
 <style scoped>
 @keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
+
+/* Drag-and-drop */
+tr[draggable="true"] { cursor: grab; }
+tr[draggable="true"]:active { cursor: grabbing; }
+tr.drag-over { opacity: 0.5; }
+tr.drop-before { box-shadow: inset 0 3px 0 -0.5px #3C82F6; }
+tr.drop-after { box-shadow: inset 0 -3px 0 -0.5px #3C82F6; }
 </style>
