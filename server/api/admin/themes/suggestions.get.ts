@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, ne, desc, count, inArray } from 'drizzle-orm'
+import { eq, and, desc, count, inArray } from 'drizzle-orm'
 
 function slugify(text: string): string {
   return text.toLowerCase()
@@ -12,6 +12,11 @@ function slugify(text: string): string {
 
 function toTitle(text: string): string {
   return text.replace(/\w+/g, w => w[0]!.toUpperCase() + w.slice(1).toLowerCase())
+}
+
+function getLanguageName(code: string): string {
+  const names: Record<string, string> = { en: 'English', fr: 'French', es: 'Spanish', de: 'German', it: 'Italian', pt: 'Portuguese', la: 'Latin' }
+  return names[code] || code
 }
 
 function pick<T>(items: T[], index: number, key: string): T | undefined {
@@ -44,29 +49,6 @@ const tagPatterns = [
   { name: (s: string) => `The ${s} Collection`, desc: (s: string) => `A handpicked selection of quotes about ${s}` },
 ]
 
-const authorPatterns = [
-  { name: (s: string) => `In the Words of ${s}`, desc: (s: string) => `The most memorable quotes by ${s}, collected in one place` },
-  { name: (s: string) => s, desc: (s: string) => `A celebration of the wit, wisdom, and words of ${s}` },
-  { name: (s: string) => `The World According to ${s}`, desc: (s: string) => `Exploring ${s}'s unique perspective through their quotes` },
-  { name: (s: string) => `Voices of ${s}`, desc: (s: string) => `The most striking and insightful quotes from ${s}` },
-  { name: (s: string) => `Reflections by ${s}`, desc: (s: string) => `A curated set of thoughts and observations by ${s}` },
-  { name: (s: string) => `${s}: A Portrait in Quotes`, desc: (s: string) => `Understanding ${s} through their own words` },
-  { name: (s: string) => `The Wit of ${s}`, desc: (s: string) => `Sharp, wise, and unforgettable — the best of ${s}` },
-  { name: (s: string) => `Quoting ${s}`, desc: (s: string) => `A rich collection of quotes attributed to ${s}` },
-]
-
-const referencePatterns = [
-  { name: (s: string) => `From the Pages of ${s}`, desc: (s: string) => `Iconic lines and unforgettable moments from ${s}` },
-  { name: (s: string) => `Inside ${s}`, desc: (s: string) => `The quotes that define ${s} and its legacy` },
-  { name: (s: string) => s, desc: (s: string) => `A curated selection of quotes drawn from ${s}` },
-  { name: (s: string) => `Beyond ${s}`, desc: (s: string) => `Exploring the themes and ideas found in ${s}` },
-  { name: (s: string) => `Moments from ${s}`, desc: (s: string) => `The most memorable lines and passages from ${s}` },
-  { name: (s: string) => `The World of ${s}`, desc: (s: string) => `Quotes that capture the spirit of ${s}` },
-  { name: (s: string) => `Revisiting ${s}`, desc: (s: string) => `Timeless quotes from ${s}, rediscovered` },
-  { name: (s: string) => `Lessons from ${s}`, desc: (s: string) => `What ${s} teaches us, one quote at a time` },
-]
-
-const MIN_QUOTES = 5
 const MAX_SUGGESTIONS = 6
 
 interface DateEvent {
@@ -117,6 +99,26 @@ async function fetchWikipediaEvents(month: number, day: number): Promise<string[
   } catch {
     return []
   }
+}
+
+function getNearbyDateEvents(): { context: string; keywords: string; diff: number }[] {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const result: { context: string; keywords: string; diff: number }[] = []
+
+  for (const de of dateEvents) {
+    const d = new Date(today.getFullYear(), de.month - 1, de.day)
+    const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
+    if (Math.abs(diff) <= 7) {
+      let label = de.context
+      if (diff === 0) label = `${de.context} (Today)`
+      else if (diff < 0) label = `${de.context} (${Math.abs(diff)} day(s) ago)`
+      else label = `${de.context} (in ${diff} day(s))`
+      result.push({ context: label, keywords: de.keywords, diff })
+    }
+  }
+
+  return result.sort((a, b) => Math.abs(a.diff) - Math.abs(b.diff))
 }
 
 async function buildContext(event: any): Promise<string> {
@@ -223,25 +225,30 @@ async function getAIConfig(): Promise<{ baseUrl: string; apiKey: string; model: 
   return { baseUrl, apiKey, model }
 }
 
-async function generateAISuggestions(topTags: { name: string; count: number }[], topAuthors: { name: string; count: number }[], topReferences: { name: string; count: number }[], suggestionCount: number, context?: string): Promise<any[] | null> {
+async function generateAISuggestions(
+  topTags: { name: string; count: number }[],
+  topAuthors: { name: string; count: number }[],
+  topReferences: { name: string; count: number }[],
+  suggestionCount: number,
+  context?: string,
+  seedTags?: string[]
+): Promise<any[] | null> {
   const config = await getAIConfig()
   if (!config) return null
 
   try {
-    const tagList = topTags.slice(0, 5).map(t => t.name).join(', ')
-    const authorList = topAuthors.slice(0, 5).map(a => a.name).join(', ')
-    const refList = topReferences.slice(0, 5).map(r => r.name).join(', ')
+    const focusSection = seedTags?.length
+      ? `Focus topics: ${seedTags.join(', ')}`
+      : `Top tags: ${topTags.slice(0, 5).map(t => t.name).join(', ') || 'none'}\nTop authors: ${topAuthors.slice(0, 5).map(a => a.name).join(', ') || 'none'}\nTop references: ${topReferences.slice(0, 5).map(r => r.name).join(', ') || 'none'}`
 
     const prompt = `You are a creative curator. Generate ${suggestionCount} original theme suggestions for a quote collection app.
 
-Top tags: ${tagList || 'none'}
-Top authors: ${authorList || 'none'}
-Top references: ${refList || 'none'}
+${focusSection}
 ${context ? '\n' + context : ''}
 
 For each suggestion, pick a primary focus (tag, author, or reference) and optionally combine related tags/authors for a richer theme.
 
-Return a JSON array of objects with these fields:
+Return a JSON object with a "suggestions" key containing an array of objects with these fields:
 - type: "tag" | "author" | "reference" (the primary focus)
 - name: creative, original theme name (not just the tag name — be imaginative)
 - description: a compelling one-sentence description
@@ -286,7 +293,6 @@ Rules:
     const parsed = JSON.parse(content)
     const suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || [])
 
-    // Validate and filter suggestions
     return suggestions.slice(0, MAX_SUGGESTIONS).map((s: any, i: number) => {
       const pair = colorPairs[i % colorPairs.length]!
       return {
@@ -313,11 +319,16 @@ export default defineEventHandler(async (event) => {
     const useAI = q.ai === 'true'
     const seedTagsParam = (q.tags as string) || ''
     const seedTags = seedTagsParam ? seedTagsParam.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : []
+    const language = (q.language as string) || ''
 
     const existingRows = await db.select({ slug: schema.themes.slug })
       .from(schema.themes)
       .all()
     const existingSlugs = new Set(existingRows.map(r => r.slug))
+
+    const baseConditions = [eq(schema.quotes.status, 'approved')]
+    if (language) baseConditions.push(eq(schema.quotes.language, language as any))
+    const quoteFilter = and(...baseConditions)
 
     let [topTags, topAuthors, topReferences] = await Promise.all([
       db.select({
@@ -328,7 +339,7 @@ export default defineEventHandler(async (event) => {
         .from(schema.tags)
         .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .where(eq(schema.quotes.status, 'approved'))
+        .where(quoteFilter)
         .groupBy(schema.tags.id, schema.tags.name)
         .orderBy(desc(count(schema.quoteTags.quoteId)))
         .limit(10)
@@ -341,7 +352,7 @@ export default defineEventHandler(async (event) => {
       })
         .from(schema.authors)
         .innerJoin(schema.quotes, eq(schema.authors.id, schema.quotes.authorId))
-        .where(eq(schema.quotes.status, 'approved'))
+        .where(quoteFilter)
         .groupBy(schema.authors.id, schema.authors.name)
         .orderBy(desc(count(schema.quotes.id)))
         .limit(6)
@@ -354,7 +365,7 @@ export default defineEventHandler(async (event) => {
       })
         .from(schema.quoteReferences)
         .innerJoin(schema.quotes, eq(schema.quoteReferences.id, schema.quotes.referenceId))
-        .where(eq(schema.quotes.status, 'approved'))
+        .where(quoteFilter)
         .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
         .orderBy(desc(count(schema.quotes.id)))
         .limit(6)
@@ -370,7 +381,7 @@ export default defineEventHandler(async (event) => {
         .from(schema.tags)
         .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .where(and(eq(schema.quotes.status, 'approved'), inArray(schema.tags.name, seedTags)))
+        .where(and(quoteFilter, inArray(schema.tags.name, seedTags)))
         .groupBy(schema.tags.id, schema.tags.name)
         .orderBy(desc(count(schema.quoteTags.quoteId)))
         .all()
@@ -383,10 +394,8 @@ export default defineEventHandler(async (event) => {
 
     if (useAI) {
       let context = await buildContext(event)
-      if (seedTags.length) {
-        context += `\n\nSeed tags to focus on: ${seedTags.join(', ')}.\nGenerate suggestions specifically related to these themes.`
-      }
-      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS, context)
+      if (language) context += `\n\nLanguage: ${getLanguageName(language)}. Generate theme names and descriptions in ${getLanguageName(language)} and focus on quotes in this language.`
+      const aiSuggestions = await generateAISuggestions(topTags, topAuthors, topReferences, MAX_SUGGESTIONS, context, seedTags)
       if (aiSuggestions) return { success: true, data: aiSuggestions }
     }
 
@@ -400,136 +409,46 @@ export default defineEventHandler(async (event) => {
       suggestions.push({ type, name, slug: slugify(name), description: desc, color_primary: pair![0], color_secondary: pair![1], filters })
     }
 
-    // --- Tag suggestions ---
-    for (let i = 0; i < topTags.length; i++) {
-      if (suggestions.length >= MAX_SUGGESTIONS) break
-      const tag = topTags[i]!
-      if (tag.count < MIN_QUOTES) continue
+    const eventPatterns = [
+      (s: string) => `Echoes of ${s}`,
+      (s: string) => `Reflections on ${s}`,
+      (s: string) => `The Spirit of ${s}`,
+      (s: string) => `Visions of ${s}`,
+    ]
 
-      const title = toTitle(tag.name)
-      const pattern = pick(tagPatterns, i, tag.name)!
-      const name = pattern.name(title)
-      if (existingSlugs.has(slugify(name))) continue
+    if (seedTags.length) {
+      const seedTagNames = new Set(seedTags)
+      for (const tag of topTags) {
+        if (suggestions.length >= MAX_SUGGESTIONS) break
+        if (!seedTagNames.has(tag.name.toLowerCase())) continue
 
-      const filters: any[] = [{ type: 'tag_name', value: tag.name, match_mode: 'any' }]
+        const title = toTitle(tag.name)
+        const pattern = pick(tagPatterns, colorIndex, tag.name)!
+        const name = pattern.name(title)
+        if (existingSlugs.has(slugify(name))) continue
 
-      const quotedByTag = db.select({ id: schema.quoteTags.quoteId }).from(schema.quoteTags).where(eq(schema.quoteTags.tagId, tag.id))
+        const filters: any[] = [{ type: 'tag_name', value: tag.name, match_mode: 'any' }]
+        addSuggestion('tag', name, pattern.desc(title), filters)
+      }
+    } else {
+      const nearbyEvents = getNearbyDateEvents()
+      for (const ev of nearbyEvents) {
+        if (suggestions.length >= MAX_SUGGESTIONS) break
 
-      const coTags = await db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
-        .from(schema.quoteTags)
-        .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-        .where(and(
-          inArray(schema.quoteTags.quoteId, quotedByTag),
-          ne(schema.quoteTags.tagId, tag.id),
-        ))
-        .groupBy(schema.tags.id, schema.tags.name)
-        .orderBy(desc(count(schema.quoteTags.quoteId)))
-        .limit(1)
-        .all()
+        const evKeywords = ev.keywords.split(', ')
+        const matchingTags = topTags.filter(t =>
+          evKeywords.some(kw =>
+            t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase())
+          )
+        )
+        if (!matchingTags.length) continue
 
-      for (const ct of coTags) filters.push({ type: 'tag_name', value: ct.name, match_mode: 'any' })
-
-      const [tagAuthors, tagRefs] = await Promise.all([
-        db.select({ name: schema.authors.name, count: count(schema.quotes.id) })
-          .from(schema.quoteTags)
-          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-          .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-          .where(and(eq(schema.quoteTags.tagId, tag.id), eq(schema.quotes.status, 'approved')))
-          .groupBy(schema.authors.id, schema.authors.name)
-          .orderBy(desc(count(schema.quotes.id)))
-          .limit(1)
-          .all(),
-        db.select({ name: schema.quoteReferences.name, count: count(schema.quotes.id) })
-          .from(schema.quoteTags)
-          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-          .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-          .where(and(eq(schema.quoteTags.tagId, tag.id), eq(schema.quotes.status, 'approved')))
-          .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
-          .orderBy(desc(count(schema.quotes.id)))
-          .limit(1)
-          .all(),
-      ])
-
-      for (const ta of tagAuthors) filters.push({ type: 'author_name', value: ta.name, match_mode: 'any' })
-      for (const tr of tagRefs) filters.push({ type: 'reference_name', value: tr.name, match_mode: 'any' })
-
-      addSuggestion('tag', name, pattern!.desc(title), filters.slice(0, 4))
-    }
-
-    // --- Author suggestions ---
-    for (let i = 0; i < topAuthors.length; i++) {
-      if (suggestions.length >= MAX_SUGGESTIONS) break
-      const author = topAuthors[i]!
-      if (author.count < MIN_QUOTES) continue
-
-      const pattern = pick(authorPatterns, i, author.name)!
-      const name = pattern.name(author.name)
-      if (existingSlugs.has(slugify(name))) continue
-
-      const filters: any[] = [{ type: 'author_name', value: author.name, match_mode: 'any' }]
-
-      const [authorTags, authorRefs] = await Promise.all([
-        db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
-          .from(schema.quoteTags)
-          .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-          .where(and(eq(schema.quotes.authorId, author.id), eq(schema.quotes.status, 'approved')))
-          .groupBy(schema.tags.id, schema.tags.name)
-          .orderBy(desc(count(schema.quoteTags.quoteId)))
-          .limit(2)
-          .all(),
-        db.select({ name: schema.quoteReferences.name, count: count(schema.quotes.id) })
-          .from(schema.quotes)
-          .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-          .where(and(eq(schema.quotes.authorId, author.id), eq(schema.quotes.status, 'approved')))
-          .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
-          .orderBy(desc(count(schema.quotes.id)))
-          .limit(2)
-          .all(),
-      ])
-
-      for (const t of authorTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
-      for (const r of authorRefs) filters.push({ type: 'reference_name', value: r.name, match_mode: 'any' })
-
-      addSuggestion('author', name, pattern!.desc(author.name), filters.slice(0, 4))
-    }
-
-    // --- Reference suggestions ---
-    for (let i = 0; i < topReferences.length; i++) {
-      if (suggestions.length >= MAX_SUGGESTIONS) break
-      const ref = topReferences[i]!
-      if (ref.count < MIN_QUOTES) continue
-
-      const pattern = pick(referencePatterns, i, ref.name)!
-      const name = pattern.name(ref.name)
-      if (existingSlugs.has(slugify(name))) continue
-
-      const filters: any[] = [{ type: 'reference_name', value: ref.name, match_mode: 'any' }]
-
-      const [refTags, refAuthors] = await Promise.all([
-        db.select({ name: schema.tags.name, count: count(schema.quoteTags.quoteId) })
-          .from(schema.quoteTags)
-          .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-          .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-          .where(and(eq(schema.quotes.referenceId, ref.id), eq(schema.quotes.status, 'approved')))
-          .groupBy(schema.tags.id, schema.tags.name)
-          .orderBy(desc(count(schema.quoteTags.quoteId)))
-          .limit(2)
-          .all(),
-        db.select({ name: schema.authors.name, count: count(schema.quotes.id) })
-          .from(schema.quotes)
-          .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-          .where(and(eq(schema.quotes.referenceId, ref.id), eq(schema.quotes.status, 'approved')))
-          .groupBy(schema.authors.id, schema.authors.name)
-          .orderBy(desc(count(schema.quotes.id)))
-          .limit(2)
-          .all(),
-      ])
-
-      for (const t of refTags) filters.push({ type: 'tag_name', value: t.name, match_mode: 'any' })
-      for (const a of refAuthors) filters.push({ type: 'author_name', value: a.name, match_mode: 'any' })
-
-      addSuggestion('reference', name, pattern!.desc(ref.name), filters.slice(0, 4))
+        const baseName = ev.context.split(' (')[0] || ev.context
+        const name = eventPatterns[colorIndex % eventPatterns.length]!(baseName)
+        const desc = `Quotes that capture the spirit of ${baseName.toLowerCase()}`
+        const filters = matchingTags.slice(0, 4).map(t => ({ type: 'tag_name' as const, value: t.name, match_mode: 'any' as const }))
+        addSuggestion('tag', name, desc, filters)
+      }
     }
 
     return { success: true, data: suggestions }
