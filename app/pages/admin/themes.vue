@@ -185,7 +185,7 @@
             <div v-else-if="loadingSuggestions && suggestions.length === 0">
               <div class="flex items-center gap-2 text-sm text-gray-500">
                 <span class="i-ph-circle-notch animate-spin" />
-                {{ $t('dialog_generate') }}...
+                {{ $t('dialog_generating') }}
               </div>
             </div>
             <div v-else-if="suggestions.length > 0">
@@ -297,7 +297,7 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_lang_label') }}</label>
-              <NSelect v-model="form.language" :items="['', 'en', 'fr']" size="sm" class="w-full" />
+              <NSelect v-model="form.language" :items="['en', 'fr']" :placeholder="$t('dialog_lang_all') as string" size="sm" class="w-full" />
               <p class="text-xs text-gray-400 mt-1">{{ $t('dialog_lang_hint') }}</p>
             </div>
             <div />
@@ -458,11 +458,16 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_ai_model') }}</label>
-          <NInput
-            :model-value="activeProviderSettings.model"
-            @update:model-value="(v) => setProviderSetting('model', v)"
-            placeholder="e.g. gpt-4o-mini" size="sm"
-          />
+          <div class="flex gap-2">
+            <NInput
+              :model-value="activeProviderSettings.model"
+              @update:model-value="(v) => setProviderSetting('model', v)"
+              placeholder="e.g. gpt-4o-mini" size="sm" class="flex-1"
+            />
+            <OutlinedButton size="sm" :loading="testingConnection" @click="testConnection">
+              {{ testingConnection ? $t('dialog_ai_testing') : $t('dialog_ai_test') }}
+            </OutlinedButton>
+          </div>
         </div>
 
         <div v-if="aiSettings.provider === 'custom'">
@@ -527,6 +532,7 @@ const themeToDelete = ref<any>(null)
 
 const showAISettings = ref(false)
 const savingAISettings = ref(false)
+const testingConnection = ref(false)
 
 const providerOptions = ['openrouter', 'opencode', 'openai', 'custom']
 
@@ -610,6 +616,32 @@ const saveAISettings = async () => {
     showErrorToast(null, { title: $t('toast_error') as string, fallback: 'Failed to save AI settings' })
   } finally {
     savingAISettings.value = false
+  }
+}
+
+const testConnection = async () => {
+  testingConnection.value = true
+  try {
+    const s = aiSettings.value
+    const k = s.provider === 'custom' ? 'custom' : s.provider
+    const res = await $fetch('/api/admin/ai/test-connection', {
+      method: 'POST',
+      body: {
+        provider: s.provider,
+        apiKey: (s as any)[`${k}_api_key`] as string,
+        model: (s as any)[`${k}_model`] as string,
+        baseUrl: s.custom_base_url,
+      },
+    })
+    if (res.success) {
+      useToast().toast({ toast: 'outline-success', title: $t('toast_ai_test_success') as string })
+    } else {
+      useToast().toast({ toast: 'outline-error', title: $t('toast_ai_test_failed') as string, description: (res as any).error })
+    }
+  } catch {
+    useToast().toast({ toast: 'outline-error', title: $t('toast_ai_test_failed') as string })
+  } finally {
+    testingConnection.value = false
   }
 }
 
@@ -715,7 +747,8 @@ const loadSuggestions = async () => {
   loadingSuggestions.value = true
   selectedSuggestionIndex.value = null
   try {
-    const params: Record<string, string> = {}
+    const languageStore = useLanguageStore()
+    const params: Record<string, string> = { ...languageStore.getLanguageQuery() }
     if (promptTags.value.length) params.tags = promptTags.value.join(',')
     const res = await $fetch('/api/admin/themes/suggestions', { params })
     suggestions.value = res?.data || []
@@ -730,7 +763,8 @@ const loadAISuggestions = async () => {
   loadingSuggestions.value = true
   selectedSuggestionIndex.value = null
   try {
-    const params: Record<string, string> = { ai: 'true' }
+    const languageStore = useLanguageStore()
+    const params: Record<string, string> = { ai: 'true', ...languageStore.getLanguageQuery() }
     if (promptTags.value.length) params.tags = promptTags.value.join(',')
     const res = await $fetch('/api/admin/themes/suggestions', { params })
     if (!res?.data || !res.data.length) {
