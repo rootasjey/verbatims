@@ -318,6 +318,20 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     }
   }
 
+  async function reorderQueueItem(id: number, beforeId: number | null) {
+    try {
+      await $fetch<ApiResponse<unknown>>('/api/admin/social-queue/reorder', {
+        method: 'POST',
+        body: { id, beforeId }
+      })
+
+      await loadQueue()
+    } catch (error) {
+      console.error('Failed to reorder queue item:', error)
+      options.showErrorToast('Error', 'Failed to reorder queue item')
+    }
+  }
+
   async function removeQueueItem(id: number) {
     try {
       await $fetch<ApiResponse<unknown>>(`/api/admin/social-queue/${id}`, { method: 'DELETE' })
@@ -463,6 +477,7 @@ export function useAdminSocialQueue(options: UseAdminSocialQueueOptions) {
     loadQuotePicker,
     addQuoteToQueue,
     moveQueueItem,
+    reorderQueueItem,
     removeQueueItem,
     clearAllQueue,
     clearFinishedQueue,
