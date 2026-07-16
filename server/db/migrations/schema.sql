@@ -732,11 +732,9 @@ CREATE TABLE IF NOT EXISTS themes (
   name TEXT NOT NULL,
   description TEXT,
   language TEXT,
-  image_url TEXT,
   config TEXT DEFAULT '{}',
   is_active INTEGER DEFAULT 0,
   is_default INTEGER DEFAULT 0,
-  scheduled_date TEXT,
   scheduled_start INTEGER,
   scheduled_end INTEGER,
   priority INTEGER DEFAULT 0,
@@ -746,7 +744,6 @@ CREATE TABLE IF NOT EXISTS themes (
 CREATE INDEX IF NOT EXISTS idx_themes_slug ON themes(slug);
 CREATE INDEX IF NOT EXISTS idx_themes_active ON themes(is_active);
 CREATE INDEX IF NOT EXISTS idx_themes_default ON themes(is_default);
-CREATE INDEX IF NOT EXISTS idx_themes_scheduled ON themes(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_themes_language ON themes(language);
 
 CREATE TABLE IF NOT EXISTS theme_content_filters (

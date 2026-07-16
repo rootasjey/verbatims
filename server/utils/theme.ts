@@ -15,11 +15,9 @@ export interface ThemeRow {
   name: string
   description: string | null
   language: string | null
-  image_url: string | null
   config: string | null
   is_active: boolean
   is_default: boolean
-  scheduled_date: string | null
   scheduled_start: Date | null
   scheduled_end: Date | null
   priority: number
@@ -40,7 +38,6 @@ export interface ThemeFeedResult {
     slug: string
     name: string
     description: string | null
-    image_url: string | null
     config: Record<string, any> | null
     filters_count: number
   }
@@ -78,7 +75,6 @@ export async function getThemeTranslations(themeId: number): Promise<ThemeTransl
 
 export async function resolveActiveTheme(language?: string): Promise<ThemeRow | null> {
   const now = Date.now()
-  const today = new Date().toISOString().split('T')[0]
 
   const allThemes = await db.select()
     .from(schema.themes)
@@ -91,7 +87,6 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
   const candidates = byLanguage.length ? byLanguage : allThemes
 
   const scheduled = candidates.find(t =>
-    t.scheduledDate === today ||
     (t.scheduledStart && t.scheduledEnd &&
       now >= t.scheduledStart.getTime() &&
       now <= t.scheduledEnd.getTime())
@@ -418,7 +413,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       slug: themeRow.slug,
       name: localized.name,
       description: localized.description,
-      image_url: themeRow.imageUrl,
       config,
       filters_count: filters.length,
     },

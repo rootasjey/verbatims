@@ -133,308 +133,408 @@
       </div>
     </div>
 
-    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-5xl' }">
+    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-2xl' }">
       <template #header>
-        <div>
+        <div class="px-2">
           <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
           <p class="text-xs text-gray-400 dark:text-gray-600 italic ml-4">{{ editMode ? $t('dialog_edit_desc') : $t('dialog_create_desc') }}</p>
         </div>
       </template>
-      <div class="max-h-[75vh] overflow-y-auto">
-        <div class="space-y-6 px-4">
-          <div v-if="!editMode" class="pb-2">
-            <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
-              <NTooltip>
-                <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> {{ $t('dialog_generate') }}</OutlinedButton>
-                <template #content>
-                  <div class="max-w-sm">
-                    <p>{{ $t('dialog_generate_tooltip') }}</p>
-                  </div>
-                </template>
-              </NTooltip>
-              <NTooltip>
-                <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> {{ $t('dialog_ai') }}</OutlinedButton>
-                <template #content>
-                  <div class="max-w-sm">
-                    <p>{{ $t('dialog_ai_tooltip') }}</p>
-                  </div>
-                </template>
-              </NTooltip>
-              <NTooltip>
-                <OutlinedButton icon size="sm" :class="useLocation ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="toggleLocation">
-                  <NIcon :name="useLocation ? 'i-lucide-map-pin-check-inside' : 'i-lucide-map-pin-minus-inside'" />
-                </OutlinedButton>
-                <template #content>
-                  <div class="max-w-sm"><p>{{ useLocation ? 'Location context is ON — AI suggestions consider the visitor\'s country.' : 'Location context is OFF — AI suggestions ignore location.' }}</p></div>
-                </template>
-              </NTooltip>
+      <div class="px-4">
+        <NTabs v-model="activeTab" :items="tabs" class="px-2">
+          <template #content="{ item }">
+            <div class="mt-6 min-h-[55vh] max-h-[55vh]">
+            <!-- General -->
+            <div v-if="item.value === 'general'" class="p-1 space-y-6 overflow-y-auto max-h-[54vh]">
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <NInput
+                    v-model="form.name"
+                    :placeholder="$t('dialog_name_placeholder') as string"
+                    :disabled="submitting"
+                    class="pl-22"
+                    required>
+                    <template #leading>
+                      <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_name_label') }}</span>
+                    </template>
+                    <template #trailing>
+                      <NButton
+                        icon size="xs" btn="soft-gray"
+                        :label="suggestingName ? 'i-lucide-loader-circle' : 'i-lucide-wand-sparkles'"
+                        :disabled="submitting || suggestingName"
+                        class="pointer-events-auto cursor-pointer"
+                        :class="suggestingName ? 'animate-spin' : ''"
+                        @click="suggestName"
+                      />
+                    </template>
+                  </NInput>
+                </div>
+                <div class="flex justify-between gap-4 flex-wrap">
+                  <NInput
+                    v-model="form.slug"
+                    :placeholder="$t('dialog_slug_placeholder') as string"
+                    :disabled="submitting"
+                    class="pl-22"
+                    required>
+                    <template #leading>
+                      <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_slug_label') }}</span>
+                    </template>
+                  </NInput>
 
-              <NTooltip>
-                <OutlinedButton icon size="sm" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()">
-                  <NIcon name="i-ph-gear" />
-                </OutlinedButton>
-                <template #content>
-                  <div class="max-w-sm"><p>{{ $t('dialog_settings') }}</p></div>
-                </template>
-              </NTooltip>
+                  <NSeparator orientation="vertical" class="h-full" />
 
-              <NTooltip>
-                <OutlinedButton icon size="sm" :class="promptTags.length ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="showTagInput = !showTagInput">
-                  <NIcon name="i-ph-hash" />
-                </OutlinedButton>
-                <template #content>
-                  <div class="max-w-sm"><p>{{ $t('dialog_seed_tooltip') }}</p></div>
-                </template>
-              </NTooltip>
-            </div>
-            <div v-else-if="loadingSuggestions && suggestions.length === 0">
-              <div class="flex items-center gap-2 text-sm text-gray-500">
-                <span class="i-ph-circle-notch animate-spin" />
-                {{ $t('dialog_generating') }}
-              </div>
-            </div>
-            <div v-else-if="suggestions.length > 0">
-              <div class="flex items-center justify-between mb-3">
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $t('dialog_suggestions') }}</h4>
-                <div class="flex items-center gap-1">
-                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" />{{ $t('dialog_refresh') }}</OutlinedButton>
-                  <OutlinedButton size="sm" @click="showAISettings = true; loadAISettings()"><span class="i-ph-gear" />{{ $t('dialog_settings') }}</OutlinedButton>
-                  <OutlinedButton size="sm" @click="cancelSuggestions()"><span class="i-ph-x" />{{ $t('dialog_cancel') }}</OutlinedButton>
+                  <div class="flex items-center gap-1 max-w-200px">
+                    <label class="block bg-gray-100 dark:bg-gray-800 p-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_priority') }}</label>
+                    <NNumberField v-model="form.priority" :min="0" :disabled="submitting" class="min-w-0" />
+                  </div>
                 </div>
               </div>
-              <div class="relative">
-                <div ref="suggestionScrollRef" class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth">
-                  <div v-for="(s, i) in suggestions" :key="i"
-                    class="flex-shrink-0 w-56 p-3 rounded-xl border-1.5 cursor-pointer transition-all overflow-hidden"
-                    :class="selectedSuggestionIndex === i
-                      ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
-                    @click="applySuggestion(i)">
-                    <div class="flex items-center gap-1.5 mb-2">
-                      <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_primary }" />
-                      <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_secondary }" />
-                      <span class="text-2xs uppercase tracking-wider text-gray-400 ml-auto font-medium">{{ s.type }}</span>
-                    </div>
-                    <p class="text-sm font-semibold truncate text-gray-900 dark:text-white">{{ s.name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{{ s.description }}</p>
-                    <div class="flex flex-wrap gap-1 mt-2">
-                      <span v-for="f in s.filters" :key="f.value" class="text-2xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 truncate max-w-full">
-                        {{ f.value }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  v-if="suggestions.length > 3"
-                  class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  @click="scrollSuggestions(-1)"
-                >
-                  <span class="i-ph-caret-left text-sm" />
-                </button>
-                <button
-                  v-if="suggestions.length > 3"
-                  class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  @click="scrollSuggestions(1)"
-                >
-                  <span class="i-ph-caret-right text-sm" />
-                </button>
-              </div>
-            </div>
 
-            <div v-if="showTagInput || promptTags.length" class="mt-2 flex items-center gap-2 flex-wrap">
-              <span v-for="(tag, i) in promptTags" :key="i" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                {{ tag }}
-                <button class="ml-0.5 hover:text-red-500 transition-colors leading-none text-sm" @click="promptTags.splice(i, 1)">&times;</button>
-              </span>
-              <NInput
-                v-if="showTagInput"
-                v-model="tagInputValue"
-                :placeholder="$t('dialog_tag_placeholder') as string"
-                size="xs"
-                class="w-44 seed-tag-input"
-                @keydown="onTagInputKeydown"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <NInput
-                v-model="form.name"
-                :placeholder="$t('dialog_name_placeholder') as string"
-                :disabled="submitting"
-                class="pl-22"
-                required>
-                <template #leading>
-                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_name_label') }}</span>
-                </template>
-                <template #trailing>
-                  <NButton
-                    icon size="xs" btn="soft-gray"
-                    :label="suggestingName ? 'i-lucide-loader-circle' : 'i-lucide-wand-sparkles'"
-                    :disabled="submitting || suggestingName"
-                    class="pointer-events-auto cursor-pointer"
-                    :class="suggestingName ? 'animate-spin' : ''"
-                    @click="suggestName"
-                  />
-                </template>
-              </NInput>
-            </div>
-            <div>
-              <NInput
-                v-model="form.slug"
-                :placeholder="$t('dialog_slug_placeholder') as string"
-                :disabled="submitting"
-                class="pl-22"
-                required>
-                <template #leading>
-                  <span class="block bg-gray-100 dark:bg-gray-800 py-1 px-2 rounded-1 text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_slug_label') }}</span>
-                </template>
-              </NInput>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_desc_label') }}</label>
-            <NInput type="textarea" v-model="form.description" :rows="2" :placeholder="$t('dialog_desc_placeholder') as string" :disabled="submitting" />
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_lang_label') }}</label>
-              <NSelect v-model="form.language" :items="['en', 'fr']" :placeholder="$t('dialog_lang_all') as string" size="sm" class="w-full" />
-              <p class="text-xs text-gray-400 mt-1">{{ $t('dialog_lang_hint') }}</p>
-            </div>
-            <div />
-          </div>
-
-          <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-2 px-4 py-4 space-y-4">
-            <h4 class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium">{{ $t('dialog_i18n_title') }}</h4>
-            <div v-for="(t, idx) in translations" :key="t._key" class="grid grid-cols-[6rem_1fr_1fr_auto] gap-2 items-start">
-              <NSelect v-model="t.language" :items="['en', 'fr']" size="sm" class="w-full" :disabled="submitting" />
-              <NInput v-model="t.name" :placeholder="$t('dialog_i18n_name_placeholder') as string" size="sm" :disabled="submitting" />
-              <NInput v-model="t.description" :placeholder="$t('dialog_i18n_desc_placeholder') as string" size="sm" :disabled="submitting" />
-              <button class="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors mt-1" @click="removeTranslation(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
-            </div>
-            <OutlinedButton size="sm" @click="addTranslation"><span class="i-ph-plus" /> {{ $t('dialog_add_translation') }}</OutlinedButton>
-          </div>
-
-          <div class="bg-gray-50 dark:bg-gray-800 rounded-2 px-18 py-6">
-            <h4 class="uppercase text-sm font-400 text-gray-900 dark:text-white mb-3">{{ $t('dialog_colors') }}</h4>
-            <div class="flex gap-16">
               <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_primary') }}</label>
-                <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_primary }}</span>
-                <div class="flex items-center gap-3">
-                  <BlossomColorPicker
-                    :value="primaryPickerValue"
-                    @change="onPrimaryChange"
-                    :show-alpha-slider="false"
-                    :core-size="28"
-                    :petal-size="28"
-                  />
+                <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_desc_label') }}</label>
+                <NInput type="textarea" v-model="form.description" :rows="2" :placeholder="$t('dialog_desc_placeholder') as string" :disabled="submitting" />
+              </div>
+
+              <div class="flex gap-4 wrap items-center">
+                <div class="flex items-center gap-2">
+                  <label class="block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_lang_label') }}</label>
+                  <NTooltip :content="$t('dialog_lang_hint')?.toString()">
+                    <NIcon name="i-ph-info" />
+                  </NTooltip>
+                  <NCombobox
+                    :model-value="languageOptions.find(o => o.value === form.language) || null"
+                    @update:model-value="(v: { value: string; label: string; flag: string } | null) => { form.language = v?.value || '' }"
+                    :items="languageOptions"
+                    by="value"
+                    :_combobox-input="{
+                      placeholder: $t('dialog_lang_all') as string,
+                      class: 'text-sm',
+                    }"
+                    :_combobox-list="{
+                      class: 'min-w-[160px]',
+                    }"
+                    :_combobox-trigger="{
+                      btn: 'ghost-gray',
+                      size: 'sm',
+                      trailing: '',
+                      class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+                    }"
+                  >
+                    <template #trigger="{ modelValue }">
+                      <div class="flex items-center gap-1.5">
+                        <img
+                          v-if="modelValue"
+                          :src="modelValue.flag"
+                          alt=""
+                          class="w-5 h-5 object-cover rounded-[2px] shrink-0"
+                        />
+                        <span v-if="modelValue" class="text-xs font-medium leading-none">{{ modelValue.value === 'en' ? 'EN' : 'FRA' }}</span>
+                        <span v-else class="text-xs font-medium leading-none text-gray-400">{{ $t('dialog_lang_all') }}</span>
+                      </div>
+                    </template>
+                    <template #label="{ item }">
+                      <div class="flex items-center gap-2">
+                        <img :src="item.flag" alt="" class="w-5 h-5 object-cover rounded-[2px] shrink-0" />
+                        <span>{{ item.label }}</span>
+                      </div>
+                    </template>
+                  </NCombobox>
+                </div>
+
+                <NSeparator orientation="vertical" class="mx-2 h-7" />
+
+                <div class="flex items-center gap-2">
+                  <NTooltip :content="(form.is_active ? $t('dialog_deactivate') : $t('dialog_activate')) as string">
+                    <NToggle
+                      :leading="form.is_active ? 'i-tabler-circuit-switch-closed' : 'i-tabler-circuit-switch-open'"
+                      :icon="false"
+                      :square="false"
+                      :label="form.is_active ? $t('dialog_active')?.toLocaleString() : $t('dialog_inactive') as string"
+                      :class="[{ 'bg-gray-100 dark:bg-gray-900': form.is_active }]"
+                      class="active:scale-98 hover:bg-gray-100 dark:hover:bg-gray-800 transition-[colors,transform]"
+                      v-model="form.is_active"
+                    />
+                  </NTooltip>
+
+                  <NSeparator orientation="vertical" class="mx-2 h-7" />
+
+                  <NTooltip :content="form.is_default ? $t('dialog_unset_default')?.toString() : $t('dialog_set_default')?.toString()">
+                    <NToggle
+                      :leading="form.is_default ? 'i-tabler-git-branch' : 'i-tabler-git-branch-deleted'"
+                      :icon="false"
+                      :square="false"
+                      :label="$t('dialog_default_fallback')?.toLocaleString()"
+                      :class="[{ 'bg-gray-100 dark:bg-gray-900': form.is_default }]"
+                      class="active:scale-98 hover:bg-gray-100 dark:hover:bg-gray-800 transition-[colors,transform]"
+                      v-model="form.is_default"
+                    />
+                  </NTooltip>
                 </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-900 dark:text-white">{{ $t('dialog_secondary') }}</label>
-                <span class="block mb-2 text-xs font-mono text-gray-500 dark:text-gray-400">{{ form.color_secondary }}</span>
-                <div class="flex items-center gap-3">
-                  <BlossomColorPicker
-                    :value="secondaryPickerValue"
-                    @change="onSecondaryChange"
-                    :show-alpha-slider="false"
-                    :core-size="28"
-                    :petal-size="28"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_image_url') }}</label>
-            <NInput v-model="form.image_url" :placeholder="$t('dialog_image_placeholder') as string" :disabled="submitting" />
-          </div>
+              <NCollapsible v-model:open="showTranslations" class="rounded-2 bg-gray-50 dark:bg-gray-900">
+                <NCollapsibleTrigger as-child>
+                  <button class="flex items-center justify-between w-full px-4 py-3 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-medium">
+                    <div class="flex items-center gap-3">
+                      <span>{{ $t('dialog_i18n_title') }}</span>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_priority') }}</label>
-              <NNumberField v-model="form.priority" :min="0" :disabled="submitting" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_date') }}</label>
-              <NInput v-model="form.scheduled_date" type="date" :disabled="submitting" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_start') }}</label>
-              <NInput v-model="form.scheduled_start" type="datetime-local" :disabled="submitting" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_end') }}</label>
-              <NInput v-model="form.scheduled_end" type="datetime-local" :disabled="submitting" />
-            </div>
-            <div class="flex items-end gap-4 pb-1">
-              <NCheckbox v-model="form.is_active" :label="$t('dialog_active') as string" />
-              <NCheckbox v-model="form.is_default" :label="$t('dialog_default_fallback') as string" />
-            </div>
-          </div>
-
-          <div class="border-t pt-4">
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ $t('dialog_filters') }}</h4>
-            <div class="space-y-2 mb-3">
-              <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[9rem_1fr_auto] gap-2 items-center">
-                <NSelect
-                  v-model="filter.type"
-                  :items="filterTypeOptions"
-                  size="sm"
-                  class="w-full"
-                  @update:model-value="onFilterValueInput(idx)"
-                />
-                <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
-                  <NInput v-model="filter.value" :placeholder="$t('dialog_filter_value') as string" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
-                  <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                    <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                      :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
-                      {{ s.label }}
+                      <NTooltip :content="$t('dialog_add_translation')?.toString()">
+                        <NIcon name="i-ph-plus" class="w-3.5 h-3.5 hover:scale-110 active:scale-99 transition-[transform]" @click.stop="addTranslation" />
+                      </NTooltip>
                     </div>
+                    <NIcon name="i-ph-caret-down" class="w-3.5 h-3.5 shadow-none transition-[transform]" :class="showTranslations ? 'rotate-180' : ''" />
+                  </button>
+                </NCollapsibleTrigger>
+                <NCollapsibleContent>
+                  <div class="px-4 pb-4 space-y-4">
+                    <div v-for="(t, idx) in translations" :key="t._key" class="p-1 grid grid-cols-[6rem_1fr_1fr_auto] gap-2 items-start">
+                      <NSelect v-model="t.language" :items="['en', 'fr']" size="xs" class="w-full" :disabled="submitting" />
+                      <NInput v-model="t.name" :placeholder="$t('dialog_i18n_name_placeholder')?.toString()" size="sm" :disabled="submitting" />
+                      <NInput v-model="t.description" :placeholder="$t('dialog_i18n_desc_placeholder')?.toString()" size="sm" :disabled="submitting" />
+
+                      <NTooltip :content="$t('dialog_i18n_remove_translation')?.toString()">
+                        <NButton btn="soft-gray" class="h-8 w-8" @click="removeTranslation(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></NButton>
+                      </NTooltip>
+                    </div>
+                    <p v-if="translations.length === 0" class="animate-fade-in text-sm text-gray-500 dark:text-gray-400">{{ $t('dialog_i18n_empty') }}</p>
+                  </div>
+                </NCollapsibleContent>
+              </NCollapsible>
+            </div>
+
+            <!-- Appearance -->
+            <div v-if="item.value === 'appearance'" class="p-1 space-y-6">
+              <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
+                <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_colors') }}</h4>
+                <div class="flex gap-16">
+                  <div>
+                    <div class="flex items-center gap-3">
+                      <BlossomColorPicker
+                        :value="primaryPickerValue"
+                        @change="onPrimaryChange"
+                        :show-alpha-slider="false"
+                        :core-size="28"
+                        :petal-size="28"
+                      />
+                    </div>
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">{{ $t('dialog_primary') }}</label>
+                    <NInput :model-value="form.color_primary" @update:model-value="onPrimaryHexInput" size="sm" class="w-28 mb-2 font-mono" />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-3">
+                      <BlossomColorPicker
+                        :value="secondaryPickerValue"
+                        @change="onSecondaryChange"
+                        :show-alpha-slider="false"
+                        :core-size="28"
+                        :petal-size="28"
+                      />
+                    </div>
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">{{ $t('dialog_secondary') }}</label>
+                    <NInput :model-value="form.color_secondary" @update:model-value="onSecondaryHexInput" size="sm" class="w-28 mb-2 font-mono" />
                   </div>
                 </div>
-                <button class="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors" @click="removeFilter(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <OutlinedButton size="sm" @click="addFilter"><span class="i-ph-plus" /> {{ $t('dialog_add_filter') }}</OutlinedButton>
-              <template v-if="filterRecommendations.length">
-                <span class="text-2xs text-gray-400">{{ $t('dialog_suggestions_label') }}</span>
-                <button v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" class="text-2xs px-2 py-0.5 rounded-full border border-dashed border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors" @click="applyFilterRecommendation(r)">
-                  {{ r.label }}<span v-if="r.type !== 'tag_name'" class="ml-1 opacity-50">—{{ r.type.replace('_name', '').slice(0, 3) }}</span>
-                </button>
-              </template>
-            </div>
-          </div>
 
-          <div v-if="editMode && entitySuggestions.length" class="border-t pt-4">
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-              Entity Suggestions
-              <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-2xs font-600">{{ entitySuggestions.length }}</span>
-            </h4>
-            <div class="space-y-1.5">
-              <div v-for="s in entitySuggestions" :key="s.id" class="flex items-center gap-2 px-2 py-1.5 rounded-sm bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700">
-                <span class="font-sans text-xs text-gray-900 dark:text-gray-100 min-w-0 flex-1 truncate">
-                  <span class="font-500">{{ s.suggestedValue }}</span>
-                  <span class="text-gray-400 dark:text-gray-500"> — {{ s.type }}</span>
-                  <span v-if="s.status !== 'pending'" class="ml-2 text-2xs uppercase" :class="s.status === 'accepted' ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'">{{ s.status }}</span>
+            <!-- Scheduling -->
+            <div v-if="item.value === 'scheduling'" class="p-1 space-y-6 overflow-y-auto max-h-full">
+              <div class="flex flex-col gap-4 max-w-xs">
+                <div>
+                  <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_start') }}</label>
+                  <NInput v-model="form.scheduled_start" type="datetime-local" :disabled="submitting" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $t('dialog_scheduled_end') }}</label>
+                  <NInput v-model="form.scheduled_end" type="datetime-local" :disabled="submitting" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div v-if="item.value === 'filters'" class="p-1 space-y-14 overflow-y-auto max-h-full">
+              <div>
+                <div class="flex items-center gap-6">
+                  <h4 class="text-xl font-200 text-gray-900 dark:text-white">{{ $t('dialog_filters') }}</h4>
+                  <NTooltip :content="$t('dialog_add_filter')?.toString()">
+                    <NButton btn="soft-blue" icon class="h-6 w-6 hover:scale-110 active:scale-99 transition-[transform]" @click="addFilter"><span class="i-ph-plus-bold" /></NButton>
+                  </NTooltip>
+                </div>
+
+                <div class="space-y-2 mb-3">
+                  <div v-for="(filter, idx) in filters" :key="filter.id || idx" class="grid grid-cols-[9rem_1fr_auto] gap-2 items-center">
+                    <NSelect
+                      v-model="filter.type"
+                      :items="filterTypeOptions"
+                      size="sm"
+                      class="w-full"
+                      @update:model-value="onFilterValueInput(idx)"
+                    />
+                    <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
+                      <NInput v-model="filter.value" :placeholder="$t('dialog_filter_value') as string" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
+                      <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                        <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                          :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
+                          {{ s.label }}
+                        </div>
+                      </div>
+                    </div>
+                    <button class="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors" @click="removeFilter(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <template v-if="filterRecommendations.length">
+                    <NTooltip v-for="r in filterRecommendations" :key="`${r.type}:${r.value}`" :content="$t('dialog_suggestions_label')?.toString()">
+                      <NBadge badge="solid-gray" :key="`${r.type}:${r.value}`" icon="i-tabler-sparkles text-primary"  class="cursor-pointer hover:scale-102 active:scale-99 transition-[colors,transform]" @click="applyFilterRecommendation(r)">
+                        {{ r.label }}<span v-if="r.type !== 'tag_name'" class="ml-1 opacity-50"> — {{ r.type.replace('_name', '').slice(0, 3) }}</span>
+                      </NBadge>
+                    </NTooltip>
+                  </template>
+                </div>
+              </div>
+
+              <div v-if="editMode && entitySuggestions.length" class="border-t border-dashed pt-8">
+                <h4 class="text-xl font-200 text-gray-900 dark:text-white mb-3">
+                  {{ $t('dialog_entity_suggestions') }}
+                  <span class="ml-1.5 text-sm inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-yellow-300 text-2xs font-600">{{ entitySuggestions.length }}</span>
+                </h4>
+                <div class="space-y-1.5">
+                  <div v-for="s in entitySuggestions" :key="s.id" class="flex items-center gap-2 px-4 py-1.5 rounded-sm bg-gray-50 dark:bg-gray-900/50">
+                    <span class="font-sans text-xs text-gray-900 dark:text-gray-100 min-w-0 flex-1 truncate">
+                      <span class="font-500">{{ s.suggestedValue }}</span>
+                      <span class="text-gray-400 dark:text-gray-500"> — {{ s.type }}</span>
+                      <span v-if="s.status !== 'pending'" class="ml-2 text-2xs uppercase" :class="s.status === 'accepted' ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'">{{ s.status }}</span>
+                    </span>
+                    <template v-if="s.status === 'pending'">
+                      <NTooltip :content="$t('dialog_accept') as string">
+                        <NButton icon btn="soft-gray" label="i-tabler-check" @click="acceptSuggestion(s.id)"></NButton>
+                      </NTooltip>
+                      <NTooltip :content="$t('dialog_reject') as string">
+                        <NButton icon btn="soft-gray" label="i-tabler-x" @click="rejectSuggestion(s.id)"></NButton>
+                      </NTooltip>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Suggestions (create mode only) -->
+            <div v-if="item.value === 'ai'" class="p-1 space-y-6 overflow-y-auto max-h-full">
+              <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
+                <NTooltip>
+                  <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> {{ $t('dialog_generate') }}</OutlinedButton>
+                  <template #content>
+                    <div class="max-w-sm">
+                      <p>{{ $t('dialog_generate_tooltip') }}</p>
+                    </div>
+                  </template>
+                </NTooltip>
+                <NTooltip>
+                  <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> {{ $t('dialog_ai') }}</OutlinedButton>
+                  <template #content>
+                    <div class="max-w-sm">
+                      <p>{{ $t('dialog_ai_tooltip') }}</p>
+                    </div>
+                  </template>
+                </NTooltip>
+                <NTooltip>
+                  <OutlinedButton icon size="sm" :class="useLocation ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="toggleLocation">
+                    <NIcon :name="useLocation ? 'i-lucide-map-pin-check-inside' : 'i-lucide-map-pin-minus-inside'" />
+                  </OutlinedButton>
+                  <template #content>
+                    <div class="max-w-sm"><p>{{ useLocation ? 'Location context is ON — AI suggestions consider the visitor\'s country.' : 'Location context is OFF — AI suggestions ignore location.' }}</p></div>
+                  </template>
+                </NTooltip>
+
+                <NTooltip>
+                  <OutlinedButton icon size="sm" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()">
+                    <NIcon name="i-ph-gear" />
+                  </OutlinedButton>
+                  <template #content>
+                    <div class="max-w-sm"><p>{{ $t('dialog_settings') }}</p></div>
+                  </template>
+                </NTooltip>
+
+                <NTooltip>
+                  <OutlinedButton icon size="sm" :class="promptTags.length ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="showTagInput = !showTagInput">
+                    <NIcon name="i-ph-hash" />
+                  </OutlinedButton>
+                  <template #content>
+                    <div class="max-w-sm"><p>{{ $t('dialog_seed_tooltip') }}</p></div>
+                  </template>
+                </NTooltip>
+              </div>
+              <div v-else-if="loadingSuggestions && suggestions.length === 0">
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                  <span class="i-ph-circle-notch animate-spin" />
+                  {{ $t('dialog_generating') }}
+                </div>
+              </div>
+              <div v-else-if="suggestions.length > 0">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $t('dialog_suggestions') }}</h4>
+                  <div class="flex items-center gap-1">
+                    <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" />{{ $t('dialog_refresh') }}</OutlinedButton>
+                    <OutlinedButton size="sm" @click="showAISettings = true; loadAISettings()"><span class="i-ph-gear" />{{ $t('dialog_settings') }}</OutlinedButton>
+                    <OutlinedButton size="sm" @click="cancelSuggestions()"><span class="i-ph-x" />{{ $t('dialog_cancel') }}</OutlinedButton>
+                  </div>
+                </div>
+                <div class="relative">
+                  <div ref="suggestionScrollRef" class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scroll-smooth">
+                    <div v-for="(s, i) in suggestions" :key="i"
+                      class="flex-shrink-0 w-56 p-3 rounded-xl border-1.5 cursor-pointer transition-all overflow-hidden"
+                      :class="selectedSuggestionIndex === i
+                        ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+                      @click="applySuggestion(i)">
+                      <div class="flex items-center gap-1.5 mb-2">
+                        <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_primary }" />
+                        <span class="w-3 h-3 rounded-full border border-white/50" :style="{ backgroundColor: s.color_secondary }" />
+                        <span class="text-2xs uppercase tracking-wider text-gray-400 ml-auto font-medium">{{ s.type }}</span>
+                      </div>
+                      <p class="text-sm font-semibold truncate text-gray-900 dark:text-white">{{ s.name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{{ s.description }}</p>
+                      <div class="flex flex-wrap gap-1 mt-2">
+                        <span v-for="f in s.filters" :key="f.value" class="text-2xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 truncate max-w-full">
+                          {{ f.value }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    v-if="suggestions.length > 3"
+                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    @click="scrollSuggestions(-1)"
+                  >
+                    <span class="i-ph-caret-left text-sm" />
+                  </button>
+                  <button
+                    v-if="suggestions.length > 3"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    @click="scrollSuggestions(1)"
+                  >
+                    <span class="i-ph-caret-right text-sm" />
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="showTagInput || promptTags.length" class="flex items-center gap-2 flex-wrap">
+                <span v-for="(tag, i) in promptTags" :key="i" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                  {{ tag }}
+                  <button class="ml-0.5 hover:text-red-500 transition-colors leading-none text-sm" @click="promptTags.splice(i, 1)">&times;</button>
                 </span>
-                <template v-if="s.status === 'pending'">
-                  <button class="text-2xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors" @click="acceptSuggestion(s.id)">Accept</button>
-                  <button class="text-2xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors" @click="rejectSuggestion(s.id)">Reject</button>
-                </template>
+                <NInput
+                  v-if="showTagInput"
+                  v-model="tagInputValue"
+                  :placeholder="$t('dialog_tag_placeholder') as string"
+                  size="xs"
+                  class="w-44 seed-tag-input"
+                  @keydown="onTagInputKeydown"
+                />
               </div>
             </div>
           </div>
-        </div>
+          </template>
+        </NTabs>
       </div>
 
       <template #footer>
@@ -556,8 +656,29 @@ const showDeleteDialog = ref(false)
 const themeToDelete = ref<any>(null)
 
 const showAISettings = ref(false)
+const showTranslations = ref(false)
 const savingAISettings = ref(false)
 const testingConnection = ref(false)
+
+const activeTab = ref('general')
+
+const tabs = computed(() => {
+  const items = [
+    { name: $t('tab_general'), value: 'general', _tabsTrigger: { leading: 'i-ph-info' } },
+    { name: $t('tab_appearance'), value: 'appearance', _tabsTrigger: { leading: 'i-ph-palette' } },
+    { name: $t('tab_scheduling'), value: 'scheduling', _tabsTrigger: { leading: 'i-ph-calendar-blank' } },
+    { name: $t('tab_filters'), value: 'filters', _tabsTrigger: { leading: 'i-ph-funnel' } },
+  ]
+  if (!editMode.value) {
+    items.push({ name: $t('tab_ai'), value: 'ai', _tabsTrigger: { leading: 'i-ph-sparkle' } })
+  }
+  return items
+})
+
+const languageOptions = [
+  { value: 'en', label: 'English', flag: '/images/languages/usa.png' },
+  { value: 'fr', label: 'Français', flag: '/images/languages/france.png' },
+]
 
 const providerOptions = ['openrouter', 'opencode', 'openai', 'custom']
 
@@ -860,10 +981,8 @@ const form = ref({
   name: '',
   description: '',
   language: '',
-  image_url: '',
   is_active: false,
   is_default: false,
-  scheduled_date: '',
   scheduled_start: '',
   scheduled_end: '',
   priority: 0,
@@ -887,6 +1006,18 @@ function onSecondaryChange(color: BlossomColorPickerColor) {
 function initPickerValues(primary: string, secondary: string) {
   primaryPickerValue.value = hexToBlossomValue(primary)
   secondaryPickerValue.value = hexToBlossomValue(secondary)
+}
+
+function onPrimaryHexInput(value: string) {
+  const hex = ensureHexColor(value, '#6366f1')
+  form.value.color_primary = hex
+  primaryPickerValue.value = hexToBlossomValue(hex)
+}
+
+function onSecondaryHexInput(value: string) {
+  const hex = ensureHexColor(value, '#f59e0b')
+  form.value.color_secondary = hex
+  secondaryPickerValue.value = hexToBlossomValue(hex)
 }
 
 const filters = ref<any[]>([])
@@ -1023,6 +1154,10 @@ const resetFilters = () => {
 }
 
 const addTranslation = () => {
+  if (!showTranslations.value) {
+    showTranslations.value = true
+  }
+
   const usedLangs = translations.value.map(t => t.language)
   const nextLang = ['en', 'fr'].find(l => !usedLangs.includes(l))
   if (!nextLang) {
@@ -1037,7 +1172,7 @@ const removeTranslation = (idx: number) => {
 }
 
 const resetForm = () => {
-  form.value = { slug: '', name: '', description: '', language: '', image_url: '', is_active: false, is_default: false, scheduled_date: '', scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b' }
+  form.value = { slug: '', name: '', description: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b' }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -1053,6 +1188,7 @@ const openCreate = () => {
   resetForm()
   suggestions.value = []
   selectedSuggestionIndex.value = null
+  activeTab.value = 'general'
   showEditDialog.value = true
 }
 
@@ -1073,10 +1209,8 @@ const openEdit = async (theme: any) => {
       name: data.name || '',
       description: data.description || '',
       language: data.language || '',
-      image_url: data.imageUrl || '',
       is_active: data.isActive || false,
       is_default: data.isDefault || false,
-      scheduled_date: data.scheduledDate || '',
       scheduled_start: data.scheduledStart ? formatDatetimeForInput(data.scheduledStart) : '',
       scheduled_end: data.scheduledEnd ? formatDatetimeForInput(data.scheduledEnd) : '',
       priority: data.priority || 0,
@@ -1096,6 +1230,7 @@ const openEdit = async (theme: any) => {
     showErrorToast(e, $t('error_load') as string)
     return
   }
+  activeTab.value = 'general'
   showEditDialog.value = true
 }
 
@@ -1306,10 +1441,8 @@ const saveTheme = async () => {
       translations: translations.value
         .filter(t => t.language && t.name.trim())
         .map(t => ({ language: t.language, name: t.name.trim(), description: t.description.trim() || null })),
-      image_url: form.value.image_url.trim() || null,
       is_active: form.value.is_active,
       is_default: form.value.is_default,
-      scheduled_date: form.value.scheduled_date || null,
       scheduled_start: form.value.scheduled_start || null,
       scheduled_end: form.value.scheduled_end || null,
       priority: form.value.priority || 0,

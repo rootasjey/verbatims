@@ -525,11 +525,9 @@ export const themes = sqliteTable('themes', {
   name: text('name').notNull(),
   description: text('description'),
   language: text('language', { enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'] }),
-  imageUrl: text('image_url'),
   config: text('config').default('{}'),
   isActive: integer('is_active', { mode: 'boolean' }).default(false),
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
-  scheduledDate: text('scheduled_date'),
   scheduledStart: integer('scheduled_start', { mode: 'timestamp' }),
   scheduledEnd: integer('scheduled_end', { mode: 'timestamp' }),
   priority: integer('priority').default(0),
@@ -539,7 +537,7 @@ export const themes = sqliteTable('themes', {
   slugIdx: uniqueIndex('idx_themes_slug').on(table.slug),
   activeIdx: index('idx_themes_active').on(table.isActive),
   defaultIdx: index('idx_themes_default').on(table.isDefault),
-  scheduledIdx: index('idx_themes_scheduled').on(table.scheduledDate),
+
   languageIdx: index('idx_themes_language').on(table.language),
 }))
 

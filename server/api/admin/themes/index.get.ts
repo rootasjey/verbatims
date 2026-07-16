@@ -31,8 +31,6 @@ export default defineEventHandler(async (event) => {
       sortColumn = schema.themes.name
     } else if (sortByRaw === 'slug') {
       sortColumn = schema.themes.slug
-    } else if (sortByRaw === 'scheduled_date') {
-      sortColumn = schema.themes.scheduledDate
     } else {
       sortColumn = schema.themes.priority
     }
@@ -42,10 +40,8 @@ export default defineEventHandler(async (event) => {
       slug: schema.themes.slug,
       name: schema.themes.name,
       description: schema.themes.description,
-      imageUrl: schema.themes.imageUrl,
       isActive: schema.themes.isActive,
       isDefault: schema.themes.isDefault,
-      scheduledDate: schema.themes.scheduledDate,
       scheduledStart: schema.themes.scheduledStart,
       scheduledEnd: schema.themes.scheduledEnd,
       priority: schema.themes.priority,
