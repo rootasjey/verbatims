@@ -2,7 +2,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
   slug: string
   name: string
   description: string | null
-  image_url: string | null
   config: Record<string, any> | null
   filters_count: number
 } | null>> => {
@@ -51,7 +50,6 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
         slug: theme.slug,
         name: localized.name,
         description: localized.description,
-        image_url: theme.image_url,
         config,
         filters_count: filters.length,
       },

@@ -11,10 +11,8 @@ export default defineEventHandler(async (event) => {
     const description = body?.description || null
     const language = body?.language || null
     const translations = Array.isArray(body?.translations) ? body.translations : []
-    const imageUrl = body?.image_url || null
     const isActive = body?.is_active === true
     const isDefault = body?.is_default === true
-    const scheduledDate = body?.scheduled_date || null
     const scheduledStart = body?.scheduled_start || null
     const scheduledEnd = body?.scheduled_end || null
     const priority = parseInt(body?.priority ?? '0', 10) || 0
@@ -41,11 +39,9 @@ export default defineEventHandler(async (event) => {
       name,
       description,
       language,
-      imageUrl,
       config,
       isActive,
       isDefault,
-      scheduledDate,
       scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
       scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
       priority,

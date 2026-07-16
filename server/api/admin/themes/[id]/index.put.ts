@@ -48,17 +48,11 @@ export default defineEventHandler(async (event) => {
     if (body.language !== undefined) {
       updates.language = body.language
     }
-    if (body.image_url !== undefined) {
-      updates.imageUrl = body.image_url
-    }
     if (body.is_active !== undefined) {
       updates.isActive = body.is_active === true
     }
     if (body.is_default !== undefined) {
       updates.isDefault = body.is_default === true
-    }
-    if (body.scheduled_date !== undefined) {
-      updates.scheduledDate = body.scheduled_date
     }
     if (body.scheduled_start !== undefined) {
       updates.scheduledStart = body.scheduled_start ? new Date(body.scheduled_start) : null

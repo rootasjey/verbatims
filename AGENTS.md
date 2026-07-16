@@ -238,6 +238,19 @@ When using `NSelect`, keep `v-model` and `:items` on compatible types.
 - Prefer typed option arrays over `any[]` / `unknown[]`
 - Do not mix object options with primitive model values directly
 
+### NTabs items API
+
+When passing `:items` to `NTabs`, each item object uses:
+
+- `name` — display label (NOT `label`)
+- `value` — identifier for `v-model`
+- `_tabsTrigger.leading` — icon class (NOT a top-level `icon` prop)
+
+Example:
+```ts
+{ name: 'General', value: 'general', _tabsTrigger: { leading: 'i-ph-info' } }
+```
+
 ## Development workflow guidance
 
 ### Commands
