@@ -627,6 +627,38 @@ export const apiKeyUsageLogs = sqliteTable('api_key_usage_logs', {
   createdIdx: index('idx_usage_logs_created').on(table.createdAt),
 }))
 
+export const themeEnrichmentJobs = sqliteTable('theme_enrichment_jobs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),
+  status: text('status', { enum: ['queued', 'processing', 'completed', 'failed'] }).notNull().default('queued'),
+  payload: text('payload').default('{}'),
+  result: text('result'),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  processedAt: integer('processed_at', { mode: 'timestamp' }),
+}, (table) => ({
+  themeStatusIdx: index('idx_theme_enrichment_jobs_theme_status').on(table.themeId, table.status),
+  statusOrderIdx: index('idx_theme_enrichment_jobs_status_order').on(table.status, table.createdAt),
+}))
+
+export const entitySuggestions = sqliteTable('entity_suggestions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  themeId: integer('theme_id').notNull().references(() => themes.id, { onDelete: 'cascade' }),
+  enrichmentJobId: integer('enrichment_job_id').references(() => themeEnrichmentJobs.id, { onDelete: 'set null' }),
+  type: text('type', { enum: ['tag', 'author', 'reference'] }).notNull(),
+  suggestedValue: text('suggested_value').notNull(),
+  context: text('context'),
+  status: text('status', { enum: ['pending', 'accepted', 'rejected'] }).notNull().default('pending'),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+  reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  themeIdx: index('idx_entity_suggestions_theme').on(table.themeId, table.status),
+  statusIdx: index('idx_entity_suggestions_status').on(table.status, table.createdAt),
+}))
+
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),

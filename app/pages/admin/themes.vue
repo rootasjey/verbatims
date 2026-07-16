@@ -83,7 +83,12 @@
                 </div>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ theme.scheduledDate || (theme.scheduledStart ? formatDate(theme.scheduledStart) : '—') }}</td>
-              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">{{ theme.filters_count || 0 }}</td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <span>{{ theme.filters_count || 0 }}</span>
+                  <span v-if="theme.pending_suggestions_count > 0" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-2xs font-600" :title="`${theme.pending_suggestions_count} pending suggestion(s)`">{{ theme.pending_suggestions_count }}</span>
+                </div>
+              </td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">{{ theme.priority }}</td>
               <td class="px-3 py-3">
                 <NDropdownMenu :items="getThemeActions(theme)">
@@ -391,7 +396,7 @@
                 <div class="relative min-w-0 transition-all duration-300" :class="fetchingFilterIndex === idx ? 'ring-2 ring-indigo-400/40 rounded-lg' : ''">
                   <NInput v-model="filter.value" :placeholder="$t('dialog_filter_value') as string" size="sm" class="w-full filter-value-input" :loading="fetchingFilterIndex === idx" @input="onFilterValueInput(idx)" @focus="onFilterValueInput(idx)" @keydown="onFilterKeydown(idx, $event)" @blur="hideFilterSuggestions" />
                   <div v-if="activeFilterIndex === idx && filterSuggestions.length" data-suggestions-dropdown class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                    <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                       :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
+                    <div v-for="(s, si) in filterSuggestions" :key="s.value" class="px-3 py-1.5 text-xs cursor-pointer truncate" :class="si === highlightedIndex ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"                      :data-highlighted-suggestion="si === highlightedIndex ? '' : undefined" @mousedown.prevent="selectFilterSuggestion(idx, s)" @mouseenter="highlightedIndex = si">
                       {{ s.label }}
                     </div>
                   </div>
@@ -407,6 +412,26 @@
                   {{ r.label }}<span v-if="r.type !== 'tag_name'" class="ml-1 opacity-50">—{{ r.type.replace('_name', '').slice(0, 3) }}</span>
                 </button>
               </template>
+            </div>
+          </div>
+
+          <div v-if="editMode && entitySuggestions.length" class="border-t pt-4">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+              Entity Suggestions
+              <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-2xs font-600">{{ entitySuggestions.length }}</span>
+            </h4>
+            <div class="space-y-1.5">
+              <div v-for="s in entitySuggestions" :key="s.id" class="flex items-center gap-2 px-2 py-1.5 rounded-sm bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700">
+                <span class="font-sans text-xs text-gray-900 dark:text-gray-100 min-w-0 flex-1 truncate">
+                  <span class="font-500">{{ s.suggestedValue }}</span>
+                  <span class="text-gray-400 dark:text-gray-500"> — {{ s.type }}</span>
+                  <span v-if="s.status !== 'pending'" class="ml-2 text-2xs uppercase" :class="s.status === 'accepted' ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'">{{ s.status }}</span>
+                </span>
+                <template v-if="s.status === 'pending'">
+                  <button class="text-2xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors" @click="acceptSuggestion(s.id)">Accept</button>
+                  <button class="text-2xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors" @click="rejectSuggestion(s.id)">Reject</button>
+                </template>
+              </div>
             </div>
           </div>
         </div>
@@ -668,6 +693,42 @@ onMounted(async () => {
 })
 
 const suggestingName = ref(false)
+const entitySuggestions = ref<any[]>([])
+const reviewingSuggestion = ref(false)
+
+const loadEntitySuggestions = async (themeId: number) => {
+  try {
+    const res = await $fetch<{ data: any[] }>(`/api/admin/themes/${themeId}/suggestions`)
+    entitySuggestions.value = res.data || []
+  } catch { entitySuggestions.value = [] }
+}
+
+const acceptSuggestion = async (id: number) => {
+  if (reviewingSuggestion.value) return
+  reviewingSuggestion.value = true
+  try {
+    await $fetch(`/api/admin/themes/${editingThemeId.value}/suggestions/${id}`, {
+      method: 'PUT', body: { action: 'accepted' },
+    })
+    const s = entitySuggestions.value.find(s => s.id === id)
+    if (s) s.status = 'accepted'
+    loadThemes()
+  } catch { useToast().toast({ toast: 'soft-error', title: 'Failed to accept suggestion' })
+  } finally { reviewingSuggestion.value = false }
+}
+
+const rejectSuggestion = async (id: number) => {
+  if (reviewingSuggestion.value) return
+  reviewingSuggestion.value = true
+  try {
+    await $fetch(`/api/admin/themes/${editingThemeId.value}/suggestions/${id}`, {
+      method: 'PUT', body: { action: 'rejected' },
+    })
+    const s = entitySuggestions.value.find(s => s.id === id)
+    if (s) s.status = 'rejected'
+  } catch { useToast().toast({ toast: 'soft-error', title: 'Failed to reject suggestion' })
+  } finally { reviewingSuggestion.value = false }
+}
 
 const suggestName = async () => {
   const current = form.value.name.trim()
@@ -981,6 +1042,7 @@ const resetForm = () => {
   filters.value = []
   filterRecommendations.value = []
   translations.value = []
+  entitySuggestions.value = []
   editingThemeId.value = null
   editMode.value = false
   promptTags.value = []
@@ -1029,6 +1091,7 @@ const openEdit = async (theme: any) => {
     }))
     initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
+    loadEntitySuggestions(theme.id)
   } catch (e) {
     showErrorToast(e, $t('error_load') as string)
     return

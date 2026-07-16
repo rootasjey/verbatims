@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, or, like, count, desc, asc } from 'drizzle-orm'
+import { eq, or, and, like, count, desc, asc, inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -69,9 +69,34 @@ export default defineEventHandler(async (event) => {
     const total = Number(totalResult[0]?.total || 0)
     const totalPages = Math.ceil(total / limit)
 
+    // Fetch pending suggestions count per theme
+    const themeIds = rows.map(r => r.id)
+    let pendingCounts = new Map<number, number>()
+    if (themeIds.length > 0) {
+      const counts = await db.select({
+        themeId: schema.entitySuggestions.themeId,
+        total: count(),
+      })
+        .from(schema.entitySuggestions)
+        .where(and(
+          eq(schema.entitySuggestions.status, 'pending'),
+          inArray(schema.entitySuggestions.themeId, themeIds as any),
+        ))
+        .groupBy(schema.entitySuggestions.themeId)
+        .all()
+      for (const c of counts) {
+        pendingCounts.set(c.themeId, c.total)
+      }
+    }
+
+    const data = rows.map(r => ({
+      ...r,
+      pending_suggestions_count: pendingCounts.get(r.id) || 0,
+    }))
+
     return {
       success: true,
-      data: rows,
+      data,
       pagination: { page, limit, total, totalPages, hasMore: page < totalPages },
     }
   } catch (error) {

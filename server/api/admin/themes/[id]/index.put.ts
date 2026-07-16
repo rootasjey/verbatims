@@ -1,5 +1,7 @@
 import { db, schema } from 'hub:db'
-import { eq, ne, sql } from 'drizzle-orm'
+import { eq, ne, sql, count } from 'drizzle-orm'
+import { enrichThemeFilters } from '~~/server/utils/theme-enrichment'
+import { scheduleBackground } from '~~/server/utils/schedule'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -103,6 +105,14 @@ export default defineEventHandler(async (event) => {
       .from(schema.themes)
       .where(eq(schema.themes.id, themeId))
       .limit(1)
+
+    // Background enrichment (only if theme has filters)
+    const filterCount = await db.select({ total: count() })
+      .from(schema.themeContentFilters)
+      .where(eq(schema.themeContentFilters.themeId, themeId))
+    if (Number(filterCount[0]?.total || 0) > 0) {
+      scheduleBackground(event, enrichThemeFilters(themeId, user.id))
+    }
 
     return { success: true, data: updated[0] }
   } catch (error: any) {

@@ -1,5 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { enrichThemeFilters } from '~~/server/utils/theme-enrichment'
+import { scheduleBackground } from '~~/server/utils/schedule'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -39,6 +41,9 @@ export default defineEventHandler(async (event) => {
       value,
       matchMode,
     }).returning()
+
+    // Background enrichment: validate + find co-occurring filters
+    scheduleBackground(event, enrichThemeFilters(themeId, user.id))
 
     return { success: true, data: result[0] }
   } catch (error: any) {
