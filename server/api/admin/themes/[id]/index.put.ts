@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, ne, sql, count } from 'drizzle-orm'
+import { eq, ne, sql } from 'drizzle-orm'
 import { enrichThemeFilters } from '~~/server/utils/theme-enrichment'
 import { scheduleBackground } from '~~/server/utils/schedule'
 
@@ -101,17 +101,19 @@ export default defineEventHandler(async (event) => {
       .limit(1)
 
     // Background enrichment (only if theme has filters)
-    const filterCount = await db.select({ total: count() })
+    const existingFilters = await db.select({ id: schema.themeContentFilters.id })
       .from(schema.themeContentFilters)
       .where(eq(schema.themeContentFilters.themeId, themeId))
-    if (Number(filterCount[0]?.total || 0) > 0) {
+      .all()
+    if (existingFilters.length > 0) {
       scheduleBackground(event, enrichThemeFilters(themeId, user.id))
     }
 
     return { success: true, data: updated[0] }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
-    console.error('Error updating theme:', error)
-    throwServer(500, 'Failed to update theme')
+    const msg = error?.message || String(error)
+    console.error('Error updating theme:', msg)
+    throwServer(500, msg)
   }
 })
