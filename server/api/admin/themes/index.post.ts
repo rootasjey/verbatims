@@ -66,7 +66,8 @@ export default defineEventHandler(async (event) => {
     return { success: true, data: theme }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
-    console.error('Error creating theme:', error)
-    throwServer(500, 'Failed to create theme')
+    const msg = error?.message || String(error)
+    console.error('Error creating theme:', msg)
+    throwServer(500, msg)
   }
 })
