@@ -452,9 +452,6 @@
                 <!-- Initial state: no suggestions loaded -->
                 <div v-if="suggestions.length === 0 && !loadingSuggestions" class="space-y-4">
                   <div class="flex flex-wrap gap-3">
-                    <PrimaryButton class="px-2" @click="loadSuggestions">
-                      <span class="i-ph-lightbulb" /> {{ $t('dialog_generate') }}
-                    </PrimaryButton>
                     <PrimaryButton btn="soft-indigo" class="text-sm font-600 gap-2 p-1 px-2" @click="loadAISuggestions">
                       <span class="i-ph-sparkle" /> {{ $t('dialog_ai') }}
                     </PrimaryButton>
@@ -496,7 +493,7 @@
                   <div class="flex items-center justify-between mb-3">
                     <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $t('dialog_suggestions') }}</h4>
                     <div class="flex items-center gap-1">
-                      <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-arrows-clockwise" />{{ $t('dialog_refresh') }}</OutlinedButton>
+                      <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-arrows-clockwise" />{{ $t('dialog_refresh') }}</OutlinedButton>
                       <OutlinedButton size="sm" @click="showAISettings = true; loadAISettings()"><span class="i-ph-gear" />{{ $t('dialog_settings') }}</OutlinedButton>
                       <OutlinedButton size="sm" @click="cancelSuggestions()"><span class="i-ph-x" />{{ $t('dialog_cancel') }}</OutlinedButton>
                     </div>
@@ -522,7 +519,9 @@
                           </span>
                         </div>
                         <div v-if="selectedSuggestionIndex === i" class="mt-2 pt-2 border-t border-dashed border-indigo-200 dark:border-indigo-800">
-                          <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">{{ $t('dialog_apply_suggestion') }} &rarr;</span>
+                          <button class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors" @click.stop="applySuggestion(i); skipToManual()">
+                            {{ $t('dialog_apply_suggestion') }} &rarr;
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -942,6 +941,7 @@ const scrollSuggestions = (direction: number) => {
 
 const loadSuggestions = async () => {
   loadingSuggestions.value = true
+  suggestions.value = []
   selectedSuggestionIndex.value = null
   try {
     const languageStore = useLanguageStore()
@@ -958,6 +958,7 @@ const loadSuggestions = async () => {
 
 const loadAISuggestions = async () => {
   loadingSuggestions.value = true
+  suggestions.value = []
   selectedSuggestionIndex.value = null
   try {
     const languageStore = useLanguageStore()
