@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { enrichThemeFilters } from '~~/server/utils/theme-enrichment'
 import { scheduleBackground } from '~~/server/utils/schedule'
 
@@ -35,12 +35,10 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Theme not found')
     }
 
-    await db.insert(schema.themeContentFilters).values({
-      themeId,
-      type: type as any,
-      value,
-      matchMode,
-    }).all()
+    await db.run(sql`
+      INSERT INTO theme_content_filters (theme_id, type, value, match_mode)
+      VALUES (${themeId}, ${type}, ${value}, ${matchMode})
+    `)
 
     // Background enrichment: validate + find co-occurring filters
     scheduleBackground(event, enrichThemeFilters(themeId, user.id))

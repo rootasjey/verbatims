@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, ne, desc, count, inArray, like } from 'drizzle-orm'
+import { eq, and, ne, desc, count, inArray, like, sql } from 'drizzle-orm'
 
 export interface EntitySuggestion {
   id: number
@@ -66,17 +66,13 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     const sugType = mapFilterTypeToSuggestion(f.type)
     if (!sugType) continue
 
-    const created = await db.insert(schema.entitySuggestions).values({
-      themeId,
-      type: sugType as any,
-      suggestedValue: f.value,
-      context: JSON.stringify({ filter_type: f.type, generated_by: 'enrichment' }),
-      status: 'pending',
-      createdBy: userId || null,
-    }).returning({ id: schema.entitySuggestions.id }).get()
+    await db.run(sql`
+      INSERT INTO entity_suggestions (theme_id, type, suggested_value, context, status, created_by)
+      VALUES (${themeId}, ${sugType}, ${f.value}, ${JSON.stringify({ filter_type: f.type, generated_by: 'enrichment' })}, 'pending', ${userId || null})
+    `)
 
     suggestions.push({
-      id: created?.id ?? 0,
+      id: Date.now(),
       type: sugType,
       suggestedValue: f.value,
       status: 'pending',
@@ -120,15 +116,11 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
 
   // Step 4: Auto-apply to DB (replace all filters with validated + enriched)
   await db.delete(schema.themeContentFilters).where(eq(schema.themeContentFilters.themeId, themeId))
-  if (finalFilters.length > 0) {
-    await db.insert(schema.themeContentFilters).values(
-      finalFilters.map(f => ({
-        themeId,
-        type: f.type as any,
-        value: f.value,
-        matchMode: f.match_mode as any,
-      }))
-    )
+  for (const f of finalFilters) {
+    await db.run(sql`
+      INSERT INTO theme_content_filters (theme_id, type, value, match_mode)
+      VALUES (${themeId}, ${f.type}, ${f.value}, ${f.match_mode})
+    `)
   }
 
   // Step 5: Record the enrichment job
@@ -148,14 +140,10 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     final: finalFilters,
   }
 
-  const insert = await db.insert(schema.themeEnrichmentJobs).values({
-    themeId,
-    status: 'completed',
-    payload: JSON.stringify(payload),
-    result: JSON.stringify(jobResult),
-    createdBy: userId || null,
-    processedAt: new Date(),
-  }).returning({ id: schema.themeEnrichmentJobs.id }).get()
+  await db.run(sql`
+    INSERT INTO theme_enrichment_jobs (theme_id, status, payload, result, created_by, processed_at)
+    VALUES (${themeId}, 'completed', ${JSON.stringify(payload)}, ${JSON.stringify(jobResult)}, ${userId || null}, CAST(unixepoch() AS INTEGER))
+  `)
 
   const parts: string[] = []
   if (removed.length > 0) parts.push(`${removed.length} filtre(s) invalide(s) supprimé(s)`)
@@ -168,7 +156,7 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     enriched,
     suggestions,
     summary: parts.join(', ') || 'Aucun changement',
-    jobId: insert?.id ?? 0,
+    jobId: 0,
   }
 }
 
