@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'Theme with this slug already exists')
     }
 
-    const result = await db.insert(schema.themes).values({
+    await db.insert(schema.themes).values({
       slug,
       name,
       description,
@@ -45,9 +45,13 @@ export default defineEventHandler(async (event) => {
       scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
       scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
       priority,
-    }).returning()
+    }).all()
 
-    const theme = result?.[0]
+    const theme = await db.select()
+      .from(schema.themes)
+      .where(eq(schema.themes.slug, slug))
+      .limit(1)
+      .get()
     if (!theme) {
       throwServer(500, 'Failed to create theme')
     }

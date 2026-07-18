@@ -35,17 +35,17 @@ export default defineEventHandler(async (event) => {
       throwServer(404, 'Theme not found')
     }
 
-    const result = await db.insert(schema.themeContentFilters).values({
+    await db.insert(schema.themeContentFilters).values({
       themeId,
       type: type as any,
       value,
       matchMode,
-    }).returning()
+    }).all()
 
     // Background enrichment: validate + find co-occurring filters
     scheduleBackground(event, enrichThemeFilters(themeId, user.id))
 
-    return { success: true, data: result[0] }
+    return { success: true, data: { themeId, type, value, matchMode } }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error adding theme filter:', error)
