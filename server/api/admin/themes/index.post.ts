@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
 
     await db.run(sql`
       INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority)
-      VALUES (${slug}, ${name}, ${description}, ${language}, ${config}, ${isActive ? 1 : 0}, ${isDefault ? 1 : 0}, ${scheduledStart ? new Date(scheduledStart).getTime() : null}, ${scheduledEnd ? new Date(scheduledEnd).getTime() : null}, ${priority})
+      VALUES (${slug}, ${name}, ${description}, ${language}, ${config}, ${isActive ? 1 : 0}, ${isDefault ? 1 : 0}, ${scheduledStart ? new Date(scheduledStart).getTime() : sql`NULL`}, ${scheduledEnd ? new Date(scheduledEnd).getTime() : sql`NULL`}, ${priority})
     `)
 
     const theme = await db.select()
