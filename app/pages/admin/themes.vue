@@ -133,7 +133,7 @@
       </div>
     </div>
 
-    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'md:max-w-2xl lg:max-w-2xl' }">
+    <NDialog v-model:open="showEditDialog" :una="{ dialogContent: 'max-w-2xl' }">
       <template #header>
         <div class="px-2">
           <h3 class="font-title uppercase text-size-4 font-600 ml-4">{{ editMode ? $t('dialog_edit_title') : $t('dialog_create_title') }}</h3>
@@ -418,58 +418,81 @@
               </div>
 
               <!-- AI Suggestions (create mode only) -->
-              <div v-if="item.value === 'ai'" class="p-1 space-y-6 overflow-y-auto max-h-full">
-                <div v-if="suggestions.length === 0 && !loadingSuggestions" class="flex items-center gap-2 flex-wrap">
-                  <NTooltip>
-                    <OutlinedButton size="sm" @click="loadSuggestions"><span class="i-ph-lightbulb" /> {{ $t('dialog_generate') }}</OutlinedButton>
-                    <template #content>
-                      <div class="max-w-sm">
-                        <p>{{ $t('dialog_generate_tooltip') }}</p>
-                      </div>
-                    </template>
-                  </NTooltip>
-                  <NTooltip>
-                    <OutlinedButton size="sm" @click="loadAISuggestions"><span class="i-ph-sparkle" /> {{ $t('dialog_ai') }}</OutlinedButton>
-                    <template #content>
-                      <div class="max-w-sm">
-                        <p>{{ $t('dialog_ai_tooltip') }}</p>
-                      </div>
-                    </template>
-                  </NTooltip>
-                  <NTooltip>
-                    <OutlinedButton icon size="sm" :class="useLocation ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="toggleLocation">
-                      <NIcon :name="useLocation ? 'i-lucide-map-pin-check-inside' : 'i-lucide-map-pin-minus-inside'" />
-                    </OutlinedButton>
-                    <template #content>
-                      <div class="max-w-sm"><p>{{ useLocation ? 'Location context is ON — AI suggestions consider the visitor\'s country.' : 'Location context is OFF — AI suggestions ignore location.' }}</p></div>
-                    </template>
-                  </NTooltip>
-
-                  <NTooltip>
-                    <OutlinedButton icon size="sm" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()">
-                      <NIcon name="i-ph-gear" />
-                    </OutlinedButton>
-                    <template #content>
-                      <div class="max-w-sm"><p>{{ $t('dialog_settings') }}</p></div>
-                    </template>
-                  </NTooltip>
-
-                  <NTooltip>
-                    <OutlinedButton icon size="sm" :class="promptTags.length ? 'border-indigo-300 dark:border-indigo-600 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'" @click="showTagInput = !showTagInput">
-                      <NIcon name="i-ph-hash" />
-                    </OutlinedButton>
-                    <template #content>
-                      <div class="max-w-sm"><p>{{ $t('dialog_seed_tooltip') }}</p></div>
-                    </template>
-                  </NTooltip>
+              <div v-if="item.value === 'ai'" class="p-1 px-4 space-y-6 overflow-y-auto max-h-full max-w-xl">
+                <!-- Step header -->
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $t('dialog_ai_step_title') }}</h3>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $t('dialog_ai_step_desc') }}</p>
                 </div>
+
+                <!-- Keyword area (always visible) -->
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('dialog_seed_tags_label') }}</label>
+                    <button v-if="promptTags.length > 0" class="text-xs text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors" @click="promptTags = []">
+                      {{ $t('common.clear') }}
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span v-for="(tag, i) in promptTags" :key="i" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                      {{ tag }}
+                      <button class="ml-0.5 hover:text-red-500 transition-colors leading-none text-sm" @click="promptTags.splice(i, 1)">&times;</button>
+                    </span>
+                    <NInput
+                      v-model="tagInputValue"
+                      :placeholder="$t('dialog_tag_placeholder') as string"
+                      size="sm"
+                      autofocus
+                      class="w-70 seed-tag-input dark:focus-visible:ring-indigo"
+                      @keydown="onTagInputKeydown"
+                    />
+                  </div>
+                </div>
+
+                <!-- Initial state: no suggestions loaded -->
+                <div v-if="suggestions.length === 0 && !loadingSuggestions" class="space-y-4">
+                  <div class="flex flex-wrap gap-3">
+                    <PrimaryButton class="px-2" @click="loadSuggestions">
+                      <span class="i-ph-lightbulb" /> {{ $t('dialog_generate') }}
+                    </PrimaryButton>
+                    <PrimaryButton btn="soft-indigo" class="text-sm font-600 gap-2 p-1 px-2" @click="loadAISuggestions">
+                      <span class="i-ph-sparkle" /> {{ $t('dialog_ai') }}
+                    </PrimaryButton>
+                  </div>
+
+                  <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+                    <button class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="showAISettings = true; loadAISettings()">
+                      <NIcon name="i-ph-gear" class="inline-block mr-1" />{{ $t('dialog_settings') }}
+                    </button>
+                    <span class="text-gray-300 dark:text-gray-600">·</span>
+                    <NTooltip>
+                      <button class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors" :class="useLocation ? 'text-indigo-500' : ''" @click="toggleLocation">
+                        <NIcon :name="useLocation ? 'i-lucide-map-pin-check-inside' : 'i-lucide-map-pin-minus-inside'" class="inline-block mr-1" />
+                        {{ useLocation ? 'Location ON' : 'Location OFF' }}
+                      </button>
+                      <template #content>
+                        <div class="max-w-sm"><p>{{ useLocation ? 'Location context is ON — AI suggestions consider the visitor\'s country.' : 'Location context is OFF — AI suggestions ignore location.' }}</p></div>
+                      </template>
+                    </NTooltip>
+                  </div>
+
+                  <div class="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                    <button class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" @click="skipToManual">
+                      {{ $t('dialog_skip_suggestions') }} &rarr;
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Loading state -->
                 <div v-else-if="loadingSuggestions && suggestions.length === 0">
                   <div class="flex items-center gap-2 text-sm text-gray-500">
                     <span class="i-ph-circle-notch animate-spin" />
                     {{ $t('dialog_generating') }}
                   </div>
                 </div>
-                <div v-else-if="suggestions.length > 0">
+
+                <!-- Suggestions loaded -->
+                <div v-else-if="suggestions.length > 0" class="space-y-6">
                   <div class="flex items-center justify-between mb-3">
                     <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $t('dialog_suggestions') }}</h4>
                     <div class="flex items-center gap-1">
@@ -498,6 +521,9 @@
                             {{ f.value }}
                           </span>
                         </div>
+                        <div v-if="selectedSuggestionIndex === i" class="mt-2 pt-2 border-t border-dashed border-indigo-200 dark:border-indigo-800">
+                          <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">{{ $t('dialog_apply_suggestion') }} &rarr;</span>
+                        </div>
                       </div>
                     </div>
                     <button
@@ -515,21 +541,13 @@
                       <span class="i-ph-caret-right text-sm" />
                     </button>
                   </div>
-                </div>
 
-                <div v-if="showTagInput || promptTags.length" class="flex items-center gap-2 flex-wrap">
-                  <span v-for="(tag, i) in promptTags" :key="i" class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                    {{ tag }}
-                    <button class="ml-0.5 hover:text-red-500 transition-colors leading-none text-sm" @click="promptTags.splice(i, 1)">&times;</button>
-                  </span>
-                  <NInput
-                    v-if="showTagInput"
-                    v-model="tagInputValue"
-                    :placeholder="$t('dialog_tag_placeholder') as string"
-                    size="xs"
-                    class="w-44 seed-tag-input"
-                    @keydown="onTagInputKeydown"
-                  />
+                  <!-- Skip to manual -->
+                  <div class="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                    <button class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" @click="skipToManual">
+                      {{ $t('dialog_skip_suggestions') }} &rarr;
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -882,7 +900,6 @@ const selectedSuggestionIndex = ref<number | null>(null)
 const suggestionScrollRef = ref<HTMLElement | null>(null)
 
 const promptTags = ref<string[]>([])
-const showTagInput = ref(false)
 const tagInputValue = ref('')
 
 const addPromptTag = () => {
@@ -900,21 +917,19 @@ const onTagInputKeydown = (e: KeyboardEvent) => {
     addPromptTag()
   } else if (e.key === 'Escape') {
     e.stopPropagation()
-    showTagInput.value = false
+    tagInputValue.value = ''
+    ;(e.target as HTMLInputElement)?.blur()
   }
 }
 
-watch(showTagInput, (open) => {
-  if (open) {
-    nextTick(() => document.querySelector<HTMLElement>('.seed-tag-input')?.focus())
-  }
-})
+const skipToManual = () => {
+  activeTab.value = 'general'
+}
 
 const cancelSuggestions = () => {
   suggestions.value = []
   selectedSuggestionIndex.value = null
   promptTags.value = []
-  showTagInput.value = false
 }
 
 const scrollSuggestions = (direction: number) => {
@@ -1103,9 +1118,54 @@ const headerActions = computed(() => {
   return actions
 })
 
+const duplicateTheme = async (theme: any) => {
+  resetForm()
+  suggestions.value = []
+  selectedSuggestionIndex.value = null
+  try {
+    const res = await $fetch<{ data: any }>(`/api/admin/themes/${theme.id}`)
+    const data = res.data
+    let themeConfig: Record<string, any> = {}
+    if (data.config) {
+      try { themeConfig = typeof data.config === 'string' ? JSON.parse(data.config) : data.config } catch { themeConfig = {} }
+    }
+    const colorPrimary = ensureHexColor(themeConfig.color_primary, '#6366f1')
+    const colorSecondary = ensureHexColor(themeConfig.color_secondary, '#f59e0b')
+    form.value = {
+      slug: '',
+      name: `${data.name} (copy)`,
+      description: data.description || '',
+      language: data.language || '',
+      is_active: false,
+      is_default: false,
+      scheduled_start: '',
+      scheduled_end: '',
+      priority: data.priority || 0,
+      color_primary: colorPrimary,
+      color_secondary: colorSecondary,
+    }
+    translations.value = (data.translations || []).map((t: any) => ({
+      _key: translationKeyCounter++,
+      language: t.language,
+      name: t.name,
+      description: t.description || '',
+    }))
+    initPickerValues(colorPrimary, colorSecondary)
+    filters.value = (data.filters || []).map((f: any) => ({ id: undefined as number | undefined, type: f.type, value: f.value }))
+  } catch (e) {
+    showErrorToast(e, $t('error_load') as string)
+    return
+  }
+  editMode.value = false
+  entitySuggestions.value = []
+  activeTab.value = 'general'
+  showEditDialog.value = true
+}
+
 const getThemeActions = (theme: any) => {
   const actions: any[] = [
     { label: $t('row_edit'), leading: 'i-ph-pencil', onclick: () => openEdit(theme) },
+    { label: $t('row_duplicate'), leading: 'i-ph-copy', onclick: () => duplicateTheme(theme) },
     theme.isActive
       ? { label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) }
       : { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },
@@ -1181,14 +1241,13 @@ const resetForm = () => {
   editingThemeId.value = null
   editMode.value = false
   promptTags.value = []
-  showTagInput.value = false
 }
 
 const openCreate = () => {
   resetForm()
   suggestions.value = []
   selectedSuggestionIndex.value = null
-  activeTab.value = 'general'
+  activeTab.value = 'ai'
   showEditDialog.value = true
 }
 

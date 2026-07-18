@@ -29,7 +29,7 @@
   "dialog_generate": "Générer des suggestions",
   "dialog_generating": "Génération des suggestions...",
   "dialog_generate_tooltip": "Génère des idées de thèmes à partir des tags, auteurs et références...",
-  "dialog_ai": "Suggestions IA",
+  "dialog_ai": "Générer avec l'IA",
   "dialog_ai_tooltip": "Génère des idées de thèmes créatives avec un modèle de langage IA...",
   "dialog_seed_tooltip": "Ajoutez des tags pour guider la génération vers des thèmes spécifiques",
   "dialog_suggestions": "Suggestions de thèmes",
@@ -92,6 +92,7 @@
   "dropdown_refresh": "Actualiser",
   "dropdown_reset": "Réinitialiser",
   "row_edit": "Modifier",
+  "row_duplicate": "Dupliquer",
   "row_deactivate": "Désactiver",
   "row_activate": "Activer",
   "row_remove_default": "Retirer des défauts",
@@ -118,5 +119,10 @@
   "tab_filters": "Filtres",
   "tab_ai": "Suggestions IA",
   "dialog_i18n_remove_translation": "Supprimer la traduction",
-  "dialog_i18n_empty": "Aucune traduction disponible pour le moment."
+  "dialog_i18n_empty": "Aucune traduction disponible pour le moment.",
+  "dialog_ai_step_title": "Étape 1 : Générer des idées de thème",
+  "dialog_ai_step_desc": "Obtenez des suggestions de thème basées sur des mots-clés, ou passez directement à la création manuelle.",
+  "dialog_seed_tags_label": "Mots-clés pour orienter les suggestions",
+  "dialog_skip_suggestions": "Passer à la création manuelle",
+  "dialog_apply_suggestion": "Utiliser cette suggestion"
 }

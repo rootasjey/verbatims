@@ -29,7 +29,7 @@
   "dialog_generate": "Generate Suggestions",
   "dialog_generating": "Generating suggestions...",
   "dialog_generate_tooltip": "Generates theme ideas from top tags, authors, and references using rule-based patterns...",
-  "dialog_ai": "AI Suggestions",
+  "dialog_ai": "Generate with AI",
   "dialog_ai_tooltip": "Generates creative theme ideas using an AI language model...",
   "dialog_seed_tooltip": "Add seed tags to guide suggestion generation toward specific themes",
   "dialog_suggestions": "Theme Suggestions",
@@ -92,6 +92,7 @@
   "dropdown_refresh": "Refresh",
   "dropdown_reset": "Reset Filters",
   "row_edit": "Edit Theme",
+  "row_duplicate": "Duplicate",
   "row_deactivate": "Deactivate",
   "row_activate": "Activate",
   "row_remove_default": "Remove from Defaults",
@@ -118,5 +119,10 @@
   "tab_filters": "Filters",
   "tab_ai": "AI Suggestions",
   "dialog_i18n_remove_translation": "Remove translation",
-  "dialog_i18n_empty": "There are no translations available yet."
+  "dialog_i18n_empty": "There are no translations available yet.",
+  "dialog_ai_step_title": "Step 1: Generate theme ideas",
+  "dialog_ai_step_desc": "Get theme suggestions based on keywords, or skip to create from scratch.",
+  "dialog_seed_tags_label": "Keywords to guide suggestions",
+  "dialog_skip_suggestions": "Skip to manual creation",
+  "dialog_apply_suggestion": "Use this suggestion"
 }
