@@ -73,16 +73,14 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
       context: JSON.stringify({ filter_type: f.type, generated_by: 'enrichment' }),
       status: 'pending',
       createdBy: userId || null,
-    }).returning()
+    }).returning({ id: schema.entitySuggestions.id }).get()
 
-    if (created?.[0]) {
-      suggestions.push({
-        id: created[0].id,
-        type: sugType,
-        suggestedValue: f.value,
-        status: 'pending',
-      })
-    }
+    suggestions.push({
+      id: created?.id ?? 0,
+      type: sugType,
+      suggestedValue: f.value,
+      status: 'pending',
+    })
   }
 
   // Step 2: Enrich — find co-occurring relevant filters for what's valid
@@ -157,7 +155,7 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     result: JSON.stringify(jobResult),
     createdBy: userId || null,
     processedAt: new Date(),
-  }).returning()
+  }).returning({ id: schema.themeEnrichmentJobs.id }).get()
 
   const parts: string[] = []
   if (removed.length > 0) parts.push(`${removed.length} filtre(s) invalide(s) supprimé(s)`)
@@ -170,7 +168,7 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     enriched,
     suggestions,
     summary: parts.join(', ') || 'Aucun changement',
-    jobId: insert?.[0]?.id ?? 0,
+    jobId: insert?.id ?? 0,
   }
 }
 
