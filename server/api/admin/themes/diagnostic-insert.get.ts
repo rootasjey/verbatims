@@ -98,18 +98,33 @@ export default defineEventHandler(async (event) => {
       await db.run(sql`DELETE FROM themes WHERE slug = ${'rawraw-' + slug}`)
     }
 
-    // Test 5: sql.raw() with all columns including nullable ones using 'NULL' string
-    let rawSqlNullError: any = null
-    try {
-      await db.run(sql.raw(
-        `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority) VALUES ('nullraw-${slug}', 'NullRaw Test', 'Testing sql.raw() NULL strings', 'en', '{}', ${0}, ${0}, NULL, NULL, ${0})`
-      ))
-    } catch (e) {
-      rawSqlNullError = { message: (e as Error).message, name: (e as Error).name }
-    }
+    // Test 5-n: find which column makes INSERT fail (each test = base + one extra column)
+    const colTests: Record<string, any> = {}
+    const baseCols = ['slug', 'name', 'priority']
+    const extras: { name: string; cols: string[]; vals: string[] }[] = [
+      { name: 'add_description', cols: ['description'], vals: ["'Testing desc'"] },
+      { name: 'add_language', cols: ['language'], vals: ["'en'"] },
+      { name: 'add_config', cols: ['config'], vals: ["'{}'"] },
+      { name: 'add_is_active', cols: ['is_active'], vals: ['0'] },
+      { name: 'add_is_default', cols: ['is_default'], vals: ['0'] },
+      { name: 'add_scheduled_start', cols: ['scheduled_start'], vals: ['NULL'] },
+      { name: 'add_scheduled_end', cols: ['scheduled_end'], vals: ['NULL'] },
+    ]
 
-    if (!rawSqlNullError) {
-      await db.run(sql`DELETE FROM themes WHERE slug = ${'nullraw-' + slug}`)
+    for (let i = 0; i < extras.length; i++) {
+      const e = extras[i]!
+      const testSlug = `inc-${slug}-${i}`
+      const allCols = [...baseCols, ...e.cols]
+      const allVals = [`'${testSlug}'`, "'Inc Test'", '0', ...e.vals]
+      colTests[e.name] = null
+      try {
+        await db.run(sql.raw(
+          `INSERT INTO themes (${allCols.join(', ')}) VALUES (${allVals.join(', ')})`
+        ))
+        await db.run(sql.raw(`DELETE FROM themes WHERE slug = '${testSlug}'`))
+      } catch (err) {
+        colTests[e.name] = { message: (err as Error).message, name: (err as Error).name }
+      }
     }
 
     return {
@@ -121,7 +136,7 @@ export default defineEventHandler(async (event) => {
         raw_sql_error: rawSqlError,
         null_binding_error: nullBindingError,
         raw_sql_raw_error: rawSqlRawError,
-        raw_sql_null_error: rawSqlNullError,
+        column_tests: colTests,
       }
     }
   } catch (error: any) {
