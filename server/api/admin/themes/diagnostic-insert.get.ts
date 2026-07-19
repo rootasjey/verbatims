@@ -7,6 +7,25 @@ export default defineEventHandler(async (event) => {
   try {
     const slug = 'diagnostic-test-' + Date.now()
 
+    // Test 0: Basic connectivity
+    let pingOk = false
+    let pingError: any = null
+    try {
+      await db.run(sql`SELECT 1`)
+      pingOk = true
+    } catch (e) {
+      pingError = (e as Error).message
+    }
+
+    let tableOk = false
+    let tableError: any = null
+    try {
+      const r = await db.select().from(schema.themes).limit(1).all()
+      tableOk = true
+    } catch (e) {
+      tableError = (e as Error).message
+    }
+
     // Test 1: Drizzle insert
     let drizzleError: any = null
     try {
@@ -64,14 +83,15 @@ export default defineEventHandler(async (event) => {
     // Test 4: sql.raw() with inline escaped values (current fix)
     let rawSqlRawError: any = null
     try {
-      const desc = 'Testing sql.raw() inline'
-      const lang = 'en'
-      const cfg = '{}'
       await db.run(sql.raw(
-        `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, priority) VALUES ('rawraw-${slug}', 'RawRaw Test', '${desc.replace(/'/g, "''")}', '${lang.replace(/'/g, "''")}', '${cfg.replace(/'/g, "''")}', ${0}, ${0}, ${0})`
+        `INSERT INTO themes (slug, name, priority) VALUES ('rawraw-${slug}', 'RawRaw Test', 0)`
       ))
     } catch (e) {
-      rawSqlRawError = { message: (e as Error).message, name: (e as Error).name }
+      const err = e as any
+      const allProps: Record<string, any> = {}
+      try { for (const k of Object.getOwnPropertyNames(err)) allProps[k] = typeof err[k] === 'string' ? err[k] : '<<non-string>>' } catch {}
+      allProps._stack = (err.stack || '').split('\n').slice(0, 8).join('\n')
+      rawSqlRawError = allProps
     }
 
     if (!rawSqlRawError) {
@@ -95,6 +115,8 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: {
+        ping: { ok: pingOk, error: pingError },
+        table_read: { ok: tableOk, error: tableError },
         drizzle_error: drizzleError,
         raw_sql_error: rawSqlError,
         null_binding_error: nullBindingError,
