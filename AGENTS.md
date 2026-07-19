@@ -285,14 +285,33 @@ Schema changes are tracked in `server/db/migrations/sqlite/` as numbered SQL fil
 **Production**: migration files are applied against Cloudflare D1 via wrangler:
 
 ```bash
-wrangler d1 execute verbatims-db --file server/db/migrations/sqlite/0009_add_reference_id_filter.sql
+wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
 ```
 
 To preview locally first:
 
 ```bash
-wrangler d1 execute verbatims-db --file server/db/migrations/sqlite/0009_add_reference_id_filter.sql --local
+wrangler d1 execute verbatims --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
 ```
+
+**Database name** (`wrangler.jsonc` → `d1_databases[0].database_name`): `verbatims`
+Database ID: `330aad35-518b-437c-bbf4-5b7ea006eb3f`
+
+### D1 debugging process
+
+When `db.insert().values().all()` or `db.run(sql\`INSERT ...\`)` fails on D1 with a
+non-descriptive "Failed query:" error, the root cause is often a **schema mismatch**
+between the Drizzle schema and the actual DB table in production. Debug systematically:
+
+1. **Confirm connectivity** — run `db.run(sql\`SELECT 1\`)` and `db.select().from(table).limit(1).all()`
+2. **Isolate with minimal insert** — try `sql.raw()` with only the bare minimum columns (slug, name).
+   If that works, the issue is a specific column.
+3. **Binary search on columns** — add columns one at a time via `sql.raw()` to find the culprit.
+4. **Check column existence** — compare the Drizzle schema definition against the live table.
+   The column may exist in schema.ts but never have been added to production via migration,
+   especially if it was added to the consolidated schema.sql without a numbered ALTER TABLE migration.
+5. **Fix** — create a migration with `ALTER TABLE table ADD COLUMN column type` and apply it via
+   `wrangler d1 execute verbatims --remote --file path/to/migration.sql`
 
 Always create a new numbered migration file when altering existing tables (adding columns, changing constraints, etc.). New tables that don't exist yet can rely on `schema.sql` being applied on fresh deploys.
 
