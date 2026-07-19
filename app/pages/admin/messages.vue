@@ -13,15 +13,60 @@
         </div>
         <div class="hidden md:flex items-center gap-3">
           <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
-          <select v-model="statusFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
-          <select v-model="categoryFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in categoryOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
-          <select v-model="targetFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in targetOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
+          <NCombobox
+            v-model="statusFilter"
+            :items="statusOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          <NCombobox
+            v-model="categoryFilter"
+            :items="categoryOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          <NCombobox
+            v-model="targetFilter"
+            :items="targetOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
         </div>
       </div>
       <div class="md:hidden mt-4 flex gap-2">

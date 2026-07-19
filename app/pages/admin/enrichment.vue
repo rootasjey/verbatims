@@ -10,12 +10,42 @@
           <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">{{ totalItems }} job{{ totalItems !== 1 ? 's' : '' }}</p>
         </div>
         <div class="hidden md:flex items-center gap-3">
-          <select v-model="selectedEntityType" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in entityTypeOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
-          <select v-model="selectedStatus" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
+          <NCombobox
+            v-model="selectedEntityType"
+            :items="entityTypeOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          <NCombobox
+            v-model="selectedStatus"
+            :items="statusOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
           <div v-if="selectedEntityId" class="flex items-center gap-2 font-sans text-xs text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/20 border border-dashed border-cyan-200 dark:border-cyan-700 px-2 py-1">
             <span>{{ $t('filter_label', { entity: selectedEntityType.label, id: selectedEntityId }) }}</span>
             <button class="hover:underline" @click="clearEntityFilter">{{ $t('clear') }}</button>
@@ -26,12 +56,42 @@
         </div>
       </div>
       <div class="md:hidden flex gap-2 flex-wrap">
-        <select v-model="selectedEntityType" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-1 py-1 text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
-          <option v-for="opt in entityTypeOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-        </select>
-        <select v-model="selectedStatus" class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-1 py-1 text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
-          <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-        </select>
+        <NCombobox
+          v-model="selectedEntityType"
+          :items="entityTypeOptions"
+          by="value"
+          :_combobox-list="{
+            class: 'min-w-[180px]',
+          }"
+          :_combobox-trigger="{
+            btn: 'ghost-gray',
+            size: 'xs',
+            trailing: '',
+            class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+          }"
+        >
+          <template #trigger="{ modelValue }">
+            <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+          </template>
+        </NCombobox>
+        <NCombobox
+          v-model="selectedStatus"
+          :items="statusOptions"
+          by="value"
+          :_combobox-list="{
+            class: 'min-w-[180px]',
+          }"
+          :_combobox-trigger="{
+            btn: 'ghost-gray',
+            size: 'xs',
+            trailing: '',
+            class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+          }"
+        >
+          <template #trigger="{ modelValue }">
+            <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+          </template>
+        </NCombobox>
       </div>
 
       <!-- Stats Cards -->

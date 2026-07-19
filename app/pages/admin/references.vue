@@ -21,18 +21,42 @@
             :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
           />
-          <select
+          <NCombobox
             v-model="selectedTypeFilter"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            :items="typeFilterOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
           >
-            <option v-for="opt in typeFilterOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
-          <select
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          <NCombobox
             v-model="selectedSort"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            :items="sortOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
           >
-            <option v-for="opt in sortOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
           <div class="flex items-center gap-1 border-l border-dashed border-gray-200 dark:border-gray-700 pl-3">
             <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', !isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = false">{{ $t('view_table') }}</button>
             <button :class="['font-sans text-xs px-2 py-1 transition-colors rounded-sm', isCardView ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300']" @click="isCardView = true">{{ $t('view_cards') }}</button>

@@ -18,12 +18,25 @@
             :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 w-48"
           />
-          <select
-            v-model="sortValue"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+          <NCombobox
+            :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
+            @update:model-value="(v: any) => { if (v) sortValue = v.value }"
+            :items="sortOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
           >
-            <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-          </select>
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
           <LanguageSelector :on-language-changed="onLanguageChanged" :use-classic-design="true" />
         </div>
       </div>
