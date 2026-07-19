@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, ne, desc, count, inArray, like, sql } from 'drizzle-orm'
+import { eq, like, sql } from 'drizzle-orm'
 
 export interface EntitySuggestion {
   id: number
@@ -21,12 +21,6 @@ interface EnrichedFilter {
   type: string
   value: string
   match_mode: string
-}
-
-interface FilterCandidate {
-  type: string
-  value: string
-  label: string
 }
 
 function mapFilterTypeToSuggestion(filterType: string): string | null {
@@ -79,42 +73,9 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     })
   }
 
-  // Step 2: Enrich — find co-occurring relevant filters for what's valid
-  const existingSet = new Set(validated.map(f => `${f.type}:${f.value.toLowerCase()}`))
-  const candidates: FilterCandidate[] = []
-  const themeName = theme.name || ''
-  const words = themeName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .split(/\s+/)
-    .filter(w => w.length > 2)
-
-  for (const f of validated) {
-    const batch = await findRelatedFilters(f.type, f.value, words)
-    for (const c of batch) {
-      const key = `${c.type}:${c.value.toLowerCase()}`
-      if (!existingSet.has(key) && !candidates.some(x => `${x.type}:${x.value.toLowerCase()}` === key)) {
-        candidates.push(c)
-      }
-    }
-  }
-
-  const enriched = candidates.slice(0, 6).map(c => ({
-    type: c.type,
-    value: c.value,
-    match_mode: 'any' as const,
-  }))
-
-  // Step 3: Build the final filter list — validated + enriched (deduped)
+  // Step 2: Apply validated filters to DB (removes hallucinations, keeps real ones)
   const finalFilters = [...validated]
-  for (const e of enriched) {
-    const key = `${e.type}:${e.value.toLowerCase()}`
-    if (!finalFilters.some(f => `${f.type}:${f.value.toLowerCase()}` === key)) {
-      finalFilters.push(e)
-    }
-  }
-
-  // Step 4: Auto-apply to DB (replace all filters with validated + enriched)
+  const enriched: EnrichedFilter[] = []
   await db.delete(schema.themeContentFilters).where(eq(schema.themeContentFilters.themeId, themeId))
   for (const f of finalFilters) {
     await db.run(sql`
@@ -194,163 +155,4 @@ async function filterExists(type: string, value: string): Promise<boolean> {
   }
 }
 
-async function findRelatedFilters(type: string, value: string, nameWords: string[]): Promise<FilterCandidate[]> {
-  const candidates: FilterCandidate[] = []
-  const pushIfNew = (t: string, v: string) => {
-    if (!candidates.some(c => c.type === t && c.value.toLowerCase() === v.toLowerCase())) {
-      candidates.push({ type: t, value: v, label: v })
-    }
-  }
 
-  if (type === 'tag_name') {
-    const tagRow = await db.select({ id: schema.tags.id })
-      .from(schema.tags)
-      .where(eq(schema.tags.name, value))
-      .get()
-    if (!tagRow) return candidates
-
-    const filteredQuoteIds = db.select({ id: schema.quoteTags.quoteId })
-      .from(schema.quoteTags)
-      .where(eq(schema.quoteTags.tagId, tagRow.id))
-
-    // Co-occurring tags
-    const coTags = await db.select({
-      name: schema.tags.name,
-      count: count(schema.quoteTags.quoteId),
-    })
-      .from(schema.quoteTags)
-      .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-      .where(and(inArray(schema.quoteTags.quoteId, filteredQuoteIds), ne(schema.quoteTags.tagId, tagRow.id)))
-      .groupBy(schema.tags.id, schema.tags.name)
-      .orderBy(desc(count(schema.quoteTags.quoteId)))
-      .limit(2)
-      .all()
-    for (const ct of coTags) pushIfNew('tag_name', ct.name)
-
-    // Top authors for this tag
-    const tagAuthors = await db.select({
-      name: schema.authors.name,
-      count: count(schema.quotes.id),
-    })
-      .from(schema.quoteTags)
-      .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-      .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .where(and(eq(schema.quoteTags.tagId, tagRow.id), eq(schema.quotes.status, 'approved')))
-      .groupBy(schema.authors.id, schema.authors.name)
-      .orderBy(desc(count(schema.quotes.id)))
-      .limit(2)
-      .all()
-    for (const ta of tagAuthors) pushIfNew('author_name', ta.name)
-
-    // Top references for this tag
-    const tagRefs = await db.select({
-      name: schema.quoteReferences.name,
-      count: count(schema.quotes.id),
-    })
-      .from(schema.quoteTags)
-      .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-      .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-      .where(and(eq(schema.quoteTags.tagId, tagRow.id), eq(schema.quotes.status, 'approved')))
-      .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
-      .orderBy(desc(count(schema.quotes.id)))
-      .limit(2)
-      .all()
-    for (const tr of tagRefs) pushIfNew('reference_name', tr.name)
-  }
-
-  if (type === 'author_name') {
-    const authorRow = await db.select({ id: schema.authors.id })
-      .from(schema.authors)
-      .where(like(schema.authors.name, `%${value}%`))
-      .get()
-    if (!authorRow) return candidates
-
-    const authorTags = await db.select({
-      name: schema.tags.name,
-      count: count(schema.quoteTags.quoteId),
-    })
-      .from(schema.quoteTags)
-      .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-      .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-      .where(and(eq(schema.quotes.authorId, authorRow.id), eq(schema.quotes.status, 'approved')))
-      .groupBy(schema.tags.id, schema.tags.name)
-      .orderBy(desc(count(schema.quoteTags.quoteId)))
-      .limit(2)
-      .all()
-    for (const t of authorTags) pushIfNew('tag_name', t.name)
-
-    const authorRefs = await db.select({
-      name: schema.quoteReferences.name,
-      count: count(schema.quotes.id),
-    })
-      .from(schema.quotes)
-      .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-      .where(and(eq(schema.quotes.authorId, authorRow.id), eq(schema.quotes.status, 'approved')))
-      .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
-      .orderBy(desc(count(schema.quotes.id)))
-      .limit(2)
-      .all()
-    for (const r of authorRefs) pushIfNew('reference_name', r.name)
-  }
-
-  if (type === 'reference_name') {
-    const refRow = await db.select({ id: schema.quoteReferences.id })
-      .from(schema.quoteReferences)
-      .where(like(schema.quoteReferences.name, `%${value}%`))
-      .get()
-    if (!refRow) return candidates
-
-    const refTags = await db.select({
-      name: schema.tags.name,
-      count: count(schema.quoteTags.quoteId),
-    })
-      .from(schema.quoteTags)
-      .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-      .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-      .where(and(eq(schema.quotes.referenceId, refRow.id), eq(schema.quotes.status, 'approved')))
-      .groupBy(schema.tags.id, schema.tags.name)
-      .orderBy(desc(count(schema.quoteTags.quoteId)))
-      .limit(2)
-      .all()
-    for (const t of refTags) pushIfNew('tag_name', t.name)
-
-    const refAuthors = await db.select({
-      name: schema.authors.name,
-      count: count(schema.quotes.id),
-    })
-      .from(schema.quotes)
-      .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .where(and(eq(schema.quotes.referenceId, refRow.id), eq(schema.quotes.status, 'approved')))
-      .groupBy(schema.authors.id, schema.authors.name)
-      .orderBy(desc(count(schema.quotes.id)))
-      .limit(2)
-      .all()
-    for (const a of refAuthors) pushIfNew('author_name', a.name)
-  }
-
-  // Keyword matching from theme name
-  for (const word of nameWords) {
-    const matchingTags = await db.select({ name: schema.tags.name })
-      .from(schema.tags)
-      .where(like(schema.tags.name, `%${word}%`))
-      .limit(1)
-      .all()
-    for (const mt of matchingTags) pushIfNew('tag_name', mt.name)
-
-    const matchingAuthors = await db.select({ name: schema.authors.name })
-      .from(schema.authors)
-      .where(like(schema.authors.name, `%${word}%`))
-      .limit(1)
-      .all()
-    for (const ma of matchingAuthors) pushIfNew('author_name', ma.name)
-
-    const matchingRefs = await db.select({ name: schema.quoteReferences.name })
-      .from(schema.quoteReferences)
-      .where(like(schema.quoteReferences.name, `%${word}%`))
-      .limit(1)
-      .all()
-    for (const mr of matchingRefs) pushIfNew('reference_name', mr.name)
-  }
-
-  return candidates
-}
