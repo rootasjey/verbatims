@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, like, sql } from 'drizzle-orm'
+import { eq, and, like, sql } from 'drizzle-orm'
 
 export interface EntitySuggestion {
   id: number
@@ -73,15 +73,11 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     })
   }
 
-  // Step 2: Apply validated filters to DB (removes hallucinations, keeps real ones)
-  const finalFilters = [...validated]
+  // Step 2: Delete only hallucinated filters (keep valid ones untouched)
   const enriched: EnrichedFilter[] = []
-  await db.delete(schema.themeContentFilters).where(eq(schema.themeContentFilters.themeId, themeId))
-  for (const f of finalFilters) {
-    await db.run(sql`
-      INSERT INTO theme_content_filters (theme_id, type, value, match_mode)
-      VALUES (${themeId}, ${f.type}, ${f.value}, ${f.match_mode})
-    `)
+  for (const f of removed) {
+    await db.delete(schema.themeContentFilters)
+      .where(and(eq(schema.themeContentFilters.themeId, themeId), eq(schema.themeContentFilters.type, f.type as any), eq(schema.themeContentFilters.value, f.value)))
   }
 
   // Step 5: Record the enrichment job
@@ -90,7 +86,7 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     validated_count: validated.length,
     removed_count: removed.length,
     enriched_count: enriched.length,
-    final_count: finalFilters.length,
+    final_count: validated.length,
   }
 
   const jobResult = {
@@ -98,7 +94,7 @@ export async function enrichThemeFilters(themeId: number, userId?: number): Prom
     validated,
     removed,
     enriched,
-    final: finalFilters,
+    final: validated,
   }
 
   await db.run(sql`
