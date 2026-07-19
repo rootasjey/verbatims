@@ -13,12 +13,42 @@
         </div>
         <div class="hidden md:flex items-center gap-3">
           <input v-model="searchQuery" type="text" :placeholder="$t('search_placeholder') as string" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56" />
-          <select v-model="selectedRoleFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in roleFilterOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
-          <select v-model="selectedStatusFilter" class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer">
-            <option v-for="opt in statusFilterOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
+          <NCombobox
+            v-model="selectedRoleFilter"
+            :items="roleFilterOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          <NCombobox
+            v-model="selectedStatusFilter"
+            :items="statusFilterOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[180px]',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
+          >
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
         </div>
       </div>
       <div class="md:hidden mt-4">

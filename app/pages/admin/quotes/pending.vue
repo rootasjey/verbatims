@@ -18,18 +18,48 @@
             :placeholder="$t('search_placeholder') as string"
             class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-56"
           />
-          <select
+          <NCombobox
             v-model="statusFilter"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            :items="statusOptions"
+            by="value"
+            :_combobox-list="{
+              class: 'min-w-[200px]',
+              align: 'end',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
           >
-            <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
-          <select
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none py-1">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          <NCombobox
             v-model="selectedLanguage"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 cursor-pointer"
+            :items="languageOptions"
+            by="value"
+            :_combobox-input="{
+              placeholder: 'All Languages',
+              class: 'text-xs',
+            }"
+            :_combobox-list="{
+              class: 'min-w-[200px]',
+              align: 'end',
+            }"
+            :_combobox-trigger="{
+              btn: 'ghost-gray',
+              size: 'sm',
+              trailing: '',
+              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+            }"
           >
-            <option v-for="opt in languageOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-          </select>
+            <template #trigger="{ modelValue }">
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label || 'All Languages' }}</span>
+            </template>
+          </NCombobox>
         </div>
       </div>
       <div class="md:hidden mt-4 flex gap-2">
@@ -39,12 +69,24 @@
           :placeholder="$t('search_placeholder_mobile') as string"
           class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
         />
-        <select
+        <NCombobox
           v-model="statusFilter"
-          class="font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-1 py-1.5 text-gray-700 dark:text-gray-300 cursor-pointer focus:outline-none"
+          :items="statusOptions"
+          by="value"
+          :_combobox-list="{
+            class: 'min-w-[200px]',
+          }"
+          :_combobox-trigger="{
+            btn: 'ghost-gray',
+            size: 'xs',
+            trailing: '',
+            class: 'gap-1 px-1 text-xs font-normal w-fit min-w-0',
+          }"
         >
-          <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-        </select>
+          <template #trigger="{ modelValue }">
+            <span class="text-xs leading-none">{{ modelValue?.label }}</span>
+          </template>
+        </NCombobox>
       </div>
     </div>
 
