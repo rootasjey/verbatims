@@ -61,11 +61,45 @@ export default defineEventHandler(async (event) => {
       await db.run(sql`DELETE FROM themes WHERE slug = ${'null-' + slug}`)
     }
 
+    // Test 4: sql.raw() with inline escaped values (current fix)
+    let rawSqlRawError: any = null
+    try {
+      const desc = 'Testing sql.raw() inline'
+      const lang = 'en'
+      const cfg = '{}'
+      await db.run(sql.raw(
+        `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, priority) VALUES ('rawraw-${slug}', 'RawRaw Test', '${desc.replace(/'/g, "''")}', '${lang.replace(/'/g, "''")}', '${cfg.replace(/'/g, "''")}', ${0}, ${0}, ${0})`
+      ))
+    } catch (e) {
+      rawSqlRawError = { message: (e as Error).message, name: (e as Error).name }
+    }
+
+    if (!rawSqlRawError) {
+      await db.run(sql`DELETE FROM themes WHERE slug = ${'rawraw-' + slug}`)
+    }
+
+    // Test 5: sql.raw() with all columns including nullable ones using 'NULL' string
+    let rawSqlNullError: any = null
+    try {
+      await db.run(sql.raw(
+        `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority) VALUES ('nullraw-${slug}', 'NullRaw Test', 'Testing sql.raw() NULL strings', 'en', '{}', ${0}, ${0}, NULL, NULL, ${0})`
+      ))
+    } catch (e) {
+      rawSqlNullError = { message: (e as Error).message, name: (e as Error).name }
+    }
+
+    if (!rawSqlNullError) {
+      await db.run(sql`DELETE FROM themes WHERE slug = ${'nullraw-' + slug}`)
+    }
+
     return {
       success: true,
       data: {
         drizzle_error: drizzleError,
         raw_sql_error: rawSqlError,
+        null_binding_error: nullBindingError,
+        raw_sql_raw_error: rawSqlRawError,
+        raw_sql_null_error: rawSqlNullError,
       }
     }
   } catch (error: any) {
