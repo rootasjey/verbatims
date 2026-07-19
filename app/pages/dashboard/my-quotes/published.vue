@@ -152,8 +152,7 @@
                 </th>
                 <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</th>
                 <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_lang') }}</th>
-                <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_tags') }}</th>
-                <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_stats') }}</th>
+
                 <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_published') }}</th>
                 <th class="w-10 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400"></th>
               </tr>
@@ -191,39 +190,30 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-3 py-3 align-top">
-                  <span class="font-sans text-sm text-gray-700 dark:text-gray-300">{{ quote.language || $t('common.na') }}</span>
-                </td>
-                <td class="px-3 py-3 align-top">
-                  <div v-if="quote.tags?.length" class="flex flex-wrap gap-1">
-                    <span
-                      v-for="tag in quote.tags.slice(0, 2)"
-                      :key="tag.id"
-                      class="font-sans text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5"
-                    >
-                      {{ tag.name }}
-                    </span>
-                    <span
-                      v-if="quote.tags.length > 2"
-                      class="font-sans text-xs text-gray-400 dark:text-gray-500 px-1"
-                      :title="quote.tags.slice(2).map(t => t.name).join(', ')"
-                    >
-                      +{{ quote.tags.length - 2 }}
-                    </span>
-                  </div>
-                  <span v-else class="font-sans text-sm text-gray-400">&mdash;</span>
-                </td>
-                <td class="px-3 py-3 align-top">
-                  <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                    <span class="flex items-center gap-1" :title="$t('tooltip_likes', { n: quote.likes_count || 0 }) as string">
-                      <NIcon name="i-ph-heart" class="w-3 h-3" />
-                      {{ quote.likes_count || 0 }}
-                    </span>
-                    <span class="flex items-center gap-1" :title="$t('tooltip_views', { n: quote.views_count || 0 }) as string">
-                      <NIcon name="i-ph-eye" class="w-3 h-3" />
-                      {{ quote.views_count || 0 }}
-                    </span>
-                  </div>
+                <td class="px-3 py-3">
+                  <NCombobox
+                    :model-value="getLanguageOption(quote.language)"
+                    @update:model-value="onLanguageChange(quote, $event)"
+                    :items="inlineLanguageOptions"
+                    by="value"
+                    :_combobox-input="{
+                      placeholder: 'Search language...',
+                      class: 'text-xs',
+                    }"
+                    :_combobox-list="{
+                      class: 'min-w-[100px]',
+                    }"
+                    :_combobox-trigger="{
+                      btn: 'ghost-gray',
+                      size: 'xs',
+                      trailing: '',
+                      class: 'gap-1 px-1 text-xs font-normal w-full min-w-0 h-auto justify-start',
+                    }"
+                  >
+                    <template #trigger="{ modelValue }">
+                      {{ modelValue?.label || quote.language }}
+                    </template>
+                  </NCombobox>
                 </td>
                 <td class="px-3 py-3 align-top">
                   <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatDate((quote as any).approvedAt || quote.approved_at || (quote as any).createdAt || quote.created_at) }}</span>
@@ -343,6 +333,31 @@ onMounted(() => {
 })
 
 const languageStore = useLanguageStore()
+
+const inlineLanguageOptions = computed(() =>
+  languageStore.availableLanguages
+    .filter(lang => lang.value !== 'all')
+    .map(lang => ({ label: lang.display, value: lang.value }))
+)
+
+const getLanguageOption = (lang: string | undefined) =>
+  inlineLanguageOptions.value.find(opt => opt.value === lang) ?? null
+
+const onLanguageChange = async (quote: any, newLang: { label: string; value: string } | null) => {
+  const newValue = newLang?.value
+  if (!newValue || newValue === quote.language) return
+  const previousLanguage = quote.language
+  quote.language = newValue
+  try {
+    await $fetch('/api/admin/quotes/bulk-edit', {
+      method: 'POST',
+      body: { quote_ids: [quote.id], language: newValue }
+    })
+  } catch (error) {
+    quote.language = previousLanguage
+    console.error('Failed to update language:', error)
+  }
+}
 
 const loading = ref(true)
 const hasLoadedOnce = ref(false)

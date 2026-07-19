@@ -145,7 +145,31 @@
                   </div>
                 </div>
               </td>
-              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ quote.language || 'N/A' }}</td>
+              <td class="px-3 py-3">
+                <NCombobox
+                  :model-value="getLanguageOption(quote.language)"
+                  @update:model-value="onLanguageChange(quote, $event)"
+                  :items="inlineLanguageOptions"
+                  by="value"
+                  :_combobox-input="{
+                    placeholder: 'Search language...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[100px]',
+                  }"
+                  :_combobox-trigger="{
+                    btn: 'ghost-gray',
+                    size: 'xs',
+                    trailing: '',
+                    class: 'gap-1 px-1 text-xs font-normal w-full min-w-0 h-auto justify-start',
+                  }"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label || quote.language }}
+                  </template>
+                </NCombobox>
+              </td>
               <td class="px-3 py-3">
                 <span class="font-sans text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5">Draft</span>
               </td>
@@ -249,6 +273,7 @@
 </template>
 
 <script setup lang="ts">
+import type { QuoteLanguage } from '~/types'
 import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import DeleteDraftDialog from '@/components/DeleteDraftDialog.vue'
@@ -301,14 +326,40 @@ const selectedQuotesData = computed<AdminQuote[]>(() =>
   quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
 )
 
-const { availableLanguages } = useLanguageStore()
+const languageStore = useLanguageStore()
 
 const languageOptions = computed(() =>
-  (availableLanguages ?? []).map((lang: LanguageOption) => ({
+  (languageStore.availableLanguages ?? []).map((lang: LanguageOption) => ({
     label: lang.display,
     value: lang.value === 'all' ? '' : lang.value
   }))
 )
+
+const inlineLanguageOptions = computed(() =>
+  languageStore.availableLanguages
+    .filter(lang => lang.value !== 'all')
+    .map(lang => ({ label: lang.display, value: lang.value }))
+)
+
+const getLanguageOption = (lang: string | undefined) =>
+  inlineLanguageOptions.value.find(opt => opt.value === lang) ?? null
+
+const onLanguageChange = async (quote: AdminQuote, newLang: { label: string; value: string } | null) => {
+  const newValue = newLang?.value
+  if (!newValue || newValue === quote.language) return
+  const previousLanguage = quote.language
+  quote.language = newValue as QuoteLanguage
+  try {
+    await $fetch('/api/admin/quotes/bulk-edit', {
+      method: 'POST',
+      body: { quote_ids: [quote.id], language: newValue }
+    })
+  } catch (error) {
+    quote.language = previousLanguage
+    console.error('Failed to update language:', error)
+    showErrorToast(error, 'Failed to update language')
+  }
+}
 
 const totalPages = computed(() => Math.ceil(totalQuotes.value / pageSize.value))
 

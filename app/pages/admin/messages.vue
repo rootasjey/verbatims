@@ -90,12 +90,24 @@
               <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ msg.category }}</span></td>
               <td class="px-3 py-3"><span class="font-sans text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5">{{ msg.target_type }}</span></td>
               <td class="px-3 py-3">
-                <div class="flex items-center gap-1">
-                  <span class="font-sans text-xs px-1.5 py-0.5" :class="statusPillClass(msg.status)">{{ msg.status }}</span>
-                  <NDropdownMenu :items="statusItems(msg)">
-                    <button @click.stop class="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-caret-down" class="w-3 h-3" /></button>
-                  </NDropdownMenu>
-                </div>
+                <NCombobox
+                  :model-value="getStatusOption(msg.status)"
+                  @update:model-value="onMessageStatusChange(msg, $event)"
+                  :items="messageStatusOptions"
+                  by="value"
+                  :_combobox-input="{
+                    placeholder: 'Change status...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[120px]',
+                  }"
+                  :_combobox-trigger="getMessageStatusTriggerProps(msg.status)"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label }}
+                  </template>
+                </NCombobox>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(msg.created_at) }}</td>
               <td class="px-3 py-3">
@@ -269,6 +281,36 @@ const statusPillClass = (status: string) => {
     case 'resolved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
     case 'spam': return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
     default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
+  }
+}
+
+const messageStatusOptions = [
+  { label: 'New', value: 'new' },
+  { label: 'Triaged', value: 'triaged' },
+  { label: 'Resolved', value: 'resolved' },
+  { label: 'Spam', value: 'spam' },
+]
+
+const getStatusOption = (status: string) =>
+  messageStatusOptions.find(opt => opt.value === status) ?? messageStatusOptions[0]
+
+const getMessageStatusTriggerProps = (status: string) => ({
+  btn: 'ghost-gray',
+  size: 'xs',
+  trailing: '',
+  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${statusPillClass(status)}`,
+})
+
+const onMessageStatusChange = async (msg: any, newStatus: { label: string; value: string } | null) => {
+  const newValue = newStatus?.value
+  if (!newValue || newValue === msg.status) return
+  const previous = msg.status
+  msg.status = newValue
+  try {
+    await $fetch(`/api/admin/messages/${msg.id}/status`, { method: 'POST', body: { status: newValue } })
+  } catch (error) {
+    msg.status = previous
+    console.error('Failed to set status', error)
   }
 }
 

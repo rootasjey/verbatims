@@ -103,7 +103,6 @@
               <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.quote_singular') }}</th>
               <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_language') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_user') }}</th>
-              <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_stats') }}</th>
               <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('common.status') }}</th>
               <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_published') }}</th>
               <th class="w-10 px-3 py-3 text-left"></th>
@@ -152,8 +151,30 @@
                   </template>
                 </div>
               </td>
-              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">
-                {{ quote.language || 'N/A' }}
+              <td class="px-3 py-3">
+                <NCombobox
+                  :model-value="getLanguageOption(quote.language)"
+                  @update:model-value="onLanguageChange(quote, $event)"
+                  :items="inlineLanguageOptions"
+                  by="value"
+                  :_combobox-input="{
+                    placeholder: 'Search language...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[100px]',
+                  }"
+                  :_combobox-trigger="{
+                    btn: 'ghost-gray',
+                    size: 'xs',
+                    trailing: '',
+                    class: 'gap-1 px-1 text-xs font-normal w-full min-w-0 h-auto justify-start',
+                  }"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label || quote.language }}
+                  </template>
+                </NCombobox>
               </td>
               <td class="px-3 py-3">
                 <span v-if="quote.user_name" class="font-sans text-sm text-gray-900 dark:text-gray-100">
@@ -164,13 +185,24 @@
                 </span>
               </td>
               <td class="px-3 py-3">
-                <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                  <span class="flex items-center gap-1"><NIcon name="i-ph-eye" class="w-3 h-3" />{{ quote.views_count || 0 }}</span>
-                  <span class="flex items-center gap-1"><NIcon name="i-ph-heart" class="w-3 h-3" />{{ quote.likes_count || 0 }}</span>
-                </div>
-              </td>
-              <td class="px-3 py-3">
-                <span class="font-sans text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5">Published</span>
+                <NCombobox
+                  :model-value="getStatusOption(quote.status)"
+                  @update:model-value="onStatusChange(quote, $event)"
+                  :items="statusOptions"
+                  by="value"
+                  :_combobox-input="{
+                    placeholder: 'Change status...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[100px]',
+                  }"
+                  :_combobox-trigger="getStatusTriggerProps(quote.status)"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label }}
+                  </template>
+                </NCombobox>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">
                 {{ formatRelativeTime(quote.moderated_at || quote.created_at) }}
@@ -288,6 +320,7 @@
 </template>
 
 <script setup lang="ts">
+import type { QuoteLanguage } from '~/types'
 import type { LanguageOption } from '~/stores/language'
 import { formatRelativeTime, getDateTimestamp } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
@@ -325,6 +358,63 @@ const languageOptions = computed(() =>
 )
 
 const selectedLanguage = ref({ label: 'All Languages', value: '' })
+
+const inlineLanguageOptions = computed(() =>
+  languageStore.availableLanguages
+    .filter(lang => lang.value !== 'all')
+    .map(lang => ({ label: lang.display, value: lang.value }))
+)
+
+const getLanguageOption = (lang: string | undefined) =>
+  inlineLanguageOptions.value.find(opt => opt.value === lang) ?? null
+
+const onLanguageChange = async (quote: AdminQuote, newLang: { label: string; value: string } | null) => {
+  const newValue = newLang?.value
+  if (!newValue || newValue === quote.language) return
+  const previousLanguage = quote.language
+  quote.language = newValue as QuoteLanguage
+  try {
+    await $fetch('/api/admin/quotes/bulk-edit', {
+      method: 'POST',
+      body: { quote_ids: [quote.id], language: newValue }
+    })
+  } catch (error) {
+    quote.language = previousLanguage
+    console.error('Failed to update language:', error)
+    showErrorToast(error, 'Failed to update language')
+  }
+}
+
+const statusOptions = [
+  { label: 'Published', value: 'approved' },
+  { label: 'Draft', value: 'draft' },
+]
+
+const getStatusOption = (status: string | undefined) =>
+  statusOptions.find(opt => opt.value === status) ?? null
+
+const getStatusTriggerProps = (status: string) => ({
+  btn: 'ghost-gray',
+  size: 'xs',
+  trailing: '',
+  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${statusPillClass(status)}`,
+})
+
+const onStatusChange = async (quote: AdminQuote, newStatus: { label: string; value: string } | null) => {
+  const newValue = newStatus?.value
+  if (!newValue || newValue === quote.status) return
+  if (newValue === 'draft') {
+    await unpublishQuote(quote)
+  }
+}
+
+const statusPillClass = (status: string) => {
+  switch (status) {
+    case 'approved': return 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+    case 'draft': return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+    default: return 'text-gray-700 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20'
+  }
+}
 
 const selectedQuote = ref<AdminQuote | undefined>(undefined)
 const showEditQuoteDialog = ref(false)

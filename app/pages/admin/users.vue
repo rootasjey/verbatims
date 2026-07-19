@@ -75,18 +75,54 @@
                   <NAvatar :src="user.avatar_url" :alt="user.name" size="xs" />
                   <div class="min-w-0">
                     <ContextMenu size="xs" native-on-modifier="ctrl" :items="getUserActions(user)">
-                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate">{{ user.name }}</p>
+                      <p class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="editUser(user)">{{ user.name }}</p>
                     </ContextMenu>
-                    <p v-if="user.email" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+                    <p v-if="user.email" class="font-sans text-xs text-gray-500 dark:text-gray-400 truncate cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="navigateTo(`/users/${user.id}`)">{{ user.email }}</p>
                   </div>
                 </div>
               </td>
               <td class="px-3 py-3">
-                <span class="font-sans text-xs px-1.5 py-0.5" :class="rolePillClass(user.role)">{{ user.role }}</span>
+                <NCombobox
+                  :model-value="getUserRoleOption(user.role)"
+                  @update:model-value="onUserRoleChange(user, $event)"
+                  :items="userRoleOptions"
+                  by="value"
+                  :disabled="user.id === currentUser?.id"
+                  :_combobox-input="{
+                    placeholder: 'Change role...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[120px]',
+                  }"
+                  :_combobox-trigger="getUserRoleTriggerProps(user.role)"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label }}
+                  </template>
+                </NCombobox>
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
-                  <span class="font-sans text-xs px-1.5 py-0.5" :class="user.is_active ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'">{{ user.is_active ? $t('filter_status_active') : $t('filter_status_inactive') }}</span>
+                  <NCombobox
+                    :model-value="getUserStatusOption(user)"
+                    @update:model-value="onUserStatusChange(user, $event)"
+                    :items="userStatusOptions"
+                    by="value"
+                    :disabled="user.id === currentUser?.id"
+                    :_combobox-input="{
+                      placeholder: 'Change status...',
+                      class: 'text-xs',
+                    }"
+                    :_combobox-list="{
+                      class: 'min-w-[120px]',
+                    }"
+                    :_combobox-trigger="getUserStatusTriggerProps(user.is_active)"
+                  >
+                    <template #trigger="{ modelValue }">
+                      {{ modelValue?.label }}
+                    </template>
+                  </NCombobox>
                   <span v-if="user.email_verified" class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">{{ $t('badge_verified') }}</span>
                 </div>
               </td>
@@ -150,6 +186,7 @@
 </template>
 
 <script setup lang="ts">
+import { navigateTo } from 'nuxt/app'
 import { formatRelativeTime } from '~/utils/time-formatter'
 import { useAdminKeyboardShortcuts } from '~/composables/useAdminKeyboardShortcuts'
 import { useTableKeyboardNav } from '~/composables/useTableKeyboardNav'
@@ -251,6 +288,73 @@ const statusFilterOptions = computed(() => [
 ])
 
 const totalPages = computed(() => Math.ceil(totalUsers.value / pageSize.value))
+
+const userRoleOptions = [
+  { label: 'User', value: 'user' },
+  { label: 'Moderator', value: 'moderator' },
+  { label: 'Admin', value: 'admin' },
+]
+
+const getUserRoleOption = (role: string) =>
+  userRoleOptions.find(opt => opt.value === role) ?? userRoleOptions[0]
+
+const getUserRoleTriggerProps = (role: UserRole) => ({
+  btn: 'ghost-gray',
+  size: 'xs',
+  trailing: '',
+  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${rolePillClass(role)}`,
+})
+
+const onUserRoleChange = async (user: any, newRole: { label: string; value: string } | null) => {
+  const newValue = newRole?.value
+  if (!newValue || newValue === user.role) return
+  const previous = user.role
+  user.role = newValue
+  try {
+    await $fetch(`/api/admin/users/${user.id}`, {
+      method: 'PUT',
+      body: { role: newValue }
+    })
+  } catch (error) {
+    user.role = previous
+    console.error('Failed to update user role:', error)
+    showErrorToast(error, 'Failed to update role')
+  }
+}
+
+const userStatusOptions = [
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+]
+
+const getUserStatusOption = (user: any) =>
+  userStatusOptions.find(opt => opt.value === (user.is_active ? 'active' : 'inactive')) ?? userStatusOptions[0]
+
+const getUserStatusTriggerProps = (isActive: 0 | 1 | boolean) => ({
+  btn: 'ghost-gray',
+  size: 'xs',
+  trailing: '',
+  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${isActive ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20'}`,
+})
+
+const onUserStatusChange = async (user: any, newStatus: { label: string; value: string } | null) => {
+  const newValue = newStatus?.value
+  if (!newValue) return
+  const newIsActive = newValue === 'active'
+  if (newIsActive === user.is_active) return
+  const previous = user.is_active
+  user.is_active = newIsActive
+  try {
+    await $fetch(`/api/admin/users/${user.id}`, {
+      method: 'PUT',
+      body: { is_active: newIsActive }
+    })
+  } catch (error) {
+    user.is_active = previous
+    console.error('Failed to update user status:', error)
+    showErrorToast(error, 'Failed to update status')
+  }
+}
 
 const rolePillClass = (role: UserRole) => {
   switch (role) {
