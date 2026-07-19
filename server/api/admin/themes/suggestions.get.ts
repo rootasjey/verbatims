@@ -236,12 +236,13 @@ async function generateAISuggestions(
   const config = await getAIConfig()
   if (!config) return null
 
-  try {
-    const focusSection = seedTags?.length
-      ? `Focus topics: ${seedTags.join(', ')}`
-      : `Top tags: ${topTags.slice(0, 5).map(t => t.name).join(', ') || 'none'}\nTop authors: ${topAuthors.slice(0, 5).map(a => a.name).join(', ') || 'none'}\nTop references: ${topReferences.slice(0, 5).map(r => r.name).join(', ') || 'none'}`
+  const callLLM = async (attempt: number): Promise<any[] | null> => {
+    try {
+      const focusSection = seedTags?.length
+        ? `Focus topics: ${seedTags.join(', ')}`
+        : `Top tags: ${topTags.slice(0, 5).map(t => t.name).join(', ') || 'none'}\nTop authors: ${topAuthors.slice(0, 5).map(a => a.name).join(', ') || 'none'}\nTop references: ${topReferences.slice(0, 5).map(r => r.name).join(', ') || 'none'}`
 
-    const prompt = `You are a creative curator. Generate ${suggestionCount} original theme suggestions for a quote collection app.
+      const prompt = `You are a creative curator. Generate ${suggestionCount} original theme suggestions for a quote collection app.
 
 ${focusSection}
 ${context ? '\n' + context : ''}
@@ -251,9 +252,7 @@ For each suggestion, pick a primary focus (tag, author, or reference) and option
 Return a JSON object with a "suggestions" key containing an array of objects with these fields:
 - type: "tag" | "author" | "reference" (the primary focus)
 - name: creative, original theme name (not just the tag name — be imaginative)
-- description: a compelling one-sentence description
-- color_primary: one of ${colorPairs.map(c => c[0]).join(', ')}
-- color_secondary: one of ${colorPairs.map(c => c[1]).join(', ')}
+- description: a compelling one-sentence description (in the requested language)
 - filters: array of { type: "tag_name" | "author_name" | "reference_name", value: string, match_mode: "any" }
 
 Rules:
@@ -261,54 +260,64 @@ Rules:
 - Never combine incompatible filters (e.g., two different author_names)
 - Combine related tags with a tag or author for richer themes
 - Names must be unique and not just raw tag/author names
-- Make the descriptions evocative and specific`
+- Make the descriptions evocative and specific
+- IMPORTANT: filter values MUST be exact matches of existing tags, authors, or references from the data above. Do not invent filter values.`
 
-    const res = await fetch(`${config.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: config.model,
-        response_format: { type: 'json_object' },
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.8,
-        max_tokens: 2000,
-      }),
-    })
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15000)
 
-    if (!res.ok) {
-      console.error('AI API error:', res.status, await res.text().catch(() => ''))
+      const res = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: config.model,
+          response_format: { type: 'json_object' },
+          messages: [{ role: 'user', content: prompt }],
+          temperature: attempt === 1 ? 0.8 : 0.9,
+          max_tokens: 2000,
+        }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeout)
+
+      if (!res.ok) {
+        console.error('AI API error (attempt', attempt, '):', res.status)
+        return null
+      }
+
+      const json = await res.json()
+      const content = json.choices?.[0]?.message?.content
+      if (!content) return null
+
+      const parsed = JSON.parse(content)
+      const items = Array.isArray(parsed) ? parsed : (parsed.suggestions || [])
+      if (!items.length) return null
+
+      return items.slice(0, MAX_SUGGESTIONS).map((s: any, i: number) => {
+        const pair = colorPairs[i % colorPairs.length]!
+        return {
+          type: s.type || 'tag',
+          name: s.name || 'Untitled',
+          slug: slugify(s.name || 'untitled'),
+          description: s.description || '',
+          color_primary: s.color_primary || pair[0],
+          color_secondary: s.color_secondary || pair[1],
+          filters: (s.filters || []).slice(0, 4),
+        }
+      })
+    } catch (error: any) {
+      if (error?.name === 'AbortError') console.error('AI API timeout (attempt', attempt, ')')
+      else console.error('AI API error (attempt', attempt, '):', error?.message || error)
       return null
     }
-
-    const json = await res.json()
-    const choices = json.choices
-    if (!choices?.length) return null
-
-    const content = choices[0].message?.content
-    if (!content) return null
-
-    const parsed = JSON.parse(content)
-    const suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || [])
-
-    return suggestions.slice(0, MAX_SUGGESTIONS).map((s: any, i: number) => {
-      const pair = colorPairs[i % colorPairs.length]!
-      return {
-        type: s.type || 'tag',
-        name: s.name || 'Untitled',
-        slug: slugify(s.name || 'untitled'),
-        description: s.description || '',
-        color_primary: s.color_primary || pair[0],
-        color_secondary: s.color_secondary || pair[1],
-        filters: (s.filters || []).slice(0, 4),
-      }
-    })
-  } catch (error) {
-    console.error('Error generating AI suggestions:', error)
-    return null
   }
+
+  let result = await callLLM(1)
+  if (!result) result = await callLLM(2)
+  return result
 }
 
 export default defineEventHandler(async (event) => {
@@ -430,7 +439,10 @@ export default defineEventHandler(async (event) => {
         const filters: any[] = [{ type: 'tag_name', value: tag.name, match_mode: 'any' }]
         addSuggestion('tag', name, pattern.desc(title), filters)
       }
-    } else {
+    }
+
+    // Fallback: date-based suggestions (also when seed tags produced nothing)
+    if (suggestions.length === 0) {
       const nearbyEvents = getNearbyDateEvents()
       for (const ev of nearbyEvents) {
         if (suggestions.length >= MAX_SUGGESTIONS) break
