@@ -98,12 +98,15 @@ export default defineEventHandler(async (event) => {
       await db.run(sql`DELETE FROM themes WHERE slug = ${'rawraw-' + slug}`)
     }
 
-    // Test 5-n: find which column makes INSERT fail (each test = base + one extra column)
+    // Test 5-n: find which column makes INSERT fail
     const colTests: Record<string, any> = {}
     const baseCols = ['slug', 'name', 'priority']
     const extras: { name: string; cols: string[]; vals: string[] }[] = [
       { name: 'add_description', cols: ['description'], vals: ["'Testing desc'"] },
-      { name: 'add_language', cols: ['language'], vals: ["'en'"] },
+      { name: 'add_language_en', cols: ['language'], vals: ["'en'"] },
+      { name: 'add_language_fr', cols: ['language'], vals: ["'fr'"] },
+      { name: 'add_language_empty', cols: ['language'], vals: ["''"] },
+      { name: 'add_language_null', cols: ['language'], vals: ['NULL'] },
       { name: 'add_config', cols: ['config'], vals: ["'{}'"] },
       { name: 'add_is_active', cols: ['is_active'], vals: ['0'] },
       { name: 'add_is_default', cols: ['is_default'], vals: ['0'] },
