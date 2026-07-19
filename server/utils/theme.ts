@@ -236,46 +236,28 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
   }
 
   const quoteIds = [...matchedIds].slice(0, 500)
-  const idCondition = quoteIds.length ? inArray(schema.quotes.id, quoteIds) : null
-
-  const selectWithJoins = () => db.select({
-    id: schema.quotes.id,
-    name: schema.quotes.name,
-    language: schema.quotes.language,
-    status: schema.quotes.status,
-    viewsCount: schema.quotes.viewsCount,
-    likesCount: schema.quotes.likesCount,
-    sharesCount: schema.quotes.sharesCount,
-    isFeatured: schema.quotes.isFeatured,
-    createdAt: schema.quotes.createdAt,
-    updatedAt: schema.quotes.updatedAt,
-    authorId: schema.quotes.authorId,
-    referenceId: schema.quotes.referenceId,
-    userId: schema.quotes.userId,
-    authorName: schema.authors.name,
-    authorIsFictional: schema.authors.isFictional,
-    authorImageUrl: schema.authors.imageUrl,
-    referenceName: schema.quoteReferences.name,
-    referenceType: schema.quoteReferences.primaryType,
-    userName: schema.users.name,
-    tagNames: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
-    tagColors: sql<string>`GROUP_CONCAT(${schema.tags.color})`,
-  })
-    .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-    .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-    .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
-    .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
 
   let quotes: any[] = []
   let totalVal = 0
 
-  if (idCondition) {
-    const whereFinal = and(baseQFilter, idCondition)
-    quotes = await selectWithJoins()
+  if (quoteIds.length) {
+    const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, quoteIds))
+    quotes = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      language: schema.quotes.language,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      updatedAt: schema.quotes.updatedAt,
+      authorId: schema.quotes.authorId,
+      referenceId: schema.quotes.referenceId,
+      authorName: schema.authors.name,
+      referenceName: schema.quoteReferences.name,
+    })
+      .from(schema.quotes)
+      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .where(whereFinal)
-      .groupBy(schema.quotes.id)
       .orderBy(desc(schema.quotes.likesCount))
       .limit(50)
       .all()
@@ -303,47 +285,16 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     .limit(20)
     .all()
 
-  const processedQuotes = quotes.map((row: any) => {
-    const tags = row.tagNames
-      ? row.tagNames.split(',').map((name: string, index: number) => ({
-          name,
-          color: row.tagColors?.split(',')[index],
-        }))
-      : []
-
-    return {
-      id: row.id,
-      name: row.name,
-      language: row.language,
-      status: row.status,
-      views_count: row.viewsCount,
-      likes_count: row.likesCount,
-      shares_count: row.sharesCount,
-      is_featured: row.isFeatured,
-      created_at: row.createdAt,
-      updated_at: row.updatedAt,
-      author: row.authorId
-        ? {
-            id: row.authorId,
-            name: row.authorName,
-            is_fictional: row.authorIsFictional,
-            image_url: row.authorImageUrl,
-          }
-        : undefined,
-      reference: row.referenceId
-        ? {
-            id: row.referenceId,
-            name: row.referenceName,
-            primary_type: row.referenceType,
-          }
-        : undefined,
-      user: {
-        id: row.userId,
-        name: row.userName,
-      },
-      tags,
-    }
-  })
+  const processedQuotes = quotes.map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    language: row.language,
+    views_count: row.viewsCount || 0,
+    likes_count: row.likesCount || 0,
+    updated_at: row.updatedAt,
+    author: row.authorId ? { id: row.authorId, name: row.authorName } : undefined,
+    reference: row.referenceId ? { id: row.referenceId, name: row.referenceName } : undefined,
+  }))
 
   const processedAuthors = authorRows.map((row: any) => ({
     id: row.id,
