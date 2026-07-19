@@ -119,12 +119,12 @@ export async function getThemeFilters(themeId: number): Promise<FilterRow[]> {
 function buildThemeQuoteConditions(filters: FilterRow[]) {
   if (!filters.length) return null
 
-  const keywordFilters = filters.filter(f => f.type === 'keyword')
-  const tagFilters = filters.filter(f => f.type === 'tag_name')
-  const authorIdFilters = filters.filter(f => f.type === 'author_id')
-  const authorNameFilters = filters.filter(f => f.type === 'author_name')
-  const referenceNameFilters = filters.filter(f => f.type === 'reference_name')
-  const referenceIdFilters = filters.filter(f => f.type === 'reference_id')
+  const keywordFilters = filters.filter(f => f.type === 'keyword').slice(0, 5)
+  const tagFilters = filters.filter(f => f.type === 'tag_name').slice(0, 6)
+  const authorIdFilters = filters.filter(f => f.type === 'author_id').slice(0, 6)
+  const authorNameFilters = filters.filter(f => f.type === 'author_name').slice(0, 8)
+  const referenceNameFilters = filters.filter(f => f.type === 'reference_name').slice(0, 8)
+  const referenceIdFilters = filters.filter(f => f.type === 'reference_id').slice(0, 6)
   const languageFilters = filters.filter(f => f.type === 'language')
 
   const conditions: any[] = []
@@ -188,8 +188,8 @@ function buildThemeQuoteConditions(filters: FilterRow[]) {
 }
 
 function buildThemeAuthorConditions(filters: FilterRow[]) {
-  const authorIdFilters = filters.filter(f => f.type === 'author_id')
-  const authorNameFilters = filters.filter(f => f.type === 'author_name')
+  const authorIdFilters = filters.filter(f => f.type === 'author_id').slice(0, 6)
+  const authorNameFilters = filters.filter(f => f.type === 'author_name').slice(0, 8)
 
   const conditions: any[] = []
 
@@ -209,9 +209,9 @@ function buildThemeAuthorConditions(filters: FilterRow[]) {
 }
 
 function buildThemeReferenceConditions(filters: FilterRow[]) {
-  const referenceNameFilters = filters.filter(f => f.type === 'reference_name')
-  const referenceIdFilters = filters.filter(f => f.type === 'reference_id')
-  const authorIdFilters = filters.filter(f => f.type === 'author_id')
+  const referenceNameFilters = filters.filter(f => f.type === 'reference_name').slice(0, 8)
+  const referenceIdFilters = filters.filter(f => f.type === 'reference_id').slice(0, 6)
+  const authorIdFilters = filters.filter(f => f.type === 'author_id').slice(0, 6)
 
   const conditions: any[] = []
 
