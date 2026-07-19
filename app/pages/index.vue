@@ -115,7 +115,15 @@ const themeData = ref<{
 const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
 const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
 
-const themeQuery = computed(() => languageStore.getLanguageQuery())
+const route = useRoute()
+const themeQuery = computed(() => {
+  const query: Record<string, string> = languageStore.getLanguageQuery()
+  const themePreview = route.query.theme
+  if (themePreview) {
+    query.theme = String(Array.isArray(themePreview) ? themePreview[0] : themePreview)
+  }
+  return query
+})
 
 const { data: activeThemeData, refresh: refreshActiveTheme } = await useFetch<{ data?: typeof themeData.value }>('/api/themes/active', {
   query: themeQuery,

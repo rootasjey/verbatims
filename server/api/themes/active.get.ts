@@ -1,3 +1,6 @@
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
+
 export default defineEventHandler(async (event): Promise<ApiResponse<{
   slug: string
   name: string
@@ -8,7 +11,15 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
   try {
     const query = getQuery(event)
     const language = (query.language as string) || undefined
-    const theme = await resolveActiveTheme(language)
+    const themeSlug = query.theme as string | undefined
+
+    let theme
+    if (themeSlug) {
+      const [found] = await db.select().from(schema.themes).where(eq(schema.themes.slug, themeSlug)).limit(1)
+      theme = found || null
+    } else {
+      theme = await resolveActiveTheme(language)
+    }
     if (!theme) {
       return { success: true, data: null }
     }
