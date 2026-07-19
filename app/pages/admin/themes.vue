@@ -71,7 +71,15 @@
                   <ContextMenu size="xs" native-on-modifier="ctrl" :items="getThemeActions(theme)">
                     <div class="font-sans text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer" @click="openEdit(theme)">{{ theme.name }}</div>
                   </ContextMenu>
-                  <code class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ theme.slug }}</code>
+                  <a
+                    :href="`/?theme=${theme.slug}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :style="{ color: hoveredSlug === theme.slug ? themePrimaryColor(theme) || undefined : undefined }"
+                    class="font-sans text-xs text-gray-400 dark:text-gray-500 no-underline transition-all"
+                    @mouseenter="hoveredSlug = theme.slug"
+                    @mouseleave="hoveredSlug = null"
+                  >{{ theme.slug }}</a>
                 </div>
               </td>
               <td class="px-3 py-3">
@@ -674,6 +682,7 @@ const themeToDelete = ref<any>(null)
 
 const showAISettings = ref(false)
 const showTranslations = ref(false)
+const hoveredSlug = ref<string | null>(null)
 const savingAISettings = ref(false)
 const testingConnection = ref(false)
 
@@ -1163,10 +1172,18 @@ const duplicateTheme = async (theme: any) => {
   showEditDialog.value = true
 }
 
+const themePrimaryColor = (theme: any) => {
+  if (!theme.config) return null
+  let cfg: any
+  if (typeof theme.config === 'object') { cfg = theme.config } else { try { cfg = JSON.parse(theme.config) } catch { return null } }
+  return cfg.color_primary || null
+}
+
 const getThemeActions = (theme: any) => {
   const actions: any[] = [
     { label: $t('row_edit'), leading: 'i-ph-pencil', onclick: () => openEdit(theme) },
     { label: $t('row_duplicate'), leading: 'i-ph-copy', onclick: () => duplicateTheme(theme) },
+    { label: $t('row_preview'), leading: 'i-ph-eye', onclick: () => window.open(`/?theme=${theme.slug}`, '_blank') },
     theme.isActive
       ? { label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) }
       : { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },

@@ -45,6 +45,7 @@ export default defineEventHandler(async (event) => {
       scheduledStart: schema.themes.scheduledStart,
       scheduledEnd: schema.themes.scheduledEnd,
       priority: schema.themes.priority,
+      config: schema.themes.config,
       createdAt: schema.themes.createdAt,
       updatedAt: schema.themes.updatedAt,
       filters_count: count(schema.themeContentFilters.id).as('filters_count'),
