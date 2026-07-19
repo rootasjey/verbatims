@@ -36,8 +36,10 @@ export default defineEventHandler(async (event) => {
 
     const sStart = scheduledStart ? new Date(scheduledStart).getTime() : 'NULL'
     const sEnd = scheduledEnd ? new Date(scheduledEnd).getTime() : 'NULL'
+    const langVal = language ? `'${language.replace(/'/g, "''")}'` : 'NULL'
+    const descVal = description ? `'${description.replace(/'/g, "''")}'` : 'NULL'
     await db.run(sql.raw(
-      `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority) VALUES ('${slug}', '${name.replace(/'/g, "''")}', '${(description || '').replace(/'/g, "''")}', '${(language || '').replace(/'/g, "''")}', '${config.replace(/'/g, "''")}', ${isActive ? 1 : 0}, ${isDefault ? 1 : 0}, ${sStart}, ${sEnd}, ${priority})`
+      `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority) VALUES ('${slug}', '${name.replace(/'/g, "''")}', ${descVal}, ${langVal}, '${config.replace(/'/g, "''")}', ${isActive ? 1 : 0}, ${isDefault ? 1 : 0}, ${sStart}, ${sEnd}, ${priority})`
     ))
 
     const theme = await db.select()
