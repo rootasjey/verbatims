@@ -105,7 +105,12 @@
                   <span v-if="theme.pending_suggestions_count > 0" class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-2xs font-600" :title="`${theme.pending_suggestions_count} pending suggestion(s)`">{{ theme.pending_suggestions_count }}</span>
                 </div>
               </td>
-              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">{{ theme.priority }}</td>
+              <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100 text-center">
+                <template v-if="editingPriority === theme.id">
+                  <NInput v-model="priorityEditValue" type="number" :min="0" size="xs" class="w-16 text-center priority-input" autofocus @blur="savePriority(theme)" @keydown.enter="savePriority(theme)" @keydown.escape="editingPriority = null" />
+                </template>
+                <span v-else class="cursor-pointer hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors" @click="startEditPriority(theme)">{{ theme.priority }}</span>
+              </td>
               <td class="px-3 py-3">
                 <NDropdownMenu :items="getThemeActions(theme)">
                   <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
@@ -679,6 +684,8 @@ const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
 const selectedSort = ref({ label: 'Priority (High-Low)', value: 'priority_desc' })
+const editingPriority = ref<number | null>(null)
+const priorityEditValue = ref(0)
 
 const showEditDialog = ref(false)
 const editMode = ref(false)
@@ -1185,6 +1192,25 @@ const themePrimaryColor = (theme: any) => {
   let cfg: any
   if (typeof theme.config === 'object') { cfg = theme.config } else { try { cfg = JSON.parse(theme.config) } catch { return null } }
   return cfg.color_primary || null
+}
+
+const startEditPriority = (theme: any) => {
+  priorityEditValue.value = theme.priority
+  editingPriority.value = theme.id
+}
+
+const savePriority = async (theme: any) => {
+  const id = editingPriority.value
+  if (id === null) return
+  editingPriority.value = null
+  const val = parseInt(String(priorityEditValue.value), 10)
+  if (isNaN(val) || val === theme.priority) return
+  try {
+    await $fetch(`/api/admin/themes/${id}`, { method: 'PUT', body: { priority: val } })
+    theme.priority = val
+  } catch {
+    useToast().toast({ toast: 'soft-error', title: $t('toast_error') as string })
+  }
 }
 
 const getStatusActions = (theme: any, status: string) => {
