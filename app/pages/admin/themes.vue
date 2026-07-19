@@ -84,10 +84,18 @@
               </td>
               <td class="px-3 py-3">
                 <div class="flex items-center gap-1.5">
-                  <span v-if="theme.isActive" class="font-sans text-xs px-1.5 py-0.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20">{{ $t('status_active') }}</span>
-                  <span v-else-if="theme.isDefault" class="font-sans text-xs px-1.5 py-0.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20">{{ $t('status_default') }}</span>
-                  <span v-else-if="theme.scheduledDate" class="font-sans text-xs px-1.5 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">{{ $t('status_scheduled') }}</span>
-                  <span v-else class="font-sans text-xs px-1.5 py-0.5 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">{{ $t('status_inactive') }}</span>
+                  <NDropdownMenu v-if="theme.isActive" :items="getStatusActions(theme, 'active')">
+                    <span class="font-sans text-xs px-1.5 py-0.5 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-pointer">{{ $t('status_active') }}</span>
+                  </NDropdownMenu>
+                  <NDropdownMenu v-else-if="theme.isDefault" :items="getStatusActions(theme, 'default')">
+                    <span class="font-sans text-xs px-1.5 py-0.5 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-pointer">{{ $t('status_default') }}</span>
+                  </NDropdownMenu>
+                  <NDropdownMenu v-else-if="theme.scheduledDate" :items="getStatusActions(theme, 'scheduled')">
+                    <span class="font-sans text-xs px-1.5 py-0.5 text-yellow-700 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 cursor-pointer">{{ $t('status_scheduled') }}</span>
+                  </NDropdownMenu>
+                  <NDropdownMenu v-else :items="getStatusActions(theme, 'inactive')">
+                    <span class="font-sans text-xs px-1.5 py-0.5 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-pointer">{{ $t('status_inactive') }}</span>
+                  </NDropdownMenu>
                 </div>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ theme.scheduledDate || (theme.scheduledStart ? formatDate(theme.scheduledStart) : '—') }}</td>
@@ -1177,6 +1185,23 @@ const themePrimaryColor = (theme: any) => {
   let cfg: any
   if (typeof theme.config === 'object') { cfg = theme.config } else { try { cfg = JSON.parse(theme.config) } catch { return null } }
   return cfg.color_primary || null
+}
+
+const getStatusActions = (theme: any, status: string) => {
+  const actions: any[] = []
+  if (status === 'active' || status === 'scheduled') {
+    actions.push({ label: $t('row_deactivate'), leading: 'i-ph-toggle-left', onclick: () => toggleActive(theme, false) })
+  }
+  if (status === 'default') {
+    actions.push({ label: $t('row_remove_default'), leading: 'i-ph-star-slash', onclick: () => toggleDefault(theme, false) })
+  }
+  if (status === 'inactive') {
+    actions.push(
+      { label: $t('row_activate'), leading: 'i-ph-toggle-right', onclick: () => toggleActive(theme, true) },
+      { label: $t('row_set_default'), leading: 'i-ph-star', onclick: () => toggleDefault(theme, true) },
+    )
+  }
+  return actions
 }
 
 const getThemeActions = (theme: any) => {
