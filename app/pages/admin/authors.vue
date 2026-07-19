@@ -188,8 +188,24 @@
                 </div>
               </td>
               <td class="px-3 py-3">
-                <span v-if="author.is_fictional" class="font-sans text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5">{{ $t('badge_fictional') }}</span>
-                <span v-else class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">{{ $t('badge_real') }}</span>
+                <NCombobox
+                  :model-value="getAuthorTypeOption(author.is_fictional)"
+                  @update:model-value="onAuthorTypeChange(author, $event)"
+                  :items="authorTypeOptions"
+                  by="value"
+                  :_combobox-input="{
+                    placeholder: 'Change type...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[120px]',
+                  }"
+                  :_combobox-trigger="getAuthorTypeTriggerProps(author.is_fictional)"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label }}
+                  </template>
+                </NCombobox>
               </td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ author.quotes_count || 0 }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(author.created_at) }}</td>
@@ -411,6 +427,37 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
     for (let i = start; i <= end; i += 1) { const row = filteredAuthors.value[i]; if (row) rowSelection.value[row.id] = newVal }
   } else { rowSelection.value[id] = newVal }
   lastSelectedIndex.value = index
+}
+
+const authorTypeOptions = [
+  { label: 'Real', value: false },
+  { label: 'Fictional', value: true },
+]
+
+const getAuthorTypeOption = (isFictional: boolean | undefined) =>
+  authorTypeOptions.find(opt => opt.value === !!isFictional) ?? authorTypeOptions[0]
+
+const getAuthorTypeTriggerProps = (isFictional: boolean) => ({
+  btn: 'ghost-gray',
+  size: 'xs',
+  trailing: '',
+  class: `gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start ${isFictional ? 'text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20' : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20'}`,
+})
+
+const onAuthorTypeChange = async (author: any, newType: { label: string; value: boolean } | null) => {
+  if (newType === null || newType.value === !!author.is_fictional) return
+  const previous = author.is_fictional
+  author.is_fictional = newType.value
+  try {
+    await $fetch(`/api/admin/authors/${author.id}`, {
+      method: 'PUT',
+      body: { is_fictional: newType.value }
+    })
+  } catch (error) {
+    author.is_fictional = previous
+    console.error('Failed to update author type:', error)
+    useErrorToast().showErrorToast(error, 'Failed to update author type')
+  }
 }
 
 const fictionalFilterOptions = [

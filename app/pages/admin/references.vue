@@ -151,7 +151,31 @@
                   </div>
                 </div>
               </td>
-              <td class="px-3 py-3"><span class="font-sans text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 capitalize">{{ ref.primary_type.replace('_', ' ') }}</span></td>
+              <td class="px-3 py-3">
+                <NCombobox
+                  :model-value="getReferenceTypeOption(ref.primary_type)"
+                  @update:model-value="onReferenceTypeChange(ref, $event)"
+                  :items="referenceTypeOptions"
+                  by="value"
+                  :_combobox-input="{
+                    placeholder: 'Change type...',
+                    class: 'text-xs',
+                  }"
+                  :_combobox-list="{
+                    class: 'min-w-[120px]',
+                  }"
+                  :_combobox-trigger="{
+                    btn: 'ghost-gray',
+                    size: 'xs',
+                    trailing: '',
+                    class: 'gap-1 px-1.5 text-xs font-normal w-full min-w-0 h-auto justify-start capitalize',
+                  }"
+                >
+                  <template #trigger="{ modelValue }">
+                    {{ modelValue?.label }}
+                  </template>
+                </NCombobox>
+              </td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ ref.release_date ? formatYear(ref.release_date) : '&mdash;' }}</td>
               <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ ref.quotes_count || 0 }}</td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatRelativeTime(ref.created_at) }}</td>
@@ -340,6 +364,30 @@ const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) =>
     for (let i = start; i <= end; i += 1) { const row = filteredReferences.value[i]; if (row) rowSelection.value[row.id] = newVal }
   } else { rowSelection.value[id] = newVal }
   lastSelectedIndex.value = index
+}
+
+const referenceTypeOptions = computed(() =>
+  typeFilterOptions.filter(opt => opt.value !== '').map(opt => ({ label: opt.label, value: opt.value }))
+)
+
+const getReferenceTypeOption = (type: string | undefined) =>
+  referenceTypeOptions.value.find(opt => opt.value === type) ?? null
+
+const onReferenceTypeChange = async (ref: any, newType: { label: string; value: string } | null) => {
+  const newValue = newType?.value
+  if (!newValue || newValue === ref.primary_type) return
+  const previous = ref.primary_type
+  ref.primary_type = newValue
+  try {
+    await $fetch(`/api/admin/references/${ref.id}`, {
+      method: 'PUT',
+      body: { primary_type: newValue }
+    })
+  } catch (error) {
+    ref.primary_type = previous
+    console.error('Failed to update reference type:', error)
+    useErrorToast().showErrorToast(error, 'Failed to update reference type')
+  }
 }
 
 const typeFilterOptions = [
