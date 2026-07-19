@@ -264,7 +264,7 @@ Rules:
 - IMPORTANT: filter values MUST be exact matches of existing tags, authors, or references from the data above. Do not invent filter values.`
 
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 15000)
+      const timeout = setTimeout(() => controller.abort(), 30000)
 
       const res = await fetch(`${config.baseUrl}/chat/completions`, {
         method: 'POST',
