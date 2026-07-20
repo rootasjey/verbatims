@@ -234,8 +234,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
             .all()
         }
         for (const r of ids) matchedIds.add(r.id)
-      } catch (e) {
-        console.error('Feed:filter', f.type, f.value, (e as Error)?.message)
       }
     }
 
@@ -293,8 +291,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         .orderBy(desc(schema.authors.likesCount))
         .limit(20)
         .all()
-    } catch (e) {
-      console.error('Feed:authors', (e as Error)?.message)
     }
 
     let referenceRows: any[] = []
@@ -306,8 +302,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         .orderBy(desc(schema.quoteReferences.likesCount))
         .limit(20)
         .all()
-    } catch (e) {
-      console.error('Feed:references', (e as Error)?.message)
     }
 
     const processedQuotes = quotes.map((row: any) => ({
@@ -341,12 +335,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       authors: processedAuthors,
       references: processedReferences,
       total: totalVal,
-    }
-  } catch (e) {
-    console.error('Feed:full', (e as Error)?.message)
-    return {
-      theme: { slug: themeSlug, name: themeSlug, description: null, config: null, filters_count: 0 },
-      quotes: [], authors: [], references: [], total: 0,
     }
   }
 }
