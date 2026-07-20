@@ -1,7 +1,7 @@
 export type DownloadImageSettings = {
   theme: 'light' | 'dark'
   background: 'solid' | 'transparent' | 'author-image' | 'reference-image'
-  size: number
+  size: { width: number; height: number }
 }
 
 const STORAGE_KEY = 'verbatims.downloadImageSettings'
@@ -20,7 +20,8 @@ export function loadDownloadImageSettings(): DownloadImageSettings | null {
     // Basic shape validation
     if ((data.theme === 'light' || data.theme === 'dark') &&
         (data.background === 'solid' || data.background === 'transparent' || data.background === 'author-image' || data.background === 'reference-image') &&
-        typeof data.size === 'number') {
+        typeof data.size === 'object' && data.size !== null &&
+        typeof data.size.width === 'number' && typeof data.size.height === 'number') {
       return data as DownloadImageSettings
     }
     return null
