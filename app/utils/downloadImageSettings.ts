@@ -1,6 +1,6 @@
 export type DownloadImageSettings = {
   theme: 'light' | 'dark'
-  background: 'solid' | 'transparent'
+  background: 'solid' | 'transparent' | 'author-image' | 'reference-image'
   size: number
 }
 
@@ -19,7 +19,7 @@ export function loadDownloadImageSettings(): DownloadImageSettings | null {
     if (!data) return null
     // Basic shape validation
     if ((data.theme === 'light' || data.theme === 'dark') &&
-        (data.background === 'solid' || data.background === 'transparent') &&
+        (data.background === 'solid' || data.background === 'transparent' || data.background === 'author-image' || data.background === 'reference-image') &&
         typeof data.size === 'number') {
       return data as DownloadImageSettings
     }

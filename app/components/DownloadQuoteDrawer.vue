@@ -51,7 +51,7 @@ import QuoteImageCard from './QuoteImageCard.vue'
 import { toPng } from 'html-to-image'
 import { createApp, onMounted, watch } from 'vue'
 import { ensurePilcrowFont, injectPilcrowInlineInto } from '~/utils/pilcrowFont'
-import { loadDownloadImageSettings, saveDownloadImageSettings } from '~/utils/downloadImageSettings'
+import { type DownloadImageSettings, loadDownloadImageSettings, saveDownloadImageSettings } from '~/utils/downloadImageSettings'
 
 interface Emits {
   (e: 'update:open', v: boolean): void
@@ -67,12 +67,28 @@ interface ThemeOption {
   label: string
   value: 'light' | 'dark'
 }
-interface BgOption { label: string; value: 'solid' | 'transparent' }
+interface BgOption { label: string; value: 'solid' | 'transparent' | 'author-image' | 'reference-image' }
 
 const { $t } = useI18n()
 
 const themes: ThemeOption[] = [ { label: String($t('components.dialogs.light')), value: 'light' }, { label: String($t('components.dialogs.dark')), value: 'dark' } ]
-const backgrounds: BgOption[] = [ { label: String($t('components.dialogs.solid')), value: 'solid' }, { label: String($t('components.dialogs.transparent')), value: 'transparent' } ]
+const backgrounds = computed<BgOption[]>(() => {
+  const opts: BgOption[] = [
+    { label: String($t('components.dialogs.solid')), value: 'solid' },
+    { label: String($t('components.dialogs.transparent')), value: 'transparent' },
+  ]
+  if (props.quote.author?.image_url) {
+    opts.push({ label: String($t('components.dialogs.author_image')), value: 'author-image' })
+  }
+  if (props.quote.reference?.image_url) {
+    opts.push({ label: String($t('components.dialogs.reference_image')), value: 'reference-image' })
+  }
+  return opts
+})
+
+const findBgOption = (value: string): BgOption => {
+  return backgrounds.value.find(b => b.value === value) || { label: String($t('components.dialogs.solid')), value: 'solid' }
+}
 const sizes: { label: string; value: number }[] = [
   { label: '1080 x 1080 (recommended)', value: 1080 },
   { label: '2048 x 2048', value: 2048 },
@@ -92,28 +108,24 @@ const renderSize = computed(() => sizeOption.value!.value)
 const previewScale = computed(() => Math.max(0.1, Math.min(3, previewSize / renderSize.value)))
 const fontsReady = ref(false)
 
+const applySavedSettings = (saved: DownloadImageSettings | null) => {
+  if (!saved) return
+  form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
+  form.background = findBgOption(saved.background)
+  const found = sizes.find(s => s.value === saved.size)
+  if (found) sizeOption.value = found
+}
+
 watch(isOpen, async open => {
   if (open) {
-    const saved = loadDownloadImageSettings()
-    if (saved) {
-      form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
-      form.background = saved.background === 'transparent' ? { label: String($t('components.dialogs.transparent')), value: 'transparent' } : { label: String($t('components.dialogs.solid')), value: 'solid' }
-      const found = sizes.find(s => s.value === saved.size)
-      if (found) sizeOption.value = found
-    }
+    applySavedSettings(loadDownloadImageSettings())
     await ensurePilcrowFont(); fontsReady.value = true
   }
 })
 
 onMounted(async () => {
   if (isOpen.value) {
-    const saved = loadDownloadImageSettings()
-    if (saved) {
-      form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
-      form.background = saved.background === 'transparent' ? { label: String($t('components.dialogs.transparent')), value: 'transparent' } : { label: String($t('components.dialogs.solid')), value: 'solid' }
-      const found = sizes.find(s => s.value === saved.size)
-      if (found) sizeOption.value = found
-    }
+    applySavedSettings(loadDownloadImageSettings())
     await ensurePilcrowFont(); fontsReady.value = true
   }
 })

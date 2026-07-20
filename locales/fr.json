@@ -755,6 +755,8 @@
       "dark": "Sombre",
       "solid": "Plein",
       "transparent": "Transparent",
+      "author_image": "Photo auteur",
+      "reference_image": "Photo référence",
       "download": "Télécharger",
       "download_image": "Télécharger en image",
       "loading_font": "Chargement de la police…",

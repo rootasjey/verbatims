@@ -37,7 +37,8 @@ Key relationship: `quotes` belong to `users`, and may link to `authors` and `quo
 ## Essential commands
 
 - **Development server**: `bun run dev` (or `npm run dev`)
-- **Type checking**: `bun run typecheck` or `npm run typecheck`
+- **Type checking**: `bun run typecheck` or `npm run typecheck` (run BEFORE every commit)
+- **Tests**: `bun run test` (run BEFORE every commit — 100+ tests across 13 files)
 - **Production build**: `bun run build` (requires explicit user request)
 - **Preview build**: `bun run preview`
 - **Version bump**: `bun run bump:version` (patch), `bun run bump:fix` (hotfix), `bun run bump:minor`, `bun run bump:major`

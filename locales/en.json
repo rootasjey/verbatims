@@ -721,6 +721,8 @@
       "dark": "Dark",
       "solid": "Solid",
       "transparent": "Transparent",
+      "author_image": "Author photo",
+      "reference_image": "Reference photo",
       "download": "Download",
       "download_image": "Download as image",
       "loading_font": "Loading font…",
