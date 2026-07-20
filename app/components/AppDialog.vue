@@ -48,7 +48,7 @@ interface Props {
   cancelText?: string
   submitting?: boolean
   canSubmit?: boolean
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
+  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   maxHeight?: 'none' | 'sm' | 'md' | 'lg'
   hideFooter?: boolean
   scrollable?: boolean
@@ -88,10 +88,12 @@ const isOpen = computed({
 
 const maxWidthClass = computed(() => {
   switch (props.maxWidth) {
+    case 'xs': return 'max-w-xs'
     case 'sm': return 'max-w-sm'
     case 'md': return 'md:max-w-md lg:max-w-lg'
     case 'lg': return 'md:max-w-lg lg:max-w-xl'
-    case 'xl': return 'md:max-w-xl lg:max-w-5xl'
+    case 'xl': return 'md:max-w-xl lg:max-w-2xl'
+    case '2xl': return 'md:max-w-2xl lg:max-w-5xl'
     default: return 'max-w-sm'
   }
 })
