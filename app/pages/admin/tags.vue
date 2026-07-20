@@ -212,7 +212,7 @@ const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
 const searchQuery = ref('')
-const selectedSort = ref({ label: 'Name A-Z', value: 'name_asc' })
+const selectedSort = ref({ label: $t('sort_name_az') as string, value: 'name_asc' })
 
 useColorPickerEscape()
 
@@ -232,7 +232,7 @@ const backfillDryRun = ref(true)
 const backfillOnlyUntagged = ref(true)
 const backfillResetExisting = ref(false)
 const backfillLimit = ref(2000)
-const backfillStatus = ref({ label: 'Approved quotes', value: 'approved' })
+const backfillStatus = ref({ label: $t('dialog_backfill_approved') as string, value: 'approved' })
 
 const selectedIds = computed<number[]>(() => Object.entries(rowSelection.value).filter(([, v]) => !!v).map(([k]) => Number(k)))
 
@@ -276,16 +276,16 @@ useAdminKeyboardShortcuts({
   onSingleDelete: () => { if (highlightedTag.value) { tagToDelete.value = highlightedTag.value; showDeleteDialog.value = true } }
 })
 
-const sortOptions = [
-  { label: 'Name A-Z', value: 'name_asc' }, { label: 'Name Z-A', value: 'name_desc' },
-  { label: 'Most Recent', value: 'created_at_desc' }, { label: 'Oldest First', value: 'created_at_asc' },
-  { label: 'Most Quotes', value: 'quotes_desc' }
-]
+const sortOptions = computed(() => [
+  { label: $t('sort_name_az') as string, value: 'name_asc' }, { label: $t('sort_name_za') as string, value: 'name_desc' },
+  { label: $t('sort_most_recent') as string, value: 'created_at_desc' }, { label: $t('sort_oldest_first') as string, value: 'created_at_asc' },
+  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }
+])
 
-const backfillStatusOptions = [
-  { label: 'Approved quotes', value: 'approved' }, { label: 'Pending quotes', value: 'pending' },
-  { label: 'Draft quotes', value: 'draft' }, { label: 'Rejected quotes', value: 'rejected' }, { label: 'All quotes', value: 'all' }
-]
+const backfillStatusOptions = computed(() => [
+  { label: $t('dialog_backfill_approved') as string, value: 'approved' }, { label: $t('dialog_backfill_pending') as string, value: 'pending' },
+  { label: $t('dialog_backfill_draft') as string, value: 'draft' }, { label: $t('dialog_backfill_rejected') as string, value: 'rejected' }, { label: $t('dialog_backfill_all') as string, value: 'all' }
+])
 
 const totalPages = computed(() => Math.ceil(totalTags.value / pageSize.value))
 
@@ -310,7 +310,7 @@ const loadTags = async () => {
   finally { loading.value = false }
 }
 
-const resetFilters = () => { searchQuery.value = ''; selectedSort.value = sortOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
+const resetFilters = () => {   searchQuery.value = ''; selectedSort.value = sortOptions.value[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const getTagActions = (tag: any) => [
   { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => { selectedTag.value = tag; showAddDialog.value = true } },

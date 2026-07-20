@@ -79,6 +79,7 @@
     "load_more": "Load more",
     "most_recent": "Most Recent",
     "select_language": "Select language...",
+    "all_languages": "All Languages",
     "previous": "Previous",
     "next": "Next",
     "page_of": "Page {n} of {m}",
@@ -116,6 +117,7 @@
     "quote_plural": "quotes",
     "unknown": "Unknown",
     "status": "Status",
+    "add_to_collection": "Add to Collection",
     "context_menu_native_hint": "Press Ctrl + right-click for browser menu"
   },
   "home": {

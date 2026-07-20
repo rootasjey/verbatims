@@ -23,7 +23,7 @@
             :items="languageOptions"
             by="value"
             :_combobox-input="{
-              placeholder: 'All Languages',
+              placeholder: $t('common.all_languages') as string,
               class: 'text-xs',
             }"
             :_combobox-list="{
@@ -38,7 +38,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label || 'All Languages' }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
         </div>
@@ -65,7 +65,7 @@
           }"
         >
           <template #trigger="{ modelValue }">
-            <span class="text-xs leading-none">{{ modelValue?.label || 'All Languages' }}</span>
+            <span class="text-xs leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
           </template>
         </NCombobox>
       </div>
@@ -330,7 +330,7 @@ const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
-const selectedLanguage = ref({ label: 'All Languages', value: '' })
+const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)

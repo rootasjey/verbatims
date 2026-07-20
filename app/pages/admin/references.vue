@@ -304,7 +304,7 @@ const currentPage = ref(1)
 const pageSize = ref(50)
 const searchQuery = ref('')
 const selectedTypeFilter = ref({ label: 'All Types', value: '' })
-const selectedSort = ref({ label: 'Name A-Z', value: 'name_asc' })
+const selectedSort = ref({ label: $t('sort_name_az') as string, value: 'name_asc' })
 const isCardView = ref(false)
 const showAddReferenceDialog = ref(false)
 const selectedReference = ref<QuoteReferenceWithMetadata | undefined>()
@@ -421,12 +421,12 @@ const typeFilterOptions = [
   { label: 'Writings', value: 'writings' }, { label: 'Video Games', value: 'video_game' }, { label: 'Other', value: 'other' }
 ]
 
-const sortOptions = [
-  { label: 'Name A-Z', value: 'name_asc' }, { label: 'Name Z-A', value: 'name_desc' },
-  { label: 'Most Recent', value: 'created_desc' }, { label: 'Oldest First', value: 'created_asc' },
-  { label: 'Release Date (Newest)', value: 'release_date_desc' }, { label: 'Release Date (Oldest)', value: 'release_date_asc' },
-  { label: 'Most Quotes', value: 'quotes_desc' }, { label: 'Most Liked', value: 'likes_desc' }
-]
+const sortOptions = computed(() => [
+  { label: $t('sort_name_az') as string, value: 'name_asc' }, { label: $t('sort_name_za') as string, value: 'name_desc' },
+  { label: $t('sort_most_recent') as string, value: 'created_desc' }, { label: $t('sort_oldest_first') as string, value: 'created_asc' },
+  { label: $t('sort_release_date_desc') as string, value: 'release_date_desc' }, { label: $t('sort_release_date_asc') as string, value: 'release_date_asc' },
+  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_most_liked') as string, value: 'likes_desc' }
+])
 
 const totalPages = computed(() => Math.ceil(totalReferences.value / pageSize.value))
 const filteredReferences = computed(() => references.value)
@@ -456,7 +456,7 @@ const loadReferences = async () => {
 }
 
 const resetFilters = () => {
-  searchQuery.value = ''; selectedTypeFilter.value = typeFilterOptions[0]!; selectedSort.value = sortOptions[0]!
+  searchQuery.value = ''; selectedTypeFilter.value = typeFilterOptions[0]!; selectedSort.value = sortOptions.value[0]!
   currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 

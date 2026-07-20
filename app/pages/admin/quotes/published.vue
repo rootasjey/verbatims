@@ -42,7 +42,7 @@
             :items="languageOptions"
             by="value"
             :_combobox-input="{
-              placeholder: 'All Languages',
+              placeholder: $t('common.all_languages') as string,
               class: 'text-xs',
             }"
             :_combobox-list="{
@@ -57,7 +57,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label || 'All Languages' }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
         </div>
@@ -223,7 +223,7 @@
                   {{ quote.user_name }}
                 </span>
                 <span v-else class="font-sans text-sm text-gray-400 dark:text-gray-500 italic">
-                  Unknown
+                  {{ $t('common.unknown') }}
                 </span>
               </td>
               <td class="px-3 py-3">
@@ -280,19 +280,19 @@
         >
           {{ currentPage }}
         </button>
-        of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? 'quote' : 'quotes' }}
+        {{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
       </span>
       <div class="flex items-center gap-3">
-        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
         <button
           class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }} / {{ totalPages }}
         </button>
-        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
       </div>
     </div>
 
@@ -386,7 +386,7 @@ const quotes = ref<AdminQuote[]>([])
 const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const searchQuery = ref('')
-const selectedSort = ref({ label: 'Most Recent', value: 'newest' })
+const selectedSort = ref({ label: $t('sort_most_recent') as string, value: 'newest' })
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
@@ -399,7 +399,7 @@ const languageOptions = computed(() =>
   }))
 )
 
-const selectedLanguage = ref({ label: 'All Languages', value: '' })
+const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
 
 const inlineLanguageOptions = computed(() =>
   languageStore.availableLanguages
@@ -427,13 +427,13 @@ const onLanguageChange = async (quote: AdminQuote, newLang: { label: string; val
   }
 }
 
-const statusOptions = [
-  { label: 'Published', value: 'approved' },
-  { label: 'Draft', value: 'draft' },
-]
+const statusOptions = computed(() => [
+  { label: $t('common.status_approved') as string, value: 'approved' },
+  { label: $t('common.status_draft') as string, value: 'draft' },
+])
 
 const getStatusOption = (status: string | undefined) =>
-  statusOptions.find(opt => opt.value === status) ?? null
+  statusOptions.value.find(opt => opt.value === status) ?? null
 
 const getStatusTriggerProps = (status: string) => ({
   btn: 'ghost-gray',
@@ -477,12 +477,12 @@ const showPageJumpDialog = ref(false)
 const footerLeftOffset = ref(0)
 const footerWidth = ref('100%')
 
-const sortOptions = [
-  { label: 'Most Recent', value: 'newest' },
-  { label: 'Oldest First', value: 'oldest' },
-  { label: 'Most Liked', value: 'likes' },
-  { label: 'Most Viewed', value: 'views' }
-]
+const sortOptions = computed(() => [
+  { label: $t('sort_most_recent') as string, value: 'newest' },
+  { label: $t('sort_oldest_first') as string, value: 'oldest' },
+  { label: $t('sort_most_liked') as string, value: 'likes' },
+  { label: $t('sort_most_viewed') as string, value: 'views' }
+])
 
 const totalPages = computed(() => Math.ceil(totalQuotes.value / pageSize.value))
 
@@ -559,8 +559,8 @@ const loadQuotes = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedLanguage.value = languageOptions.value[0] ?? { label: 'All Languages', value: '' }
-  selectedSort.value = { label: 'Most Recent', value: 'newest' }
+  selectedLanguage.value = languageOptions.value[0] ?? { label: $t('common.all_languages') as string, value: '' }
+  selectedSort.value = sortOptions.value[0]!
   currentPage.value = 1
   rowSelection.value = {}
   lastSelectedIndex.value = null
