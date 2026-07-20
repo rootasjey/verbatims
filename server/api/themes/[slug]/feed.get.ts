@@ -18,7 +18,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<ThemeFeedRe
     return { success: true, data: feed! }
   } catch (error) {
     if ((error as any).statusCode) throw error
-    console.error('Error fetching theme feed:', error)
-    throwServer(500, 'Failed to fetch theme feed')
+    const msg = (error as any)?.message || String(error)
+    console.error('Error fetching theme feed:', msg)
+    throwServer(500, msg)
   }
 })
