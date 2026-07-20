@@ -374,7 +374,7 @@
       </div>
     </div>
 
-    <div v-if="feed.hasMore?.value" class="mt-12">
+    <div v-if="!props.theme && feed.hasMore?.value" class="mt-12">
       <LoadMoreButton
         :idleText="$ts('home.load_more')"
         :loadingText="$ts('home.loading')"

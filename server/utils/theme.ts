@@ -252,6 +252,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
           id: schema.quotes.id,
           name: schema.quotes.name,
           language: schema.quotes.language,
+          createdAt: schema.quotes.createdAt,
           viewsCount: schema.quotes.viewsCount,
           likesCount: schema.quotes.likesCount,
           updatedAt: schema.quotes.updatedAt,
@@ -299,6 +300,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
 
     const processedQuotes = quotes.map((row: any) => ({
       id: row.id, name: row.name, language: row.language,
+      created_at: row.createdAt,
       views_count: row.viewsCount || 0, likes_count: row.likesCount || 0,
       updated_at: row.updatedAt,
       author: row.authorId ? { id: row.authorId, name: row.authorName } : undefined,
