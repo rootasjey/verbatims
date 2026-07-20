@@ -498,11 +498,45 @@
     "in_hours": "dans {count} heure{count, plural, one {} other {s}}",
     "in_minutes": "dans {count} minute{count, plural, one {} other {s}}"
   },
+  "nuxtSiteConfig": {
+    "name": "Verbatims",
+    "description": "Découvrez des citations inspirantes d'auteurs, films, livres et plus encore."
+  },
   "content_language": {
     "all": "Toutes les langues",
     "en": "Anglais",
     "fr": "Français",
     "la": "Latin"
+  },
+  "desktop_quotes_grid": {
+    "search_placeholder": "Rechercher des citations...",
+    "sort_by": "Trier par",
+    "no_quotes_match": "Aucune citation trouvée",
+    "no_quotes_yet": "Pas encore de citations",
+    "no_results_for": "Aucun résultat pour « {query} »",
+    "empty_description": "Soyez le premier à partager une citation.",
+    "submit_quote": "Ajouter une citation",
+    "load_more": "Voir plus",
+    "loading": "Chargement..."
+  },
+  "authors": {
+    "search": {
+      "search_placeholder": "Rechercher des auteurs...",
+      "sort_by": "Trier par"
+    }
+  },
+  "references": {
+    "search": {
+      "search_placeholder": "Rechercher des références...",
+      "all_types": "Tous les types",
+      "sort_by": "Trier par"
+    }
+  },
+  "tags": {
+    "tag_search": {
+      "search_placeholder": "Rechercher des tags...",
+      "sort_by": "Trier par"
+    }
   },
   "components": {
     "masthead": {

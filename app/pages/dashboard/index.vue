@@ -157,7 +157,7 @@
                 <p class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {{ collection.name }}
                 </p>
-                <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} {{ collection.quotes_count === 1 ? $t('quote_singular') : $t('quote_plural') }}</p>
+                <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ collection.quotes_count }} {{ collection.quotes_count === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</p>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0 ml-3">
                 <span v-if="collection.is_public" class="font-sans text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5">{{ $t('common.public') }}</span>
