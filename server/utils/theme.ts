@@ -252,7 +252,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       batches.push(allIds.slice(i, i + chunkSize))
     }
 
-    const batchResults = await Promise.all(batches.map(batchIds => {
+    const batchResults: any[][] = await Promise.all(batches.map(batchIds => {
       const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, batchIds))
       return db.select({
         id: schema.quotes.id,
