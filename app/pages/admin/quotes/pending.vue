@@ -42,7 +42,7 @@
             :items="languageOptions"
             by="value"
             :_combobox-input="{
-              placeholder: 'All Languages',
+              placeholder: $t('common.all_languages') as string,
               class: 'text-xs',
             }"
             :_combobox-list="{
@@ -57,7 +57,7 @@
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label || 'All Languages' }}</span>
+              <span class="text-xs font-medium leading-none">{{ modelValue?.label || $t('common.all_languages') }}</span>
             </template>
           </NCombobox>
         </div>
@@ -243,26 +243,19 @@
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
-        Page
-        <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
-          @click="showPageJumpDialog = true"
-        >
-          {{ currentPage }}
-        </button>
-        of {{ totalPages }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
+        {{ $t('common.page_of', { n: currentPage, m: totalPages }) }} &middot; {{ totalQuotes }} {{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
       </span>
       <div class="flex items-center gap-3">
-        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
+        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; {{ $t('common.previous') }}</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.first_page') }}</span>
         <button
           class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }} / {{ totalPages }}
         </button>
-        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">{{ $t('common.next') }} &rarr;</OutlinedButton>
+        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">{{ $t('common.last_page') }}</span>
       </div>
     </div>
 
@@ -404,8 +397,8 @@ const pageSize = ref(50)
 const totalQuotes = ref(0)
 const totalPages = ref(0)
 const searchQuery = ref('')
-const statusFilter = ref({ label: 'Pending Review', value: 'pending' })
-const selectedLanguage = ref({ label: 'All Languages', value: '' })
+const statusFilter = ref({ label: $t('filter_status_pending') as string, value: 'pending' })
+const selectedLanguage = ref({ label: $t('common.all_languages') as string, value: '' })
 const rowSelection = ref<Record<number, boolean>>({})
 const lastSelectedIndex = ref<number | null>(null)
 const processing = ref(new Set<number>())
@@ -423,11 +416,11 @@ const selectedQuote = ref<any>(null)
 const rejectionReason = ref('')
 const bulkRejectionReason = ref('')
 
-const statusOptions = [
-  { label: 'Pending Review', value: 'pending' },
-  { label: 'Approved', value: 'approved' },
-  { label: 'Rejected', value: 'rejected' }
-]
+const statusOptions = computed(() => [
+  { label: $t('filter_status_pending') as string, value: 'pending' },
+  { label: $t('filter_status_approved') as string, value: 'approved' },
+  { label: $t('filter_status_rejected') as string, value: 'rejected' }
+])
 
 const languageStore = useLanguageStore()
 const languageOptions = computed(() =>
@@ -652,8 +645,8 @@ const loadQuotes = async (page = 1) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  statusFilter.value = { label: 'Pending Review', value: 'pending' }
-  selectedLanguage.value = { label: 'All Languages', value: '' }
+  statusFilter.value = statusOptions.value[0]!
+  selectedLanguage.value = { label: $t('common.all_languages') as string, value: '' }
   currentPage.value = 1
   rowSelection.value = {}
   lastSelectedIndex.value = null

@@ -346,7 +346,7 @@ const currentPage = ref(1)
 const pageSize = ref(50)
 const searchQuery = ref('')
 const selectedFictionalFilter = ref({ label: 'All Types', value: '' })
-const selectedSort = ref({ label: 'Name A-Z', value: 'name_asc' })
+const selectedSort = ref({ label: $t('sort_name_az') as string, value: 'name_asc' })
 const isCardView = ref(false)
 const showAddAuthorDialog = ref(false)
 const selectedAuthor = ref<Author | undefined>()
@@ -490,11 +490,11 @@ const fictionalFilterOptions = [
   { label: 'Fictional Characters', value: 'true' }
 ]
 
-const sortOptions = [
-  { label: 'Name A-Z', value: 'name_asc' }, { label: 'Name Z-A', value: 'name_desc' },
-  { label: 'Most Recent', value: 'created_desc' }, { label: 'Oldest First', value: 'created_asc' },
-  { label: 'Most Quotes', value: 'quotes_desc' }, { label: 'Most Liked', value: 'likes_desc' }
-]
+const sortOptions = computed(() => [
+  { label: $t('sort_name_az') as string, value: 'name_asc' }, { label: $t('sort_name_za') as string, value: 'name_desc' },
+  { label: $t('sort_most_recent') as string, value: 'created_desc' }, { label: $t('sort_oldest_first') as string, value: 'created_asc' },
+  { label: $t('sort_most_quotes') as string, value: 'quotes_desc' }, { label: $t('sort_most_liked') as string, value: 'likes_desc' }
+])
 
 const totalPages = computed(() => Math.ceil(totalAuthors.value / pageSize.value))
 const totalFictional = computed(() => authors.value.filter(author => author.is_fictional).length)
@@ -525,7 +525,7 @@ const loadAuthors = async () => {
 
 const resetFilters = () => {
   searchQuery.value = ''; selectedFictionalFilter.value = fictionalFilterOptions[0]!
-  selectedSort.value = sortOptions[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
+  selectedSort.value = sortOptions.value[0]!; currentPage.value = 1; rowSelection.value = {}; lastSelectedIndex.value = null
 }
 
 const getAuthorActions = (author: Author) => [

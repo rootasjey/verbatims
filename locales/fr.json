@@ -79,6 +79,7 @@
     "load_more": "Charger plus",
     "most_recent": "Plus récents",
     "select_language": "Sélectionner une langue...",
+    "all_languages": "Toutes les langues",
     "previous": "Précédent",
     "next": "Suivant",
     "page_of": "Page {n} sur {m}",
@@ -116,6 +117,7 @@
     "quote_plural": "citations",
     "unknown": "Inconnu",
     "status": "Statut",
+    "add_to_collection": "Ajouter à une collection",
     "context_menu_native_hint": "Ctrl + clic droit pour le menu navigateur"
   },
   "home": {
