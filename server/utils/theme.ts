@@ -322,6 +322,15 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       reference: row.referenceId ? { id: row.referenceId, name: row.referenceName } : undefined,
     }))
 
+    // Prioritize quotes matching the theme's language
+    if (themeRow.language) {
+      processedQuotes.sort((a, b) => {
+        if (a.language === themeRow.language && b.language !== themeRow.language) return -1
+        if (a.language !== themeRow.language && b.language === themeRow.language) return 1
+        return 0
+      })
+    }
+
     const processedAuthors = authorRows.map((row: any) => ({
       id: row.id, name: row.name, job: row.job, description: row.description,
       image_url: row.imageUrl, likes_count: row.likesCount || 0,
