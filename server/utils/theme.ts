@@ -197,45 +197,45 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         .innerJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
         .where(and(baseQFilter, like(schema.tags.name, `%${f.value}%`)))
-        .limit(500)
+        .limit(100)
         .all()
     } else if (f.type === 'author_name') {
       ids = await db.select({ id: schema.quotes.id })
         .from(schema.quotes)
         .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
         .where(and(baseQFilter, like(schema.authors.name, `%${f.value}%`)))
-        .limit(500)
+        .limit(100)
         .all()
     } else if (f.type === 'author_id') {
       ids = await db.select({ id: schema.quotes.id })
         .from(schema.quotes)
         .where(and(baseQFilter, eq(schema.quotes.authorId, parseInt(f.value))))
-        .limit(500)
+        .limit(100)
         .all()
     } else if (f.type === 'reference_name') {
       ids = await db.select({ id: schema.quotes.id })
         .from(schema.quotes)
         .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
         .where(and(baseQFilter, like(schema.quoteReferences.name, `%${f.value}%`)))
-        .limit(500)
+        .limit(100)
         .all()
     } else if (f.type === 'reference_id') {
       ids = await db.select({ id: schema.quotes.id })
         .from(schema.quotes)
         .where(and(baseQFilter, eq(schema.quotes.referenceId, parseInt(f.value))))
-        .limit(500)
+        .limit(100)
         .all()
     } else if (f.type === 'keyword') {
       ids = await db.select({ id: schema.quotes.id })
         .from(schema.quotes)
         .where(and(baseQFilter, like(schema.quotes.name, `%${f.value}%`)))
-        .limit(500)
+        .limit(100)
         .all()
     }
     for (const r of ids) matchedIds.add(r.id)
   }
 
-  const quoteIds = [...matchedIds].slice(0, 500)
+  const quoteIds = [...matchedIds].slice(0, 100)
 
   let quotes: any[] = []
   let totalVal = 0
