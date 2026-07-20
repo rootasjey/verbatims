@@ -65,13 +65,13 @@ const { $t } = useI18n()
 interface Props {
   quote: QuoteWithRelations
   theme?: 'light' | 'dark'
-  size?: number // square px size (default 1080)
+  size?: { width: number; height: number }
   background?: 'solid' | 'transparent' | 'author-image' | 'reference-image'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   theme: 'light',
-  size: 1080,
+  size: () => ({ width: 1080, height: 1080 }),
   background: 'solid'
 })
 
@@ -97,8 +97,8 @@ const borderClass = computed(() =>
 
 const containerStyle = computed(() => {
   const style: Record<string, string> = {
-    width: `${props.size}px`,
-    height: `${props.size}px`,
+    width: `${props.size.width}px`,
+    height: `${props.size.height}px`,
   }
   if (isPhotoBackground.value) {
     style.borderColor = 'transparent'

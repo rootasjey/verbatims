@@ -10,13 +10,14 @@
         <!-- Preview -->
         <div class="flex justify-center mb-4">
           <div
+            class="bg-transparent"
             :style="{ width: previewSize + 'px', height: previewSize + 'px', overflow: 'hidden' }"
           >
             <div
               ref="previewRef"
-              :style="{ width: renderSize + 'px', height: renderSize + 'px', transform: `scale(${previewScale})`, transformOrigin: 'top left' }"
+              :style="{ width: renderDimensions.width + 'px', height: renderDimensions.height + 'px', transform: `scale(${previewScale})`, transformOrigin: 'top left' }"
             >
-              <QuoteImageCard :quote="quote" :theme="form.theme.value" :background="form.background.value" :size="renderSize" />
+              <QuoteImageCard :quote="quote" :theme="form.theme.value" :background="form.background.value" :size="renderDimensions" />
             </div>
           </div>
         </div>
@@ -68,6 +69,7 @@ interface ThemeOption {
   value: 'light' | 'dark'
 }
 interface BgOption { label: string; value: 'solid' | 'transparent' | 'author-image' | 'reference-image' }
+interface SizeOption { label: string; value: { width: number; height: number } }
 
 const { $t } = useI18n()
 
@@ -89,10 +91,10 @@ const backgrounds = computed<BgOption[]>(() => {
 const findBgOption = (value: string): BgOption => {
   return backgrounds.value.find(b => b.value === value) || { label: String($t('components.dialogs.solid')), value: 'solid' }
 }
-const sizes: { label: string; value: number }[] = [
-  { label: '1080 x 1080 (recommended)', value: 1080 },
-  { label: '2048 x 2048', value: 2048 },
-  { label: '800 x 800', value: 800 },
+const sizes: SizeOption[] = [
+  { label: String($t('components.dialogs.size_square')), value: { width: 1080, height: 1080 } },
+  { label: String($t('components.dialogs.size_desktop_wallpaper')), value: { width: 1920, height: 1080 } },
+  { label: String($t('components.dialogs.size_phone_wallpaper')), value: { width: 1080, height: 1920 } },
 ]
 
 const form: { theme: ThemeOption; background: BgOption } = reactive({
@@ -104,15 +106,20 @@ const previewSize = 320
 const previewRef = ref<HTMLElement | null>(null)
 const downloading = ref(false)
 
-const renderSize = computed(() => sizeOption.value!.value)
-const previewScale = computed(() => Math.max(0.1, Math.min(3, previewSize / renderSize.value)))
+const renderDimensions = computed(() => sizeOption.value!.value)
+const previewScale = computed(() => {
+  const { width, height } = renderDimensions.value
+  return Math.min(1, previewSize / Math.max(width, height))
+})
 const fontsReady = ref(false)
 
 const applySavedSettings = (saved: DownloadImageSettings | null) => {
   if (!saved) return
   form.theme = saved.theme === 'dark' ? { label: String($t('components.dialogs.dark')), value: 'dark' } : { label: String($t('components.dialogs.light')), value: 'light' }
   form.background = findBgOption(saved.background)
-  const found = sizes.find(s => s.value === saved.size)
+  const found = sizes.find(s =>
+    s.value.width === saved.size.width && s.value.height === saved.size.height
+  )
   if (found) sizeOption.value = found
 }
 
@@ -130,7 +137,7 @@ onMounted(async () => {
   }
 })
 
-watch(() => [form.theme.value, form.background.value, sizeOption.value!.value] as const, ([theme, background, size]) => {
+watch(() => [form.theme.value, form.background.value, renderDimensions.value] as const, ([theme, background, size]) => {
   saveDownloadImageSettings({ theme, background, size })
 })
 
@@ -152,13 +159,13 @@ const download = async () => {
       quote: props.quote,
       theme: form.theme.value,
       background: form.background.value,
-      size: renderSize.value
+      size: renderDimensions.value
     })
     app.mount(mount)
     await new Promise(r => requestAnimationFrame(() => r(null)))
 
     // Save settings on download as well (ensures persistence even if watchers miss updates)
-    saveDownloadImageSettings({ theme: form.theme.value, background: form.background.value, size: renderSize.value })
+    saveDownloadImageSettings({ theme: form.theme.value, background: form.background.value, size: renderDimensions.value })
 
     const rootEl = mount.firstElementChild as HTMLElement
     if (rootEl) await injectPilcrowInlineInto(rootEl)
