@@ -175,8 +175,7 @@ function buildThemeReferenceConditions(filters: FilterRow[]) {
 }
 
 export async function getThemeFeed(themeSlug: string, language?: string): Promise<ThemeFeedResult | null> {
-  try {
-    const themeRow = await db.select()
+  const themeRow = await db.select()
       .from(schema.themes)
       .where(eq(schema.themes.slug, themeSlug))
       .limit(1)
@@ -190,8 +189,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     const baseQFilter = eq(schema.quotes.status, 'approved')
 
     for (const f of filters) {
-      try {
-        let ids: { id: number }[] = []
+      let ids: { id: number }[] = []
         if (f.type === 'tag_name') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
@@ -234,7 +232,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
             .all()
         }
         for (const r of ids) matchedIds.add(r.id)
-      }
     }
 
     const allIds = [...matchedIds]
@@ -283,26 +280,22 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     }
 
     let authorRows: any[] = []
-    try {
-      const authorCondition = buildThemeAuthorConditions(filters)
+    const authorCondition = buildThemeAuthorConditions(filters)
       authorRows = await db.select()
         .from(schema.authors)
         .where(authorCondition || undefined)
         .orderBy(desc(schema.authors.likesCount))
         .limit(20)
         .all()
-    }
 
     let referenceRows: any[] = []
-    try {
-      const referenceCondition = buildThemeReferenceConditions(filters)
+    const referenceCondition = buildThemeReferenceConditions(filters)
       referenceRows = await db.select()
         .from(schema.quoteReferences)
         .where(referenceCondition || undefined)
         .orderBy(desc(schema.quoteReferences.likesCount))
         .limit(20)
         .all()
-    }
 
     const processedQuotes = quotes.map((row: any) => ({
       id: row.id, name: row.name, language: row.language,
@@ -337,6 +330,5 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       total: totalVal,
     }
   }
-}
 
 
