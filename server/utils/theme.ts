@@ -86,21 +86,26 @@ export async function resolveActiveTheme(language?: string): Promise<ThemeRow | 
   const byLanguage = language ? allThemes.filter(t => themeMatchesLanguage(t, language)) : allThemes
   const candidates = byLanguage.length ? byLanguage : allThemes
 
-  const scheduled = candidates.find(t =>
-    (t.scheduledStart && t.scheduledEnd &&
-      now >= t.scheduledStart.getTime() &&
-      now <= t.scheduledEnd.getTime())
-  )
-  if (scheduled) return scheduled as unknown as ThemeRow
+  const pickFrom = (list: typeof allThemes) => {
+    const scheduled = list.find(t =>
+      (t.scheduledStart && t.scheduledEnd &&
+        now >= t.scheduledStart.getTime() &&
+        now <= t.scheduledEnd.getTime())
+    )
+    if (scheduled) return scheduled as unknown as ThemeRow
 
-  const active = candidates.find(t => t.isActive)
-  if (active) return active as unknown as ThemeRow
+    const active = list.find(t => t.isActive)
+    if (active) return active as unknown as ThemeRow
 
-  const defaults = candidates.filter(t => t.isDefault)
-  if (defaults.length) {
-    const randomIndex = Math.floor(Math.random() * defaults.length)
-    return defaults[randomIndex] as unknown as ThemeRow
+    const defaults = list.filter(t => t.isDefault)
+    if (defaults.length) {
+      return defaults[Math.floor(Math.random() * defaults.length)] as unknown as ThemeRow
+    }
+    return null
   }
+
+  const result = pickFrom(candidates) || pickFrom(allThemes)
+  if (result) return result
 
   if (byLanguage.length === 0 && language) {
     return resolveActiveTheme()
