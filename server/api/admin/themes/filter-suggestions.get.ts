@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { like } from 'drizzle-orm'
+import { like, and, eq, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -84,6 +84,32 @@ export default defineEventHandler(async (event) => {
           }
         }
         results = Array.from(words).slice(0, 10).map(w => ({ label: w, value: w }))
+        break
+      }
+      case 'featured_quote': {
+        const rows = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
+          .from(schema.quotes)
+          .where(and(
+            eq(schema.quotes.status, 'approved'),
+            like(schema.quotes.name, `%${q}%`)
+          ))
+          .orderBy(desc(schema.quotes.likesCount))
+          .limit(10)
+          .all()
+        results = rows.map(r => ({
+          label: r.name.length > 80 ? r.name.slice(0, 80) + '…' : r.name,
+          value: String(r.id)
+        }))
+        break
+      }
+      case 'featured_reference': {
+        const rows = await db.select({ id: schema.quoteReferences.id, name: schema.quoteReferences.name })
+          .from(schema.quoteReferences)
+          .where(like(schema.quoteReferences.name, `%${q}%`))
+          .orderBy(desc(schema.quoteReferences.likesCount))
+          .limit(10)
+          .all()
+        results = rows.map(r => ({ label: r.name, value: String(r.id) }))
         break
       }
       case 'language': {

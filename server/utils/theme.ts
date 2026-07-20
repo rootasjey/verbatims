@@ -188,6 +188,11 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
 
     if (!themeRow) return null
 
+    let themeConfig: Record<string, any> = {}
+    if (themeRow.config) {
+      try { themeConfig = JSON.parse(themeRow.config) } catch {}
+    }
+
     const filters = await getThemeFilters(themeRow.id)
 
     const matchedIds = new Set<number>()
@@ -237,6 +242,11 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
             .all()
         }
         for (const r of ids) matchedIds.add(r.id)
+    }
+
+    // Ensure the featured quote is always included, even if not matched by filters
+    if (themeConfig.featured_quote_id) {
+      matchedIds.add(themeConfig.featured_quote_id)
     }
 
     const allIds = [...matchedIds]
@@ -322,13 +332,50 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       primary_type: row.primaryType, image_url: row.imageUrl, likes_count: row.likesCount || 0,
     }))
 
+    // Ensure the featured reference is always included
+    if (themeConfig.featured_reference_id && !processedReferences.some(r => r.id === themeConfig.featured_reference_id)) {
+      const refRow = await db.select()
+        .from(schema.quoteReferences)
+        .where(eq(schema.quoteReferences.id, themeConfig.featured_reference_id))
+        .limit(1)
+        .get()
+      if (refRow) {
+        processedReferences.push({
+          id: refRow.id, name: refRow.name, description: refRow.description,
+          primary_type: refRow.primaryType, image_url: refRow.imageUrl, likes_count: refRow.likesCount || 0,
+        })
+      }
+    }
+
+    if (themeConfig.featured_quote_id) {
+      const found = processedQuotes.find(q => q.id === themeConfig.featured_quote_id)
+      if (found) {
+        const idx = processedQuotes.indexOf(found)
+        if (idx > 0) {
+          processedQuotes.splice(idx, 1)
+          processedQuotes.unshift(found)
+        }
+      }
+    }
+
+    if (themeConfig.featured_reference_id) {
+      const found = processedReferences.find(r => r.id === themeConfig.featured_reference_id)
+      if (found) {
+        const idx = processedReferences.indexOf(found)
+        if (idx > 0) {
+          processedReferences.splice(idx, 1)
+          processedReferences.unshift(found)
+        }
+      }
+    }
+
     const translations = await getThemeTranslations(themeRow.id)
     const localized = resolveLocalizedField(translations, language, themeRow.name, themeRow.description)
 
     return {
       theme: {
         slug: themeRow.slug, name: localized.name, description: localized.description,
-        config: themeRow.config ? (() => { try { return JSON.parse(themeRow.config) } catch { return null } })() : null,
+        config: themeConfig,
         filters_count: filters.length,
       },
       quotes: processedQuotes,

@@ -114,6 +114,7 @@
   "toast_all_langs": "All languages already added",
   "tab_general": "General",
   "tab_appearance": "Appearance",
+  "tab_featured": "Featured",
   "tab_scheduling": "Scheduling",
   "tab_filters": "Filters",
   "tab_ai": "AI Suggestions",
@@ -123,5 +124,11 @@
   "dialog_ai_step_desc": "Get theme suggestions based on keywords, or skip to create from scratch.",
   "dialog_seed_tags_label": "Keywords to guide suggestions",
   "dialog_skip_suggestions": "Skip to manual creation",
-  "dialog_apply_suggestion": "Use this suggestion"
+  "dialog_apply_suggestion": "Use this suggestion",
+  "dialog_featured": "Featured Content",
+  "dialog_featured_quote": "Featured Quote",
+  "dialog_featured_reference": "Spotlight Reference",
+  "dialog_featured_quote_placeholder": "Search for a quote...",
+  "dialog_featured_reference_placeholder": "Search for a reference...",
+  "dialog_featured_selected": "Selected"
 }

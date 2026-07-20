@@ -114,6 +114,7 @@
   "toast_all_langs": "Toutes les langues sont déjà ajoutées",
   "tab_general": "Général",
   "tab_appearance": "Apparence",
+  "tab_featured": "À la une",
   "tab_scheduling": "Planification",
   "tab_filters": "Filtres",
   "tab_ai": "Suggestions IA",
@@ -123,5 +124,11 @@
   "dialog_ai_step_desc": "Obtenez des suggestions de thème basées sur des mots-clés, ou passez directement à la création manuelle.",
   "dialog_seed_tags_label": "Mots-clés pour orienter les suggestions",
   "dialog_skip_suggestions": "Passer à la création manuelle",
-  "dialog_apply_suggestion": "Utiliser cette suggestion"
+  "dialog_apply_suggestion": "Utiliser cette suggestion",
+  "dialog_featured": "Contenu à la une",
+  "dialog_featured_quote": "Citation à la une",
+  "dialog_featured_reference": "Référence en vedette",
+  "dialog_featured_quote_placeholder": "Rechercher une citation...",
+  "dialog_featured_reference_placeholder": "Rechercher une référence...",
+  "dialog_featured_selected": "Sélectionné"
 }

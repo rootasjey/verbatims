@@ -373,6 +373,79 @@
                 </div>
               </div>
 
+              <!-- Featured -->
+              <div v-if="item.value === 'featured'" class="p-1 space-y-6 overflow-y-auto max-h-full">
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
+                  <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_featured_quote') }}</h4>
+                  <div class="relative">
+                    <NInput
+                      v-model="featuredQuoteQuery"
+                      :placeholder="$t('dialog_featured_quote_placeholder') as string"
+                      size="sm"
+                      :loading="featuredQuoteLoading"
+                      @input="onFeaturedQuoteSearch"
+                      @focus="onFeaturedQuoteSearch"
+                      @keydown="onFeaturedQuoteKeydown($event)"
+                      @blur="hideFeaturedQuoteSuggestions"
+                    />
+                    <div
+                      v-if="featuredQuoteActive && featuredQuoteResults.length"
+                      class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                    >
+                      <div
+                        v-for="(s, si) in featuredQuoteResults"
+                        :key="s.value"
+                        class="px-3 py-1.5 text-xs cursor-pointer truncate"
+                        :class="si === featuredQuoteHighlighted ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"
+                        @mousedown.prevent="selectFeaturedQuote(s)"
+                        @mouseenter="featuredQuoteHighlighted = si"
+                      >
+                        {{ s.label }}
+                      </div>
+                    </div>
+                  </div>
+                  <p v-if="form.featured_quote_id" class="font-sans text-xs text-green-600 dark:text-green-400 mt-2">
+                    ✓ {{ $t('dialog_featured_selected') }} <NTooltip v-if="featuredQuoteQuery" :content="featuredQuoteQuery"><span class="font-mono text-gray-400 cursor-help">(#{{ form.featured_quote_id }})</span></NTooltip><span v-else class="font-mono text-gray-400">(#{{ form.featured_quote_id }})</span>
+                    <button class="ml-1 p-0.5 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors align-middle" @click="clearFeaturedQuote" :title="$t('common.clear')?.toString()"><NIcon name="i-ph-x" class="w-3 h-3" /></button>
+                  </p>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-2 p-3 px-6">
+                  <h4 class="py-2 rounded-2 text-md font-400 text-gray-900 dark:text-white mb-4">{{ $t('dialog_featured_reference') }}</h4>
+                  <div class="relative">
+                    <NInput
+                      v-model="featuredRefQuery"
+                      :placeholder="$t('dialog_featured_reference_placeholder') as string"
+                      size="sm"
+                      :loading="featuredRefLoading"
+                      @input="onFeaturedRefSearch"
+                      @focus="onFeaturedRefSearch"
+                      @keydown="onFeaturedRefKeydown($event)"
+                      @blur="hideFeaturedRefSuggestions"
+                    />
+                    <div
+                      v-if="featuredRefActive && featuredRefResults.length"
+                      class="absolute bottom-full mb-1 left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                    >
+                      <div
+                        v-for="(s, si) in featuredRefResults"
+                        :key="s.value"
+                        class="px-3 py-1.5 text-xs cursor-pointer truncate"
+                        :class="si === featuredRefHighlighted ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'"
+                        @mousedown.prevent="selectFeaturedRef(s)"
+                        @mouseenter="featuredRefHighlighted = si"
+                      >
+                        {{ s.label }}
+                      </div>
+                    </div>
+                  </div>
+                  <p v-if="form.featured_reference_id" class="font-sans text-xs text-green-600 dark:text-green-400 mt-2">
+                    ✓ {{ $t('dialog_featured_selected') }} <NTooltip v-if="featuredRefQuery" :content="featuredRefQuery"><span class="font-mono text-gray-400 cursor-help">(#{{ form.featured_reference_id }})</span></NTooltip><span v-else class="font-mono text-gray-400">(#{{ form.featured_reference_id }})</span>
+                    <button class="ml-1 p-0.5 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors align-middle" @click="clearFeaturedRef" :title="$t('common.clear')?.toString()"><NIcon name="i-ph-x" class="w-3 h-3" /></button>
+                  </p>
+                </div>
+              </div>
+
               <!-- Scheduling -->
               <div v-if="item.value === 'scheduling'" class="p-1 space-y-6 overflow-y-auto max-h-full">
                 <div class="flex flex-col gap-4 max-w-xs">
@@ -722,6 +795,7 @@ const tabs = computed(() => {
   const items = [
     { name: $t('tab_general'), value: 'general', _tabsTrigger: { leading: 'i-ph-info' } },
     { name: $t('tab_appearance'), value: 'appearance', _tabsTrigger: { leading: 'i-ph-palette' } },
+    { name: $t('tab_featured'), value: 'featured', _tabsTrigger: { leading: 'i-ph-star' } },
     { name: $t('tab_scheduling'), value: 'scheduling', _tabsTrigger: { leading: 'i-ph-calendar-blank' } },
     { name: $t('tab_filters'), value: 'filters', _tabsTrigger: { leading: 'i-ph-funnel' } },
   ]
@@ -1043,6 +1117,8 @@ const form = ref({
   priority: 0,
   color_primary: '#6366f1' as string,
   color_secondary: '#f59e0b' as string,
+  featured_quote_id: null as number | null,
+  featured_reference_id: null as number | null,
 })
 
 const primaryPickerValue = ref(hexToBlossomValue('#6366f1'))
@@ -1183,6 +1259,8 @@ const duplicateTheme = async (theme: any) => {
       priority: data.priority || 0,
       color_primary: colorPrimary,
       color_secondary: colorSecondary,
+      featured_quote_id: themeConfig.featured_quote_id ?? null,
+      featured_reference_id: themeConfig.featured_reference_id ?? null,
     }
     translations.value = (data.translations || []).map((t: any) => ({
       _key: translationKeyCounter++,
@@ -1316,7 +1394,7 @@ const removeTranslation = (idx: number) => {
 }
 
 const resetForm = () => {
-  form.value = { slug: '', name: '', description: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b' }
+  form.value = { slug: '', name: '', description: '', language: '', is_active: false, is_default: false, scheduled_start: '', scheduled_end: '', priority: 0, color_primary: '#6366f1', color_secondary: '#f59e0b', featured_quote_id: null, featured_reference_id: null }
   initPickerValues('#6366f1', '#f59e0b')
   filters.value = []
   filterRecommendations.value = []
@@ -1325,6 +1403,12 @@ const resetForm = () => {
   editingThemeId.value = null
   editMode.value = false
   promptTags.value = []
+  featuredQuoteQuery.value = ''
+  featuredQuoteResults.value = []
+  featuredQuoteActive.value = false
+  featuredRefQuery.value = ''
+  featuredRefResults.value = []
+  featuredRefActive.value = false
 }
 
 const openCreate = () => {
@@ -1359,6 +1443,14 @@ const openEdit = async (theme: any) => {
       priority: data.priority || 0,
       color_primary: colorPrimary,
       color_secondary: colorSecondary,
+      featured_quote_id: themeConfig.featured_quote_id ?? null,
+      featured_reference_id: themeConfig.featured_reference_id ?? null,
+    }
+    if (themeConfig.featured_quote_id) {
+      resolveFeaturedName('quote', themeConfig.featured_quote_id, featuredQuoteQuery)
+    }
+    if (themeConfig.featured_reference_id) {
+      resolveFeaturedName('reference', themeConfig.featured_reference_id, featuredRefQuery)
     }
     translations.value = (data.translations || []).map((t: any) => ({
       _key: translationKeyCounter++,
@@ -1375,6 +1467,159 @@ const openEdit = async (theme: any) => {
   }
   activeTab.value = 'general'
   showEditDialog.value = true
+}
+
+// Featured quote search
+const featuredQuoteQuery = ref('')
+const featuredQuoteResults = ref<{ label: string; value: string }[]>([])
+const featuredQuoteActive = ref(false)
+const featuredQuoteHighlighted = ref(-1)
+const featuredQuoteLoading = ref(false)
+let featuredQuoteTimeout: ReturnType<typeof setTimeout> | undefined
+
+const featuredRefQuery = ref('')
+const featuredRefResults = ref<{ label: string; value: string }[]>([])
+const featuredRefActive = ref(false)
+const featuredRefHighlighted = ref(-1)
+const featuredRefLoading = ref(false)
+let featuredRefTimeout: ReturnType<typeof setTimeout> | undefined
+
+const searchFeatured = async (type: string, query: string, results: Ref<{ label: string; value: string }[]>, active: Ref<boolean>, loading: Ref<boolean>, highlighted: Ref<number>) => {
+  const q = query.trim()
+  if (!q || q.length < 1) {
+    results.value = []
+    active.value = false
+    loading.value = false
+    return
+  }
+  loading.value = true
+  try {
+    const res = await $fetch('/api/admin/themes/filter-suggestions', { query: { q, type } })
+    results.value = res?.data || []
+    active.value = results.value.length > 0
+    highlighted.value = -1
+  } catch {
+    results.value = []
+    active.value = false
+    highlighted.value = -1
+  } finally {
+    loading.value = false
+  }
+}
+
+const onFeaturedQuoteSearch = () => {
+  if (featuredQuoteTimeout) clearTimeout(featuredQuoteTimeout)
+  featuredQuoteHighlighted.value = -1
+  featuredQuoteTimeout = setTimeout(() => searchFeatured('featured_quote', featuredQuoteQuery.value, featuredQuoteResults, featuredQuoteActive, featuredQuoteLoading, featuredQuoteHighlighted), 200)
+}
+
+const onFeaturedQuoteKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (featuredQuoteActive.value && featuredQuoteHighlighted.value >= 0 && featuredQuoteHighlighted.value < featuredQuoteResults.value.length) {
+      selectFeaturedQuote(featuredQuoteResults.value[featuredQuoteHighlighted.value]!)
+    }
+    return
+  }
+  if (!featuredQuoteActive.value) return
+  if (e.key === 'ArrowDown') {
+    if (!featuredQuoteResults.value.length) return
+    e.preventDefault()
+    featuredQuoteHighlighted.value = (featuredQuoteHighlighted.value + 1) % featuredQuoteResults.value.length
+  } else if (e.key === 'ArrowUp') {
+    if (!featuredQuoteResults.value.length) return
+    e.preventDefault()
+    featuredQuoteHighlighted.value = featuredQuoteHighlighted.value <= 0 ? featuredQuoteResults.value.length - 1 : featuredQuoteHighlighted.value - 1
+  } else if (e.key === 'Escape') {
+    featuredQuoteResults.value = []
+    featuredQuoteActive.value = false
+    featuredQuoteHighlighted.value = -1
+  }
+}
+
+const selectFeaturedQuote = (s: { label: string; value: string }) => {
+  featuredQuoteQuery.value = s.label
+  form.value.featured_quote_id = parseInt(s.value, 10)
+  featuredQuoteHighlighted.value = -1
+  featuredQuoteResults.value = []
+  featuredQuoteActive.value = false
+}
+
+const hideFeaturedQuoteSuggestions = () => {
+  setTimeout(() => {
+    featuredQuoteHighlighted.value = -1
+    featuredQuoteResults.value = []
+    featuredQuoteActive.value = false
+  }, 150)
+}
+
+const clearFeaturedQuote = () => {
+  form.value.featured_quote_id = null
+  featuredQuoteQuery.value = ''
+  featuredQuoteResults.value = []
+  featuredQuoteActive.value = false
+}
+
+// Featured reference search
+const onFeaturedRefSearch = () => {
+  if (featuredRefTimeout) clearTimeout(featuredRefTimeout)
+  featuredRefHighlighted.value = -1
+  featuredRefTimeout = setTimeout(() => searchFeatured('featured_reference', featuredRefQuery.value, featuredRefResults, featuredRefActive, featuredRefLoading, featuredRefHighlighted), 200)
+}
+
+const onFeaturedRefKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (featuredRefActive.value && featuredRefHighlighted.value >= 0 && featuredRefHighlighted.value < featuredRefResults.value.length) {
+      selectFeaturedRef(featuredRefResults.value[featuredRefHighlighted.value]!)
+    }
+    return
+  }
+  if (!featuredRefActive.value) return
+  if (e.key === 'ArrowDown') {
+    if (!featuredRefResults.value.length) return
+    e.preventDefault()
+    featuredRefHighlighted.value = (featuredRefHighlighted.value + 1) % featuredRefResults.value.length
+  } else if (e.key === 'ArrowUp') {
+    if (!featuredRefResults.value.length) return
+    e.preventDefault()
+    featuredRefHighlighted.value = featuredRefHighlighted.value <= 0 ? featuredRefResults.value.length - 1 : featuredRefHighlighted.value - 1
+  } else if (e.key === 'Escape') {
+    featuredRefResults.value = []
+    featuredRefActive.value = false
+    featuredRefHighlighted.value = -1
+  }
+}
+
+const selectFeaturedRef = (s: { label: string; value: string }) => {
+  featuredRefQuery.value = s.label
+  form.value.featured_reference_id = parseInt(s.value, 10)
+  featuredRefHighlighted.value = -1
+  featuredRefResults.value = []
+  featuredRefActive.value = false
+}
+
+const hideFeaturedRefSuggestions = () => {
+  setTimeout(() => {
+    featuredRefHighlighted.value = -1
+    featuredRefResults.value = []
+    featuredRefActive.value = false
+  }, 150)
+}
+
+const clearFeaturedRef = () => {
+  form.value.featured_reference_id = null
+  featuredRefQuery.value = ''
+  featuredRefResults.value = []
+  featuredRefActive.value = false
+}
+
+const resolveFeaturedName = async (type: 'quote' | 'reference', id: number, queryRef: Ref<string>) => {
+  try {
+    const endpoint = type === 'quote' ? `/api/quotes/${id}` : `/api/references/${id}`
+    const res = await $fetch<{ data?: { name?: string } }>(endpoint)
+    if (res?.data?.name) queryRef.value = res.data.name
+  } catch {}
 }
 
 const activeFilterIndex = ref<number | null>(null)
@@ -1589,7 +1834,7 @@ const saveTheme = async () => {
       scheduled_start: form.value.scheduled_start || null,
       scheduled_end: form.value.scheduled_end || null,
       priority: form.value.priority || 0,
-      config: { color_primary: form.value.color_primary, color_secondary: form.value.color_secondary },
+      config: { color_primary: form.value.color_primary, color_secondary: form.value.color_secondary, featured_quote_id: form.value.featured_quote_id || null, featured_reference_id: form.value.featured_reference_id || null },
     }
 
     if (editMode.value && editingThemeId.value) {
