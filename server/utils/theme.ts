@@ -175,203 +175,173 @@ function buildThemeReferenceConditions(filters: FilterRow[]) {
 }
 
 export async function getThemeFeed(themeSlug: string, language?: string): Promise<ThemeFeedResult | null> {
-  const themeRow = await db.select()
-    .from(schema.themes)
-    .where(eq(schema.themes.slug, themeSlug))
-    .limit(1)
-    .get()
+  try {
+    const themeRow = await db.select()
+      .from(schema.themes)
+      .where(eq(schema.themes.slug, themeSlug))
+      .limit(1)
+      .get()
 
-  if (!themeRow) return null
+    if (!themeRow) return null
 
-  const filters = await getThemeFilters(themeRow.id)
+    const filters = await getThemeFilters(themeRow.id)
 
-  // Collect matching quote IDs per filter type to avoid complex OR+subquery on D1
-  const matchedIds = new Set<number>()
-  const baseQFilter = eq(schema.quotes.status, 'approved')
+    const matchedIds = new Set<number>()
+    const baseQFilter = eq(schema.quotes.status, 'approved')
 
-  for (const f of filters) {
-    try {
-      let ids: { id: number }[] = []
-      if (f.type === 'tag_name') {
-        ids = await db.select({ id: schema.quotes.id })
-          .from(schema.quotes)
-          .innerJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
-          .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-          .where(and(baseQFilter, like(schema.tags.name, `%${f.value}%`)))
-          .limit(100)
-          .all()
-      } else if (f.type === 'author_name') {
-        ids = await db.select({ id: schema.quotes.id })
-          .from(schema.quotes)
-          .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-          .where(and(baseQFilter, eq(schema.authors.name, f.value)))
-          .limit(100)
-          .all()
-      } else if (f.type === 'author_id') {
-        ids = await db.select({ id: schema.quotes.id })
-          .from(schema.quotes)
-          .where(and(baseQFilter, eq(schema.quotes.authorId, parseInt(f.value))))
-          .limit(100)
-          .all()
-      } else if (f.type === 'reference_name') {
-        ids = await db.select({ id: schema.quotes.id })
-          .from(schema.quotes)
-          .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-          .where(and(baseQFilter, eq(schema.quoteReferences.name, f.value)))
-          .limit(100)
-          .all()
-      } else if (f.type === 'reference_id') {
-        ids = await db.select({ id: schema.quotes.id })
-          .from(schema.quotes)
-          .where(and(baseQFilter, eq(schema.quotes.referenceId, parseInt(f.value))))
-          .limit(100)
-          .all()
-      } else if (f.type === 'keyword') {
-        ids = await db.select({ id: schema.quotes.id })
-          .from(schema.quotes)
-          .where(and(baseQFilter, like(schema.quotes.name, `%${f.value}%`)))
-          .limit(100)
-          .all()
+    for (const f of filters) {
+      try {
+        let ids: { id: number }[] = []
+        if (f.type === 'tag_name') {
+          ids = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .innerJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
+            .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+            .where(and(baseQFilter, like(schema.tags.name, `%${f.value}%`)))
+            .limit(100)
+            .all()
+        } else if (f.type === 'author_name') {
+          ids = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+            .where(and(baseQFilter, eq(schema.authors.name, f.value)))
+            .limit(100)
+            .all()
+        } else if (f.type === 'author_id') {
+          ids = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .where(and(baseQFilter, eq(schema.quotes.authorId, parseInt(f.value))))
+            .limit(100)
+            .all()
+        } else if (f.type === 'reference_name') {
+          ids = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+            .where(and(baseQFilter, eq(schema.quoteReferences.name, f.value)))
+            .limit(100)
+            .all()
+        } else if (f.type === 'reference_id') {
+          ids = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .where(and(baseQFilter, eq(schema.quotes.referenceId, parseInt(f.value))))
+            .limit(100)
+            .all()
+        } else if (f.type === 'keyword') {
+          ids = await db.select({ id: schema.quotes.id })
+            .from(schema.quotes)
+            .where(and(baseQFilter, like(schema.quotes.name, `%${f.value}%`)))
+            .limit(100)
+            .all()
+        }
+        for (const r of ids) matchedIds.add(r.id)
+      } catch {}
+    }
+
+    const allIds = [...matchedIds]
+
+    let quotes: any[] = []
+    let totalVal = 0
+
+    if (allIds.length) {
+      const chunkSize = 50
+      const batches: number[][] = []
+      for (let i = 0; i < allIds.length; i += chunkSize) {
+        batches.push(allIds.slice(i, i + chunkSize))
       }
-      for (const r of ids) matchedIds.add(r.id)
-    } catch {
-      // Silently skip filters that cause D1 errors
+
+      const batchResults: any[][] = (await Promise.all(batches.map(batchIds => {
+        const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, batchIds))
+        return db.select({
+          id: schema.quotes.id,
+          name: schema.quotes.name,
+          language: schema.quotes.language,
+          viewsCount: schema.quotes.viewsCount,
+          likesCount: schema.quotes.likesCount,
+          updatedAt: schema.quotes.updatedAt,
+          authorId: schema.quotes.authorId,
+          referenceId: schema.quotes.referenceId,
+          authorName: schema.authors.name,
+          referenceName: schema.quoteReferences.name,
+        })
+          .from(schema.quotes)
+          .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+          .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+          .where(whereFinal)
+          .orderBy(desc(schema.quotes.likesCount))
+          .limit(50)
+          .all()
+      }))).filter(Boolean)
+
+      const merged = batchResults.flat()
+      for (let i = merged.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [merged[i], merged[j]] = [merged[j], merged[i]]
+      }
+      quotes = merged.slice(0, 50)
+
+      totalVal = allIds.length
     }
-  }
 
-  const allIds = [...matchedIds]
-
-  let quotes: any[] = []
-  let totalVal = 0
-
-  if (allIds.length) {
-    // Batch IDs in chunks of 100 to avoid D1 IN clause limit
-    const chunkSize = 100
-    const batches: number[][] = []
-    for (let i = 0; i < allIds.length; i += chunkSize) {
-      batches.push(allIds.slice(i, i + chunkSize))
-    }
-
-    const batchResults: any[][] = await Promise.all(batches.map(batchIds => {
-      const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, batchIds))
-      return db.select({
-        id: schema.quotes.id,
-        name: schema.quotes.name,
-        language: schema.quotes.language,
-        viewsCount: schema.quotes.viewsCount,
-        likesCount: schema.quotes.likesCount,
-        updatedAt: schema.quotes.updatedAt,
-        authorId: schema.quotes.authorId,
-        referenceId: schema.quotes.referenceId,
-        authorName: schema.authors.name,
-        referenceName: schema.quoteReferences.name,
-      })
-        .from(schema.quotes)
-        .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-        .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-        .where(whereFinal)
-        .orderBy(desc(schema.quotes.likesCount))
-        .limit(50)
+    let authorRows: any[] = []
+    try {
+      const authorCondition = buildThemeAuthorConditions(filters)
+      authorRows = await db.select()
+        .from(schema.authors)
+        .where(authorCondition || undefined)
+        .orderBy(desc(schema.authors.likesCount))
+        .limit(20)
         .all()
+    } catch {}
+
+    let referenceRows: any[] = []
+    try {
+      const referenceCondition = buildThemeReferenceConditions(filters)
+      referenceRows = await db.select()
+        .from(schema.quoteReferences)
+        .where(referenceCondition || undefined)
+        .orderBy(desc(schema.quoteReferences.likesCount))
+        .limit(20)
+        .all()
+    } catch {}
+
+    const processedQuotes = quotes.map((row: any) => ({
+      id: row.id, name: row.name, language: row.language,
+      views_count: row.viewsCount || 0, likes_count: row.likesCount || 0,
+      updated_at: row.updatedAt,
+      author: row.authorId ? { id: row.authorId, name: row.authorName } : undefined,
+      reference: row.referenceId ? { id: row.referenceId, name: row.referenceName } : undefined,
     }))
 
-    // Merge all batches, shuffle, take top 50
-    const merged = batchResults.flat()
-    for (let i = merged.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [merged[i], merged[j]] = [merged[j], merged[i]]
+    const processedAuthors = authorRows.map((row: any) => ({
+      id: row.id, name: row.name, job: row.job, description: row.description,
+      image_url: row.imageUrl, likes_count: row.likesCount || 0,
+    }))
+
+    const processedReferences = referenceRows.map((row: any) => ({
+      id: row.id, name: row.name, description: row.description,
+      primary_type: row.primaryType, image_url: row.imageUrl, likes_count: row.likesCount || 0,
+    }))
+
+    const translations = await getThemeTranslations(themeRow.id)
+    const localized = resolveLocalizedField(translations, language, themeRow.name, themeRow.description)
+
+    return {
+      theme: {
+        slug: themeRow.slug, name: localized.name, description: localized.description,
+        config: themeRow.config ? (() => { try { return JSON.parse(themeRow.config) } catch { return null } })() : null,
+        filters_count: filters.length,
+      },
+      quotes: processedQuotes,
+      authors: processedAuthors,
+      references: processedReferences,
+      total: totalVal,
     }
-    quotes = merged.slice(0, 50)
-
-    totalVal = allIds.length
-  }
-
-  const authorCondition = buildThemeAuthorConditions(filters)
-  const authorRows = await db.select()
-    .from(schema.authors)
-    .where(authorCondition || undefined)
-    .orderBy(desc(schema.authors.likesCount))
-    .limit(20)
-    .all()
-
-  const referenceCondition = buildThemeReferenceConditions(filters)
-  const referenceRows = await db.select()
-    .from(schema.quoteReferences)
-    .where(referenceCondition || undefined)
-    .orderBy(desc(schema.quoteReferences.likesCount))
-    .limit(20)
-    .all()
-
-  const processedQuotes = quotes.map((row: any) => ({
-    id: row.id,
-    name: row.name,
-    language: row.language,
-    views_count: row.viewsCount || 0,
-    likes_count: row.likesCount || 0,
-    updated_at: row.updatedAt,
-    author: row.authorId ? { id: row.authorId, name: row.authorName } : undefined,
-    reference: row.referenceId ? { id: row.referenceId, name: row.referenceName } : undefined,
-  }))
-
-  const processedAuthors = authorRows.map((row: any) => ({
-    id: row.id,
-    name: row.name,
-    is_fictional: row.isFictional,
-    birth_date: row.birthDate,
-    birth_location: row.birthLocation,
-    death_date: row.deathDate,
-    death_location: row.deathLocation,
-    job: row.job,
-    description: row.description,
-    image_url: row.imageUrl,
-    socials: row.socials,
-    views_count: row.viewsCount,
-    likes_count: row.likesCount,
-    shares_count: row.sharesCount,
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
-  }))
-
-  const processedReferences = referenceRows.map((row: any) => ({
-    id: row.id,
-    name: row.name,
-    original_language: row.originalLanguage,
-    release_date: row.releaseDate,
-    description: row.description,
-    primary_type: row.primaryType,
-    secondary_type: row.secondaryType,
-    image_url: row.imageUrl,
-    urls: row.urls,
-    views_count: row.viewsCount,
-    likes_count: row.likesCount,
-    shares_count: row.sharesCount,
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
-  }))
-
-  let config: Record<string, any> | null = null
-  if (themeRow.config) {
-    try {
-      config = JSON.parse(themeRow.config)
-    } catch {
-      config = null
+  } catch {
+    return {
+      theme: { slug: themeSlug, name: themeSlug, description: null, config: null, filters_count: 0 },
+      quotes: [], authors: [], references: [], total: 0,
     }
-  }
-
-  const translations = await getThemeTranslations(themeRow.id)
-  const localized = resolveLocalizedField(translations, language, themeRow.name, themeRow.description)
-
-  return {
-    theme: {
-      slug: themeRow.slug,
-      name: localized.name,
-      description: localized.description,
-      config,
-      filters_count: filters.length,
-    },
-    quotes: processedQuotes,
-    authors: processedAuthors,
-    references: processedReferences,
-    total: totalVal,
   }
 }
+
+
