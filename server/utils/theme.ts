@@ -271,9 +271,12 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         .all()
     }))
 
-    // Merge all batches, sort by likes, take top 50
+    // Merge all batches, shuffle, take top 50
     const merged = batchResults.flat()
-    merged.sort((a: any, b: any) => (b.likesCount || 0) - (a.likesCount || 0))
+    for (let i = merged.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [merged[i], merged[j]] = [merged[j], merged[i]]
+    }
     quotes = merged.slice(0, 50)
 
     totalVal = allIds.length
