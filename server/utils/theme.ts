@@ -235,38 +235,48 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     for (const r of ids) matchedIds.add(r.id)
   }
 
-  const quoteIds = [...matchedIds].slice(0, 100)
+  const allIds = [...matchedIds]
 
   let quotes: any[] = []
   let totalVal = 0
 
-  if (quoteIds.length) {
-    const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, quoteIds))
-    quotes = await db.select({
-      id: schema.quotes.id,
-      name: schema.quotes.name,
-      language: schema.quotes.language,
-      viewsCount: schema.quotes.viewsCount,
-      likesCount: schema.quotes.likesCount,
-      updatedAt: schema.quotes.updatedAt,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
-      authorName: schema.authors.name,
-      referenceName: schema.quoteReferences.name,
-    })
-      .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-      .where(whereFinal)
-      .orderBy(desc(schema.quotes.likesCount))
-      .limit(50)
-      .all()
+  if (allIds.length) {
+    // Batch IDs in chunks of 100 to avoid D1 IN clause limit
+    const chunkSize = 100
+    const batches: number[][] = []
+    for (let i = 0; i < allIds.length; i += chunkSize) {
+      batches.push(allIds.slice(i, i + chunkSize))
+    }
 
-    const totalRow = await db.select({ total: count(schema.quotes.id) })
-      .from(schema.quotes)
-      .where(whereFinal)
-      .get()
-    totalVal = totalRow?.total ?? 0
+    const batchResults = await Promise.all(batches.map(batchIds => {
+      const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, batchIds))
+      return db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        language: schema.quotes.language,
+        viewsCount: schema.quotes.viewsCount,
+        likesCount: schema.quotes.likesCount,
+        updatedAt: schema.quotes.updatedAt,
+        authorId: schema.quotes.authorId,
+        referenceId: schema.quotes.referenceId,
+        authorName: schema.authors.name,
+        referenceName: schema.quoteReferences.name,
+      })
+        .from(schema.quotes)
+        .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+        .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+        .where(whereFinal)
+        .orderBy(desc(schema.quotes.likesCount))
+        .limit(50)
+        .all()
+    }))
+
+    // Merge all batches, sort by likes, take top 50
+    const merged = batchResults.flat()
+    merged.sort((a: any, b: any) => (b.likesCount || 0) - (a.likesCount || 0))
+    quotes = merged.slice(0, 50)
+
+    totalVal = allIds.length
   }
 
   const authorCondition = buildThemeAuthorConditions(filters)
