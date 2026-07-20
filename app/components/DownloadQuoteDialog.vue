@@ -3,6 +3,7 @@
     v-model="isOpen"
     :title="$t('components.dialogs.download_image') as string"
     :submitting="downloading"
+    max-width="xl"
     @submit="download"
   >
     <div class="flex flex-col gap-5">
@@ -61,7 +62,7 @@
     </div>
 
     <template #submit>
-      <NButton btn="soft-blue" :loading="downloading" @click="download">{{ $t('components.dialogs.download') }}</NButton>
+      <PrimaryButton btn="soft-blue" class="px-6" :loading="downloading" @click="download">{{ $t('components.dialogs.download') }}</PrimaryButton>
     </template>
   </AppDialog>
 </template>
