@@ -129,7 +129,7 @@ function buildThemeAuthorConditions(filters: FilterRow[]) {
 
   if (authorNameFilters.length) {
     conditions.push(or(
-      ...authorNameFilters.map(f => like(schema.authors.name, `%${f.value}%`))
+      ...authorNameFilters.map(f => eq(schema.authors.name, f.value))
     ))
   }
 
@@ -146,7 +146,7 @@ function buildThemeReferenceConditions(filters: FilterRow[]) {
 
   if (referenceNameFilters.length) {
     conditions.push(or(
-      ...referenceNameFilters.map(f => like(schema.quoteReferences.name, `%${f.value}%`))
+      ...referenceNameFilters.map(f => eq(schema.quoteReferences.name, f.value))
     ))
   }
 
@@ -204,7 +204,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         ids = await db.select({ id: schema.quotes.id })
           .from(schema.quotes)
           .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-          .where(and(baseQFilter, like(schema.authors.name, `%${f.value}%`)))
+          .where(and(baseQFilter, eq(schema.authors.name, f.value)))
           .limit(100)
           .all()
       } else if (f.type === 'author_id') {
@@ -217,7 +217,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         ids = await db.select({ id: schema.quotes.id })
           .from(schema.quotes)
           .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-          .where(and(baseQFilter, like(schema.quoteReferences.name, `%${f.value}%`)))
+          .where(and(baseQFilter, eq(schema.quoteReferences.name, f.value)))
           .limit(100)
           .all()
       } else if (f.type === 'reference_id') {
