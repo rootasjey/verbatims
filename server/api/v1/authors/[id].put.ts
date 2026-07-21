@@ -2,6 +2,45 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateAuthorSchema } from '../../../validation/schemas'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Update an author',
+    description: 'Updates an existing author. Requires moderator or admin role.',
+    tags: ['Authors'],
+    security: [{ apiKey: ['write:authors'] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              is_fictional: { type: 'boolean' },
+              job: { type: 'string', nullable: true },
+              description: { type: 'string', nullable: true },
+              birth_date: { type: 'string', nullable: true },
+              birth_location: { type: 'string', nullable: true },
+              death_date: { type: 'string', nullable: true },
+              death_location: { type: 'string', nullable: true },
+              image_url: { type: 'string', nullable: true },
+              socials: { type: 'object', additionalProperties: { type: 'string' }, nullable: true },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '200': { description: 'Author updated' },
+      '403': { description: 'Insufficient role' },
+      '404': { description: 'Author not found' },
+      '409': { description: 'Name conflict' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:authors')

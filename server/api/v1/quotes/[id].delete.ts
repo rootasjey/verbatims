@@ -1,6 +1,23 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Delete a quote',
+    description: 'Deletes a quote. Users can only delete their own quotes; moderators and admins can delete any quote.',
+    tags: ['Quotes'],
+    security: [{ apiKey: ['write:quotes'] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    responses: {
+      '200': { description: 'Quote deleted' },
+      '403': { description: 'Not authorized to delete this quote' },
+      '404': { description: 'Quote not found' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:quotes')

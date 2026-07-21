@@ -1,6 +1,22 @@
 import { db, schema } from 'hub:db'
 import { desc, count, sql } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'List tags',
+    description: 'Paginated list of tags with usage counts.',
+    tags: ['Tags'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'page', in: 'query', schema: { type: 'integer', default: 1, minimum: 1 } },
+      { name: 'limit', in: 'query', schema: { type: 'integer', default: 50, maximum: 100 } },
+    ],
+    responses: {
+      '200': { description: 'Paginated list of tags' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = parseInt(query.page as string) || 1

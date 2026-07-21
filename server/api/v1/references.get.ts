@@ -1,6 +1,22 @@
 import { db, schema } from 'hub:db'
 import { eq, desc, sql, count, like } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'List references',
+    description: 'Paginated list of references with optional filtering.',
+    tags: ['References'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'page', in: 'query', schema: { type: 'integer', default: 1, minimum: 1 } },
+      { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 100 } },
+      { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by name' },
+      { name: 'type', in: 'query', schema: { type: 'string' }, description: 'Filter by primary type' },
+    ],
+    responses: { '200': { description: 'Paginated list of references' } },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = parseInt(query.page as string) || 1

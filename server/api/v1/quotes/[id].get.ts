@@ -1,6 +1,22 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Get a single quote',
+    description: 'Returns details of an approved quote by ID.',
+    tags: ['Quotes'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    responses: {
+      '200': { description: 'Quote details with author, reference, and tags' },
+      '404': { description: 'Quote not found' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const quoteId = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(quoteId)) throwServer(400, 'Invalid quote ID')

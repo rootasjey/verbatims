@@ -1,6 +1,21 @@
 import { db, schema } from 'hub:db'
 import { eq, desc, sql, count, like } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'List authors',
+    description: 'Paginated list of authors with optional search.',
+    tags: ['Authors'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'page', in: 'query', schema: { type: 'integer', default: 1, minimum: 1 } },
+      { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 100 } },
+      { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by name' },
+    ],
+    responses: { '200': { description: 'Paginated list of authors' } },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = parseInt(query.page as string) || 1

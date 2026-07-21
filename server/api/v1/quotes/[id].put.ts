@@ -2,6 +2,40 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { updateQuoteSchema } from '../../../validation/schemas'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Update a quote',
+    description: 'Updates a quote. Users can only update their own quotes; moderators and admins can update any quote.',
+    tags: ['Quotes'],
+    security: [{ apiKey: ['write:quotes'] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'] },
+              author_id: { type: 'integer', nullable: true },
+              reference_id: { type: 'integer', nullable: true },
+              new_author: { type: 'object', properties: { name: { type: 'string' }, is_fictional: { type: 'boolean' } } },
+              new_reference: { type: 'object', properties: { name: { type: 'string' }, primary_type: { type: 'string' }, original_language: { type: 'string' } } },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '200': { description: 'Quote updated' },
+      '403': { description: 'Not authorized to update this quote' },
+      '404': { description: 'Quote not found' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:quotes')

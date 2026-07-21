@@ -2,6 +2,43 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createAuthorSchema } from '../../../validation/schemas'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Create an author',
+    description: 'Creates a new author. Requires moderator or admin role.',
+    tags: ['Authors'],
+    security: [{ apiKey: ['write:authors'] }],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['name'],
+            properties: {
+              name: { type: 'string' },
+              is_fictional: { type: 'boolean', default: false },
+              job: { type: 'string', nullable: true },
+              description: { type: 'string', nullable: true },
+              birth_date: { type: 'string', nullable: true },
+              birth_location: { type: 'string', nullable: true },
+              death_date: { type: 'string', nullable: true },
+              death_location: { type: 'string', nullable: true },
+              image_url: { type: 'string', nullable: true, description: 'URL or /blob/ path' },
+              socials: { type: 'object', additionalProperties: { type: 'string' }, nullable: true, description: 'Social media links' },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '201': { description: 'Author created' },
+      '403': { description: 'Insufficient role (requires moderator or admin)' },
+      '409': { description: 'Author with this name already exists' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:authors')

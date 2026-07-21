@@ -1,6 +1,21 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Get random quotes',
+    description: 'Returns random approved quotes. Useful for discovery features.',
+    tags: ['Quotes'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'limit', in: 'query', schema: { type: 'integer', default: 1, maximum: 10 } },
+    ],
+    responses: {
+      '200': { description: 'Array of random quotes' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const limit = Math.min(parseInt(query.limit as string) || 1, 10)

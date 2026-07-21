@@ -2,6 +2,35 @@ import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 import { createCollectionSchema } from '../../../validation/schemas'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Create a collection',
+    description: 'Creates a new quote collection for the authenticated user.',
+    tags: ['Collections'],
+    security: [{ apiKey: ['write:collections'] }],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['name'],
+            properties: {
+              name: { type: 'string' },
+              description: { type: 'string', nullable: true },
+              is_public: { type: 'boolean', default: true },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '201': { description: 'Collection created' },
+      '409': { description: 'Collection name already exists for this user' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:collections')

@@ -1,6 +1,22 @@
 import { db, schema } from 'hub:db'
 import { eq, and, or, like, desc, sql, count } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Search quotes, authors, and references',
+    description: 'Full-text search across multiple entity types.',
+    tags: ['Search'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'q', in: 'query', required: true, schema: { type: 'string' }, description: 'Search query (min 2 characters)' },
+      { name: 'type', in: 'query', schema: { type: 'string', enum: ['quotes', 'authors', 'references'], default: 'quotes' } },
+      { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
+      { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 100 } },
+    ],
+    responses: { '200': { description: 'Search results with pagination' } },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const q = (query.q as string || '').trim()
