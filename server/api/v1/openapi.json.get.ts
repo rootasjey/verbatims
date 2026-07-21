@@ -3,7 +3,7 @@ export default defineEventHandler(() => {
     openapi: '3.0.3',
     info: {
       title: 'Verbatims API',
-      version: '0.149.0',
+      version: '0.153.3',
       description: `Public API for browsing and managing quotes, authors, references, and collections.
 
 Authentication: most endpoints require an API key via \`Authorization: Bearer vbt_xxx\` header.
@@ -184,7 +184,7 @@ Permissions: each API key has a set of permissions (\`read\`, \`write:quotes\`, 
           },
         },
       },
-      '/quotes/random': {
+      '/random': {
         get: {
           summary: 'Get random quotes',
           description: 'Returns random approved quotes. Useful for discovery features.',
@@ -196,7 +196,7 @@ Permissions: each API key has a set of permissions (\`read\`, \`write:quotes\`, 
           responses: { '200': { description: 'Array of random quotes' } },
         },
       },
-      '/quotes/search': {
+      '/search': {
         get: {
           summary: 'Search quotes, authors, and references',
           description: 'Full-text search across multiple entity types.',
