@@ -12,6 +12,15 @@ export interface RateLimitResult {
   reset: number
 }
 
+export async function getRateLimitStatus(key: string, max: number, window: number): Promise<{ used: number; remaining: number; reset: number }> {
+  const now = Math.floor(Date.now() / 1000)
+  const bucket = Math.floor(now / window)
+  const windowKey = `${key}:${bucket}`
+  const used = (await kv.get<number>(windowKey)) ?? 0
+  const reset = (bucket + 1) * window
+  return { used, remaining: Math.max(0, max - used), reset }
+}
+
 export async function checkRateLimit(opts: RateLimitOptions): Promise<RateLimitResult> {
   const now = Math.floor(Date.now() / 1000)
   const windowKey = `${opts.key}:${Math.floor(now / opts.window)}`
