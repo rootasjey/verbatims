@@ -1,6 +1,38 @@
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Add a quote to a collection',
+    description: 'Adds an approved quote to a collection. User must own the collection.',
+    tags: ['Collections'],
+    security: [{ apiKey: ['write:collections'] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' }, description: 'Collection ID' },
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['quote_id'],
+            properties: {
+              quote_id: { type: 'integer', description: 'ID of the approved quote to add' },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '200': { description: 'Quote added to collection' },
+      '403': { description: 'Access denied' },
+      '404': { description: 'Collection or quote not found' },
+      '409': { description: 'Quote already in collection' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:collections')

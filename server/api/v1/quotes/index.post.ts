@@ -2,6 +2,48 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../../validation/schemas'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Create a quote',
+    description: 'Creates a new quote in draft status. The quote will be associated with the API key owner and requires moderation before being publicly visible.',
+    tags: ['Quotes'],
+    security: [{ apiKey: ['write:quotes'] }],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['name'],
+            properties: {
+              name: { type: 'string', description: 'Quote content' },
+              language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], default: 'en' },
+              author_id: { type: 'integer', nullable: true, description: 'ID of an existing author' },
+              reference_id: { type: 'integer', nullable: true, description: 'ID of an existing reference' },
+              new_author: {
+                type: 'object',
+                properties: { name: { type: 'string' }, is_fictional: { type: 'boolean', default: false }, job: { type: 'string', nullable: true }, description: { type: 'string', nullable: true } },
+                description: 'Create a new author inline',
+              },
+              new_reference: {
+                type: 'object',
+                properties: { name: { type: 'string' }, primary_type: { type: 'string', default: 'other' }, original_language: { type: 'string', default: 'en' }, description: { type: 'string', nullable: true }, release_date: { type: 'string', nullable: true } },
+                description: 'Create a new reference inline',
+              },
+              tags: { type: 'array', items: { type: 'number' }, maxItems: 20, description: 'Tag IDs to associate' },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '201': { description: 'Quote created' },
+      '400': { description: 'Validation error or invalid author/reference ID' },
+      '409': { description: 'Similar quote already exists' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:quotes')

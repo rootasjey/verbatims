@@ -1,5 +1,23 @@
 import { db } from 'hub:db'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Health check',
+    description: 'Public endpoint to verify API availability and database connectivity.',
+    tags: ['System'],
+    responses: {
+      '200': {
+        description: 'API is healthy',
+        content: {
+          'application/json': {
+            example: { success: true, data: { status: 'healthy', database: 'ok', response_time_ms: 12, timestamp: '2025-01-01T00:00:00Z' } },
+          },
+        },
+      },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const start = Date.now()
 

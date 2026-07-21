@@ -1,6 +1,22 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Get a single author',
+    description: 'Returns details of an author by ID.',
+    tags: ['Authors'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    responses: {
+      '200': { description: 'Author details' },
+      '404': { description: 'Author not found' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const authorId = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(authorId)) throwServer(400, 'Invalid author ID')

@@ -2,6 +2,43 @@ import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateReferenceSchema } from '../../../validation/schemas'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Update a reference',
+    description: 'Updates an existing reference. Requires moderator or admin role.',
+    tags: ['References'],
+    security: [{ apiKey: ['write:references'] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              primary_type: { type: 'string' },
+              secondary_type: { type: 'string', nullable: true },
+              description: { type: 'string', nullable: true },
+              release_date: { type: 'string', nullable: true },
+              original_language: { type: 'string', nullable: true },
+              image_url: { type: 'string', nullable: true },
+              urls: { type: 'object', additionalProperties: true, nullable: true },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '200': { description: 'Reference updated' },
+      '403': { description: 'Insufficient role' },
+      '404': { description: 'Reference not found' },
+      '409': { description: 'Name conflict' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:references')

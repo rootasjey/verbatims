@@ -110,7 +110,19 @@ export default defineNuxtConfig({
     preset: 'cloudflare-module',
     experimental: {
       wasm: true,
-      tasks: true
+      tasks: true,
+      openAPI: true,
+    },
+    openAPI: {
+      meta: {
+        title: 'Verbatims API',
+        description: 'Public API for browsing and managing quotes, authors, references, and collections.\n\nAuthentication: most endpoints require an API key via `Authorization: Bearer vbt_xxx` header.\n\nPermissions: each API key has a set of permissions (`read`, `write:quotes`, `write:authors`, `write:references`, `write:collections`, or `*` for all). Write operations on authors and references require the key owner to be a moderator or admin.',
+        version: computeVersion(),
+      },
+      production: 'runtime',
+      ui: {
+        swagger: false,
+      },
     },
     rollupConfig: {
       external: [/^@react-email/]

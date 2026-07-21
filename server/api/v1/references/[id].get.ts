@@ -1,6 +1,22 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'Get a single reference',
+    description: 'Returns details of a reference by ID.',
+    tags: ['References'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+    ],
+    responses: {
+      '200': { description: 'Reference details' },
+      '404': { description: 'Reference not found' },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const refId = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(refId)) throwServer(400, 'Invalid reference ID')

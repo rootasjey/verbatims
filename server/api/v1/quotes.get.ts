@@ -1,6 +1,36 @@
 import { db, schema } from 'hub:db'
 import { eq, and, desc, sql, count } from 'drizzle-orm'
 
+defineRouteMeta({
+  openAPI: {
+    summary: 'List approved quotes',
+    description: 'Paginated list of approved quotes with optional filtering.',
+    tags: ['Quotes'],
+    security: [{ apiKey: [] }],
+    parameters: [
+      { name: 'page', in: 'query', schema: { type: 'integer', default: 1, minimum: 1 } },
+      { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 100 } },
+      { name: 'language', in: 'query', schema: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'] }, description: 'Filter by language code' },
+      { name: 'author_id', in: 'query', schema: { type: 'integer' }, description: 'Filter by author ID' },
+      { name: 'reference_id', in: 'query', schema: { type: 'integer' }, description: 'Filter by reference ID' },
+      { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search quote content' },
+      { name: 'tag', in: 'query', schema: { type: 'string' }, description: 'Filter by tag name' },
+      { name: 'sort_by', in: 'query', schema: { type: 'string', enum: ['created_at', 'updated_at', 'views_count', 'likes_count', 'shares_count', 'name'], default: 'created_at' } },
+      { name: 'sort_order', in: 'query', schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' } },
+    ],
+    responses: {
+      '200': {
+        description: 'Paginated list of quotes',
+        content: {
+          'application/json': {
+            example: { success: true, data: [{ id: 1, content: '...', language: 'en', stats: { views: 42, likes: 7, shares: 3 }, featured: false, author: { id: 1, name: 'Author', fictional: false, image_url: null, description: null }, reference: null, tags: [], created_at: '...', updated_at: '...' }], pagination: { page: 1, limit: 20, total: 100, totalPages: 5, hasMore: true } },
+          },
+        },
+      },
+    },
+  },
+})
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = parseInt(query.page as string) || 1
