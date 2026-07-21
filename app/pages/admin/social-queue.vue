@@ -89,7 +89,7 @@
                       <NIcon name="i-ph-info" class="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-pointer" />
                     </template>
                     <template #content>
-                      <div class="space-y-1 font-sans text-xs">
+                      <div class="space-y-1 font-sans text-xs dark:text-white">
                         <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400" /> {{ stats.queued }} {{ $t('status_queued') }}</div>
                         <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500" /> {{ stats.processing }} {{ $t('status_processing') }}</div>
                         <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500" /> {{ stats.posted }} {{ $t('status_posted') }}</div>
@@ -97,14 +97,41 @@
                       </div>
                     </template>
                   </NTooltip>
-                  <select v-model="selectedStatus" class="font-sans text-xs bg-gray-100 dark:bg-gray-900 px-1.5 py-1 text-gray-700 dark:text-gray-300 cursor-pointer">
-                    <option v-for="opt in statusOptions" :key="opt.value" :value="opt">{{ opt.label }}</option>
-                  </select>
+                  <NCombobox
+                    v-model="selectedStatus"
+                    :items="statusOptions"
+                    by="value"
+                    :_combobox-input="{
+                      placeholder: 'Filter status...',
+                      class: 'text-xs',
+                    }"
+                    :_combobox-list="{
+                      class: 'min-w-[140px]',
+                      align: 'start',
+                    }"
+                    :_combobox-trigger="{
+                      btn: 'ghost-gray',
+                      size: 'xs',
+                      trailing: '',
+                      class: 'gap-1 px-1.5 text-xs font-normal w-fit min-w-0',
+                    }"
+                  >
+                    <template #trigger="{ modelValue }">
+                      <span class="text-xs font-medium leading-none">{{ modelValue?.label || 'All statuses' }}</span>
+                    </template>
+                  </NCombobox>
                 </div>
               </th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_posted_count') }}</th>
               <th class="w-32 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_last_posted') }}</th>
-              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_actions') }}</th>
+              <th class="w-28 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-1">
+                  <span>{{ $t('col_actions') }}</span>
+                  <NDropdownMenu :items="tableHeaderMenuItems">
+                    <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-list" class="w-4 h-4" /></button>
+                  </NDropdownMenu>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody v-if="queueItems.length > 0" class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -141,14 +168,9 @@
                 <td class="px-3 py-3 font-sans text-sm text-gray-900 dark:text-gray-100">{{ item.quote_posts_count || 0 }}</td>
                 <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatLastPosted(item.last_posted_at) }}</td>
                 <td class="px-3 py-3">
-                  <div class="flex items-center gap-1">
-                    <NDropdownMenu :items="tableHeaderMenuItems">
-                      <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-list" class="w-4 h-4" /></button>
-                    </NDropdownMenu>
-                    <NDropdownMenu :items="rowActionItems(item)">
-                      <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
-                    </NDropdownMenu>
-                  </div>
+                  <NDropdownMenu :items="rowActionItems(item)">
+                    <button @click.stop class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" /></button>
+                  </NDropdownMenu>
                 </td>
               </tr>
             </tbody>
