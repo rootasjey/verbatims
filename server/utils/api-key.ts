@@ -25,8 +25,10 @@ export interface ApiKeyData {
   name: string
   keyPrefix: string
   permissions: string[]
-  rateLimit: number
-  windowSec: number
+  readRateLimit: number
+  readWindowSec: number
+  writeRateLimit: number
+  writeWindowSec: number
   isActive: boolean
   userRole: string
 }
@@ -43,8 +45,10 @@ export async function validateApiKey(key: string): Promise<ApiKeyData | null> {
       name: schema.apiKeys.name,
       keyPrefix: schema.apiKeys.keyPrefix,
       permissions: schema.apiKeys.permissions,
-      rateLimit: schema.apiKeys.rateLimit,
-      windowSec: schema.apiKeys.windowSec,
+      readRateLimit: schema.apiKeys.readRateLimit,
+      readWindowSec: schema.apiKeys.readWindowSec,
+      writeRateLimit: schema.apiKeys.writeRateLimit,
+      writeWindowSec: schema.apiKeys.writeWindowSec,
       isActive: schema.apiKeys.isActive,
       expiresAt: schema.apiKeys.expiresAt,
       userRole: schema.users.role,
@@ -70,8 +74,10 @@ export async function validateApiKey(key: string): Promise<ApiKeyData | null> {
     name: result.name,
     keyPrefix: result.keyPrefix,
     permissions: JSON.parse(result.permissions!) as string[],
-    rateLimit: result.rateLimit,
-    windowSec: result.windowSec,
+    readRateLimit: result.readRateLimit,
+    readWindowSec: result.readWindowSec,
+    writeRateLimit: result.writeRateLimit,
+    writeWindowSec: result.writeWindowSec,
     isActive: result.isActive,
     userRole: result.userRole!,
   }

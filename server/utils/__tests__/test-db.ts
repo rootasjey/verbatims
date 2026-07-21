@@ -82,8 +82,8 @@ export function seedApiKey(db: TestDb['db'], overrides?: Partial<typeof schema.a
     keyPrefix: 'vbt_testab',
     tier: 'free',
     permissions: '["read"]',
-    rateLimit: 1000,
-    windowSec: 3600,
+    readRateLimit: 1000,
+    readWindowSec: 3600,
     isActive: true,
     ...overrides,
   })

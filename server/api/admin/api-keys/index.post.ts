@@ -4,7 +4,7 @@ import { generateApiKey } from '~~/server/utils/api-key'
 export default defineEventHandler(async (event) => {
   const { user } = await requireAdmin(event)
 
-  const body = await readBody<{ name: string; tier?: string; permissions?: string[]; rateLimit?: number; windowSec?: number }>(event)
+  const body = await readBody<{ name: string; tier?: string; permissions?: string[]; readRateLimit?: number; readWindowSec?: number; writeRateLimit?: number; writeWindowSec?: number }>(event)
   if (!body || typeof body.name !== 'string' || body.name.trim().length === 0) {
     throwServer(400, 'Name is required')
   }
@@ -12,8 +12,10 @@ export default defineEventHandler(async (event) => {
   const name = body.name.trim()
   const tier = body.tier === 'pro' || body.tier === 'enterprise' ? body.tier : 'free'
   const permissions = Array.isArray(body.permissions) ? body.permissions : ['read']
-  const rateLimit = typeof body.rateLimit === 'number' ? body.rateLimit : 1000
-  const windowSec = typeof body.windowSec === 'number' ? body.windowSec : 3600
+  const readRateLimit = typeof body.readRateLimit === 'number' ? body.readRateLimit : 1000
+  const readWindowSec = typeof body.readWindowSec === 'number' ? body.readWindowSec : 3600
+  const writeRateLimit = typeof body.writeRateLimit === 'number' ? body.writeRateLimit : 1000
+  const writeWindowSec = typeof body.writeWindowSec === 'number' ? body.writeWindowSec : 3600
 
   const { plainKey, keyHash, keyPrefix } = generateApiKey()
 
@@ -24,8 +26,10 @@ export default defineEventHandler(async (event) => {
     keyPrefix,
     tier,
     permissions: JSON.stringify(permissions),
-    rateLimit,
-    windowSec,
+    readRateLimit,
+    readWindowSec,
+    writeRateLimit,
+    writeWindowSec,
   }).returning().get()
 
   return {
@@ -36,8 +40,10 @@ export default defineEventHandler(async (event) => {
       keyPrefix: result.keyPrefix,
       tier: result.tier,
       permissions,
-      rateLimit: result.rateLimit,
-      windowSec: result.windowSec,
+      readRateLimit: result.readRateLimit,
+      readWindowSec: result.readWindowSec,
+      writeRateLimit: result.writeRateLimit,
+      writeWindowSec: result.writeWindowSec,
       isActive: result.isActive,
       createdAt: result.createdAt,
       plainKey,

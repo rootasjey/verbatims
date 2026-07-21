@@ -94,7 +94,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400 font-mono">
               <span>{{ key.keyPrefix }}...</span>
-              <span class="font-sans">{{ key.rateLimit }} req / {{ formatWindow(key.windowSec) }}</span>
+              <span class="font-sans">{{ key.readRateLimit }} req / {{ formatWindow(key.readWindowSec) }}</span>
               <span v-if="key.lastUsedAt" class="font-sans">{{ $t('last_used') }}{{ timeAgo(key.lastUsedAt) }}</span>
               <span v-else class="font-sans">{{ $t('never_used') }}</span>
             </div>
@@ -217,13 +217,13 @@
           </label>
           <div class="flex gap-3 items-end">
             <input
-              v-model.number="editRateLimit"
+              v-model.number="editReadRateLimit"
               type="number"
               min="1"
               class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
             />
             <select
-              v-model="editWindowSec"
+              v-model="editReadWindowSec"
               class="w-28 font-sans text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-gray-400 cursor-pointer"
             >
               <option :value="60">{{ $t('option_per_minute') }}</option>
@@ -234,6 +234,26 @@
           <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1.5">
             {{ $t('rate_display', { n: effectivePerHour }) }}
           </p>
+        </div>
+        <div>
+          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('label_write_rate') }}</label>
+          <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mb-1">{{ $t('helper_write_rate', { n: maxRatePerHour, tier: editingKey?.tier }) }}</p>
+          <div class="flex gap-3 items-end">
+            <input
+              v-model.number="editWriteRateLimit"
+              type="number"
+              min="1"
+              class="flex-1 font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
+            />
+            <select
+              v-model="editWriteWindowSec"
+              class="w-28 font-sans text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-gray-400 cursor-pointer"
+            >
+              <option :value="60">{{ $t('option_per_minute') }}</option>
+              <option :value="3600">{{ $t('option_per_hour') }}</option>
+              <option :value="86400">{{ $t('option_per_day') }}</option>
+            </select>
+          </div>
         </div>
         <div>
           <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
@@ -420,8 +440,10 @@ const showEditDialog = ref(false)
 const editingKey = ref<any | null>(null)
 const editName = ref('')
 const editPermissions = ref<string[]>([])
-const editRateLimit = ref(1000)
-const editWindowSec = ref(3600)
+const editReadRateLimit = ref(1000)
+const editReadWindowSec = ref(3600)
+const editWriteRateLimit = ref(1000)
+const editWriteWindowSec = ref(3600)
 const savingEdit = ref(false)
 
 const tierMaxPerHour: Record<string, number> = {
@@ -433,8 +455,8 @@ const tierMaxPerHour: Record<string, number> = {
 const maxRatePerHour = computed(() => tierMaxPerHour[editingKey.value?.tier] ?? 1000)
 
 const effectivePerHour = computed(() => {
-  if (!editRateLimit.value || !editWindowSec.value) return 0
-  return Math.round((editRateLimit.value / editWindowSec.value) * 3600)
+  if (!editReadRateLimit.value || !editReadWindowSec.value) return 0
+  return Math.round((editReadRateLimit.value / editReadWindowSec.value) * 3600)
 })
 
 const editError = ref('')
@@ -443,15 +465,17 @@ const openEditDialog = (key: any) => {
   editingKey.value = key
   editName.value = key.name
   editPermissions.value = [...(key.permissions || ['read'])]
-  editRateLimit.value = key.rateLimit
-  editWindowSec.value = key.windowSec
+  editReadRateLimit.value = key.readRateLimit
+  editReadWindowSec.value = key.readWindowSec
+  editWriteRateLimit.value = key.writeRateLimit ?? 1000
+  editWriteWindowSec.value = key.writeWindowSec ?? 3600
   editError.value = ''
   showEditDialog.value = true
 }
 
 const applyRecommendedRate = () => {
-  editRateLimit.value = maxRatePerHour.value
-  editWindowSec.value = 3600
+  editReadRateLimit.value = maxRatePerHour.value
+  editReadWindowSec.value = 3600
   editError.value = ''
   saveEdit()
 }
@@ -464,11 +488,17 @@ const saveEdit = async () => {
     if (editPermissions.value.length > 0) {
       body.permissions = editPermissions.value
     }
-    if (editRateLimit.value > 0) {
-      body.rateLimit = Math.min(editRateLimit.value, maxRatePerHour.value)
+    if (editReadRateLimit.value > 0) {
+      body.readRateLimit = Math.min(editReadRateLimit.value, maxRatePerHour.value)
     }
-    if (editWindowSec.value > 0) {
-      body.windowSec = editWindowSec.value
+    if (editReadWindowSec.value > 0) {
+      body.readWindowSec = editReadWindowSec.value
+    }
+    if (editWriteRateLimit.value > 0) {
+      body.writeRateLimit = editWriteRateLimit.value
+    }
+    if (editWriteWindowSec.value > 0) {
+      body.writeWindowSec = editWriteWindowSec.value
     }
     await $fetch(`/api/user/api-keys/${editingKey.value.id}`, {
       method: 'PUT',

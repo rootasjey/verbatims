@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   if (isNaN(id)) throwServer(400, 'Invalid API key ID')
 
   const existing = await db
-    .select({ id: schema.apiKeys.id, tier: schema.apiKeys.tier, rateLimit: schema.apiKeys.rateLimit, windowSec: schema.apiKeys.windowSec })
+    .select({ id: schema.apiKeys.id, tier: schema.apiKeys.tier, readRateLimit: schema.apiKeys.readRateLimit, readWindowSec: schema.apiKeys.readWindowSec, writeRateLimit: schema.apiKeys.writeRateLimit, writeWindowSec: schema.apiKeys.writeWindowSec })
     .from(schema.apiKeys)
     .where(and(eq(schema.apiKeys.id, id), eq(schema.apiKeys.userId, user.id)))
     .get()
@@ -41,20 +41,34 @@ export default defineEventHandler(async (event) => {
     }
     updates.permissions = JSON.stringify(body.permissions)
   }
-  if (body && typeof body.rateLimit === 'number' && body.rateLimit > 0) {
-    updates.rateLimit = body.rateLimit
+  if (body && typeof body.readRateLimit === 'number' && body.readRateLimit > 0) {
+    updates.readRateLimit = body.readRateLimit
   }
-  if (body && typeof body.windowSec === 'number' && body.windowSec > 0) {
-    updates.windowSec = body.windowSec
+  if (body && typeof body.readWindowSec === 'number' && body.readWindowSec > 0) {
+    updates.readWindowSec = body.readWindowSec
+  }
+  if (body && typeof body.writeRateLimit === 'number' && body.writeRateLimit > 0) {
+    updates.writeRateLimit = body.writeRateLimit
+  }
+  if (body && typeof body.writeWindowSec === 'number' && body.writeWindowSec > 0) {
+    updates.writeWindowSec = body.writeWindowSec
   }
 
   // Normalize effective rate to requests per hour and validate against tier cap
-  if (updates.rateLimit || updates.windowSec) {
-    const effectiveRate = (updates.rateLimit as number) ?? existing.rateLimit ?? 1000
-    const effectiveWindow = (updates.windowSec as number) ?? existing.windowSec ?? 3600
+  if (updates.readRateLimit || updates.readWindowSec) {
+    const effectiveRate = (updates.readRateLimit as number) ?? existing.readRateLimit ?? 1000
+    const effectiveWindow = (updates.readWindowSec as number) ?? existing.readWindowSec ?? 3600
     const perHour = Math.round((effectiveRate / effectiveWindow) * 3600)
     if (perHour > maxPerHour) {
       throwServer(400, `Effective rate of ${perHour} req/h exceeds the ${maxPerHour} req/h limit for ${existing.tier} tier`)
+    }
+  }
+  if (updates.writeRateLimit || updates.writeWindowSec) {
+    const effectiveRate = (updates.writeRateLimit as number) ?? existing.writeRateLimit ?? 1000
+    const effectiveWindow = (updates.writeWindowSec as number) ?? existing.writeWindowSec ?? 3600
+    const perHour = Math.round((effectiveRate / effectiveWindow) * 3600)
+    if (perHour > maxPerHour) {
+      throwServer(400, `Effective write rate of ${perHour} req/h exceeds the ${maxPerHour} req/h limit for ${existing.tier} tier`)
     }
   }
 

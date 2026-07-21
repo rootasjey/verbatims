@@ -43,7 +43,7 @@ Permissions: each API key has a set of permissions (\`read\`, \`write:quotes\`, 
               description: 'API key details',
               content: {
                 'application/json': {
-                  example: { success: true, data: { key_id: 1, name: 'My Key', key_prefix: 'vbt_a1b2c3', permissions: ['read', 'write:quotes'], rate_limit: 100, rate_window: 3600, user_role: 'user' } },
+                  example: { success: true, data: { key_id: 1, name: 'My Key', key_prefix: 'vbt_a1b2c3', permissions: ['read', 'write:quotes'], read_rate_limit: 1000, read_window: 3600, write_rate_limit: 1000, write_window: 3600, user_role: 'user' } },
                 },
               },
             },

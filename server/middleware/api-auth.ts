@@ -31,13 +31,21 @@ export default defineEventHandler(async (event) => {
     throwServer(401, 'Invalid or inactive API key')
   }
 
-  const windowBucket = Math.floor(Date.now() / 1000 / keyData.windowSec)
-  const rateLimitKey = `ratelimit:apikey:${keyData.id}:${windowBucket}`
-  const rateResult = await checkRateLimit({ key: rateLimitKey, max: keyData.rateLimit, window: keyData.windowSec })
-  setRateLimitHeaders(event, rateResult)
+  const method = event.method || 'GET'
+  const isWrite = method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH'
 
-  if (!rateResult.success) {
-    throwServer(429, 'Rate limit exceeded. Try again later.')
+  if (isWrite) {
+    const bucket = Math.floor(Date.now() / 1000 / keyData.writeWindowSec)
+    const key = `ratelimit:apikey:write:${keyData.id}:${bucket}`
+    const result = await checkRateLimit({ key, max: keyData.writeRateLimit, window: keyData.writeWindowSec })
+    setRateLimitHeaders(event, result)
+    if (!result.success) throwServer(429, 'Write rate limit exceeded. Try again later.')
+  } else {
+    const bucket = Math.floor(Date.now() / 1000 / keyData.readWindowSec)
+    const key = `ratelimit:apikey:read:${keyData.id}:${bucket}`
+    const result = await checkRateLimit({ key, max: keyData.readRateLimit, window: keyData.readWindowSec })
+    setRateLimitHeaders(event, result)
+    if (!result.success) throwServer(429, 'Read rate limit exceeded. Try again later.')
   }
 
   db.insert(schema.apiKeyUsageLogs).values({
