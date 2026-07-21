@@ -20,6 +20,7 @@
   "desc_public_api": "Use your API keys to access quotes, authors, references, and more programmatically.",
   "code_auth": "# Authenticate with your key",
   "code_list_quotes": "# List approved quotes",
+  "permissions_label": "Permissions",
   "dialog_create_title": "Create API Key",
   "dialog_create_desc": "Give your key a name so you can recognize it later.",
   "dialog_create_placeholder": "e.g. My CLI tool",

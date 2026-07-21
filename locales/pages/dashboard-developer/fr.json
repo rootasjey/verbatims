@@ -20,6 +20,7 @@
   "desc_public_api": "Utilisez vos clés API pour accéder aux citations, auteurs, références et plus par programmation.",
   "code_auth": "# Authentifiez-vous avec votre clé",
   "code_list_quotes": "# Lister les citations approuvées",
+  "permissions_label": "Permissions",
   "dialog_create_title": "Créer une clé API",
   "dialog_create_desc": "Donnez un nom à votre clé pour la reconnaître plus tard.",
   "dialog_create_placeholder": "ex. Mon outil CLI",
