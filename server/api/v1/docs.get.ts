@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
     .banner span { font-size: 13px; color: #A8A29E; }
     .banner a { color: #3C82F6; text-decoration: none; font-size: 13px; }
     .banner a:hover { text-decoration: underline; }
-    redoc { display: block; }
   </style>
 </head>
 <body>
@@ -36,30 +35,19 @@ export default defineEventHandler(async (event) => {
       <a href="/api/v1/openapi.json" target="_blank">OpenAPI JSON</a>
     </div>
   </div>
-  <div id="redoc-container"></div>
+  <div id="scalar-container"></div>
 
-  <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   <script>
-    Redoc.init('/api/v1/openapi.json', {
-      scrollYOffset: 56,
+    Scalar.createApiReference('#scalar-container', {
+      url: '/api/v1/openapi.json',
+      darkMode: true,
+      layout: 'modern',
       hideDownloadButton: true,
-      expandResponses: '200,201',
-      theme: {
-        colors: {
-          primary: { main: '#3C82F6' },
-          success: { main: '#22C55E' },
-          warning: { main: '#FAA533' },
-          error: { main: '#EF4444' },
-        },
-        sidebar: {
-          backgroundColor: '#FAFAF9',
-          textColor: '#292524',
-        },
-        rightPanel: {
-          backgroundColor: '#0C0A09',
-        },
-      },
-    }, document.getElementById('redoc-container'));
+      hideTestRequestButton: false,
+      withDefaultFonts: false,
+      theme: 'purple',
+    })
   </script>
 </body>
 </html>`

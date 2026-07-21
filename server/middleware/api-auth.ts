@@ -4,6 +4,7 @@ import { checkRateLimit, setRateLimitHeaders } from '../utils/rate-limit'
 const publicV1Paths = [
   '/api/v1/docs',
   '/api/v1/health',
+  '/api/v1/openapi.json',
 ]
 
 export default defineEventHandler(async (event) => {
