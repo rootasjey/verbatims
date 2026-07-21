@@ -44,11 +44,17 @@ export async function seedTestDb() {
 
   const apiKey = 'vbt_testkey0000000000000000000000000000000000'
   const keyHash = hashKey(apiKey)
+  const writeKey = 'vbt_writekey0000000000000000000000000000000000'
+  const writeKeyHash = hashKey(writeKey)
+  const noPermKey = 'vbt_nopermkey00000000000000000000000000000000'
+  const noPermKeyHash = hashKey(noPermKey)
   const adminPw = await hashPassword('admin123!')
 
   client.executeMultiple(`
     INSERT INTO users (id, email, name, password, role, language) VALUES (1, 'test@verbatims.cc', 'Test User', '${adminPw}', 'admin', 'en');
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, rate_limit, window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read"]', 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, rate_limit, window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","write:authors","write:references","write:collections"]', 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, rate_limit, window_sec, is_active) VALUES (1, 'No Perm Key', '${noPermKeyHash}', 'vbt_noperm', '["read"]', 1000, 3600, 1);
 
     INSERT INTO authors (id, name, is_fictional) VALUES (1, 'Marcus Aurelius', 0), (2, 'Albert Camus', 0), (3, 'Friedrich Nietzsche', 0);
     INSERT INTO quote_references (id, name, primary_type) VALUES (1, 'Meditations', 'book'), (2, 'The Stranger', 'book'), (3, 'Thus Spoke Zarathustra', 'book');
@@ -70,7 +76,7 @@ export async function seedTestDb() {
   `)
 
   client.close()
-  return { dbPath: DB_PATH, apiKey }
+  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey }
 }
 
 if (process.argv[1] && process.argv[1].includes('seed-e2e')) {
