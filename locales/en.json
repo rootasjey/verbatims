@@ -498,7 +498,18 @@
     "api_version_placeholder": "v5",
     "in_days": "in {count} day{count, plural, one {} other {s}}",
     "in_hours": "in {count} hour{count, plural, one {} other {s}}",
-    "in_minutes": "in {count} minute{count, plural, one {} other {s}}"
+    "in_minutes": "in {count} minute{count, plural, one {} other {s}}",
+    "image_design_title": "Social Image Design",
+    "image_design_desc": "Configure the visual design of images generated for social media posts.",
+    "image_background": "Background",
+    "image_theme": "Theme",
+    "background_solid": "Solid",
+    "background_transparent": "Transparent",
+    "background_author_image": "Author Photo",
+    "background_reference_image": "Reference Photo",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "image_photo_hint": "Best effort — falls back to solid if no photo is available for the quote"
   },
   "content_language": {
     "all": "All Languages",

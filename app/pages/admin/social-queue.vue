@@ -276,6 +276,14 @@
       @update:open="showClearFinishedDialog = $event"
       @confirm="clearFinishedQueue"
     />
+    <AdminSocialImageDesignDialog
+      :open="imageDesignDialogOpen"
+      :saving="imageDesignSaving"
+      :form="imageDesignForm"
+      :state="imageDesignState"
+      @update:open="imageDesignDialogOpen = $event"
+      @save="saveImageDesign"
+    />
     <PageJumpDialog
       v-model="showPageJumpDialog"
       :total-pages="totalPages"
@@ -329,6 +337,19 @@ const manualDialogOpen = ref(false)
 // additional dialogs for bulk queue actions
 const showClearAllDialog = ref(false)
 const showClearFinishedDialog = ref(false)
+
+// image design dialog
+const imageDesignDialogOpen = ref(false)
+const imageDesignSaving = ref(false)
+const imageDesignForm = reactive({
+  background: 'solid' as 'solid' | 'transparent' | 'author-image' | 'reference-image',
+  theme: 'light' as 'light' | 'dark'
+})
+const imageDesignState = ref({
+  background: 'solid',
+  theme: 'light',
+  updatedAt: null as string | null
+})
 
 const route = useRoute()
 
@@ -913,6 +934,33 @@ watch(randomDialogOpen, (open) => {
   }
 })
 
+watch(imageDesignDialogOpen, async (open) => {
+  if (open) {
+    try {
+      const response = await $fetch<{
+        success: boolean
+        data: {
+          background: string
+          theme: string
+          updatedAt: string | null
+        }
+      }>('/api/admin/social/image-design')
+
+      if (response?.data) {
+        imageDesignForm.background = response.data.background as typeof imageDesignForm.background
+        imageDesignForm.theme = response.data.theme as typeof imageDesignForm.theme
+        imageDesignState.value = {
+          background: response.data.background,
+          theme: response.data.theme,
+          updatedAt: response.data.updatedAt
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load image design config:', error)
+    }
+  }
+})
+
 const actionMenuItems = computed(() => {
   const items: DropdownMenuItem[] = []
   items.push({ label: $t('check_provider') as string, leading: 'i-ph-plugs-connected', onclick: checkProvider })
@@ -935,6 +983,8 @@ const actionMenuItems = computed(() => {
   items.push({ label: $t('dropdown_add_random_15') as string, leading: 'i-ph-shuffle', onclick: () => addRandomQuotes(15) })
   items.push({ label: $t('dropdown_add_random_custom') as string, leading: 'i-ph-shuffle', onclick: () => { randomCount.value = ''; randomDialogOpen.value = true } })
   items.push({ label: $t('dropdown_add_manual') as string, leading: 'i-ph-plus', onclick: () => { manualDialogOpen.value = true } })
+  items.push({})
+  items.push({ label: $t('dropdown_image_design') as string, leading: 'i-ph-image-square', onclick: () => { imageDesignDialogOpen.value = true } })
   return items
 })
 
@@ -1341,6 +1391,47 @@ async function saveProviderConfig() {
     showErrorToast($t('toast_save_error') as string, readErrorMessage(error, $t('toast_save_error_desc') as string))
   } finally {
     providerConfigSaving.value = false
+  }
+}
+
+async function saveImageDesign() {
+  imageDesignSaving.value = true
+
+  try {
+    const response = await $fetch<{
+      success: boolean
+      data: {
+        background: string
+        theme: string
+        updatedAt: string
+      }
+    }>('/api/admin/social/image-design', {
+      method: 'POST',
+      body: {
+        background: imageDesignForm.background,
+        theme: imageDesignForm.theme
+      }
+    })
+
+    if (response?.data) {
+      imageDesignState.value = {
+        background: response.data.background,
+        theme: response.data.theme,
+        updatedAt: response.data.updatedAt
+      }
+      imageDesignDialogOpen.value = false
+
+      useToast().toast({
+        title: $t('toast_saved') as string,
+        description: $t('toast_image_design_saved') as string,
+        toast: 'outline-success'
+      })
+    }
+  } catch (error) {
+    console.error('Failed to save image design settings:', error)
+    showErrorToast($t('common.error') as string, readErrorMessage(error, 'Failed to save image design settings'))
+  } finally {
+    imageDesignSaving.value = false
   }
 }
 

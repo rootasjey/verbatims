@@ -65,6 +65,8 @@
   "dropdown_move_down": "Descendre",
   "dropdown_requeue": "Remettre en file",
   "dropdown_remove": "Retirer",
+  "dropdown_image_design": "Design d'image",
+  "toast_image_design_saved": "Paramètres de design d'image mis à jour",
   "status_configured": "configuré",
   "status_error": "erreur",
   "status_not_configured": "non configuré",
