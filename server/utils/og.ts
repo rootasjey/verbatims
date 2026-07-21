@@ -6,7 +6,9 @@ export interface QuoteOgPayload {
   id: number
   text: string
   authorName?: string
+  authorImageUrl?: string | null
   referenceName?: string
+  referenceImageUrl?: string | null
   language: string
   updatedAt: string | null
   tags?: Array<{
@@ -41,8 +43,10 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
     name: schema.quotes.name,
     authorId: schema.quotes.authorId,
     authorName: schema.authors.name,
+    authorImageUrl: schema.authors.imageUrl,
     referenceId: schema.quotes.referenceId,
     referenceName: schema.quoteReferences.name,
+    referenceImageUrl: schema.quoteReferences.imageUrl,
     language: schema.quotes.language,
     updatedAt: schema.quotes.updatedAt,
   })
@@ -75,7 +79,9 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
     id: record.id,
     text: record.name,
     authorName: record.authorName ?? undefined,
+    authorImageUrl: record.authorImageUrl ?? undefined,
     referenceName: record.referenceName ?? undefined,
+    referenceImageUrl: record.referenceImageUrl ?? undefined,
     language: record.language ?? 'en',
     updatedAt: updatedAtISO,
     tags: tags.map(tag => ({

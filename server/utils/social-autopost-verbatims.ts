@@ -12,6 +12,7 @@ import type {
   SocialSourceSearchResolver
 } from '@verbatims/social-autopost-core'
 import { getSocialSourceKey } from '@verbatims/social-autopost-core'
+import { getSocialImageDesignConfig } from '~~/server/utils/social-image-design-config'
 
 export interface VerbatimsQuoteQueueCandidate {
   quoteId: number
@@ -192,7 +193,7 @@ export const verbatimsSocialPublishableSourceResolver: SocialPublishableSourceRe
     return null
   }
 
-  return resolveVerbatimsQuoteContent({
+  return await resolveVerbatimsQuoteContent({
     candidate,
     baseSiteUrl: input.baseSiteUrl,
     platform: input.platform
@@ -215,11 +216,11 @@ export function getVerbatimsFallbackCanonicalUrl(input: VerbatimsQueueSourceRef 
   return input.baseSiteUrl
 }
 
-export function resolveVerbatimsQuoteContent(input: {
+export async function resolveVerbatimsQuoteContent(input: {
   candidate: VerbatimsQuoteQueueCandidate
   baseSiteUrl: string
   platform: SocialAutopostPlatform
-}): VerbatimsResolvedQuoteContent | null {
+}): Promise<VerbatimsResolvedQuoteContent | null> {
   const quoteText = input.candidate.quoteText?.trim()
   if (!quoteText || input.candidate.quoteStatus !== 'approved') {
     return null
@@ -244,7 +245,7 @@ export function resolveVerbatimsQuoteContent(input: {
       }
     },
     media: {
-      url: getVerbatimsPlatformImageUrl(input.platform, {
+      url: await getVerbatimsPlatformImageUrl(input.platform, {
         baseSiteUrl: input.baseSiteUrl,
         quoteId: input.candidate.quoteId
       })
@@ -264,18 +265,21 @@ function buildVerbatimsAttribution(candidate: VerbatimsQuoteQueueCandidate): str
   return `— ${attributionParts.join(' · ')}`
 }
 
-function getVerbatimsPlatformImageUrl(platform: SocialAutopostPlatform, input: { baseSiteUrl: string, quoteId: number }): string {
-  if (platform === 'instagram' || platform === 'threads') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.jpg`
+async function getVerbatimsPlatformImageUrl(platform: SocialAutopostPlatform, input: { baseSiteUrl: string, quoteId: number }): Promise<string> {
+  const ext = platform === 'instagram' || platform === 'threads' || platform === 'facebook' || platform === 'pinterest' ? 'jpg' : 'png'
+
+  let url = `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.${ext}`
+
+  try {
+    const config = await getSocialImageDesignConfig()
+
+    const params = new URLSearchParams()
+    params.set('background', config.background)
+    params.set('theme', config.theme)
+    url += `?${params.toString()}`
+  } catch {
+    // If the config can't be loaded, just use the defaults (solid, light)
   }
 
-  if (platform === 'x' || platform === 'bluesky') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.png`
-  }
-
-  if (platform === 'facebook' || platform === 'pinterest') {
-    return `${input.baseSiteUrl}/api/social/images/quotes/${input.quoteId}.jpg`
-  }
-
-  return `${input.baseSiteUrl}/api/og/quotes/${input.quoteId}.png`
+  return url
 }

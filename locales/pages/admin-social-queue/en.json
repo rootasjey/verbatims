@@ -65,6 +65,8 @@
   "dropdown_move_down": "Move down",
   "dropdown_requeue": "Re-queue",
   "dropdown_remove": "Remove",
+  "dropdown_image_design": "Image Design",
+  "toast_image_design_saved": "Image design settings updated",
   "status_configured": "configured",
   "status_error": "error",
   "status_not_configured": "not configured",

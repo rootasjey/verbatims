@@ -1,14 +1,14 @@
 <template>
   <NDialog v-model:open="isOpen" :una="unaConfig" :show-close="false">
     <template #header>
-      <div class="flex justify-between items-center mb-1 pb-2 border-b b-dashed border-gray-200">
+      <div class="flex justify-between items-start mb-1 pb-2 border-b b-dashed border-gray-200">
         <slot name="header-title"></slot>
         <h3 v-if="title" class="font-title uppercase text-size-4 font-600">
           <slot name="title">{{ title }}</slot>
         </h3>
         <div class="flex items-center gap-2">
           <slot name="header-actions" />
-          <NTooltip :content="$t('components.app_dialog.close') as string">
+          <NTooltip :content="$t('components.app_dialog.close')?.toString()">
             <NButton btn="~" @click="close" size="xs" label="i-ph-x-bold" icon class="dialog-close-btn hover:scale-110 active:scale-99 transition-[transform,color] duration-300" />
           </NTooltip>
         </div>

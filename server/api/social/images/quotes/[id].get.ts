@@ -1,6 +1,9 @@
 import { kv } from 'hub:kv'
 import { resolveAppOrigin } from '../../../../utils/app-origin'
 
+type BgType = 'solid' | 'transparent' | 'author-image' | 'reference-image'
+type Theme = 'light' | 'dark'
+
 export default defineEventHandler(async (event) => {
   let quoteId = getRouterParam(event, 'id')
   if (!quoteId) { throwServer(400, 'Quote id is required'); return }
@@ -16,11 +19,15 @@ export default defineEventHandler(async (event) => {
     quoteId = quoteId.slice(0, -4)
   }
 
+  const query = getQuery(event)
+  const background = (query.background as BgType) || 'solid'
+  const theme = (query.theme as Theme) || 'light'
+
   const quote = await getApprovedQuoteForOg(quoteId)
   if (!quote) { throwServer(404, 'Quote not found'); return }
 
   const config = useRuntimeConfig()
-  const styleVersion = `${(config.public as any).ogStyleVersion || '1'}:square-v1`
+  const styleVersion = `${(config.public as any).ogStyleVersion || '1'}:square-v2`
   const origin = resolveAppOrigin(event)
 
   const basis = JSON.stringify({
@@ -29,12 +36,14 @@ export default defineEventHandler(async (event) => {
     r: quote.referenceName || '',
     g: quote.tags?.map(tag => `${tag.name}:${tag.color}`).join('|') || '',
     v: styleVersion,
+    bg: background,
+    th: theme,
     u: quote.updatedAt ? Date.parse(quote.updatedAt) : 0
   })
   const hash = await sha1(basis)
 
-  const keyData = `social:quote:${quoteId}:latest`
-  const keyImage = (h: string) => `social:quote:${quoteId}:${h}.${outputFormat === 'jpeg' ? 'jpg' : 'png'}`
+  const keyData = `social:quote:${quoteId}:${background}:${theme}:latest`
+  const keyImage = (h: string) => `social:quote:${quoteId}:${background}:${theme}:${h}.${outputFormat === 'jpeg' ? 'jpg' : 'png'}`
 
   const latest = await kv.get<string>(keyData)
   const effectiveHash = latest && latest === hash ? latest : hash
@@ -50,7 +59,7 @@ export default defineEventHandler(async (event) => {
   const { page } = await hubBrowser(event)
   await page.setViewport({ width: 1080, height: 1080, deviceScaleFactor: 2 })
 
-  const templateUrl = `${origin}/api/social/images/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion)}`
+  const templateUrl = `${origin}/api/social/images/templates/quote?id=${encodeURIComponent(quoteId)}&v=${encodeURIComponent(styleVersion)}&background=${encodeURIComponent(background)}&theme=${encodeURIComponent(theme)}`
   await page.goto(templateUrl, { waitUntil: 'networkidle0', timeout: 15000 })
   const image = await page.screenshot(
     outputFormat === 'jpeg'

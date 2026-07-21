@@ -498,7 +498,18 @@
     "api_version_placeholder": "v5",
     "in_days": "dans {count} jour{count, plural, one {} other {s}}",
     "in_hours": "dans {count} heure{count, plural, one {} other {s}}",
-    "in_minutes": "dans {count} minute{count, plural, one {} other {s}}"
+    "in_minutes": "dans {count} minute{count, plural, one {} other {s}}",
+    "image_design_title": "Design des images sociales",
+    "image_design_desc": "Configurez le design visuel des images générées pour les publications sur les réseaux sociaux.",
+    "image_background": "Arrière-plan",
+    "image_theme": "Thème",
+    "background_solid": "Uni",
+    "background_transparent": "Transparent",
+    "background_author_image": "Photo auteur",
+    "background_reference_image": "Photo référence",
+    "theme_light": "Clair",
+    "theme_dark": "Sombre",
+    "image_photo_hint": "Best effort — utilise le fond uni si aucune photo n'est disponible pour la citation"
   },
   "nuxtSiteConfig": {
     "name": "Verbatims",
