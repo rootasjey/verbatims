@@ -38,13 +38,16 @@ export async function checkRateLimit(opts: RateLimitOptions): Promise<RateLimitR
   return { success: true, remaining: opts.max - current - 1, reset }
 }
 
-export function setRateLimitHeaders(event: any, result: RateLimitResult) {
+export function setRateLimitHeaders(event: any, result: RateLimitResult, limit?: number) {
   setHeader(event, 'X-RateLimit-Remaining', String(result.remaining))
   setHeader(event, 'X-RateLimit-Reset', String(result.reset))
+  if (limit !== undefined) {
+    setHeader(event, 'X-RateLimit-Limit', String(limit))
+  }
 }
 
 export async function requireRateLimit(event: any, key: string, max: number, windowSeconds: number, message?: string) {
   const result = await checkRateLimit({ key, max, window: windowSeconds })
-  setRateLimitHeaders(event, result)
+  setRateLimitHeaders(event, result, max)
   if (!result.success) throwServer(429, message || 'Too many requests. Please try again later.')
 }

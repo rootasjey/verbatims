@@ -39,13 +39,13 @@ export default defineEventHandler(async (event) => {
     const bucket = Math.floor(Date.now() / 1000 / keyData.writeWindowSec)
     const key = `ratelimit:apikey:write:${keyData.id}:${bucket}`
     const result = await checkRateLimit({ key, max: keyData.writeRateLimit, window: keyData.writeWindowSec })
-    setRateLimitHeaders(event, result)
+    setRateLimitHeaders(event, result, keyData.writeRateLimit)
     if (!result.success) throwServer(429, 'Write rate limit exceeded. Try again later.')
   } else {
     const bucket = Math.floor(Date.now() / 1000 / keyData.readWindowSec)
     const key = `ratelimit:apikey:read:${keyData.id}:${bucket}`
     const result = await checkRateLimit({ key, max: keyData.readRateLimit, window: keyData.readWindowSec })
-    setRateLimitHeaders(event, result)
+    setRateLimitHeaders(event, result, keyData.readRateLimit)
     if (!result.success) throwServer(429, 'Read rate limit exceeded. Try again later.')
   }
 
