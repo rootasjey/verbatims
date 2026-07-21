@@ -16,11 +16,17 @@ export default defineEventHandler(async (event) => {
   if (body && Array.isArray(body.permissions)) {
     updates.permissions = JSON.stringify(body.permissions)
   }
-  if (body && typeof body.rateLimit === 'number' && body.rateLimit > 0) {
-    updates.rateLimit = body.rateLimit
+  if (body && typeof body.readRateLimit === 'number' && body.readRateLimit > 0) {
+    updates.readRateLimit = body.readRateLimit
   }
-  if (body && typeof body.windowSec === 'number' && body.windowSec > 0) {
-    updates.windowSec = body.windowSec
+  if (body && typeof body.readWindowSec === 'number' && body.readWindowSec > 0) {
+    updates.readWindowSec = body.readWindowSec
+  }
+  if (body && typeof body.writeRateLimit === 'number' && body.writeRateLimit > 0) {
+    updates.writeRateLimit = body.writeRateLimit
+  }
+  if (body && typeof body.writeWindowSec === 'number' && body.writeWindowSec > 0) {
+    updates.writeWindowSec = body.writeWindowSec
   }
   if (body && typeof body.isActive === 'boolean') {
     updates.isActive = body.isActive

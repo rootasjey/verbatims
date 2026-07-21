@@ -72,7 +72,7 @@
                 </span>
               </td>
               <td class="px-3 py-3 font-sans text-xs text-gray-500 dark:text-gray-400">
-                {{ key.rateLimit }}/{{ formatWindow(key.windowSec) }}
+                {{ key.readRateLimit }}/{{ formatWindow(key.readWindowSec) }}
               </td>
               <td class="px-3 py-3">
                 <div class="flex gap-1 flex-wrap">
@@ -149,16 +149,26 @@
             </label>
           </div>
         </div>
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_rate_limit') }}</label>
-            <input v-model.number="form.rateLimit" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+          <div class="flex gap-4">
+            <div class="flex-1">
+              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_rate_limit') }}</label>
+              <input v-model.number="form.readRateLimit" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+            </div>
+            <div class="flex-1">
+              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_read_window') }}</label>
+              <input v-model.number="form.readWindowSec" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+            </div>
           </div>
-          <div class="flex-1">
-            <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_window') }}</label>
-            <input v-model.number="form.windowSec" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+          <div class="flex gap-4">
+            <div class="flex-1">
+              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_write_rate_limit') }}</label>
+              <input v-model.number="form.writeRateLimit" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+            </div>
+            <div class="flex-1">
+              <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ $t('label_write_window') }}</label>
+              <input v-model.number="form.writeWindowSec" type="number" min="1" class="w-full font-sans text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-gray-400" />
+            </div>
           </div>
-        </div>
 
         <!-- Show plain key after creation -->
         <div v-if="createdKey" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded-sm">
@@ -261,8 +271,10 @@ const form = reactive({
   name: '',
   tier: 'free',
   permissions: ['read'],
-  rateLimit: 1000,
-  windowSec: 3600,
+  readRateLimit: 1000,
+  readWindowSec: 3600,
+  writeRateLimit: 1000,
+  writeWindowSec: 3600,
 })
 
 const tierClass = (tier: string) => {
@@ -292,8 +304,10 @@ const resetForm = () => {
   form.name = ''
   form.tier = 'free'
   form.permissions = ['read']
-  form.rateLimit = 1000
-  form.windowSec = 3600
+  form.readRateLimit = 1000
+  form.readWindowSec = 3600
+  form.writeRateLimit = 1000
+  form.writeWindowSec = 3600
   createdKey.value = ''
   editingKey.value = null
 }
@@ -307,8 +321,10 @@ const editKey = (key: any) => {
   editingKey.value = key
   form.name = key.name
   form.permissions = [...key.permissions]
-  form.rateLimit = key.rateLimit
-  form.windowSec = key.windowSec
+  form.readRateLimit = key.readRateLimit
+  form.readWindowSec = key.readWindowSec
+  form.writeRateLimit = key.writeRateLimit ?? 1000
+  form.writeWindowSec = key.writeWindowSec ?? 3600
   form.tier = key.tier
   showDialog.value = true
 }
@@ -355,8 +371,10 @@ const save = async () => {
           name: form.name.trim(),
           tier: form.tier,
           permissions: form.permissions,
-          rateLimit: form.rateLimit,
-          windowSec: form.windowSec,
+          readRateLimit: form.readRateLimit,
+          readWindowSec: form.readWindowSec,
+          writeRateLimit: form.writeRateLimit,
+          writeWindowSec: form.writeWindowSec,
         },
       })
     } else {
@@ -366,8 +384,10 @@ const save = async () => {
           name: form.name.trim(),
           tier: form.tier,
           permissions: form.permissions,
-          rateLimit: form.rateLimit,
-          windowSec: form.windowSec,
+          readRateLimit: form.readRateLimit,
+          readWindowSec: form.readWindowSec,
+          writeRateLimit: form.writeRateLimit,
+          writeWindowSec: form.writeWindowSec,
         },
       })
       createdKey.value = (res as any).data?.plainKey || ''

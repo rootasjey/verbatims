@@ -7,8 +7,10 @@ export interface ApiKey {
   keyPrefix: string
   tier: ApiKeyTier
   permissions: string[]
-  rateLimit: number
-  windowSec: number
+  readRateLimit: number
+  readWindowSec: number
+  writeRateLimit: number
+  writeWindowSec: number
   isActive: boolean
   lastUsedAt: number | null
   expiresAt: number | null
@@ -25,15 +27,19 @@ export interface CreateApiKeyData {
   name: string
   tier?: ApiKeyTier
   permissions?: string[]
-  rateLimit?: number
-  windowSec?: number
+  readRateLimit?: number
+  readWindowSec?: number
+  writeRateLimit?: number
+  writeWindowSec?: number
 }
 
 export interface UpdateApiKeyData {
   name?: string
   permissions?: string[]
-  rateLimit?: number
-  windowSec?: number
+  readRateLimit?: number
+  readWindowSec?: number
+  writeRateLimit?: number
+  writeWindowSec?: number
   isActive?: boolean
 }
 

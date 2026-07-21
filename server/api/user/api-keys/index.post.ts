@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
     keyPrefix,
     tier: 'free',
     permissions: JSON.stringify(permissions),
-    rateLimit: 1000,
-    windowSec: 3600,
+    readRateLimit: 1000,
+    readWindowSec: 3600,
   }).returning().get()
 
   return {
