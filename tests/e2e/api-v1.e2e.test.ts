@@ -2,12 +2,16 @@ import { describe, test, expect, beforeAll } from 'vitest'
 import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
 
 let apiKey: string
+let writeKey: string
+let noPermKey: string
 let adminCookie: string
 
 beforeAll(async () => {
   const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
   const testDb = await seedTestDb()
   apiKey = testDb.apiKey
+  writeKey = testDb.writeKey
+  noPermKey = testDb.noPermKey
   process.env.TURSO_DATABASE_URL = `file:${testDb.dbPath}`
   process.env.TURSO_AUTH_TOKEN = 'dummy'
   process.env.NUXT_SESSION_PASSWORD = 'test-session-pw-32chars-1234567890abcdef'
@@ -28,6 +32,14 @@ function headers() {
 
 function adminHeaders() {
   return { headers: { cookie: adminCookie } }
+}
+
+function writeHeaders() {
+  return { headers: { Authorization: `Bearer ${writeKey}` } }
+}
+
+function noPermHeaders() {
+  return { headers: { Authorization: `Bearer ${noPermKey}` } }
 }
 
 // ── Auth ──
@@ -378,6 +390,201 @@ describe('GET /api/admin/social-queue', () => {
     expect(res.data.stats).toHaveProperty('posted')
     expect(res.pagination).toBeTypeOf('object')
     expect(res.pagination.total).toBe(3)
+  })
+})
+
+// ── V1 Write Endpoints ──
+
+describe('POST /api/v1/quotes', () => {
+  const quoteBody = { name: 'Test quote from E2E test.', language: 'en' }
+
+  test('creates a quote as draft', async () => {
+    const res = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: quoteBody,
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.content).toBe('Test quote from E2E test.')
+    expect(res.data.language).toBe('en')
+    expect(res.data.tags).toEqual([])
+    expect(res.message).toContain('pending moderation')
+  })
+
+  test('returns 400 with missing name', async () => {
+    const res = await fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: 'fr' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  test('returns 409 for duplicate quote', async () => {
+    const res = await fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Test quote from E2E test.', language: 'en' }),
+    })
+    expect(res.status).toBe(409)
+  })
+
+  test('returns 403 for read-only API key', async () => {
+    const res = await fetch('/api/v1/quotes', {
+      ...noPermHeaders(),
+      method: 'POST',
+      headers: { ...noPermHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Should not work.', language: 'en' }),
+    })
+    expect(res.status).toBe(403)
+  })
+
+  test('returns 401 without auth', async () => {
+    const res = await fetch('/api/v1/quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quoteBody),
+    })
+    expect(res.status).toBe(401)
+  })
+
+  test('creates quote with author and reference IDs', async () => {
+    const res = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Quote with author ref.', language: 'en', author_id: 1, reference_id: 1 },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.author?.id).toBe(1)
+    expect(res.data.reference?.id).toBe(1)
+  })
+
+  test('creates quote with inline new_author', async () => {
+    const res = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Quote with new author.', language: 'en', new_author: { name: 'Epictetus' } },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.author?.name).toBe('Epictetus')
+  })
+})
+
+describe('PUT /api/v1/quotes/[id]', () => {
+  test('updates a quote', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Quote to update.', language: 'en' },
+    })
+    const res = await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'PUT',
+      body: { name: 'Updated quote content!' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.content).toBe('Updated quote content!')
+  })
+
+  test('returns 404 for non-existent quote', async () => {
+    const res = await fetch('/api/v1/quotes/99999', {
+      ...writeHeaders(),
+      method: 'PUT',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Nope.' }),
+    })
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('DELETE /api/v1/quotes/[id]', () => {
+  test('deletes own quote', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Quote to delete.', language: 'en' },
+    })
+    const res = await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.success).toBe(true)
+    expect(res.message).toContain('deleted')
+  })
+
+  test('returns 404 for already deleted quote', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Another to delete.', language: 'en' },
+    })
+    await $fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'DELETE',
+    })
+    const res = await fetch(`/api/v1/quotes/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('POST /api/v1/authors', () => {
+  test('creates an author (admin key)', async () => {
+    const res = await $fetch('/api/v1/authors', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Seneca the Younger' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('Seneca the Younger')
+    expect(res.data.fictional).toBe(false)
+  })
+
+  test('returns 409 for duplicate name', async () => {
+    const res = await fetch('/api/v1/authors', {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Albert Camus' }),
+    })
+    expect(res.status).toBe(409)
+  })
+
+  test('returns 400 with missing name', async () => {
+    const res = await fetch('/api/v1/authors', {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_fictional: true }),
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('POST /api/v1/references', () => {
+  test('creates a reference (admin key)', async () => {
+    const res = await $fetch('/api/v1/references', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'On the Shortness of Life', primary_type: 'book' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('On the Shortness of Life')
+    expect(res.data.type).toBe('book')
+  })
+
+  test('returns 409 for duplicate name', async () => {
+    const res = await fetch('/api/v1/references', {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Meditations', primary_type: 'book' }),
+    })
+    expect(res.status).toBe(409)
   })
 })
 

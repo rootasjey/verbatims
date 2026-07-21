@@ -235,7 +235,6 @@
             {{ $t('rate_display', { n: effectivePerHour }) }}
           </p>
         </div>
-      </div>
         <div>
           <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
           <div class="flex gap-3 flex-wrap">
