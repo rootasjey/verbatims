@@ -82,3 +82,9 @@ export function requireApiPermission(apiKey: ApiKeyData, permission: string): vo
     throwServer(403, `API key missing required permission: ${permission}`)
   }
 }
+
+export function requireApiKeyRole(apiKey: ApiKeyData, ...roles: string[]): void {
+  if (!roles.includes(apiKey.userRole)) {
+    throwServer(403, `API key requires one of these roles: ${roles.join(', ')}`)
+  }
+}
