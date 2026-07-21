@@ -244,8 +244,11 @@ const deleting = ref(false)
 
 const availablePermissions = [
   { label: String($t('perm_read')), value: 'read' },
-  { label: String($t('perm_write')), value: 'write' },
-  { label: String($t('perm_admin')), value: 'admin' },
+  { label: String($t('perm_quotes')), value: 'write:quotes' },
+  { label: String($t('perm_authors')), value: 'write:authors' },
+  { label: String($t('perm_references')), value: 'write:references' },
+  { label: String($t('perm_collections')), value: 'write:collections' },
+  { label: String($t('perm_all')), value: '*' },
 ]
 
 const tierOptions = [

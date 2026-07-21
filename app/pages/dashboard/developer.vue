@@ -179,6 +179,15 @@
         class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
         @keydown.enter="createKey"
       />
+      <div class="mt-4">
+        <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
+        <div class="flex gap-3 flex-wrap">
+          <label v-for="perm in availablePermissions" :key="perm.value" class="flex items-center gap-2 font-sans text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+            <input type="checkbox" :value="perm.value" v-model="newKeyPermissions" class="accent-gray-700 dark:accent-gray-300" />
+            {{ perm.label }}
+          </label>
+        </div>
+      </div>
       <template #footer>
         <div class="flex justify-end gap-3">
           <button class="font-sans text-xs text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5" @click="showCreateDialog = false">{{ $t('common.cancel') }}</button>
@@ -225,6 +234,16 @@
           <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1.5">
             {{ $t('rate_display', { n: effectivePerHour }) }}
           </p>
+        </div>
+      </div>
+        <div>
+          <label class="font-sans text-xs text-gray-500 dark:text-gray-400 block mb-2">{{ $t('permissions_label') }}</label>
+          <div class="flex gap-3 flex-wrap">
+            <label v-for="perm in availablePermissions" :key="perm.value" class="flex items-center gap-2 font-sans text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+              <input type="checkbox" :value="perm.value" v-model="editPermissions" class="accent-gray-700 dark:accent-gray-300" />
+              {{ perm.label }}
+            </label>
+          </div>
         </div>
       </div>
       <div v-if="editError" class="font-sans text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-sm -mb-2">
@@ -294,9 +313,19 @@ const loading = ref(true)
 
 const showCreateDialog = ref(false)
 const newKeyName = ref('')
+const newKeyPermissions = ref<string[]>(['read'])
 const creating = ref(false)
 const createdKey = ref('')
 const copied = ref(false)
+
+const availablePermissions = [
+  { label: 'Read', value: 'read' },
+  { label: 'Write: Quotes', value: 'write:quotes' },
+  { label: 'Write: Authors', value: 'write:authors' },
+  { label: 'Write: References', value: 'write:references' },
+  { label: 'Write: Collections', value: 'write:collections' },
+  { label: 'All (*)', value: '*' },
+]
 
 const copyKey = async () => {
   try {
@@ -391,6 +420,7 @@ const doBatchDelete = async () => {
 const showEditDialog = ref(false)
 const editingKey = ref<any | null>(null)
 const editName = ref('')
+const editPermissions = ref<string[]>([])
 const editRateLimit = ref(1000)
 const editWindowSec = ref(3600)
 const savingEdit = ref(false)
@@ -413,6 +443,7 @@ const editError = ref('')
 const openEditDialog = (key: any) => {
   editingKey.value = key
   editName.value = key.name
+  editPermissions.value = [...(key.permissions || ['read'])]
   editRateLimit.value = key.rateLimit
   editWindowSec.value = key.windowSec
   editError.value = ''
@@ -431,6 +462,9 @@ const saveEdit = async () => {
   savingEdit.value = true
   try {
     const body: Record<string, unknown> = { name: editName.value.trim() }
+    if (editPermissions.value.length > 0) {
+      body.permissions = editPermissions.value
+    }
     if (editRateLimit.value > 0) {
       body.rateLimit = Math.min(editRateLimit.value, maxRatePerHour.value)
     }
@@ -479,11 +513,12 @@ const createKey = async () => {
   try {
     const res: any = await $fetch('/api/user/api-keys', {
       method: 'POST',
-      body: { name: newKeyName.value.trim() },
+      body: { name: newKeyName.value.trim(), permissions: newKeyPermissions.value },
     })
     createdKey.value = res.data.plainKey
     showCreateDialog.value = false
     newKeyName.value = ''
+    newKeyPermissions.value = ['read']
     loadKeys()
   } catch (e) {
     showErrorToast(e, $t('error_create') as string)
