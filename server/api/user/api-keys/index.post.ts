@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { generateApiKey } from '~~/server/utils/api-key'
 
-const validPermissions = ['read', 'write:quotes', 'write:authors', 'write:references', 'write:collections', '*']
+const validPermissions = ['read', 'write:quotes', 'write:authors', 'write:references', 'write:collections', 'admin:themes', '*']
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
