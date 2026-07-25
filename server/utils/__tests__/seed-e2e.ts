@@ -38,7 +38,7 @@ export async function seedTestDb() {
     .join('\n')
   client.executeMultiple(statements)
 
-  for (const table of ['social_posts', 'social_queue', 'api_key_usage_logs', 'api_keys', 'quote_tags', 'quote_views', 'author_views', 'reference_views', 'user_likes', 'quotes', 'tags', 'quote_references', 'authors', 'users']) {
+  for (const table of ['social_posts', 'social_queue', 'api_key_usage_logs', 'api_keys', 'quote_tags', 'quote_views', 'author_views', 'reference_views', 'user_likes', 'theme_content_filters', 'theme_translations', 'themes', 'quotes', 'tags', 'quote_references', 'authors', 'users']) {
     client.execute(`DELETE FROM ${table}`)
   }
 
@@ -48,6 +48,8 @@ export async function seedTestDb() {
   const writeKeyHash = hashKey(writeKey)
   const noPermKey = 'vbt_nopermkey00000000000000000000000000000000'
   const noPermKeyHash = hashKey(noPermKey)
+  const themeKey = 'vbt_themekey0000000000000000000000000000000000'
+  const themeKeyHash = hashKey(themeKey)
   const adminPw = await hashPassword('admin123!')
 
   client.executeMultiple(`
@@ -55,6 +57,7 @@ export async function seedTestDb() {
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","write:authors","write:references","write:collections"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'No Perm Key', '${noPermKeyHash}', 'vbt_noperm', '["read"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Theme Key', '${themeKeyHash}', 'vbt_themek', '["admin:themes"]', 1000, 3600, 1000, 3600, 1);
 
     INSERT INTO authors (id, name, is_fictional) VALUES (1, 'Marcus Aurelius', 0), (2, 'Albert Camus', 0), (3, 'Friedrich Nietzsche', 0);
     INSERT INTO quote_references (id, name, primary_type) VALUES (1, 'Meditations', 'book'), (2, 'The Stranger', 'book'), (3, 'Thus Spoke Zarathustra', 'book');
@@ -76,7 +79,7 @@ export async function seedTestDb() {
   `)
 
   client.close()
-  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey }
+  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey, themeKey }
 }
 
 if (process.argv[1] && process.argv[1].includes('seed-e2e')) {

@@ -4,6 +4,7 @@ import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
 let apiKey: string
 let writeKey: string
 let noPermKey: string
+let themeKey: string
 let adminCookie: string
 
 beforeAll(async () => {
@@ -12,6 +13,7 @@ beforeAll(async () => {
   apiKey = testDb.apiKey
   writeKey = testDb.writeKey
   noPermKey = testDb.noPermKey
+  themeKey = testDb.themeKey
   process.env.TURSO_DATABASE_URL = `file:${testDb.dbPath}`
   process.env.TURSO_AUTH_TOKEN = 'dummy'
   process.env.NUXT_SESSION_PASSWORD = 'test-session-pw-32chars-1234567890abcdef'
@@ -40,6 +42,10 @@ function writeHeaders() {
 
 function noPermHeaders() {
   return { headers: { Authorization: `Bearer ${noPermKey}` } }
+}
+
+function themeHeaders() {
+  return { headers: { Authorization: `Bearer ${themeKey}` } }
 }
 
 // ── Auth ──
@@ -585,6 +591,352 @@ describe('POST /api/v1/references', () => {
       body: JSON.stringify({ name: 'Meditations', primary_type: 'book' }),
     })
     expect(res.status).toBe(409)
+  })
+})
+
+// ── V1 Theme Endpoints ──
+
+describe('GET /api/v1/themes', () => {
+  test('lists themes (empty)', async () => {
+    const res = await $fetch('/api/v1/themes', themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data).toEqual([])
+    expect(res.pagination.total).toBe(0)
+  })
+
+  test('returns 403 with read-only key', async () => {
+    const res = await fetch('/api/v1/themes', noPermHeaders())
+    expect(res.status).toBe(403)
+  })
+
+  test('returns 401 without auth', async () => {
+    const res = await fetch('/api/v1/themes')
+    expect(res.status).toBe(401)
+  })
+})
+
+describe('POST /api/v1/themes', () => {
+  const themeSlug = `test-theme-${Date.now()}`
+  let createdId: number
+
+  test('creates a theme', async () => {
+    const res = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: {
+        slug: themeSlug,
+        name: 'Test Theme',
+        description: 'A test theme for E2E.',
+        language: 'en',
+        priority: 10,
+      },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.slug).toBe(themeSlug)
+    expect(res.data.name).toBe('Test Theme')
+    expect(res.data.priority).toBe(10)
+    createdId = res.data.id
+  })
+
+  test('returns 409 for duplicate slug', async () => {
+    const res = await fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      headers: { ...themeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: themeSlug, name: 'Duplicate' }),
+    })
+    expect(res.status).toBe(409)
+  })
+
+  test('returns 400 without slug', async () => {
+    const res = await fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      headers: { ...themeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'No Slug' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  test('lists themes (one item)', async () => {
+    const res = await $fetch('/api/v1/themes', themeHeaders())
+    expect(res.data).toHaveLength(1)
+    expect(res.data[0].slug).toBe(themeSlug)
+    expect(res.pagination.total).toBe(1)
+  })
+})
+
+describe('GET /api/v1/themes/[id]', () => {
+  let themeId: number
+
+  beforeAll(async () => {
+    const slug = `get-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Get Test' },
+    })
+    themeId = created.data.id
+  })
+
+  test('returns theme with filters and translations', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}`, themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.id).toBe(themeId)
+    expect(res.data.filters).toEqual([])
+    expect(res.data.translations).toEqual([])
+  })
+
+  test('returns 404 for non-existent theme', async () => {
+    const res = await fetch('/api/v1/themes/99999', themeHeaders())
+    expect(res.status).toBe(404)
+  })
+
+  test('returns 400 for invalid ID', async () => {
+    const res = await fetch('/api/v1/themes/abc', themeHeaders())
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('PUT /api/v1/themes/[id]', () => {
+  let themeId: number
+
+  beforeAll(async () => {
+    const slug = `put-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Put Test' },
+    })
+    themeId = created.data.id
+  })
+
+  test('updates a theme', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}`, {
+      ...themeHeaders(),
+      method: 'PUT',
+      body: { name: 'Updated Name', priority: 5 },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('Updated Name')
+  })
+
+  test('returns 404 for non-existent theme', async () => {
+    const res = await fetch('/api/v1/themes/99999', {
+      ...themeHeaders(),
+      method: 'PUT',
+      headers: { ...themeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Nope' }),
+    })
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('PUT /api/v1/themes/[id]/activate', () => {
+  let themeId: number
+
+  beforeAll(async () => {
+    const slug = `activate-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Activate Test' },
+    })
+    themeId = created.data.id
+  })
+
+  test('activates a theme', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}/activate`, {
+      ...themeHeaders(),
+      method: 'PUT',
+      body: { is_active: true },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.is_active).toBe(true)
+  })
+
+  test('deactivates a theme', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}/activate`, {
+      ...themeHeaders(),
+      method: 'PUT',
+      body: { is_active: false },
+    })
+    expect(res.data.is_active).toBe(false)
+  })
+})
+
+describe('PUT /api/v1/themes/[id]/default', () => {
+  let themeId: number
+
+  beforeAll(async () => {
+    const slug = `default-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Default Test' },
+    })
+    themeId = created.data.id
+  })
+
+  test('sets a theme as default', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}/default`, {
+      ...themeHeaders(),
+      method: 'PUT',
+      body: { is_default: true },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.is_default).toBe(true)
+  })
+})
+
+describe('POST /api/v1/themes/[id]/filters', () => {
+  let themeId: number
+
+  beforeAll(async () => {
+    const slug = `filter-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Filter Test' },
+    })
+    themeId = created.data.id
+  })
+
+  test('adds a tag_name filter', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}/filters`, {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { type: 'tag_name', value: 'wisdom' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.type).toBe('tag_name')
+    expect(res.data.value).toBe('wisdom')
+  })
+
+  test('adds a keyword filter', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}/filters`, {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { type: 'keyword', value: 'life' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.type).toBe('keyword')
+  })
+
+  test('returns 400 for invalid filter type', async () => {
+    const res = await fetch(`/api/v1/themes/${themeId}/filters`, {
+      ...themeHeaders(),
+      method: 'POST',
+      headers: { ...themeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'invalid_type', value: 'test' }),
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('DELETE /api/v1/themes/[id]/filters/[fid]', () => {
+  let themeId: number
+  let filterId: number
+
+  beforeAll(async () => {
+    const slug = `del-filter-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Del Filter Test' },
+    })
+    themeId = created.data.id
+    const filter = await $fetch(`/api/v1/themes/${themeId}/filters`, {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { type: 'keyword', value: 'test-delete' },
+    })
+    filterId = filter.data.themeId
+  })
+
+  test('deletes a filter', async () => {
+    const theme = await $fetch(`/api/v1/themes/${themeId}`, themeHeaders())
+    const fid = theme.data.filters[0].id
+    const res = await $fetch(`/api/v1/themes/${themeId}/filters/${fid}`, {
+      ...themeHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.deleted).toBe(true)
+  })
+})
+
+describe('DELETE /api/v1/themes/[id]', () => {
+  let themeId: number
+
+  beforeAll(async () => {
+    const slug = `delete-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Delete Test' },
+    })
+    themeId = created.data.id
+  })
+
+  test('deletes a theme', async () => {
+    const res = await $fetch(`/api/v1/themes/${themeId}`, {
+      ...themeHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.deleted).toBe(true)
+  })
+
+  test('returns 404 for deleted theme', async () => {
+    const res = await fetch(`/api/v1/themes/${themeId}`, themeHeaders())
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('GET /api/v1/themes/[id]/suggestions', () => {
+  test('returns suggestions list (empty)', async () => {
+    const slug = `suggest-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Suggest Test' },
+    })
+    const res = await $fetch(`/api/v1/themes/${created.data.id}/suggestions`, themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data).toEqual([])
+  })
+})
+
+describe('GET /api/v1/themes/filter-suggestions', () => {
+  test('searches for tags', async () => {
+    const res = await $fetch('/api/v1/themes/filter-suggestions?q=wis&type=tag_name', themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.length).toBeGreaterThanOrEqual(1)
+    expect(res.data[0].value).toBe('wisdom')
+  })
+
+  test('returns empty for short query', async () => {
+    const res = await $fetch('/api/v1/themes/filter-suggestions?q=&type=tag_name', themeHeaders())
+    expect(res.data).toEqual([])
+  })
+
+  test('searches authors', async () => {
+    const res = await $fetch('/api/v1/themes/filter-suggestions?q=marcus&type=author_name', themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data[0].value).toContain('Marcus')
+  })
+})
+
+describe('POST /api/v1/themes/filter-recommendations', () => {
+  test('returns recommendations for tag filters', async () => {
+    const res = await $fetch('/api/v1/themes/filter-recommendations', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { name: 'Wisdom', filters: [{ type: 'tag_name', value: 'wisdom' }] },
+    })
+    expect(res.success).toBe(true)
+    expect(Array.isArray(res.data)).toBe(true)
   })
 })
 
