@@ -1,23 +1,18 @@
 import { describe, test, expect, beforeAll } from 'vitest'
 import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
 
-let apiKey: string
-let writeKey: string
-let noPermKey: string
-let themeKey: string
+const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
+const testDb = await seedTestDb()
+
+const apiKey = testDb.apiKey
+const writeKey = testDb.writeKey
+const noPermKey = testDb.noPermKey
+const themeKey = testDb.themeKey
 let adminCookie: string
 
-beforeAll(async () => {
-  const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
-  const testDb = await seedTestDb()
-  apiKey = testDb.apiKey
-  writeKey = testDb.writeKey
-  noPermKey = testDb.noPermKey
-  themeKey = testDb.themeKey
-  process.env.TURSO_DATABASE_URL = `file:${testDb.dbPath}`
-  process.env.TURSO_AUTH_TOKEN = 'dummy'
-  process.env.NUXT_SESSION_PASSWORD = 'test-session-pw-32chars-1234567890abcdef'
-})
+process.env.TURSO_DATABASE_URL = `file:${testDb.dbPath}`
+process.env.TURSO_AUTH_TOKEN = 'dummy'
+process.env.NUXT_SESSION_PASSWORD = 'test-session-pw-32chars-1234567890abcdef'
 
 await setup({
   server: true,
@@ -669,7 +664,7 @@ describe('POST /api/v1/themes', () => {
 describe('GET /api/v1/themes/[id]', () => {
   let themeId: number
 
-  beforeAll(async () => {
+  test('returns theme with filters and translations', async () => {
     const slug = `get-test-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
@@ -677,9 +672,6 @@ describe('GET /api/v1/themes/[id]', () => {
       body: { slug, name: 'Get Test' },
     })
     themeId = created.data.id
-  })
-
-  test('returns theme with filters and translations', async () => {
     const res = await $fetch(`/api/v1/themes/${themeId}`, themeHeaders())
     expect(res.success).toBe(true)
     expect(res.data.id).toBe(themeId)
@@ -701,7 +693,7 @@ describe('GET /api/v1/themes/[id]', () => {
 describe('PUT /api/v1/themes/[id]', () => {
   let themeId: number
 
-  beforeAll(async () => {
+  test('updates a theme', async () => {
     const slug = `put-test-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
@@ -709,9 +701,6 @@ describe('PUT /api/v1/themes/[id]', () => {
       body: { slug, name: 'Put Test' },
     })
     themeId = created.data.id
-  })
-
-  test('updates a theme', async () => {
     const res = await $fetch(`/api/v1/themes/${themeId}`, {
       ...themeHeaders(),
       method: 'PUT',
@@ -735,7 +724,7 @@ describe('PUT /api/v1/themes/[id]', () => {
 describe('PUT /api/v1/themes/[id]/activate', () => {
   let themeId: number
 
-  beforeAll(async () => {
+  test('activates a theme', async () => {
     const slug = `activate-test-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
@@ -743,9 +732,6 @@ describe('PUT /api/v1/themes/[id]/activate', () => {
       body: { slug, name: 'Activate Test' },
     })
     themeId = created.data.id
-  })
-
-  test('activates a theme', async () => {
     const res = await $fetch(`/api/v1/themes/${themeId}/activate`, {
       ...themeHeaders(),
       method: 'PUT',
@@ -766,20 +752,14 @@ describe('PUT /api/v1/themes/[id]/activate', () => {
 })
 
 describe('PUT /api/v1/themes/[id]/default', () => {
-  let themeId: number
-
-  beforeAll(async () => {
+  test('sets a theme as default', async () => {
     const slug = `default-test-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
       method: 'POST',
       body: { slug, name: 'Default Test' },
     })
-    themeId = created.data.id
-  })
-
-  test('sets a theme as default', async () => {
-    const res = await $fetch(`/api/v1/themes/${themeId}/default`, {
+    const res = await $fetch(`/api/v1/themes/${created.data.id}/default`, {
       ...themeHeaders(),
       method: 'PUT',
       body: { is_default: true },
@@ -792,7 +772,7 @@ describe('PUT /api/v1/themes/[id]/default', () => {
 describe('POST /api/v1/themes/[id]/filters', () => {
   let themeId: number
 
-  beforeAll(async () => {
+  test('adds a tag_name filter', async () => {
     const slug = `filter-test-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
@@ -800,9 +780,6 @@ describe('POST /api/v1/themes/[id]/filters', () => {
       body: { slug, name: 'Filter Test' },
     })
     themeId = created.data.id
-  })
-
-  test('adds a tag_name filter', async () => {
     const res = await $fetch(`/api/v1/themes/${themeId}/filters`, {
       ...themeHeaders(),
       method: 'POST',
@@ -835,26 +812,19 @@ describe('POST /api/v1/themes/[id]/filters', () => {
 })
 
 describe('DELETE /api/v1/themes/[id]/filters/[fid]', () => {
-  let themeId: number
-  let filterId: number
-
-  beforeAll(async () => {
+  test('deletes a filter', async () => {
     const slug = `del-filter-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
       method: 'POST',
       body: { slug, name: 'Del Filter Test' },
     })
-    themeId = created.data.id
-    const filter = await $fetch(`/api/v1/themes/${themeId}/filters`, {
+    const themeId = created.data.id
+    await $fetch(`/api/v1/themes/${themeId}/filters`, {
       ...themeHeaders(),
       method: 'POST',
       body: { type: 'keyword', value: 'test-delete' },
     })
-    filterId = filter.data.themeId
-  })
-
-  test('deletes a filter', async () => {
     const theme = await $fetch(`/api/v1/themes/${themeId}`, themeHeaders())
     const fid = theme.data.filters[0].id
     const res = await $fetch(`/api/v1/themes/${themeId}/filters/${fid}`, {
@@ -869,7 +839,7 @@ describe('DELETE /api/v1/themes/[id]/filters/[fid]', () => {
 describe('DELETE /api/v1/themes/[id]', () => {
   let themeId: number
 
-  beforeAll(async () => {
+  test('deletes a theme', async () => {
     const slug = `delete-test-${Date.now()}`
     const created = await $fetch('/api/v1/themes', {
       ...themeHeaders(),
@@ -877,9 +847,6 @@ describe('DELETE /api/v1/themes/[id]', () => {
       body: { slug, name: 'Delete Test' },
     })
     themeId = created.data.id
-  })
-
-  test('deletes a theme', async () => {
     const res = await $fetch(`/api/v1/themes/${themeId}`, {
       ...themeHeaders(),
       method: 'DELETE',
