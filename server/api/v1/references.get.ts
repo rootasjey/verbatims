@@ -12,6 +12,7 @@ defineRouteMeta({
       { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 100 } },
       { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by name' },
       { name: 'type', in: 'query', schema: { type: 'string' }, description: 'Filter by primary type' },
+      { name: 'include', in: 'query', schema: { type: 'string' }, description: 'Comma-separated fields to include (e.g. quotes_count)' },
     ],
     responses: { '200': { description: 'Paginated list of references' } },
   },
@@ -24,6 +25,7 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * limit
   const search = query.search as string | undefined
   const type = query.type as string | undefined
+  const include = ((query.include as string) || '').split(',').map(s => s.trim()).filter(Boolean)
 
   const conditions = []
   if (search) conditions.push(like(schema.quoteReferences.name, `%${search}%`))
@@ -39,20 +41,26 @@ export default defineEventHandler(async (event) => {
 
   const total = totalResult?.total || 0
 
+  const selectFields: any = {
+    id: schema.quoteReferences.id,
+    name: schema.quoteReferences.name,
+    primaryType: schema.quoteReferences.primaryType,
+    secondaryType: schema.quoteReferences.secondaryType,
+    imageUrl: schema.quoteReferences.imageUrl,
+    releaseDate: schema.quoteReferences.releaseDate,
+    originalLanguage: schema.quoteReferences.originalLanguage,
+    description: schema.quoteReferences.description,
+    viewsCount: schema.quoteReferences.viewsCount,
+    likesCount: schema.quoteReferences.likesCount,
+    createdAt: schema.quoteReferences.createdAt,
+  }
+
+  if (include.includes('quotes_count')) {
+    selectFields.quotesCount = sql<number>`(SELECT COUNT(*) FROM ${schema.quotes} WHERE ${schema.quotes.referenceId} = ${schema.quoteReferences.id})`
+  }
+
   const references = await db
-    .select({
-      id: schema.quoteReferences.id,
-      name: schema.quoteReferences.name,
-      primaryType: schema.quoteReferences.primaryType,
-      secondaryType: schema.quoteReferences.secondaryType,
-      imageUrl: schema.quoteReferences.imageUrl,
-      releaseDate: schema.quoteReferences.releaseDate,
-      originalLanguage: schema.quoteReferences.originalLanguage,
-      description: schema.quoteReferences.description,
-      viewsCount: schema.quoteReferences.viewsCount,
-      likesCount: schema.quoteReferences.likesCount,
-      createdAt: schema.quoteReferences.createdAt,
-    })
+    .select(selectFields)
     .from(schema.quoteReferences)
     .where(where)
     .orderBy(desc(schema.quoteReferences.viewsCount))
@@ -62,18 +70,24 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    data: references.map(r => ({
-      id: r.id,
-      name: r.name,
-      type: r.primaryType,
-      secondary_type: r.secondaryType,
-      image_url: r.imageUrl,
-      release_date: r.releaseDate,
-      language: r.originalLanguage,
-      description: r.description,
-      stats: { views: r.viewsCount, likes: r.likesCount },
-      created_at: r.createdAt,
-    })),
+    data: references.map(r => {
+      const item: any = {
+        id: r.id,
+        name: r.name,
+        type: r.primaryType,
+        secondary_type: r.secondaryType,
+        image_url: r.imageUrl,
+        release_date: r.releaseDate,
+        language: r.originalLanguage,
+        description: r.description,
+        stats: { views: r.viewsCount, likes: r.likesCount },
+        created_at: r.createdAt,
+      }
+      if (include.includes('quotes_count')) {
+        item.quotes_count = r.quotesCount
+      }
+      return item
+    }),
     pagination: {
       page,
       limit,
