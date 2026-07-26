@@ -566,6 +566,102 @@ describe('POST /api/v1/authors', () => {
   })
 })
 
+describe('PUT /api/v1/authors/[id]', () => {
+  test('updates an author', async () => {
+    const created = await $fetch('/api/v1/authors', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Author to update' },
+    })
+    const res = await $fetch(`/api/v1/authors/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'PUT',
+      body: { name: 'Updated Author', job: 'Philosopher' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('Updated Author')
+    expect(res.data.job).toBe('Philosopher')
+  })
+
+  test('returns 404 for non-existent author', async () => {
+    const res = await fetch('/api/v1/authors/99999', {
+      ...writeHeaders(),
+      method: 'PUT',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Nope' }),
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('returns 409 for duplicate name', async () => {
+    const res = await fetch('/api/v1/authors/1', {
+      ...writeHeaders(),
+      method: 'PUT',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Albert Camus' }),
+    })
+    expect(res.status).toBe(409)
+  })
+
+  test('returns 403 for read-only API key', async () => {
+    const res = await fetch('/api/v1/authors/1', {
+      ...noPermHeaders(),
+      method: 'PUT',
+      headers: { ...noPermHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Should not work' }),
+    })
+    expect(res.status).toBe(403)
+  })
+})
+
+describe('PUT /api/v1/references/[id]', () => {
+  test('updates a reference', async () => {
+    const created = await $fetch('/api/v1/references', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Reference to update', primary_type: 'book' },
+    })
+    const res = await $fetch(`/api/v1/references/${created.data.id}`, {
+      ...writeHeaders(),
+      method: 'PUT',
+      body: { name: 'Updated Reference', description: 'A great book' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.name).toBe('Updated Reference')
+    expect(res.data.description).toBe('A great book')
+  })
+
+  test('returns 404 for non-existent reference', async () => {
+    const res = await fetch('/api/v1/references/99999', {
+      ...writeHeaders(),
+      method: 'PUT',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Nope' }),
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('returns 409 for duplicate name', async () => {
+    const res = await fetch('/api/v1/references/1', {
+      ...writeHeaders(),
+      method: 'PUT',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Meditations' }),
+    })
+    expect(res.status).toBe(409)
+  })
+
+  test('returns 403 for read-only API key', async () => {
+    const res = await fetch('/api/v1/references/1', {
+      ...noPermHeaders(),
+      method: 'PUT',
+      headers: { ...noPermHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Should not work' }),
+    })
+    expect(res.status).toBe(403)
+  })
+})
+
 describe('POST /api/v1/references', () => {
   test('creates a reference (admin key)', async () => {
     const res = await $fetch('/api/v1/references', {
