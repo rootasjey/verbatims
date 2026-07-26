@@ -78,8 +78,25 @@ export default defineEventHandler(async (event) => {
   if (body.death_location !== undefined) updateData.deathLocation = body.death_location
   if (body.job !== undefined) updateData.job = body.job
   if (body.description !== undefined) updateData.description = body.description
-  if (body.image_url !== undefined) updateData.imageUrl = body.image_url
   if (body.socials !== undefined) updateData.socials = JSON.stringify(body.socials)
+
+  if (body.image_url !== undefined) {
+    const oldUrl = existingAuthor.imageUrl
+    const newUrl = body.image_url
+
+    if (newUrl !== oldUrl) {
+      if (isR2ImageUrl(oldUrl)) {
+        await deleteImageByUrl(oldUrl!)
+      }
+
+      if (newUrl) {
+        const storedUrl = await uploadAndStoreImage(newUrl, 'authors', authorId)
+        updateData.imageUrl = storedUrl || newUrl
+      } else {
+        updateData.imageUrl = null
+      }
+    }
+  }
 
   if (Object.keys(updateData).length === 1) {
     throwServer(400, 'No fields to update')
