@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, desc, sql, count, like } from 'drizzle-orm'
+import { eq, desc, sql, count, like, inArray, and } from 'drizzle-orm'
 
 defineRouteMeta({
   openAPI: {
@@ -38,34 +38,47 @@ export default defineEventHandler(async (event) => {
 
   const total = totalResult?.total || 0
 
-  const selectFields: any = {
-    id: schema.authors.id,
-    name: schema.authors.name,
-    isFictional: schema.authors.isFictional,
-    imageUrl: schema.authors.imageUrl,
-    job: schema.authors.job,
-    birthDate: schema.authors.birthDate,
-    deathDate: schema.authors.deathDate,
-    birthLocation: schema.authors.birthLocation,
-    deathLocation: schema.authors.deathLocation,
-    description: schema.authors.description,
-    viewsCount: schema.authors.viewsCount,
-    likesCount: schema.authors.likesCount,
-    createdAt: schema.authors.createdAt,
-  }
-
-  if (include.includes('quotes_count')) {
-    selectFields.quotesCount = sql<number>`(SELECT COUNT(*) FROM ${schema.quotes} WHERE ${schema.quotes.authorId} = ${schema.authors.id})`
-  }
-
   const authors = await db
-    .select(selectFields)
+    .select({
+      id: schema.authors.id,
+      name: schema.authors.name,
+      isFictional: schema.authors.isFictional,
+      imageUrl: schema.authors.imageUrl,
+      job: schema.authors.job,
+      birthDate: schema.authors.birthDate,
+      deathDate: schema.authors.deathDate,
+      birthLocation: schema.authors.birthLocation,
+      deathLocation: schema.authors.deathLocation,
+      description: schema.authors.description,
+      viewsCount: schema.authors.viewsCount,
+      likesCount: schema.authors.likesCount,
+      createdAt: schema.authors.createdAt,
+    })
     .from(schema.authors)
     .where(where)
     .orderBy(desc(schema.authors.viewsCount))
     .limit(limit)
     .offset(offset)
     .all()
+
+  let quotesCountMap: Record<number, number> = {}
+  if (include.includes('quotes_count')) {
+    const authorIds = authors.map(a => a.id)
+    if (authorIds.length > 0) {
+      const counts = await db
+        .select({ authorId: schema.quotes.authorId, count: count() })
+        .from(schema.quotes)
+        .where(and(
+          inArray(schema.quotes.authorId, authorIds),
+          eq(schema.quotes.status, 'approved'),
+        ))
+        .groupBy(schema.quotes.authorId)
+        .all()
+      for (const c of counts) {
+        if (c.authorId !== null) quotesCountMap[c.authorId] = c.count
+      }
+    }
+  }
 
   return {
     success: true,
@@ -87,7 +100,7 @@ export default defineEventHandler(async (event) => {
         created_at: a.createdAt,
       }
       if (include.includes('quotes_count')) {
-        item.quotes_count = a.quotesCount
+        item.quotes_count = quotesCountMap[a.id] || 0
       }
       return item
     }),
