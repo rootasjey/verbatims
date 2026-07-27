@@ -201,7 +201,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: transformedQuote,
-      message: 'Quote submitted successfully and is pending moderation'
+      message: 'Quote saved as draft'
     }
   } catch (error: any) {
     if ((error as any).statusCode) throw error

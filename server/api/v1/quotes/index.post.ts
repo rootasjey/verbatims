@@ -198,6 +198,6 @@ export default defineEventHandler(async (event) => {
       created_at: createdQuote!.createdAt,
       updated_at: createdQuote!.updatedAt,
     },
-    message: 'Quote created successfully and is pending moderation',
+    message: 'Quote created as draft',
   }
 })
