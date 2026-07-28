@@ -1003,6 +1003,201 @@ describe('POST /api/v1/themes/filter-recommendations', () => {
   })
 })
 
+describe('POST /api/v1/themes with scheduling', () => {
+  test('creates a theme with scheduled dates', async () => {
+    const slug = `sched-test-${Date.now()}`
+    const res = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: {
+        slug,
+        name: 'Scheduled Test',
+        scheduled_start: '2026-08-01',
+        scheduled_end: '2026-08-31',
+      },
+    })
+    expect(res.success).toBe(true)
+    const theme = await $fetch(`/api/v1/themes/${res.data.id}`, themeHeaders())
+    expect(theme.success).toBe(true)
+    expect(theme.data.scheduledStart).not.toBeNull()
+    expect(theme.data.scheduledEnd).not.toBeNull()
+    const sStart = new Date(theme.data.scheduledStart)
+    const sEnd = new Date(theme.data.scheduledEnd)
+    expect(sStart.getTime()).not.toBeNaN()
+    expect(sStart.getUTCFullYear()).toBe(2026)
+    expect(sStart.getUTCMonth()).toBe(7)
+    expect(sEnd.getTime()).not.toBeNaN()
+    expect(sEnd.getUTCFullYear()).toBe(2026)
+    expect(sEnd.getUTCMonth()).toBe(7)
+  })
+})
+
+describe('GET /api/v1/themes/[id]/feed', () => {
+  test('returns feed for a theme', async () => {
+    const slug = `feed-test-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Feed Test' },
+    })
+    const themeId = created.data.id
+    await $fetch(`/api/v1/themes/${themeId}/filters`, {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { type: 'tag_name', value: 'wisdom' },
+    })
+    const res = await $fetch(`/api/v1/themes/${themeId}/feed`, themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data).toHaveProperty('theme')
+    expect(res.data).toHaveProperty('quotes')
+    expect(res.data).toHaveProperty('authors')
+    expect(res.data).toHaveProperty('references')
+    expect(res.data).toHaveProperty('total')
+  })
+
+  test('returns 404 for non-existent theme', async () => {
+    const res = await fetch('/api/v1/themes/99999/feed', themeHeaders())
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('GET /api/v1/themes/[id]/filters', () => {
+  test('lists filters for a theme', async () => {
+    const slug = `filters-get-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Filters Get Test' },
+    })
+    const themeId = created.data.id
+    await $fetch(`/api/v1/themes/${themeId}/filters`, {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { type: 'keyword', value: 'life' },
+    })
+    const res = await $fetch(`/api/v1/themes/${themeId}/filters`, themeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data).toHaveLength(1)
+    expect(res.data[0].type).toBe('keyword')
+    expect(res.data[0].value).toBe('life')
+  })
+
+  test('returns empty array when no filters', async () => {
+    const slug = `filters-empty-${Date.now()}`
+    const created = await $fetch('/api/v1/themes', {
+      ...themeHeaders(),
+      method: 'POST',
+      body: { slug, name: 'Filters Empty' },
+    })
+    const res = await $fetch(`/api/v1/themes/${created.data.id}/filters`, themeHeaders())
+    expect(res.data).toEqual([])
+  })
+
+  test('returns 404 for non-existent theme', async () => {
+    const res = await fetch('/api/v1/themes/99999/filters', themeHeaders())
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('GET /api/v1/quotes/[id]/tags', () => {
+  test('returns tags for a quote', async () => {
+    const res = await $fetch('/api/v1/quotes/1/tags', writeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.length).toBeGreaterThanOrEqual(2)
+    const names = res.data.map((t: any) => t.name)
+    expect(names).toContain('wisdom')
+    expect(names).toContain('philosophy')
+  })
+
+  test('returns empty array for quote with no tags', async () => {
+    const res = await $fetch('/api/v1/quotes/4/tags', writeHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data).toEqual([])
+  })
+
+  test('returns 404 for non-existent quote', async () => {
+    const res = await fetch('/api/v1/quotes/99999/tags', writeHeaders())
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('POST /api/v1/quotes/[id]/tags', () => {
+  let draftId: number
+
+  test('adds a tag by ID to own draft', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Draft for tag test' },
+    })
+    draftId = created.data.id
+    const res = await $fetch(`/api/v1/quotes/${draftId}/tags`, {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { tagId: 1 },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.id).toBe(1)
+    const tags = await $fetch(`/api/v1/quotes/${draftId}/tags`, writeHeaders())
+    const names = tags.data.map((t: any) => t.name)
+    expect(names).toContain('wisdom')
+  })
+
+  test('returns 403 with read-only key', async () => {
+    const res = await fetch(`/api/v1/quotes/${draftId}/tags`, {
+      ...noPermHeaders(),
+      method: 'POST',
+      headers: { ...noPermHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tagId: 1 }),
+    })
+    expect(res.status).toBe(403)
+  })
+
+  test('returns 400 without tagId or name', async () => {
+    const res = await fetch(`/api/v1/quotes/${draftId}/tags`, {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('DELETE /api/v1/quotes/[id]/tags/[tagId]', () => {
+  let draftId: number
+
+  test('removes a tag from own draft', async () => {
+    const created = await $fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { name: 'Draft for delete tag test' },
+    })
+    draftId = created.data.id
+    await $fetch(`/api/v1/quotes/${draftId}/tags`, {
+      ...writeHeaders(),
+      method: 'POST',
+      body: { tagId: 2 },
+    })
+    const res = await fetch(`/api/v1/quotes/${draftId}/tags/2`, {
+      ...writeHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.status).toBe(200)
+    const tags = await $fetch(`/api/v1/quotes/${draftId}/tags`, writeHeaders())
+    const names = tags.data.map((t: any) => t.name)
+    expect(names).not.toContain('philosophy')
+  })
+
+  test('returns 403 with read-only key', async () => {
+    const res = await fetch(`/api/v1/quotes/${draftId}/tags/1`, {
+      ...noPermHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.status).toBe(403)
+  })
+})
+
 describe('Auth errors', () => {
   test('returns 401 without Authorization header', async () => {
     const res = await fetch('/api/v1/tags')
