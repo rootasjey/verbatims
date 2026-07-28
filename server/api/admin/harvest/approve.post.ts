@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, inArray } from 'drizzle-orm'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireModerator(event)
@@ -35,6 +36,10 @@ const targetStatus = new_status || 'draft'
     .execute()
 
   const approvedCount = result?.rowsAffected ?? 0
+
+  for (const id of quote_ids) {
+    await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: targetStatus, from_harvest: true } })
+  }
 
   return {
     success: true,

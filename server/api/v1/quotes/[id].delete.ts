@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -40,6 +41,8 @@ export default defineEventHandler(async (event) => {
   if (!isMod && quote!.userId !== api.userId) {
     throwServer(403, 'You can only delete your own quotes')
   }
+
+  await logActivity(event, { type: 'quote_deleted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: quote.status } })
 
   await db.delete(schema.quotes)
     .where(eq(schema.quotes.id, quoteId))

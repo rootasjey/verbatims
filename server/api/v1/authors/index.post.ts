@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createAuthorSchema } from '../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -71,6 +72,8 @@ export default defineEventHandler(async (event) => {
     })
     .returning()
     .get()
+
+  await logActivity(event, { type: 'author_created', userId: api.userId, targetId: result.id, targetType: 'author' })
 
   return {
     success: true,

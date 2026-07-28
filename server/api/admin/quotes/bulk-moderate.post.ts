@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -68,6 +69,10 @@ export default defineEventHandler(async (event) => {
         .where(eq(schema.quotes.id, quoteId))
         .run()
     ))
+
+    for (const quoteId of quoteIds) {
+      await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason ?? null, bulk: true } })
+    }
 
     let autoTaggedQuotes = 0
     if (body.action === 'approve') {

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateAuthorSchema } from '../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -107,6 +108,8 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.authors.id, authorId))
     .returning()
     .get()
+
+  await logActivity(event, { type: 'author_edited', userId: api.userId, targetId: authorId, targetType: 'author' })
 
   return {
     success: true,

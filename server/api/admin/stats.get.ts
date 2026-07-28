@@ -1,6 +1,5 @@
 import { db, schema } from 'hub:db'
 import { eq, count, sum, avg, sql, desc } from 'drizzle-orm'
-import { alias } from 'drizzle-orm/sqlite-core'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -88,114 +87,78 @@ export default defineEventHandler(async (event) => {
       }).from(schema.quoteViews)
     ])
     
-    // Get recent activity (last 30 days)
-    const thirtyDaysAgoSec = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60
-    const mods = alias(schema.users, 'mods')
+    // Get recent activity from activity_logs
+    function parseMetadata(raw: string | null): Record<string, unknown> | null {
+      if (!raw) return null
+      try { return JSON.parse(raw) } catch { return null }
+    }
 
-    const [recentQuotes, recentModerations, recentUsers] = await Promise.all([
-      // Recent quote submissions
-      db.select({
-        id: schema.quotes.id,
-        name: schema.quotes.name,
-        status: schema.quotes.status,
-        createdAt: sql<number>`unixepoch(${schema.quotes.createdAt})`,
-        userName: schema.users.name,
-        userAvatar: schema.users.avatarUrl,
-        authorName: schema.authors.name
-      })
-        .from(schema.quotes)
-        .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-        .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-        .where(sql`unixepoch(${schema.quotes.createdAt}) >= ${thirtyDaysAgoSec}`)
-        .orderBy(desc(sql`unixepoch(${schema.quotes.createdAt})`))
-        .limit(20),
-
-      // Recent moderation actions
-      db.select({
-        id: schema.quotes.id,
-        name: schema.quotes.name,
-        status: schema.quotes.status,
-        moderatedAt: sql<number | null>`unixepoch(${schema.quotes.moderatedAt})`,
-        moderatorName: mods.name,
-        moderatorAvatar: mods.avatarUrl,
-        userName: schema.users.name
-      })
-        .from(schema.quotes)
-        .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
-        .leftJoin(mods, eq(schema.quotes.moderatorId, mods.id))
-        .where(sql`unixepoch(${schema.quotes.moderatedAt}) >= ${thirtyDaysAgoSec}`)
-        .orderBy(desc(sql`unixepoch(${schema.quotes.moderatedAt})`))
-        .limit(20),
-
-      // Recent user registrations
-      db.select({
-        id: schema.users.id,
-        name: schema.users.name,
-        avatarUrl: schema.users.avatarUrl,
-        role: schema.users.role,
-        createdAt: sql<number>`unixepoch(${schema.users.createdAt})`
-      })
-        .from(schema.users)
-        .where(sql`unixepoch(${schema.users.createdAt}) >= ${thirtyDaysAgoSec}`)
-        .orderBy(desc(sql`unixepoch(${schema.users.createdAt})`))
-        .limit(20)
-    ])
-
-    const allActivities: Array<{
-      type: string
-      action: string
-      description: string
-      user_name: string
-      user_avatar: string | null
-      secondary_info: string | null
-      timestamp: number
-      quote_id?: number
-      quote_status?: string | null
-    }> = []
-
-    recentQuotes.forEach((q) => {
-      allActivities.push({
-        type: 'quote_submitted',
-        action: 'Submitted quote',
-        description: q.name,
-        user_name: q.userName || 'Unknown',
-        user_avatar: q.userAvatar,
-        secondary_info: q.authorName ? `by ${q.authorName}` : null,
-        timestamp: q.createdAt * 1000,
-        quote_id: q.id,
-        quote_status: q.status
-      })
+    // Get recent activity from activity_logs
+    const rawActivities = await db.select({
+      id: schema.activityLogs.id,
+      type: schema.activityLogs.type,
+      userId: schema.activityLogs.userId,
+      targetId: schema.activityLogs.targetId,
+      targetType: schema.activityLogs.targetType,
+      metadata: schema.activityLogs.metadata,
+      source: schema.activityLogs.source,
+      createdAt: schema.activityLogs.createdAt,
+      userName: schema.users.name,
+      userAvatar: schema.users.avatarUrl,
     })
+      .from(schema.activityLogs)
+      .leftJoin(schema.users, eq(schema.activityLogs.userId, schema.users.id))
+      .orderBy(desc(schema.activityLogs.createdAt))
+      .limit(30)
 
-    recentModerations.forEach((m) => {
-      if (!m.moderatedAt) return
-      allActivities.push({
-        type: 'quote_moderated',
-        action: m.status === 'approved' ? 'Approved quote' : 'Rejected quote',
-        description: m.name,
-        user_name: m.moderatorName || m.userName || 'Unknown',
-        user_avatar: m.moderatorAvatar,
-        secondary_info: m.status,
-        timestamp: m.moderatedAt * 1000,
-        quote_id: m.id,
-        quote_status: m.status
-      })
+    const recentActivity = rawActivities.map((a) => {
+      const meta = parseMetadata(a.metadata)
+      const base = {
+        user_name: a.userName || 'Unknown',
+        user_avatar: a.userAvatar,
+        timestamp: a.createdAt ? new Date(a.createdAt).getTime() : 0,
+        quote_id: a.targetType === 'quote' ? a.targetId : undefined,
+        quote_status: null as string | null,
+        secondary_info: null as string | null,
+        description: '',
+        action: '',
+        type: a.type,
+        source: a.source,
+      }
+
+      switch (a.type) {
+        case 'quote_created':
+          return { ...base, action: 'Created quote', description: meta?.name || '', secondary_info: meta?.author_name ? `by ${meta.author_name}` : null, quote_status: meta?.status || 'draft' }
+        case 'quote_submitted':
+          return { ...base, action: 'Submitted quote', description: meta?.name || '', secondary_info: meta?.author_name ? `by ${meta.author_name}` : null, quote_status: 'pending' }
+        case 'quote_moderated':
+          return { ...base, action: meta?.action === 'approve' ? 'Approved quote' : 'Rejected quote', description: meta?.name || '', secondary_info: meta?.new_status || '', quote_status: meta?.new_status || null }
+        case 'quote_edited':
+          return { ...base, action: 'Edited quote', description: meta?.name || '', quote_status: meta?.status || null }
+        case 'quote_deleted':
+          return { ...base, action: 'Deleted quote', description: meta?.name || 'Quote' }
+        case 'quote_unpublished':
+          return { ...base, action: 'Unpublished quote', description: meta?.name || '' }
+        case 'author_created':
+          return { ...base, action: 'Created author', description: meta?.name || '' }
+        case 'author_edited':
+          return { ...base, action: 'Edited author', description: meta?.name || '' }
+        case 'author_deleted':
+          return { ...base, action: 'Deleted author', description: meta?.name || '' }
+        case 'reference_created':
+          return { ...base, action: 'Created reference', description: meta?.name || '' }
+        case 'reference_edited':
+          return { ...base, action: 'Edited reference', description: meta?.name || '' }
+        case 'reference_deleted':
+          return { ...base, action: 'Deleted reference', description: meta?.name || '' }
+        case 'user_registered':
+          return { ...base, action: 'New user registered', description: meta?.name || a.userName || '', secondary_info: meta?.role || 'user' }
+        case 'export_run':
+          return { ...base, action: 'Export', description: `Exported ${meta?.data_type || 'data'}`, secondary_info: meta?.format || '' }
+        default:
+          return { ...base, action: a.type }
+      }
     })
-
-    recentUsers.forEach((u) => {
-      allActivities.push({
-        type: 'user_registered',
-        action: 'New user registered',
-        description: u.name,
-        user_name: u.name,
-        user_avatar: u.avatarUrl,
-        secondary_info: u.role,
-        timestamp: u.createdAt * 1000
-      })
-    })
-
-    allActivities.sort((a, b) => b.timestamp - a.timestamp)
-    const recentActivity = allActivities.slice(0, 30)
     
     // Get top contributors
     const topContributors = await db.select({

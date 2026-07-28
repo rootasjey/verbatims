@@ -659,6 +659,21 @@ export const entitySuggestions = sqliteTable('entity_suggestions', {
   statusIdx: index('idx_entity_suggestions_status').on(table.status, table.createdAt),
 }))
 
+export const activityLogs = sqliteTable('activity_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  type: text('type').notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  targetId: integer('target_id'),
+  targetType: text('target_type').notNull(),
+  metadata: text('metadata').notNull().default('{}'),
+  source: text('source').notNull().default('web'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+}, (table) => ({
+  typeIdx: index('idx_activity_logs_type').on(table.type),
+  createdIdx: index('idx_activity_logs_created').on(table.createdAt),
+  userIdx: index('idx_activity_logs_user').on(table.userId),
+}))
+
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),

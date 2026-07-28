@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { updateQuoteSchema } from '../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -86,6 +87,8 @@ export default defineEventHandler(async (event) => {
     } as any)
     .where(eq(schema.quotes.id, quoteId))
     .run()
+
+  await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status } })
 
   const updatedQuote = await db
     .select({

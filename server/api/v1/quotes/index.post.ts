@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -111,6 +112,8 @@ export default defineEventHandler(async (event) => {
     createdAt: new Date(),
     updatedAt: new Date()
   } as any).returning({ id: schema.quotes.id }).get()
+
+  await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft' } })
 
   if (body.tags && body.tags.length > 0) {
     for (const tagId of body.tags) {

@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 import { moderateQuoteSchema } from '../../../../validation/schemas'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -71,6 +72,8 @@ export default defineEventHandler(async (event) => {
     })
     .where(eq(schema.quotes.id, quoteId))
     .run()
+
+  await logActivity(event, { type: 'quote_moderated', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason } })
 
   let autoTagResult: { matchedTagNames: string[], attachedCount: number } | null = null
   if (body.action === 'approve') {

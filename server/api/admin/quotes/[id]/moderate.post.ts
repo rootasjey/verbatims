@@ -3,6 +3,7 @@ import { sql, eq, and } from 'drizzle-orm'
 import type { CreatedQuoteResult } from '~~/server/types'
 import { autoTagQuoteById } from '~~/server/utils/tagging'
 import { moderateQuoteSchema } from '../../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -38,6 +39,8 @@ export default defineEventHandler(async (event) => {
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
       .run()
+
+    await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason } })
 
     let autoTagResult: { matchedTagNames: string[], attachedCount: number } | null = null
     if (body.action === 'approve') {
