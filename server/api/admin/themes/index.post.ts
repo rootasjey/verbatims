@@ -34,8 +34,8 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'Theme with this slug already exists')
     }
 
-    const sStart = scheduledStart ? new Date(scheduledStart).getTime() : 'NULL'
-    const sEnd = scheduledEnd ? new Date(scheduledEnd).getTime() : 'NULL'
+    const sStart = scheduledStart ? Math.floor(new Date(scheduledStart).getTime() / 1000) : 'NULL'
+    const sEnd = scheduledEnd ? Math.floor(new Date(scheduledEnd).getTime() / 1000) : 'NULL'
     const langVal = language ? `'${language.replace(/'/g, "''")}'` : 'NULL'
     const descVal = description ? `'${description.replace(/'/g, "''")}'` : 'NULL'
     await db.run(sql.raw(
