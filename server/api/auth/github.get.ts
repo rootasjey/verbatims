@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { validLanguages } from '../../utils/validation/reference'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineOAuthGitHubEventHandler({
   config: {
@@ -49,6 +50,8 @@ export default defineOAuthGitHubEventHandler({
           })
           .returning()
           .get()
+
+        await logActivity(event, { type: 'user_registered', userId: existingUser.id, targetId: existingUser.id, targetType: 'user' })
       }
 
       const language = (existingUser.language && validLanguages.includes(existingUser.language as any))

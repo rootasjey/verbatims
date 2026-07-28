@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createReferenceSchema } from '../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -67,6 +68,8 @@ export default defineEventHandler(async (event) => {
     } as any)
     .returning()
     .get()
+
+  await logActivity(event, { type: 'reference_created', userId: api.userId, targetId: result.id, targetType: 'reference' })
 
   return {
     success: true,

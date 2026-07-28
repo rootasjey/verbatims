@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import { updateReferenceSchema } from '../../../validation/schemas'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -103,6 +104,8 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quoteReferences.id, refId))
     .returning()
     .get()
+
+  await logActivity(event, { type: 'reference_edited', userId: api.userId, targetId: refId, targetType: 'reference' })
 
   return {
     success: true,

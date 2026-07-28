@@ -4,6 +4,7 @@ import { eq, or } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { validLanguages } from '../../utils/validation/reference'
 import { sendVerificationEmail } from '../../utils/email'
+import { logActivity } from '~~/server/utils/activity-log'
 
 const bodySchema = z.object({
   name: z.string().min(2).max(50),
@@ -68,6 +69,8 @@ export default defineEventHandler(async (event) => {
     }
 
     await setUserSession(event, { user })
+
+    await logActivity(event, { type: 'user_registered', userId: result.id, targetId: result.id, targetType: 'user' })
 
     // Send email verification (best effort — don't block registration)
     try {

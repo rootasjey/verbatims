@@ -2,6 +2,7 @@ import { zipSync } from 'fflate'
 import { db, schema } from 'hub:db'
 import { blob } from 'hub:blob'
 import { eq, inArray, sql, desc } from 'drizzle-orm'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
@@ -380,5 +381,8 @@ export default defineEventHandler(async (event) => {
   })
 
   await updateBackupFileStatus(backupId, 'stored', new Date())
+
+  await logActivity(event, { type: 'export_run', userId: user.id, targetId: exportLogId, targetType: 'user', metadata: { format, data_type: 'all', total_records: totalRecords } })
+
   return new Blob([ab], { type: 'application/zip' })
 })

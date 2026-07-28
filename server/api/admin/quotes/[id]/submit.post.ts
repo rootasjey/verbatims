@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and } from 'drizzle-orm'
 import type { CreatedQuoteResult } from '~~/server/types'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -34,6 +35,8 @@ export default defineEventHandler(async (event) => {
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
       .run()
+
+    await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { status: 'pending', submitter_id: quote!.userId } })
 
     // Fetch updated quote with relations (same shape as other endpoints)
     const updatedQuote = await db.get<CreatedQuoteResult>(sql`

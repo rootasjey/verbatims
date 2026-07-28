@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -62,6 +63,10 @@ export default defineEventHandler(async (event) => {
       .run()
 
     const updatedCount = (updateResult as any)?.changes ?? 0
+
+    for (const id of updatableIds) {
+      await logActivity(event, { type: 'quote_unpublished', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: 'draft', bulk: updatableIds.length > 1 } })
+    }
 
     return {
       success: true,

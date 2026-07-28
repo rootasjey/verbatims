@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
+import { logActivity } from '~~/server/utils/activity-log'
 
 defineRouteMeta({
   openAPI: {
@@ -86,12 +87,16 @@ export default defineEventHandler(async (event) => {
       throwServer(500, 'Failed to process deletion transaction')
     }
 
+    await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { strategy: strategy, quotes_affected: quoteCount } })
+
     return { success: true, message: 'Reference deleted successfully', data: { quotesAffected: quoteCount, strategy: body.strategy } }
   }
 
   await db.delete(schema.quoteReferences)
     .where(eq(schema.quoteReferences.id, refId))
     .run()
+
+  await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference' })
 
   return { success: true, message: 'Reference deleted successfully', data: { quotesAffected: 0 } }
 })

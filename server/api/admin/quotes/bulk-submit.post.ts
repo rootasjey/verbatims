@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { sql, eq, and, inArray } from 'drizzle-orm'
+import { logActivity } from '~~/server/utils/activity-log'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -52,6 +53,10 @@ export default defineEventHandler(async (event) => {
         .where(eq(schema.quotes.id, id))
         .run()
     ))
+
+    for (const id of quoteIds) {
+      await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: 'pending', bulk: true } })
+    }
 
     return {
       success: true,
