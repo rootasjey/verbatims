@@ -10,6 +10,8 @@ const publicV1Paths = [
 export default defineEventHandler(async (event) => {
   const path = event.path || event.node.req.url || ''
 
+  event.context.source = 'web'
+
   if (!path.startsWith('/api/v1/')) return
   if (publicV1Paths.some(p => path.startsWith(p))) return
 
@@ -57,5 +59,7 @@ export default defineEventHandler(async (event) => {
     ipAddress: getHeader(event, 'x-forwarded-for') || getHeader(event, 'x-real-ip') || null,
   }).run().catch(() => {})
 
+  const clientSource = getHeader(event, 'x-client-source')
+  event.context.source = clientSource === 'cli' ? 'cli' : 'api_v1'
   event.context.api = keyData
 })
