@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createReferenceSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
+import { uploadAndStoreImage } from '~~/server/utils/image-storage'
 
 defineRouteMeta({
   openAPI: {
@@ -69,6 +70,18 @@ export default defineEventHandler(async (event) => {
     .returning()
     .get()
 
+  let imageUrl = result.imageUrl
+  if (body.image_url) {
+    const storedUrl = await uploadAndStoreImage(body.image_url, 'references', result.id)
+    if (storedUrl && storedUrl !== result.imageUrl) {
+      await db.update(schema.quoteReferences)
+        .set({ imageUrl: storedUrl, updatedAt: sql`CURRENT_TIMESTAMP` })
+        .where(eq(schema.quoteReferences.id, result.id))
+        .run()
+      imageUrl = storedUrl
+    }
+  }
+
   await logActivity(event, { type: 'reference_created', userId: api.userId, targetId: result.id, targetType: 'reference', metadata: { name: result.name } })
 
   return {
@@ -78,7 +91,7 @@ export default defineEventHandler(async (event) => {
       name: result.name,
       type: result.primaryType,
       secondary_type: result.secondaryType,
-      image_url: result.imageUrl,
+      image_url: imageUrl,
       release_date: result.releaseDate,
       language: result.originalLanguage,
       description: result.description,
