@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quotes.id, quoteId))
     .run()
 
-  await logActivity(event, { type: 'quote_submitted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: 'pending', submitter_id: quote.userId } })
+  await logActivity(event, { type: 'quote_submitted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: 'pending', submitter_id: quote.userId, name: quote.name } })
 
   const updatedQuote = await db
     .select({

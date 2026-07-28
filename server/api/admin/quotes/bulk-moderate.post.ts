@@ -62,16 +62,17 @@ export default defineEventHandler(async (event) => {
         .set({
           status: newStatus,
           moderatorId: user.id,
-          moderatedAt: sql`CURRENT_TIMESTAMP`,
+          moderatedAt: new Date(),
           rejectionReason: body.action === 'reject' ? body.rejection_reason.trim() : null,
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
         .where(eq(schema.quotes.id, quoteId))
         .run()
     ))
 
     for (const quoteId of quoteIds) {
-      await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason ?? null, bulk: true } })
+      const quoteName = existingQuotes.find(q => q.id === quoteId)?.name || ''
+      await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason ?? null, bulk: true, name: quoteName } })
     }
 
     let autoTaggedQuotes = 0

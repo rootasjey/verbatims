@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
     .returning()
     .get()
 
-  await logActivity(event, { type: 'reference_created', userId: api.userId, targetId: result.id, targetType: 'reference' })
+  await logActivity(event, { type: 'reference_created', userId: api.userId, targetId: result.id, targetType: 'reference', metadata: { name: result.name } })
 
   return {
     success: true,
