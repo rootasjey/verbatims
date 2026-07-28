@@ -105,7 +105,7 @@ export default defineEventHandler(async (event) => {
     .returning()
     .get()
 
-  await logActivity(event, { type: 'reference_edited', userId: api.userId, targetId: refId, targetType: 'reference' })
+  await logActivity(event, { type: 'reference_edited', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { name: updated.name } })
 
   return {
     success: true,

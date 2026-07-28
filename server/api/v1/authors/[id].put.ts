@@ -109,7 +109,7 @@ export default defineEventHandler(async (event) => {
     .returning()
     .get()
 
-  await logActivity(event, { type: 'author_edited', userId: api.userId, targetId: authorId, targetType: 'author' })
+  await logActivity(event, { type: 'author_edited', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { name: updated.name } })
 
   return {
     success: true,

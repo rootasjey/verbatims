@@ -113,7 +113,7 @@ export default defineEventHandler(async (event) => {
     updatedAt: new Date()
   } as any).returning({ id: schema.quotes.id }).get()
 
-  await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft' } })
+  await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft', name: body.name } })
 
   if (body.tags && body.tags.length > 0) {
     for (const tagId of body.tags) {

@@ -33,14 +33,14 @@ export default defineEventHandler(async (event) => {
       .set({
         status: newStatus,
         moderatorId: user.id,
-        moderatedAt: sql`CURRENT_TIMESTAMP`,
+        moderatedAt: new Date(),
         rejectionReason: body.action === 'reject' ? (body.rejection_reason || '').trim() : null,
-        updatedAt: sql`CURRENT_TIMESTAMP`
+        updatedAt: new Date()
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
       .run()
 
-    await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason } })
+    await logActivity(event, { type: 'quote_moderated', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason, name: quote.name } })
 
     let autoTagResult: { matchedTagNames: string[], attachedCount: number } | null = null
     if (body.action === 'approve') {

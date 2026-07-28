@@ -110,11 +110,23 @@
                   <span class="text-gray-500 dark:text-gray-400 ml-1">{{ getActionText(activity) }}</span>
                   <NTooltip v-if="activity.description" :content="activity.description" :_tooltip-content="{ class: 'max-w-xs font-sans text-xs' }">
                     <NuxtLink
-                      v-if="activity.quote_status === 'approved'"
-                      :to="`/quotes/${activity.quote_id}`"
+                      v-if="activity.target_type === 'quote' && activity.quote_status === 'approved'"
+                      :to="`/quotes/${activity.target_id}`"
                       class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                       target="_blank"
                     >&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</NuxtLink>
+                    <NuxtLink
+                      v-else-if="activity.target_type === 'author'"
+                      :to="`/authors/${activity.target_id}`"
+                      class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                      target="_blank"
+                    >{{ truncate(activity.description, 50) }}</NuxtLink>
+                    <NuxtLink
+                      v-else-if="activity.target_type === 'reference'"
+                      :to="`/references/${activity.target_id}`"
+                      class="text-gray-900 dark:text-gray-100 ml-1 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                      target="_blank"
+                    >{{ truncate(activity.description, 50) }}</NuxtLink>
                     <span v-else class="text-gray-900 dark:text-gray-100 ml-1">&ldquo;{{ truncate(activity.description, 50) }}&rdquo;</span>
                   </NTooltip>
                 </p>

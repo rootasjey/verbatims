@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
 
   const quote = await db.select({
     id: schema.quotes.id,
+    name: schema.quotes.name,
     userId: schema.quotes.userId,
     status: schema.quotes.status,
   })
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
     throwServer(403, 'You can only delete your own quotes')
   }
 
-  await logActivity(event, { type: 'quote_deleted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: quote.status } })
+  await logActivity(event, { type: 'quote_deleted', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: quote.status, name: quote!.name } })
 
   await db.delete(schema.quotes)
     .where(eq(schema.quotes.id, quoteId))

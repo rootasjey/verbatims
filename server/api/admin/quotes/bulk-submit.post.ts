@@ -48,14 +48,15 @@ export default defineEventHandler(async (event) => {
       db.update(schema.quotes)
         .set({ 
           status: 'pending',
-          updatedAt: sql`CURRENT_TIMESTAMP`
+          updatedAt: new Date()
         })
         .where(eq(schema.quotes.id, id))
         .run()
     ))
 
     for (const id of quoteIds) {
-      await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: 'pending', bulk: true } })
+      const quoteName = existing.find(q => q.id === id)?.name || ''
+      await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: 'pending', bulk: true, name: quoteName } })
     }
 
     return {

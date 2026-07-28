@@ -25,6 +25,14 @@ const targetStatus = new_status || 'draft'
 
   const statusValue = targetStatus as 'draft' | 'pending'
 
+  const harvestQuotes = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
+    .from(schema.quotes)
+    .where(and(
+      inArray(schema.quotes.id, quote_ids),
+      eq(schema.quotes.status, 'harvested'),
+    ))
+    .all()
+
   const result = await db.update(schema.quotes)
     .set({
       status: statusValue,
@@ -41,7 +49,8 @@ const targetStatus = new_status || 'draft'
   const approvedCount = result?.rowsAffected ?? 0
 
   for (const id of quote_ids) {
-    await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: targetStatus, from_harvest: true } })
+    const quoteName = harvestQuotes.find(q => q.id === id)?.name || ''
+    await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: targetStatus, from_harvest: true, name: quoteName } })
   }
 
   return {

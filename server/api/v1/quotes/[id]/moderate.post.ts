@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quotes.id, quoteId))
     .run()
 
-  await logActivity(event, { type: 'quote_moderated', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason } })
+  await logActivity(event, { type: 'quote_moderated', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { new_status: newStatus, previous_status: 'pending', action: body.action, rejection_reason: body.rejection_reason, name: quote.name } })
 
   let autoTagResult: { matchedTagNames: string[], attachedCount: number } | null = null
   if (body.action === 'approve') {

@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
       throwServer(500, 'Failed to process deletion transaction')
     }
 
-    await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { strategy: strategy, quotes_affected: quoteCount } })
+    await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { strategy: strategy, quotes_affected: quoteCount, name: existing.name } })
 
     return { success: true, message: 'Reference deleted successfully', data: { quotesAffected: quoteCount, strategy: body.strategy } }
   }
@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quoteReferences.id, refId))
     .run()
 
-  await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference' })
+  await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { name: existing.name } })
 
   return { success: true, message: 'Reference deleted successfully', data: { quotesAffected: 0 } }
 })

@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Filter to only currently approved quotes to avoid unnecessary writes
-    const rows = await db.select({ id: schema.quotes.id })
+    const rows = await db.select({ id: schema.quotes.id, name: schema.quotes.name })
       .from(schema.quotes)
       .where(and(
         inArray(schema.quotes.id, ids),
@@ -65,7 +65,8 @@ export default defineEventHandler(async (event) => {
     const updatedCount = (updateResult as any)?.changes ?? 0
 
     for (const id of updatableIds) {
-      await logActivity(event, { type: 'quote_unpublished', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: 'draft', bulk: updatableIds.length > 1 } })
+      const quoteName = rows.find(r => r.id === id)?.name || ''
+      await logActivity(event, { type: 'quote_unpublished', userId: user.id, targetId: id, targetType: 'quote', metadata: { status: 'draft', bulk: updatableIds.length > 1, name: quoteName } })
     }
 
     return {

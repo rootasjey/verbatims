@@ -31,12 +31,12 @@ export default defineEventHandler(async (event) => {
     await db.update(schema.quotes)
       .set({ 
         status: 'pending',
-        updatedAt: sql`CURRENT_TIMESTAMP`
+        updatedAt: new Date()
       })
       .where(eq(schema.quotes.id, parseInt(quoteId)))
       .run()
 
-    await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { status: 'pending', submitter_id: quote!.userId } })
+    await logActivity(event, { type: 'quote_submitted', userId: user.id, targetId: parseInt(quoteId), targetType: 'quote', metadata: { status: 'pending', submitter_id: quote!.userId, name: quote!.name } })
 
     // Fetch updated quote with relations (same shape as other endpoints)
     const updatedQuote = await db.get<CreatedQuoteResult>(sql`

@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
       throwServer(500, 'Failed to process deletion transaction')
     }
 
-    await logActivity(event, { type: 'author_deleted', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { strategy: strategy, quotes_affected: quoteCount } })
+    await logActivity(event, { type: 'author_deleted', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { strategy: strategy, quotes_affected: quoteCount, name: existing.name } })
 
     return { success: true, message: 'Author deleted successfully', data: { quotesAffected: quoteCount, strategy: body.strategy } }
   }
@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.authors.id, authorId))
     .run()
 
-  await logActivity(event, { type: 'author_deleted', userId: api.userId, targetId: authorId, targetType: 'author' })
+  await logActivity(event, { type: 'author_deleted', userId: api.userId, targetId: authorId, targetType: 'author', metadata: { name: existing.name } })
 
   return { success: true, message: 'Author deleted successfully', data: { quotesAffected: 0 } }
 })
