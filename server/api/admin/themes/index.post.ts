@@ -34,10 +34,10 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'Theme with this slug already exists')
     }
 
-    const sStart = scheduledStart ? Math.floor(new Date(scheduledStart).getTime() / 1000) : 'NULL'
-    const sEnd = scheduledEnd ? Math.floor(new Date(scheduledEnd).getTime() / 1000) : 'NULL'
-    const langVal = language ? `'${language.replace(/'/g, "''")}'` : 'NULL'
-    const descVal = description ? `'${description.replace(/'/g, "''")}'` : 'NULL'
+    const sStart = scheduledStart ? Math.floor(new Date(scheduledStart).getTime() / 1000) : null
+    const sEnd = scheduledEnd ? Math.floor(new Date(scheduledEnd).getTime() / 1000) : null
+    const langVal = language ? `'${language.replace(/'/g, "''")}'` : null
+    const descVal = description ? `'${description.replace(/'/g, "''")}'` : null
     await db.run(sql.raw(
       `INSERT INTO themes (slug, name, description, language, config, is_active, is_default, scheduled_start, scheduled_end, priority) VALUES ('${slug}', '${name.replace(/'/g, "''")}', ${descVal}, ${langVal}, '${config.replace(/'/g, "''")}', ${isActive ? 1 : 0}, ${isDefault ? 1 : 0}, ${sStart}, ${sEnd}, ${priority})`
     ))
