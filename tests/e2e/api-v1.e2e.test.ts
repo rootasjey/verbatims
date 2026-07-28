@@ -409,7 +409,7 @@ describe('POST /api/v1/quotes', () => {
     expect(res.data.content).toBe('Test quote from E2E test.')
     expect(res.data.language).toBe('en')
     expect(res.data.tags).toEqual([])
-    expect(res.message).toContain('pending moderation')
+    expect(res.message).toContain('created as draft')
   })
 
   test('returns 400 with missing name', async () => {
@@ -642,7 +642,7 @@ describe('PUT /api/v1/references/[id]', () => {
   })
 
   test('returns 409 for duplicate name', async () => {
-    const res = await fetch('/api/v1/references/1', {
+    const res = await fetch('/api/v1/references/2', {
       ...writeHeaders(),
       method: 'PUT',
       headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
