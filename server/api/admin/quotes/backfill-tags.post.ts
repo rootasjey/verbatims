@@ -26,6 +26,10 @@ export default defineEventHandler(async (event) => {
       ? body.quoteIds.map((value: unknown) => parseInt(String(value))).filter((value: number) => !isNaN(value))
       : []
 
+    if (quoteIds.length > 200) {
+      throwServer(400, 'Too many quote IDs (max 200)')
+    }
+
     const allowedStatuses: Array<QuoteStatus | 'all'> = ['all', 'draft', 'pending', 'approved', 'rejected']
     if (!allowedStatuses.includes(status)) {
       throwServer(400, 'Invalid status filter')

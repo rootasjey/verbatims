@@ -13,6 +13,9 @@ export default defineEventHandler(async (event) => {
   if (!quoteIds.length) {
     throwServer(400, 'quoteIds is required')
   }
+  if (quoteIds.length > 200) {
+    throwServer(400, 'Too many quote IDs (max 200)')
+  }
 
   const platform = String(body?.platform || 'x')
   if (!isSocialPlatform(platform)) {

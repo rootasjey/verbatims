@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, asc, count, desc, eq, inArray, lte, notInArray, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, lte, notExists, notInArray, or, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 import type { SQL } from 'drizzle-orm'
 import type { EnrichmentEntityType, EnrichmentJobReason, EnrichmentTriggerSource } from '#shared/constants/enrichment'
@@ -246,13 +246,34 @@ async function findDueCandidates(
   const stateAlias = alias(schema.entityVerificationState, `${entityType}_verification_state`) as any
   const staleCutoff = new Date(now.getTime() - (policy.staleAfterDays[entityType] * 24 * 60 * 60 * 1000))
   const dueConditions = buildDueCondition(entityType, stateAlias, now)
-
-  const activeEntityIds = await getActiveEntityJobIds(entityType)
+  const activeStatuses = [...ACTIVE_JOB_STATUSES]
 
   const orderColumns = [
     asc(sql`CASE WHEN ${stateAlias.id} IS NULL THEN 0 ELSE 1 END`),
     asc(stateAlias.nextCheckAt),
   ]
+
+  const noActiveJobs = entityType === 'author'
+    ? notExists(
+      db.select({ _: sql`1` })
+        .from(schema.entityEnrichmentJobs)
+        .where(and(
+          eq(schema.entityEnrichmentJobs.entityType, 'author'),
+          eq(schema.entityEnrichmentJobs.entityId, schema.authors.id),
+          inArray(schema.entityEnrichmentJobs.status, activeStatuses),
+        ))
+        .as('active_jobs'),
+    )
+    : notExists(
+      db.select({ _: sql`1` })
+        .from(schema.entityEnrichmentJobs)
+        .where(and(
+          eq(schema.entityEnrichmentJobs.entityType, 'reference'),
+          eq(schema.entityEnrichmentJobs.entityId, schema.quoteReferences.id),
+          inArray(schema.entityEnrichmentJobs.status, activeStatuses),
+        ))
+        .as('active_jobs'),
+    )
 
   const rows: Array<{ entityId: number, lastVerifiedAt: Date | null }> = entityType === 'author'
     ? await db.select({
@@ -264,10 +285,7 @@ async function findDueCandidates(
         eq(stateAlias.entityType, 'author'),
         eq(stateAlias.entityId, schema.authors.id),
       ))
-      .where(and(
-        dueConditions,
-        activeEntityIds.length > 0 ? notInArray(schema.authors.id, activeEntityIds) : undefined,
-      ))
+      .where(and(dueConditions, noActiveJobs))
       .orderBy(...orderColumns, desc(schema.authors.updatedAt), asc(schema.authors.id))
       .limit(limit)
     : await db.select({
@@ -279,10 +297,7 @@ async function findDueCandidates(
         eq(stateAlias.entityType, 'reference'),
         eq(stateAlias.entityId, schema.quoteReferences.id),
       ))
-      .where(and(
-        dueConditions,
-        activeEntityIds.length > 0 ? notInArray(schema.quoteReferences.id, activeEntityIds) : undefined,
-      ))
+      .where(and(dueConditions, noActiveJobs))
       .orderBy(...orderColumns, desc(schema.quoteReferences.updatedAt), asc(schema.quoteReferences.id))
       .limit(limit)
 

@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
     if (ids.length === 0) {
       throwServer(400, 'No valid user IDs provided')
     }
+    if (ids.length > 200) {
+      throwServer(400, 'Too many user IDs (max 200)')
+    }
 
     const selectedUsers = await db.select({
       id: schema.users.id,
