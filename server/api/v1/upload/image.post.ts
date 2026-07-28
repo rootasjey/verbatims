@@ -33,7 +33,9 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiKeyRole(api, 'user', 'moderator', 'admin')
-  requireApiPermission(api, 'write:authors', 'write:references')
+  if (!api.permissions.includes('*') && !api.permissions.includes('write:authors') && !api.permissions.includes('write:references')) {
+    throwServer(403, 'API key missing required permission: write:authors or write:references')
+  }
 
   const formData = await readMultipartFormData(event)
   if (!formData) {
