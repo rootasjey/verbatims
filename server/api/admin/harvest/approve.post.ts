@@ -14,6 +14,9 @@ export default defineEventHandler(async (event) => {
   if (!Array.isArray(quote_ids) || quote_ids.length === 0) {
     throwServer(400, 'quote_ids array is required and must not be empty')
   }
+  if (quote_ids.length > 200) {
+    throwServer(400, 'Too many quote IDs (max 200)')
+  }
 
 const targetStatus = new_status || 'draft'
   if (targetStatus !== 'draft' && targetStatus !== 'pending') {

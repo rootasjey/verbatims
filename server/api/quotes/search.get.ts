@@ -22,6 +22,10 @@ export default defineEventHandler(async (event) => {
           .filter(n => Number.isFinite(n)) as number[]
       : []
 
+    if (tagIds.length > 50) {
+      throwServer(400, 'Too many tag IDs (max 50)')
+    }
+
     const minLen = query.minLen ? parseIntSafe(query.minLen, 0) : undefined
     const maxLen = query.maxLen ? parseIntSafe(query.maxLen, 0) : undefined
     const from = typeof query.from === 'string' && query.from ? query.from : undefined

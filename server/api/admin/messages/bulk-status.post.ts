@@ -10,6 +10,9 @@ export default defineEventHandler(async (event) => {
   if (!ids.length || !status || !['new', 'triaged', 'spam', 'resolved'].includes(status)) {
     throwServer(400, 'Invalid payload')
   }
+  if (ids.length > 200) {
+    throwServer(400, 'Too many IDs (max 200)')
+  }
 
   await db.update(schema.userMessages)
     .set({
