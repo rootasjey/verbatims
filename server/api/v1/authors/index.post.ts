@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql } from 'drizzle-orm'
 import { createAuthorSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
+import { uploadAndStoreImage } from '~~/server/utils/image-storage'
 
 defineRouteMeta({
   openAPI: {
@@ -73,6 +74,18 @@ export default defineEventHandler(async (event) => {
     .returning()
     .get()
 
+  let imageUrl = result.imageUrl
+  if (body.image_url) {
+    const storedUrl = await uploadAndStoreImage(body.image_url, 'authors', result.id)
+    if (storedUrl && storedUrl !== result.imageUrl) {
+      await db.update(schema.authors)
+        .set({ imageUrl: storedUrl, updatedAt: sql`CURRENT_TIMESTAMP` })
+        .where(eq(schema.authors.id, result.id))
+        .run()
+      imageUrl = storedUrl
+    }
+  }
+
   await logActivity(event, { type: 'author_created', userId: api.userId, targetId: result.id, targetType: 'author', metadata: { name: result.name } })
 
   return {
@@ -81,7 +94,7 @@ export default defineEventHandler(async (event) => {
       id: result.id,
       name: result.name,
       fictional: result.isFictional,
-      image_url: result.imageUrl,
+      image_url: imageUrl,
       job: result.job,
       dates: {
         birth: result.birthDate,
