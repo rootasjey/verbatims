@@ -20,15 +20,15 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const q = (query.q as string || '').trim()
-  if (!q) throwServer(400, 'Search query (q) is required')
-  if (q.length < 2) throwServer(400, 'Search query must be at least 2 characters')
+  const normalized = normalizeSearch(q)
+  if (!normalized.hasContent) throwServer(400, 'Search query must be at least 2 characters')
 
   const page = parseInt(query.page as string) || 1
   const limit = Math.min(parseInt(query.limit as string) || 20, 100)
   const offset = (page - 1) * limit
   const type = (query.type as string) || 'quotes'
 
-  const searchPattern = `%${q}%`
+  const searchPattern = normalized.likePattern
 
   if (type === 'authors') {
     const totalResult = await db

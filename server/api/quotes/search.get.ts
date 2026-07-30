@@ -7,8 +7,8 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event)
 
     const q = (query.q as string | undefined) || ''
-    const qTrim = q.trim()
-    const hasQuery = qTrim.length >= 2
+    const normalized = normalizeSearch(q)
+    const hasQuery = normalized.hasContent
 
     const language = query.language as QuoteLanguage | undefined
     const authorId = query.author ? parseIntSafe(query.author, 0) || null : null
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
     const conditions = [eq(schema.quotes.status, 'approved')]
 
     if (hasQuery) {
-      conditions.push(like(schema.quotes.name, `%${qTrim}%`))
+      conditions.push(like(schema.quotes.name, normalized.likePattern))
     }
 
     if (language) {
@@ -102,7 +102,7 @@ export default defineEventHandler(async (event) => {
     const orderBy = []
     if (effectiveSort === 'relevance' && hasQuery) {
       // Keep CASE priority first; apply sortOrder for subsequent fields
-      orderBy.push(sql`CASE WHEN ${schema.quotes.name} LIKE ${qTrim + '%'} THEN 0 ELSE 1 END`)
+      orderBy.push(sql`CASE WHEN ${schema.quotes.name} LIKE ${normalized.words[0] + '%'} THEN 0 ELSE 1 END`)
       orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.likesCount) : desc(schema.quotes.likesCount))
       orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.viewsCount) : desc(schema.quotes.viewsCount))
       orderBy.push(sortOrder === 'asc' ? asc(schema.quotes.createdAt) : desc(schema.quotes.createdAt))
@@ -203,7 +203,7 @@ export default defineEventHandler(async (event) => {
       limit,
       offset,
       sort: effectiveSort,
-      q: hasQuery ? qTrim : undefined,
+      q: hasQuery ? q.trim() : undefined,
       filters,
       hasMore: offset + quotes.length < total
     }

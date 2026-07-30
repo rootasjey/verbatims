@@ -19,7 +19,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const contentType = (query.type as SearchContentType) || 'all'
 
-    if (!searchTerm || searchTerm.trim().length < 2) {
+    const normalized = normalizeSearch(searchTerm)
+    if (!normalized.hasContent) {
       return {
         success: true,
         data: {
@@ -31,7 +32,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
       }
     }
 
-    const searchPattern = `%${searchTerm.trim()}%`
+    const searchPattern = normalized.likePattern
     const results: SearchResults = {
       quotes: [],
       authors: [],

@@ -56,7 +56,10 @@ function buildQuoteWhere(filters: QuoteFilters) {
   if (filters.authorId) conditions.push(eq(schema.quotes.authorId, filters.authorId))
   if (filters.referenceId) conditions.push(eq(schema.quotes.referenceId, filters.referenceId))
   if (filters.userId) conditions.push(eq(schema.quotes.userId, filters.userId))
-  if (filters.search) conditions.push(like(schema.quotes.name, `%${filters.search}%`))
+  if (filters.search) {
+    const ns = normalizeSearch(filters.search)
+    if (ns.hasContent) conditions.push(like(schema.quotes.name, ns.likePattern))
+  }
   if (filters.tag?.trim()) {
     conditions.push(sql`EXISTS (
       SELECT 1 FROM ${schema.quoteTags} qt2
