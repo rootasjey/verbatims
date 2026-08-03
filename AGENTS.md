@@ -289,7 +289,7 @@ Schema changes are tracked in `server/db/migrations/sqlite/` as numbered SQL fil
 wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
 ```
 
-To preview locally first:
+**Local dev** (`wrangler` WITHOUT `--remote`): targets the local D1 emulation, which is the single active database the dev server actually reads.
 
 ```bash
 wrangler d1 execute verbatims --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
@@ -297,6 +297,19 @@ wrangler d1 execute verbatims --file server/db/migrations/sqlite/0021_add_langua
 
 **Database name** (`wrangler.jsonc` → `d1_databases[0].database_name`): `verbatims`
 Database ID: `330aad35-518b-437c-bbf4-5b7ea006eb3f`
+
+### Local dev database (important — avoid confusion)
+
+The dev server (Nitro `cloudflare-module` preset + cloudflare-dev emulation) reads **only** the local D1 emulation at `.wrangler/state/v3/d1/miniflare-D1DatabaseObject/<hash>.sqlite` via the workerd D1 API. This is the **single source of truth** for local development and persists across dev-server restarts.
+
+`.data/db/sqlite.db` is a **derived copy, NOT read at runtime**. It is created by `bun run db:init` (from `schema.sql`) and refreshed by `bun run db:sync-local` (copies the D1 emulation, with a timestamped backup). It exists for sqlite3 CLI inspection and offline tooling only.
+
+Rules for local DB work:
+
+- Apply migrations to the **D1 emulation**: `wrangler d1 execute verbatims --file <migration>.sql` (no `--remote`).
+- Do **not** apply migrations directly to `.data/db/sqlite.db` (e.g. via `sqlite3` or `bun:sqlite`) — the server won't see them.
+- If you need `.data/db/sqlite.db` in sync after a migration, run `bun run db:sync-local`.
+- Changes to tables (triggers, virtual tables like FTS5) must exist in the D1 emulation too, otherwise dev fails with `no such table/column` while production works.
 
 ### D1 debugging process
 
