@@ -51,7 +51,7 @@
 import QuoteImageCard from './QuoteImageCard.vue'
 import { toPng } from 'html-to-image'
 import { createApp, onMounted, watch } from 'vue'
-import { ensurePilcrowFont, injectPilcrowInlineInto } from '~/utils/pilcrowFont'
+import { ensurePoetsenFont, injectPoetsenInlineInto } from '~/utils/poetsenFont'
 import { type DownloadImageSettings, loadDownloadImageSettings, saveDownloadImageSettings } from '~/utils/downloadImageSettings'
 
 interface Emits {
@@ -126,14 +126,14 @@ const applySavedSettings = (saved: DownloadImageSettings | null) => {
 watch(isOpen, async open => {
   if (open) {
     applySavedSettings(loadDownloadImageSettings())
-    await ensurePilcrowFont(); fontsReady.value = true
+    await ensurePoetsenFont(); fontsReady.value = true
   }
 })
 
 onMounted(async () => {
   if (isOpen.value) {
     applySavedSettings(loadDownloadImageSettings())
-    await ensurePilcrowFont(); fontsReady.value = true
+    await ensurePoetsenFont(); fontsReady.value = true
   }
 })
 
@@ -144,7 +144,7 @@ watch(() => [form.theme.value, form.background.value, renderDimensions.value] as
 const download = async () => {
   try {
     downloading.value = true
-    await ensurePilcrowFont()
+    await ensurePoetsenFont()
     const container = document.createElement('div')
     container.style.position = 'fixed'
     container.style.left = '-10000px'
@@ -168,7 +168,7 @@ const download = async () => {
     saveDownloadImageSettings({ theme: form.theme.value, background: form.background.value, size: renderDimensions.value })
 
     const rootEl = mount.firstElementChild as HTMLElement
-    if (rootEl) await injectPilcrowInlineInto(rootEl)
+    if (rootEl) await injectPoetsenInlineInto(rootEl)
 
     const dataUrl = await toPng(rootEl as HTMLElement, {
       cacheBust: true,

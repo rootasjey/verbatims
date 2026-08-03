@@ -444,7 +444,7 @@ onMounted(() => {
 }
 
 .subtitle {
-  font-family: 'Gambetta';
+  font-family: 'Fraunces';
   font-size: 1.5rem;
   color: #555;
   margin: 0 0 0.4rem;
@@ -541,7 +541,7 @@ onMounted(() => {
 }
 
 .toc-summary {
-  font-family: 'Gambetta';
+  font-family: 'Fraunces';
   font-size: clamp(1.00rem, 0.94rem + 0.30vw, 1.125rem);
   font-weight: 600;
   cursor: pointer;
@@ -610,7 +610,7 @@ onMounted(() => {
 }
 
 .section-header h2 {
-  font-family: 'Gambetta';
+  font-family: 'Fraunces';
   font-size: 2rem;
   font-weight: 600;
   line-height: 2.0;
@@ -671,7 +671,7 @@ onMounted(() => {
 }
 
 .section-body h3, .section-body h4 {
-  font-family: 'Gambetta';
+  font-family: 'Fraunces';
   font-weight: 600;
   margin-top: 1rem;
   margin-bottom: 0.4rem;

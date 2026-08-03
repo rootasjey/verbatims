@@ -25,13 +25,17 @@ export default {
       },
     }),
     presetWebFonts({
-      provider: 'fontshare',
+      provider: 'google',
       fonts: {
-        body: 'Nunito',
-        sans: 'General Sans',
-        serif: 'Gambetta',
-        subtitle: 'Pilcrow rounded',
-        title: 'Khand',
+        body: 'Nunito:200,300,400,500,600,700',
+        sans: 'Archivo:200,300,400,500,600,700',
+        serif: 'Fraunces:200,300,400,500,600,700',
+        subtitle: 'Poetsen One',
+        title: 'Khand:300,400,500,600,700',
+      },
+      timeouts: {
+        warning: 5000,
+        failure: 20000,
       },
       processors: [
         createLocalFontProcessor({

@@ -18,12 +18,11 @@ export default defineEventHandler(async (event) => {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(`${reference.name} — Verbatims`)}</title>
     <meta name="description" content="${escapeHtml(description)}">
-    <link rel="preload" href="/fonts/b22137e4.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/fraunces-8bfd3893.woff2" as="font" type="font/woff2" crossorigin>
     <style>
       @font-face {
-        font-family: 'Gambetta';
-        src: url('/fonts/b22137e4.woff2') format('woff2'),
-             url('/fonts/b41f87c0.ttf') format('truetype');
+        font-family: 'Fraunces';
+        src: url('/fonts/fraunces-8bfd3893.woff2') format('woff2');
         font-weight: 400 800;
         font-style: normal;
         font-display: swap;
@@ -66,7 +65,7 @@ export default defineEventHandler(async (event) => {
         font-weight: 700;
         letter-spacing: -1px;
         line-height: 1.1;
-        font-family: 'Gambetta', Georgia, 'Times New Roman', serif;
+        font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
       }
       p {
         margin: 24px 0 0;

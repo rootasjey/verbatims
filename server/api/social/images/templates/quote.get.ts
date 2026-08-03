@@ -51,17 +51,16 @@ export default defineEventHandler(async (event) => {
     <title>Verbatims — Social Quote</title>
     <style>
       @font-face {
-        font-family: 'Gambetta';
-        src: url('/fonts/b22137e4.woff2') format('woff2'),
-             url('/fonts/b41f87c0.ttf') format('truetype');
+        font-family: 'Fraunces';
+        src: url('/fonts/fraunces-8bfd3893.woff2') format('woff2');
         font-weight: 400 800;
         font-style: normal;
         font-display: swap;
       }
 
       @font-face {
-        font-family: 'Pilcrow Rounded';
-        src: url('/fonts/ab83153e.woff2') format('woff2');
+        font-family: 'Poetsen One';
+        src: url('/fonts/poetsenone-cbe208f0.woff2') format('woff2');
         font-weight: 400 600;
         font-style: normal;
         font-display: swap;
@@ -131,7 +130,7 @@ export default defineEventHandler(async (event) => {
       blockquote {
         margin: 0;
         color: ${textColor};
-        font-family: 'Gambetta', Georgia, 'Times New Roman', serif;
+        font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
         line-height: 1.08;
         letter-spacing: -0.4px;
         font-size: ${getQuoteFontSize(quote.text)}px;
@@ -163,7 +162,7 @@ export default defineEventHandler(async (event) => {
       .author {
         font-size: 44px;
         font-weight: 700;
-        font-family: 'Pilcrow Rounded', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+        font-family: 'Poetsen One', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
       }
 
       .reference {
@@ -172,7 +171,7 @@ export default defineEventHandler(async (event) => {
         padding-top: 10px;
         font-size: 32px;
         color: ${mutedColor};
-        font-family: 'Pilcrow Rounded', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+        font-family: 'Poetsen One', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
       }
     </style>
   </head>

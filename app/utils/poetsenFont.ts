@@ -1,8 +1,8 @@
-// Shared client-side utility for embedding Pilcrow Rounded font for DOM-to-image exports
+// Shared client-side utility for embedding Poetsen One font for DOM-to-image exports
 // Provides data-URL @font-face construction, head injection, and inline subtree injection.
 
 let cachedStyleText: string | null = null
-const FONT_STYLE_ID = 'pilcrow-rounded-inline-style'
+const FONT_STYLE_ID = 'poetsen-one-inline-style'
 
 function isClient() {
   return typeof window !== 'undefined' && typeof document !== 'undefined'
@@ -28,48 +28,45 @@ async function toDataUrl(path: string, mime?: string): Promise<string> {
   return `data:${type};base64,${b64}`
 }
 
-export async function buildPilcrowStyleText(): Promise<string> {
+export async function buildPoetsenStyleText(): Promise<string> {
   if (cachedStyleText) return cachedStyleText
   try {
-    const [woff2, woff] = await Promise.all([
-      toDataUrl('/fonts/ab83153e.woff2', 'font/woff2'),
-      toDataUrl('/fonts/9bf19bbb.woff', 'font/woff').catch(() => null as string | null),
-    ])
-    const src = `src: url(${woff2}) format('woff2')${woff ? `, url(${woff}) format('woff')` : ''};`
-    cachedStyleText = `@font-face { font-family: 'Pilcrow Rounded'; font-style: normal; font-weight: 400; font-display: swap; ${src} }
-@font-face { font-family: 'Pilcrow Rounded'; font-style: normal; font-weight: 600; font-display: swap; ${src} }`
+    const woff2 = await toDataUrl('/fonts/poetsenone-cbe208f0.woff2', 'font/woff2')
+    const src = `src: url(${woff2}) format('woff2');`
+    cachedStyleText = `@font-face { font-family: 'Poetsen One'; font-style: normal; font-weight: 400; font-display: swap; ${src} }
+@font-face { font-family: 'Poetsen One'; font-style: normal; font-weight: 600; font-display: swap; ${src} }`
   } catch (e) {
     // Fallback to relative URLs if data URL building fails
-    cachedStyleText = `@font-face { font-family: 'Pilcrow Rounded'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/ab83153e.woff2) format('woff2'), url(/fonts/9bf19bbb.woff) format('woff'); }
-@font-face { font-family: 'Pilcrow Rounded'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/ab83153e.woff2) format('woff2'), url(/fonts/9bf19bbb.woff) format('woff'); }`
+    cachedStyleText = `@font-face { font-family: 'Poetsen One'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/poetsenone-cbe208f0.woff2) format('woff2'); }
+@font-face { font-family: 'Poetsen One'; font-style: normal; font-weight: 600; font-display: swap; src: url(/fonts/poetsenone-cbe208f0.woff2) format('woff2'); }`
   }
   return cachedStyleText
 }
 
-export async function ensurePilcrowFont(): Promise<void> {
+export async function ensurePoetsenFont(): Promise<void> {
   if (!isClient()) return
   try {
     if (!document.getElementById(FONT_STYLE_ID)) {
       const style = document.createElement('style')
       style.id = FONT_STYLE_ID
-      style.textContent = await buildPilcrowStyleText()
+      style.textContent = await buildPoetsenStyleText()
       document.head.appendChild(style)
     }
     if ((document as any).fonts && 'load' in (document as any).fonts) {
       await Promise.allSettled([
-        (document as any).fonts.load("400 16px 'Pilcrow Rounded'"),
-        (document as any).fonts.load("600 16px 'Pilcrow Rounded'"),
+        (document as any).fonts.load("400 16px 'Poetsen One'"),
+        (document as any).fonts.load("600 16px 'Poetsen One'"),
       ])
     }
   } catch (e) {
     // swallow; consumers still proceed with fallbacks
-    console.warn('ensurePilcrowFont warning', e)
+    console.warn('ensurePoetsenFont warning', e)
   }
 }
 
-export async function injectPilcrowInlineInto(rootEl: HTMLElement): Promise<void> {
+export async function injectPoetsenInlineInto(rootEl: HTMLElement): Promise<void> {
   if (!isClient() || !rootEl) return
   const style = document.createElement('style')
-  style.textContent = await buildPilcrowStyleText()
+  style.textContent = await buildPoetsenStyleText()
   rootEl.prepend(style)
 }

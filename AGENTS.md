@@ -427,10 +427,10 @@ General audience: quote lovers, casual browsers, content sharers, and curators. 
 - **References**: Think editorial design — typography-forward, generous whitespace, intentional hierarchy, muted tones with measured accent color.
 - **Anti-references**: Generic AI-era design (gradient text, glassmorphism, purple/blue glow, Inter/Roboto fonts, hero metric cards, overused card grids).
 - **Theme**: Both light and dark modes supported. Background: `#FAFAF9` (light) / `#0C0A09` (dark).
-- **Font stack**: Nunito (body), General Sans (sans), Gambetta (serif), Pilcrow Rounded (subtitle), Khand (title) — all served via Fontshare.
+- **Font stack**: Nunito (body), Archivo (sans), Fraunces (serif), Poetsen One (subtitle), Khand (title) — all served via Google Fonts.
 
 ### Design Principles
-1. **Typography leads**: Hierarchy should be unmistakable. Size, weight, and spacing — not color or decoration — should communicate importance. The serif (Gambetta) signals editorials/headlines; sans (General Sans) signals body/interfaces.
+1. **Typography leads**: Hierarchy should be unmistakable. Size, weight, and spacing — not color or decoration — should communicate importance. The serif (Fraunces) signals editorials/headlines; sans (Archivo) signals body/interfaces.
 2. **Whitespace is structural**: Use generous negative space to create breathing room and signal section boundaries. Crowded = cheap. Spacious = premium.
 3. **Color with restraint**: Primary blue (`#3C82F6`) and secondary orange (`#FAA533`) should be used sparingly and purposefully. The palette should feel quiet, letting content take center stage.
 4. **Motion that serves**: Animations should feel like paper moving — subtle, purposeful, never gratuitous. Staggered reveals and gentle fades support the reading rhythm.

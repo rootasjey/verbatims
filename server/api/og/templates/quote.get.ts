@@ -18,13 +18,12 @@ export default defineEventHandler(async (event) => {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}">
-    <link rel="preload" href="/fonts/b22137e4.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/fraunces-8bfd3893.woff2" as="font" type="font/woff2" crossorigin>
     <style>
       /* Self-hosted font for reliability in OG rendering */
       @font-face {
-        font-family: 'Gambetta';
-        src: url('/fonts/b22137e4.woff2') format('woff2'),
-             url('/fonts/b41f87c0.ttf') format('truetype');
+        font-family: 'Fraunces';
+        src: url('/fonts/fraunces-8bfd3893.woff2') format('woff2');
         font-weight: 400 800; /* allow synthetic bolds if single weight */
         font-style: normal;
         font-display: swap;
@@ -47,7 +46,7 @@ export default defineEventHandler(async (event) => {
       .card { width: 960px; height: 480px; display: flex; flex-direction: column; justify-content: center; }
       blockquote {
         margin: 0 0 24px 0; font-size: 54px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2;
-        font-family: 'Gambetta', Georgia, 'Times New Roman', serif;
+        font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
         color: var(--fg);
       }
       .meta { font-size: 28px; font-weight: 200; color: var(--fg-dim); margin-top: 8px; }
