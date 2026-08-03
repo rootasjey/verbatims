@@ -343,6 +343,8 @@ const availablePermissions = [
   { label: 'Write: Authors', value: 'write:authors' },
   { label: 'Write: References', value: 'write:references' },
   { label: 'Write: Collections', value: 'write:collections' },
+  { label: 'Social: Read (moderator+)', value: 'social:read' },
+  { label: 'Social: Write (moderator+)', value: 'social:write' },
   { label: 'All (*)', value: '*' },
 ]
 

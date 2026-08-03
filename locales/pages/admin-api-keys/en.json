@@ -29,6 +29,8 @@
   "perm_authors": "Write: Authors (moderator+)",
   "perm_references": "Write: References (moderator+)",
   "perm_collections": "Write: Collections",
+  "perm_social_read": "Social: Read (moderator+)",
+  "perm_social_write": "Social: Write (moderator+)",
   "perm_all": "All (*)",
   "label_rate_limit": "Read rate (requests)",
   "label_read_window": "Read window (seconds)",

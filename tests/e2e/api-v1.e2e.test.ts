@@ -8,6 +8,8 @@ const apiKey = testDb.apiKey
 const writeKey = testDb.writeKey
 const noPermKey = testDb.noPermKey
 const themeKey = testDb.themeKey
+const socialReadKey = testDb.socialReadKey
+const socialWriteKey = testDb.socialWriteKey
 let adminCookie: string
 
 process.env.TURSO_DATABASE_URL = `file:${testDb.dbPath}`
@@ -41,6 +43,14 @@ function noPermHeaders() {
 
 function themeHeaders() {
   return { headers: { Authorization: `Bearer ${themeKey}` } }
+}
+
+function socialReadHeaders() {
+  return { headers: { Authorization: `Bearer ${socialReadKey}` } }
+}
+
+function socialWriteHeaders() {
+  return { headers: { Authorization: `Bearer ${socialWriteKey}` } }
 }
 
 // ── Auth ──
@@ -1195,6 +1205,169 @@ describe('DELETE /api/v1/quotes/[id]/tags/[tagId]', () => {
       method: 'DELETE',
     })
     expect(res.status).toBe(403)
+  })
+})
+
+describe('Social queue API (/api/v1/social)', () => {
+  test('GET /api/v1/social/platforms returns platform statuses', async () => {
+    const res = await $fetch('/api/v1/social/platforms', socialReadHeaders())
+    expect(res.success).toBe(true)
+    expect(Array.isArray(res.data)).toBe(true)
+    const bluesky = res.data.find((p: any) => p.platform === 'bluesky')
+    expect(bluesky).toBeTruthy()
+    expect(bluesky.queue).toHaveProperty('queued')
+  })
+
+  test('GET /api/v1/social/platforms returns 403 without social:read', async () => {
+    const res = await fetch('/api/v1/social/platforms', writeHeaders())
+    expect(res.status).toBe(403)
+  })
+
+  test('GET /api/v1/social/queue lists queued items', async () => {
+    const res = await $fetch('/api/v1/social/queue?platform=bluesky', socialReadHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.queue.length).toBeGreaterThanOrEqual(3)
+    expect(res.data.stats).toHaveProperty('queued')
+    expect(res.pagination).toHaveProperty('total')
+  })
+
+  test('GET /api/v1/social/queue filters by status', async () => {
+    const res = await $fetch('/api/v1/social/queue?platform=bluesky&status=queued', socialReadHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.queue.length).toBeGreaterThanOrEqual(2)
+    for (const item of res.data.queue) {
+      expect(item.status).toBe('queued')
+    }
+  })
+
+  test('GET /api/v1/social/queue/1 returns a single item', async () => {
+    const res = await $fetch('/api/v1/social/queue/1', socialReadHeaders())
+    expect(res.success).toBe(true)
+    expect(res.data.id).toBe(1)
+    expect(res.data.platform).toBe('bluesky')
+  })
+
+  test('GET /api/v1/social/queue/99999 returns 404', async () => {
+    const res = await fetch('/api/v1/social/queue/99999', socialReadHeaders())
+    expect(res.status).toBe(404)
+  })
+
+  test('GET /api/v1/social/posts returns the audit trail', async () => {
+    const res = await $fetch('/api/v1/social/posts', socialReadHeaders())
+    expect(res.success).toBe(true)
+    expect(Array.isArray(res.data.posts)).toBe(true)
+    expect(res.pagination).toHaveProperty('total')
+  })
+
+  test('POST /api/v1/social/queue returns 403 without social:write', async () => {
+    const res = await fetch('/api/v1/social/queue', {
+      ...socialReadHeaders(),
+      method: 'POST',
+      headers: { ...socialReadHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quote_ids: [2], platform: 'bluesky' }),
+    })
+    expect(res.status).toBe(403)
+  })
+
+  test('POST /api/v1/social/queue adds approved quotes', async () => {
+    const res = await $fetch('/api/v1/social/queue', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      body: { quote_ids: [2, 3], platform: 'bluesky' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.count).toBe(2)
+    expect(res.data[0].quote_id).toBe(2)
+    expect(res.data[0].status).toBe('queued')
+  })
+
+  test('POST /api/v1/social/queue rejects non-approved quotes', async () => {
+    const res = await fetch('/api/v1/social/queue', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      headers: { ...socialWriteHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quote_ids: [5], platform: 'bluesky' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  test('POST /api/v1/social/queue/bulk-random enqueues quotes', async () => {
+    const res = await $fetch('/api/v1/social/queue/bulk-random', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      body: { platform: 'bluesky', count: 3 },
+    })
+    expect(res.success).toBe(true)
+    expect(res.count).toBeGreaterThanOrEqual(1)
+    expect(res.count).toBeLessThanOrEqual(4)
+  })
+
+  test('POST /api/v1/social/queue/reorder moves an item down', async () => {
+    const res = await $fetch('/api/v1/social/queue/reorder', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      body: { id: 1, direction: 'down' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.moved).toBe(true)
+  })
+
+  test('POST /api/v1/social/queue/clear requires confirm', async () => {
+    const res = await fetch('/api/v1/social/queue/clear', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      headers: { ...socialWriteHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: 'bluesky', confirm: false }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  test('POST /api/v1/social/queue/run-now runs the autopost engine', async () => {
+    const res = await $fetch('/api/v1/social/queue/run-now', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      body: { platform: 'x' },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data).toHaveProperty('success')
+  })
+
+  test('POST /api/v1/social/queue/run-now is throttled to 1 per minute', async () => {
+    const res = await fetch('/api/v1/social/queue/run-now', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+      headers: { ...socialWriteHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: 'x' }),
+    })
+    expect(res.status).toBe(429)
+  })
+
+  test('DELETE /api/v1/social/queue/1 removes an item', async () => {
+    const res = await $fetch('/api/v1/social/queue/1', {
+      ...socialWriteHeaders(),
+      method: 'DELETE',
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.deleted).toBe(true)
+    expect(res.data.id).toBe(1)
+  })
+
+  test('POST /api/v1/social/queue/4/requeue requeues a failed item', async () => {
+    const res = await $fetch('/api/v1/social/queue/4/requeue', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.requeued).toBe(true)
+    expect(res.data.id).toBe(4)
+  })
+
+  test('POST /api/v1/social/queue/2/requeue returns 400 for non-failed item', async () => {
+    const res = await fetch('/api/v1/social/queue/2/requeue', {
+      ...socialWriteHeaders(),
+      method: 'POST',
+    })
+    expect(res.status).toBe(400)
   })
 })
 
