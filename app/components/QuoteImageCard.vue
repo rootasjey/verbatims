@@ -42,12 +42,12 @@
         </div>
 
         <div class="mt-5 text-center">
-          <div :class="['font-subtitle tracking-widest text-2xl font-600', themeClasses.author]" style="font-family: 'Pilcrow Rounded', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;">
+          <div :class="['font-subtitle tracking-widest text-2xl font-600', themeClasses.author]" style="font-family: 'Poetsen One', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;">
             {{ authorName }}
           </div>
           <div v-if="referenceName"
             :class="['font-subtitle tracking-widest text-xl border-t-2 mt-2 pt-2', isPhotoBackground ? 'border-white/20' : 'border-gray-300 dark:border-gray-600', themeClasses.reference]"
-            style="font-family: 'Pilcrow Rounded', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;">
+            style="font-family: 'Poetsen One', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;">
             {{ referenceName }}
           </div>
         </div>

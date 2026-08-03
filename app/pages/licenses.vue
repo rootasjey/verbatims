@@ -148,7 +148,7 @@ definePageMeta({
   font-size: 3.0rem;
   line-height: 1.3;
   font-weight: 800;
-  font-family: 'Gambetta';
+  font-family: 'Fraunces';
   margin-top: 2.2em;
   margin-bottom: 0.8em;
 }

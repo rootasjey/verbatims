@@ -7,13 +7,12 @@ export default defineEventHandler(async (event) => {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(title)}</title>
-    <link rel="preload" href="/fonts/b22137e4.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/fraunces-8bfd3893.woff2" as="font" type="font/woff2" crossorigin>
     <style>
       /* Self-hosted font for reliability in OG rendering */
       @font-face {
-        font-family: 'Gambetta';
-        src: url('/fonts/b22137e4.woff2') format('woff2'),
-             url('/fonts/b41f87c0.ttf') format('truetype');
+        font-family: 'Fraunces';
+        src: url('/fonts/fraunces-8bfd3893.woff2') format('woff2');
         font-weight: 400 800;
         font-style: normal;
         font-display: swap;
@@ -30,7 +29,7 @@ export default defineEventHandler(async (event) => {
         height: 630px;
         background: #000000;
         color: #f8fafc;
-        font-family: 'Gambetta', Georgia, 'Times New Roman', serif;
+        font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
         display: flex;
         flex-direction: column;
         justify-content: center;
