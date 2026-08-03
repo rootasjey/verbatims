@@ -28,13 +28,13 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * limit
   const type = (query.type as string) || 'quotes'
 
-  const searchPattern = normalized.likePattern
+  const searchPattern = normalized.foldedLikePattern
 
   if (type === 'authors') {
     const totalResult = await db
       .select({ total: count() })
       .from(schema.authors)
-      .where(like(schema.authors.name, searchPattern))
+      .where(like(foldAccentsSQL(schema.authors.name), searchPattern))
       .get()
 
     const total = totalResult?.total || 0
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
         job: schema.authors.job,
       })
       .from(schema.authors)
-      .where(like(schema.authors.name, searchPattern))
+      .where(like(foldAccentsSQL(schema.authors.name), searchPattern))
       .orderBy(desc(schema.authors.viewsCount))
       .limit(limit)
       .offset(offset)
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
     const totalResult = await db
       .select({ total: count() })
       .from(schema.quoteReferences)
-      .where(like(schema.quoteReferences.name, searchPattern))
+      .where(like(foldAccentsSQL(schema.quoteReferences.name), searchPattern))
       .get()
 
     const total = totalResult?.total || 0
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
         imageUrl: schema.quoteReferences.imageUrl,
       })
       .from(schema.quoteReferences)
-      .where(like(schema.quoteReferences.name, searchPattern))
+      .where(like(foldAccentsSQL(schema.quoteReferences.name), searchPattern))
       .orderBy(desc(schema.quoteReferences.viewsCount))
       .limit(limit)
       .offset(offset)
@@ -99,7 +99,7 @@ export default defineEventHandler(async (event) => {
       eq(schema.quotes.status, 'approved'),
       or(
         sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
-        like(schema.authors.name, searchPattern),
+        like(foldAccentsSQL(schema.authors.name), searchPattern),
       ),
     ))
     .get()
@@ -125,7 +125,7 @@ export default defineEventHandler(async (event) => {
       eq(schema.quotes.status, 'approved'),
       or(
         sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
-        like(schema.authors.name, searchPattern),
+        like(foldAccentsSQL(schema.authors.name), searchPattern),
       ),
     ))
     .orderBy(desc(schema.quotes.viewsCount))

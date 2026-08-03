@@ -33,6 +33,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
     }
 
     const searchPattern = normalized.likePattern
+    const foldedPattern = normalized.foldedLikePattern
     const results: SearchResults = {
       quotes: [],
       authors: [],
@@ -106,7 +107,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
           COUNT(q.id) as quotes_count
         FROM ${schema.authors} a
         LEFT JOIN ${schema.quotes} q ON a.id = q.author_id AND q.status = 'approved'
-        WHERE a.name LIKE ${searchPattern} OR a.description LIKE ${searchPattern} OR a.job LIKE ${searchPattern}
+        WHERE ${foldAccentsSQL(sql`a.name`)} LIKE ${foldedPattern}
+           OR a.description LIKE ${searchPattern}
+           OR a.job LIKE ${searchPattern}
         GROUP BY a.id
         ORDER BY a.likes_count DESC, a.views_count DESC, quotes_count DESC
         LIMIT ${limit}
@@ -125,7 +128,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
           COUNT(q.id) as quotes_count
         FROM ${schema.quoteReferences} r
         LEFT JOIN ${schema.quotes} q ON r.id = q.reference_id AND q.status = 'approved'
-        WHERE r.name LIKE ${searchPattern} OR r.description LIKE ${searchPattern} OR r.secondary_type LIKE ${searchPattern}
+        WHERE ${foldAccentsSQL(sql`r.name`)} LIKE ${foldedPattern}
+           OR r.description LIKE ${searchPattern}
+           OR r.secondary_type LIKE ${searchPattern}
         GROUP BY r.id
         ORDER BY r.likes_count DESC, r.views_count DESC, quotes_count DESC
         LIMIT ${limit}
