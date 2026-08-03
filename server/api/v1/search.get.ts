@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
     .where(and(
       eq(schema.quotes.status, 'approved'),
       or(
-        like(schema.quotes.name, searchPattern),
+        sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
         like(schema.authors.name, searchPattern),
       ),
     ))
@@ -124,7 +124,7 @@ export default defineEventHandler(async (event) => {
     .where(and(
       eq(schema.quotes.status, 'approved'),
       or(
-        like(schema.quotes.name, searchPattern),
+        sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
         like(schema.authors.name, searchPattern),
       ),
     ))

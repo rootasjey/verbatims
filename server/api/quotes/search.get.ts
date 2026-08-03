@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, like, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
+import { eq, and, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
 import type { ProcessedQuoteResult } from '~~/server/types'
 
 export default defineEventHandler(async (event) => {
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
     const conditions = [eq(schema.quotes.status, 'approved')]
 
     if (hasQuery) {
-      conditions.push(like(schema.quotes.name, normalized.likePattern))
+      conditions.push(sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`)
     }
 
     if (language) {

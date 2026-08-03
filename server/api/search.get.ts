@@ -60,7 +60,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         LEFT JOIN ${schema.users} u ON q.user_id = u.id
         LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
         LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
-        WHERE q.status = 'approved' AND q.name LIKE ${searchPattern}
+        WHERE q.status = 'approved' AND q.id IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})
       `
 
       // Add language filter

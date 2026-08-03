@@ -413,6 +413,27 @@ CREATE INDEX IF NOT EXISTS idx_quotes_featured ON quotes(is_featured);
 CREATE INDEX IF NOT EXISTS idx_quotes_language ON quotes(language);
 CREATE INDEX IF NOT EXISTS idx_quotes_source_type ON quotes(source_type);
 
+-- FTS5 full-text search index for quotes
+CREATE VIRTUAL TABLE IF NOT EXISTS quotes_fts USING fts5(
+  name,
+  content=quotes,
+  content_rowid=id,
+  tokenize='porter unicode61'
+);
+
+CREATE TRIGGER IF NOT EXISTS quotes_fts_ai AFTER INSERT ON quotes BEGIN
+  INSERT INTO quotes_fts(rowid, name) VALUES (new.id, new.name);
+END;
+
+CREATE TRIGGER IF NOT EXISTS quotes_fts_ad AFTER DELETE ON quotes BEGIN
+  INSERT INTO quotes_fts(quotes_fts, rowid, name) VALUES('delete', old.id, old.name);
+END;
+
+CREATE TRIGGER IF NOT EXISTS quotes_fts_au AFTER UPDATE ON quotes BEGIN
+  INSERT INTO quotes_fts(quotes_fts, rowid, name) VALUES('delete', old.id, old.name);
+  INSERT INTO quotes_fts(rowid, name) VALUES (new.id, new.name);
+END;
+
 -- Author table indexes
 CREATE INDEX IF NOT EXISTS idx_authors_name ON authors(name);
 

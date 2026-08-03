@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, like, desc, asc, sql, count, countDistinct, getTableColumns, inArray } from 'drizzle-orm'
+import { eq, and, desc, asc, sql, count, countDistinct, getTableColumns, inArray } from 'drizzle-orm'
 import type { DatabaseQuoteWithRelations } from '../../shared/types/quote'
 import type { PaginationMeta } from './pagination.service'
 import { getPagination, buildPaginationMeta } from './pagination.service'
@@ -58,7 +58,7 @@ function buildQuoteWhere(filters: QuoteFilters) {
   if (filters.userId) conditions.push(eq(schema.quotes.userId, filters.userId))
   if (filters.search) {
     const ns = normalizeSearch(filters.search)
-    if (ns.hasContent) conditions.push(like(schema.quotes.name, ns.likePattern))
+    if (ns.hasContent) conditions.push(sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${ns.toMatchQuery()})`)
   }
   if (filters.tag?.trim()) {
     conditions.push(sql`EXISTS (
