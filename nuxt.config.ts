@@ -116,7 +116,7 @@ export default defineNuxtConfig({
     openAPI: {
       meta: {
         title: 'Verbatims API',
-        description: 'Public API for browsing and managing quotes, authors, references, and collections.\n\nAuthentication: most endpoints require an API key via `Authorization: Bearer vbt_xxx` header.\n\nPermissions: each API key has a set of permissions (`read`, `write:quotes`, `write:authors`, `write:references`, `write:collections`, or `*` for all). Write operations on authors and references require the key owner to be a moderator or admin.',
+        description: 'Public API for browsing and managing quotes, authors, references, collections, and the social queue.\n\nAuthentication: most endpoints require an API key via `Authorization: Bearer vbt_xxx` header.\n\nPermissions: each API key has a set of permissions (`read`, `write:quotes`, `write:authors`, `write:references`, `write:collections`, `social:read`, `social:write`, or `*` for all). Write operations on authors and references require the key owner to be a moderator or admin. Social queue endpoints require a moderator or admin key with `social:read`/`social:write`.',
         version: computeVersion(),
       },
       production: 'runtime',

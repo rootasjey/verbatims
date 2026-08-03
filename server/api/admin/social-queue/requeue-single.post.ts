@@ -1,32 +1,13 @@
-import { db, schema } from 'hub:db'
-import { eq, sql } from 'drizzle-orm'
+import { requeueSocialQueueItem } from '../../../utils/social-queue-api'
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireModerator(event)
+  await requireModerator(event)
 
   const body = await readBody(event)
-  const id = Number(body?.id)
+  const data = await requeueSocialQueueItem(Number(body?.id))
 
-  if (!id) {
-    throwServer(400, 'Queue item id is required')
+  return {
+    success: true,
+    data
   }
-
-  const item = await db.select({ id: schema.socialQueue.id, status: schema.socialQueue.status })
-    .from(schema.socialQueue)
-    .where(eq(schema.socialQueue.id, id))
-    .limit(1)
-
-  if (!item.length) {
-    throwServer(404, 'Queue item not found')
-  }
-
-  if (item[0]!.status !== 'failed') {
-    throwServer(400, 'Only failed items can be re-queued')
-  }
-
-  await db.update(schema.socialQueue)
-    .set({ status: 'queued', updatedAt: sql`CURRENT_TIMESTAMP` })
-    .where(eq(schema.socialQueue.id, id))
-
-  return { success: true, data: { requeued: true, id } }
 })

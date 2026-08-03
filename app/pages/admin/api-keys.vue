@@ -258,6 +258,8 @@ const availablePermissions = [
   { label: String($t('perm_authors')), value: 'write:authors' },
   { label: String($t('perm_references')), value: 'write:references' },
   { label: String($t('perm_collections')), value: 'write:collections' },
+  { label: String($t('perm_social_read')), value: 'social:read' },
+  { label: String($t('perm_social_write')), value: 'social:write' },
   { label: String($t('perm_all')), value: '*' },
 ]
 

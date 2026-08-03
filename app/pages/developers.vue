@@ -198,6 +198,49 @@
           path="/api/v1/me"
           description="Get information about the current API key."
         />
+
+        <!-- Social queue (moderator/admin keys only) -->
+        <DevelopersEndpointBlock
+          method="GET"
+          path="/api/v1/social/queue"
+          description="List the social queue for a platform with stats and resolved quote content. Requires a moderator or admin key with social:read."
+        >
+          <template #params>
+            <DevelopersParamRow name="platform" type="string" default-val="x" desc="x, bluesky, instagram, threads, facebook, pinterest" />
+            <DevelopersParamRow name="status" type="string" default-val="—" desc="queued, processing, posted, failed, or active" />
+            <DevelopersParamRow name="search" type="string" default-val="—" desc="Search by quote, author, reference, or source" />
+            <DevelopersParamRow name="page" type="integer" default-val="1" desc="Page number" />
+            <DevelopersParamRow name="limit" type="integer" default-val="20" desc="Items per page (max 100)" />
+          </template>
+        </DevelopersEndpointBlock>
+
+        <DevelopersEndpointBlock
+          method="POST"
+          path="/api/v1/social/queue"
+          description="Add approved quotes to the social queue for a platform. Requires a moderator or admin key with social:write."
+        >
+          <template #params>
+            <DevelopersParamRow name="quote_ids" type="array" required desc="Approved quote IDs to enqueue (max 200)" />
+            <DevelopersParamRow name="platform" type="string" default-val="x" desc="x, bluesky, instagram, threads, facebook, pinterest" />
+            <DevelopersParamRow name="scheduled_for" type="string" default-val="—" desc="Optional future publish time (ISO 8601)" />
+          </template>
+        </DevelopersEndpointBlock>
+
+        <DevelopersEndpointBlock
+          method="POST"
+          path="/api/v1/social/queue/run-now"
+          description="Immediately run the social autopost for a platform. Throttled to 1 call per minute. Requires a moderator or admin key with social:write."
+        >
+          <template #params>
+            <DevelopersParamRow name="platform" type="string" default-val="—" desc="Target platform, or all enabled platforms if omitted" />
+          </template>
+        </DevelopersEndpointBlock>
+
+        <DevelopersEndpointBlock
+          method="GET"
+          path="/api/v1/social/platforms"
+          description="List supported platforms with their enabled status and queue stats. Requires a moderator or admin key with social:read."
+        />
       </section>
 
       <!-- Example -->

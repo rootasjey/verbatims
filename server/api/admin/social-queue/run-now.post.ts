@@ -1,10 +1,10 @@
-import { runSocialAutopostWithOptions } from '../../../utils/social-autopost'
+import { runSocialAutopostNow } from '../../../utils/social-queue-api'
 import type { SocialPlatform } from '#shared/constants/social'
 import { isSocialPlatform, SOCIAL_PLATFORM_ERROR_MESSAGE } from '#shared/constants/social'
 import { resolveAppOrigin } from '../../../utils/app-origin'
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireModerator(event)
+  await requireModerator(event)
 
   const body = await readBody(event)
   const platform = body?.platform ? String(body.platform) : undefined
@@ -21,61 +21,10 @@ export default defineEventHandler(async (event) => {
   const requestBaseSiteUrl = resolveAppOrigin(event)
   const baseSiteUrl = configuredBaseSiteUrl || requestBaseSiteUrl
 
-  if (selectedPlatform === 'instagram' || selectedPlatform === 'threads' || selectedPlatform === 'pinterest' || selectedPlatform === 'facebook') {
-    const host = (() => {
-      try {
-        return new URL(baseSiteUrl).hostname.toLowerCase()
-      } catch {
-        return ''
-      }
-    })()
+  const result = await runSocialAutopostNow({ platform: selectedPlatform, baseSiteUrl })
 
-    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.local')
-    if (isLocalHost) {
-      const providerLabel = selectedPlatform === 'threads'
-        ? 'Threads'
-        : selectedPlatform === 'facebook'
-          ? 'Facebook'
-        : selectedPlatform === 'pinterest'
-          ? 'Pinterest'
-          : 'Instagram'
-
-      const providerRequirement = selectedPlatform === 'pinterest'
-        ? 'a public HTTPS quote URL in the pin link field'
-        : selectedPlatform === 'facebook'
-          ? 'a public image URL reachable by Facebook'
-        : 'a public JPEG URL'
-
-      return {
-        success: true,
-        data: {
-          success: false,
-          reason: `${providerLabel} requires ${providerRequirement}. Set NUXT_PUBLIC_SITE_URL to a public domain (not localhost) before using Run now.`
-        }
-      }
-    }
-  }
-
-  try {
-    const result = await runSocialAutopostWithOptions({ force: true, platform: selectedPlatform, baseSiteUrl })
-
-    return {
-      success: true,
-      data: result
-    }
-  } catch (error: any) {
-    console.error('[social-queue/run-now] failed', {
-      platform: selectedPlatform,
-      baseSiteUrl,
-      message: error?.message || error
-    })
-
-    return {
-      success: true,
-      data: {
-        success: false,
-        reason: error?.message || 'Unexpected error while running social autopost'
-      }
-    }
+  return {
+    success: true,
+    data: result
   }
 })

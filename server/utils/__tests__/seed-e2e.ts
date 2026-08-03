@@ -50,6 +50,10 @@ export async function seedTestDb() {
   const noPermKeyHash = hashKey(noPermKey)
   const themeKey = 'vbt_themekey0000000000000000000000000000000000'
   const themeKeyHash = hashKey(themeKey)
+  const socialReadKey = 'vbt_socialr0000000000000000000000000000000000'
+  const socialReadKeyHash = hashKey(socialReadKey)
+  const socialWriteKey = 'vbt_socialw0000000000000000000000000000000000'
+  const socialWriteKeyHash = hashKey(socialWriteKey)
   const adminPw = await hashPassword('admin123!')
 
   client.executeMultiple(`
@@ -58,6 +62,8 @@ export async function seedTestDb() {
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","write:authors","write:references","write:collections"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'No Perm Key', '${noPermKeyHash}', 'vbt_noperm', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Theme Key', '${themeKeyHash}', 'vbt_themek', '["admin:themes"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Read Key', '${socialReadKeyHash}', 'vbt_socialr', '["social:read"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Write Key', '${socialWriteKeyHash}', 'vbt_socialw', '["social:read","social:write"]', 1000, 3600, 1000, 3600, 1);
 
     INSERT INTO authors (id, name, is_fictional) VALUES (1, 'Marcus Aurelius', 0), (2, 'Albert Camus', 0), (3, 'Friedrich Nietzsche', 0);
     INSERT INTO quote_references (id, name, primary_type) VALUES (1, 'Meditations', 'book'), (2, 'The Stranger', 'book'), (3, 'Thus Spoke Zarathustra', 'book');
@@ -76,10 +82,11 @@ export async function seedTestDb() {
     INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (1, 1, 'quote', 1, 'bluesky', 'queued', 0);
     INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (2, 2, 'quote', 2, 'bluesky', 'queued', 1);
     INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (3, 3, 'quote', 3, 'bluesky', 'posted', 2);
+    INSERT INTO social_queue (id, quote_id, source_type, source_id, platform, status, position) VALUES (4, 4, 'quote', 4, 'x', 'failed', 0);
   `)
 
   client.close()
-  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey, themeKey }
+  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey, themeKey, socialReadKey, socialWriteKey }
 }
 
 if (process.argv[1] && process.argv[1].includes('seed-e2e')) {
