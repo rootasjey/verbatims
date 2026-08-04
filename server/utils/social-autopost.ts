@@ -193,6 +193,16 @@ const processQueueCandidate: SocialAutopostQueueProcessor<SocialPlatform, QueueC
     externalPostId: publishResult.postId,
     idempotencyKey: `${itemPlatform}:${nextItem.queueId}`,
     postedAt: new Date()
+  }).onConflictDoUpdate({
+    target: schema.socialPosts.idempotencyKey,
+    set: {
+      status: 'success',
+      postText: content,
+      postUrl: publishResult.postUrl || canonicalUrl,
+      externalPostId: publishResult.postId,
+      errorMessage: null,
+      postedAt: new Date()
+    }
   })
 
   await db.update(schema.socialQueue)
