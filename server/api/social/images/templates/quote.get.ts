@@ -1,7 +1,9 @@
-import { getRandomTagBorderColor } from '#shared/constants/tag'
+import { normalizeTagColor } from '#shared/constants/tag'
 
 type BgType = 'solid' | 'transparent' | 'author-image' | 'reference-image'
 type Theme = 'light' | 'dark'
+
+const MAX_TAG_DOTS = 8
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -16,7 +18,12 @@ export default defineEventHandler(async (event) => {
 
   const author = quote.authorName || 'Unknown author'
   const reference = quote.referenceName || ''
-  const rimColor = getRandomTagBorderColor(quote.tags)
+  const tagDotColors = (quote.tags ?? [])
+    .map(tag => normalizeTagColor(tag.color))
+    .slice(0, MAX_TAG_DOTS)
+  const tagDotsHtml = tagDotColors.length
+    ? `<div class="tag-dots">${tagDotColors.map(color => `<span class="tag-dot" style="background:${color}"></span>`).join('')}</div>`
+    : ''
 
   // Resolve background image URL with cascading fallback:
   // author-image → try author → try reference → solid
@@ -35,7 +42,6 @@ export default defineEventHandler(async (event) => {
   const bgColor = background === 'transparent' ? 'transparent' : isDark ? '#0C0A09' : '#F3F4F6'
   const textColor = isDark ? '#FFFFFF' : '#111827'
   const mutedColor = isDark ? '#D1D5DB' : '#374151'
-  const borderStyle = hasPhoto ? 'border: 0' : `border: 18px solid ${rimColor}`
 
   // Show author avatar only if author has an image AND it's not used as the background
   const showAuthorAvatar = !!quote.authorImageUrl && bgImageUrl !== quote.authorImageUrl
@@ -87,7 +93,6 @@ export default defineEventHandler(async (event) => {
         box-sizing: border-box;
         width: 1080px;
         height: 1080px;
-        ${borderStyle}
         border-radius: 36px;
         background: ${bgColor};
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
@@ -149,7 +154,6 @@ export default defineEventHandler(async (event) => {
         height: 120px;
         border-radius: 50%;
         overflow: hidden;
-        border: 4px solid ${rimColor};
         margin-bottom: 20px;
       }
 
@@ -173,6 +177,21 @@ export default defineEventHandler(async (event) => {
         color: ${mutedColor};
         font-family: 'Poetsen One', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
       }
+
+      .tag-dots {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .tag-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+      }
     </style>
   </head>
   <body>
@@ -184,6 +203,7 @@ export default defineEventHandler(async (event) => {
           ${authorImageHtml}
           <div class="author">${escapeHtml(author)}</div>
           ${reference ? `<div class="reference">${escapeHtml(reference)}</div>` : ''}
+          ${tagDotsHtml}
         </div>
       </div>
     </div>
