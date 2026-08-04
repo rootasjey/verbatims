@@ -5,7 +5,6 @@
     :class="[
       'relative select-none overflow-hidden rounded-[36px] shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
       'flex flex-col items-center justify-between',
-      borderClass,
       themeClasses.container,
     ]"
   >
@@ -32,7 +31,7 @@
 
       <!-- Author and Reference -->
       <div class="mt-[56px] flex flex-col items-center">
-        <div v-if="authorImage && props.background !== 'author-image'" class="w-[120px] h-[120px] rounded-full overflow-hidden border-4" :class="themeClasses.avatarBorder" :style="{ borderColor: accentColor }">
+        <div v-if="authorImage && props.background !== 'author-image'" class="w-[120px] h-[120px] rounded-full overflow-hidden" :class="themeClasses.avatarBorder">
           <img
             :src="authorImage"
             :alt="String($t('components.dialogs.author_label'))"
@@ -50,6 +49,15 @@
             style="font-family: 'Poetsen One', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;">
             {{ referenceName }}
           </div>
+
+          <div v-if="tagColors.length" class="mt-5 flex items-center justify-center gap-3">
+            <span
+              v-for="(color, index) in tagColors"
+              :key="index"
+              class="w-3.5 h-3.5 rounded-full"
+              :style="{ backgroundColor: color }"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -58,9 +66,11 @@
 </template>
 
 <script setup lang="ts">
-import { getRandomTagBorderColor } from '~~/shared/constants/tag'
+import { normalizeTagColor } from '~~/shared/constants/tag'
 
 const { $t } = useI18n()
+
+const MAX_TAG_DOTS = 8
 
 interface Props {
   quote: QuoteWithRelations
@@ -79,7 +89,12 @@ const authorName = computed(() => props.quote.author?.name || 'Unknown')
 const referenceName = computed(() => props.quote.reference?.name || '')
 const authorImage = computed(() => props.quote.author?.image_url || '')
 const authorInitial = computed(() => authorName.value.charAt(0).toUpperCase())
-const accentColor = computed(() => getRandomTagBorderColor(props.quote.tags))
+
+const tagColors = computed(() =>
+  (props.quote.tags ?? [])
+    .map(tag => normalizeTagColor(tag?.color))
+    .slice(0, MAX_TAG_DOTS)
+)
 
 const isPhotoBackground = computed(() =>
   props.background === 'author-image' || props.background === 'reference-image'
@@ -91,19 +106,10 @@ const bgImageUrl = computed(() => {
   return ''
 })
 
-const borderClass = computed(() =>
-  isPhotoBackground.value ? 'border-0' : 'border-[18px]'
-)
-
 const containerStyle = computed(() => {
   const style: Record<string, string> = {
     width: `${props.size.width}px`,
     height: `${props.size.height}px`,
-  }
-  if (isPhotoBackground.value) {
-    style.borderColor = 'transparent'
-  } else {
-    style.borderColor = accentColor.value
   }
   return style
 })
