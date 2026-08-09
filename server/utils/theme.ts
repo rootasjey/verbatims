@@ -274,6 +274,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
           authorId: schema.quotes.authorId,
           referenceId: schema.quotes.referenceId,
           authorName: schema.authors.name,
+          authorImageUrl: schema.authors.imageUrl,
           referenceName: schema.quoteReferences.name,
         })
           .from(schema.quotes)
@@ -318,7 +319,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       created_at: row.createdAt,
       views_count: row.viewsCount || 0, likes_count: row.likesCount || 0,
       updated_at: row.updatedAt,
-      author: row.authorId ? { id: row.authorId, name: row.authorName } : undefined,
+      author: row.authorId ? { id: row.authorId, name: row.authorName, image_url: row.authorImageUrl } : undefined,
       reference: row.referenceId ? { id: row.referenceId, name: row.referenceName } : undefined,
     }))
 
