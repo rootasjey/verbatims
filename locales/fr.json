@@ -679,7 +679,7 @@
       "save": "Enregistrer",
       "delete": "Supprimer",
       "create": "Créer",
-      "update": "Modifier",
+      "update": "Mettre à jour",
       "close": "Fermer",
       "submit": "Soumettre",
       "name": "Nom *",
@@ -836,7 +836,6 @@
       "cannot_change_own_role": "Vous ne pouvez pas modifier votre propre rôle.",
       "cannot_deactivate_own": "Vous ne pouvez pas désactiver votre propre compte.",
       "email_verified": "Email vérifié",
-      "update": "Mettre à jour",
       "delete_permanent": "Cette action est permanente.",
       "delete_related_quotes": "{count, plural, one {citation} other {citations}} associées",
       "delete_related_radiobox_delete": "Supprimer les citations associées",
@@ -961,5 +960,21 @@
     "toast_bulk_download_failed": "{count} échec",
     "toast_bulk_delete_failed_title": "Échec de la suppression groupée",
     "toast_bulk_delete_failed_fallback": "Veuillez réessayer."
+  },
+  "edit_links": {
+    "title_author": "Modifier les liens de l’auteur",
+    "title_reference": "Modifier les liens de la référence",
+    "hint": "Gérez les liens externes. Choisissez une plateforme connue ou saisissez une clé personnalisée.",
+    "platform_placeholder": "Plateforme",
+    "url_placeholder": "https://…",
+    "add": "Ajouter un lien",
+    "remove": "Retirer le lien",
+    "empty": "Aucun lien pour le moment — ajoutez-en un ci-dessous.",
+    "save_success_author": "Liens de l’auteur mis à jour",
+    "save_success_reference": "Liens de la référence mis à jour",
+    "save_error_author": "Échec de la mise à jour des liens de l’auteur",
+    "save_error_reference": "Échec de la mise à jour des liens de la référence",
+    "platform_label": "Plateforme",
+    "url_label": "URL"
   }
 }

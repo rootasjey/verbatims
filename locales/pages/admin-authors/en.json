@@ -52,5 +52,7 @@
   "toast_apply_failed": "Apply failed",
   "toast_bulk_deleted": "Deleted {n} author{s}",
   "toast_bulk_deleted_failed": "failed",
-  "toast_bulk_delete_failed": "Bulk delete failed"
+  "toast_bulk_delete_failed": "Bulk delete failed",
+  "dropdown_edit_links": "Edit links",
+  "action_edit_links": "Edit links"
 }

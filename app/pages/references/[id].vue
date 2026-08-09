@@ -116,6 +116,15 @@
             </div>
 
             <ExternalLinksBadges :links="reference.urls" />
+            <button
+              v-if="canEditReference"
+              type="button"
+              class="mt-4 inline-flex items-center gap-1.5 font-sans text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              @click="openEditLinks"
+            >
+              <NIcon name="i-ph-link-simple" class="w-3.5 h-3.5" />
+              {{ $ts('reference_detail_edit_links') }}
+            </button>
           </div>
         </div>
 
@@ -242,6 +251,17 @@
           urls: reference.urls ? JSON.stringify(reference.urls) : '',
         }"
         @reference-updated="onReferenceUpdated"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <EditLinksDialog
+        v-if="reference"
+        v-model="showEditLinksDialog"
+        entity-type="reference"
+        :entity-id="reference.id"
+        :links="reference.urls"
+        @saved="onLinksSaved"
       />
     </ClientOnly>
 
@@ -495,6 +515,7 @@ const canEditReference = computed(() => {
 
 const isEditDialogOpen = ref(false)
 const isEditImageDialogOpen = ref(false)
+const showEditLinksDialog = ref(false)
 const openEditImageDialog = () => {
   if (!reference.value) return
   isEditImageDialogOpen.value = true
@@ -509,6 +530,10 @@ const onImageUpdated = (imageUrl: string | null) => {
 const openEditReference = () => {
   if (!reference.value) return
   isEditDialogOpen.value = true
+}
+
+const openEditLinks = () => {
+  showEditLinksDialog.value = true
 }
 
 const isDeleteDialogOpen = ref(false)
@@ -527,6 +552,17 @@ const onReferenceUpdated = async () => {
     referenceData.value = refreshed
   } catch (error) {
     console.error('Failed to refresh reference after update:', error)
+  }
+}
+
+const onLinksSaved = async () => {
+  try {
+    const refreshed = await ofetch<ReferenceApiResponse>(`/api/references/${route.params.id}`)
+    referenceData.value = refreshed
+  } catch (error) {
+    console.error('Failed to refresh reference after links update:', error)
+  } finally {
+    showEditLinksDialog.value = false
   }
 }
 

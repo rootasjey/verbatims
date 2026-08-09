@@ -104,6 +104,7 @@
           </div>
           <div class="mt-3 flex justify-end gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3">
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentReferenceTarget?.id === reference.id" @click="openEnrichmentPreview(reference)">{{ $t('action_enrich') }}</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editReferenceLinks(reference)">{{ $t('action_edit_links') }}</button>
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editReference(reference)">{{ $t('action_edit') }}</button>
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewReference(reference)">{{ $t('action_view') }}</button>
           </div>
@@ -249,6 +250,9 @@
       <AddReferenceDialog v-model="showAddReferenceDialog" :edit-reference="convertToQuoteReference(selectedReference)" @reference-added="onReferenceAdded" @reference-updated="onReferenceUpdated" />
     </ClientOnly>
     <ClientOnly>
+      <EditLinksDialog v-model="showEditLinksDialog" entity-type="reference" :entity-id="linksTargetReference?.id" :links="linksTargetReference?.urls" @saved="onLinksSaved" />
+    </ClientOnly>
+    <ClientOnly>
       <DeleteReferenceDialog v-model="showDeleteReferenceDialog" :reference="referenceToDelete!" @reference-deleted="onReferenceDeleted" />
     </ClientOnly>
     <ClientOnly>
@@ -308,6 +312,8 @@ const selectedSort = ref({ label: $t('sort_name_az') as string, value: 'name_asc
 const isCardView = ref(false)
 const showAddReferenceDialog = ref(false)
 const selectedReference = ref<QuoteReferenceWithMetadata | undefined>()
+const showEditLinksDialog = ref(false)
+const linksTargetReference = ref<QuoteReferenceWithMetadata | null>(null)
 const showDeleteReferenceDialog = ref(false)
 const referenceToDelete = ref<QuoteReferenceWithMetadata | null>(null)
 const showMergeDialog = ref(false)
@@ -356,7 +362,7 @@ const toggleAllSelection = (v: boolean | 'indeterminate') => {
 const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value = {}; else visibleIds.value.forEach(id => (rowSelection.value[id] = true)) }
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
-const isAnyDialogOpen = computed(() => showAddReferenceDialog.value || showDeleteReferenceDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value || showMergeDialog.value)
+const isAnyDialogOpen = computed(() => showAddReferenceDialog.value || showEditLinksDialog.value || showDeleteReferenceDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value || showMergeDialog.value)
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
   visibleRowCount: () => filteredReferences.value.length,
@@ -462,6 +468,7 @@ const resetFilters = () => {
 
 const getReferenceActions = (reference: QuoteReferenceWithMetadata) => [
   { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editReference(reference) },
+  { label: $t('dropdown_edit_links') as string, leading: 'i-ph-link', onclick: () => editReferenceLinks(reference) },
   { label: $t('dropdown_enrich') as string, leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(reference) },
   ...(hasPendingEnrichment(reference) ? [{ label: $t('dropdown_enrich_queue') as string, leading: 'i-ph-bell-ringing', onclick: () => goToReferenceEnrichmentQueue(reference) }] : []),
   { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewReference(reference) },
@@ -473,6 +480,10 @@ const viewReference = (reference: QuoteReferenceWithMetadata) => navigateTo(`/re
 const hasPendingEnrichment = (reference: QuoteReferenceWithMetadata) => Number(reference.enrichment_pending_count || 0) > 0
 const goToReferenceEnrichmentQueue = (reference: QuoteReferenceWithMetadata) => navigateTo({ path: '/admin/enrichment', query: { entityType: 'reference', entityId: String(reference.id), status: 'completed' } })
 const openAddReferenceDialog = () => { selectedReference.value = undefined; showAddReferenceDialog.value = true }
+
+const editReferenceLinks = (reference: QuoteReferenceWithMetadata) => { linksTargetReference.value = reference; showEditLinksDialog.value = true }
+
+const onLinksSaved = () => { showEditLinksDialog.value = false; linksTargetReference.value = null; loadReferences() }
 
 const editReference = (reference: QuoteReferenceWithMetadata) => { selectedReference.value = reference; showAddReferenceDialog.value = true }
 const deleteReference = async (reference: QuoteReferenceWithMetadata) => { referenceToDelete.value = reference; showDeleteReferenceDialog.value = true }

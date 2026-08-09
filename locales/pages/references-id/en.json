@@ -24,5 +24,6 @@
   "reference_detail_toast_shared": "Reference shared successfully!",
   "reference_detail_toast_link_copied": "Reference link copied to clipboard!",
   "reference_detail_toast_share_failed": "Failed to share",
-  "reference_detail_toast_copy_failed": "Copy failed"
+  "reference_detail_toast_copy_failed": "Copy failed",
+  "reference_detail_edit_links": "Edit links"
 }
