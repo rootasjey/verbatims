@@ -133,6 +133,7 @@
           </div>
           <div class="mt-3 flex justify-end gap-2 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3">
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" :disabled="enrichmentLoading && enrichmentAuthorTarget?.id === author.id" @click="openEnrichmentPreview(author)">{{ $t('action_enrich') }}</button>
+            <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editAuthorLinks(author)">{{ $t('action_edit_links') }}</button>
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="editAuthor(author)">{{ $t('action_edit') }}</button>
             <button class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" @click="viewAuthor(author)">{{ $t('action_view') }}</button>
           </div>
@@ -279,6 +280,9 @@
       <AddAuthorDialog v-model="showAddAuthorDialog" :edit-author="selectedAuthor" @author-added="onAuthorAdded" @author-updated="onAuthorUpdated" />
     </ClientOnly>
     <ClientOnly>
+      <EditLinksDialog v-model="showEditLinksDialog" entity-type="author" :entity-id="linksTargetAuthor?.id" :links="linksTargetAuthor?.socials" @saved="onLinksSaved" />
+    </ClientOnly>
+    <ClientOnly>
       <DeleteAuthorDialog v-model="showDeleteAuthorDialog" :author="authorToDelete" @author-deleted="onAuthorDeleted" />
     </ClientOnly>
     <ClientOnly>
@@ -350,6 +354,8 @@ const selectedSort = ref({ label: $t('sort_name_az') as string, value: 'name_asc
 const isCardView = ref(false)
 const showAddAuthorDialog = ref(false)
 const selectedAuthor = ref<Author | undefined>()
+const showEditLinksDialog = ref(false)
+const linksTargetAuthor = ref<Author | null>(null)
 const showDeleteAuthorDialog = ref(false)
 const authorToDelete = ref<Author | null>(null)
 const showMergeDialog = ref(false)
@@ -413,7 +419,7 @@ const selectAllOnPage = () => { if (allSelectedOnPage.value) rowSelection.value 
 const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
 
 const isAnyDialogOpen = computed(() =>
-  showAddAuthorDialog.value || showDeleteAuthorDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value || showMergeDialog.value
+  showAddAuthorDialog.value || showEditLinksDialog.value || showDeleteAuthorDialog.value || showEnrichmentDialog.value || showEnrichmentConfigDialog.value || showBulkDeleteDialog.value || showMergeDialog.value
 )
 
 const { highlightedRowIndex, clearHighlight } = useTableKeyboardNav({
@@ -530,6 +536,7 @@ const resetFilters = () => {
 
 const getAuthorActions = (author: Author) => [
   { label: $t('dropdown_edit') as string, leading: 'i-ph-pencil', onclick: () => editAuthor(author) },
+  { label: $t('dropdown_edit_links') as string, leading: 'i-ph-link', onclick: () => editAuthorLinks(author) },
   { label: $t('dropdown_enrich') as string, leading: 'i-ph-magic-wand', onclick: () => openEnrichmentPreview(author) },
   ...(hasPendingEnrichment(author) ? [{ label: $t('dropdown_enrich_queue') as string, leading: 'i-ph-bell-ringing', onclick: () => goToAuthorEnrichmentQueue(author) }] : []),
   { label: $t('dropdown_view_public') as string, leading: 'i-ph-eye', onclick: () => viewAuthor(author) },
@@ -542,6 +549,10 @@ const hasPendingEnrichment = (author: Author) => Number(author.enrichment_pendin
 const goToAuthorEnrichmentQueue = (author: Author) => navigateTo({ path: '/admin/enrichment', query: { entityType: 'author', entityId: String(author.id), status: 'completed' } })
 
 const openAddAuthorDialog = () => { selectedAuthor.value = undefined; showAddAuthorDialog.value = true }
+
+const editAuthorLinks = (author: Author) => { linksTargetAuthor.value = author; showEditLinksDialog.value = true }
+
+const onLinksSaved = () => { showEditLinksDialog.value = false; linksTargetAuthor.value = null; loadAuthors() }
 
 const editAuthor = async (author: Author) => {
   selectedAuthor.value = author; showAddAuthorDialog.value = true

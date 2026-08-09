@@ -46,5 +46,7 @@
   "toast_save_failed": "Échec de l'enregistrement",
   "toast_apply_failed": "Échec de l'application",
   "toast_bulk_deleted": "{n} référence{s} supprimée{s}",
-  "toast_bulk_delete_failed": "Échec de la suppression groupée"
+  "toast_bulk_delete_failed": "Échec de la suppression groupée",
+  "dropdown_edit_links": "Modifier les liens",
+  "action_edit_links": "Modifier les liens"
 }

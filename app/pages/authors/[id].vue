@@ -37,8 +37,7 @@
         <!-- Content column -->
         <div class="lg:col-span-9 lg:border-r b-dashed border-gray-300 dark:border-gray-700 p-6 md:p-8 md:pr-12 lg:pr-16">
           <div class="flex items-center gap-3 mb-4">
-            <div class="rounded-full flex ring-2 p-0.5 cursor-pointer shrink-0"
-              :class="author.is_fictional ? 'ring-purple-500/60' : 'ring-blue-500/60'"
+            <div class="rounded-full flex p-0.5 cursor-pointer shrink-0"
               @click="openAvatarPreview"
             >
               <NAvatar
@@ -52,8 +51,19 @@
               />
             </div>
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full" :class="author.is_fictional ? 'bg-purple-500' : 'bg-blue-500'" />
-              <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">{{ $ts('author_detail_label') }}</span>
+              <NLink
+                to="/authors/"
+                class="font-sans text-xs font-600 uppercase
+                  tracking-[0.2em] text-gray-400 dark:text-gray-600
+                  underline decoration-solid decoration-2 decoration-offset-6
+                  transition-[colors] duration-300 ease-in-out"
+                :class="{
+                   'decoration-purple-500 hover:text-purple-500': author.is_fictional,
+                   'decoration-blue-500 hover:text-blue-500': !author.is_fictional,
+                }"
+              >
+                {{ $ts('author_detail_label') }}
+              </NLink>
               <template v-if="author.job">
                 <span class="text-gray-300 dark:text-gray-600">·</span>
                 <span class="font-sans text-sm text-gray-400 dark:text-gray-400">{{ author.job }}</span>
@@ -98,6 +108,15 @@
             :style="enterAnim(3)"
           >
             <ExternalLinksBadges :links="author.socials" />
+            <button
+              v-if="canEditAuthorLinks"
+              type="button"
+              class="mt-4 inline-flex items-center gap-1.5 font-sans text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              @click="openEditLinks"
+            >
+              <NIcon name="i-ph-link-simple" class="w-3.5 h-3.5" />
+              {{ $ts('author_detail_edit_links') }}
+            </button>
           </div>
         </div>
 
@@ -214,6 +233,17 @@
         v-model="showEditAuthorDialog"
         :editAuthor="authorAsEditAuthor"
         @author-updated="onAuthorUpdated"
+      />
+    </ClientOnly>
+
+    <ClientOnly>
+      <EditLinksDialog
+        v-if="author"
+        v-model="showEditLinksDialog"
+        entity-type="author"
+        :entity-id="author.id"
+        :links="author.socials"
+        @saved="onLinksSaved"
       />
     </ClientOnly>
 
@@ -374,6 +404,7 @@ const sharePending = ref(false)
 const copyState = ref<'idle' | 'copying' | 'copied'>('idle')
 const showEditAuthorDialog = ref(false)
 const showDeleteAuthorDialog = ref(false)
+const showEditLinksDialog = ref(false)
 const similarAuthors = ref<any[]>([])
 
 // Avatar preview state (opened when clicking the avatar)
@@ -421,6 +452,12 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
       if (isAdminMod) {
         e.preventDefault()
         showEditAuthorDialog.value = true
+      }
+      break
+    case 'k':
+      if (isAdminMod) {
+        e.preventDefault()
+        openEditLinks()
       }
       break
     case 'l':
@@ -548,6 +585,26 @@ const onAuthorUpdated = async () => {
     console.error('Failed to refresh author after update:', error)
   } finally {
     showEditAuthorDialog.value = false
+  }
+}
+
+const canEditAuthorLinks = computed(() => {
+  const role = user.value?.role
+  return role === 'admin' || role === 'moderator'
+})
+
+const openEditLinks = () => {
+  showEditLinksDialog.value = true
+}
+
+const onLinksSaved = async () => {
+  try {
+    const fresh = await $fetch<ApiResponse<AuthorWithSocials>>(`/api/authors/${route.params.id}`)
+    authorData.value = fresh
+  } catch (error) {
+    console.error('Failed to refresh author after links update:', error)
+  } finally {
+    showEditLinksDialog.value = false
   }
 }
 

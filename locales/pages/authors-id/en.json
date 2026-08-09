@@ -22,5 +22,6 @@
   "author_detail_toast_shared": "Author shared successfully!",
   "author_detail_toast_link_copied": "Author link copied to clipboard!",
   "author_detail_toast_share_failed": "Failed to share",
-  "author_detail_toast_copy_failed": "Copy failed"
+  "author_detail_toast_copy_failed": "Copy failed",
+  "author_detail_edit_links": "Edit links"
 }

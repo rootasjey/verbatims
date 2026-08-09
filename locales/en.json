@@ -802,7 +802,6 @@
       "cannot_change_own_role": "You cannot change your own role.",
       "cannot_deactivate_own": "You cannot deactivate your own account.",
       "email_verified": "Email Verified",
-      "update": "Update",
       "delete_permanent": "This action is permanent.",
       "delete_related_quotes": "related {count, plural, one {quote} other {quotes}}",
       "delete_related_radiobox_delete": "Delete related quotes",
@@ -1070,5 +1069,21 @@
     "category_general": "General",
     "category_theme": "Theme",
     "category_topic": "Topic"
+  },
+  "edit_links": {
+    "title_author": "Edit author links",
+    "title_reference": "Edit reference links",
+    "hint": "Manage external links. Pick a known platform or type a custom key.",
+    "platform_placeholder": "Platform",
+    "url_placeholder": "https://…",
+    "add": "Add link",
+    "remove": "Remove link",
+    "empty": "No links yet — add one below.",
+    "save_success_author": "Author links updated",
+    "save_success_reference": "Reference links updated",
+    "save_error_author": "Failed to update author links",
+    "save_error_reference": "Failed to update reference links",
+    "platform_label": "Platform",
+    "url_label": "URL"
   }
 }
