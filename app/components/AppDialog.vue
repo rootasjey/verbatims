@@ -1,5 +1,10 @@
 <template>
-  <NDialog v-model:open="isOpen" :una="unaConfig" :show-close="false">
+  <NDialog
+    v-model:open="isOpen"
+    :una="unaConfig"
+    :show-close="false"
+    :_dialog-content="dialogContentProps"
+  >
     <template #header>
       <div class="flex justify-between items-start mb-1 pb-2 border-b b-dashed border-gray-200">
         <slot name="header-title"></slot>
@@ -116,6 +121,26 @@ function close() {
   emit('close')
   isOpen.value = false
 }
+
+// reka-ui auto-focuses the first tabbable element (the close button) when a
+// dialog opens. That focuses the X button and activates its tooltip, whose
+// dismissable layer swallows the first Escape (needing two presses to close).
+// Intercept the open auto-focus and move focus to the content / first field.
+function handleOpenAutoFocus(event: Event) {
+  event.preventDefault()
+  nextTick(() => {
+    const dialogEl = dialogContentRef.value?.closest<HTMLElement>('[role="dialog"]')
+    if (!dialogEl) return
+    const target = dialogEl.querySelector<HTMLElement>('[autofocus]')
+      || dialogEl.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, select')
+      || dialogEl
+    target?.focus({ preventScroll: true })
+  })
+}
+
+// `NDialogContentProps` doesn't type the reka-ui `openAutoFocus` handler, but
+// UnaUI's DialogContent forwards extra attributes ($attrs) to reka-ui at runtime.
+const dialogContentProps = { onOpenAutoFocus: handleOpenAutoFocus } as any
 
 function applyDialogColor() {
   const el = dialogContentRef.value?.closest<HTMLElement>('[role="dialog"]')
