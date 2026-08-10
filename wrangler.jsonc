@@ -30,6 +30,11 @@
       "48 */4 * * *"
     ]
   },
+  "send_email": [
+    {
+      "name": "EMAIL"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "BLOB",

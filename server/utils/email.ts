@@ -1,14 +1,28 @@
-import { Resend } from 'resend'
-import { resolveAppOrigin } from './app-origin'
 import type { H3Event } from 'h3'
+import { resolveAppOrigin } from './app-origin'
 
-function getResendClient(): Resend {
-  const config = useRuntimeConfig()
-  const apiKey = config.resendApiKey
-  if (!apiKey) {
-    throwServer(500, 'Email service not configured')
-  }
-  return new Resend(apiKey)
+interface EmailAddress {
+  email: string
+  name?: string
+}
+
+interface EmailSendPayload {
+  from: string | EmailAddress
+  to: string
+  subject: string
+  text?: string
+  html?: string
+}
+
+interface EmailSendBinding {
+  send(payload: EmailSendPayload): Promise<{ messageId: string }>
+}
+
+function getEmailBinding(): EmailSendBinding | undefined {
+  const binding = (process.env as Record<string, unknown>).EMAIL
+    || (globalThis as any).__env__?.EMAIL
+    || (globalThis as any).EMAIL
+  return binding as EmailSendBinding | undefined
 }
 
 function getFromAddress(): string {
@@ -16,13 +30,45 @@ function getFromAddress(): string {
   return config.emailFromAddress || 'Verbatims <noreply@verbatims.cc>'
 }
 
+function parseFromAddress(full: string): string | EmailAddress {
+  const match = full.match(/^(.*?)\s*<([^>]+)>$/)
+  const name = match?.[1]
+  const email = match?.[2]
+  if (name !== undefined && email !== undefined) {
+    return { name: name.trim(), email: email.trim() }
+  }
+  return full.trim()
+}
+
+async function sendEmail(event: H3Event, payload: Omit<EmailSendPayload, 'from'>): Promise<void> {
+  const from = parseFromAddress(getFromAddress())
+  const binding = getEmailBinding()
+
+  // Dev fallback: no EMAIL binding under `nuxt dev`, so log instead of sending.
+  if (!binding) {
+    if (import.meta.dev) {
+      const body = payload.html
+        ? payload.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+        : payload.text || ''
+      console.log('\n📧 [DEV] Email to %s\nFrom: %s\nSubject: %s\nBody: %s\n', payload.to, typeof from === 'string' ? from : `${from.name || ''} <${from.email}>`, payload.subject, body)
+      return
+    }
+    throwServer(500, 'Email service not configured')
+  }
+
+  try {
+    await binding.send({ from, ...payload })
+  } catch (error) {
+    console.error('Failed to send email:', error)
+    throwServer(500, 'Failed to send email')
+  }
+}
+
 export async function sendPasswordResetEmail(event: H3Event, toEmail: string, token: string): Promise<void> {
   const origin = resolveAppOrigin(event)
   const resetUrl = `${origin}/reset-password?token=${token}`
 
-  const resend = getResendClient()
-  const { error } = await resend.emails.send({
-    from: getFromAddress(),
+  await sendEmail(event, {
     to: toEmail,
     subject: 'Reset your Verbatims password',
     html: `
@@ -46,20 +92,13 @@ export async function sendPasswordResetEmail(event: H3Event, toEmail: string, to
     `,
     text: `Reset your Verbatims password.\n\nClick the link below to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
   })
-
-  if (error) {
-    console.error('Failed to send password reset email:', error)
-    throwServer(500, 'Failed to send password reset email')
-  }
 }
 
 export async function sendVerificationEmail(event: H3Event, toEmail: string, token: string): Promise<void> {
   const origin = resolveAppOrigin(event)
   const verifyUrl = `${origin}/verify-email?token=${token}`
 
-  const resend = getResendClient()
-  const { error } = await resend.emails.send({
-    from: getFromAddress(),
+  await sendEmail(event, {
     to: toEmail,
     subject: 'Verify your Verbatims email',
     html: `
@@ -82,11 +121,6 @@ export async function sendVerificationEmail(event: H3Event, toEmail: string, tok
     `,
     text: `Verify your Verbatims email.\n\nClick the link below to verify your email address:\n${verifyUrl}\n\nThis link expires in 24 hours. If you didn't create an account, you can safely ignore this email.`,
   })
-
-  if (error) {
-    console.error('Failed to send verification email:', error)
-    throwServer(500, 'Failed to send verification email')
-  }
 }
 
 export async function sendSponsorStatusEmail(
@@ -131,12 +165,11 @@ export async function sendSponsorStatusEmail(
       : `Your sponsored message is now live and visible on Verbatims.\n\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
     : `Your sponsored message was reviewed and not approved.\n${reason ? `Reason: ${reason}\n` : ''}\n"${messageText}"\n\nView in dashboard: ${dashboardUrl}`
 
-  const resend = getResendClient()
-  const { error } = await resend.emails.send({
-    from: getFromAddress(),
-    to: toEmail,
-    subject,
-    html: `
+  try {
+    await sendEmail(event, {
+      to: toEmail,
+      subject,
+      html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
         <h2 style="color: #111827; margin-bottom: 16px;">${subject}</h2>
         ${bodyHtml}
@@ -147,10 +180,9 @@ export async function sendSponsorStatusEmail(
         <p style="color: #9CA3AF; font-size: 12px;">Verbatims &mdash; Modern Quotes Service</p>
       </div>
     `,
-    text: textBody,
-  })
-
-  if (error) {
+      text: textBody,
+    })
+  } catch (error) {
     console.error('Failed to send sponsor status email:', error)
   }
 }
