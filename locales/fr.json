@@ -863,7 +863,8 @@
         "warning_high": "Valeur trop élevée. Vous serez redirigé•e vers la page {page}.",
         "fix_tooltip": "Corriger le nombre",
         "placeholder": "1 – {n}"
-      }
+      },
+      "report_prefer_email": "Vous préférez un email ?"
     }
   },
   "export_create": {

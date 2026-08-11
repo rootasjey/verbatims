@@ -68,6 +68,11 @@
           <NBadge size="xs" badge="soft-gray" rounded="1" class="py-0.5 text-sm">{{ $t('components.dialogs.report_tags') }}</NBadge>
         </template>
       </NInput>
+
+      <p v-if="form.category?.value === 'feedback'" class="text-xs text-gray-500 dark:text-gray-400">
+        {{ $t('components.dialogs.report_prefer_email') }}
+        <a :href="`mailto:${supportEmail}`" class="underline decoration-dotted underline-offset-2 hover:text-gray-700 dark:hover:text-gray-300">{{ supportEmail }}</a>
+      </p>
     </form>
 
     <template #submit>
@@ -107,6 +112,8 @@ const isOpen = computed({
 const { $t } = useI18n()
 const { toast } = useToast()
 const { showErrorToast } = useErrorToast()
+
+const supportEmail = 'support@verbatims.cc'
 
 const {
   categories,

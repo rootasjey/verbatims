@@ -829,7 +829,8 @@
         "warning_high": "Value exceeds the maximum. You will be redirected to page {page}.",
         "fix_tooltip": "Fix the number",
         "placeholder": "1 – {n}"
-      }
+      },
+      "report_prefer_email": "Prefer email?"
     }
   },
   "import_progress": {

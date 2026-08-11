@@ -234,6 +234,14 @@
             class="mt-6 decoration-none"
           />
         </div>
+        <div class="mt-8">
+          <a
+            :href="`mailto:${aboutContactEmail}`"
+            class="font-body text-xl font-200 text-gray-700 dark:text-gray-300 hover:opacity-80 underline decoration-dotted underline-offset-4"
+          >
+            {{ aboutContactEmail }}
+          </a>
+        </div>
         <p class="font-body font-medium text-gray-700 dark:text-gray-300 mt-8">{{ $t('about_contact_tagline') }}</p>
       </section>
     </div>
@@ -264,6 +272,8 @@
 
 <script setup lang="ts">
 const { $t, $ts } = useI18n()
+
+const aboutContactEmail = 'support@verbatims.cc'
 
 const config = useRuntimeConfig()
 const version = config.public.appVersion

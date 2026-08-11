@@ -68,5 +68,7 @@
   "privacy_s12_li1_link": "Ouvrir un ticket GitHub",
   "privacy_s12_li1_url": "https://github.com/rootasjey/verbatims/issues",
   "privacy_s12_li2": "Formulaire de feedback : utilisez le formulaire dans l'en-tête de l'application",
-  "privacy_s12_li3": "Adresse : Yvelines, France"
+  "privacy_s12_li3": "Adresse : Yvelines, France",
+  "privacy_s12_email_label": "Email :",
+  "privacy_s12_email": "support@verbatims.cc"
 }

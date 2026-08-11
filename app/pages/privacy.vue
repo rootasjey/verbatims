@@ -110,6 +110,7 @@
       <p>{{ $t('privacy_s12_p1') }}</p>
       <ul>
         <li>{{ $t('privacy_s12_li1_label') }} <a :href="$ts('privacy_s12_li1_url')" target="_blank">{{ $t('privacy_s12_li1_link') }}</a></li>
+        <li><strong>{{ $t('privacy_s12_email_label') }}</strong> <a :href="'mailto:' + $ts('privacy_s12_email')">{{ $ts('privacy_s12_email') }}</a></li>
         <li>{{ $t('privacy_s12_li2') }}</li>
         <li>{{ $t('privacy_s12_li3') }}</li>
       </ul>
