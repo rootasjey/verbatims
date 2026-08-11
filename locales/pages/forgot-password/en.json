@@ -13,5 +13,6 @@
   "mobile_prompt": "Remember your password?",
   "mobile_sign_in": "Sign in",
   "error_required": "Please enter your email",
-  "error_generic": "Something went wrong. Please try again."
+  "error_generic": "Something went wrong. Please try again.",
+  "email_label": "Email address"
 }

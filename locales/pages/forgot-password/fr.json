@@ -13,5 +13,6 @@
   "mobile_prompt": "Vous vous souvenez de votre mot de passe ?",
   "mobile_sign_in": "Se connecter",
   "error_required": "Veuillez saisir votre email",
-  "error_generic": "Une erreur est survenue. Veuillez réessayer."
+  "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+  "email_label": "Adresse email"
 }
