@@ -235,7 +235,7 @@
                 Jérémie CORPINOT<br />
                 Place d'Armes, 78000 Versailles<br />
                 Yvelines, France<br />
-                <a href="mailto:help@verbatims.cc">help@verbatims.cc</a>.
+                <a href="mailto:support@verbatims.cc">support@verbatims.cc</a>.
               </address>
             </template>
           </div>
