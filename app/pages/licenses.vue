@@ -34,7 +34,7 @@
         up-to-date list of direct dependencies is available in <code>package.json</code>.
       </p>
       <ul>
-        <li>Nuxt 3 (application framework and SSR)</li>
+        <li>Nuxt 4 (application framework and SSR)</li>
         <li>Vue 3 and Vue Router</li>
         <li>Pinia (state management)</li>
         <li>Nuxt Image</li>
@@ -107,7 +107,7 @@
       <h2>Questions or requests</h2>
       <p>
         If you're a rights holder or maintainer and want an adjustment to attribution, please reach out:
-        <a href="mailto:help@verbatims.cc">help@verbatims.cc</a>.
+        <a href="mailto:support@verbatims.cc">support@verbatims.cc</a>.
       </p>
     </section>
   </main>

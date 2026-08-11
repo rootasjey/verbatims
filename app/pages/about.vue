@@ -192,6 +192,8 @@
             <li>{{ $t('about_tech_3') }}</li>
             <li>{{ $t('about_tech_4') }}</li>
             <li>{{ $t('about_tech_5') }}</li>
+            <li>{{ $t('about_tech_6') }}</li>
+            <li>{{ $t('about_tech_7') }}</li>
           </ul>
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('about_tech_note', { file1: 'package.json', file2: 'nuxt.config.ts' }) }}</p>
         </div>
