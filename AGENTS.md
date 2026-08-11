@@ -359,6 +359,32 @@ Always create a new numbered migration file when altering existing tables (addin
 - `/pages/admin/quotes/drafts.vue`
 - `/app/stores/language.ts`
 - `/app/composables/useDataExport.ts`
+- `/server/utils/email.ts`
+- `/server/utils/password.ts`
+
+## Email service
+
+Transactional email runs on **Cloudflare Email Sending** (Workers binding), not an external provider. Resend was removed — no `resend` dependency or API key exists.
+
+### Sending (transactional)
+
+- Binding: `send_email` named `EMAIL` in `wrangler.jsonc`. Runtime access follows the app-wide binding pattern: `process.env.EMAIL || globalThis.__env__?.EMAIL || globalThis.EMAIL`.
+- `server/utils/email.ts` exposes a single `sendEmail(event, { to, subject, html, text })` helper plus three wrappers: `sendPasswordResetEmail`, `sendVerificationEmail`, `sendSponsorStatusEmail`.
+- From address: `NUXT_EMAIL_FROM_ADDRESS` env (default `Verbatims <noreply@verbatims.cc>`). Any address on the onboarded sending domain is valid.
+- **Dev fallback**: under `nuxt dev` the `EMAIL` binding does not exist, so `sendEmail` logs the email to the console (`📧 [DEV] Email to ...`) instead of sending. There is no dev email provider.
+- Requires the **Workers Paid plan** (3,000 emails/month included). The sending domain `verbatims.cc` is onboarded; SPF/DKIM/DMARC are managed by Cloudflare (DMARC is `p=reject`).
+
+### Receiving (support inbox)
+
+- **Email Routing** forwards `support@verbatims.cc` → `jerem.dev@codingbox.fr` (read in Hey). Configured in the Cloudflare dashboard (no Cloudflare-hosted webmail; replies come from the destination mailbox).
+- `support@verbatims.cc` is the public contact address surfaced in the feedback dialog (`app/components/ReportDialog.vue`, Feedback category only) and on the legal pages (about/privacy/terms).
+
+### Auth / account emails
+
+- `POST /api/auth/forgot-password` and `POST /api/auth/reset-password` use the `password_reset_tokens` table (scrypt hashing via `server/utils/password.ts`).
+- `POST /api/auth/change-password` requires an authenticated session and the current password; rate-limited per IP and per user.
+- Email verification uses the `email_verification_tokens` table (`POST /api/auth/verify-email`, `send-verification`).
+- Both token tables are created by migration `0031_create_auth_token_tables.sql` — remember to apply it to any new environment (prod, local dev, preview).
 
 ## Commit and Pull Request Guidelines
 
