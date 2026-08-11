@@ -13,7 +13,7 @@ Verbatims uses a manual onboarding flow to ensure secure setup of your quotes da
 
 Before starting the onboarding process, ensure you have:
 
-- A running Nuxt 3 application with NuxtHub and Cloudflare D1 configured
+- A running Nuxt 4 application with NuxtHub and Cloudflare D1 configured
 - An export ZIP produced by the Admin Export in Verbatims, or a `quotes.json` file if you want to import quotes only
 - Environment variables properly configured (see below)
 

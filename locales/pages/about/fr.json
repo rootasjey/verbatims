@@ -50,11 +50,11 @@
   "about_roadmap_5": "Suggestions IA optionnelles entraînées sur des sources curatées et citées.",
   "about_tech_title": "Stack technique",
   "about_tech_intro": "Verbatims est construit avec des outils web modernes. Les principaux composants incluent :",
-  "about_tech_1": "Nuxt 3 (Vue 3) pour le framework applicatif et le rendu serveur.",
+  "about_tech_1": "Nuxt 4 (Vue 3) pour le framework applicatif et le rendu serveur.",
   "about_tech_2": "Pinia pour la gestion d'état de l'application.",
   "about_tech_3": "UnoCSS + UNA UI pour le style utilitaire et les primitives d'interface.",
   "about_tech_4": "Nuxt Image pour le traitement et l'optimisation des images.",
-  "about_tech_5": "Fonctionnalités serveur propulsées par Nitro ; Cloudflare / Wrangler utilisés dans les workflows CI/déploiement.",
+  "about_tech_5": "Nitro propulse les fonctionnalités serveur, déployé sur Cloudflare Workers via Wrangler.",
   "about_tech_note": "(Voir {file1} et {file2} pour les versions exactes.)",
   "about_suggestions_title": "Suggestions & prochaines étapes",
   "about_suggestions_intro": "Quelques idées que j'aimerais explorer ensuite :",
@@ -71,5 +71,7 @@
   "about_social_bluesky": "Bluesky",
   "about_social_linkedin": "LinkedIn",
   "about_social_facebook": "Facebook",
-  "about_social_instagram": "Instagram"
+  "about_social_instagram": "Instagram",
+  "about_tech_6": "Cloudflare D1 (SQLite) avec Drizzle ORM pour la base de données.",
+  "about_tech_7": "nuxt-auth-utils pour l'authentification et les accès par rôle."
 }

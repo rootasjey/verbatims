@@ -48,11 +48,11 @@
   "about_roadmap_5": "Opt-in AI suggestions trained on curated, cited sources.",
   "about_tech_title": "Tech stack",
   "about_tech_intro": "Verbatims is built with modern web tooling. The main pieces include:",
-  "about_tech_1": "Nuxt 3 (Vue 3) for the application framework and server rendering.",
+  "about_tech_1": "Nuxt 4 (Vue 3) for the application framework and server rendering.",
   "about_tech_2": "Pinia for application state management.",
   "about_tech_3": "UnoCSS + UNA UI for utility-first styling and UI primitives.",
   "about_tech_4": "Nuxt Image for image handling and optimization.",
-  "about_tech_5": "Server-side features powered by Nitro; Cloudflare / Wrangler used in CI/deploy workflows.",
+  "about_tech_5": "Nitro powers server-side features, deployed on Cloudflare Workers via Wrangler.",
   "about_tech_note": "(See {file1} and {file2} for exact versions.)",
   "about_suggestions_title": "Suggestions & next steps",
   "about_suggestions_intro": "A few ideas I'd like to explore next:",
@@ -69,5 +69,7 @@
   "about_social_bluesky": "Bluesky",
   "about_social_linkedin": "LinkedIn",
   "about_social_facebook": "Facebook",
-  "about_social_instagram": "Instagram"
+  "about_social_instagram": "Instagram",
+  "about_tech_6": "Cloudflare D1 (SQLite) with Drizzle ORM for the database.",
+  "about_tech_7": "nuxt-auth-utils for authentication and role-based access."
 }
