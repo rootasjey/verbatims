@@ -20,5 +20,7 @@
   "error_required": "Please fill in all fields",
   "error_password_length": "Password must be at least 8 characters long",
   "error_passwords_mismatch": "Passwords do not match",
-  "error_generic": "Failed to reset password. The link may have expired."
+  "error_generic": "Failed to reset password. The link may have expired.",
+  "password_label": "New password",
+  "confirm_password_label": "Confirm password"
 }

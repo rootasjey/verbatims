@@ -20,5 +20,7 @@
   "error_required": "Veuillez remplir tous les champs",
   "error_password_length": "Le mot de passe doit contenir au moins 8 caractères",
   "error_passwords_mismatch": "Les mots de passe ne correspondent pas",
-  "error_generic": "Échec de la réinitialisation. Le lien a peut-être expiré."
+  "error_generic": "Échec de la réinitialisation. Le lien a peut-être expiré.",
+  "password_label": "Nouveau mot de passe",
+  "confirm_password_label": "Confirmer le mot de passe"
 }

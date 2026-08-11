@@ -75,8 +75,8 @@ export async function sendPasswordResetEmail(event: H3Event, toEmail: string, to
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
         <h2 style="color: #111827; margin-bottom: 16px;">Reset your password</h2>
         <p style="color: #374151; margin-bottom: 24px;">
-          We received a request to reset the password for your Verbatims account.
-          Click the button below to choose a new password.
+          We received a request to reset the password for your Verbatims account
+          (${toEmail}). Click the button below to choose a new password.
         </p>
         <a href="${resetUrl}" style="display: inline-block; background-color: #3C82F6; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-bottom: 24px;">
           Reset Password
@@ -90,7 +90,7 @@ export async function sendPasswordResetEmail(event: H3Event, toEmail: string, to
         </p>
       </div>
     `,
-    text: `Reset your Verbatims password.\n\nClick the link below to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
+    text: `Reset your Verbatims password.\n\nWe received a request to reset the password for your Verbatims account (${toEmail}).\n\nClick the link below to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
   })
 }
 
