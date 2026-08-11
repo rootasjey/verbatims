@@ -103,9 +103,53 @@
           </div>
         </div>
       </div>
+      <!-- Security -->
+      <div class="pb-8 border-b border-dashed border-gray-200 dark:border-gray-700">
+        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+          {{ $t('section_security') }}
+        </h2>
+        <div class="space-y-5 max-w-lg">
+          <div>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_current_password') }}</label>
+            <input
+              v-model="passwordForm.currentPassword"
+              type="password"
+              :placeholder="currentPasswordPlaceholder"
+              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+            />
+          </div>
+          <div>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_new_password') }}</label>
+            <input
+              v-model="passwordForm.newPassword"
+              type="password"
+              :placeholder="newPasswordPlaceholder"
+              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+            />
+          </div>
+          <div>
+            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_confirm_password') }}</label>
+            <input
+              v-model="passwordForm.confirmPassword"
+              type="password"
+              :placeholder="confirmPasswordPlaceholder"
+              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+            />
+          </div>
+          <p v-if="passwordError" class="font-sans text-xs text-red-500 dark:text-red-400">{{ passwordError }}</p>
+          <p v-else-if="passwordMessage" class="font-sans text-xs text-green-600 dark:text-green-400">{{ passwordMessage }}</p>
+          <div class="pt-2">
+            <button
+              :disabled="savingPassword"
+              class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm disabled:opacity-50"
+              @click="savePassword"
+            >
+              {{ savingPassword ? $t('saving') : $t('change_password') }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- User Interface Tab -->
     <div v-else-if="activeTab === 'ui'" class="space-y-8">
       <div>
         <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
@@ -286,6 +330,54 @@ const savingPrivacy = ref(false)
 const deleting = ref(false)
 
 const showDeleteModal = ref(false)
+
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+const currentPasswordPlaceholder = useMountedTranslation('placeholder_current_password')
+const newPasswordPlaceholder = useMountedTranslation('placeholder_new_password')
+const confirmPasswordPlaceholder = useMountedTranslation('placeholder_confirm_password')
+const savingPassword = ref(false)
+const passwordError = ref('')
+const passwordMessage = ref('')
+
+const savePassword = async () => {
+  passwordError.value = ''
+  passwordMessage.value = ''
+
+  if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
+    passwordError.value = $t('error_password_required') as string
+    return
+  }
+  if (passwordForm.value.newPassword.length < 8) {
+    passwordError.value = $t('error_password_length') as string
+    return
+  }
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordError.value = $t('error_password_mismatch') as string
+    return
+  }
+
+  savingPassword.value = true
+  try {
+    await $fetch('/api/auth/change-password', {
+      method: 'POST',
+      body: {
+        currentPassword: passwordForm.value.currentPassword,
+        newPassword: passwordForm.value.newPassword
+      }
+    })
+    passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' }
+    passwordMessage.value = $t('password_changed') as string
+  } catch (error) {
+    console.error('Failed to change password:', error)
+    showErrorToast(error, $t('error_save_password') as string)
+  } finally {
+    savingPassword.value = false
+  }
+}
 
 const showHomeTitle = useStorage('verbatims.show_home_title', true)
 
