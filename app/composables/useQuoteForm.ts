@@ -41,7 +41,9 @@ export function useQuoteForm() {
     content: '',
     language: { ...DEFAULT_LANGUAGE },
     selectedAuthor: null as Author | null,
-    selectedReference: null as QuoteReference | null
+    selectedReference: null as QuoteReference | null,
+    sourceType: '',
+    sourceUrl: '',
   })
 
   const languageOptions: LanguageOption[] = [
@@ -407,7 +409,9 @@ export function useQuoteForm() {
       content: '',
       language: { ...DEFAULT_LANGUAGE },
       selectedAuthor: null,
-      selectedReference: null
+      selectedReference: null,
+      sourceType: '',
+      sourceUrl: '',
     }
     languageManuallySelected.value = false
     clearLanguageDetection()
@@ -423,6 +427,8 @@ export function useQuoteForm() {
     if (!editQuote) return
     const quote: any = editQuote
     form.value.content = quote.name || ''
+    form.value.sourceType = quote.source_type || ''
+    form.value.sourceUrl = quote.source_url || ''
     const languageOption = languageOptions.find(opt => opt.value === quote.language)
     form.value.language = languageOption || { ...DEFAULT_LANGUAGE }
     languageManuallySelected.value = true
@@ -510,6 +516,8 @@ export function useQuoteForm() {
       language: form.value.language.value as QuoteLanguage,
       author_id: form.value.selectedAuthor?.id,
       reference_id: form.value.selectedReference?.id,
+      source_type: form.value.sourceType.trim() || null,
+      source_url: form.value.sourceUrl.trim() || null,
       new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
       new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value as QuoteLanguage, primary_type: 'other' as const } : undefined,
       user_id: user?.id || -1

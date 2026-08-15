@@ -50,14 +50,20 @@ export default defineEventHandler(async (event) => {
       referenceId = newReference.id
     }
 
+    const updateData: Record<string, unknown> = {
+      name: body.name!,
+      language: body.language || 'en',
+      authorId: authorId || null,
+      referenceId: referenceId || null,
+      updatedAt: new Date(),
+    }
+    if (isAdmin) {
+      updateData.sourceType = body.source_type || null
+      updateData.sourceUrl = body.source_url || null
+    }
+
     await db.update(schema.quotes)
-      .set({
-        name: body.name!,
-        language: body.language || 'en',
-        authorId: authorId || null,
-        referenceId: referenceId || null,
-        updatedAt: new Date()
-      } as any)
+      .set(updateData as any)
       .where(eq(schema.quotes.id, parseInt(quoteId!)))
       .run()
 
@@ -77,6 +83,8 @@ export default defineEventHandler(async (event) => {
       likesCount: schema.quotes.likesCount,
       sharesCount: schema.quotes.sharesCount,
       isFeatured: schema.quotes.isFeatured,
+      sourceType: schema.quotes.sourceType,
+      sourceUrl: schema.quotes.sourceUrl,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
       authorName: schema.authors.name,
@@ -123,6 +131,8 @@ export default defineEventHandler(async (event) => {
       likes_count: u.likesCount ?? 0,
       shares_count: u.sharesCount ?? 0,
       is_featured: u.isFeatured ?? false,
+      source_type: u.sourceType ?? undefined,
+      source_url: u.sourceUrl ?? undefined,
       created_at: toISOStringOrNull(u.createdAt) || '',
       updated_at: toISOStringOrNull(u.updatedAt) || '',
       author: u.authorId ? {

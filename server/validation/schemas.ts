@@ -23,6 +23,8 @@ export const createQuoteSchema = z.object({
   language: z.enum(validLanguages).optional().default('en'),
   author_id: nullablePositiveInt,
   reference_id: nullablePositiveInt,
+  source_type: z.string().max(100).trim().optional().nullable(),
+  source_url: z.string().url().optional().nullable(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
     is_fictional: z.boolean().optional().default(false),
@@ -44,6 +46,8 @@ export const updateQuoteSchema = z.object({
   language: z.enum(validLanguages).optional(),
   author_id: nullablePositiveInt,
   reference_id: nullablePositiveInt,
+  source_type: z.string().max(100).trim().optional().nullable(),
+  source_url: z.string().url().optional().nullable(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
     is_fictional: z.boolean().optional().default(false),

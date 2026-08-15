@@ -132,6 +132,8 @@ export interface CreateQuoteData {
     original_language?: QuoteLanguage;
   };
   reference_id?: number;
+  source_type?: string | null;
+  source_url?: string | null;
   user_id: number;
   status?: QuoteStatus;
 }
