@@ -18,6 +18,8 @@ export default defineEventHandler(async (event) => {
       likesCount: schema.quotes.likesCount,
       sharesCount: schema.quotes.sharesCount,
       isFeatured: schema.quotes.isFeatured,
+      sourceType: schema.quotes.sourceType,
+      sourceUrl: schema.quotes.sourceUrl,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
       authorId: schema.quotes.authorId,
@@ -64,6 +66,8 @@ export default defineEventHandler(async (event) => {
       likes_count: q.likesCount,
       shares_count: q.sharesCount,
       is_featured: q.isFeatured,
+      source_type: q.sourceType,
+      source_url: q.sourceUrl,
       created_at: q.createdAt,
       updated_at: q.updatedAt,
       author: q.authorId ? {

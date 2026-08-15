@@ -4,7 +4,7 @@
     :submit-text="submitButtonText"
     :submitting="submitting"
     :can-submit="!!form.content.trim()"
-    max-width="lg"
+    max-width="2xl"
     scrollable
     @submit="submitQuote"
     @close="closeDialog"
@@ -15,7 +15,8 @@
         <NIcon v-if="isEditMode" name="i-tabler-writing-filled" />
       </div>
     </template>
-    <form @keydown="handleFormKeydown" class="space-y-6">
+    <form @keydown="handleFormKeydown" class="space-y-6 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] md:gap-8">
+      <div class="md:sticky md:top-0 md:self-start">
       <!-- Quote Content -->
       <div>
         <textarea
@@ -25,7 +26,7 @@
           rows="4"
           :disabled="submitting"
           required
-          class="w-full font-subtitle text-xl font-500 text-gray-900
+            class="w-full font-subtitle text-xl md:text-2xl lg:text-3xl font-500 text-gray-900
             dark:text-gray-100 rounded-2
             bg-blue-400/10 dark:bg-[#303841]/10
             px-4 py-4 placeholder-gray-400 dark:placeholder-gray-500
@@ -37,6 +38,12 @@
         </div>
       </div>
 
+      </div>
+
+      <div class="space-y-6 md:max-h-[min(65vh,40rem)] md:overflow-y-auto md:pr-3 md:border-l md:border-dashed md:border-gray-200 md:dark:border-gray-700 md:pl-7">
+      <div class="hidden md:block pb-1">
+        <p class="font-sans text-[0.65rem] font-700 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">Details</p>
+      </div>
       <!-- Author -->
       <div>
         <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.author_label') }}</label>
@@ -173,6 +180,37 @@
           <span v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'" class="text-amber-700 dark:text-amber-300">{{ $t('components.dialogs.language') }} &mdash; {{ $t('common.confirm') }}.</span>
         </div>
       </div>
+
+      <!-- Provenance (moderators and admins only) -->
+      <div v-if="canEditProvenance" class="border-t border-gray-200 dark:border-gray-800 pt-6 space-y-4">
+        <div>
+          <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">Provenance</h3>
+          <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">Record where this quote was verified.</p>
+        </div>
+        <div>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Source type</label>
+          <select
+            v-model="form.sourceType"
+            :disabled="submitting"
+            class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none"
+          >
+            <option value="" class="dark:bg-gray-800">No source type</option>
+            <option value="wikiquote-en" class="dark:bg-gray-800">Wikiquote (English)</option>
+            <option value="wikiquote-fr" class="dark:bg-gray-800">Wikiquote (French)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Source URL</label>
+          <input
+            v-model="form.sourceUrl"
+            type="url"
+            placeholder="https://..."
+            :disabled="submitting"
+            class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+          />
+        </div>
+      </div>
+      </div>
     </form>
   </AppDialog>
 </template>
@@ -206,6 +244,7 @@ const isOpen = computed({
 })
 
 const isEditMode = computed(() => !!props.editQuote)
+const canEditProvenance = computed(() => isEditMode.value && ['admin', 'moderator'].includes(user.value?.role || ''))
 const dialogTitle = computed(() => isEditMode.value ? String($t('components.dialogs.edit_quote')) : String($t('components.dialogs.add_quote')))
 const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update')) : String($t('common.save')))
 const {
