@@ -1,5 +1,8 @@
 import { db, schema } from 'hub:db'
-import { eq, and, or, like, inArray, desc, sql, count } from 'drizzle-orm'
+import { eq, and, like, inArray, desc } from 'drizzle-orm'
+import { combineFilterMatchSets, getThemeContentLanguages } from './theme-selection'
+
+type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la'
 
 export interface ThemeTranslationRow {
   id: number
@@ -121,64 +124,6 @@ export async function getThemeFilters(themeId: number): Promise<FilterRow[]> {
     .all() as unknown as FilterRow[]
 }
 
-function buildThemeAuthorConditions(filters: FilterRow[]) {
-  const authorIdFilters = filters.filter(f => f.type === 'author_id').slice(0, 6)
-  const authorNameFilters = filters.filter(f => f.type === 'author_name').slice(0, 8)
-
-  const conditions: any[] = []
-
-  if (authorIdFilters.length) {
-    const ids = authorIdFilters.map(f => parseInt(f.value, 10)).filter(n => Number.isFinite(n))
-    if (ids.length) conditions.push(inArray(schema.authors.id, ids))
-  }
-
-  if (authorNameFilters.length) {
-    conditions.push(or(
-      ...authorNameFilters.map(f => eq(schema.authors.name, f.value))
-    ))
-  }
-
-  if (!conditions.length) return null
-  return conditions.length === 1 ? conditions[0] : or(...conditions)
-}
-
-function buildThemeReferenceConditions(filters: FilterRow[]) {
-  const referenceNameFilters = filters.filter(f => f.type === 'reference_name').slice(0, 8)
-  const referenceIdFilters = filters.filter(f => f.type === 'reference_id').slice(0, 6)
-  const authorIdFilters = filters.filter(f => f.type === 'author_id').slice(0, 6)
-
-  const conditions: any[] = []
-
-  if (referenceNameFilters.length) {
-    conditions.push(or(
-      ...referenceNameFilters.map(f => eq(schema.quoteReferences.name, f.value))
-    ))
-  }
-
-  if (referenceIdFilters.length) {
-    const ids = referenceIdFilters.map(f => parseInt(f.value, 10)).filter(n => Number.isFinite(n))
-    if (ids.length) {
-      conditions.push(inArray(schema.quoteReferences.id, ids))
-    }
-  }
-
-  if (authorIdFilters.length) {
-    const authorIds = authorIdFilters.map(f => parseInt(f.value, 10)).filter(n => Number.isFinite(n))
-    if (authorIds.length) {
-      const refSubQuery = db.select({ referenceId: schema.quotes.referenceId })
-        .from(schema.quotes)
-        .where(and(
-          eq(schema.quotes.status, 'approved'),
-          inArray(schema.quotes.authorId, authorIds)
-        ))
-      conditions.push(inArray(schema.quoteReferences.id, refSubQuery))
-    }
-  }
-
-  if (!conditions.length) return null
-  return conditions.length === 1 ? conditions[0] : or(...conditions)
-}
-
 export async function getThemeFeed(themeSlug: string, language?: string): Promise<ThemeFeedResult | null> {
   const themeRow = await db.select()
       .from(schema.themes)
@@ -195,61 +140,71 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
 
     const filters = await getThemeFilters(themeRow.id)
 
-    const matchedIds = new Set<number>()
+    const contentLanguages = getThemeContentLanguages(themeRow.language, filters) as QuoteLanguage[] | null
+    const languageCondition = contentLanguages?.length
+      ? inArray(schema.quotes.language, contentLanguages)
+      : undefined
     const baseQFilter = eq(schema.quotes.status, 'approved')
+    const contentFilters = filters.filter(f => f.type !== 'language')
+    const filterMatchSets: { ids: number[]; matchMode: string }[] = []
 
-    for (const f of filters) {
+    for (const f of contentFilters) {
       let ids: { id: number }[] = []
+        const filterConditions = [baseQFilter, languageCondition].filter(Boolean)
         if (f.type === 'tag_name') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
             .innerJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
             .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
-            .where(and(baseQFilter, like(schema.tags.name, `%${f.value}%`)))
-            .limit(100)
+            .where(and(...filterConditions, like(schema.tags.name, `%${f.value}%`)))
             .all()
         } else if (f.type === 'author_name') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
             .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-            .where(and(baseQFilter, eq(schema.authors.name, f.value)))
-            .limit(100)
+            .where(and(...filterConditions, eq(schema.authors.name, f.value)))
             .all()
         } else if (f.type === 'author_id') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .where(and(baseQFilter, eq(schema.quotes.authorId, parseInt(f.value))))
-            .limit(100)
+            .where(and(...filterConditions, eq(schema.quotes.authorId, parseInt(f.value))))
             .all()
         } else if (f.type === 'reference_name') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
             .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-            .where(and(baseQFilter, eq(schema.quoteReferences.name, f.value)))
-            .limit(100)
+            .where(and(...filterConditions, eq(schema.quoteReferences.name, f.value)))
             .all()
         } else if (f.type === 'reference_id') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .where(and(baseQFilter, eq(schema.quotes.referenceId, parseInt(f.value))))
-            .limit(100)
+            .where(and(...filterConditions, eq(schema.quotes.referenceId, parseInt(f.value))))
             .all()
         } else if (f.type === 'keyword') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .where(and(baseQFilter, like(schema.quotes.name, `%${f.value}%`)))
-            .limit(100)
+            .where(and(...filterConditions, like(schema.quotes.name, `%${f.value}%`)))
             .all()
         }
-        for (const r of ids) matchedIds.add(r.id)
+        filterMatchSets.push({ ids: ids.map(row => row.id), matchMode: f.match_mode || 'any' })
+    }
+
+    let matchedIds = combineFilterMatchSets(filterMatchSets)
+
+    if (!contentFilters.length) {
+      const rows = await db.select({ id: schema.quotes.id })
+        .from(schema.quotes)
+        .where(and(baseQFilter, languageCondition))
+        .all()
+      matchedIds = rows.map(row => row.id)
     }
 
     // Ensure the featured quote is always included, even if not matched by filters
     if (themeConfig.featured_quote_id) {
-      matchedIds.add(themeConfig.featured_quote_id)
+      matchedIds.push(themeConfig.featured_quote_id)
     }
 
-    const allIds = [...matchedIds]
+    const allIds = [...new Set(matchedIds)]
 
     let quotes: any[] = []
     let totalVal = 0
@@ -262,7 +217,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       }
 
       const batchResults: any[][] = (await Promise.all(batches.map(batchIds => {
-        const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, batchIds))
+        const whereFinal = and(eq(schema.quotes.status, 'approved'), inArray(schema.quotes.id, batchIds), languageCondition)
         return db.select({
           id: schema.quotes.id,
           name: schema.quotes.name,
@@ -293,26 +248,17 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       }
       quotes = merged.slice(0, 50)
 
-      totalVal = allIds.length
+      totalVal = merged.length
     }
 
-    let authorRows: any[] = []
-    const authorCondition = buildThemeAuthorConditions(filters)
-      authorRows = await db.select()
-        .from(schema.authors)
-        .where(authorCondition || undefined)
-        .orderBy(desc(schema.authors.likesCount))
-        .limit(20)
-        .all()
-
-    let referenceRows: any[] = []
-    const referenceCondition = buildThemeReferenceConditions(filters)
-      referenceRows = await db.select()
-        .from(schema.quoteReferences)
-        .where(referenceCondition || undefined)
-        .orderBy(desc(schema.quoteReferences.likesCount))
-        .limit(20)
-        .all()
+    const authorIds = [...new Set(quotes.map(row => row.authorId).filter(Boolean))]
+    const referenceIds = [...new Set(quotes.map(row => row.referenceId).filter(Boolean))]
+    const authorRows = authorIds.length
+      ? await db.select().from(schema.authors).where(inArray(schema.authors.id, authorIds)).orderBy(desc(schema.authors.likesCount)).all()
+      : []
+    const referenceRows = referenceIds.length
+      ? await db.select().from(schema.quoteReferences).where(inArray(schema.quoteReferences.id, referenceIds)).orderBy(desc(schema.quoteReferences.likesCount)).all()
+      : []
 
     const processedQuotes = quotes.map((row: any) => ({
       id: row.id, name: row.name, language: row.language,
@@ -341,21 +287,6 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       id: row.id, name: row.name, description: row.description,
       primary_type: row.primaryType, image_url: row.imageUrl, likes_count: row.likesCount || 0,
     }))
-
-    // Ensure the featured reference is always included
-    if (themeConfig.featured_reference_id && !processedReferences.some(r => r.id === themeConfig.featured_reference_id)) {
-      const refRow = await db.select()
-        .from(schema.quoteReferences)
-        .where(eq(schema.quoteReferences.id, themeConfig.featured_reference_id))
-        .limit(1)
-        .get()
-      if (refRow) {
-        processedReferences.push({
-          id: refRow.id, name: refRow.name, description: refRow.description,
-          primary_type: refRow.primaryType, image_url: refRow.imageUrl, likes_count: refRow.likesCount || 0,
-        })
-      }
-    }
 
     if (themeConfig.featured_quote_id) {
       const found = processedQuotes.find(q => q.id === themeConfig.featured_quote_id)
@@ -394,5 +325,3 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       total: totalVal,
     }
   }
-
-
