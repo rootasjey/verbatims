@@ -64,36 +64,7 @@
         </template>
       </NAccordion>
 
-      <div v-if="provenance" class="mb-6 border-t b-dashed border-gray-200 dark:border-gray-700 pt-5">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="font-title text-sm font-600 uppercase text-gray-700 dark:text-gray-300">Provenance</h3>
-          <NBadge v-if="primaryAttribution" :badge="provenanceBadge(primaryAttribution.status)" size="xs">
-            {{ provenanceLabel(primaryAttribution.status) }}
-          </NBadge>
-        </div>
-        <div v-if="provenance.attributions.length" class="space-y-2 text-sm">
-          <div v-for="attribution in provenance.attributions" :key="attribution.id" class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-            <NIcon name="i-ph-git-branch" class="w-4 h-4 text-gray-400" />
-            <span>{{ attribution.author?.name || 'Unknown author' }}</span>
-            <span class="text-gray-400">·</span>
-            <span>{{ attribution.reference?.name || 'Unknown reference' }}</span>
-            <NBadge v-if="attribution.is_primary" badge="soft-blue" size="xs">Primary</NBadge>
-          </div>
-          <a
-            v-for="source in provenance.sources"
-            :key="source.id"
-            v-show="source.source_url"
-            :href="source.source_url || undefined"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <NIcon name="i-ph-link" class="w-3.5 h-3.5" />
-            {{ source.label || source.source_type }}
-          </a>
-        </div>
-        <p v-else class="text-xs text-gray-500 dark:text-gray-400">No attribution or source recorded.</p>
-      </div>
+       <AdminProvenanceManager v-if="provenance" :quote-id="quote.id" :attributions="provenance.attributions" :sources="provenance.sources" @changed="loadProvenance" />
 
       <div class="flex justify-end gap-2">
         <NButton btn="soft-blue" @click="$emit('edit', quote)">{{ $t('common.edit') }}</NButton>
@@ -123,32 +94,20 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[] } | null>(null)
-const primaryAttribution = computed(() => provenance.value?.attributions.find(attribution => attribution.is_primary))
-
-const provenanceLabels: Record<string, string> = {
-  unverified: 'Unverified',
-  manually_verified: 'Manually verified',
-  externally_verified: 'Externally verified',
-  disputed: 'Disputed',
-}
-
-const provenanceLabel = (status: string) => provenanceLabels[status] || status
-const provenanceBadge = (status: string) => {
-  if (status === 'externally_verified') return 'soft-success'
-  if (status === 'manually_verified') return 'soft-blue'
-  if (status === 'disputed') return 'soft-error'
-  return 'soft-gray'
+const loadProvenance = async () => {
+  if (!props.quote?.id) return
+  try {
+    const response = await $fetch<ApiResponse<{ attributions: QuoteAttribution[]; sources: QuoteSource[] }>>(`/api/quotes/${props.quote.id}`)
+    provenance.value = response.data || null
+  } catch (error) {
+    console.error('Failed to load quote provenance:', error)
+  }
 }
 
 watch(() => props.quote?.id, async (quoteId) => {
   provenance.value = null
   if (!quoteId) return
-  try {
-    const response = await $fetch<ApiResponse<{ attributions: QuoteAttribution[]; sources: QuoteSource[] }>>(`/api/quotes/${quoteId}`)
-    provenance.value = response.data || null
-  } catch (error) {
-    console.error('Failed to load quote provenance:', error)
-  }
+  await loadProvenance()
 }, { immediate: true })
 
 const isOpen = computed({
