@@ -3,6 +3,7 @@ import { $fetch, fetch, setup } from '@nuxt/test-utils/e2e'
 
 const { seedTestDb } = await import('../../server/utils/__tests__/seed-e2e')
 const testDb = await seedTestDb()
+process.env.NUXT_TEST_DB_PATH = testDb.dbPath
 
 const apiKey = testDb.apiKey
 const writeKey = testDb.writeKey
@@ -18,6 +19,7 @@ process.env.NUXT_SESSION_PASSWORD = 'test-session-pw-32chars-1234567890abcdef'
 
 await setup({
   server: true,
+  dev: true,
   setupTimeout: 120000,
   nuxtConfig: {
     nitro: { preset: 'node-server' },
@@ -213,6 +215,81 @@ describe('Admin routes', () => {
   })
 })
 
+describe('Admin quote provenance routes', () => {
+  let attributionId: number
+  let sourceId: number
+
+  test('lists the seeded attribution and source', async () => {
+    const attributions = await $fetch('/api/admin/quotes/1/attributions', adminHeaders())
+    const sources = await $fetch('/api/admin/quotes/1/sources', adminHeaders())
+
+    expect(attributions.success).toBe(true)
+    expect(attributions.data).toHaveLength(1)
+    expect(attributions.data[0].author_name).toContain('Marcus Aurelius')
+    expect(sources.success).toBe(true)
+    expect(sources.data).toHaveLength(1)
+    expect(sources.data[0].source_type).toBe('wikiquote-en')
+    attributionId = attributions.data[0].id
+    sourceId = sources.data[0].id
+  })
+
+  test('creates and updates a secondary attribution', async () => {
+    const created = await $fetch('/api/admin/quotes/1/attributions', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: { author_id: 2, reference_id: 2, status: 'manually_verified', notes: 'Reviewed during integration test' },
+    })
+    attributionId = created.data.id
+    expect(created.success).toBe(true)
+
+    const source = await $fetch('/api/admin/quotes/1/sources', {
+      ...adminHeaders(),
+      method: 'POST',
+      body: { attribution_id: attributionId, source_type: 'book', source_url: 'https://example.com/source', label: 'Integration source' },
+    })
+    sourceId = source.data.id
+    expect(source.success).toBe(true)
+
+    const updated = await $fetch(`/api/admin/quotes/1/attributions/${attributionId}`, {
+      ...adminHeaders(),
+      method: 'PUT',
+      body: { status: 'disputed', notes: 'Needs a stronger source' },
+    })
+    expect(updated.success).toBe(true)
+
+    const detail = await $fetch('/api/quotes/1')
+    const attribution = detail.data.attributions.find((item: { id: number }) => item.id === attributionId)
+    expect(attribution.status).toBe('disputed')
+    expect(attribution.notes).toBe('Needs a stronger source')
+  })
+
+  test('updates and deletes a source and attribution', async () => {
+    const updated = await $fetch(`/api/admin/quotes/1/sources/${sourceId}`, {
+      ...adminHeaders(),
+      method: 'PUT',
+      body: { label: 'Updated Wikiquote reference', verification_status: 'externally_verified' },
+    })
+    expect(updated.success).toBe(true)
+
+    const deletedSource = await $fetch(`/api/admin/quotes/1/sources/${sourceId}`, {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })
+    expect(deletedSource.success).toBe(true)
+
+    const deletedAttribution = await $fetch(`/api/admin/quotes/1/attributions/${attributionId}`, {
+      ...adminHeaders(),
+      method: 'DELETE',
+    })
+    expect(deletedAttribution.success).toBe(true)
+  })
+
+  test('rejects provenance CRUD without moderator authentication', async () => {
+    const response = await fetch('/api/admin/quotes/1/attributions', { method: 'GET' })
+    expect(response.status).toBe(401)
+  })
+})
+
 // ── API v1 (unchanged) ──
 
 describe('GET /api/v1/me', () => {
@@ -272,6 +349,9 @@ describe('GET /api/v1/quotes/[id]', () => {
     expect(res.data.tags.length).toBeGreaterThanOrEqual(1)
     expect(res.data.author.name).toContain('Marcus Aurelius')
     expect(res.data.reference.name).toBe('Meditations')
+    expect(res.data.attributions).toHaveLength(1)
+    expect(res.data.attributions[0].is_primary).toBe(true)
+    expect(res.data.sources).toHaveLength(1)
   })
 
   test('returns 404 for non-existent quote', async () => {
