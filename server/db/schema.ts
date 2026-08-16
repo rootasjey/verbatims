@@ -258,6 +258,47 @@ export const quoteTags = sqliteTable('quote_tags', {
   pk: primaryKey({ columns: [table.quoteId, table.tagId] }),
 }))
 
+export const quoteAttributions = sqliteTable('quote_attributions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  authorId: integer('author_id').references(() => authors.id, { onDelete: 'set null' }),
+  referenceId: integer('reference_id').references(() => quoteReferences.id, { onDelete: 'set null' }),
+  isPrimary: integer('is_primary', { mode: 'boolean' }).notNull().default(true),
+  status: text('status', { enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }).notNull().default('unverified'),
+  verifiedBy: integer('verified_by').references(() => users.id, { onDelete: 'set null' }),
+  verifiedAt: integer('verified_at', { mode: 'timestamp' }),
+  notes: text('notes'),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  quoteIdx: index('idx_quote_attributions_quote').on(table.quoteId),
+  authorIdx: index('idx_quote_attributions_author').on(table.authorId),
+  referenceIdx: index('idx_quote_attributions_reference').on(table.referenceId),
+  statusIdx: index('idx_quote_attributions_status').on(table.status),
+}))
+
+export const quoteSources = sqliteTable('quote_sources', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  attributionId: integer('attribution_id').references(() => quoteAttributions.id, { onDelete: 'set null' }),
+  sourceType: text('source_type').notNull(),
+  sourceUrl: text('source_url'),
+  label: text('label'),
+  verificationStatus: text('verification_status', { enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }).notNull().default('unverified'),
+  verifiedBy: integer('verified_by').references(() => users.id, { onDelete: 'set null' }),
+  verifiedAt: integer('verified_at', { mode: 'timestamp' }),
+  notes: text('notes'),
+  isPrimary: integer('is_primary', { mode: 'boolean' }).notNull().default(false),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  quoteIdx: index('idx_quote_sources_quote').on(table.quoteId),
+  attributionIdx: index('idx_quote_sources_attribution').on(table.attributionId),
+  statusIdx: index('idx_quote_sources_status').on(table.verificationStatus),
+}))
+
 export const userLikes = sqliteTable('user_likes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
