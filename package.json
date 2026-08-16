@@ -1,13 +1,15 @@
 {
   "name": "verbatims",
-  "version": "0.168.9",
+  "version": "0.168.10",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "NODE_OPTIONS='--max-old-space-size=4096' nuxt build",
     "dev": "nuxt dev --port 3002",
+    "predev": "node ./scripts/check-local-db.mjs",
     "dev:worker": "node ./scripts/dev-worker.mjs",
-    "db:migrate": "npx nuxthub db migrate",
+    "db:check": "node ./scripts/check-local-db.mjs",
+    "db:migrate": "node ./scripts/migrate-local-db.mjs",
     "db:sync-prod": "node ./scripts/sync-prod-to-local.mjs",
     "facebook:token": "node ./scripts/generate-facebook-page-token.mjs",
     "facebook:token:write": "node ./scripts/generate-facebook-page-token.mjs from-user-token --write-env",

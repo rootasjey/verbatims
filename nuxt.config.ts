@@ -8,6 +8,7 @@ import { resolve, dirname } from 'node:path'
 const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc'
 const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
 const projectRoot = dirname(fileURLToPath(import.meta.url))
+const useLocalDatabase = process.env.NUXT_HUB_LOCAL_DB === '1'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
@@ -100,6 +101,12 @@ export default defineNuxtConfig({
     cache: true,
     db: {
       dialect: 'sqlite',
+      // Keep local development on the same file-backed database as Drizzle Kit.
+      // Cloudflare production still resolves this to the D1 driver at build time.
+      driver: 'libsql',
+      connection: {
+        url: 'file:.data/db/sqlite.db',
+      },
       applyMigrationsDuringDev: false,
       applyMigrationsDuringBuild: false,
     },
@@ -107,7 +114,10 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'cloudflare-module',
+    // NuxtHub's prepare command otherwise resolves the Cloudflare preset to D1,
+    // even for local migration commands. The local wrapper opts into node-server
+    // so prepare and the runtime use the same file-backed libsql database.
+    preset: useLocalDatabase ? 'node-server' : 'cloudflare-module',
     experimental: {
       wasm: true,
       tasks: true,
