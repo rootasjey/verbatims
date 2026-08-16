@@ -64,8 +64,14 @@ bun run build      # Build for production
 bun run preview    # Preview the production build locally
 ```
 
-Cloudflare wrangler with sqlite will provision a local D1 database automatically. 
-The SQL schema lives in `server/db/migrations/schema.sql` and is applied through the Cloudflare integration.
+Local development uses one file-backed SQLite database: `.data/db/sqlite.db` through the
+NuxtHub `libsql` driver. Production continues to use the Cloudflare D1 binding. The SQL
+schema lives in `server/db/migrations/schema.sql` and numbered migrations live in
+`server/db/migrations/sqlite/`.
+
+Before `bun run dev`, the `predev` check runs `nuxi prepare` and verifies that the generated
+NuxtHub client still uses `libsql` and `.data/db/sqlite.db`. It fails rather than starting
+against the D1 emulator if the generated configuration drifts.
 
 ## Scripts
 
@@ -73,6 +79,9 @@ The most common scripts are:
 NOTE: You can use any package manager, just replace `bun` with `npm`/`pnpm`/`yarn` in the commands below.
 
 - `bun run dev` - start development server
+- `bun run db:check` - regenerate and verify the local NuxtHub database driver
+- `bun run db:migrate` - apply pending migrations to `.data/db/sqlite.db`
+- `bun run db:sync-prod` - replace `.data/db/sqlite.db` with a backup of production data
 - `bun run build` - production build
 - `bun run preview` - preview the production build
 

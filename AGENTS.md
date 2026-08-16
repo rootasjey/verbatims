@@ -43,8 +43,9 @@ Key relationship: `quotes` belong to `users`, and may link to `authors` and `quo
 - **Preview build**: `bun run preview`
 - **Version bump**: `bun run bump:version` (patch), `bun run bump:fix` (hotfix), `bun run bump:minor`, `bun run bump:major`
 - **Tag version**: `git tag -a v$(node -e "console.log(require('./package.json').version)") -m "Release v$(node -e "console.log(require('./package.json').version)")"` (after commit)
-- **Database migrations**: `bun run db:migrate` (apply pending migrations to the active local DB — read the "Local dev database" note below; the live DB can be `.data/db/sqlite.db` or the D1 emulation depending on the generated `db.mjs`)
-- **Sync prod → local**: `bun run db:sync-prod` (replace `.data/db/sqlite.db` with production data; backs up first; recreates the FTS5 index — only visible to the dev server while it runs the libsql variant, see the "Local dev database" note)
+- **Database check**: `bun run db:check` (regenerate and verify the generated NuxtHub client uses the local libsql database)
+- **Database migrations**: `bun run db:migrate` (apply pending migrations to `.data/db/sqlite.db`)
+- **Sync prod → local**: `bun run db:sync-prod` (replace `.data/db/sqlite.db` with production data; backs up first and recreates the FTS5 index)
 - **Token generation**: `bun run facebook:token`, `bun run instagram:token` (and variants with `:write-env`)
 
 ## Architecture and code organization
@@ -290,48 +291,38 @@ Schema changes are tracked in `server/db/migrations/sqlite/` as numbered SQL fil
 wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
 ```
 
-**Local dev** (`wrangler` WITHOUT `--remote`): targets the local D1 emulation — but that is only the live dev DB when the generated `node_modules/@nuxthub/db/db.mjs` uses the D1 binding (see "Local dev database" below). When it uses the libsql driver, apply migrations to `.data/db/sqlite.db` instead.
-
-```bash
-wrangler d1 execute verbatims --local --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
-```
+**Local dev** uses `.data/db/sqlite.db` through NuxtHub's explicit `libsql` driver. Use
+`bun run db:migrate`; do not use `wrangler d1 ... --local` for the application database.
 
 **Database name** (`wrangler.jsonc` → `d1_databases[0].database_name`): `verbatims`
 Database ID: `330aad35-518b-437c-bbf4-5b7ea006eb3f`
 
-### Local dev database (important — avoid confusion)
+### Local dev database
 
-The dev server's database driver is resolved by the generated `node_modules/@nuxthub/db/db.mjs` (created by `nuxt prepare`). **That file is not stable across restarts**, so the active local DB can silently change. Always check it before assuming which DB you are talking to.
+The local driver is explicitly locked in `nuxt.config.ts` to `libsql` with
+`file:.data/db/sqlite.db`. The production Cloudflare build still resolves the database to
+the D1 binding. `bun run dev` runs `bun run db:check` first, which regenerates NuxtHub's
+generated files and refuses to start if they contain the D1 driver or another URL.
 
-With the current config (`nuxt.config.ts` → `hub.db = { dialect: 'sqlite', applyMigrationsDuringDev: false }` and no explicit `driver`), two variants are possible:
+The generated client should therefore always use the following configuration:
 
-1. **libsql variant (default after a clean `npx nuxi prepare`)**: `db.mjs` imports `drizzle-orm/libsql` and connects to `file:.data/db/sqlite.db`. The dev server reads/writes this file directly via the libsql driver.
-2. **D1-binding variant**: `db.mjs` imports `drizzle-orm/d1` and reads the `DB` binding (`process.env.DB` / `globalThis.__env__?.DB`). In dev this resolves to the miniflare D1 emulation stored at `.wrangler/state/v3/d1/miniflare-D1DatabaseObject/<hash>.sqlite`.
+- `driver: 'libsql'`
+- `connection.url: 'file:.data/db/sqlite.db'`
 
-Dev-server restarts triggered by server-side file edits have been observed to regenerate the D1-binding variant, switching the live DB out from under you. The two DBs can hold **different data** (e.g. `.data/db/sqlite.db` had 695 authors while the emulation had 671), so queries may return different rows depending on which variant is active.
-
-To know which DB the dev server is using, check `node_modules/@nuxthub/db/db.mjs`:
-- `drizzle-orm/libsql` + `file:.data/db/sqlite.db` → libsql variant (`.data/db/sqlite.db`).
-- `drizzle-orm/d1` + `DB` binding → D1 emulation (`.wrangler/state/v3/d1/...`).
-
-If you need the libsql variant, run `npx nuxi prepare` (regenerates the libsql module) and restart the dev server.
-
-`applyMigrationsDuringDev: false` means migrations are **never auto-applied in dev** — a stale DB (missing tables/columns) surfaces as `no such table: X` at runtime.
+`applyMigrationsDuringDev: false` means migrations are **never auto-applied in dev**. Run
+`bun run db:migrate` after pulling migrations or when the local database is missing a table
+or column. That command runs NuxtHub's migration client against the same libsql file used by
+the server.
 
 Rules for local DB work:
 
-- **libsql variant** (`.data/db/sqlite.db`): apply migrations with the **libsql client** (the runtime's own driver) or `npx nuxthub db migrate`. Do **not** use the macOS `sqlite3` CLI for migrations that touch `quotes` — it's too old for FTS5 triggers and fails with `unsafe use of virtual table "quotes_fts"`.
-  ```sh
-  node -e "const{createClient}=require('@libsql/client');const db=createClient({url:'file:./.data/db/sqlite.db'});db.execute('...');"
-  ```
-- **D1-binding variant** (emulation): apply migrations with wrangler targeting the local emulation:
-  ```bash
-  wrangler d1 execute verbatims --local --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
-  ```
-  You can also inspect the emulation directly with the libsql client against the `.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite` file.
-- After a desync, apply the missing numbered migration files in order, then record each in the `_hub_migrations` table (`name` = filename without `.sql`) so `npx nuxthub db migrate` stays consistent.
-- If the DB was (re)built from the consolidated `schema.sql`, the tracker only records `schema`; re-running `npx nuxthub db migrate` will then fail on `already exists`. Use `npx nuxthub db mark-as-migrated <name>` for migrations whose effects are already present.
-- `bun run db:sync-prod` writes production data to `.data/db/sqlite.db` only. It is only visible to the dev server while the libsql variant is active; under the D1-binding variant the emulation is the live DB, so synced data will not appear until you sync into the emulation (or force the libsql variant).
+- Do not use the macOS `sqlite3` CLI for migrations that touch `quotes`; its SQLite version
+  is too old for the FTS5 triggers and can fail with `unsafe use of virtual table "quotes_fts"`.
+- After a desync, apply the missing numbered migration files in order, then record each in the `_hub_migrations` table (`name` = filename without `.sql`) so `bun run db:migrate` stays consistent.
+- If the DB was (re)built from the consolidated `schema.sql`, the tracker only records `schema`; re-running `bun run db:migrate` will then fail on `already exists`. Use `npx nuxt-hub db mark-as-migrated <name>` for migrations whose effects are already present.
+- `bun run db:sync-prod` replaces `.data/db/sqlite.db` after creating a timestamped backup,
+  recreates the FTS5 index, and marks the numbered migrations as applied. The D1 emulator is
+  not part of the local application workflow anymore.
 
 ### D1 debugging process
 
