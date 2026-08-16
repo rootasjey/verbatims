@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -56,6 +57,8 @@ export default defineEventHandler(async (event) => {
 
   if (!quote) throwServer(404, 'Quote not found')
 
+  const provenance = await getQuoteProvenance(quoteId)
+
   const tags = await db
     .select({ name: schema.tags.name, color: schema.tags.color })
     .from(schema.tags)
@@ -75,10 +78,12 @@ export default defineEventHandler(async (event) => {
         shares: quote.sharesCount,
       },
       featured: quote.isFeatured,
-      source: quote.sourceType ? {
-        type: quote.sourceType,
-        url: quote.sourceUrl,
-      } : null,
+       source: quote.sourceType ? {
+         type: quote.sourceType,
+         url: quote.sourceUrl,
+       } : null,
+       attributions: provenance.attributions,
+       sources: provenance.sources,
       author: quote.authorId ? {
         id: quote.authorId,
         name: quote.authorName,

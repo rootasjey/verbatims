@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { updateQuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
+import { syncPrimaryAttribution, syncPrimarySource, getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -21,7 +22,9 @@ defineRouteMeta({
               name: { type: 'string' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'] },
               author_id: { type: 'integer', nullable: true },
-              reference_id: { type: 'integer', nullable: true },
+               reference_id: { type: 'integer', nullable: true },
+               source_type: { type: 'string', nullable: true },
+               source_url: { type: 'string', format: 'uri', nullable: true },
               new_author: { type: 'object', properties: { name: { type: 'string' }, is_fictional: { type: 'boolean' } } },
               new_reference: { type: 'object', properties: { name: { type: 'string' }, primary_type: { type: 'string' }, original_language: { type: 'string' } } },
             },
@@ -77,16 +80,27 @@ export default defineEventHandler(async (event) => {
     referenceId = newReference.id
   }
 
+  const updateData: Record<string, unknown> = {
+    name: body.name,
+    language: body.language || 'en',
+    authorId: authorId || null,
+    referenceId: referenceId || null,
+    updatedAt: new Date(),
+  }
+  if (isMod) {
+    updateData.sourceType = body.source_type || null
+    updateData.sourceUrl = body.source_url || null
+  }
+
   await db.update(schema.quotes)
     .set({
-      name: body.name,
-      language: body.language || 'en',
-      authorId: authorId || null,
-      referenceId: referenceId || null,
-      updatedAt: new Date()
+      ...updateData,
     } as any)
     .where(eq(schema.quotes.id, quoteId))
     .run()
+
+  const attributionId = await syncPrimaryAttribution(quoteId, authorId || null, referenceId || null, api.userId)
+  if (isMod) await syncPrimarySource(quoteId, attributionId, body.source_type, body.source_url, api.userId)
 
   await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status, name: body.name } })
 
@@ -139,10 +153,11 @@ export default defineEventHandler(async (event) => {
         shares: updatedQuote!.sharesCount,
       },
       featured: updatedQuote!.isFeatured,
-      source: updatedQuote!.sourceType ? {
-        type: updatedQuote!.sourceType,
-        url: updatedQuote!.sourceUrl,
-      } : null,
+       source: updatedQuote!.sourceType ? {
+         type: updatedQuote!.sourceType,
+         url: updatedQuote!.sourceUrl,
+       } : null,
+       ...(await getQuoteProvenance(quoteId)),
       author: updatedQuote!.authorId ? {
         id: updatedQuote!.authorId,
         name: updatedQuote!.authorName,

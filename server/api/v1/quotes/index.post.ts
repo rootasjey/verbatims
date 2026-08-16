@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
+import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -20,7 +21,9 @@ defineRouteMeta({
               name: { type: 'string', description: 'Quote content' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], default: 'en' },
               author_id: { type: 'integer', nullable: true, description: 'ID of an existing author' },
-              reference_id: { type: 'integer', nullable: true, description: 'ID of an existing reference' },
+               reference_id: { type: 'integer', nullable: true, description: 'ID of an existing reference' },
+               source_type: { type: 'string', nullable: true },
+               source_url: { type: 'string', format: 'uri', nullable: true },
               new_author: {
                 type: 'object',
                 properties: { name: { type: 'string' }, is_fictional: { type: 'boolean', default: false }, job: { type: 'string', nullable: true }, description: { type: 'string', nullable: true } },
@@ -102,6 +105,7 @@ export default defineEventHandler(async (event) => {
 
   if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
+  const canSetSource = api.userRole === 'admin' || api.userRole === 'moderator'
   const quoteResult = await db.insert(schema.quotes).values({
     name: body.name,
     language: body.language,
@@ -109,9 +113,14 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     userId: api.userId,
     status: 'draft',
+    sourceType: canSetSource ? body.source_type || null : null,
+    sourceUrl: canSetSource ? body.source_url || null : null,
     createdAt: new Date(),
     updatedAt: new Date()
   } as any).returning({ id: schema.quotes.id }).get()
+
+  const attributionId = await syncPrimaryAttribution(quoteResult.id, authorId || null, referenceId || null, api.userId)
+  if (canSetSource) await syncPrimarySource(quoteResult.id, attributionId, body.source_type, body.source_url, api.userId)
 
   await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft', name: body.name } })
 
