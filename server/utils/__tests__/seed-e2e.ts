@@ -36,10 +36,10 @@ export async function seedTestDb() {
     .split('\n')
     .filter(line => !line.startsWith('--') && !line.startsWith('-->'))
     .join('\n')
-  client.executeMultiple(statements)
+  await client.executeMultiple(statements)
 
-  for (const table of ['social_posts', 'social_queue', 'api_key_usage_logs', 'api_keys', 'quote_tags', 'quote_views', 'author_views', 'reference_views', 'user_likes', 'theme_content_filters', 'theme_translations', 'themes', 'quotes', 'tags', 'quote_references', 'authors', 'users']) {
-    client.execute(`DELETE FROM ${table}`)
+  for (const table of ['social_posts', 'social_queue', 'api_key_usage_logs', 'api_keys', 'quote_sources', 'quote_attributions', 'quote_tags', 'quote_views', 'author_views', 'reference_views', 'user_likes', 'theme_content_filters', 'theme_translations', 'themes', 'quotes', 'tags', 'quote_references', 'authors', 'users']) {
+    await client.execute(`DELETE FROM ${table}`)
   }
 
   const apiKey = 'vbt_testkey0000000000000000000000000000000000'
@@ -56,7 +56,7 @@ export async function seedTestDb() {
   const socialWriteKeyHash = hashKey(socialWriteKey)
   const adminPw = await hashPassword('admin123!')
 
-  client.executeMultiple(`
+  await client.executeMultiple(`
     INSERT INTO users (id, email, name, password, role, language) VALUES (1, 'test@verbatims.cc', 'Test User', '${adminPw}', 'admin', 'en');
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","write:authors","write:references","write:collections"]', 1000, 3600, 1000, 3600, 1);
@@ -76,6 +76,9 @@ export async function seedTestDb() {
     INSERT INTO quotes (id, name, language, user_id, status) VALUES (5, 'This is a draft quote not yet approved.', 'en', 1, 'draft');
     INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (6, 'A pending quote awaiting moderation.', 'en', 1, 1, 'pending');
     INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (7, 'Another pending quote.', 'en', 2, 1, 'pending');
+
+    INSERT INTO quote_attributions (id, quote_id, author_id, reference_id, is_primary, status, created_by) VALUES (1, 1, 1, 1, 1, 'unverified', 1);
+    INSERT INTO quote_sources (id, quote_id, attribution_id, source_type, source_url, label, is_primary, created_by) VALUES (1, 1, 1, 'wikiquote-en', 'https://en.wikiquote.org/wiki/Marcus_Aurelius', 'Wikiquote', 1, 1);
 
     INSERT INTO quote_tags (quote_id, tag_id) VALUES (1, 1), (1, 2), (1, 3), (2, 2), (3, 2);
 

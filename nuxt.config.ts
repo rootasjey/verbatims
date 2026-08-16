@@ -9,6 +9,9 @@ const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc'
 const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
 const projectRoot = dirname(fileURLToPath(import.meta.url))
 const useLocalDatabase = process.env.NUXT_HUB_LOCAL_DB === '1'
+const testDatabaseUrl = process.env.NUXT_TEST_DB_PATH
+  ? `file:${process.env.NUXT_TEST_DB_PATH}`
+  : 'file:.data/db/sqlite.db'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-31',
@@ -105,7 +108,8 @@ export default defineNuxtConfig({
       // Cloudflare production still resolves this to the D1 driver at build time.
       driver: 'libsql',
       connection: {
-        url: 'file:.data/db/sqlite.db',
+        // E2E tests use an isolated SQLite file; local development keeps its regular database.
+        url: testDatabaseUrl,
       },
       applyMigrationsDuringDev: false,
       applyMigrationsDuringBuild: false,
