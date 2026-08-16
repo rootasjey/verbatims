@@ -83,6 +83,8 @@ export interface QuoteWithRelations extends Quote {
   author?: Author;
   reference?: QuoteReference;
   tags?: Array<{ id?: number; name: string; color?: string | null }>;
+  attributions?: QuoteAttribution[];
+  sources?: QuoteSource[];
   user?: {
     id: number;
     name: string;

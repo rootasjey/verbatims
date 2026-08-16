@@ -55,6 +55,16 @@
               </dd>
             </div>
 
+            <div v-if="primaryAttribution && primaryAttribution.status !== 'unverified'" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                <NIcon name="i-ph-seal-check" class="w-4 h-4 mr-2 text-gray-400" />
+                Verification
+              </dt>
+              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-sm font-sans font-500 text-gray-700 dark:text-gray-300">
+                {{ provenanceLabel(primaryAttribution.status) }}
+              </dd>
+            </div>
+
             <!-- Submitted by -->
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
@@ -139,5 +149,12 @@ interface Props {
   waveColor?: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const primaryAttribution = computed(() => props.quote.attributions?.find(attribution => attribution.is_primary))
+const provenanceLabel = (status: string) => ({
+  manually_verified: 'Manually verified',
+  externally_verified: 'Externally verified',
+  disputed: 'Disputed',
+}[status] || status)
 </script>
