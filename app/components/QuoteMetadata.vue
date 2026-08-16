@@ -65,6 +65,21 @@
               </dd>
             </div>
 
+            <div v-if="quote.attributions?.length" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+              <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
+                <NIcon name="i-ph-git-branch" class="w-4 h-4 mr-2 text-gray-400" />
+                Attributions
+              </dt>
+              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 space-y-2 text-sm font-sans text-gray-700 dark:text-gray-300">
+                <div v-for="attribution in quote.attributions" :key="attribution.id" class="flex flex-wrap items-center gap-1.5">
+                  <span>{{ attribution.author?.name || 'Unknown author' }}</span>
+                  <span class="text-gray-400">·</span>
+                  <span>{{ attribution.reference?.name || 'Unknown reference' }}</span>
+                  <NBadge v-if="attribution.is_primary" badge="soft-blue" size="xs">Primary</NBadge>
+                </div>
+              </dd>
+            </div>
+
             <!-- Submitted by -->
             <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
