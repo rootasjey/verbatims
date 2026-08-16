@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../validation/schemas'
+import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -80,11 +81,17 @@ export default defineEventHandler(async (event) => {
       referenceId: referenceId || null,
       userId: user.id,
       status: 'draft',
+      sourceType: user.role === 'admin' || user.role === 'moderator' ? body.source_type || null : null,
+      sourceUrl: user.role === 'admin' || user.role === 'moderator' ? body.source_url || null : null,
       createdAt: new Date(),
       updatedAt: new Date()
     } as any).returning({ id: schema.quotes.id }).get()
 
     const quoteId = quoteResult.id
+    const attributionId = await syncPrimaryAttribution(quoteId, authorId || null, referenceId || null, user.id)
+    if (user.role === 'admin' || user.role === 'moderator') {
+      await syncPrimarySource(quoteId, attributionId, body.source_type, body.source_url, user.id)
+    }
 
     // Add tags if provided
     if (body.tags && body.tags.length > 0) {
