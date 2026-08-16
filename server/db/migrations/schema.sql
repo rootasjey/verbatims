@@ -160,6 +160,57 @@ CREATE TABLE IF NOT EXISTS quote_tags (
   FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
+-- Quote attributions allow one quote text to have multiple author/reference pairs.
+CREATE TABLE IF NOT EXISTS quote_attributions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  quote_id INTEGER NOT NULL,
+  author_id INTEGER,
+  reference_id INTEGER,
+  is_primary BOOLEAN NOT NULL DEFAULT TRUE,
+  status TEXT NOT NULL DEFAULT 'unverified' CHECK (status IN ('unverified', 'manually_verified', 'externally_verified', 'disputed')),
+  verified_by INTEGER,
+  verified_at DATETIME,
+  notes TEXT,
+  created_by INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+  FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL,
+  FOREIGN KEY (reference_id) REFERENCES quote_references(id) ON DELETE SET NULL,
+  FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Evidence can support the quote text or a specific attribution.
+CREATE TABLE IF NOT EXISTS quote_sources (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  quote_id INTEGER NOT NULL,
+  attribution_id INTEGER,
+  source_type TEXT NOT NULL,
+  source_url TEXT,
+  label TEXT,
+  verification_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verification_status IN ('unverified', 'manually_verified', 'externally_verified', 'disputed')),
+  verified_by INTEGER,
+  verified_at DATETIME,
+  notes TEXT,
+  is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+  created_by INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+  FOREIGN KEY (attribution_id) REFERENCES quote_attributions(id) ON DELETE SET NULL,
+  FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_quote_attributions_quote ON quote_attributions(quote_id);
+CREATE INDEX IF NOT EXISTS idx_quote_attributions_author ON quote_attributions(author_id);
+CREATE INDEX IF NOT EXISTS idx_quote_attributions_reference ON quote_attributions(reference_id);
+CREATE INDEX IF NOT EXISTS idx_quote_attributions_status ON quote_attributions(status);
+CREATE INDEX IF NOT EXISTS idx_quote_sources_quote ON quote_sources(quote_id);
+CREATE INDEX IF NOT EXISTS idx_quote_sources_attribution ON quote_sources(attribution_id);
+CREATE INDEX IF NOT EXISTS idx_quote_sources_status ON quote_sources(verification_status);
+
 -- ============================================================================
 -- USER INTERACTIONS & COLLECTIONS
 -- ============================================================================
