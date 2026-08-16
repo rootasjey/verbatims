@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { updateQuoteSchema } from '../../validation/schemas'
+import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -66,6 +67,11 @@ export default defineEventHandler(async (event) => {
       .set(updateData as any)
       .where(eq(schema.quotes.id, parseInt(quoteId!)))
       .run()
+
+    const attributionId = await syncPrimaryAttribution(e.id, authorId || null, referenceId || null, user.id)
+    if (isAdmin) {
+      await syncPrimarySource(e.id, attributionId, body.source_type, body.source_url, user.id)
+    }
 
     // Fetch the updated quote with all related data
     const updatedQuote = await db.select({

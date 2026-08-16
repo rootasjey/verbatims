@@ -59,6 +59,18 @@ export const updateQuoteSchema = z.object({
   }).optional(),
 })
 
+export const updateQuoteProvenanceSchema = z.object({
+  author_id: nullablePositiveInt.optional(),
+  reference_id: nullablePositiveInt.optional(),
+  attribution_status: z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed']).optional(),
+  attribution_notes: z.string().max(5000).trim().optional().nullable(),
+  source_type: z.string().max(100).trim().optional().nullable(),
+  source_url: z.string().url().optional().nullable(),
+  source_label: z.string().max(200).trim().optional().nullable(),
+  source_verification_status: z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed']).optional(),
+  source_notes: z.string().max(5000).trim().optional().nullable(),
+})
+
 export const moderateQuoteSchema = z.object({
   action: z.enum(['approve', 'reject']),
   rejection_reason: z.string().max(2000).trim().optional().nullable(),

@@ -91,6 +91,36 @@ export interface QuoteWithRelations extends Quote {
   };
 }
 
+export type QuoteProvenanceStatus = 'unverified' | 'manually_verified' | 'externally_verified' | 'disputed'
+
+export interface QuoteAttribution {
+  id: number
+  quote_id: number
+  author_id?: number | null
+  reference_id?: number | null
+  is_primary: boolean
+  status: QuoteProvenanceStatus
+  verified_by?: number | null
+  verified_at?: string | null
+  notes?: string | null
+  author?: Author
+  reference?: QuoteReference
+}
+
+export interface QuoteSource {
+  id: number
+  quote_id: number
+  attribution_id?: number | null
+  source_type: string
+  source_url?: string | null
+  label?: string | null
+  verification_status: QuoteProvenanceStatus
+  verified_by?: number | null
+  verified_at?: string | null
+  notes?: string | null
+  is_primary: boolean
+}
+
 /**
  * Extended interface for admin quotes with additional fields
  */

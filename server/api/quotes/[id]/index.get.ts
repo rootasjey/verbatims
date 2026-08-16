@@ -48,14 +48,50 @@ export default defineEventHandler(async (event) => {
     const q = quote!
 
     // Fetch tags for the quote
-    const tags = await db.select({
+    const [tags, attributions, sources] = await Promise.all([
+      db.select({
       name: schema.tags.name,
       color: schema.tags.color
-    })
-    .from(schema.tags)
-    .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
-    .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
-    .all()
+      })
+        .from(schema.tags)
+        .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
+        .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
+        .all(),
+      db.select({
+        id: schema.quoteAttributions.id,
+        quoteId: schema.quoteAttributions.quoteId,
+        authorId: schema.quoteAttributions.authorId,
+        referenceId: schema.quoteAttributions.referenceId,
+        isPrimary: schema.quoteAttributions.isPrimary,
+        status: schema.quoteAttributions.status,
+        verifiedBy: schema.quoteAttributions.verifiedBy,
+        verifiedAt: schema.quoteAttributions.verifiedAt,
+        notes: schema.quoteAttributions.notes,
+        authorName: schema.authors.name,
+        referenceName: schema.quoteReferences.name,
+      })
+        .from(schema.quoteAttributions)
+        .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
+        .leftJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
+        .where(eq(schema.quoteAttributions.quoteId, parseInt(quoteId!)))
+        .all(),
+      db.select({
+        id: schema.quoteSources.id,
+        quoteId: schema.quoteSources.quoteId,
+        attributionId: schema.quoteSources.attributionId,
+        sourceType: schema.quoteSources.sourceType,
+        sourceUrl: schema.quoteSources.sourceUrl,
+        label: schema.quoteSources.label,
+        verificationStatus: schema.quoteSources.verificationStatus,
+        verifiedBy: schema.quoteSources.verifiedBy,
+        verifiedAt: schema.quoteSources.verifiedAt,
+        notes: schema.quoteSources.notes,
+        isPrimary: schema.quoteSources.isPrimary,
+      })
+        .from(schema.quoteSources)
+        .where(eq(schema.quoteSources.quoteId, parseInt(quoteId!)))
+        .all(),
+    ])
 
     const transformedQuote = {
       id: q.id,
@@ -88,7 +124,33 @@ export default defineEventHandler(async (event) => {
       tags: tags.map(t => ({
         name: t.name,
         color: t.color
-      }))
+      })),
+      attributions: attributions.map(attribution => ({
+        id: attribution.id,
+        quote_id: attribution.quoteId,
+        author_id: attribution.authorId,
+        reference_id: attribution.referenceId,
+        is_primary: attribution.isPrimary,
+        status: attribution.status,
+        verified_by: attribution.verifiedBy,
+        verified_at: attribution.verifiedAt,
+        notes: attribution.notes,
+        author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName } : undefined,
+        reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName } : undefined,
+      })),
+      sources: sources.map(source => ({
+        id: source.id,
+        quote_id: source.quoteId,
+        attribution_id: source.attributionId,
+        source_type: source.sourceType,
+        source_url: source.sourceUrl,
+        label: source.label,
+        verification_status: source.verificationStatus,
+        verified_by: source.verifiedBy,
+        verified_at: source.verifiedAt,
+        notes: source.notes,
+        is_primary: source.isPrimary,
+      })),
     }
 
     return {
