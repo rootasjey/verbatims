@@ -105,8 +105,8 @@ export interface QuoteAttribution {
   verified_by?: number | null
   verified_at?: string | null
   notes?: string | null
-  author?: Author
-  reference?: QuoteReference
+  author?: Pick<Author, 'id' | 'name'>
+  reference?: Pick<QuoteReference, 'id' | 'name'>
 }
 
 export interface QuoteSource {
