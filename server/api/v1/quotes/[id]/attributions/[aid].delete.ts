@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm'
 import { requireQuoteAttribution } from '~~/server/utils/admin-quote-provenance'
 import { requireApiModerator } from '~~/server/utils/api-quote-provenance'
 
+defineRouteMeta({ openAPI: { summary: 'Delete quote attribution', tags: ['Quote provenance'], security: [{ apiKey: ['write:quotes'] }] } })
+
 export default defineEventHandler(async (event) => {
   requireApiModerator(event.context.api)
   const quoteId = Number(getRouterParam(event, 'id'))
