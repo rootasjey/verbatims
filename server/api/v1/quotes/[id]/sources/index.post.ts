@@ -4,6 +4,8 @@ import { createQuoteSourceSchema } from '../../../../../validation/schemas'
 import { requireAttributionForQuote, requireQuote } from '~~/server/utils/admin-quote-provenance'
 import { requireApiModerator } from '~~/server/utils/api-quote-provenance'
 
+defineRouteMeta({ openAPI: { summary: 'Create quote source', tags: ['Quote provenance'], security: [{ apiKey: ['write:quotes'] }] } })
+
 export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiModerator(api)

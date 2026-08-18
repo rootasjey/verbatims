@@ -11,6 +11,8 @@ const noPermKey = testDb.noPermKey
 const themeKey = testDb.themeKey
 const socialReadKey = testDb.socialReadKey
 const socialWriteKey = testDb.socialWriteKey
+const userKey = testDb.userKey
+const moderatorKey = testDb.moderatorKey
 let adminCookie: string
 
 process.env.TURSO_DATABASE_URL = `file:${testDb.dbPath}`
@@ -53,6 +55,14 @@ function socialReadHeaders() {
 
 function socialWriteHeaders() {
   return { headers: { Authorization: `Bearer ${socialWriteKey}` } }
+}
+
+function userWriteHeaders() {
+  return { headers: { Authorization: `Bearer ${userKey}` } }
+}
+
+function moderatorHeaders() {
+  return { headers: { Authorization: `Bearer ${moderatorKey}` } }
 }
 
 // ── Auth ──
@@ -362,6 +372,69 @@ describe('GET /api/v1/quotes/[id]', () => {
   test('returns 404 for draft quote', async () => {
     const res = await fetch('/api/v1/quotes/5', headers())
     expect(res.status).toBe(404)
+  })
+})
+
+describe('API v1 quote provenance CRUD', () => {
+  let attributionId: number
+  let sourceId: number
+
+  test('rejects provenance CRUD for a regular API user', async () => {
+    const response = await fetch('/api/v1/quotes/1/attributions', {
+      ...userWriteHeaders(),
+    })
+    expect(response.status).toBe(403)
+  })
+
+  test('allows a moderator to create and list an attribution', async () => {
+    const created = await $fetch('/api/v1/quotes/1/attributions', {
+      ...moderatorHeaders(),
+      method: 'POST',
+      body: { author_id: 2, reference_id: 2, status: 'manually_verified', notes: 'API integration attribution' },
+    })
+    expect(created.success).toBe(true)
+    attributionId = created.data.id
+
+    const listed = await $fetch('/api/v1/quotes/1/attributions', moderatorHeaders())
+    expect(listed.data.some((item: { id: number }) => item.id === attributionId)).toBe(true)
+  })
+
+  test('allows a moderator to create, update, and delete a source', async () => {
+    const created = await $fetch('/api/v1/quotes/1/sources', {
+      ...moderatorHeaders(),
+      method: 'POST',
+      body: { attribution_id: attributionId, source_type: 'book', source_url: 'https://example.com/api-source' },
+    })
+    expect(created.success).toBe(true)
+    sourceId = created.data.id
+
+    const updated = await $fetch(`/api/v1/quotes/1/sources/${sourceId}`, {
+      ...moderatorHeaders(),
+      method: 'PUT',
+      body: { verification_status: 'externally_verified', label: 'API source' },
+    })
+    expect(updated.success).toBe(true)
+
+    const deleted = await $fetch(`/api/v1/quotes/1/sources/${sourceId}`, {
+      ...moderatorHeaders(),
+      method: 'DELETE',
+    })
+    expect(deleted.success).toBe(true)
+  })
+
+  test('allows a moderator to update and delete an attribution', async () => {
+    const updated = await $fetch(`/api/v1/quotes/1/attributions/${attributionId}`, {
+      ...moderatorHeaders(),
+      method: 'PUT',
+      body: { status: 'disputed' },
+    })
+    expect(updated.success).toBe(true)
+
+    const deleted = await $fetch(`/api/v1/quotes/1/attributions/${attributionId}`, {
+      ...moderatorHeaders(),
+      method: 'DELETE',
+    })
+    expect(deleted.success).toBe(true)
   })
 })
 

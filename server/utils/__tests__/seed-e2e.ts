@@ -54,16 +54,24 @@ export async function seedTestDb() {
   const socialReadKeyHash = hashKey(socialReadKey)
   const socialWriteKey = 'vbt_socialw0000000000000000000000000000000000'
   const socialWriteKeyHash = hashKey(socialWriteKey)
+  const userKey = 'vbt_userkey0000000000000000000000000000000000'
+  const userKeyHash = hashKey(userKey)
+  const moderatorKey = 'vbt_modkey00000000000000000000000000000000000'
+  const moderatorKeyHash = hashKey(moderatorKey)
   const adminPw = await hashPassword('admin123!')
 
   await client.executeMultiple(`
     INSERT INTO users (id, email, name, password, role, language) VALUES (1, 'test@verbatims.cc', 'Test User', '${adminPw}', 'admin', 'en');
+    INSERT INTO users (id, email, name, password, role, language) VALUES (2, 'moderator@verbatims.cc', 'Test Moderator', '${adminPw}', 'moderator', 'en');
+    INSERT INTO users (id, email, name, password, role, language) VALUES (3, 'user@verbatims.cc', 'Test API User', '${adminPw}', 'user', 'en');
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Test Key', '${keyHash}', 'vbt_testke', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Write Key', '${writeKeyHash}', 'vbt_writek', '["read","write:quotes","write:authors","write:references","write:collections"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'No Perm Key', '${noPermKeyHash}', 'vbt_noperm', '["read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Theme Key', '${themeKeyHash}', 'vbt_themek', '["admin:themes"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Read Key', '${socialReadKeyHash}', 'vbt_socialr', '["social:read"]', 1000, 3600, 1000, 3600, 1);
     INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (1, 'Social Write Key', '${socialWriteKeyHash}', 'vbt_socialw', '["social:read","social:write"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (3, 'User Key', '${userKeyHash}', 'vbt_userkey', '["read","write:quotes"]', 1000, 3600, 1000, 3600, 1);
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, read_rate_limit, read_window_sec, write_rate_limit, write_window_sec, is_active) VALUES (2, 'Moderator Key', '${moderatorKeyHash}', 'vbt_modkey0', '["read","write:quotes"]', 1000, 3600, 1000, 3600, 1);
 
     INSERT INTO authors (id, name, is_fictional) VALUES (1, 'Marcus Aurelius', 0), (2, 'Albert Camus', 0), (3, 'Friedrich Nietzsche', 0);
     INSERT INTO quote_references (id, name, primary_type) VALUES (1, 'Meditations', 'book'), (2, 'The Stranger', 'book'), (3, 'Thus Spoke Zarathustra', 'book');
@@ -89,7 +97,7 @@ export async function seedTestDb() {
   `)
 
   client.close()
-  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey, themeKey, socialReadKey, socialWriteKey }
+  return { dbPath: DB_PATH, apiKey, writeKey, noPermKey, themeKey, socialReadKey, socialWriteKey, userKey, moderatorKey }
 }
 
 if (process.argv[1] && process.argv[1].includes('seed-e2e')) {
