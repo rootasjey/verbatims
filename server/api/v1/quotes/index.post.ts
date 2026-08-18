@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
-import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { syncPrimaryAttribution, syncPrimarySource, getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -192,6 +192,7 @@ export default defineEventHandler(async (event) => {
         type: createdQuote!.sourceType,
         url: createdQuote!.sourceUrl,
       } : null,
+      ...(await getQuoteProvenance(quoteResult.id)),
       author: createdQuote!.authorId ? {
         id: createdQuote!.authorId,
         name: createdQuote!.authorName,
