@@ -23,7 +23,11 @@
           </div>
           <div class="flex shrink-0 gap-2">
             <button class="text-xs text-blue-600 hover:underline dark:text-blue-400" @click="editAttribution(attribution)">Edit</button>
-            <button class="text-xs text-red-600 hover:underline dark:text-red-400" @click="removeAttribution(attribution)">Delete</button>
+            <template v-if="confirmingAttribution === attribution.id">
+              <button class="text-xs font-600 text-red-600 hover:underline dark:text-red-400" @click="removeAttribution(attribution)">Confirm?</button>
+              <button class="text-xs text-gray-500 hover:underline dark:text-gray-400" @click="confirmingAttribution = null">Cancel</button>
+            </template>
+            <button v-else class="text-xs text-red-600 hover:underline dark:text-red-400" @click="confirmingAttribution = attribution.id">Delete</button>
           </div>
         </div>
 
@@ -93,7 +97,11 @@
           </div>
           <div v-if="editingSource !== source.id" class="flex shrink-0 gap-2">
             <button class="text-blue-600 hover:underline dark:text-blue-400" @click="editSource(source)">Edit</button>
-            <button class="text-red-600 hover:underline dark:text-red-400" @click="removeSource(source)">Delete</button>
+            <template v-if="confirmingSource === source.id">
+              <button class="font-600 text-red-600 hover:underline dark:text-red-400" @click="removeSource(source)">Confirm?</button>
+              <button class="text-gray-500 hover:underline dark:text-gray-400" @click="confirmingSource = null">Cancel</button>
+            </template>
+            <button v-else class="text-red-600 hover:underline dark:text-red-400" @click="confirmingSource = source.id">Delete</button>
           </div>
         </div>
       </div>
@@ -120,6 +128,8 @@ const editingAttribution = ref<number | null>(null)
 const creatingAttribution = ref(false)
 const editingSource = ref<number | null>(null)
 const creatingSource = ref(false)
+const confirmingAttribution = ref<number | null>(null)
+const confirmingSource = ref<number | null>(null)
 const saving = ref(false)
 const attributionForm = reactive<{ author: Author | null; reference: QuoteReference | null; status: QuoteProvenanceStatus; notes: string; is_primary: boolean }>({ author: null, reference: null, status: 'unverified', notes: '', is_primary: false })
 const sourceForm = reactive<{ attribution_id: number | null; source_type: string; source_url: string; label: string; verification_status: QuoteProvenanceStatus; is_primary: boolean }>({ attribution_id: null, source_type: '', source_url: '', label: '', verification_status: 'unverified', is_primary: false })
@@ -127,16 +137,16 @@ const sourceForm = reactive<{ attribution_id: number | null; source_type: string
 const statusLabel = (status: string) => ({ unverified: 'Unverified', manually_verified: 'Manually verified', externally_verified: 'Externally verified', disputed: 'Disputed' }[status] || status)
 const statusBadge = (status: string) => status === 'disputed' ? 'soft-error' : status === 'externally_verified' ? 'soft-success' : status === 'manually_verified' ? 'soft-blue' : 'soft-gray'
 const fail = (error: unknown) => { console.error(error); toast.toast({ title: 'Could not save provenance', description: 'Please try again.', toast: 'soft-error' }) }
-const resetAttribution = () => { editingAttribution.value = null; creatingAttribution.value = false }
+const resetAttribution = () => { editingAttribution.value = null; creatingAttribution.value = false; confirmingAttribution.value = null }
 const startAttribution = () => { Object.assign(attributionForm, { author: null, reference: null, status: 'unverified', notes: '', is_primary: false }); creatingAttribution.value = true; editingAttribution.value = -1 }
 const editAttribution = (item: QuoteAttribution) => { Object.assign(attributionForm, { author: item.author || null, reference: item.reference || null, status: item.status, notes: item.notes || '', is_primary: item.is_primary }); editingAttribution.value = item.id; creatingAttribution.value = false }
 const cancelAttribution = resetAttribution
 const saveAttribution = async () => { saving.value = true; try { const body = { author_id: attributionForm.author?.id || null, reference_id: attributionForm.reference?.id || null, status: attributionForm.status, notes: attributionForm.notes || null, is_primary: attributionForm.is_primary }; if (creatingAttribution.value) await $fetch(`/api/admin/quotes/${props.quoteId}/attributions`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${editingAttribution.value}`, { method: 'PUT', body }); resetAttribution(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
-const removeAttribution = async (item: QuoteAttribution) => { if (!window.confirm('Delete this attribution?')) return; try { await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${item.id}`, { method: 'DELETE' }); emit('changed') } catch (error) { fail(error) } }
-const resetSource = () => { editingSource.value = null; creatingSource.value = false }
+const removeAttribution = async (item: QuoteAttribution) => { saving.value = true; try { await $fetch(`/api/admin/quotes/${props.quoteId}/attributions/${item.id}`, { method: 'DELETE' }); confirmingAttribution.value = null; emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
+const resetSource = () => { editingSource.value = null; creatingSource.value = false; confirmingSource.value = null }
 const startSource = () => { Object.assign(sourceForm, { attribution_id: props.attributions.find(item => item.is_primary)?.id || null, source_type: '', source_url: '', label: '', verification_status: 'unverified', is_primary: false }); creatingSource.value = true; editingSource.value = null }
 const editSource = (item: QuoteSource) => { Object.assign(sourceForm, { attribution_id: item.attribution_id || null, source_type: item.source_type, source_url: item.source_url || '', label: item.label || '', verification_status: item.verification_status, is_primary: item.is_primary }); editingSource.value = item.id; creatingSource.value = false }
 const cancelSource = resetSource
 const saveSource = async () => { saving.value = true; try { const body = { ...sourceForm, source_url: sourceForm.source_url || null, label: sourceForm.label || null }; if (creatingSource.value) await $fetch(`/api/admin/quotes/${props.quoteId}/sources`, { method: 'POST', body }); else await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${editingSource.value}`, { method: 'PUT', body }); resetSource(); emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
-const removeSource = async (item: QuoteSource) => { if (!window.confirm('Delete this source?')) return; try { await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${item.id}`, { method: 'DELETE' }); emit('changed') } catch (error) { fail(error) } }
+const removeSource = async (item: QuoteSource) => { saving.value = true; try { await $fetch(`/api/admin/quotes/${props.quoteId}/sources/${item.id}`, { method: 'DELETE' }); confirmingSource.value = null; emit('changed') } catch (error) { fail(error) } finally { saving.value = false } }
 </script>
