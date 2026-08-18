@@ -78,6 +78,9 @@ export default defineEventHandler(async (event) => {
     referenceId = referenceResult.id
   }
 
+  if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
+  if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
+
   if (authorId) {
     const author = await db.select({ id: schema.authors.id })
       .from(schema.authors)
@@ -105,6 +108,8 @@ export default defineEventHandler(async (event) => {
 
   if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
+  const provenanceSource = body.provenance?.source
+
   const quoteResult = await db.insert(schema.quotes).values({
     name: body.name,
     language: body.language,
@@ -112,14 +117,35 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     userId: api.userId,
     status: 'draft',
-    sourceType: body.source_type || null,
-    sourceUrl: body.source_url || null,
+    sourceType: provenanceSource?.source_type ?? body.source_type ?? null,
+    sourceUrl: provenanceSource?.source_url ?? body.source_url ?? null,
     createdAt: new Date(),
     updatedAt: new Date()
   } as any).returning({ id: schema.quotes.id }).get()
 
-  const attributionId = await syncPrimaryAttribution(quoteResult.id, authorId || null, referenceId || null, api.userId)
-  await syncPrimarySource(quoteResult.id, attributionId, body.source_type, body.source_url, api.userId, 'unverified')
+  const attributionStatus = api.userRole === 'admin' || api.userRole === 'moderator'
+    ? body.provenance?.status
+    : 'unverified'
+  const attributionId = await syncPrimaryAttribution(
+    quoteResult.id,
+    authorId || null,
+    referenceId || null,
+    api.userId,
+    attributionStatus,
+    body.provenance?.notes,
+  )
+  if (provenanceSource || body.source_type || body.source_url) {
+    await syncPrimarySource(
+      quoteResult.id,
+      attributionId,
+      provenanceSource?.source_type ?? body.source_type,
+      provenanceSource?.source_url ?? body.source_url,
+      api.userId,
+      api.userRole === 'admin' || api.userRole === 'moderator' ? provenanceSource?.verification_status : 'unverified',
+      provenanceSource?.label,
+      provenanceSource?.notes,
+    )
+  }
 
   await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft', name: body.name } })
 

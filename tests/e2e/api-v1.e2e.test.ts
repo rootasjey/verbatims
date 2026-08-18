@@ -625,6 +625,32 @@ describe('POST /api/v1/quotes', () => {
     expect(res.data.reference?.id).toBe(1)
   })
 
+  test('creates quote with modern primary provenance as a regular user', async () => {
+    const res = await $fetch('/api/v1/quotes', {
+      ...userWriteHeaders(),
+      method: 'POST',
+      body: {
+        name: 'Quote with modern provenance.',
+        language: 'en',
+        provenance: {
+          author_id: 1,
+          reference_id: 1,
+          status: 'externally_verified',
+          source: {
+            source_type: 'book',
+            source_url: 'https://example.com/modern-source',
+            verification_status: 'externally_verified',
+          },
+        },
+      },
+    })
+    expect(res.success).toBe(true)
+    expect(res.data.attributions[0].author_id).toBe(1)
+    expect(res.data.attributions[0].status).toBe('unverified')
+    expect(res.data.sources[0].source_type).toBe('book')
+    expect(res.data.sources[0].verification_status).toBe('unverified')
+  })
+
   test('creates quote with inline new_author', async () => {
     const res = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),

@@ -38,6 +38,10 @@ export default defineEventHandler(async (event) => {
       referenceId = referenceResult.id
     }
 
+    if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
+    if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
+    const provenanceSource = body.provenance?.source
+
     // Validate author_id if provided
     if (authorId) {
       const author = await db.select({ id: schema.authors.id })
@@ -81,15 +85,34 @@ export default defineEventHandler(async (event) => {
       referenceId: referenceId || null,
       userId: user.id,
       status: 'draft',
-      sourceType: body.source_type || null,
-      sourceUrl: body.source_url || null,
+      sourceType: provenanceSource?.source_type ?? body.source_type ?? null,
+      sourceUrl: provenanceSource?.source_url ?? body.source_url ?? null,
       createdAt: new Date(),
       updatedAt: new Date()
     } as any).returning({ id: schema.quotes.id }).get()
 
     const quoteId = quoteResult.id
-    const attributionId = await syncPrimaryAttribution(quoteId, authorId || null, referenceId || null, user.id)
-    await syncPrimarySource(quoteId, attributionId, body.source_type, body.source_url, user.id, 'unverified')
+    const isPrivileged = user.role === 'admin' || user.role === 'moderator'
+    const attributionId = await syncPrimaryAttribution(
+      quoteId,
+      authorId || null,
+      referenceId || null,
+      user.id,
+      isPrivileged ? body.provenance?.status : 'unverified',
+      body.provenance?.notes,
+    )
+    if (provenanceSource || body.source_type || body.source_url) {
+      await syncPrimarySource(
+        quoteId,
+        attributionId,
+        provenanceSource?.source_type ?? body.source_type,
+        provenanceSource?.source_url ?? body.source_url,
+        user.id,
+        isPrivileged ? provenanceSource?.verification_status : 'unverified',
+        provenanceSource?.label,
+        provenanceSource?.notes,
+      )
+    }
 
     // Add tags if provided
     if (body.tags && body.tags.length > 0) {

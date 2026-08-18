@@ -80,6 +80,11 @@ export default defineEventHandler(async (event) => {
     referenceId = newReference.id
   }
 
+  if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
+  if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
+
+  const provenanceSource = body.provenance?.source
+
   const updateData: Record<string, unknown> = {
     name: body.name,
     language: body.language || 'en',
@@ -87,8 +92,8 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     updatedAt: new Date(),
   }
-  updateData.sourceType = body.source_type || null
-  updateData.sourceUrl = body.source_url || null
+  updateData.sourceType = provenanceSource?.source_type ?? body.source_type ?? null
+  updateData.sourceUrl = provenanceSource?.source_url ?? body.source_url ?? null
 
   await db.update(schema.quotes)
     .set({
@@ -97,14 +102,24 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quotes.id, quoteId))
     .run()
 
-  const attributionId = await syncPrimaryAttribution(quoteId, authorId || null, referenceId || null, api.userId)
+  const attributionStatus = isMod ? body.provenance?.status : 'unverified'
+  const attributionId = await syncPrimaryAttribution(
+    quoteId,
+    authorId || null,
+    referenceId || null,
+    api.userId,
+    attributionStatus,
+    body.provenance?.notes,
+  )
   await syncPrimarySource(
     quoteId,
     attributionId,
-    body.source_type,
-    body.source_url,
+    provenanceSource?.source_type ?? body.source_type,
+    provenanceSource?.source_url ?? body.source_url,
     api.userId,
-    isMod ? undefined : 'unverified',
+    isMod ? provenanceSource?.verification_status : 'unverified',
+    provenanceSource?.label,
+    provenanceSource?.notes,
   )
 
   await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status, name: body.name } })

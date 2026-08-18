@@ -18,6 +18,22 @@ const imageUrlField = z.string().refine(
   { message: 'Must be a valid URL or a /blob/ path' },
 ).optional().nullable()
 
+const provenanceStatus = z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed'])
+
+const primaryQuoteProvenanceSchema = z.object({
+  author_id: nullablePositiveInt.optional(),
+  reference_id: nullablePositiveInt.optional(),
+  status: provenanceStatus.optional(),
+  notes: z.string().max(5000).trim().optional().nullable(),
+  source: z.object({
+    source_type: z.string().min(1).max(100).trim(),
+    source_url: z.string().url().optional().nullable(),
+    label: z.string().max(200).trim().optional().nullable(),
+    verification_status: provenanceStatus.optional(),
+    notes: z.string().max(5000).trim().optional().nullable(),
+  }).optional(),
+})
+
 export const createQuoteSchema = z.object({
   name: z.string().min(2).max(4000).trim(),
   language: z.enum(validLanguages).optional().default('en'),
@@ -39,6 +55,7 @@ export const createQuoteSchema = z.object({
     release_date: z.string().max(50).trim().optional().nullable(),
   }).optional(),
   tags: z.array(z.union([z.number(), z.string()])).max(20).optional(),
+  provenance: primaryQuoteProvenanceSchema.optional(),
 })
 
 export const updateQuoteSchema = z.object({
@@ -57,6 +74,7 @@ export const updateQuoteSchema = z.object({
     primary_type: z.string().min(1).max(100).trim().optional().default('other'),
     original_language: z.string().min(1).max(10).trim().optional().default('en'),
   }).optional(),
+  provenance: primaryQuoteProvenanceSchema.partial().optional(),
 })
 
 export const updateQuoteProvenanceSchema = z.object({
@@ -70,8 +88,6 @@ export const updateQuoteProvenanceSchema = z.object({
   source_verification_status: z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed']).optional(),
   source_notes: z.string().max(5000).trim().optional().nullable(),
 })
-
-const provenanceStatus = z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed'])
 
 export const createQuoteAttributionSchema = z.object({
   author_id: nullablePositiveInt.optional().default(null),
