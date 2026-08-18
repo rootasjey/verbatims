@@ -97,8 +97,39 @@ const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[
 const loadProvenance = async () => {
   if (!props.quote?.id) return
   try {
-    const response = await $fetch<ApiResponse<{ attributions: QuoteAttribution[]; sources: QuoteSource[] }>>(`/api/quotes/${props.quote.id}`)
-    provenance.value = response.data || null
+    const [attributionsResponse, sourcesResponse] = await Promise.all([
+      $fetch<ApiResponse<Array<{
+        id: number
+        quote_id: number
+        author_id: number | null
+        reference_id: number | null
+        is_primary: boolean
+        status: QuoteProvenanceStatus
+        verified_by: number | null
+        verified_at: string | null
+        notes: string | null
+        author_name: string | null
+        reference_name: string | null
+      }>>>(`/api/admin/quotes/${props.quote.id}/attributions`),
+      $fetch<ApiResponse<QuoteSource[]>>(`/api/admin/quotes/${props.quote.id}/sources`),
+    ])
+
+    provenance.value = {
+      attributions: (attributionsResponse.data || []).map(attribution => ({
+        id: attribution.id,
+        quote_id: attribution.quote_id,
+        author_id: attribution.author_id,
+        reference_id: attribution.reference_id,
+        is_primary: attribution.is_primary,
+        status: attribution.status,
+        verified_by: attribution.verified_by,
+        verified_at: attribution.verified_at,
+        notes: attribution.notes,
+        author: attribution.author_id ? { id: attribution.author_id, name: attribution.author_name || 'Unknown author' } : undefined,
+        reference: attribution.reference_id ? { id: attribution.reference_id, name: attribution.reference_name || 'Unknown reference' } : undefined,
+      })),
+      sources: sourcesResponse.data || [],
+    }
   } catch (error) {
     console.error('Failed to load quote provenance:', error)
   }
