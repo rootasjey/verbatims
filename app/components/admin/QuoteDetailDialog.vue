@@ -3,68 +3,77 @@
     v-model="isOpen"
     title=""
     hide-footer
+    max-width="2xl"
+    scrollable
     @close="emit('update:open', false)"
   >
     <template #title>
       <span class="font-title uppercase text-size-4 font-600">Quote Details</span>
     </template>
 
-    <div v-if="quote">
-      <blockquote class="font-body text-size-8 font-300 line-height-tight text-gray-900 dark:text-white leading-relaxed">
-        {{ quote.name }}
-      </blockquote>
+    <div v-if="quote" class="space-y-6">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.95fr)] lg:items-start">
+        <section class="min-w-0 lg:border-r lg:border-dashed lg:border-gray-200 lg:pr-6 lg:dark:border-gray-700">
+          <p class="mb-4 font-sans text-[0.65rem] font-700 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">Quote</p>
+          <blockquote class="font-body text-size-8 font-300 line-height-tight text-gray-900 dark:text-white leading-relaxed">
+            {{ quote.name }}
+          </blockquote>
 
-      <div class="mt-6 flex flex-col gap-1 mb-6 border-t b-dashed border-gray-200 dark:border-gray-700 pt-6">
-        <div v-if="quote.author" class="flex items-center gap-4">
-          <NIcon name="i-ph-person-simple-walk" class="w-4 h-4 text-gray-500" />
-          <span class="text-sm text-gray-900 dark:text-white">{{ quote.author.name }}</span>
-          <NBadge v-if="quote.author.is_fictional" badge="soft-purple" size="xs">{{ $t('components.quote_card.fictional') }}</NBadge>
-        </div>
-        <div v-if="quote.reference" class="flex items-center gap-4">
-          <NIcon name="i-ph-book-open-text-duotone" class="w-4 h-4 text-gray-500" />
-          <span class="text-sm text-gray-900 dark:text-white">{{ quote.reference.name }}</span>
-        </div>
-        <div v-if="quote.language" class="flex items-center gap-4">
-          <NIcon name="i-ph-globe" class="w-4 h-4 text-gray-500" />
-          <span class="text-sm text-gray-900 dark:text-white">{{ quote.language }}</span>
-        </div>
-      </div>
+          <div class="mt-8 flex flex-col gap-3 border-t b-dashed border-gray-200 pt-5 dark:border-gray-700">
+            <div v-if="quote.author" class="flex items-center gap-3">
+              <NIcon name="i-ph-person-simple-walk" class="h-4 w-4 shrink-0 text-gray-500" />
+              <span class="text-sm text-gray-900 dark:text-white">{{ quote.author.name }}</span>
+              <NBadge v-if="quote.author.is_fictional" badge="soft-purple" size="xs">{{ $t('components.quote_card.fictional') }}</NBadge>
+            </div>
+            <div v-if="quote.reference" class="flex items-center gap-3">
+              <NIcon name="i-ph-book-open-text-duotone" class="h-4 w-4 shrink-0 text-gray-500" />
+              <span class="text-sm text-gray-900 dark:text-white">{{ quote.reference.name }}</span>
+            </div>
+            <div v-if="quote.language" class="flex items-center gap-3">
+              <NIcon name="i-ph-globe" class="h-4 w-4 shrink-0 text-gray-500" />
+              <span class="text-sm text-gray-900 dark:text-white">{{ quote.language }}</span>
+            </div>
+          </div>
+        </section>
 
-      <NAccordion :items="accordionItems" class="mb-6">
-        <template #content="{ item }">
-          <div class="space-y-3 text-sm p-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.created') }}</span>
-                <div class="mt-1">
-                  <div class="text-xs text-gray-500 dark:text-blue" title="Email">{{ quote.user?.email }}</div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-gray-900 dark:text-white" title="Username">{{ quote.user?.name }}</span>
+        <div class="min-w-0">
+          <NTabs v-model="activeInfoTab" :items="infoTabs" class="w-full">
+            <template #content="{ item }">
+              <AdminProvenanceManager
+                v-if="(item.value === 'attributions' || item.value === 'sources') && provenance"
+                :quote-id="quote.id"
+                :attributions="provenance.attributions"
+                :sources="provenance.sources"
+                :panel="item.value"
+                @changed="loadProvenance"
+              />
+              <div v-else-if="item.value === 'metadata'" class="mt-5 border border-gray-200 dark:border-gray-700">
+                <div class="grid gap-4 p-4 text-sm sm:grid-cols-2">
+                  <div>
+                    <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.created') }}</span>
+                    <div class="mt-1">
+                      <div class="text-xs text-gray-500 dark:text-blue" title="Email">{{ quote.user?.email }}</div>
+                      <div class="flex items-center gap-2"><span class="text-gray-900 dark:text-white" title="Username">{{ quote.user?.name }}</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.status') }}</span>
+                    <div class="mt-1"><NBadge badge="soft-gray" size="xs">{{ quote.status || $t('common.status_draft') }}</NBadge></div>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.created') }}:</span>
+                    <div class="mt-1 text-gray-900 dark:text-white">{{ formatRelativeTime(quote.created_at) }}</div>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.updated') }}:</span>
+                    <div class="mt-1 text-gray-900 dark:text-white">{{ formatRelativeTime(quote.updated_at) }}</div>
                   </div>
                 </div>
               </div>
-              <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.status') }}</span>
-                <div class="mt-1">
-                  <NBadge badge="soft-gray" size="xs">{{ quote.status || $t('common.status_draft') }}</NBadge>
-                </div>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.created') }}:</span>
-                <div class="text-gray-900 dark:text-white mt-1">{{ formatRelativeTime(quote.created_at) }}</div>
-              </div>
-              <div>
-                <span class="font-medium text-gray-700 dark:text-gray-500">{{ $t('common.updated') }}:</span>
-                <div class="text-gray-900 dark:text-white mt-1">{{ formatRelativeTime(quote.updated_at) }}</div>
-              </div>
-            </div>
-          </div>
-        </template>
-      </NAccordion>
-
-       <AdminProvenanceManager v-if="provenance" :quote-id="quote.id" :attributions="provenance.attributions" :sources="provenance.sources" @changed="loadProvenance" />
+            </template>
+          </NTabs>
+        </div>
+      </div>
 
       <div class="flex justify-end gap-2">
         <NButton btn="soft-blue" @click="$emit('edit', quote)">{{ $t('common.edit') }}</NButton>
@@ -94,6 +103,12 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const provenance = ref<{ attributions: QuoteAttribution[]; sources: QuoteSource[] } | null>(null)
+const activeInfoTab = ref<'attributions' | 'sources' | 'metadata'>('attributions')
+const infoTabs = [
+  { name: 'Attributions', value: 'attributions', _tabsTrigger: { leading: 'i-ph-git-branch' } },
+  { name: 'Sources', value: 'sources', _tabsTrigger: { leading: 'i-ph-link' } },
+  { name: 'Metadata', value: 'metadata', _tabsTrigger: { leading: 'i-ph-info' } },
+]
 const loadProvenance = async () => {
   if (!props.quote?.id) return
   try {
@@ -146,17 +161,4 @@ const isOpen = computed({
   set: (value: boolean) => emit('update:open', value)
 })
 
-const accordionItems = computed(() => {
-  if (!props.quote) return []
-
-  return [
-    {
-      value: 'metadata',
-      label: 'Metadata',
-      defaultOpen: false,
-      slot: 'metadata',
-      content: props.quote.status || $t('common.status_draft'),
-    }
-  ]
-})
 </script>
