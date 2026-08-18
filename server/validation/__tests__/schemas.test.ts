@@ -22,4 +22,23 @@ describe('quote source validation', () => {
     expect(quote.source_type).toBe('interview')
     expect(quote.source_url).toBe('https://example.com/interview')
   })
+
+  it('accepts modern primary provenance on quote writes', () => {
+    const quote = createQuoteSchema.parse({
+      name: 'A quote with normalized provenance',
+      provenance: {
+        author_id: 1,
+        reference_id: 2,
+        status: 'unverified',
+        source: {
+          source_type: 'book',
+          source_url: 'https://example.com/book',
+          label: 'First edition',
+        },
+      },
+    })
+
+    expect(quote.provenance?.source?.source_type).toBe('book')
+    expect(quote.provenance?.source?.label).toBe('First edition')
+  })
 })

@@ -51,6 +51,10 @@ export default defineEventHandler(async (event) => {
       referenceId = newReference.id
     }
 
+    if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
+    if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
+    const provenanceSource = body.provenance?.source
+
     const updateData: Record<string, unknown> = {
       name: body.name!,
       language: body.language || 'en',
@@ -58,22 +62,24 @@ export default defineEventHandler(async (event) => {
       referenceId: referenceId || null,
       updatedAt: new Date(),
     }
-    updateData.sourceType = body.source_type || null
-    updateData.sourceUrl = body.source_url || null
+    updateData.sourceType = provenanceSource?.source_type ?? body.source_type ?? null
+    updateData.sourceUrl = provenanceSource?.source_url ?? body.source_url ?? null
 
     await db.update(schema.quotes)
       .set(updateData as any)
       .where(eq(schema.quotes.id, parseInt(quoteId!)))
       .run()
 
-    const attributionId = await syncPrimaryAttribution(e.id, authorId || null, referenceId || null, user.id)
+    const attributionId = await syncPrimaryAttribution(e.id, authorId || null, referenceId || null, user.id, isAdmin ? body.provenance?.status : 'unverified', body.provenance?.notes)
     await syncPrimarySource(
       e.id,
       attributionId,
-      body.source_type,
-      body.source_url,
+      provenanceSource?.source_type ?? body.source_type,
+      provenanceSource?.source_url ?? body.source_url,
       user.id,
-      isAdmin ? undefined : 'unverified',
+      isAdmin ? provenanceSource?.verification_status : 'unverified',
+      provenanceSource?.label,
+      provenanceSource?.notes,
     )
 
     // Fetch the updated quote with all related data

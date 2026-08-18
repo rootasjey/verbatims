@@ -6,6 +6,8 @@ export async function syncPrimaryAttribution(
   authorId: number | null,
   referenceId: number | null,
   userId: number,
+  status?: 'unverified' | 'manually_verified' | 'externally_verified' | 'disputed',
+  notes?: string | null,
 ) {
   const existing = await db.select({ id: schema.quoteAttributions.id })
     .from(schema.quoteAttributions)
@@ -20,6 +22,12 @@ export async function syncPrimaryAttribution(
     referenceId,
     isPrimary: true,
     updatedAt: new Date(),
+    ...(status ? {
+      status,
+      verifiedBy: status === 'unverified' ? null : userId,
+      verifiedAt: status === 'unverified' ? null : new Date(),
+    } : {}),
+    ...(notes !== undefined ? { notes } : {}),
   }
 
   if (existing) {
@@ -44,6 +52,8 @@ export async function syncPrimarySource(
   sourceUrl: string | null | undefined,
   userId: number,
   verificationStatus?: 'unverified' | 'manually_verified' | 'externally_verified' | 'disputed',
+  label?: string | null,
+  notes?: string | null,
 ) {
   if (!sourceType && !sourceUrl) return
 
@@ -62,6 +72,8 @@ export async function syncPrimarySource(
     isPrimary: true,
     updatedAt: new Date(),
     ...(verificationStatus ? { verificationStatus } : {}),
+    ...(label !== undefined ? { label } : {}),
+    ...(notes !== undefined ? { notes } : {}),
   }
 
   if (existing) {
