@@ -17,6 +17,7 @@ export default defineConfig({
     include: [
       'server/utils/__tests__/**/*.test.ts',
       'server/services/__tests__/**/*.test.ts',
+      'server/validation/__tests__/**/*.test.ts',
     ],
     server: {
       deps: {

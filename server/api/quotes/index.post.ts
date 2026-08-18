@@ -81,17 +81,15 @@ export default defineEventHandler(async (event) => {
       referenceId: referenceId || null,
       userId: user.id,
       status: 'draft',
-      sourceType: user.role === 'admin' || user.role === 'moderator' ? body.source_type || null : null,
-      sourceUrl: user.role === 'admin' || user.role === 'moderator' ? body.source_url || null : null,
+      sourceType: body.source_type || null,
+      sourceUrl: body.source_url || null,
       createdAt: new Date(),
       updatedAt: new Date()
     } as any).returning({ id: schema.quotes.id }).get()
 
     const quoteId = quoteResult.id
     const attributionId = await syncPrimaryAttribution(quoteId, authorId || null, referenceId || null, user.id)
-    if (user.role === 'admin' || user.role === 'moderator') {
-      await syncPrimarySource(quoteId, attributionId, body.source_type, body.source_url, user.id)
-    }
+    await syncPrimarySource(quoteId, attributionId, body.source_type, body.source_url, user.id, 'unverified')
 
     // Add tags if provided
     if (body.tags && body.tags.length > 0) {

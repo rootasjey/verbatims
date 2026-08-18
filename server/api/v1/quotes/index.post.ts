@@ -105,7 +105,6 @@ export default defineEventHandler(async (event) => {
 
   if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
-  const canSetSource = api.userRole === 'admin' || api.userRole === 'moderator'
   const quoteResult = await db.insert(schema.quotes).values({
     name: body.name,
     language: body.language,
@@ -113,14 +112,14 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     userId: api.userId,
     status: 'draft',
-    sourceType: canSetSource ? body.source_type || null : null,
-    sourceUrl: canSetSource ? body.source_url || null : null,
+    sourceType: body.source_type || null,
+    sourceUrl: body.source_url || null,
     createdAt: new Date(),
     updatedAt: new Date()
   } as any).returning({ id: schema.quotes.id }).get()
 
   const attributionId = await syncPrimaryAttribution(quoteResult.id, authorId || null, referenceId || null, api.userId)
-  if (canSetSource) await syncPrimarySource(quoteResult.id, attributionId, body.source_type, body.source_url, api.userId)
+  await syncPrimarySource(quoteResult.id, attributionId, body.source_type, body.source_url, api.userId, 'unverified')
 
   await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft', name: body.name } })
 

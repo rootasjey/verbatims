@@ -87,10 +87,8 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     updatedAt: new Date(),
   }
-  if (isMod) {
-    updateData.sourceType = body.source_type || null
-    updateData.sourceUrl = body.source_url || null
-  }
+  updateData.sourceType = body.source_type || null
+  updateData.sourceUrl = body.source_url || null
 
   await db.update(schema.quotes)
     .set({
@@ -100,7 +98,14 @@ export default defineEventHandler(async (event) => {
     .run()
 
   const attributionId = await syncPrimaryAttribution(quoteId, authorId || null, referenceId || null, api.userId)
-  if (isMod) await syncPrimarySource(quoteId, attributionId, body.source_type, body.source_url, api.userId)
+  await syncPrimarySource(
+    quoteId,
+    attributionId,
+    body.source_type,
+    body.source_url,
+    api.userId,
+    isMod ? undefined : 'unverified',
+  )
 
   await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status, name: body.name } })
 
