@@ -43,6 +43,7 @@ export async function syncPrimarySource(
   sourceType: string | null | undefined,
   sourceUrl: string | null | undefined,
   userId: number,
+  verificationStatus?: 'unverified' | 'manually_verified' | 'externally_verified' | 'disputed',
 ) {
   if (!sourceType && !sourceUrl) return
 
@@ -60,6 +61,7 @@ export async function syncPrimarySource(
     sourceUrl: sourceUrl || null,
     isPrimary: true,
     updatedAt: new Date(),
+    ...(verificationStatus ? { verificationStatus } : {}),
   }
 
   if (existing) {

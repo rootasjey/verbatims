@@ -58,10 +58,8 @@ export default defineEventHandler(async (event) => {
       referenceId: referenceId || null,
       updatedAt: new Date(),
     }
-    if (isAdmin) {
-      updateData.sourceType = body.source_type || null
-      updateData.sourceUrl = body.source_url || null
-    }
+    updateData.sourceType = body.source_type || null
+    updateData.sourceUrl = body.source_url || null
 
     await db.update(schema.quotes)
       .set(updateData as any)
@@ -69,9 +67,14 @@ export default defineEventHandler(async (event) => {
       .run()
 
     const attributionId = await syncPrimaryAttribution(e.id, authorId || null, referenceId || null, user.id)
-    if (isAdmin) {
-      await syncPrimarySource(e.id, attributionId, body.source_type, body.source_url, user.id)
-    }
+    await syncPrimarySource(
+      e.id,
+      attributionId,
+      body.source_type,
+      body.source_url,
+      user.id,
+      isAdmin ? undefined : 'unverified',
+    )
 
     // Fetch the updated quote with all related data
     const updatedQuote = await db.select({
