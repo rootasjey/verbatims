@@ -1,0 +1,34 @@
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
+import { updateQuoteSourceSchema } from '../../../../../validation/schemas'
+import { requireAttributionForQuote, requireQuoteSource } from '~~/server/utils/admin-quote-provenance'
+import { requireApiModerator } from '~~/server/utils/api-quote-provenance'
+
+export default defineEventHandler(async (event) => {
+  const api = event.context.api
+  requireApiModerator(api)
+  const quoteId = Number(getRouterParam(event, 'id'))
+  const sourceId = Number(getRouterParam(event, 'sid'))
+  if (!Number.isInteger(quoteId) || !Number.isInteger(sourceId)) throwServer(400, 'Invalid source ID')
+  await requireQuoteSource(quoteId, sourceId)
+  const body = await readValidatedBody(event, updateQuoteSourceSchema.parse)
+  await requireAttributionForQuote(quoteId, body.attribution_id)
+
+  if (body.is_primary) {
+    await db.update(schema.quoteSources).set({ isPrimary: false, updatedAt: new Date() }).where(eq(schema.quoteSources.quoteId, quoteId)).run()
+  }
+
+  const verified = body.verification_status !== undefined && body.verification_status !== 'unverified'
+  await db.update(schema.quoteSources).set({
+    ...(body.attribution_id !== undefined ? { attributionId: body.attribution_id } : {}),
+    ...(body.source_type !== undefined ? { sourceType: body.source_type } : {}),
+    ...(body.source_url !== undefined ? { sourceUrl: body.source_url } : {}),
+    ...(body.label !== undefined ? { label: body.label } : {}),
+    ...(body.verification_status !== undefined ? { verificationStatus: body.verification_status, verifiedBy: verified ? api.userId : null, verifiedAt: verified ? new Date() : null } : {}),
+    ...(body.notes !== undefined ? { notes: body.notes } : {}),
+    ...(body.is_primary !== undefined ? { isPrimary: body.is_primary } : {}),
+    updatedAt: new Date(),
+  }).where(eq(schema.quoteSources.id, sourceId)).run()
+
+  return { success: true, data: { id: sourceId, quote_id: quoteId } }
+})
