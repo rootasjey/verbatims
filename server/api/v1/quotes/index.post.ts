@@ -20,10 +20,21 @@ defineRouteMeta({
             properties: {
               name: { type: 'string', description: 'Quote content' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], default: 'en' },
-              author_id: { type: 'integer', nullable: true, description: 'ID of an existing author' },
-               reference_id: { type: 'integer', nullable: true, description: 'ID of an existing reference' },
-               source_type: { type: 'string', nullable: true },
-               source_url: { type: 'string', format: 'uri', nullable: true },
+              author_id: { type: 'integer', nullable: true, deprecated: true, description: 'Legacy: use provenance.author_id' },
+              reference_id: { type: 'integer', nullable: true, deprecated: true, description: 'Legacy: use provenance.reference_id' },
+              source_type: { type: 'string', nullable: true, deprecated: true, description: 'Legacy: use provenance.source.source_type' },
+              source_url: { type: 'string', format: 'uri', nullable: true, deprecated: true, description: 'Legacy: use provenance.source.source_url' },
+              provenance: {
+                type: 'object',
+                description: 'Primary quote attribution and source provenance',
+                properties: {
+                  author_id: { type: 'integer', nullable: true },
+                  reference_id: { type: 'integer', nullable: true },
+                  status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] },
+                  notes: { type: 'string', nullable: true },
+                  source: { type: 'object', properties: { source_type: { type: 'string' }, source_url: { type: 'string', format: 'uri', nullable: true }, label: { type: 'string', nullable: true }, verification_status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } },
+                },
+              },
               new_author: {
                 type: 'object',
                 properties: { name: { type: 'string' }, is_fictional: { type: 'boolean', default: false }, job: { type: 'string', nullable: true }, description: { type: 'string', nullable: true } },
