@@ -27,21 +27,24 @@ export async function findAuthors(filters: AuthorFilters) {
   }
 
   const authorsQuery = sql.raw(`
-    SELECT a.*, COUNT(q.id) as quotes_count,
+    SELECT a.*, COUNT(DISTINCT q.id) as quotes_count,
       (SELECT r.id FROM quotes q2
-       JOIN quote_references r ON r.id = q2.reference_id
-       WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
-       GROUP BY q2.reference_id
+       JOIN quote_attributions qa2 ON qa2.quote_id = q2.id
+       JOIN quote_references r ON r.id = qa2.reference_id
+       WHERE qa2.author_id = a.id AND q2.status = 'approved' AND qa2.reference_id IS NOT NULL
+       GROUP BY qa2.reference_id
        ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
        LIMIT 1) AS origin_reference_id,
       (SELECT r.name FROM quotes q2
-       JOIN quote_references r ON r.id = q2.reference_id
-       WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
-       GROUP BY q2.reference_id
+       JOIN quote_attributions qa2 ON qa2.quote_id = q2.id
+       JOIN quote_references r ON r.id = qa2.reference_id
+       WHERE qa2.author_id = a.id AND q2.status = 'approved' AND qa2.reference_id IS NOT NULL
+       GROUP BY qa2.reference_id
        ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
        LIMIT 1) AS origin_reference_name
     FROM authors a
-    LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
+    LEFT JOIN quote_attributions qa ON a.id = qa.author_id
+    LEFT JOIN quotes q ON q.id = qa.quote_id AND q.status = 'approved'
     ${whereClause}
     GROUP BY a.id
     ORDER BY a.${sortBy} ${sortDir}
@@ -52,7 +55,8 @@ export async function findAuthors(filters: AuthorFilters) {
   const countQuery = sql.raw(`
     SELECT COUNT(*) as total FROM (
       SELECT a.id FROM authors a
-      LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
+      LEFT JOIN quote_attributions qa ON a.id = qa.author_id
+      LEFT JOIN quotes q ON q.id = qa.quote_id AND q.status = 'approved'
       ${whereClause}
       GROUP BY a.id
     )
@@ -80,9 +84,10 @@ export async function searchAuthors(query: string, limit = 20) {
 
 export async function countAuthorQuotes(authorId: number) {
   const result = await db.select({ count: sql<number>`count(*)` })
-    .from(schema.quotes)
+    .from(schema.quoteAttributions)
+    .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
     .where(and(
-      eq(schema.quotes.authorId, authorId),
+      eq(schema.quoteAttributions.authorId, authorId),
       eq(schema.quotes.status, 'approved'),
     ))
     .get()

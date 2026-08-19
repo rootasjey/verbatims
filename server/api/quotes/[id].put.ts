@@ -92,8 +92,6 @@ export default defineEventHandler(async (event) => {
       id: schema.quotes.id,
       name: schema.quotes.name,
       language: schema.quotes.language,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
       status: schema.quotes.status,
       moderatorId: schema.quotes.moderatorId,
@@ -103,19 +101,11 @@ export default defineEventHandler(async (event) => {
       likesCount: schema.quotes.likesCount,
       sharesCount: schema.quotes.sharesCount,
       isFeatured: schema.quotes.isFeatured,
-      sourceType: schema.quotes.sourceType,
-      sourceUrl: schema.quotes.sourceUrl,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
       userName: schema.users.name
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
@@ -140,8 +130,6 @@ export default defineEventHandler(async (event) => {
       id: u.id,
       name: u.name,
       language: u.language!,
-      author_id: u.authorId ?? undefined,
-      reference_id: u.referenceId ?? undefined,
       user_id: u.userId,
       status: u.status as QuoteStatus,
       moderator_id: u.moderatorId ?? undefined,
@@ -151,20 +139,8 @@ export default defineEventHandler(async (event) => {
       likes_count: u.likesCount ?? 0,
       shares_count: u.sharesCount ?? 0,
       is_featured: u.isFeatured ?? false,
-      source_type: u.sourceType ?? undefined,
-      source_url: u.sourceUrl ?? undefined,
       created_at: toISOStringOrNull(u.createdAt) || '',
       updated_at: toISOStringOrNull(u.updatedAt) || '',
-      author: u.authorId ? {
-        id: u.authorId,
-        name: u.authorName ?? undefined,
-        is_fictional: u.authorIsFictional ?? undefined
-      } : undefined,
-      reference: u.referenceId ? {
-        id: u.referenceId,
-        name: u.referenceName ?? undefined,
-        primary_type: u.referencePrimaryType || 'other'
-      } : undefined,
       user: {
         id: u.userId,
         name: u.userName || ''
@@ -173,7 +149,8 @@ export default defineEventHandler(async (event) => {
         id: t.id,
         name: t.name,
         color: t.color || 'gray'
-      }))
+      })),
+      ...((await getQuoteProvenance(u.id)) as any),
     }
 
     return {

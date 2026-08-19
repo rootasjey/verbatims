@@ -66,6 +66,15 @@ export function seedQuote(db: TestDb['db'], overrides?: Partial<typeof schema.qu
   })
 }
 
+export function seedQuoteAttribution(db: TestDb['db'], overrides?: Partial<typeof schema.quoteAttributions.$inferInsert>) {
+  return db.insert(schema.quoteAttributions).values({
+    quoteId: 1,
+    isPrimary: true,
+    status: 'unverified',
+    ...overrides,
+  })
+}
+
 export function seedTag(db: TestDb['db'], overrides?: Partial<typeof schema.tags.$inferInsert>) {
   return db.insert(schema.tags).values({
     name: 'test-tag',

@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../validation/schemas'
-import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -144,8 +144,6 @@ export default defineEventHandler(async (event) => {
       id: schema.quotes.id,
       name: schema.quotes.name,
       language: schema.quotes.language,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
       status: schema.quotes.status,
       viewsCount: schema.quotes.viewsCount,
@@ -154,23 +152,12 @@ export default defineEventHandler(async (event) => {
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      authorJob: schema.authors.job,
-      authorDescription: schema.authors.description,
-      referenceOriginalLanguage: schema.quoteReferences.originalLanguage,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
-      referenceDescription: schema.quoteReferences.description,
-      referenceReleaseDate: schema.quoteReferences.releaseDate,
       userName: schema.users.name,
       userEmail: schema.users.email,
       userAvatarUrl: schema.users.avatarUrl,
       userRole: schema.users.role
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .where(eq(schema.quotes.id, quoteId))
     .get()
@@ -196,8 +183,6 @@ export default defineEventHandler(async (event) => {
       id: c.id,
       name: c.name,
       language: c.language!,
-      author_id: c.authorId ?? undefined,
-      reference_id: c.referenceId ?? undefined,
       user_id: c.userId,
       status: c.status as QuoteStatus,
       views_count: c.viewsCount ?? 0,
@@ -206,21 +191,6 @@ export default defineEventHandler(async (event) => {
       is_featured: c.isFeatured ?? false,
       created_at: c.createdAt?.toISOString() || new Date().toISOString(),
       updated_at: c.updatedAt?.toISOString() || new Date().toISOString(),
-      author: c.authorId ? {
-        id: c.authorId,
-        name: c.authorName ?? undefined,
-        is_fictional: c.authorIsFictional ?? undefined,
-        job: c.authorJob ?? undefined,
-        description: c.authorDescription ?? undefined
-      } : undefined,
-      reference: c.referenceId ? {
-        id: c.referenceId,
-        name: c.referenceName ?? undefined,
-        original_language: c.referenceOriginalLanguage ?? undefined,
-        primary_type: c.referencePrimaryType ?? undefined,
-        description: c.referenceDescription ?? undefined,
-        release_date: c.referenceReleaseDate ?? undefined
-      } : undefined,
       user: {
         id: c.userId,
         name: c.userName || '',
@@ -231,7 +201,8 @@ export default defineEventHandler(async (event) => {
         id: t.id,
         name: t.name,
         color: t.color || 'gray'
-      }))
+      })),
+      ...((await getQuoteProvenance(quoteId)) as any),
     }
 
     return {

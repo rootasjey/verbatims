@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, or, like, desc, sql, count } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -91,16 +92,24 @@ export default defineEventHandler(async (event) => {
   }
 
   // Default: search quotes
+  const authorMatchesSearch = sql`EXISTS (
+    SELECT 1 FROM ${schema.quoteAttributions}
+    INNER JOIN ${schema.authors}
+      ON ${schema.quoteAttributions.authorId} = ${schema.authors.id}
+    WHERE ${schema.quoteAttributions.quoteId} = ${schema.quotes.id}
+      AND ${like(foldAccentsSQL(schema.authors.name), searchPattern)}
+  )`
+  const quoteMatchesSearch = or(
+    sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
+    authorMatchesSearch,
+  )
+
   const totalResult = await db
     .select({ total: count() })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
     .where(and(
       eq(schema.quotes.status, 'approved'),
-      or(
-        sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
-        like(foldAccentsSQL(schema.authors.name), searchPattern),
-      ),
+      quoteMatchesSearch,
     ))
     .get()
 
@@ -111,38 +120,41 @@ export default defineEventHandler(async (event) => {
       id: schema.quotes.id,
       name: schema.quotes.name,
       language: schema.quotes.language,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
-      authorName: schema.authors.name,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
       createdAt: schema.quotes.createdAt,
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .where(and(
       eq(schema.quotes.status, 'approved'),
-      or(
-        sql`${schema.quotes.id} IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})`,
-        like(foldAccentsSQL(schema.authors.name), searchPattern),
-      ),
+      quoteMatchesSearch,
     ))
     .orderBy(desc(schema.quotes.viewsCount))
     .limit(limit)
     .offset(offset)
     .all()
 
+  const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+
   return {
     success: true,
-    data: quotes.map(q => ({
-      id: q.id,
-      content: q.name,
-      language: q.language,
-      author: q.authorId ? { id: q.authorId, name: q.authorName } : null,
-      reference: q.referenceId ? { id: q.referenceId, name: q.referenceName, type: q.referencePrimaryType } : null,
-      created_at: q.createdAt,
-    })),
+    data: quotes.map((quote) => {
+      const quoteProvenance = provenance.get(quote.id)
+      const attribution = quoteProvenance?.attributions.find(item => item.is_primary)
+        ?? quoteProvenance?.attributions[0]
+      return {
+        id: quote.id,
+        content: quote.name,
+        language: quote.language,
+        author: attribution?.author_id ? { id: attribution.author_id, name: attribution.author?.name } : null,
+        reference: attribution?.reference_id ? {
+          id: attribution.reference_id,
+          name: attribution.reference?.name,
+          type: attribution.reference?.primary_type,
+        } : null,
+        attributions: quoteProvenance?.attributions ?? [],
+        sources: quoteProvenance?.sources ?? [],
+        created_at: quote.createdAt,
+      }
+    }),
     pagination: {
       page,
       limit,

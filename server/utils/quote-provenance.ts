@@ -16,7 +16,10 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       verifiedAt: schema.quoteAttributions.verifiedAt,
       notes: schema.quoteAttributions.notes,
       authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      authorImageUrl: schema.authors.imageUrl,
       referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
     })
       .from(schema.quoteAttributions)
       .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
@@ -52,10 +55,10 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       is_primary: attribution.isPrimary,
       status: attribution.status,
       verified_by: attribution.verifiedBy,
-      verified_at: attribution.verifiedAt,
+      verified_at: attribution.verifiedAt?.toISOString() ?? null,
       notes: attribution.notes,
-      author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName } : undefined,
-      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName } : undefined,
+      author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
+      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType } : undefined,
     })
   }
   for (const source of sources) {
@@ -68,7 +71,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       label: source.label,
       verification_status: source.verificationStatus,
       verified_by: source.verifiedBy,
-      verified_at: source.verifiedAt,
+      verified_at: source.verifiedAt?.toISOString() ?? null,
       notes: source.notes,
       is_primary: source.isPrimary,
     })
@@ -179,7 +182,10 @@ export async function getQuoteProvenance(quoteId: number) {
       verifiedAt: schema.quoteAttributions.verifiedAt,
       notes: schema.quoteAttributions.notes,
       authorName: schema.authors.name,
+      authorIsFictional: schema.authors.isFictional,
+      authorImageUrl: schema.authors.imageUrl,
       referenceName: schema.quoteReferences.name,
+      referencePrimaryType: schema.quoteReferences.primaryType,
     })
       .from(schema.quoteAttributions)
       .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
@@ -213,10 +219,10 @@ export async function getQuoteProvenance(quoteId: number) {
       is_primary: attribution.isPrimary,
       status: attribution.status,
       verified_by: attribution.verifiedBy,
-      verified_at: attribution.verifiedAt,
+      verified_at: attribution.verifiedAt?.toISOString() ?? null,
       notes: attribution.notes,
-      author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName } : undefined,
-      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName } : undefined,
+      author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
+      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType } : undefined,
     })),
     sources: sources.map(source => ({
       id: source.id,
@@ -227,7 +233,7 @@ export async function getQuoteProvenance(quoteId: number) {
       label: source.label,
       verification_status: source.verificationStatus,
       verified_by: source.verifiedBy,
-      verified_at: source.verifiedAt,
+      verified_at: source.verifiedAt?.toISOString() ?? null,
       notes: source.notes,
       is_primary: source.isPrimary,
     })),

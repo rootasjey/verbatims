@@ -6,38 +6,39 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
     const provenance = (quote as any).provenance
     const primaryAttribution = provenance?.attributions?.find((item: any) => item.is_primary) ?? provenance?.attributions?.[0]
     const primarySource = provenance?.sources?.find((item: any) => item.is_primary) ?? provenance?.sources?.[0]
+    const record = quote as any
 
     return {
     id: quote.id,
     name: quote.name,
     language: quote.language,
     status: quote.status,
-    author_id: primaryAttribution?.author_id ?? quote.author_id,
-    reference_id: primaryAttribution?.reference_id ?? quote.reference_id,
-    user_id: quote.user_id,
-    moderator_id: quote.moderator_id,
-    moderated_at: quote.moderated_at,
-    rejection_reason: quote.rejection_reason,
-    views_count: quote.views_count,
-    likes_count: quote.likes_count,
-    shares_count: quote.shares_count,
-    is_featured: quote.is_featured,
-    source_type: primarySource?.source_type ?? (quote as any).source_type,
-    source_url: primarySource?.source_url ?? (quote as any).source_url,
-    created_at: quote.created_at,
-    updated_at: quote.updated_at,
-    author: (primaryAttribution?.author_id ?? quote.author_id) ? {
-      id: primaryAttribution?.author_id ?? quote.author_id!,
-      name: primaryAttribution?.author?.name ?? quote.author_name!,
-      is_fictional: quote.author_is_fictional!,
-      image_url: quote.author_image_url ?? undefined
+    author_id: primaryAttribution?.author_id ?? undefined,
+    reference_id: primaryAttribution?.reference_id ?? undefined,
+    user_id: record.user_id ?? record.userId,
+    moderator_id: record.moderator_id ?? record.moderatorId,
+    moderated_at: record.moderated_at ?? record.moderatedAt,
+    rejection_reason: record.rejection_reason ?? record.rejectionReason,
+    views_count: record.views_count ?? record.viewsCount ?? 0,
+    likes_count: record.likes_count ?? record.likesCount ?? 0,
+    shares_count: record.shares_count ?? record.sharesCount ?? 0,
+    is_featured: record.is_featured ?? record.isFeatured ?? false,
+    source_type: primarySource?.source_type ?? undefined,
+    source_url: primarySource?.source_url ?? undefined,
+    created_at: record.created_at ?? record.createdAt,
+    updated_at: record.updated_at ?? record.updatedAt,
+    author: primaryAttribution?.author_id ? {
+      id: primaryAttribution.author_id,
+      name: primaryAttribution.author?.name,
+      is_fictional: primaryAttribution.author?.is_fictional,
+      image_url: primaryAttribution.author?.image_url ?? undefined
     } : undefined,
-    reference: (primaryAttribution?.reference_id ?? quote.reference_id) ? {
-      id: primaryAttribution?.reference_id ?? quote.reference_id!,
-      name: primaryAttribution?.reference?.name ?? quote.reference_name,
-      primary_type: quote.reference_type as QuoteReferencePrimaryType
+    reference: primaryAttribution?.reference_id ? {
+      id: primaryAttribution.reference_id,
+      name: primaryAttribution.reference?.name,
+      primary_type: primaryAttribution.reference?.primary_type as QuoteReferencePrimaryType
     } : undefined,
-    tags: parseTags(quote.tag_names, quote.tag_colors),
+    tags: parseTags(record.tag_names ?? record.tagNames, record.tag_colors ?? record.tagColors),
     attributions: provenance?.attributions,
     sources: provenance?.sources,
   }

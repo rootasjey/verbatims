@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, like, sql, count } from 'drizzle-orm'
+import { and, eq, like, sql, count } from 'drizzle-orm'
 import { getPagination, buildPaginationMeta } from './pagination.service'
 
 export interface ReferenceFilters {
@@ -26,9 +26,10 @@ export async function findReferences(filters: ReferenceFilters) {
   }
 
   const referencesQuery = sql.raw(`
-    SELECT r.*, COUNT(q.id) as quotes_count
+    SELECT r.*, COUNT(DISTINCT q.id) as quotes_count
     FROM quote_references r
-    LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'
+    LEFT JOIN quote_attributions qa ON r.id = qa.reference_id
+    LEFT JOIN quotes q ON q.id = qa.quote_id AND q.status = 'approved'
     ${whereClause}
     GROUP BY r.id
     ORDER BY r.${sortBy} ${sortDir}
@@ -39,7 +40,8 @@ export async function findReferences(filters: ReferenceFilters) {
   const countQuery = sql.raw(`
     SELECT COUNT(*) as total FROM (
       SELECT r.id FROM quote_references r
-      LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'
+      LEFT JOIN quote_attributions qa ON r.id = qa.reference_id
+      LEFT JOIN quotes q ON q.id = qa.quote_id AND q.status = 'approved'
       ${whereClause}
       GROUP BY r.id
     )
@@ -67,8 +69,12 @@ export async function searchReferences(query: string, limit = 20) {
 
 export async function countReferenceQuotes(referenceId: number) {
   const result = await db.select({ count: sql<number>`count(*)` })
-    .from(schema.quotes)
-    .where(sql`${schema.quotes.referenceId} = ${referenceId} AND ${schema.quotes.status} = 'approved'`)
+    .from(schema.quoteAttributions)
+    .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
+    .where(and(
+      eq(schema.quoteAttributions.referenceId, referenceId),
+      eq(schema.quotes.status, 'approved'),
+    ))
     .get()
   return Number(result?.count) || 0
 }

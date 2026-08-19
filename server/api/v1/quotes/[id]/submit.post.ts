@@ -64,21 +64,9 @@ export default defineEventHandler(async (event) => {
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      authorImageUrl: schema.authors.imageUrl,
-      authorDescription: schema.authors.description,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
-      referenceImageUrl: schema.quoteReferences.imageUrl,
-      referenceDescription: schema.quoteReferences.description,
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .where(eq(schema.quotes.id, quoteId))
     .get()
 

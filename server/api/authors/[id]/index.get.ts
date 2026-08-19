@@ -18,9 +18,10 @@ export default defineEventHandler(async (event) => {
 
     // Count approved quotes by this author
     const quotesCountResult = await db.select({ count: sql<number>`count(*)` })
-      .from(schema.quotes)
+      .from(schema.quoteAttributions)
+      .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
       .where(and(
-        eq(schema.quotes.authorId, authorId),
+        eq(schema.quoteAttributions.authorId, authorId),
         eq(schema.quotes.status, 'approved')
       ))
       .get()
@@ -35,14 +36,15 @@ export default defineEventHandler(async (event) => {
       count: sql<number>`count(*)`,
       maxCreatedAt: sql<string>`max(${schema.quotes.createdAt})`
     })
-      .from(schema.quotes)
-      .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+      .from(schema.quoteAttributions)
+      .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
+      .innerJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
       .where(and(
-        eq(schema.quotes.authorId, authorId),
+        eq(schema.quoteAttributions.authorId, authorId),
         eq(schema.quotes.status, 'approved'),
-        isNotNull(schema.quotes.referenceId)
+        isNotNull(schema.quoteAttributions.referenceId)
       ))
-      .groupBy(schema.quotes.referenceId)
+      .groupBy(schema.quoteAttributions.referenceId)
       .orderBy(desc(sql`count(*)`), desc(sql`max(${schema.quotes.createdAt})`))
       .limit(1)
       .get()

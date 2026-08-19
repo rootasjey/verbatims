@@ -17,9 +17,10 @@ export default defineEventHandler(async (event) => {
 
     // Count approved quotes for this reference
     const quotesCountResult = await db.select({ count: sql<number>`count(*)` })
-      .from(schema.quotes)
+      .from(schema.quoteAttributions)
+      .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
       .where(and(
-        eq(schema.quotes.referenceId, referenceId),
+        eq(schema.quoteAttributions.referenceId, referenceId),
         eq(schema.quotes.status, 'approved')
       ))
       .get()
