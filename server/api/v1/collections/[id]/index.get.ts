@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
-import { eq, desc, count, sql } from 'drizzle-orm'
+import { and, eq, desc, count, inArray, sql } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -58,41 +59,60 @@ export default defineEventHandler(async (event) => {
 
   const total = Number(totalResult?.total) || 0
 
-  const quotes = await db.all(sql`
-    SELECT
-      q.id, q.name as content, q.language,
-      q.views_count as viewsCount, q.likes_count as likesCount, q.shares_count as sharesCount,
-      q.is_featured as isFeatured, q.created_at as createdAt, q.updated_at as updatedAt,
-      a.id as authorId, a.name as authorName, a.is_fictional as authorIsFictional, a.image_url as authorImageUrl,
-      r.name as referenceName, r.primary_type as referenceType,
-      cq.added_at as addedAt,
-      GROUP_CONCAT(t.name) as tagNames,
-      GROUP_CONCAT(t.color) as tagColors
-    FROM ${schema.collectionQuotes} cq
-    JOIN ${schema.quotes} q ON cq.quote_id = q.id
-    LEFT JOIN ${schema.authors} a ON q.author_id = a.id
-    LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
-    LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
-    LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
-    WHERE cq.collection_id = ${collectionId} AND q.status = 'approved'
-    GROUP BY q.id
-    ORDER BY cq.added_at DESC
-    LIMIT ${limit} OFFSET ${offset}
-  `)
+  const quotes = await db.select({
+    id: schema.quotes.id,
+    content: schema.quotes.name,
+    language: schema.quotes.language,
+    viewsCount: schema.quotes.viewsCount,
+    likesCount: schema.quotes.likesCount,
+    sharesCount: schema.quotes.sharesCount,
+    isFeatured: schema.quotes.isFeatured,
+    createdAt: schema.quotes.createdAt,
+    updatedAt: schema.quotes.updatedAt,
+    addedAt: schema.collectionQuotes.addedAt,
+  })
+    .from(schema.collectionQuotes)
+    .innerJoin(schema.quotes, eq(schema.collectionQuotes.quoteId, schema.quotes.id))
+    .where(and(eq(schema.collectionQuotes.collectionId, collectionId), eq(schema.quotes.status, 'approved')))
+    .orderBy(desc(schema.collectionQuotes.addedAt))
+    .limit(limit)
+    .offset(offset)
+    .all()
 
-  const processedQuotes = (quotes || []).map((q: any) => ({
-    id: q.id,
-    content: q.content,
-    language: q.language,
-    stats: { views: q.viewsCount, likes: q.likesCount, shares: q.sharesCount },
-    featured: !!q.isFeatured,
-    author: q.authorId ? { id: q.authorId, name: q.authorName, fictional: !!q.authorIsFictional, image_url: q.authorImageUrl } : null,
-    reference: q.referenceId ? { id: q.referenceId, name: q.referenceName, type: q.referenceType } : null,
-    tags: parseTags(q.tagNames, q.tagColors),
-    added_at: q.addedAt,
-    created_at: q.createdAt,
-    updated_at: q.updatedAt,
-  }))
+  const [provenance, tagRows] = await Promise.all([
+    getPrimaryQuoteProvenance(quotes.map(quote => quote.id)),
+    quotes.length
+      ? db.select({ quoteId: schema.quoteTags.quoteId, name: schema.tags.name, color: schema.tags.color })
+        .from(schema.quoteTags)
+        .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+        .where(inArray(schema.quoteTags.quoteId, quotes.map(quote => quote.id)))
+        .all()
+      : [],
+  ])
+  const tagsByQuoteId: Record<number, Array<{ name: string, color: string | null }>> = {}
+  for (const tag of tagRows) {
+    if (tag.quoteId !== null) (tagsByQuoteId[tag.quoteId] ??= []).push({ name: tag.name, color: tag.color })
+  }
+
+  const processedQuotes = quotes.map((quote) => {
+    const quoteProvenance = provenance.get(quote.id)
+    const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
+    return {
+      id: quote.id,
+      content: quote.content,
+      language: quote.language,
+      stats: { views: quote.viewsCount, likes: quote.likesCount, shares: quote.sharesCount },
+      featured: !!quote.isFeatured,
+      author: attribution?.author_id ? attribution.author : null,
+      reference: attribution?.reference_id ? attribution.reference : null,
+      attributions: quoteProvenance?.attributions ?? [],
+      sources: quoteProvenance?.sources ?? [],
+      tags: tagsByQuoteId[quote.id] ?? [],
+      added_at: quote.addedAt,
+      created_at: quote.createdAt,
+      updated_at: quote.updatedAt,
+    }
+  })
 
   return {
     success: true,
