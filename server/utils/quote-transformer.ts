@@ -2,13 +2,18 @@
  * Transform basic database quote results into frontend-ready format
  */
 export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWithMetadata[] {
-  return quotes.map((quote): QuoteWithMetadata => ({
+  return quotes.map((quote): QuoteWithMetadata => {
+    const provenance = (quote as any).provenance
+    const primaryAttribution = provenance?.attributions?.find((item: any) => item.is_primary) ?? provenance?.attributions?.[0]
+    const primarySource = provenance?.sources?.find((item: any) => item.is_primary) ?? provenance?.sources?.[0]
+
+    return {
     id: quote.id,
     name: quote.name,
     language: quote.language,
     status: quote.status,
-    author_id: quote.author_id,
-    reference_id: quote.reference_id,
+    author_id: primaryAttribution?.author_id ?? quote.author_id,
+    reference_id: primaryAttribution?.reference_id ?? quote.reference_id,
     user_id: quote.user_id,
     moderator_id: quote.moderator_id,
     moderated_at: quote.moderated_at,
@@ -17,23 +22,26 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
     likes_count: quote.likes_count,
     shares_count: quote.shares_count,
     is_featured: quote.is_featured,
-    source_type: (quote as any).source_type,
-    source_url: (quote as any).source_url,
+    source_type: primarySource?.source_type ?? (quote as any).source_type,
+    source_url: primarySource?.source_url ?? (quote as any).source_url,
     created_at: quote.created_at,
     updated_at: quote.updated_at,
-    author: quote.author_id ? {
-      id: quote.author_id,
-      name: quote.author_name!,
+    author: (primaryAttribution?.author_id ?? quote.author_id) ? {
+      id: primaryAttribution?.author_id ?? quote.author_id!,
+      name: primaryAttribution?.author?.name ?? quote.author_name!,
       is_fictional: quote.author_is_fictional!,
       image_url: quote.author_image_url ?? undefined
     } : undefined,
-    reference: quote.reference_id ? {
-      id: quote.reference_id,
-      name: quote.reference_name,
+    reference: (primaryAttribution?.reference_id ?? quote.reference_id) ? {
+      id: primaryAttribution?.reference_id ?? quote.reference_id!,
+      name: primaryAttribution?.reference?.name ?? quote.reference_name,
       primary_type: quote.reference_type as QuoteReferencePrimaryType
     } : undefined,
-    tags: parseTags(quote.tag_names, quote.tag_colors)
-  }))
+    tags: parseTags(quote.tag_names, quote.tag_colors),
+    attributions: provenance?.attributions,
+    sources: provenance?.sources,
+  }
+  })
 }
 
 /**
