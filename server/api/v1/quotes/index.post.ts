@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
-import { syncPrimaryAttribution, syncPrimarySource, getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -25,18 +25,6 @@ defineRouteMeta({
                 minItems: 1,
                 description: 'Complete attribution set. Exactly one item must be primary.',
                 items: { type: 'object', required: ['is_primary'], properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, is_primary: { type: 'boolean' }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } },
-              },
-              provenance: {
-                type: 'object',
-                description: 'Deprecated primary quote attribution and source provenance',
-                deprecated: true,
-                properties: {
-                  author_id: { type: 'integer', nullable: true },
-                  reference_id: { type: 'integer', nullable: true },
-                  status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] },
-                  notes: { type: 'string', nullable: true },
-                  source: { type: 'object', properties: { source_type: { type: 'string' }, source_url: { type: 'string', format: 'uri', nullable: true }, label: { type: 'string', nullable: true }, verification_status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } },
-                },
               },
               new_author: {
                 type: 'object',
@@ -69,9 +57,9 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, createV1QuoteSchema.parse)
 
   const requestedAttributions = body.attributions
-  const requestedPrimary = requestedAttributions?.find(attribution => attribution.is_primary)
-  let authorId = requestedPrimary?.author_id ?? body.provenance?.author_id
-  let referenceId = requestedPrimary?.reference_id ?? body.provenance?.reference_id
+  const requestedPrimary = requestedAttributions.find(attribution => attribution.is_primary)!
+  let authorId = requestedPrimary.author_id
+  let referenceId = requestedPrimary.reference_id
 
   if (body.new_author?.name) {
     const authorResult = await db.insert(schema.authors).values({
@@ -110,7 +98,7 @@ export default defineEventHandler(async (event) => {
     if (!reference) throwServer(400, 'Invalid reference ID')
   }
 
-  for (const attribution of requestedAttributions ?? []) {
+  for (const attribution of requestedAttributions) {
     if (attribution.author_id) {
       const author = await db.select({ id: schema.authors.id }).from(schema.authors)
         .where(eq(schema.authors.id, attribution.author_id)).get()
@@ -138,10 +126,8 @@ export default defineEventHandler(async (event) => {
 
   if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
-  const provenanceSource = body.provenance?.source
-
   const attributionStatus = api.userRole === 'admin' || api.userRole === 'moderator'
-    ? requestedPrimary?.status ?? body.provenance?.status
+    ? requestedPrimary.status
     : 'unverified'
   let quoteId: number
   try {
@@ -155,27 +141,15 @@ export default defineEventHandler(async (event) => {
     } as any).returning({ id: schema.quotes.id }).get()
     quoteId = quoteResult.id
 
-    const attributionId = await syncPrimaryAttribution(
+    await syncPrimaryAttribution(
       quoteId,
       authorId || null,
       referenceId || null,
       api.userId,
       attributionStatus,
-      requestedPrimary?.notes ?? body.provenance?.notes,
+      requestedPrimary.notes,
     )
-    if (provenanceSource) {
-      await syncPrimarySource(
-        quoteId,
-        attributionId,
-        provenanceSource.source_type,
-        provenanceSource.source_url,
-        api.userId,
-        api.userRole === 'admin' || api.userRole === 'moderator' ? provenanceSource?.verification_status : 'unverified',
-        provenanceSource?.label,
-        provenanceSource?.notes,
-      )
-    }
-    const additionalAttributions = (requestedAttributions ?? []).filter(attribution => !attribution.is_primary)
+    const additionalAttributions = requestedAttributions.filter(attribution => !attribution.is_primary)
     if (additionalAttributions.length) {
       await db.batch(additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
         quoteId,

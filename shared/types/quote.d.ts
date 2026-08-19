@@ -153,7 +153,13 @@ export interface AdminQuote extends QuoteWithRelations {
 export interface CreateQuoteData {
   name: string;
   language?: QuoteLanguage;
-  author_id?: number;
+  attributions: Array<{
+    author_id?: number | null;
+    reference_id?: number | null;
+    is_primary: boolean;
+    status?: QuoteProvenanceStatus;
+    notes?: string | null;
+  }>;
   new_author?: {
     name: string;
     is_fictional?: boolean;
@@ -163,9 +169,6 @@ export interface CreateQuoteData {
     primary_type: QuoteReferencePrimaryType;
     original_language?: QuoteLanguage;
   };
-  reference_id?: number;
-  source_type?: string | null;
-  source_url?: string | null;
   user_id: number;
   status?: QuoteStatus;
 }

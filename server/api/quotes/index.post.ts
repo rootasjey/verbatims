@@ -12,8 +12,9 @@ export default defineEventHandler(async (event) => {
 
     const body = await readValidatedBody(event, createQuoteSchema.parse)
 
-    let authorId = body.author_id
-    let referenceId = body.reference_id
+    const requestedPrimary = body.attributions.find(attribution => attribution.is_primary)!
+    let authorId = requestedPrimary.author_id
+    let referenceId = requestedPrimary.reference_id
 
     if (body.new_author?.name) {
       const authorResult = await db.insert(schema.authors).values({
@@ -37,10 +38,6 @@ export default defineEventHandler(async (event) => {
       
       referenceId = referenceResult.id
     }
-
-    if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
-    if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
-    const provenanceSource = body.provenance?.source
 
     // Validate author_id if provided
     if (authorId) {
@@ -95,25 +92,25 @@ export default defineEventHandler(async (event) => {
       } as any).returning({ id: schema.quotes.id }).get()
       quoteId = quoteResult.id
 
-      const attributionId = await syncPrimaryAttribution(
+      await syncPrimaryAttribution(
         quoteId,
         authorId || null,
         referenceId || null,
         user.id,
-        isPrivileged ? body.provenance?.status : 'unverified',
-        body.provenance?.notes,
+        isPrivileged ? requestedPrimary.status : 'unverified',
+        requestedPrimary.notes,
       )
-      if (provenanceSource || body.source_type || body.source_url) {
-        await syncPrimarySource(
+      const additionalAttributions = body.attributions.filter(attribution => !attribution.is_primary)
+      if (additionalAttributions.length) {
+        await db.batch(additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
           quoteId,
-          attributionId,
-          provenanceSource?.source_type ?? body.source_type,
-          provenanceSource?.source_url ?? body.source_url,
-          user.id,
-          isPrivileged ? provenanceSource?.verification_status : 'unverified',
-          provenanceSource?.label,
-          provenanceSource?.notes,
-        )
+          authorId: attribution.author_id,
+          referenceId: attribution.reference_id,
+          isPrimary: false,
+          status: isPrivileged ? attribution.status : 'unverified',
+          notes: attribution.notes,
+          createdBy: user.id,
+        })) as any)
       }
     } catch (error) {
       if (quoteId!) {

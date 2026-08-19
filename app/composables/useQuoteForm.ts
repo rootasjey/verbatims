@@ -427,8 +427,11 @@ export function useQuoteForm() {
     if (!editQuote) return
     const quote: any = editQuote
     form.value.content = quote.name || ''
-    form.value.sourceType = quote.source_type || ''
-    form.value.sourceUrl = quote.source_url || ''
+    const primaryAttribution = quote.attributions?.find((attribution: any) => attribution.is_primary) ?? quote.attributions?.[0]
+    const primarySource = quote.sources?.find((source: any) => source.attribution_id === primaryAttribution?.id && source.is_primary)
+      ?? quote.sources?.find((source: any) => source.attribution_id === primaryAttribution?.id)
+    form.value.sourceType = primarySource?.source_type || ''
+    form.value.sourceUrl = primarySource?.source_url || ''
     const languageOption = languageOptions.find(opt => opt.value === quote.language)
     form.value.language = languageOption || { ...DEFAULT_LANGUAGE }
     languageManuallySelected.value = true
@@ -448,45 +451,11 @@ export function useQuoteForm() {
     if (quote.author) {
       form.value.selectedAuthor = quote.author as Author
       authorQuery.value = quote.author.name || ''
-    } else if (quote.author_id && quote.author_name) {
-      form.value.selectedAuthor = {
-        id: quote.author_id,
-        name: quote.author_name,
-        is_fictional: !!quote.author_is_fictional,
-        job: null,
-        description: null,
-        image_url: quote.author_image_url || undefined,
-        socials: '{}',
-        views_count: 0,
-        likes_count: 0,
-        shares_count: 0,
-        created_at: quote.created_at || new Date().toISOString(),
-        updated_at: quote.updated_at || new Date().toISOString()
-      } as unknown as Author
-      authorQuery.value = quote.author_name
     }
 
     if (quote.reference) {
       form.value.selectedReference = quote.reference as QuoteReference
       referenceQuery.value = quote.reference.name || ''
-    } else if (quote.reference_id && quote.reference_name) {
-      form.value.selectedReference = {
-        id: quote.reference_id,
-        name: quote.reference_name,
-        original_language: quote.language || form.value.language.value,
-        release_date: null,
-        description: null,
-        primary_type: quote.reference_type || 'other',
-        secondary_type: quote.reference_secondary_type || null,
-        image_url: undefined,
-        urls: '{}',
-        views_count: 0,
-        likes_count: 0,
-        shares_count: 0,
-        created_at: quote.created_at || new Date().toISOString(),
-        updated_at: quote.updated_at || new Date().toISOString()
-      } as unknown as QuoteReference
-      referenceQuery.value = quote.reference_name
     }
   }
 
@@ -514,10 +483,11 @@ export function useQuoteForm() {
     return {
       name: form.value.content.trim(),
       language: form.value.language.value as QuoteLanguage,
-      author_id: form.value.selectedAuthor?.id,
-      reference_id: form.value.selectedReference?.id,
-      source_type: form.value.sourceType.trim() || null,
-      source_url: form.value.sourceUrl.trim() || null,
+      attributions: [{
+        author_id: form.value.selectedAuthor?.id || null,
+        reference_id: form.value.selectedReference?.id || null,
+        is_primary: true,
+      }],
       new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
       new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value as QuoteLanguage, primary_type: 'other' as const } : undefined,
       user_id: user?.id || -1

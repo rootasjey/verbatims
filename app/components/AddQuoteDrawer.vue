@@ -322,8 +322,11 @@ const submitQuote = async () => {
 		const payload = {
 			name: form.value.content.trim(),
 			language: form.value.language.value,
-			author_id: form.value.selectedAuthor?.id || null,
-			reference_id: form.value.selectedReference?.id || null,
+			attributions: [{
+				author_id: form.value.selectedAuthor?.id || null,
+				reference_id: form.value.selectedReference?.id || null,
+				is_primary: true,
+			}],
 			new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
 			new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined,
 			user_id: user.value?.id,

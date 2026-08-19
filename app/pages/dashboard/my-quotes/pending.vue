@@ -481,8 +481,8 @@ const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
     reference_name: q.reference_name ?? q.reference?.name,
     reference_type: q.reference_type ?? q.reference?.type,
     tags: q.tags ?? [],
-    author: q.author || (q.author_name ? { id: q.author_id, name: q.author_name, is_fictional: q.author_is_fictional, image_url: q.author_image_url } : undefined),
-    reference: q.reference || (q.reference_name ? { id: q.reference_id, name: q.reference_name, type: q.reference_type } : undefined),
+    author: q.author,
+    reference: q.reference,
   }))
 })
 
@@ -552,7 +552,7 @@ const getMobileActions = (quote: any) => [
 
 const getAuthorActions = (quote: any) => {
   const author = quote.author
-  const authorId = author?.id || quote.authorId
+  const authorId = author?.id
   if (!author?.name || !authorId) return []
   return [
     { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) },
@@ -562,7 +562,7 @@ const getAuthorActions = (quote: any) => {
 
 const getReferenceActions = (quote: any) => {
   const reference = quote.reference
-  const referenceId = reference?.id || quote.referenceId
+  const referenceId = reference?.id
   if (!reference?.name || !referenceId) return []
   return [
     { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${referenceId}`) },

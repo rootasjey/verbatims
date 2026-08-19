@@ -306,7 +306,7 @@ const getQuoteActions = (quote: any) => [
 
 const getAuthorActions = (quote: any) => {
   const author = quote.author
-  const authorId = author?.id || quote.authorId || quote.author_id
+  const authorId = author?.id
   if (!author?.name || !authorId) return []
   return [
     { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) },
@@ -316,7 +316,7 @@ const getAuthorActions = (quote: any) => {
 
 const getReferenceActions = (quote: any) => {
   const reference = quote.reference
-  const referenceId = reference?.id || quote.referenceId || quote.reference_id
+  const referenceId = reference?.id
   if (!reference?.name || !referenceId) return []
   return [
     { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${referenceId}`) },

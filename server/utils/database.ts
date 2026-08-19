@@ -215,11 +215,15 @@ export async function seedDatabase() {
     
     for (const quote of quotes) {
       const result = await db.run(sql`
-        INSERT INTO quotes (name, author_id, reference_id, user_id, status, moderator_id, moderated_at, language)
-        VALUES (${quote.name}, ${quote.author_id}, ${quote.reference_id || null}, ${quote.user_id}, ${quote.status}, ${quote.moderator_id}, CURRENT_TIMESTAMP, ${quote.language})
+        INSERT INTO quotes (name, user_id, status, moderator_id, moderated_at, language)
+        VALUES (${quote.name}, ${quote.user_id}, ${quote.status}, ${quote.moderator_id}, CURRENT_TIMESTAMP, ${quote.language})
       `)
       
       const quoteId = Number(result.lastInsertRowid)
+      await db.run(sql`
+        INSERT INTO quote_attributions (quote_id, author_id, reference_id, is_primary, status, created_by)
+        VALUES (${quoteId}, ${quote.author_id}, ${quote.reference_id || null}, 1, 'manually_verified', ${quote.user_id})
+      `)
       
       // Add tags to quote
       for (const tagId of quote.tags) {

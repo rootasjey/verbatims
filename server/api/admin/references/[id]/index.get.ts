@@ -21,9 +21,10 @@ export default defineEventHandler(async (event) => {
     const reference = await db.get<AdminReferenceRow>(sql`
       SELECT
         r.*,
-        COUNT(q.id) as quotes_count
+        COUNT(DISTINCT q.id) as quotes_count
       FROM ${schema.quoteReferences} r
-      LEFT JOIN ${schema.quotes} q ON r.id = q.reference_id
+      LEFT JOIN ${schema.quoteAttributions} qa ON qa.reference_id = r.id
+      LEFT JOIN ${schema.quotes} q ON q.id = qa.quote_id
       WHERE r.id = ${Number(referenceId)}
       GROUP BY r.id
     `)

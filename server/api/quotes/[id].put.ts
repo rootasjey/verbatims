@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { updateQuoteSchema } from '../../validation/schemas'
-import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance, syncPrimaryAttribution } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -29,11 +29,10 @@ export default defineEventHandler(async (event) => {
 
     const currentProvenance = await getQuoteProvenance(e.id)
     const primaryAttribution = currentProvenance.attributions.find(item => item.is_primary) ?? currentProvenance.attributions[0]
-    let authorId = primaryAttribution?.author_id ?? null
-    let referenceId = primaryAttribution?.reference_id ?? null
-
-    if (body.author_id != null) authorId = body.author_id
-    if (body.reference_id != null) referenceId = body.reference_id
+    const replacementAttributions = body.attributions
+    const replacementPrimary = replacementAttributions?.find(attribution => attribution.is_primary)
+    let authorId = replacementPrimary?.author_id ?? primaryAttribution?.author_id ?? null
+    let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
 
     if (body.new_author?.name) {
       const newAuthor = await db.insert(schema.authors).values({
@@ -56,10 +55,6 @@ export default defineEventHandler(async (event) => {
       referenceId = newReference.id
     }
 
-    if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
-    if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
-    const provenanceSource = body.provenance?.source
-
     if (authorId == null && referenceId == null) {
       throwServer(400, 'A quote requires an author or reference')
     }
@@ -70,22 +65,29 @@ export default defineEventHandler(async (event) => {
       updatedAt: new Date(),
     }
 
-    await db.update(schema.quotes)
-      .set(updateData as any)
-      .where(eq(schema.quotes.id, parseInt(quoteId!)))
-      .run()
-
-    const attributionId = await syncPrimaryAttribution(e.id, authorId || null, referenceId || null, user.id, isAdmin ? body.provenance?.status : 'unverified', body.provenance?.notes)
-    await syncPrimarySource(
-      e.id,
-      attributionId,
-      provenanceSource?.source_type ?? body.source_type,
-      provenanceSource?.source_url ?? body.source_url,
-      user.id,
-      isAdmin ? provenanceSource?.verification_status : 'unverified',
-      provenanceSource?.label,
-      provenanceSource?.notes,
-    )
+    if (replacementAttributions) {
+      const resolvedAttributions = replacementAttributions.map(attribution => attribution.is_primary ? {
+        ...attribution,
+        author_id: authorId,
+        reference_id: referenceId,
+      } : attribution)
+      await db.batch([
+        db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!))),
+        db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, e.id)),
+        db.insert(schema.quoteAttributions).values(resolvedAttributions.map(attribution => ({
+          quoteId: e.id,
+          authorId: attribution.author_id,
+          referenceId: attribution.reference_id,
+          isPrimary: attribution.is_primary,
+          status: isAdmin ? attribution.status : 'unverified',
+          notes: attribution.notes,
+          createdBy: user.id,
+        }))),
+      ] as any)
+    } else {
+      await db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!))).run()
+      await syncPrimaryAttribution(e.id, authorId, referenceId, user.id, primaryAttribution?.status, primaryAttribution?.notes)
+    }
 
     // Fetch the updated quote with all related data
     const updatedQuote = await db.select({

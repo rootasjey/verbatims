@@ -18,6 +18,10 @@ export default defineEventHandler(async (event) => {
 
     let hasUpdate = false
     const updateData: Record<string, unknown> = {}
+    const primaryAttribution = body.primary_attribution
+    if (primaryAttribution !== undefined && (!primaryAttribution || typeof primaryAttribution !== 'object' || Array.isArray(primaryAttribution))) {
+      throwServer(400, 'primary_attribution must be an object')
+    }
     let authorId: number | null | undefined
     let referenceId: number | null | undefined
 
@@ -40,9 +44,9 @@ export default defineEventHandler(async (event) => {
       hasUpdate = true
     }
 
-    // Author update
-    if (body.author_id !== undefined) {
-      authorId = body.author_id || null
+    // Primary attribution update
+    if (primaryAttribution?.author_id !== undefined) {
+      authorId = primaryAttribution.author_id || null
       hasUpdate = true
     } else if (body.new_author && body.new_author.name) {
       const newAuthor = await db.insert(schema.authors).values({
@@ -57,8 +61,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Reference update
-    if (body.reference_id !== undefined) {
-      referenceId = body.reference_id || null
+    if (primaryAttribution?.reference_id !== undefined) {
+      referenceId = primaryAttribution.reference_id || null
       hasUpdate = true
     } else if (body.new_reference && body.new_reference.name) {
       const newReference = await db.insert(schema.quoteReferences).values({

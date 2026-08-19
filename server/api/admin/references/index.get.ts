@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
     const references = await db.all(sql`
       SELECT 
         r.*,
-        COUNT(q.id) as quotes_count,
+        COUNT(DISTINCT q.id) as quotes_count,
         (
           SELECT COUNT(*)
           FROM entity_enrichment_field_proposals proposal
@@ -81,7 +81,8 @@ export default defineEventHandler(async (event) => {
           LIMIT 1
         ) as enrichment_latest_job_id
       FROM quote_references r
-      LEFT JOIN quotes q ON r.id = q.reference_id
+      LEFT JOIN quote_attributions qa ON qa.reference_id = r.id
+      LEFT JOIN quotes q ON q.id = qa.quote_id
       ${whereClause}
       GROUP BY r.id
       ORDER BY ${orderCol} ${sql.raw(sortDirection)}

@@ -30,6 +30,8 @@ export default defineEventHandler(async (event) => {
     const quotes = await db.all<CreatedQuoteResult>(sql`
       SELECT
         q.*,
+        qa.author_id,
+        qa.reference_id,
         a.name as author_name,
         a.is_fictional as author_is_fictional,
         a.image_url as author_image_url,
@@ -42,8 +44,9 @@ export default defineEventHandler(async (event) => {
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
       FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
+      LEFT JOIN quote_attributions qa ON qa.quote_id = q.id AND qa.is_primary = 1
+      LEFT JOIN authors a ON qa.author_id = a.id
+      LEFT JOIN quote_references r ON qa.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN users m ON q.moderator_id = m.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id
@@ -57,8 +60,9 @@ export default defineEventHandler(async (event) => {
     const totalResult = await db.get<{ total: number }>(sql`
       SELECT COUNT(*) as total
       FROM quotes q
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
+      LEFT JOIN quote_attributions qa ON qa.quote_id = q.id AND qa.is_primary = 1
+      LEFT JOIN authors a ON qa.author_id = a.id
+      LEFT JOIN quote_references r ON qa.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       ${whereClause}
     `)

@@ -1,45 +1,35 @@
 import { describe, expect, it } from 'vitest'
 import { createQuoteSchema, createV1QuoteSchema, updateQuoteSchema, updateV1QuoteSchema } from '../schemas'
 
-describe('quote source validation', () => {
-  it('accepts a source on user quote creation', () => {
+describe('quote attribution validation', () => {
+  it('accepts an attribution on user quote creation', () => {
     const quote = createQuoteSchema.parse({
-      name: 'A quote with evidence',
-      source_type: 'book',
-      source_url: 'https://example.com/edition',
+      name: 'A quote with an attribution',
+      attributions: [{ author_id: 1, is_primary: true }],
     })
 
-    expect(quote.source_type).toBe('book')
-    expect(quote.source_url).toBe('https://example.com/edition')
+    expect(quote.attributions[0]?.author_id).toBe(1)
   })
 
-  it('accepts a source on quote updates', () => {
+  it('accepts attribution replacement on quote updates', () => {
     const quote = updateQuoteSchema.parse({
-      source_type: 'interview',
-      source_url: 'https://example.com/interview',
+      attributions: [{ reference_id: 2, is_primary: true }],
     })
 
-    expect(quote.source_type).toBe('interview')
-    expect(quote.source_url).toBe('https://example.com/interview')
+    expect(quote.attributions?.[0]?.reference_id).toBe(2)
   })
 
-  it('accepts modern primary provenance on quote writes', () => {
-    const quote = createQuoteSchema.parse({
-      name: 'A quote with normalized provenance',
-      provenance: {
-        author_id: 1,
-        reference_id: 2,
-        status: 'unverified',
-        source: {
-          source_type: 'book',
-          source_url: 'https://example.com/book',
-          label: 'First edition',
-        },
-      },
-    })
-
-    expect(quote.provenance?.source?.source_type).toBe('book')
-    expect(quote.provenance?.source?.label).toBe('First edition')
+  it('rejects historical root provenance fields', () => {
+    expect(() => createQuoteSchema.parse({
+      name: 'A quote with obsolete fields',
+      attributions: [{ author_id: 1, is_primary: true }],
+      provenance: { author_id: 1 },
+    })).toThrow()
+    expect(() => createQuoteSchema.parse({
+      name: 'A quote with obsolete fields',
+      attributions: [{ author_id: 1, is_primary: true }],
+      source_type: 'book',
+    })).toThrow()
   })
 
   it('rejects legacy fields on v1 writes', () => {

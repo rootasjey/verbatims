@@ -41,14 +41,15 @@ export default defineEventHandler(async (event) => {
       q.views_count, q.likes_count, q.shares_count,
       q.is_featured, q.created_at, q.updated_at,
       a.id as author_id, a.name as author_name, a.is_fictional as author_is_fictional, a.image_url as author_image_url,
-      r.name as reference_name, r.primary_type as reference_type,
+      r.id as reference_id, r.name as reference_name, r.primary_type as reference_type,
       ul.created_at as liked_at,
       GROUP_CONCAT(t.name) as tag_names,
       GROUP_CONCAT(t.color) as tag_colors
     FROM ${schema.userLikes} ul
     INNER JOIN ${schema.quotes} q ON ul.likeable_id = q.id
-    LEFT JOIN ${schema.authors} a ON q.author_id = a.id
-    LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+    LEFT JOIN ${schema.quoteAttributions} qa ON qa.quote_id = q.id AND qa.is_primary = 1
+    LEFT JOIN ${schema.authors} a ON qa.author_id = a.id
+    LEFT JOIN ${schema.quoteReferences} r ON qa.reference_id = r.id
     LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
     LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
     WHERE ul.user_id = ${api.userId}

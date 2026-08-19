@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { updateV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
-import { syncPrimaryAttribution, syncPrimarySource, getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -22,7 +22,6 @@ defineRouteMeta({
               name: { type: 'string' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'] },
               attributions: { type: 'array', minItems: 1, description: 'Complete replacement attribution set. Exactly one item must be primary.', items: { type: 'object', required: ['is_primary'], properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, is_primary: { type: 'boolean' }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } } },
-              provenance: { type: 'object', description: 'Deprecated primary quote attribution and source provenance', deprecated: true, properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true }, source: { type: 'object', properties: { source_type: { type: 'string' }, source_url: { type: 'string', format: 'uri', nullable: true }, label: { type: 'string', nullable: true }, verification_status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } } } },
               new_author: { type: 'object', properties: { name: { type: 'string' }, is_fictional: { type: 'boolean' } } },
               new_reference: { type: 'object', properties: { name: { type: 'string' }, primary_type: { type: 'string' }, original_language: { type: 'string' } } },
             },
@@ -61,9 +60,6 @@ export default defineEventHandler(async (event) => {
   let authorId = replacementPrimary?.author_id ?? primaryAttribution?.author_id ?? null
   let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
 
-  if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
-  if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
-
   for (const attribution of replacementAttributions ?? []) {
     if (attribution.author_id) {
       const author = await db.select({ id: schema.authors.id }).from(schema.authors)
@@ -98,8 +94,6 @@ export default defineEventHandler(async (event) => {
     referenceId = newReference.id
   }
 
-  const provenanceSource = body.provenance?.source
-
   if (authorId == null && referenceId == null) {
     throwServer(400, 'A quote requires an author or reference')
   }
@@ -125,24 +119,14 @@ export default defineEventHandler(async (event) => {
       }))),
     ] as any)
   } else {
-    const attributionStatus = isMod ? body.provenance?.status : 'unverified'
+    const attributionStatus = isMod ? primaryAttribution?.status : 'unverified'
     const attributionId = await syncPrimaryAttribution(
       quoteId,
       authorId || null,
       referenceId || null,
       api.userId,
       attributionStatus,
-      body.provenance?.notes,
-    )
-    await syncPrimarySource(
-      quoteId,
-      attributionId,
-      provenanceSource?.source_type,
-      provenanceSource?.source_url,
-      api.userId,
-      isMod ? provenanceSource?.verification_status : 'unverified',
-      provenanceSource?.label,
-      provenanceSource?.notes,
+      primaryAttribution?.notes,
     )
     await db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)).run()
   }
