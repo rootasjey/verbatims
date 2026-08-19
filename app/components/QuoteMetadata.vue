@@ -36,19 +36,19 @@
             <div class="border-t border-gray-200 dark:border-gray-800"></div>
 
             <!-- Source -->
-            <div v-if="quote.source_url" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div v-if="primarySource?.source_url" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-link" class="w-4 h-4 mr-2 text-gray-400" />
                 Source
               </dt>
               <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500">
                 <a
-                  :href="quote.source_url"
+                  :href="primarySource.source_url"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  {{ getSourceLabel(quote.source_type) }}
+                  {{ getSourceLabel(primarySource.source_type) }}
                   <NIcon name="i-ph-arrow-square-out" class="w-3.5 h-3.5" />
                   <span class="sr-only">(opens in a new tab)</span>
                 </a>
@@ -167,6 +167,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const primaryAttribution = computed(() => props.quote.attributions?.find(attribution => attribution.is_primary))
+const primarySource = computed(() => props.quote.sources?.find(source => source.is_primary) ?? props.quote.sources?.[0])
 const provenanceLabel = (status: string) => ({
   manually_verified: 'Manually verified',
   externally_verified: 'Externally verified',

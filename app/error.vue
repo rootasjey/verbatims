@@ -52,8 +52,8 @@
 
       <!-- Attribution -->
       <div v-if="currentQuote" class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-4 text-gray-500 dark:text-gray-400">
-        <span v-if="currentQuote.author_id" class="font-subtitle text-lg font-600 text-gray-700 dark:text-gray-300">— {{ currentQuote.author?.name }}</span>
-        <span v-if="currentQuote.reference_id" class="opacity-70">· {{ currentQuote.reference?.name }}</span>
+        <span v-if="currentQuote.author" class="font-subtitle text-lg font-600 text-gray-700 dark:text-gray-300">— {{ currentQuote.author.name }}</span>
+        <span v-if="currentQuote.reference" class="opacity-70">· {{ currentQuote.reference.name }}</span>
       </div>
 
       <!-- Actions -->
@@ -93,7 +93,7 @@ const openQuote = () => {
 
 const copyQuote = async () => {
   const c = currentQuote.value; if (!c) return
-  const text = `"${c.name}"${c.author_id ? ` — ${c.author?.name}` : ''}${c.reference_id ? ` · ${c.reference?.name}` : ''}`
+  const text = `"${c.name}"${c.author ? ` — ${c.author.name}` : ''}${c.reference ? ` · ${c.reference.name}` : ''}`
 
   try {
     await navigator.clipboard?.writeText(text)
@@ -116,7 +116,7 @@ const shuffleQuote = () => {
 onMounted(async () => {
   const fallback: QuoteWithMetadata[] = [
     {
-      name: 'The only limit to our realization of tomorrow is our doubts of today.', author_id: 1,
+      name: 'The only limit to our realization of tomorrow is our doubts of today.',
       author: {
         name: 'Franklin D. Roosevelt', is_fictional: false,
         id: 0,
@@ -133,7 +133,7 @@ onMounted(async () => {
       updated_at: ''
     },
     {
-      name: 'Simplicity is the soul of efficiency.', author_id: 2,
+      name: 'Simplicity is the soul of efficiency.',
       author: {
         name: 'Austin Freeman', is_fictional: false,
         id: 0,
@@ -150,7 +150,7 @@ onMounted(async () => {
       updated_at: ''
     },
     {
-      name: 'Not all those who wander are lost.', author_id: 3,
+      name: 'Not all those who wander are lost.',
       author: {
         name: 'J.R.R. Tolkien', is_fictional: false,
         id: 0,
@@ -167,7 +167,7 @@ onMounted(async () => {
       updated_at: ''
     },
     {
-      name: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author_id: 4,
+      name: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.',
       author: { name: 'Will Durant', is_fictional: false, id: 0 },
       id: 0,
       language: 'en',
@@ -181,7 +181,7 @@ onMounted(async () => {
       updated_at: ''
     },
     {
-      name: 'What you do speaks so loudly that I cannot hear what you say.', author_id: 5,
+      name: 'What you do speaks so loudly that I cannot hear what you say.',
       author: { name: 'Ralph Waldo Emerson', is_fictional: false, id: 0 },
       id: 0,
       language: 'en',
@@ -195,7 +195,7 @@ onMounted(async () => {
       updated_at: ''
     },
     {
-      name: 'The future depends on what you do today.', author_id: 6,
+      name: 'The future depends on what you do today.',
       author: { name: 'Mahatma Gandhi', is_fictional: false, id: 0 },
       id: 0,
       language: 'en',

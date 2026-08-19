@@ -78,8 +78,6 @@ CREATE TABLE IF NOT EXISTS quotes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   language TEXT DEFAULT 'en' CHECK (language IN ('en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la')),
-  author_id INTEGER,
-  reference_id INTEGER,
   user_id INTEGER NOT NULL,
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'pending', 'approved', 'rejected')),
   moderator_id INTEGER,
@@ -89,12 +87,8 @@ CREATE TABLE IF NOT EXISTS quotes (
   likes_count INTEGER DEFAULT 0,
   shares_count INTEGER DEFAULT 0,
   is_featured BOOLEAN DEFAULT FALSE,
-  source_type TEXT,
-  source_url TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (author_id) REFERENCES authors(id),
-  FOREIGN KEY (reference_id) REFERENCES quote_references(id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (moderator_id) REFERENCES users(id)
 );
@@ -456,13 +450,10 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
 -- Quote table indexes
 CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status);
-CREATE INDEX IF NOT EXISTS idx_quotes_author ON quotes(author_id);
-CREATE INDEX IF NOT EXISTS idx_quotes_reference ON quotes(reference_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_user ON quotes(user_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_created ON quotes(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_quotes_featured ON quotes(is_featured);
 CREATE INDEX IF NOT EXISTS idx_quotes_language ON quotes(language);
-CREATE INDEX IF NOT EXISTS idx_quotes_source_type ON quotes(source_type);
 
 -- FTS5 full-text search index for quotes
 CREATE VIRTUAL TABLE IF NOT EXISTS quotes_fts USING fts5(

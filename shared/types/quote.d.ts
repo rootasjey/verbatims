@@ -30,12 +30,6 @@ export interface Quote {
   /** Language of the quote */
   language: QuoteLanguage;
   
-  /** ID of the author who said/wrote this quote */
-  author_id?: number;
-  
-  /** ID of the reference/source where this quote comes from */
-  reference_id?: number;
-  
   /** ID of the user who submitted this quote */
   user_id: number;
   
@@ -62,12 +56,6 @@ export interface Quote {
   
   /** Whether this quote is featured/highlighted */
   is_featured: boolean;
-  
-  /** Source of the quote for harvested quotes (e.g. wikiquote-fr, quotable) */
-  source_type?: string;
-  
-  /** URL of the original source page for harvested quotes */
-  source_url?: string;
   
   /** Timestamp when record was created */
   created_at: string;
@@ -112,7 +100,7 @@ export interface QuoteAttribution {
 export interface QuoteSource {
   id: number
   quote_id: number
-  attribution_id?: number | null
+  attribution_id: number
   source_type: string
   source_url?: string | null
   label?: string | null
