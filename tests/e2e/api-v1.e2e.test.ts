@@ -328,7 +328,6 @@ describe('GET /api/v1/quotes', () => {
     expect(res.data.length).toBeGreaterThanOrEqual(4)
     expect(res.pagination.total).toBeGreaterThanOrEqual(4)
     expect(res.data[0]).toHaveProperty('content')
-    expect(res.data[0]).toHaveProperty('author')
     expect(res.data[0]).toHaveProperty('tags')
   })
 
@@ -341,7 +340,7 @@ describe('GET /api/v1/quotes', () => {
   test('filters by author_id', async () => {
     const res = await $fetch('/api/v1/quotes?author_id=2', headers())
     expect(res.data).toHaveLength(2)
-    expect(res.data.every((q: any) => q.author?.id === 2)).toBe(true)
+    expect(res.data.every((q: any) => q.content)).toBe(true)
   })
 
   test('respects page and limit', async () => {
@@ -357,10 +356,10 @@ describe('GET /api/v1/quotes/[id]', () => {
     expect(res.success).toBe(true)
     expect(res.data.content).toContain('happiness')
     expect(res.data.tags.length).toBeGreaterThanOrEqual(1)
-    expect(res.data.author.name).toContain('Marcus Aurelius')
-    expect(res.data.reference.name).toBe('Meditations')
     expect(res.data.attributions).toHaveLength(1)
     expect(res.data.attributions[0].is_primary).toBe(true)
+    expect(res.data.attributions[0].author.name).toContain('Marcus Aurelius')
+    expect(res.data.attributions[0].reference.name).toBe('Meditations')
     expect(res.data.sources).toHaveLength(1)
   })
 
@@ -585,6 +584,16 @@ describe('POST /api/v1/quotes', () => {
     expect(res.status).toBe(400)
   })
 
+  test('rejects legacy provenance fields', async () => {
+    const res = await fetch('/api/v1/quotes', {
+      ...writeHeaders(),
+      method: 'POST',
+      headers: { ...writeHeaders().headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Legacy v1 payload must fail.', author_id: 1 }),
+    })
+    expect(res.status).toBe(400)
+  })
+
   test('returns 409 for duplicate quote', async () => {
     const res = await fetch('/api/v1/quotes', {
       ...writeHeaders(),
@@ -618,11 +627,11 @@ describe('POST /api/v1/quotes', () => {
     const res = await $fetch('/api/v1/quotes', {
       ...writeHeaders(),
       method: 'POST',
-      body: { name: 'Quote with author ref.', language: 'en', author_id: 1, reference_id: 1 },
+      body: { name: 'Quote with author ref.', language: 'en', provenance: { author_id: 1, reference_id: 1 } },
     })
     expect(res.success).toBe(true)
-    expect(res.data.author?.id).toBe(1)
-    expect(res.data.reference?.id).toBe(1)
+    expect(res.data.attributions[0].author_id).toBe(1)
+    expect(res.data.attributions[0].reference_id).toBe(1)
   })
 
   test('creates quote with modern primary provenance as a regular user', async () => {
@@ -658,7 +667,7 @@ describe('POST /api/v1/quotes', () => {
       body: { name: 'Quote with new author.', language: 'en', new_author: { name: 'Epictetus' } },
     })
     expect(res.success).toBe(true)
-    expect(res.data.author?.name).toBe('Epictetus')
+    expect(res.data.attributions[0].author?.name).toBe('Epictetus')
   })
 })
 

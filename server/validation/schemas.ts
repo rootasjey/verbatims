@@ -77,6 +77,20 @@ export const updateQuoteSchema = z.object({
   provenance: primaryQuoteProvenanceSchema.partial().optional(),
 })
 
+export const createV1QuoteSchema = createQuoteSchema.omit({
+  author_id: true,
+  reference_id: true,
+  source_type: true,
+  source_url: true,
+}).strict()
+
+export const updateV1QuoteSchema = updateQuoteSchema.omit({
+  author_id: true,
+  reference_id: true,
+  source_type: true,
+  source_url: true,
+}).strict()
+
 export const updateQuoteProvenanceSchema = z.object({
   author_id: nullablePositiveInt.optional(),
   reference_id: nullablePositiveInt.optional(),

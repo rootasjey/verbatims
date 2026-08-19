@@ -1,6 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import { updateQuoteSchema } from '../../../validation/schemas'
+import { updateV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { syncPrimaryAttribution, syncPrimarySource, getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
@@ -21,10 +21,6 @@ defineRouteMeta({
             properties: {
               name: { type: 'string' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'] },
-              author_id: { type: 'integer', nullable: true, deprecated: true, description: 'Legacy: use provenance.author_id' },
-              reference_id: { type: 'integer', nullable: true, deprecated: true, description: 'Legacy: use provenance.reference_id' },
-              source_type: { type: 'string', nullable: true, deprecated: true, description: 'Legacy: use provenance.source.source_type' },
-              source_url: { type: 'string', format: 'uri', nullable: true, deprecated: true, description: 'Legacy: use provenance.source.source_url' },
               provenance: { type: 'object', description: 'Primary quote attribution and source provenance', properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true }, source: { type: 'object', properties: { source_type: { type: 'string' }, source_url: { type: 'string', format: 'uri', nullable: true }, label: { type: 'string', nullable: true }, verification_status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } } } },
               new_author: { type: 'object', properties: { name: { type: 'string' }, is_fictional: { type: 'boolean' } } },
               new_reference: { type: 'object', properties: { name: { type: 'string' }, primary_type: { type: 'string' }, original_language: { type: 'string' } } },
@@ -48,7 +44,7 @@ export default defineEventHandler(async (event) => {
   const quoteId = parseInt(getRouterParam(event, 'id') || '')
   if (isNaN(quoteId)) throwServer(400, 'Invalid quote ID')
 
-  const body = await readValidatedBody(event, updateQuoteSchema.parse)
+  const body = await readValidatedBody(event, updateV1QuoteSchema.parse)
 
   const existingQuote = await db.select().from(schema.quotes).where(eq(schema.quotes.id, quoteId)).get()
   if (!existingQuote) throwServer(404, 'Quote not found')
@@ -57,8 +53,8 @@ export default defineEventHandler(async (event) => {
   const isOwner = existingQuote!.userId === api.userId
   if (!isMod && !isOwner) throwServer(403, 'You can only update your own quotes')
 
-  let authorId = body.author_id
-  let referenceId = body.reference_id
+  let authorId = body.provenance?.author_id
+  let referenceId = body.provenance?.reference_id
 
   if (body.new_author?.name) {
     const newAuthor = await db.insert(schema.authors).values({
@@ -81,9 +77,6 @@ export default defineEventHandler(async (event) => {
     referenceId = newReference.id
   }
 
-  if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
-  if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
-
   const provenanceSource = body.provenance?.source
 
   const updateData: Record<string, unknown> = {
@@ -93,8 +86,8 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     updatedAt: new Date(),
   }
-  updateData.sourceType = provenanceSource?.source_type ?? body.source_type ?? null
-  updateData.sourceUrl = provenanceSource?.source_url ?? body.source_url ?? null
+  updateData.sourceType = provenanceSource?.source_type ?? null
+  updateData.sourceUrl = provenanceSource?.source_url ?? null
 
   await db.update(schema.quotes)
     .set({
@@ -115,8 +108,8 @@ export default defineEventHandler(async (event) => {
   await syncPrimarySource(
     quoteId,
     attributionId,
-    provenanceSource?.source_type ?? body.source_type,
-    provenanceSource?.source_url ?? body.source_url,
+    provenanceSource?.source_type,
+    provenanceSource?.source_url,
     api.userId,
     isMod ? provenanceSource?.verification_status : 'unverified',
     provenanceSource?.label,
@@ -174,25 +167,7 @@ export default defineEventHandler(async (event) => {
         shares: updatedQuote!.sharesCount,
       },
       featured: updatedQuote!.isFeatured,
-       source: updatedQuote!.sourceType ? {
-         type: updatedQuote!.sourceType,
-         url: updatedQuote!.sourceUrl,
-       } : null,
        ...(await getQuoteProvenance(quoteId)),
-      author: updatedQuote!.authorId ? {
-        id: updatedQuote!.authorId,
-        name: updatedQuote!.authorName,
-        fictional: updatedQuote!.authorIsFictional,
-        image_url: updatedQuote!.authorImageUrl,
-        description: updatedQuote!.authorDescription,
-      } : null,
-      reference: updatedQuote!.referenceId ? {
-        id: updatedQuote!.referenceId,
-        name: updatedQuote!.referenceName,
-        type: updatedQuote!.referencePrimaryType,
-        image_url: updatedQuote!.referenceImageUrl,
-        description: updatedQuote!.referenceDescription,
-      } : null,
       tags: tags.map(t => ({ name: t.name, color: t.color })),
       created_at: updatedQuote!.createdAt,
       updated_at: updatedQuote!.updatedAt,

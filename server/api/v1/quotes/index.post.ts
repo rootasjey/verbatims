@@ -1,6 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
-import { createQuoteSchema } from '../../../validation/schemas'
+import { createV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { syncPrimaryAttribution, syncPrimarySource, getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
@@ -20,10 +20,6 @@ defineRouteMeta({
             properties: {
               name: { type: 'string', description: 'Quote content' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], default: 'en' },
-              author_id: { type: 'integer', nullable: true, deprecated: true, description: 'Legacy: use provenance.author_id' },
-              reference_id: { type: 'integer', nullable: true, deprecated: true, description: 'Legacy: use provenance.reference_id' },
-              source_type: { type: 'string', nullable: true, deprecated: true, description: 'Legacy: use provenance.source.source_type' },
-              source_url: { type: 'string', format: 'uri', nullable: true, deprecated: true, description: 'Legacy: use provenance.source.source_url' },
               provenance: {
                 type: 'object',
                 description: 'Primary quote attribution and source provenance',
@@ -63,10 +59,10 @@ export default defineEventHandler(async (event) => {
   const api = event.context.api
   requireApiPermission(api, 'write:quotes')
 
-  const body = await readValidatedBody(event, createQuoteSchema.parse)
+  const body = await readValidatedBody(event, createV1QuoteSchema.parse)
 
-  let authorId = body.author_id
-  let referenceId = body.reference_id
+  let authorId = body.provenance?.author_id
+  let referenceId = body.provenance?.reference_id
 
   if (body.new_author?.name) {
     const authorResult = await db.insert(schema.authors).values({
@@ -88,9 +84,6 @@ export default defineEventHandler(async (event) => {
     } as any).returning({ id: schema.quoteReferences.id }).get()
     referenceId = referenceResult.id
   }
-
-  if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
-  if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
 
   if (authorId) {
     const author = await db.select({ id: schema.authors.id })
@@ -128,8 +121,8 @@ export default defineEventHandler(async (event) => {
     referenceId: referenceId || null,
     userId: api.userId,
     status: 'draft',
-    sourceType: provenanceSource?.source_type ?? body.source_type ?? null,
-    sourceUrl: provenanceSource?.source_url ?? body.source_url ?? null,
+    sourceType: provenanceSource?.source_type ?? null,
+    sourceUrl: provenanceSource?.source_url ?? null,
     createdAt: new Date(),
     updatedAt: new Date()
   } as any).returning({ id: schema.quotes.id }).get()
@@ -145,12 +138,12 @@ export default defineEventHandler(async (event) => {
     attributionStatus,
     body.provenance?.notes,
   )
-  if (provenanceSource || body.source_type || body.source_url) {
+  if (provenanceSource) {
     await syncPrimarySource(
       quoteResult.id,
       attributionId,
-      provenanceSource?.source_type ?? body.source_type,
-      provenanceSource?.source_url ?? body.source_url,
+      provenanceSource.source_type,
+      provenanceSource.source_url,
       api.userId,
       api.userRole === 'admin' || api.userRole === 'moderator' ? provenanceSource?.verification_status : 'unverified',
       provenanceSource?.label,
@@ -224,25 +217,7 @@ export default defineEventHandler(async (event) => {
         shares: createdQuote!.sharesCount,
       },
       featured: createdQuote!.isFeatured,
-      source: createdQuote!.sourceType ? {
-        type: createdQuote!.sourceType,
-        url: createdQuote!.sourceUrl,
-      } : null,
       ...(await getQuoteProvenance(quoteResult.id)),
-      author: createdQuote!.authorId ? {
-        id: createdQuote!.authorId,
-        name: createdQuote!.authorName,
-        fictional: createdQuote!.authorIsFictional,
-        image_url: createdQuote!.authorImageUrl,
-        description: createdQuote!.authorDescription,
-      } : null,
-      reference: createdQuote!.referenceId ? {
-        id: createdQuote!.referenceId,
-        name: createdQuote!.referenceName,
-        type: createdQuote!.referencePrimaryType,
-        image_url: createdQuote!.referenceImageUrl,
-        description: createdQuote!.referenceDescription,
-      } : null,
       tags: tags.map(t => ({ name: t.name, color: t.color })),
       created_at: createdQuote!.createdAt,
       updated_at: createdQuote!.updatedAt,

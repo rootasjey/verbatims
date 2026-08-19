@@ -41,4 +41,9 @@ describe('quote source validation', () => {
     expect(quote.provenance?.source?.source_type).toBe('book')
     expect(quote.provenance?.source?.label).toBe('First edition')
   })
+
+  it('rejects legacy fields on v1 writes', async () => {
+    const { createV1QuoteSchema } = await import('../schemas')
+    expect(() => createV1QuoteSchema.parse({ name: 'Legacy v1 payload', author_id: 1 })).toThrow()
+  })
 })
