@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, gte, lte, inArray, sql, desc, asc, count } from 'drizzle-orm'
 import type { ProcessedQuoteResult } from '~~/server/types'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -154,7 +155,10 @@ export default defineEventHandler(async (event) => {
     .offset(offset)
     .all()
 
+    const provenance = await getPrimaryQuoteProvenance(rows.map(row => row.id))
     const quotes: ProcessedQuoteResult[] = rows.map((row): ProcessedQuoteResult => {
+      const primary = provenance.get(row.id)
+      const attribution = primary?.attributions.find((item: any) => item.is_primary) ?? primary?.attributions[0]
       // Map Drizzle result to the structure expected by extract functions
       // The extract functions expect snake_case properties from raw SQL
       // We need to adapt or rewrite the extract functions.
@@ -177,22 +181,24 @@ export default defineEventHandler(async (event) => {
         is_featured: row.isFeatured,
         created_at: row.createdAt,
         updated_at: row.updatedAt,
-        author: row.authorId ? {
-          id: row.authorId,
-          name: row.authorName,
+        author: (attribution?.author_id ?? row.authorId) ? {
+          id: attribution?.author_id ?? row.authorId,
+          name: attribution?.author?.name ?? row.authorName,
           is_fictional: row.authorIsFictional,
           image_url: row.authorImageUrl
         } : undefined,
-        reference: row.referenceId ? {
-          id: row.referenceId,
-          name: row.referenceName,
+        reference: (attribution?.reference_id ?? row.referenceId) ? {
+          id: attribution?.reference_id ?? row.referenceId,
+          name: attribution?.reference?.name ?? row.referenceName,
           primary_type: row.referenceType
         } : undefined,
         user: {
           id: row.userId,
           name: row.userName
         },
-        tags
+        tags,
+        attributions: primary?.attributions,
+        sources: primary?.sources,
       } as unknown as ProcessedQuoteResult
     })
 

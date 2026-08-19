@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -82,7 +83,11 @@ export default defineEventHandler(async (event) => {
     
     // To be safe and consistent with other endpoints I migrated, I will do the transformation manually here matching the API response format.
     
-    const transformed = quotes.map(q => ({
+    const provenance = await getPrimaryQuoteProvenance(quotes.map(q => q.id))
+    const transformed = quotes.map(q => {
+      const primary = provenance.get(q.id)
+      const attribution = primary?.attributions.find((item: any) => item.is_primary) ?? primary?.attributions[0]
+      return {
       id: q.id,
       name: q.name,
       language: q.language,
@@ -93,21 +98,24 @@ export default defineEventHandler(async (event) => {
       is_featured: q.isFeatured,
       created_at: q.createdAt,
       updated_at: q.updatedAt,
-      author: q.authorId ? {
-        id: q.authorId,
-        name: q.authorName,
+      author: (attribution?.author_id ?? q.authorId) ? {
+        id: attribution?.author_id ?? q.authorId,
+        name: attribution?.author?.name ?? q.authorName,
         is_fictional: q.authorIsFictional
       } : null,
-      reference: q.referenceId ? {
-        id: q.referenceId,
-        name: q.referenceName,
+      reference: (attribution?.reference_id ?? q.referenceId) ? {
+        id: attribution?.reference_id ?? q.referenceId,
+        name: attribution?.reference?.name ?? q.referenceName,
         type: q.referencePrimaryType
       } : null,
       user: {
         name: q.userName
       },
-      tags: tagsMap[q.id] || []
-    }))
+      tags: tagsMap[q.id] || [],
+      attributions: primary?.attributions,
+      sources: primary?.sources,
+      }
+    })
 
     return {
       success: true,

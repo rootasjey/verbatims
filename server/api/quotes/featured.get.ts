@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, desc, sql } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (_event) => {
   try {
@@ -85,6 +86,10 @@ export default defineEventHandler(async (_event) => {
     .where(eq(schema.quoteTags.quoteId, featuredQuote.id))
     .all()
     
+    const provenance = await getPrimaryQuoteProvenance([featuredQuote.id])
+    const primary = provenance.get(featuredQuote.id)
+    const attribution = primary?.attributions.find((item: any) => item.is_primary) ?? primary?.attributions[0]
+
     // Transform the result
     const transformedQuote = {
       id: featuredQuote.id,
@@ -97,14 +102,14 @@ export default defineEventHandler(async (_event) => {
       is_featured: featuredQuote.isFeatured,
       created_at: featuredQuote.createdAt,
       updated_at: featuredQuote.updatedAt,
-      author: featuredQuote.authorId ? {
-        id: featuredQuote.authorId,
-        name: featuredQuote.authorName,
+      author: (attribution?.author_id ?? featuredQuote.authorId) ? {
+        id: attribution?.author_id ?? featuredQuote.authorId,
+        name: attribution?.author?.name ?? featuredQuote.authorName,
         is_fictional: featuredQuote.authorIsFictional
       } : null,
-      reference: featuredQuote.referenceId ? {
-        id: featuredQuote.referenceId,
-        name: featuredQuote.referenceName,
+      reference: (attribution?.reference_id ?? featuredQuote.referenceId) ? {
+        id: attribution?.reference_id ?? featuredQuote.referenceId,
+        name: attribution?.reference?.name ?? featuredQuote.referenceName,
         type: featuredQuote.referencePrimaryType
       } : null,
       user: {
@@ -113,7 +118,9 @@ export default defineEventHandler(async (_event) => {
       tags: tags.map(t => ({
         name: t.name,
         color: t.color || 'gray'
-      }))
+      })),
+      attributions: primary?.attributions,
+      sources: primary?.sources,
     }
     
     return {
