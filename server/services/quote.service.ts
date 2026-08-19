@@ -3,6 +3,7 @@ import { eq, and, desc, asc, sql, count, countDistinct, getTableColumns, inArray
 import type { DatabaseQuoteWithRelations } from '../../shared/types/quote'
 import type { PaginationMeta } from './pagination.service'
 import { getPagination, buildPaginationMeta } from './pagination.service'
+import { getPrimaryQuoteProvenance } from '../utils/quote-provenance'
 
 export type QuoteStatus = 'harvested' | 'draft' | 'pending' | 'approved' | 'rejected'
 
@@ -100,8 +101,14 @@ export async function findQuotes(filters: QuoteFilters) {
   const total = Number(countResult[0]?.total) || 0
   const pagination = buildPaginationMeta(total, page, limit)
 
+  const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+  const enrichedQuotes = quotes.map(quote => ({
+    ...quote,
+    provenance: provenance.get(quote.id),
+  }))
+
   return {
-    data: transformQuotes(quotes as any),
+    data: transformQuotes(enrichedQuotes as any),
     pagination,
   }
 }
