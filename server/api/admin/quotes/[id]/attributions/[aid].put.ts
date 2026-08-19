@@ -8,10 +8,14 @@ export default defineEventHandler(async (event) => {
   const quoteId = Number(getRouterParam(event, 'id'))
   const attributionId = Number(getRouterParam(event, 'aid'))
   if (!Number.isInteger(quoteId) || !Number.isInteger(attributionId)) throwServer(400, 'Invalid attribution ID')
-  await requireQuoteAttribution(quoteId, attributionId)
+  const attribution = await requireQuoteAttribution(quoteId, attributionId)
   const body = await readValidatedBody(event, updateQuoteAttributionSchema.parse)
   await requireAuthor(body.author_id)
   await requireReference(body.reference_id)
+
+  if (body.is_primary === false && attribution.isPrimary) {
+    throwServer(400, 'Choose another primary attribution before unsetting this one')
+  }
 
   if (body.is_primary) {
     await db.update(schema.quoteAttributions).set({ isPrimary: false, updatedAt: new Date() }).where(eq(schema.quoteAttributions.quoteId, quoteId)).run()

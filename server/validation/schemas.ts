@@ -10,6 +10,11 @@ const nullablePositiveInt = z.preprocess((val) => {
   return Number.isFinite(n) && n > 0 ? n : null
 }, z.number().int().positive().nullable())
 
+const positiveInt = z.preprocess((val) => {
+  const n = typeof val === 'number' ? val : Number(val)
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}, z.number().int().positive())
+
 const imageUrlField = z.string().refine(
   (val) => {
     if (val.startsWith('/blob/')) return true
@@ -103,7 +108,7 @@ export const updateQuoteProvenanceSchema = z.object({
   source_notes: z.string().max(5000).trim().optional().nullable(),
 })
 
-export const createQuoteAttributionSchema = z.object({
+const quoteAttributionFields = z.object({
   author_id: nullablePositiveInt.optional().default(null),
   reference_id: nullablePositiveInt.optional().default(null),
   is_primary: z.boolean().optional().default(false),
@@ -111,10 +116,15 @@ export const createQuoteAttributionSchema = z.object({
   notes: z.string().max(5000).trim().optional().nullable(),
 })
 
-export const updateQuoteAttributionSchema = createQuoteAttributionSchema.partial()
+export const createQuoteAttributionSchema = quoteAttributionFields.refine(
+  data => data.author_id !== null || data.reference_id !== null,
+  { message: 'An attribution requires an author or reference' },
+)
+
+export const updateQuoteAttributionSchema = quoteAttributionFields.partial()
 
 export const createQuoteSourceSchema = z.object({
-  attribution_id: nullablePositiveInt.optional().default(null),
+  attribution_id: positiveInt,
   source_type: z.string().min(1).max(100).trim(),
   source_url: z.string().url().optional().nullable(),
   label: z.string().max(200).trim().optional().nullable(),

@@ -281,7 +281,7 @@ export const quoteAttributions = sqliteTable('quote_attributions', {
 export const quoteSources = sqliteTable('quote_sources', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   quoteId: integer('quote_id').notNull().references(() => quotes.id, { onDelete: 'cascade' }),
-  attributionId: integer('attribution_id').references(() => quoteAttributions.id, { onDelete: 'set null' }),
+  attributionId: integer('attribution_id').notNull().references(() => quoteAttributions.id, { onDelete: 'cascade' }),
   sourceType: text('source_type').notNull(),
   sourceUrl: text('source_url'),
   label: text('label'),

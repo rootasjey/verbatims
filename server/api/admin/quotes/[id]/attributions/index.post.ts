@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { createQuoteAttributionSchema } from '../../../../../validation/schemas'
 import { requireAuthor, requireReference, requireQuote } from '~~/server/utils/admin-quote-provenance'
 
@@ -12,7 +12,13 @@ export default defineEventHandler(async (event) => {
   await requireAuthor(body.author_id)
   await requireReference(body.reference_id)
 
-  if (body.is_primary) {
+  const existingPrimary = await db.select({ id: schema.quoteAttributions.id })
+    .from(schema.quoteAttributions)
+    .where(and(eq(schema.quoteAttributions.quoteId, quoteId), eq(schema.quoteAttributions.isPrimary, true)))
+    .get()
+  const isPrimary = body.is_primary || !existingPrimary
+
+  if (isPrimary) {
     await db.update(schema.quoteAttributions).set({ isPrimary: false, updatedAt: new Date() }).where(eq(schema.quoteAttributions.quoteId, quoteId)).run()
   }
 
@@ -21,7 +27,7 @@ export default defineEventHandler(async (event) => {
     quoteId,
     authorId: body.author_id,
     referenceId: body.reference_id,
-    isPrimary: body.is_primary,
+    isPrimary,
     status: body.status,
     notes: body.notes || null,
     verifiedBy: verified ? user.id : null,

@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS quote_attributions (
 CREATE TABLE IF NOT EXISTS quote_sources (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   quote_id INTEGER NOT NULL,
-  attribution_id INTEGER,
+  attribution_id INTEGER NOT NULL,
   source_type TEXT NOT NULL,
   source_url TEXT,
   label TEXT,
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS quote_sources (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
-  FOREIGN KEY (attribution_id) REFERENCES quote_attributions(id) ON DELETE SET NULL,
+  FOREIGN KEY (attribution_id) REFERENCES quote_attributions(id) ON DELETE CASCADE,
   FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL,
   FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
