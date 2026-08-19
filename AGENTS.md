@@ -295,6 +295,12 @@ wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_a
 
 Cloudflare D1 does not support application-managed `BEGIN`, `COMMIT`, or `ROLLBACK` statements. For an atomic sequence of mutations, build the Drizzle statements first and execute them with `await db.batch(statements as any)`. Validate all inputs and required reads before the batch; if a generated parent ID makes batching impossible, use a compensating delete on failure rather than issuing manual transaction statements.
 
+### D1 schema rebuild safety
+
+Never rebuild or drop a parent table that has `ON DELETE CASCADE` dependents as a shortcut for removing columns. On D1, `PRAGMA foreign_keys = OFF` cannot disable enforcement inside its implicit transaction, and `PRAGMA defer_foreign_keys = ON` does **not** suppress cascade actions. Dropping the parent would delete dependent rows.
+
+For a physical column removal in this situation, first test on an isolated D1 copy and rebuild **every** dependent table with copied data and foreign keys pointing to the replacement parent table. Capture a D1 Time Travel bookmark immediately before the production operation, run a complete preflight/postflight integrity audit, and keep the deprecated physical columns if that maintenance operation is not justified yet.
+
 **Local dev** uses `.data/db/sqlite.db` through NuxtHub's explicit `libsql` driver. Use
 `bun run db:migrate`; do not use `wrangler d1 ... --local` for the application database.
 
