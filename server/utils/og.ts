@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, asc } from 'drizzle-orm'
 import { getReferenceBadgeColor } from '#shared/constants/reference'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export interface QuoteOgPayload {
   id: number
@@ -41,18 +42,10 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
   const record = await db.select({
     id: schema.quotes.id,
     name: schema.quotes.name,
-    authorId: schema.quotes.authorId,
-    authorName: schema.authors.name,
-    authorImageUrl: schema.authors.imageUrl,
-    referenceId: schema.quotes.referenceId,
-    referenceName: schema.quoteReferences.name,
-    referenceImageUrl: schema.quoteReferences.imageUrl,
     language: schema.quotes.language,
     updatedAt: schema.quotes.updatedAt,
   })
   .from(schema.quotes)
-  .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-  .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
   .where(and(
     eq(schema.quotes.id, Number(quoteId)),
     eq(schema.quotes.status, 'approved')
@@ -61,6 +54,9 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
   .get()
 
   if (!record) return null
+
+  const provenance = await getQuoteProvenance(record.id)
+  const attribution = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
 
   const tags = await db.select({
     id: schema.tags.id,
@@ -78,10 +74,10 @@ export async function getApprovedQuoteForOg(quoteId: string): Promise<QuoteOgPay
   return {
     id: record.id,
     text: record.name,
-    authorName: record.authorName ?? undefined,
-    authorImageUrl: record.authorImageUrl ?? undefined,
-    referenceName: record.referenceName ?? undefined,
-    referenceImageUrl: record.referenceImageUrl ?? undefined,
+    authorName: attribution?.author?.name ?? undefined,
+    authorImageUrl: attribution?.author?.image_url ?? undefined,
+    referenceName: attribution?.reference?.name ?? undefined,
+    referenceImageUrl: attribution?.reference?.image_url ?? undefined,
     language: record.language ?? 'en',
     updatedAt: updatedAtISO,
     tags: tags.map(tag => ({

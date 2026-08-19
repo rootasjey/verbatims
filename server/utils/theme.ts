@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, like, inArray, desc } from 'drizzle-orm'
 import { combineFilterMatchSets, getThemeContentLanguages } from './theme-selection'
+import { getPrimaryQuoteProvenance } from './quote-provenance'
 
 type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la'
 
@@ -161,24 +162,28 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
         } else if (f.type === 'author_name') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+            .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+            .innerJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
             .where(and(...filterConditions, eq(schema.authors.name, f.value)))
             .all()
         } else if (f.type === 'author_id') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .where(and(...filterConditions, eq(schema.quotes.authorId, parseInt(f.value))))
+            .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+            .where(and(...filterConditions, eq(schema.quoteAttributions.authorId, parseInt(f.value))))
             .all()
         } else if (f.type === 'reference_name') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+            .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+            .innerJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
             .where(and(...filterConditions, eq(schema.quoteReferences.name, f.value)))
             .all()
         } else if (f.type === 'reference_id') {
           ids = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
-            .where(and(...filterConditions, eq(schema.quotes.referenceId, parseInt(f.value))))
+            .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+            .where(and(...filterConditions, eq(schema.quoteAttributions.referenceId, parseInt(f.value))))
             .all()
         } else if (f.type === 'keyword') {
           ids = await db.select({ id: schema.quotes.id })
@@ -226,15 +231,8 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
           viewsCount: schema.quotes.viewsCount,
           likesCount: schema.quotes.likesCount,
           updatedAt: schema.quotes.updatedAt,
-          authorId: schema.quotes.authorId,
-          referenceId: schema.quotes.referenceId,
-          authorName: schema.authors.name,
-          authorImageUrl: schema.authors.imageUrl,
-          referenceName: schema.quoteReferences.name,
         })
           .from(schema.quotes)
-          .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-          .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
           .where(whereFinal)
           .orderBy(desc(schema.quotes.likesCount))
           .limit(50)
@@ -251,8 +249,13 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       totalVal = merged.length
     }
 
-    const authorIds = [...new Set(quotes.map(row => row.authorId).filter(Boolean))]
-    const referenceIds = [...new Set(quotes.map(row => row.referenceId).filter(Boolean))]
+    const provenance = await getPrimaryQuoteProvenance(quotes.map(row => row.id))
+    const primaryAttributions = quotes.map((quote) => {
+      const quoteProvenance = provenance.get(quote.id)
+      return quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
+    })
+    const authorIds = [...new Set(primaryAttributions.map(attribution => attribution?.author_id).filter((id): id is number => !!id))]
+    const referenceIds = [...new Set(primaryAttributions.map(attribution => attribution?.reference_id).filter((id): id is number => !!id))]
     const authorRows = authorIds.length
       ? await db.select().from(schema.authors).where(inArray(schema.authors.id, authorIds)).orderBy(desc(schema.authors.likesCount)).all()
       : []
@@ -260,14 +263,20 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
       ? await db.select().from(schema.quoteReferences).where(inArray(schema.quoteReferences.id, referenceIds)).orderBy(desc(schema.quoteReferences.likesCount)).all()
       : []
 
-    const processedQuotes = quotes.map((row: any) => ({
+    const processedQuotes = quotes.map((row: any) => {
+      const attribution = provenance.get(row.id)?.attributions.find(item => item.is_primary)
+        ?? provenance.get(row.id)?.attributions[0]
+      return {
       id: row.id, name: row.name, language: row.language,
       created_at: row.createdAt,
       views_count: row.viewsCount || 0, likes_count: row.likesCount || 0,
       updated_at: row.updatedAt,
-      author: row.authorId ? { id: row.authorId, name: row.authorName, image_url: row.authorImageUrl } : undefined,
-      reference: row.referenceId ? { id: row.referenceId, name: row.referenceName } : undefined,
-    }))
+      author: attribution?.author_id ? attribution.author : undefined,
+      reference: attribution?.reference_id ? attribution.reference : undefined,
+      attributions: provenance.get(row.id)?.attributions ?? [],
+      sources: provenance.get(row.id)?.sources ?? [],
+    }
+    })
 
     // Prioritize quotes matching the theme's language
     if (themeRow.language) {

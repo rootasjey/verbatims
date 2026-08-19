@@ -13,6 +13,7 @@ import type {
 } from '@verbatims/social-autopost-core'
 import { getSocialSourceKey } from '@verbatims/social-autopost-core'
 import { getSocialImageDesignConfig } from '~~/server/utils/social-image-design-config'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export interface VerbatimsQuoteQueueCandidate {
   quoteId: number
@@ -60,8 +61,9 @@ export const verbatimsSocialSourceSearchResolver: SocialSourceSearchResolver = {
   })
     .from(schema.socialQueue)
     .leftJoin(schema.quotes, eq(schema.socialQueue.quoteId, schema.quotes.id))
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+    .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+    .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
+    .leftJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
     .where(and(
       eq(schema.socialQueue.sourceType, 'quote'),
       or(
@@ -100,16 +102,18 @@ export const verbatimsSocialSourceDisplayResolver: SocialSourceDisplayResolver =
       quoteId: schema.quotes.id,
       quoteText: schema.quotes.name,
       quoteLanguage: schema.quotes.language,
-      authorName: schema.authors.name,
-      referenceName: schema.quoteReferences.name
     })
       .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .where(inArray(schema.quotes.id, quoteSourceIds))
 
+    const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.quoteId))
+
     for (const quote of quotes) {
-      const secondaryText = [quote.authorName, quote.referenceName].filter(Boolean).join(' · ')
+      const quoteProvenance = provenance.get(quote.quoteId)
+      const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
+      const authorName = attribution?.author?.name ?? null
+      const referenceName = attribution?.reference?.name ?? null
+      const secondaryText = [authorName, referenceName].filter(Boolean).join(' · ')
       const key = getSocialSourceKey({ sourceType: 'quote', sourceId: quote.quoteId })
       resolved[key] = {
         sourceType: 'quote',
@@ -117,11 +121,11 @@ export const verbatimsSocialSourceDisplayResolver: SocialSourceDisplayResolver =
         quoteId: quote.quoteId,
         quoteText: quote.quoteText,
         quoteLanguage: quote.quoteLanguage,
-        authorName: quote.authorName,
-        referenceName: quote.referenceName,
+        authorName,
+        referenceName,
         canonicalPath: `/quotes/${quote.quoteId}`,
-        title: quote.authorName,
-        subtitle: quote.referenceName,
+        title: authorName,
+        subtitle: referenceName,
         primaryText: quote.quoteText,
         secondaryText: secondaryText || null,
         language: quote.quoteLanguage,
@@ -129,8 +133,8 @@ export const verbatimsSocialSourceDisplayResolver: SocialSourceDisplayResolver =
           quoteId: quote.quoteId,
           quoteText: quote.quoteText,
           quoteLanguage: quote.quoteLanguage,
-          authorName: quote.authorName,
-          referenceName: quote.referenceName
+          authorName,
+          referenceName,
         }
       }
     }
@@ -179,12 +183,8 @@ export const verbatimsSocialPublishableSourceResolver: SocialPublishableSourceRe
     quoteId: schema.quotes.id,
     quoteText: schema.quotes.name,
     quoteStatus: schema.quotes.status,
-    authorName: schema.authors.name,
-    referenceName: schema.quoteReferences.name
   })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .where(eq(schema.quotes.id, Number(input.sourceId)))
     .limit(1)
     .get()
@@ -193,8 +193,16 @@ export const verbatimsSocialPublishableSourceResolver: SocialPublishableSourceRe
     return null
   }
 
+  const provenance = await getPrimaryQuoteProvenance([candidate.quoteId])
+  const quoteProvenance = provenance.get(candidate.quoteId)
+  const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
+
   return await resolveVerbatimsQuoteContent({
-    candidate,
+    candidate: {
+      ...candidate,
+      authorName: attribution?.author?.name ?? null,
+      referenceName: attribution?.reference?.name ?? null,
+    },
     baseSiteUrl: input.baseSiteUrl,
     platform: input.platform
   })

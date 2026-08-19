@@ -70,7 +70,8 @@ export default defineEventHandler(async (event) => {
       })
         .from(schema.quoteTags)
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+        .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+        .innerJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
         .where(
           and(
             eq(schema.quoteTags.tagId, tagRow.id),
@@ -93,7 +94,8 @@ export default defineEventHandler(async (event) => {
       })
         .from(schema.quoteTags)
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
-        .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+        .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
+        .innerJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
         .where(
           and(
             eq(schema.quoteTags.tagId, tagRow.id),
@@ -128,9 +130,10 @@ export default defineEventHandler(async (event) => {
         .from(schema.quoteTags)
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+        .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
         .where(
           and(
-            eq(schema.quotes.authorId, authorRow.id),
+            eq(schema.quoteAttributions.authorId, authorRow.id),
             eq(schema.quotes.status, 'approved'),
           )
         )
@@ -148,11 +151,12 @@ export default defineEventHandler(async (event) => {
         name: schema.quoteReferences.name,
         count: count(schema.quotes.id),
       })
-        .from(schema.quotes)
-        .innerJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
+        .from(schema.quoteAttributions)
+        .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
+        .innerJoin(schema.quoteReferences, eq(schema.quoteAttributions.referenceId, schema.quoteReferences.id))
         .where(
           and(
-            eq(schema.quotes.authorId, authorRow.id),
+            eq(schema.quoteAttributions.authorId, authorRow.id),
             eq(schema.quotes.status, 'approved'),
           )
         )
@@ -184,9 +188,10 @@ export default defineEventHandler(async (event) => {
         .from(schema.quoteTags)
         .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
         .innerJoin(schema.quotes, eq(schema.quoteTags.quoteId, schema.quotes.id))
+        .innerJoin(schema.quoteAttributions, eq(schema.quotes.id, schema.quoteAttributions.quoteId))
         .where(
           and(
-            eq(schema.quotes.referenceId, refRow.id),
+            eq(schema.quoteAttributions.referenceId, refRow.id),
             eq(schema.quotes.status, 'approved'),
           )
         )
@@ -204,11 +209,12 @@ export default defineEventHandler(async (event) => {
         name: schema.authors.name,
         count: count(schema.quotes.id),
       })
-        .from(schema.quotes)
-        .innerJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+        .from(schema.quoteAttributions)
+        .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
+        .innerJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
         .where(
           and(
-            eq(schema.quotes.referenceId, refRow.id),
+            eq(schema.quoteAttributions.referenceId, refRow.id),
             eq(schema.quotes.status, 'approved'),
           )
         )
