@@ -23,7 +23,7 @@ defineRouteMeta({
         description: 'Paginated list of quotes',
         content: {
           'application/json': {
-            example: { success: true, data: [{ id: 1, content: '...', language: 'en', stats: { views: 42, likes: 7, shares: 3 }, featured: false, author: { id: 1, name: 'Author', fictional: false, image_url: null, description: null }, reference: null, tags: [], created_at: '...', updated_at: '...' }], pagination: { page: 1, limit: 20, total: 100, totalPages: 5, hasMore: true } },
+             example: { success: true, data: [{ id: 1, content: '...', language: 'en', stats: { views: 42, likes: 7, shares: 3 }, featured: false, tags: [], created_at: '...', updated_at: '...' }], pagination: { page: 1, limit: 20, total: 100, totalPages: 5, hasMore: true } },
           },
         },
       },
@@ -134,17 +134,6 @@ export default defineEventHandler(async (event) => {
       shares: q.sharesCount,
     },
     featured: q.isFeatured,
-    author: q.authorId ? {
-      id: q.authorId,
-      name: q.authorName,
-      fictional: q.authorIsFictional,
-      image_url: q.authorImageUrl,
-    } : null,
-    reference: q.referenceId ? {
-      id: q.referenceId,
-      name: q.referenceName,
-      type: q.referencePrimaryType,
-    } : null,
     tags: tagsMap[q.id] || [],
     created_at: q.createdAt,
     updated_at: q.updatedAt,
