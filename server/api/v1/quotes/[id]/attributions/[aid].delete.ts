@@ -10,7 +10,10 @@ export default defineEventHandler(async (event) => {
   const quoteId = Number(getRouterParam(event, 'id'))
   const attributionId = Number(getRouterParam(event, 'aid'))
   if (!Number.isInteger(quoteId) || !Number.isInteger(attributionId)) throwServer(400, 'Invalid attribution ID')
-  await requireQuoteAttribution(quoteId, attributionId)
+  const attribution = await requireQuoteAttribution(quoteId, attributionId)
+  if (attribution.isPrimary) {
+    throwServer(400, 'Choose another primary attribution before deleting this one')
+  }
   await db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.id, attributionId)).run()
   return { success: true, data: { id: attributionId, quote_id: quoteId } }
 })
