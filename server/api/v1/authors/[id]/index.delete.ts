@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event).catch(() => ({})) as { strategy?: 'delete' | 'anonymize' }
 
   const quoteCountResult = await db.get<{ count: number }>(sql`
-    SELECT COUNT(*) as count FROM ${schema.quotes} WHERE author_id = ${authorId}
+    SELECT COUNT(DISTINCT quote_id) as count FROM ${schema.quoteAttributions} WHERE author_id = ${authorId}
   `)
   const quoteCount = quoteCountResult?.count || 0
 
@@ -67,13 +67,21 @@ export default defineEventHandler(async (event) => {
     await db.run(sql`BEGIN TRANSACTION`)
     try {
       if (strategy === 'delete') {
-        await db.delete(schema.quotes)
-          .where(eq(schema.quotes.authorId, authorId))
-          .run()
+        await db.run(sql`
+          DELETE FROM ${schema.quotes}
+          WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE author_id = ${authorId})
+        `)
       } else {
-        await db.update(schema.quotes)
-          .set({ authorId: null })
-          .where(eq(schema.quotes.authorId, authorId))
+        const invalid = await db.get<{ count: number }>(sql`
+          SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
+          WHERE author_id = ${authorId} AND reference_id IS NULL
+        `)
+        if ((invalid?.count || 0) > 0) {
+          throwServer(400, 'Cannot anonymize author-only attributions. Add a reference first or use the delete strategy.')
+        }
+        await db.update(schema.quoteAttributions)
+          .set({ authorId: null, updatedAt: new Date() })
+          .where(eq(schema.quoteAttributions.authorId, authorId))
           .run()
       }
 
@@ -82,8 +90,9 @@ export default defineEventHandler(async (event) => {
         .run()
 
       await db.run(sql`COMMIT`)
-    } catch {
+    } catch (error: any) {
       await db.run(sql`ROLLBACK`)
+      if (error?.statusCode) throw error
       throwServer(500, 'Failed to process deletion transaction')
     }
 

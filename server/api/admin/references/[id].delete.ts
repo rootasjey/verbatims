@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
     // Count associated quotes
     const quoteCountResult = await db.get<{ count: number }>(sql`
-      SELECT COUNT(*) as count FROM ${schema.quotes} WHERE reference_id = ${parseInt(referenceId)}
+      SELECT COUNT(DISTINCT quote_id) as count FROM ${schema.quoteAttributions} WHERE reference_id = ${parseInt(referenceId)}
     `)
     const quoteCount = quoteCountResult?.count || 0
 
@@ -51,13 +51,21 @@ export default defineEventHandler(async (event) => {
       await db.run(sql`BEGIN TRANSACTION`)
       try {
         if (strategy === 'delete') {
-          await db.delete(schema.quotes)
-            .where(eq(schema.quotes.referenceId, parseInt(referenceId)))
-            .run()
+          await db.run(sql`
+            DELETE FROM ${schema.quotes}
+            WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE reference_id = ${parseInt(referenceId)})
+          `)
         } else {
-          await db.update(schema.quotes)
-            .set({ referenceId: null })
-            .where(eq(schema.quotes.referenceId, parseInt(referenceId)))
+          const invalid = await db.get<{ count: number }>(sql`
+            SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
+            WHERE reference_id = ${parseInt(referenceId)} AND author_id IS NULL
+          `)
+          if ((invalid?.count || 0) > 0) {
+            throwServer(400, 'Cannot anonymize reference-only attributions. Add an author first or use the delete strategy.')
+          }
+          await db.update(schema.quoteAttributions)
+            .set({ referenceId: null, updatedAt: new Date() })
+            .where(eq(schema.quoteAttributions.referenceId, parseInt(referenceId)))
             .run()
         }
 
@@ -66,8 +74,9 @@ export default defineEventHandler(async (event) => {
           .run()
 
         await db.run(sql`COMMIT`)
-      } catch (txErr) {
+      } catch (txErr: any) {
         await db.run(sql`ROLLBACK`)
+        if (txErr?.statusCode) throw txErr
         throwServer(500, 'Failed to process deletion transaction')
       }
 

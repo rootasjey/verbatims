@@ -2,7 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { updateQuoteSchema } from '../../validation/schemas'
-import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -27,8 +27,13 @@ export default defineEventHandler(async (event) => {
       throwServer(403, 'You can only edit your own draft quotes')
     }
 
-    let authorId = body.author_id
-    let referenceId = body.reference_id
+    const currentProvenance = await getQuoteProvenance(e.id)
+    const primaryAttribution = currentProvenance.attributions.find(item => item.is_primary) ?? currentProvenance.attributions[0]
+    let authorId = primaryAttribution?.author_id ?? null
+    let referenceId = primaryAttribution?.reference_id ?? null
+
+    if (body.author_id != null) authorId = body.author_id
+    if (body.reference_id != null) referenceId = body.reference_id
 
     if (body.new_author?.name) {
       const newAuthor = await db.insert(schema.authors).values({
@@ -55,15 +60,15 @@ export default defineEventHandler(async (event) => {
     if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
     const provenanceSource = body.provenance?.source
 
+    if (authorId == null && referenceId == null) {
+      throwServer(400, 'A quote requires an author or reference')
+    }
+
     const updateData: Record<string, unknown> = {
-      name: body.name!,
-      language: body.language || 'en',
-      authorId: authorId || null,
-      referenceId: referenceId || null,
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.language !== undefined ? { language: body.language } : {}),
       updatedAt: new Date(),
     }
-    updateData.sourceType = provenanceSource?.source_type ?? body.source_type ?? null
-    updateData.sourceUrl = provenanceSource?.source_url ?? body.source_url ?? null
 
     await db.update(schema.quotes)
       .set(updateData as any)

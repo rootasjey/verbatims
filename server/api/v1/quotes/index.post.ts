@@ -101,6 +101,10 @@ export default defineEventHandler(async (event) => {
     if (!reference) throwServer(400, 'Invalid reference ID')
   }
 
+  if (authorId == null && referenceId == null) {
+    throwServer(400, 'A quote requires an author or reference')
+  }
+
   const similarQuotes = await db.select({ id: schema.quotes.id })
     .from(schema.quotes)
     .where(and(
@@ -114,44 +118,49 @@ export default defineEventHandler(async (event) => {
 
   const provenanceSource = body.provenance?.source
 
-  const quoteResult = await db.insert(schema.quotes).values({
-    name: body.name,
-    language: body.language,
-    authorId: authorId || null,
-    referenceId: referenceId || null,
-    userId: api.userId,
-    status: 'draft',
-    sourceType: provenanceSource?.source_type ?? null,
-    sourceUrl: provenanceSource?.source_url ?? null,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  } as any).returning({ id: schema.quotes.id }).get()
-
   const attributionStatus = api.userRole === 'admin' || api.userRole === 'moderator'
     ? body.provenance?.status
     : 'unverified'
-  const attributionId = await syncPrimaryAttribution(
-    quoteResult.id,
-    authorId || null,
-    referenceId || null,
-    api.userId,
-    attributionStatus,
-    body.provenance?.notes,
-  )
-  if (provenanceSource) {
-    await syncPrimarySource(
-      quoteResult.id,
-      attributionId,
-      provenanceSource.source_type,
-      provenanceSource.source_url,
+  await db.run(sql`BEGIN TRANSACTION`)
+  let quoteId: number
+  try {
+    const quoteResult = await db.insert(schema.quotes).values({
+      name: body.name,
+      language: body.language,
+      userId: api.userId,
+      status: 'draft',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    } as any).returning({ id: schema.quotes.id }).get()
+    quoteId = quoteResult.id
+
+    const attributionId = await syncPrimaryAttribution(
+      quoteId,
+      authorId || null,
+      referenceId || null,
       api.userId,
-      api.userRole === 'admin' || api.userRole === 'moderator' ? provenanceSource?.verification_status : 'unverified',
-      provenanceSource?.label,
-      provenanceSource?.notes,
+      attributionStatus,
+      body.provenance?.notes,
     )
+    if (provenanceSource) {
+      await syncPrimarySource(
+        quoteId,
+        attributionId,
+        provenanceSource.source_type,
+        provenanceSource.source_url,
+        api.userId,
+        api.userRole === 'admin' || api.userRole === 'moderator' ? provenanceSource?.verification_status : 'unverified',
+        provenanceSource?.label,
+        provenanceSource?.notes,
+      )
+    }
+    await db.run(sql`COMMIT`)
+  } catch (error) {
+    await db.run(sql`ROLLBACK`)
+    throw error
   }
 
-  await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteResult.id, targetType: 'quote', metadata: { status: 'draft', name: body.name } })
+  await logActivity(event, { type: 'quote_created', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: 'draft', name: body.name } })
 
   if (body.tags && body.tags.length > 0) {
     for (const tagId of body.tags) {
@@ -161,7 +170,7 @@ export default defineEventHandler(async (event) => {
         .get()
       if (tag) {
         await db.insert(schema.quoteTags).values({
-          quoteId: quoteResult.id,
+          quoteId,
           tagId: tagId
         } as any).run()
       }
@@ -195,14 +204,14 @@ export default defineEventHandler(async (event) => {
     .from(schema.quotes)
     .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
     .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
-    .where(eq(schema.quotes.id, quoteResult.id))
+    .where(eq(schema.quotes.id, quoteId))
     .get()
 
   const tags = await db
     .select({ name: schema.tags.name, color: schema.tags.color })
     .from(schema.tags)
     .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
-    .where(eq(schema.quoteTags.quoteId, quoteResult.id))
+    .where(eq(schema.quoteTags.quoteId, quoteId))
     .all()
 
   return {
@@ -217,7 +226,7 @@ export default defineEventHandler(async (event) => {
         shares: createdQuote!.sharesCount,
       },
       featured: createdQuote!.isFeatured,
-      ...(await getQuoteProvenance(quoteResult.id)),
+      ...(await getQuoteProvenance(quoteId)),
       tags: tags.map(t => ({ name: t.name, color: t.color })),
       created_at: createdQuote!.createdAt,
       updated_at: createdQuote!.updatedAt,

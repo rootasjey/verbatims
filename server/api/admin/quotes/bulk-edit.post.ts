@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, sql } from 'drizzle-orm'
+import { getQuoteProvenance, syncPrimaryAttribution } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,6 +18,8 @@ export default defineEventHandler(async (event) => {
 
     let hasUpdate = false
     const updateData: Record<string, unknown> = {}
+    let authorId: number | null | undefined
+    let referenceId: number | null | undefined
 
     // Normalize and validate IDs
     const quoteIds: number[] = body.quote_ids.map((id: string | number) => {
@@ -39,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
     // Author update
     if (body.author_id !== undefined) {
-      updateData.authorId = body.author_id || null
+      authorId = body.author_id || null
       hasUpdate = true
     } else if (body.new_author && body.new_author.name) {
       const newAuthor = await db.insert(schema.authors).values({
@@ -49,13 +52,13 @@ export default defineEventHandler(async (event) => {
         updatedAt: new Date()
       }).returning({ id: schema.authors.id }).get()
 
-      updateData.authorId = newAuthor.id
+      authorId = newAuthor.id
       hasUpdate = true
     }
 
     // Reference update
     if (body.reference_id !== undefined) {
-      updateData.referenceId = body.reference_id || null
+      referenceId = body.reference_id || null
       hasUpdate = true
     } else if (body.new_reference && body.new_reference.name) {
       const newReference = await db.insert(schema.quoteReferences).values({
@@ -66,7 +69,7 @@ export default defineEventHandler(async (event) => {
         updatedAt: new Date()
       }).returning({ id: schema.quoteReferences.id }).get()
 
-      updateData.referenceId = newReference.id
+      referenceId = newReference.id
       hasUpdate = true
     }
 
@@ -84,12 +87,34 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Some quotes not found')
     }
 
-    // Batch update
+    // Update quote metadata and primary attributions together. The fields on
+    // `quotes` are legacy compatibility columns and must not be written here.
     updateData.updatedAt = new Date()
-    await db.update(schema.quotes)
-      .set(updateData as any)
-      .where(inArray(schema.quotes.id, quoteIds))
-      .run()
+    await db.run(sql`BEGIN TRANSACTION`)
+    try {
+      await db.update(schema.quotes)
+        .set(updateData as any)
+        .where(inArray(schema.quotes.id, quoteIds))
+        .run()
+
+      if (authorId !== undefined || referenceId !== undefined) {
+        for (const id of quoteIds) {
+          const provenance = await getQuoteProvenance(id)
+          const primary = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
+          const nextAuthorId = authorId !== undefined ? authorId : primary?.author_id ?? null
+          const nextReferenceId = referenceId !== undefined ? referenceId : primary?.reference_id ?? null
+          if (nextAuthorId == null && nextReferenceId == null) {
+            throwServer(400, 'A quote requires an author or reference')
+          }
+          await syncPrimaryAttribution(id, nextAuthorId, nextReferenceId, user.id)
+        }
+      }
+
+      await db.run(sql`COMMIT`)
+    } catch (error) {
+      await db.run(sql`ROLLBACK`)
+      throw error
+    }
 
     return {
       success: true,

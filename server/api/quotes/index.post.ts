@@ -64,6 +64,10 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    if (authorId == null && referenceId == null) {
+      throwServer(400, 'A quote requires an author or reference')
+    }
+
     // Check for duplicate quotes (fuzzy matching)
     const similarQuotes = await db.select({ id: schema.quotes.id })
       .from(schema.quotes)
@@ -78,40 +82,44 @@ export default defineEventHandler(async (event) => {
       throwServer(409, 'A similar quote already exists')
     }
 
-    const quoteResult = await db.insert(schema.quotes).values({
-      name: body.name,
-      language: body.language,
-      authorId: authorId || null,
-      referenceId: referenceId || null,
-      userId: user.id,
-      status: 'draft',
-      sourceType: provenanceSource?.source_type ?? body.source_type ?? null,
-      sourceUrl: provenanceSource?.source_url ?? body.source_url ?? null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    } as any).returning({ id: schema.quotes.id }).get()
-
-    const quoteId = quoteResult.id
     const isPrivileged = user.role === 'admin' || user.role === 'moderator'
-    const attributionId = await syncPrimaryAttribution(
-      quoteId,
-      authorId || null,
-      referenceId || null,
-      user.id,
-      isPrivileged ? body.provenance?.status : 'unverified',
-      body.provenance?.notes,
-    )
-    if (provenanceSource || body.source_type || body.source_url) {
-      await syncPrimarySource(
+    await db.run(sql`BEGIN TRANSACTION`)
+    let quoteId: number
+    try {
+      const quoteResult = await db.insert(schema.quotes).values({
+        name: body.name,
+        language: body.language,
+        userId: user.id,
+        status: 'draft',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as any).returning({ id: schema.quotes.id }).get()
+      quoteId = quoteResult.id
+
+      const attributionId = await syncPrimaryAttribution(
         quoteId,
-        attributionId,
-        provenanceSource?.source_type ?? body.source_type,
-        provenanceSource?.source_url ?? body.source_url,
+        authorId || null,
+        referenceId || null,
         user.id,
-        isPrivileged ? provenanceSource?.verification_status : 'unverified',
-        provenanceSource?.label,
-        provenanceSource?.notes,
+        isPrivileged ? body.provenance?.status : 'unverified',
+        body.provenance?.notes,
       )
+      if (provenanceSource || body.source_type || body.source_url) {
+        await syncPrimarySource(
+          quoteId,
+          attributionId,
+          provenanceSource?.source_type ?? body.source_type,
+          provenanceSource?.source_url ?? body.source_url,
+          user.id,
+          isPrivileged ? provenanceSource?.verification_status : 'unverified',
+          provenanceSource?.label,
+          provenanceSource?.notes,
+        )
+      }
+      await db.run(sql`COMMIT`)
+    } catch (error) {
+      await db.run(sql`ROLLBACK`)
+      throw error
     }
 
     // Add tags if provided
@@ -124,7 +132,7 @@ export default defineEventHandler(async (event) => {
         
         if (tag) {
           await db.insert(schema.quoteTags).values({
-            quoteId: quoteId,
+            quoteId,
             tagId: tagId
           } as any).run()
         }

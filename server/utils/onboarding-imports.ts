@@ -759,7 +759,7 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
     const batch = quotes.slice(i, i + batchSize)
     for (let j = 0; j < batch.length; j += subSize) {
       const sub = batch.slice(j, j + subSize)
-      const stmts: any[] = []
+      let batchImported = 0
 
       for (const q of sub) {
         try {
@@ -781,8 +781,6 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
           const values: any = {
             name: q.name || '',
             language: language,
-            authorId: authorId ?? null,
-            referenceId: referenceId ?? null,
             userId: userId,
             status: status,
             moderatorId: moderatorId,
@@ -796,19 +794,50 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
           }
           if (explicitId != null) values.id = explicitId
 
-          stmts.push(db.insert(schema.quotes).values(values))
+          if (authorId == null && referenceId == null) {
+            throw new Error('An author or reference is required')
+          }
+
+          await db.run(sql`BEGIN TRANSACTION`)
+          try {
+            const quote = await db.insert(schema.quotes)
+              .values(values)
+              .returning({ id: schema.quotes.id })
+              .get()
+            const attribution = await db.insert(schema.quoteAttributions).values({
+              quoteId: quote.id,
+              authorId,
+              referenceId,
+              isPrimary: true,
+              createdBy: adminUserId,
+              createdAt,
+              updatedAt,
+            }).returning({ id: schema.quoteAttributions.id }).get()
+            if (q.source_type || q.source_url) {
+              await db.insert(schema.quoteSources).values({
+                quoteId: quote.id,
+                attributionId: attribution.id,
+                sourceType: q.source_type || 'manual',
+                sourceUrl: q.source_url || null,
+                isPrimary: true,
+                createdBy: adminUserId,
+                createdAt,
+                updatedAt,
+              })
+            }
+            await db.run(sql`COMMIT`)
+            batchImported++
+          } catch (error) {
+            await db.run(sql`ROLLBACK`)
+            throw error
+          }
         } catch (e: any) {
           skipped++
           addWarning(importId, `Quote import skipped: ${e?.message || 'unknown error'}`)
         }
       }
 
-      try { if (stmts.length > 0) { await db.batch(stmts as any); imported += stmts.length } }
-      catch (e: any) {
-        for (let idx = 0; idx < stmts.length; idx++) {
-          try { await stmts[idx]; imported++ } catch (ie: any) { skipped++; addWarning(importId, `Quote ${(i + j + (idx+1))} skipped: ${ie?.message || 'unknown error'}`) }
-        }
-      }
+      imported += batchImported
 
       if (imported % 25 === 0) updateStepProgress(importId, 'quotes', { current: Math.min(i + j + imported, total), imported, message: `Imported ${imported}/${total} quotes` })
       if (sub.length > 1) await new Promise(r => setTimeout(r, 10))

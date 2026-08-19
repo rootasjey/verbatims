@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
 
     // Count associated quotes
     const quoteCountResult = await db.get<{ count: number }>(sql`
-      SELECT COUNT(*) as count FROM ${schema.quotes} WHERE author_id = ${parseInt(authorId)}
+      SELECT COUNT(DISTINCT quote_id) as count FROM ${schema.quoteAttributions} WHERE author_id = ${parseInt(authorId)}
     `)
     const quoteCount = quoteCountResult?.count || 0
 
@@ -51,15 +51,21 @@ export default defineEventHandler(async (event) => {
       await db.run(sql`BEGIN TRANSACTION`)
       try {
         if (strategy === 'delete') {
-          // Delete quote-related rows (quote_tags etc. are ON DELETE CASCADE)
-          await db.delete(schema.quotes)
-            .where(eq(schema.quotes.authorId, parseInt(authorId)))
-            .run()
+          await db.run(sql`
+            DELETE FROM ${schema.quotes}
+            WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE author_id = ${parseInt(authorId)})
+          `)
         } else {
-          // Anonymize: set author_id to NULL
-          await db.update(schema.quotes)
-            .set({ authorId: null })
-            .where(eq(schema.quotes.authorId, parseInt(authorId)))
+          const invalid = await db.get<{ count: number }>(sql`
+            SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
+            WHERE author_id = ${parseInt(authorId)} AND reference_id IS NULL
+          `)
+          if ((invalid?.count || 0) > 0) {
+            throwServer(400, 'Cannot anonymize author-only attributions. Add a reference first or use the delete strategy.')
+          }
+          await db.update(schema.quoteAttributions)
+            .set({ authorId: null, updatedAt: new Date() })
+            .where(eq(schema.quoteAttributions.authorId, parseInt(authorId)))
             .run()
         }
 
@@ -69,8 +75,9 @@ export default defineEventHandler(async (event) => {
           .run()
 
         await db.run(sql`COMMIT`)
-      } catch (txErr) {
+      } catch (txErr: any) {
         await db.run(sql`ROLLBACK`)
+        if (txErr?.statusCode) throw txErr
         throwServer(500, 'Failed to process deletion transaction')
       }
 
