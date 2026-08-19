@@ -10,8 +10,6 @@ export default defineEventHandler(async (event) => {
 
   const quote = await db.select({
     id: schema.quotes.id,
-    authorId: schema.quotes.authorId,
-    referenceId: schema.quotes.referenceId,
   })
     .from(schema.quotes)
     .where(eq(schema.quotes.id, quoteId))
@@ -19,11 +17,24 @@ export default defineEventHandler(async (event) => {
 
   if (!quote) throwServer(404, 'Quote not found')
 
+  const primaryAttribution = await db.select({
+    authorId: schema.quoteAttributions.authorId,
+    referenceId: schema.quoteAttributions.referenceId,
+  })
+    .from(schema.quoteAttributions)
+    .where(and(
+      eq(schema.quoteAttributions.quoteId, quoteId),
+      eq(schema.quoteAttributions.isPrimary, true),
+    ))
+    .get()
+
+  if (!primaryAttribution) throwServer(409, 'Quote has no primary attribution')
+
   const body = await readValidatedBody(event, updateQuoteProvenanceSchema.parse)
   const attributionId = await syncPrimaryAttribution(
     quoteId,
-    body.author_id === undefined ? quote.authorId : body.author_id,
-    body.reference_id === undefined ? quote.referenceId : body.reference_id,
+    body.author_id === undefined ? primaryAttribution.authorId : body.author_id,
+    body.reference_id === undefined ? primaryAttribution.referenceId : body.reference_id,
     user.id,
   )
 

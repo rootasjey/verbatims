@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
-import { eq, and, desc, count, sql, getTableColumns } from 'drizzle-orm'
+import { eq, and, desc, count, sql } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -11,12 +12,20 @@ export default defineEventHandler(async (event) => {
     
     // Get liked quotes with full data and tags
     const likedQuotes = await db.select({
-      ...getTableColumns(schema.quotes),
-      author_name: schema.authors.name,
-      author_is_fictional: schema.authors.isFictional,
-      author_image_url: schema.authors.imageUrl,
-      reference_name: schema.quoteReferences.name,
-      reference_type: schema.quoteReferences.primaryType,
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      language: schema.quotes.language,
+      status: schema.quotes.status,
+      userId: schema.quotes.userId,
+      moderatorId: schema.quotes.moderatorId,
+      moderatedAt: schema.quotes.moderatedAt,
+      rejectionReason: schema.quotes.rejectionReason,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
       user_name: schema.users.name,
       liked_at: schema.userLikes.createdAt,
       tag_names: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
@@ -24,8 +33,6 @@ export default defineEventHandler(async (event) => {
     })
       .from(schema.userLikes)
       .innerJoin(schema.quotes, eq(schema.userLikes.likeableId, schema.quotes.id))
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
       .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
       .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
@@ -53,10 +60,19 @@ export default defineEventHandler(async (event) => {
     const hasMore = offset + likedQuotes.length < total
 
     // Process tags from GROUP_CONCAT results
-    const processedQuotes = likedQuotes.map((quote: any) => ({
-      ...quote,
-      tags: parseTags(quote.tag_names, quote.tag_colors)
-    }))
+    const provenance = await getPrimaryQuoteProvenance(likedQuotes.map(quote => quote.id))
+    const processedQuotes = likedQuotes.map((quote: any) => {
+      const quoteProvenance = provenance.get(quote.id)
+      const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
+      return {
+        ...quote,
+        author: attribution?.author_id ? attribution.author : null,
+        reference: attribution?.reference_id ? attribution.reference : null,
+        tags: parseTags(quote.tag_names, quote.tag_colors),
+        attributions: quoteProvenance?.attributions ?? [],
+        sources: quoteProvenance?.sources ?? [],
+      }
+    })
     
     return {
       success: true,

@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
       'updated': schema.authors.updatedAt,
       'views': schema.authors.viewsCount,
       'likes': schema.authors.likesCount,
-      'quotes': sql<number>`COUNT(${schema.quotes.id})`
+      'quotes': sql<number>`COUNT(DISTINCT ${schema.quotes.id})`
     }
 
     // Get the sort column
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     let authorsQuery = db
       .select({
         ...getTableColumns(schema.authors),
-        quotes_count: count(schema.quotes.id),
+        quotes_count: sql<number>`COUNT(DISTINCT ${schema.quotes.id})`,
         enrichment_pending_count: sql<number>`(
           SELECT COUNT(*)
           FROM ${schema.entityEnrichmentFieldProposals} proposal
@@ -85,7 +85,8 @@ export default defineEventHandler(async (event) => {
         )`
       })
       .from(schema.authors)
-      .leftJoin(schema.quotes, eq(schema.authors.id, schema.quotes.authorId))
+      .leftJoin(schema.quoteAttributions, eq(schema.authors.id, schema.quoteAttributions.authorId))
+      .leftJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
       .$dynamic()
     
     // Apply where conditions

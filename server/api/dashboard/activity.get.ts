@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, desc, sql } from 'drizzle-orm'
+import { and, eq, desc, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 export default defineEventHandler(async (event) => {
@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
     const activities: Array<Record<string, any>> = []
 
     const qa = alias(schema.authors, 'qa')
+    const quoteAttribution = alias(schema.quoteAttributions, 'quote_primary_attribution')
     
     // Recent likes - using SQL CASE for conditional fields
     const recentLikes = await db.select({
@@ -36,7 +37,11 @@ export default defineEventHandler(async (event) => {
       .leftJoin(schema.quotes, sql`${schema.userLikes.likeableType} = 'quote' AND ${schema.userLikes.likeableId} = ${schema.quotes.id}`)
       .leftJoin(schema.authors, sql`${schema.userLikes.likeableType} = 'author' AND ${schema.userLikes.likeableId} = ${schema.authors.id}`)
       .leftJoin(schema.quoteReferences, sql`${schema.userLikes.likeableType} = 'reference' AND ${schema.userLikes.likeableId} = ${schema.quoteReferences.id}`)
-      .leftJoin(qa, eq(schema.quotes.authorId, qa.id))
+      .leftJoin(quoteAttribution, and(
+        eq(quoteAttribution.quoteId, schema.quotes.id),
+        eq(quoteAttribution.isPrimary, true),
+      ))
+      .leftJoin(qa, eq(quoteAttribution.authorId, qa.id))
       .where(eq(schema.userLikes.userId, user!.id))
       .orderBy(desc(schema.userLikes.createdAt))
       .limit(10)
@@ -82,10 +87,14 @@ export default defineEventHandler(async (event) => {
       name: schema.quotes.name,
       status: schema.quotes.status,
       created_at: schema.quotes.createdAt,
-      author_name: schema.authors.name
+      author_name: qa.name
     })
       .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
+      .leftJoin(quoteAttribution, and(
+        eq(quoteAttribution.quoteId, schema.quotes.id),
+        eq(quoteAttribution.isPrimary, true),
+      ))
+      .leftJoin(qa, eq(quoteAttribution.authorId, qa.id))
       .where(eq(schema.quotes.userId, user!.id))
       .orderBy(desc(schema.quotes.createdAt))
       .limit(10)
