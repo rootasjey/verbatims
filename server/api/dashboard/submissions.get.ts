@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
-import { eq, and, like, or, desc, count, getTableColumns } from 'drizzle-orm'
+import { eq, and, like, or, desc, count, sql } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -26,24 +27,36 @@ export default defineEventHandler(async (event) => {
     if (search) {
       const searchCondition = or(
         like(schema.quotes.name, `%${search}%`),
-        like(schema.authors.name, `%${search}%`),
-        like(schema.quoteReferences.name, `%${search}%`)
+        sql`EXISTS (
+          SELECT 1 FROM ${schema.quoteAttributions}
+          LEFT JOIN ${schema.authors} ON ${schema.quoteAttributions.authorId} = ${schema.authors.id}
+          LEFT JOIN ${schema.quoteReferences} ON ${schema.quoteAttributions.referenceId} = ${schema.quoteReferences.id}
+          WHERE ${schema.quoteAttributions.quoteId} = ${schema.quotes.id}
+            AND (${schema.authors.name} LIKE ${`%${search}%`} OR ${schema.quoteReferences.name} LIKE ${`%${search}%`})
+        )`,
       )
       if (searchCondition) conditions.push(searchCondition)
     }
 
     // Get user's submissions with related data
     const submissions = await db.select({
-      ...getTableColumns(schema.quotes),
-      author_name: schema.authors.name,
-      author_is_fictional: schema.authors.isFictional,
-      reference_name: schema.quoteReferences.name,
-      reference_type: schema.quoteReferences.primaryType,
-      moderator_name: schema.users.name
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      language: schema.quotes.language,
+      status: schema.quotes.status,
+      userId: schema.quotes.userId,
+      moderatorId: schema.quotes.moderatorId,
+      moderatedAt: schema.quotes.moderatedAt,
+      rejectionReason: schema.quotes.rejectionReason,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      moderator_name: schema.users.name,
     })
       .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .leftJoin(schema.users, eq(schema.quotes.moderatorId, schema.users.id))
       .where(and(...conditions))
       .orderBy(desc(schema.quotes.createdAt))
@@ -53,14 +66,13 @@ export default defineEventHandler(async (event) => {
     // Get total count
     const totalResult = await db.select({ total: count() })
       .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .where(and(...conditions))
 
     const total = Number(totalResult[0]?.total) || 0
     const hasMore = offset + submissions.length < total
 
     // Get tags for each submission
+    const provenance = await getPrimaryQuoteProvenance(submissions.map(submission => submission.id))
     const processedSubmissions = await Promise.all(submissions.map(async (submission: any) => {
       // Get tags for this quote
       const tags = await db.select({
@@ -72,19 +84,15 @@ export default defineEventHandler(async (event) => {
         .innerJoin(schema.quoteTags, eq(schema.tags.id, schema.quoteTags.tagId))
         .where(eq(schema.quoteTags.quoteId, submission.id))
 
+      const quoteProvenance = provenance.get(submission.id)
+      const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
       return {
         ...submission,
-        author: submission.author_name ? {
-          id: submission.authorId,
-          name: submission.author_name,
-          is_fictional: submission.author_is_fictional
-        } : null,
-        reference: submission.reference_name ? {
-          id: submission.referenceId,
-          name: submission.reference_name,
-          primary_type: submission.reference_type
-        } : null,
-        tags: tags
+        author: attribution?.author_id ? attribution.author : null,
+        reference: attribution?.reference_id ? attribution.reference : null,
+        tags,
+        attributions: quoteProvenance?.attributions ?? [],
+        sources: quoteProvenance?.sources ?? [],
       }
     }))
     

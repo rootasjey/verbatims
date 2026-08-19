@@ -13,10 +13,11 @@ export default defineEventHandler(async (event) => {
 
     const authorResult = await db.select({
       ...getTableColumns(schema.authors),
-      quotes_count: sql<number>`COUNT(${schema.quotes.id})`
+      quotes_count: sql<number>`COUNT(DISTINCT ${schema.quotes.id})`
     })
       .from(schema.authors)
-      .leftJoin(schema.quotes, eq(schema.authors.id, schema.quotes.authorId))
+      .leftJoin(schema.quoteAttributions, eq(schema.authors.id, schema.quoteAttributions.authorId))
+      .leftJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
       .where(eq(schema.authors.id, parseInt(authorId)))
       .groupBy(schema.authors.id)
       .get()
