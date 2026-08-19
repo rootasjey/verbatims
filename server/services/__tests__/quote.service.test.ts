@@ -47,10 +47,12 @@ describe('quote.service', () => {
     const { createQuote } = await import('../quote.service')
 
     await seedUser(currentDb.db, { id: 2, email: 'c@t.c', name: 'Creator' })
+    await seedAuthor(currentDb.db, { id: 2, name: 'Attributed author' })
 
     const quote = await createQuote({
       name: 'New quote',
       language: 'en',
+      authorId: 2,
       userId: 2,
     })
 

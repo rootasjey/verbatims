@@ -37,15 +37,15 @@ export default defineEventHandler(async (event) => {
     if (!targetAuthor) throwServer(404, 'Target author not found')
 
     const quotesResult = await db.get<{ count: number }>(sql`
-      SELECT COUNT(*) as count FROM ${schema.quotes} WHERE author_id = ${sourceId}
+      SELECT COUNT(DISTINCT quote_id) as count FROM ${schema.quoteAttributions} WHERE author_id = ${sourceId}
     `)
     const quotesCount = quotesResult?.count || 0
 
     await db.run(sql`BEGIN TRANSACTION`)
     try {
-      await db.update(schema.quotes)
+      await db.update(schema.quoteAttributions)
         .set({ authorId: targetId })
-        .where(eq(schema.quotes.authorId, sourceId))
+        .where(eq(schema.quoteAttributions.authorId, sourceId))
         .run()
 
       await db.update(schema.authorViews)

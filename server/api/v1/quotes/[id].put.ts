@@ -53,8 +53,13 @@ export default defineEventHandler(async (event) => {
   const isOwner = existingQuote!.userId === api.userId
   if (!isMod && !isOwner) throwServer(403, 'You can only update your own quotes')
 
-  let authorId = body.provenance?.author_id
-  let referenceId = body.provenance?.reference_id
+  const currentProvenance = await getQuoteProvenance(quoteId)
+  const primaryAttribution = currentProvenance.attributions.find(item => item.is_primary) ?? currentProvenance.attributions[0]
+  let authorId = primaryAttribution?.author_id ?? null
+  let referenceId = primaryAttribution?.reference_id ?? null
+
+  if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
+  if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
 
   if (body.new_author?.name) {
     const newAuthor = await db.insert(schema.authors).values({
@@ -79,15 +84,15 @@ export default defineEventHandler(async (event) => {
 
   const provenanceSource = body.provenance?.source
 
+  if (authorId == null && referenceId == null) {
+    throwServer(400, 'A quote requires an author or reference')
+  }
+
   const updateData: Record<string, unknown> = {
-    name: body.name,
-    language: body.language || 'en',
-    authorId: authorId || null,
-    referenceId: referenceId || null,
+    ...(body.name !== undefined ? { name: body.name } : {}),
+    ...(body.language !== undefined ? { language: body.language } : {}),
     updatedAt: new Date(),
   }
-  updateData.sourceType = provenanceSource?.source_type ?? null
-  updateData.sourceUrl = provenanceSource?.source_url ?? null
 
   await db.update(schema.quotes)
     .set({

@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and, sql } from 'drizzle-orm'
 import type { ImportOptions } from '~~/server/types'
+import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export async function importQuotesInline(
   parentImportId: string,
@@ -72,6 +73,7 @@ export async function importQuotesInline(
 
       const stmts: any[] = []
       let skipped = 0
+      let inserted = 0
 
       for (const q of sub) {
         // Resolve author_id
@@ -108,19 +110,13 @@ export async function importQuotesInline(
         // Conflict handling
         let matchedId: number | undefined
         if (quotePolicy !== 'insert') {
-          const existing = await db.select({ id: schema.quotes.id, authorId: schema.quotes.authorId, referenceId: schema.quotes.referenceId })
+          const existing = await db.select({ id: schema.quotes.id })
             .from(schema.quotes)
             .where(and(eq(schema.quotes.name, q.name), eq(schema.quotes.language, lang)))
             .limit(1)
             .get()
             
-          if (existing?.id) {
-            const ea = existing.authorId != null ? Number(existing.authorId) : null
-            const er = existing.referenceId != null ? Number(existing.referenceId) : null
-            const ca = authorId ?? null
-            const cr = referenceId ?? null
-            if (ea === ca && er === cr) matchedId = existing.id
-          }
+          if (existing?.id) matchedId = existing.id
         }
 
         if (matchedId && quotePolicy === 'ignore') {
@@ -156,14 +152,19 @@ export async function importQuotesInline(
           continue
         }
 
-        // Insert
+        if (authorId == null && referenceId == null) {
+          skipped++
+          report.addFailure({ index: i + j + 1, reason: 'An author or reference is required' })
+          continue
+        }
+
+        // Insert the quote and its primary attribution together. This cannot use
+        // the old batch path because the attribution needs the generated quote ID.
         const explicitId = options.preserveIds && Number.isFinite(Number(q.id)) ? Number(q.id) : undefined
         const values = {
             id: explicitId,
             name: q.name,
             language: lang,
-            authorId: authorId || null,
-            referenceId: referenceId || null,
             userId: userId,
             status: status,
             moderatorId: q.moderator_id || null,
@@ -176,8 +177,23 @@ export async function importQuotesInline(
             createdAt: q.created_at ? new Date(q.created_at) : new Date(),
             updatedAt: q.updated_at ? new Date(q.updated_at) : new Date(),
         }
-        
-        stmts.push(db.insert(schema.quotes).values(values))
+        try {
+          await db.run(sql`BEGIN TRANSACTION`)
+          const quote = await db.insert(schema.quotes)
+            .values(values)
+            .returning({ id: schema.quotes.id })
+            .get()
+          const attributionId = await syncPrimaryAttribution(quote.id, authorId ?? null, referenceId ?? null, userId)
+          if (q.source_type || q.source_url) {
+            await syncPrimarySource(quote.id, attributionId, q.source_type, q.source_url || null, userId)
+          }
+          await db.run(sql`COMMIT`)
+          inserted++
+        } catch (error: any) {
+          await db.run(sql`ROLLBACK`)
+          skipped++
+          report.addFailure({ index: i + j + 1, reason: error?.message || 'Failed to import quote' })
+        }
       }
 
       if (skipped > 0) {
@@ -191,11 +207,13 @@ export async function importQuotesInline(
       try {
         if (stmts.length > 0) {
             await db.batch(stmts as any)
-            const p = getAdminImport(parentImportId)!
-            updateAdminImport(parentImportId, {
-            successfulRecords: p.successfulRecords + stmts.length,
-            processedRecords: Math.min((p.processedRecords + stmts.length), p.totalRecords)
-            })
+        }
+        if (stmts.length > 0 || inserted > 0) {
+          const p = getAdminImport(parentImportId)!
+          updateAdminImport(parentImportId, {
+            successfulRecords: p.successfulRecords + stmts.length + inserted,
+            processedRecords: Math.min((p.processedRecords + stmts.length + inserted), p.totalRecords),
+          })
         }
       } catch (e: any) {
         for (let idx = 0; idx < stmts.length; idx++) {
@@ -218,6 +236,13 @@ export async function importQuotesInline(
             })
             report.addFailure({ index: i + j + (idx + 1), reason: ie.message })
           }
+        }
+        if (inserted > 0) {
+          const p = getAdminImport(parentImportId)!
+          updateAdminImport(parentImportId, {
+            successfulRecords: p.successfulRecords + inserted,
+            processedRecords: Math.min((p.processedRecords + inserted), p.totalRecords),
+          })
         }
       }
 

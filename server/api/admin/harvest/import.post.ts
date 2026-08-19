@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm'
 import { isHarvestSourceType } from '#shared/constants/harvest'
 import type { HarvestQuoteImportItem } from '#shared/types/harvest'
 import { findOrCreateAuthor, findOrCreateReference } from '../../../utils/import-helpers'
+import { syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAdmin(event)
@@ -98,16 +99,32 @@ export default defineEventHandler(async (event) => {
 
       const userId = user.id
 
-      await db.insert(schema.quotes).values({
+      if (authorId == null && referenceId == null) {
+        skipped++
+        errors.push('Quote skipped: an author or reference is required')
+        continue
+      }
+
+      const createdQuote = await db.insert(schema.quotes).values({
         name: trimmedText,
         language: quoteData.language || 'en',
+        userId,
+        status: 'harvested',
+      }).returning({ id: schema.quotes.id }).get()
+
+      const attributionId = await syncPrimaryAttribution(
+        createdQuote.id,
         authorId,
         referenceId,
         userId,
-        status: 'harvested',
-        sourceType: sourceType,
-        sourceUrl: quoteData.sourceUrl || null,
-      })
+      )
+      await syncPrimarySource(
+        createdQuote.id,
+        attributionId,
+        sourceType,
+        quoteData.sourceUrl || null,
+        userId,
+      )
 
       imported++
     } catch (error: any) {

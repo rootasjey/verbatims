@@ -3,7 +3,7 @@ import { eq, and, desc, asc, sql, count, countDistinct, getTableColumns, inArray
 import type { DatabaseQuoteWithRelations } from '../../shared/types/quote'
 import type { PaginationMeta } from './pagination.service'
 import { getPagination, buildPaginationMeta } from './pagination.service'
-import { getPrimaryQuoteProvenance } from '../utils/quote-provenance'
+import { getPrimaryQuoteProvenance, getQuoteProvenance, syncPrimaryAttribution } from '../utils/quote-provenance'
 
 export type QuoteStatus = 'harvested' | 'draft' | 'pending' | 'approved' | 'rejected'
 
@@ -196,19 +196,32 @@ export async function createQuote(data: {
   userId: number
   status?: QuoteStatus
 }) {
-  const result = await db.insert(schema.quotes)
-    .values({
-      name: data.name.trim(),
-      language: data.language || 'en',
-      authorId: data.authorId ?? null,
-      referenceId: data.referenceId ?? null,
-      userId: data.userId,
-      status: (data.status || 'draft') as any,
-    } as any)
-    .returning({ id: schema.quotes.id })
-    .get()
+  const authorId = data.authorId ?? null
+  const referenceId = data.referenceId ?? null
+  if (authorId == null && referenceId == null) {
+    throw new Error('A quote requires an author or reference')
+  }
 
-  return result!
+  await db.run(sql`BEGIN TRANSACTION`)
+  let result: { id: number }
+  try {
+    result = await db.insert(schema.quotes)
+      .values({
+        name: data.name.trim(),
+        language: data.language || 'en',
+        userId: data.userId,
+        status: (data.status || 'draft') as any,
+      } as any)
+      .returning({ id: schema.quotes.id })
+      .get()
+    await syncPrimaryAttribution(result.id, authorId, referenceId, data.userId)
+    await db.run(sql`COMMIT`)
+  } catch (error) {
+    await db.run(sql`ROLLBACK`)
+    throw error
+  }
+
+  return result
 }
 
 export async function updateQuote(
@@ -224,14 +237,37 @@ export async function updateQuote(
   const setData: Record<string, any> = { updatedAt: sql`CURRENT_TIMESTAMP` }
   if (data.name !== undefined) setData.name = data.name.trim()
   if (data.language !== undefined) setData.language = data.language
-  if (data.authorId !== undefined) setData.authorId = data.authorId ?? null
-  if (data.referenceId !== undefined) setData.referenceId = data.referenceId ?? null
   if (data.status !== undefined) setData.status = data.status as any
 
-  await db.update(schema.quotes)
-    .set(setData)
-    .where(eq(schema.quotes.id, id))
-    .run()
+  const needsAttributionUpdate = data.authorId !== undefined || data.referenceId !== undefined
+  await db.run(sql`BEGIN TRANSACTION`)
+  try {
+    if (needsAttributionUpdate) {
+      const quote = await db.select({ userId: schema.quotes.userId })
+        .from(schema.quotes)
+        .where(eq(schema.quotes.id, id))
+        .get()
+      if (!quote) throw new Error('Quote not found')
+
+      const provenance = await getQuoteProvenance(id)
+      const primary = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
+      const authorId = data.authorId !== undefined ? data.authorId : primary?.author_id ?? null
+      const referenceId = data.referenceId !== undefined ? data.referenceId : primary?.reference_id ?? null
+      if (authorId == null && referenceId == null) {
+        throw new Error('A quote requires an author or reference')
+      }
+      await syncPrimaryAttribution(id, authorId, referenceId, quote.userId)
+    }
+
+    await db.update(schema.quotes)
+      .set(setData)
+      .where(eq(schema.quotes.id, id))
+      .run()
+    await db.run(sql`COMMIT`)
+  } catch (error) {
+    await db.run(sql`ROLLBACK`)
+    throw error
+  }
 }
 
 export async function updateQuoteStatus(
