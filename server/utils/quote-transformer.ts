@@ -13,8 +13,6 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
     name: quote.name,
     language: quote.language,
     status: quote.status,
-    author_id: primaryAttribution?.author_id ?? undefined,
-    reference_id: primaryAttribution?.reference_id ?? undefined,
     user_id: record.user_id ?? record.userId,
     moderator_id: record.moderator_id ?? record.moderatorId,
     moderated_at: record.moderated_at ?? record.moderatedAt,
@@ -23,8 +21,6 @@ export function transformQuotes(quotes: DatabaseQuoteWithRelations[]): QuoteWith
     likes_count: record.likes_count ?? record.likesCount ?? 0,
     shares_count: record.shares_count ?? record.sharesCount ?? 0,
     is_featured: record.is_featured ?? record.isFeatured ?? false,
-    source_type: primarySource?.source_type ?? undefined,
-    source_url: primarySource?.source_url ?? undefined,
     created_at: record.created_at ?? record.createdAt,
     updated_at: record.updated_at ?? record.updatedAt,
     author: primaryAttribution?.author_id ? {
@@ -58,16 +54,16 @@ export function transformAdminQuotes(quotes: DatabaseAdminQuote[]): AdminQuote[]
       author_name: quote.author_name,
       author_is_fictional: quote.author_is_fictional,
       author_image_url: quote.author_image_url,
-      author: quote.author_id ? {
-        id: quote.author_id,
+      author: baseQuote.author ? {
+        id: baseQuote.author.id,
         name: quote.author_name!,
         is_fictional: quote.author_is_fictional!,
         image_url: quote.author_image_url ?? undefined
       } : undefined,
       reference_name: quote.reference_name,
       reference_type: quote.reference_type,
-      reference: quote.reference_id ? {
-        id: quote.reference_id,
+      reference: baseQuote.reference ? {
+        id: baseQuote.reference.id,
         name: quote.reference_name,
         primary_type: quote.reference_type
       } : undefined,

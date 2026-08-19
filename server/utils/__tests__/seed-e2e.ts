@@ -77,15 +77,15 @@ export async function seedTestDb() {
     INSERT INTO quote_references (id, name, primary_type) VALUES (1, 'Meditations', 'book'), (2, 'The Stranger', 'book'), (3, 'Thus Spoke Zarathustra', 'book');
     INSERT INTO tags (id, name, color) VALUES (1, 'wisdom', '#3B82F6'), (2, 'philosophy', '#10B981'), (3, 'stoicism', '#F59E0B');
 
-    INSERT INTO quotes (id, name, language, author_id, reference_id, user_id, status, likes_count, views_count) VALUES (1, 'The happiness of your life depends upon the quality of your thoughts.', 'en', 1, 1, 1, 'approved', 42, 100);
-    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (2, 'In the midst of winter, I found there was, within me, an invincible summer.', 'en', 2, 1, 'approved');
-    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (3, 'God is dead.', 'en', 3, 1, 'approved');
-    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (4, 'La vraie générosité envers l''avenir consiste à tout donner au présent.', 'fr', 2, 1, 'approved');
+    INSERT INTO quotes (id, name, language, user_id, status, likes_count, views_count) VALUES (1, 'The happiness of your life depends upon the quality of your thoughts.', 'en', 1, 'approved', 42, 100);
+    INSERT INTO quotes (id, name, language, user_id, status) VALUES (2, 'In the midst of winter, I found there was, within me, an invincible summer.', 'en', 1, 'approved');
+    INSERT INTO quotes (id, name, language, user_id, status) VALUES (3, 'God is dead.', 'en', 1, 'approved');
+    INSERT INTO quotes (id, name, language, user_id, status) VALUES (4, 'La vraie générosité envers l''avenir consiste à tout donner au présent.', 'fr', 1, 'approved');
     INSERT INTO quotes (id, name, language, user_id, status) VALUES (5, 'This is a draft quote not yet approved.', 'en', 1, 'draft');
-    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (6, 'A pending quote awaiting moderation.', 'en', 1, 1, 'pending');
-    INSERT INTO quotes (id, name, language, author_id, user_id, status) VALUES (7, 'Another pending quote.', 'en', 2, 1, 'pending');
+    INSERT INTO quotes (id, name, language, user_id, status) VALUES (6, 'A pending quote awaiting moderation.', 'en', 1, 'pending');
+    INSERT INTO quotes (id, name, language, user_id, status) VALUES (7, 'Another pending quote.', 'en', 1, 'pending');
 
-    INSERT INTO quote_attributions (id, quote_id, author_id, reference_id, is_primary, status, created_by) VALUES (1, 1, 1, 1, 1, 'unverified', 1);
+    INSERT INTO quote_attributions (id, quote_id, author_id, reference_id, is_primary, status, created_by) VALUES (1, 1, 1, 1, 1, 'unverified', 1), (2, 2, 2, NULL, 1, 'unverified', 1), (3, 3, 3, NULL, 1, 'unverified', 1), (4, 4, 2, NULL, 1, 'unverified', 1), (5, 5, 1, NULL, 1, 'unverified', 1), (6, 6, 1, NULL, 1, 'unverified', 1), (7, 7, 2, NULL, 1, 'unverified', 1);
     INSERT INTO quote_sources (id, quote_id, attribution_id, source_type, source_url, label, is_primary, created_by) VALUES (1, 1, 1, 'wikiquote-en', 'https://en.wikiquote.org/wiki/Marcus_Aurelius', 'Wikiquote', 1, 1);
 
     INSERT INTO quote_tags (quote_id, tag_id) VALUES (1, 1), (1, 2), (1, 3), (2, 2), (3, 2);

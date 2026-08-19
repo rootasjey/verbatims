@@ -174,12 +174,8 @@ export const quotes = sqliteTable('quotes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   language: text('language', { enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la'] }).default('en'),
-  authorId: integer('author_id').references(() => authors.id),
-  referenceId: integer('reference_id').references(() => quoteReferences.id),
   userId: integer('user_id').notNull().references(() => users.id),
   status: text('status', { enum: ['harvested', 'draft', 'pending', 'approved', 'rejected'] }).default('draft'),
-  sourceType: text('source_type', { enum: HARVEST_SOURCE_TYPES }),
-  sourceUrl: text('source_url'),
   moderatorId: integer('moderator_id').references(() => users.id),
   moderatedAt: integer('moderated_at', { mode: 'timestamp' }),
   rejectionReason: text('rejection_reason'),
@@ -191,13 +187,10 @@ export const quotes = sqliteTable('quotes', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
   statusIdx: index('idx_quotes_status').on(table.status),
-  authorIdx: index('idx_quotes_author').on(table.authorId),
-  referenceIdx: index('idx_quotes_reference').on(table.referenceId),
   userIdx: index('idx_quotes_user').on(table.userId),
   createdIdx: index('idx_quotes_created').on(table.createdAt),
   featuredIdx: index('idx_quotes_featured').on(table.isFeatured),
   languageIdx: index('idx_quotes_language').on(table.language),
-  sourceTypeIdx: index('idx_quotes_source_type').on(table.sourceType),
 }))
 
 export const socialQueue = sqliteTable('social_queue', {
