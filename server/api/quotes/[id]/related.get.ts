@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, ne, inArray, notInArray, desc } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -201,8 +202,14 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const selectedQuotes = relatedQuotes.slice(0, 4)
+    const provenance = await getPrimaryQuoteProvenance(selectedQuotes.map((quote: any) => quote.id))
+
     // Transform the results
-    const transformedQuotes = relatedQuotes.slice(0, 4).map((quote: any) => ({
+    const transformedQuotes = selectedQuotes.map((quote: any) => {
+      const primary = provenance.get(quote.id)
+      const attribution = primary?.attributions.find((item: any) => item.is_primary) ?? primary?.attributions[0]
+      return {
       id: quote.id,
       name: quote.name,
       language: quote.language,
@@ -213,21 +220,24 @@ export default defineEventHandler(async (event) => {
       is_featured: quote.isFeatured,
       created_at: quote.createdAt,
       updated_at: quote.updatedAt,
-      author: quote.authorId ? {
-        id: quote.authorId,
-        name: quote.authorName,
+      author: (attribution?.author_id ?? quote.authorId) ? {
+        id: attribution?.author_id ?? quote.authorId,
+        name: attribution?.author?.name ?? quote.authorName,
         is_fictional: quote.authorIsFictional
       } : null,
-      reference: quote.referenceId ? {
-        id: quote.referenceId,
-        name: quote.referenceName,
+      reference: (attribution?.reference_id ?? quote.referenceId) ? {
+        id: attribution?.reference_id ?? quote.referenceId,
+        name: attribution?.reference?.name ?? quote.referenceName,
         type: quote.referenceType
       } : null,
       user: {
         name: quote.userName
       },
-      tags: tagsByQuoteId[quote.id] || []
-    }))
+      tags: tagsByQuoteId[quote.id] || [],
+      attributions: primary?.attributions,
+      sources: primary?.sources,
+      }
+    })
 
     return {
       success: true,
