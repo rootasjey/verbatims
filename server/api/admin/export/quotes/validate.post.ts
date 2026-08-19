@@ -55,8 +55,6 @@ export default defineEventHandler(async (event) => {
 
     let countQuery = db.select({ total: sql<number>`COUNT(DISTINCT ${schema.quotes.id})` })
       .from(schema.quotes)
-      .leftJoin(schema.authors, sql`${schema.quotes.authorId} = ${schema.authors.id}`)
-      .leftJoin(schema.quoteReferences, sql`${schema.quotes.referenceId} = ${schema.quoteReferences.id}`)
       .leftJoin(schema.users, sql`${schema.quotes.userId} = ${schema.users.id}`);
 
     // Apply filters (this is simplified - the actual filter building logic should be in utility)

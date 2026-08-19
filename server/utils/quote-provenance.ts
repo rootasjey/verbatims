@@ -20,6 +20,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       authorImageUrl: schema.authors.imageUrl,
       referenceName: schema.quoteReferences.name,
       referencePrimaryType: schema.quoteReferences.primaryType,
+      referenceImageUrl: schema.quoteReferences.imageUrl,
     })
       .from(schema.quoteAttributions)
       .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
@@ -58,7 +59,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       verified_at: attribution.verifiedAt?.toISOString() ?? null,
       notes: attribution.notes,
       author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
-      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType } : undefined,
+      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType, image_url: attribution.referenceImageUrl } : undefined,
     })
   }
   for (const source of sources) {
@@ -186,6 +187,7 @@ export async function getQuoteProvenance(quoteId: number) {
       authorImageUrl: schema.authors.imageUrl,
       referenceName: schema.quoteReferences.name,
       referencePrimaryType: schema.quoteReferences.primaryType,
+      referenceImageUrl: schema.quoteReferences.imageUrl,
     })
       .from(schema.quoteAttributions)
       .leftJoin(schema.authors, eq(schema.quoteAttributions.authorId, schema.authors.id))
@@ -222,7 +224,7 @@ export async function getQuoteProvenance(quoteId: number) {
       verified_at: attribution.verifiedAt?.toISOString() ?? null,
       notes: attribution.notes,
       author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
-      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType } : undefined,
+      reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType, image_url: attribution.referenceImageUrl } : undefined,
     })),
     sources: sources.map(source => ({
       id: source.id,

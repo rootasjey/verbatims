@@ -360,7 +360,8 @@ export default defineEventHandler(async (event) => {
         count: count(schema.quotes.id),
       })
         .from(schema.authors)
-        .innerJoin(schema.quotes, eq(schema.authors.id, schema.quotes.authorId))
+        .innerJoin(schema.quoteAttributions, eq(schema.authors.id, schema.quoteAttributions.authorId))
+        .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
         .where(quoteFilter)
         .groupBy(schema.authors.id, schema.authors.name)
         .orderBy(desc(count(schema.quotes.id)))
@@ -373,7 +374,8 @@ export default defineEventHandler(async (event) => {
         count: count(schema.quotes.id),
       })
         .from(schema.quoteReferences)
-        .innerJoin(schema.quotes, eq(schema.quoteReferences.id, schema.quotes.referenceId))
+        .innerJoin(schema.quoteAttributions, eq(schema.quoteReferences.id, schema.quoteAttributions.referenceId))
+        .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
         .where(quoteFilter)
         .groupBy(schema.quoteReferences.id, schema.quoteReferences.name)
         .orderBy(desc(count(schema.quotes.id)))

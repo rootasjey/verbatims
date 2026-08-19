@@ -3,6 +3,7 @@ import { db, schema } from 'hub:db'
 import { blob } from 'hub:blob'
 import { eq, inArray, sql, desc } from 'drizzle-orm'
 import { logActivity } from '~~/server/utils/activity-log'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireAuth(event)
@@ -39,8 +40,6 @@ export default defineEventHandler(async (event) => {
       name: schema.quotes.name,
       language: schema.quotes.language,
       status: schema.quotes.status,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
       viewsCount: schema.quotes.viewsCount,
       likesCount: schema.quotes.likesCount,
@@ -50,14 +49,10 @@ export default defineEventHandler(async (event) => {
       updatedAt: schema.quotes.updatedAt,
       moderatedAt: schema.quotes.moderatedAt,
       rejectionReason: schema.quotes.rejectionReason,
-      author_name: schema.authors.name,
-      reference_name: schema.quoteReferences.name,
       user_name: schema.users.name,
       user_email: schema.users.email,
     })
       .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
       .$dynamic()
 
@@ -75,7 +70,16 @@ export default defineEventHandler(async (event) => {
 
     query = query.orderBy(desc(schema.quotes.createdAt))
 
-    return await query
+    const quotes = await query
+    const provenance = await getPrimaryQuoteProvenance(quotes.map(quote => quote.id))
+    return quotes.map((quote) => {
+      const quoteProvenance = provenance.get(quote.id)
+      return {
+        ...quote,
+        attributions: quoteProvenance?.attributions ?? [],
+        sources: quoteProvenance?.sources ?? [],
+      }
+    })
   }
 
   async function fetchAuthors() {
