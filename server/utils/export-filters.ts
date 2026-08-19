@@ -177,7 +177,7 @@ export function buildFilterConditions(filters: QuoteExportFilters): {
 
   // ID filters
   if (filters.author_id) {
-    conditions.push('q.author_id = ?')
+    conditions.push('EXISTS (SELECT 1 FROM quote_attributions qa_filter WHERE qa_filter.quote_id = q.id AND qa_filter.author_id = ?)')
     bindings.push(filters.author_id)
   }
 

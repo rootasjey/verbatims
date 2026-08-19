@@ -327,29 +327,33 @@ const submitt = async () => {
     }
 
     if (authorTouched.value) {
+      const primaryAttribution = payload.primary_attribution as Record<string, unknown> || {}
       const author = form.value.selectedAuthor
       if (author) {
         if (author.id === 0) {
           payload.new_author = { name: author.name }
         } else {
-          payload.author_id = author.id
+          primaryAttribution.author_id = author.id
         }
       } else {
-        payload.author_id = null
+        primaryAttribution.author_id = null
       }
+      payload.primary_attribution = primaryAttribution
     }
 
     if (referenceTouched.value) {
+      const primaryAttribution = payload.primary_attribution as Record<string, unknown> || {}
       const ref = form.value.selectedReference
       if (ref) {
         if (ref.id === 0) {
           payload.new_reference = { name: ref.name, primary_type: ref.primary_type || 'other' }
         } else {
-          payload.reference_id = ref.id
+          primaryAttribution.reference_id = ref.id
         }
       } else {
-        payload.reference_id = null
+        primaryAttribution.reference_id = null
       }
+      payload.primary_attribution = primaryAttribution
     }
 
     await $fetch('/api/admin/quotes/bulk-edit', {

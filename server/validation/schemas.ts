@@ -25,27 +25,26 @@ const imageUrlField = z.string().refine(
 
 const provenanceStatus = z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed'])
 
-const primaryQuoteProvenanceSchema = z.object({
-  author_id: nullablePositiveInt.optional(),
-  reference_id: nullablePositiveInt.optional(),
-  status: provenanceStatus.optional(),
+const quoteAttributionsPayloadSchema = z.array(z.object({
+  author_id: nullablePositiveInt.optional().default(null),
+  reference_id: nullablePositiveInt.optional().default(null),
+  is_primary: z.boolean().optional().default(false),
+  status: provenanceStatus.optional().default('unverified'),
   notes: z.string().max(5000).trim().optional().nullable(),
-  source: z.object({
-    source_type: z.string().min(1).max(100).trim(),
-    source_url: z.string().url().optional().nullable(),
-    label: z.string().max(200).trim().optional().nullable(),
-    verification_status: provenanceStatus.optional(),
-    notes: z.string().max(5000).trim().optional().nullable(),
-  }).optional(),
-})
+})).min(1).refine(
+  attributions => attributions.filter(attribution => attribution.is_primary).length === 1,
+  { message: 'A quote requires exactly one primary attribution' },
+)
+
+const attributionOrInlineEntity = (data: { attributions: Array<{ author_id: number | null, reference_id: number | null }>, new_author?: unknown, new_reference?: unknown }) =>
+  data.attributions.every(attribution => attribution.author_id !== null || attribution.reference_id !== null)
+    || !!data.new_author
+    || !!data.new_reference
 
 export const createQuoteSchema = z.object({
   name: z.string().min(2).max(4000).trim(),
   language: z.enum(validLanguages).optional().default('en'),
-  author_id: nullablePositiveInt,
-  reference_id: nullablePositiveInt,
-  source_type: z.string().max(100).trim().optional().nullable(),
-  source_url: z.string().url().optional().nullable(),
+  attributions: quoteAttributionsPayloadSchema,
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
     is_fictional: z.boolean().optional().default(false),
@@ -60,16 +59,12 @@ export const createQuoteSchema = z.object({
     release_date: z.string().max(50).trim().optional().nullable(),
   }).optional(),
   tags: z.array(z.union([z.number(), z.string()])).max(20).optional(),
-  provenance: primaryQuoteProvenanceSchema.optional(),
-})
+}).strict().refine(attributionOrInlineEntity, { message: 'An attribution requires an author or reference' })
 
 export const updateQuoteSchema = z.object({
   name: z.string().min(2).max(3000).trim().optional(),
   language: z.enum(validLanguages).optional(),
-  author_id: nullablePositiveInt,
-  reference_id: nullablePositiveInt,
-  source_type: z.string().max(100).trim().optional().nullable(),
-  source_url: z.string().url().optional().nullable(),
+  attributions: quoteAttributionsPayloadSchema.optional(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
     is_fictional: z.boolean().optional().default(false),
@@ -79,51 +74,14 @@ export const updateQuoteSchema = z.object({
     primary_type: z.string().min(1).max(100).trim().optional().default('other'),
     original_language: z.string().min(1).max(10).trim().optional().default('en'),
   }).optional(),
-  provenance: primaryQuoteProvenanceSchema.partial().optional(),
-})
-
-const quoteAttributionsPayloadSchema = z.array(z.object({
-  author_id: nullablePositiveInt.optional().default(null),
-  reference_id: nullablePositiveInt.optional().default(null),
-  is_primary: z.boolean().optional().default(false),
-  status: provenanceStatus.optional().default('unverified'),
-  notes: z.string().max(5000).trim().optional().nullable(),
-}).refine(
-  attribution => attribution.author_id !== null || attribution.reference_id !== null,
+}).strict().refine(
+  data => !data.attributions || attributionOrInlineEntity({ ...data, attributions: data.attributions }),
   { message: 'An attribution requires an author or reference' },
-)).min(1).refine(
-  attributions => attributions.filter(attribution => attribution.is_primary).length === 1,
-  { message: 'A quote requires exactly one primary attribution' },
 )
 
-export const createV1QuoteSchema = createQuoteSchema.omit({
-  author_id: true,
-  reference_id: true,
-  source_type: true,
-  source_url: true,
-}).extend({ attributions: quoteAttributionsPayloadSchema.optional() }).strict()
+export const createV1QuoteSchema = createQuoteSchema.strict()
 
-export const updateV1QuoteSchema = updateQuoteSchema.omit({
-  author_id: true,
-  reference_id: true,
-  source_type: true,
-  source_url: true,
-}).extend({ attributions: quoteAttributionsPayloadSchema.optional() }).strict().refine(
-  data => !data.attributions || (!data.provenance && !data.new_author && !data.new_reference),
-  { message: 'Use either attributions or legacy primary provenance fields, not both' },
-)
-
-export const updateQuoteProvenanceSchema = z.object({
-  author_id: nullablePositiveInt.optional(),
-  reference_id: nullablePositiveInt.optional(),
-  attribution_status: z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed']).optional(),
-  attribution_notes: z.string().max(5000).trim().optional().nullable(),
-  source_type: z.string().max(100).trim().optional().nullable(),
-  source_url: z.string().url().optional().nullable(),
-  source_label: z.string().max(200).trim().optional().nullable(),
-  source_verification_status: z.enum(['unverified', 'manually_verified', 'externally_verified', 'disputed']).optional(),
-  source_notes: z.string().max(5000).trim().optional().nullable(),
-})
+export const updateV1QuoteSchema = updateQuoteSchema.strict()
 
 const quoteAttributionFields = z.object({
   author_id: nullablePositiveInt.optional().default(null),
