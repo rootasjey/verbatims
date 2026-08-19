@@ -66,13 +66,14 @@ export default defineEventHandler(async (event) => {
     const authorIds = authors.map(a => a.id)
     if (authorIds.length > 0) {
       const counts = await db
-        .select({ authorId: schema.quotes.authorId, count: count() })
-        .from(schema.quotes)
+        .select({ authorId: schema.quoteAttributions.authorId, count: count() })
+        .from(schema.quoteAttributions)
+        .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
         .where(and(
-          inArray(schema.quotes.authorId, authorIds),
+          inArray(schema.quoteAttributions.authorId, authorIds),
           eq(schema.quotes.status, 'approved'),
         ))
-        .groupBy(schema.quotes.authorId)
+        .groupBy(schema.quoteAttributions.authorId)
         .all()
       for (const c of counts) {
         if (c.authorId !== null) quotesCountMap[c.authorId] = c.count

@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { eq, and, desc, sql, count } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 defineRouteMeta({
   openAPI: {
@@ -50,8 +51,20 @@ export default defineEventHandler(async (event) => {
 
   const conditions = [eq(schema.quotes.status, 'approved')]
   if (language) conditions.push(eq(schema.quotes.language, language as any))
-  if (authorId) conditions.push(eq(schema.quotes.authorId, authorId))
-  if (referenceId) conditions.push(eq(schema.quotes.referenceId, referenceId))
+  if (authorId) {
+    conditions.push(sql`EXISTS (
+      SELECT 1 FROM ${schema.quoteAttributions}
+      WHERE ${schema.quoteAttributions.quoteId} = ${schema.quotes.id}
+        AND ${schema.quoteAttributions.authorId} = ${authorId}
+    )`)
+  }
+  if (referenceId) {
+    conditions.push(sql`EXISTS (
+      SELECT 1 FROM ${schema.quoteAttributions}
+      WHERE ${schema.quoteAttributions.quoteId} = ${schema.quotes.id}
+        AND ${schema.quoteAttributions.referenceId} = ${referenceId}
+    )`)
+  }
 
   let tagJoin = null
   if (tag) {
@@ -81,17 +94,8 @@ export default defineEventHandler(async (event) => {
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      authorImageUrl: schema.authors.imageUrl,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .where(and(...conditions))
 
   if (tag && tagJoin) {
@@ -105,6 +109,7 @@ export default defineEventHandler(async (event) => {
     .all()
 
   const quoteIds = quotes.map(q => q.id)
+  const provenance = await getPrimaryQuoteProvenance(quoteIds)
   const tagsMap: Record<number, { name: string; color: string | null }[]> = {}
   if (quoteIds.length > 0) {
     const tags = await db
@@ -124,20 +129,25 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const data = quotes.map(q => ({
-    id: q.id,
-    content: q.name,
-    language: q.language,
-    stats: {
-      views: q.viewsCount,
-      likes: q.likesCount,
-      shares: q.sharesCount,
-    },
-    featured: q.isFeatured,
-    tags: tagsMap[q.id] || [],
-    created_at: q.createdAt,
-    updated_at: q.updatedAt,
-  }))
+  const data = quotes.map((q) => {
+    const quoteProvenance = provenance.get(q.id)
+    return {
+      id: q.id,
+      content: q.name,
+      language: q.language,
+      stats: {
+        views: q.viewsCount,
+        likes: q.likesCount,
+        shares: q.sharesCount,
+      },
+      featured: q.isFeatured,
+      attributions: quoteProvenance?.attributions ?? [],
+      sources: quoteProvenance?.sources ?? [],
+      tags: tagsMap[q.id] || [],
+      created_at: q.createdAt,
+      updated_at: q.updatedAt,
+    }
+  })
 
   return {
     success: true,

@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, desc, asc, sql, count, countDistinct, getTableColumns, inArray } from 'drizzle-orm'
+import { eq, and, desc, asc, sql, count, countDistinct, inArray } from 'drizzle-orm'
 import type { DatabaseQuoteWithRelations } from '../../shared/types/quote'
 import type { PaginationMeta } from './pagination.service'
 import { getPagination, buildPaginationMeta } from './pagination.service'
@@ -23,25 +23,24 @@ export interface QuoteFilters {
 }
 
 const quoteColumns = {
-  ...getTableColumns(schema.quotes),
-  author_name: schema.authors.name,
-  author_is_fictional: schema.authors.isFictional,
-  author_image_url: schema.authors.imageUrl,
-  reference_name: schema.quoteReferences.name,
-  reference_type: schema.quoteReferences.primaryType,
+  id: schema.quotes.id,
+  name: schema.quotes.name,
+  language: schema.quotes.language,
+  status: schema.quotes.status,
+  userId: schema.quotes.userId,
+  moderatorId: schema.quotes.moderatorId,
+  moderatedAt: schema.quotes.moderatedAt,
+  rejectionReason: schema.quotes.rejectionReason,
+  viewsCount: schema.quotes.viewsCount,
+  likesCount: schema.quotes.likesCount,
+  sharesCount: schema.quotes.sharesCount,
+  isFeatured: schema.quotes.isFeatured,
+  createdAt: schema.quotes.createdAt,
+  updatedAt: schema.quotes.updatedAt,
   user_name: schema.users.name,
   tag_names: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
   tag_colors: sql<string>`GROUP_CONCAT(${schema.tags.color})`,
 } as const
-
-const baseJoins = {
-  author: (qb: any) => qb.leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id)),
-  reference: (qb: any) => qb.leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id)),
-  user: (qb: any) => qb.leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id)),
-  tags: (qb: any) => qb
-    .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
-    .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id)),
-}
 
 const defaultSortable: Record<string, any> = {
   created_at: schema.quotes.createdAt,
@@ -54,8 +53,8 @@ const defaultSortable: Record<string, any> = {
 function buildQuoteWhere(filters: QuoteFilters) {
   const conditions = [eq(schema.quotes.status, (filters.status || 'approved') as any)]
   if (filters.language) conditions.push(eq(schema.quotes.language, filters.language as any))
-  if (filters.authorId) conditions.push(eq(schema.quotes.authorId, filters.authorId))
-  if (filters.referenceId) conditions.push(eq(schema.quotes.referenceId, filters.referenceId))
+  if (filters.authorId) conditions.push(sql`EXISTS (SELECT 1 FROM ${schema.quoteAttributions} WHERE quote_id = ${schema.quotes.id} AND author_id = ${filters.authorId})`)
+  if (filters.referenceId) conditions.push(sql`EXISTS (SELECT 1 FROM ${schema.quoteAttributions} WHERE quote_id = ${schema.quotes.id} AND reference_id = ${filters.referenceId})`)
   if (filters.userId) conditions.push(eq(schema.quotes.userId, filters.userId))
   if (filters.search) {
     const ns = normalizeSearch(filters.search)
@@ -81,8 +80,6 @@ export async function findQuotes(filters: QuoteFilters) {
 
   const quotes = await db.select(quoteColumns)
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
     .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
@@ -94,8 +91,6 @@ export async function findQuotes(filters: QuoteFilters) {
 
   const countResult = await db.select({ total: countDistinct(schema.quotes.id) })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .where(and(...conditions))
 
   const total = Number(countResult[0]?.total) || 0
@@ -128,19 +123,10 @@ export async function findQuoteById(id: number, status?: QuoteStatus) {
     isFeatured: schema.quotes.isFeatured,
     createdAt: schema.quotes.createdAt,
     updatedAt: schema.quotes.updatedAt,
-    authorId: schema.quotes.authorId,
-    referenceId: schema.quotes.referenceId,
     userId: schema.quotes.userId,
-    authorName: schema.authors.name,
-    authorIsFictional: schema.authors.isFictional,
-    authorImageUrl: schema.authors.imageUrl,
-    referenceName: schema.quoteReferences.name,
-    referencePrimaryType: schema.quoteReferences.primaryType,
     userName: schema.users.name,
   })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .where(and(...conditions))
     .get()

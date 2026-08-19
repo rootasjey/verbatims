@@ -16,18 +16,10 @@ export default defineEventHandler(async (_event) => {
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
       userName: schema.users.name
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .where(and(
       eq(schema.quotes.status, 'approved'),
@@ -50,18 +42,10 @@ export default defineEventHandler(async (_event) => {
         isFeatured: schema.quotes.isFeatured,
         createdAt: schema.quotes.createdAt,
         updatedAt: schema.quotes.updatedAt,
-        authorId: schema.quotes.authorId,
-        referenceId: schema.quotes.referenceId,
         userId: schema.quotes.userId,
-        authorName: schema.authors.name,
-        authorIsFictional: schema.authors.isFictional,
-        referenceName: schema.quoteReferences.name,
-        referencePrimaryType: schema.quoteReferences.primaryType,
         userName: schema.users.name
       })
       .from(schema.quotes)
-      .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-      .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
       .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
       .where(eq(schema.quotes.status, 'approved'))
       .orderBy(desc(sql`${schema.quotes.likesCount} + ${schema.quotes.viewsCount}`))
@@ -102,15 +86,15 @@ export default defineEventHandler(async (_event) => {
       is_featured: featuredQuote.isFeatured,
       created_at: featuredQuote.createdAt,
       updated_at: featuredQuote.updatedAt,
-      author: (attribution?.author_id ?? featuredQuote.authorId) ? {
-        id: attribution?.author_id ?? featuredQuote.authorId,
-        name: attribution?.author?.name ?? featuredQuote.authorName,
-        is_fictional: featuredQuote.authorIsFictional
+      author: attribution?.author_id ? {
+        id: attribution.author_id,
+        name: attribution.author?.name,
+        is_fictional: attribution.author?.is_fictional
       } : null,
-      reference: (attribution?.reference_id ?? featuredQuote.referenceId) ? {
-        id: attribution?.reference_id ?? featuredQuote.referenceId,
-        name: attribution?.reference?.name ?? featuredQuote.referenceName,
-        type: featuredQuote.referencePrimaryType
+      reference: attribution?.reference_id ? {
+        id: attribution.reference_id,
+        name: attribution.reference?.name,
+        type: attribution.reference?.primary_type
       } : null,
       user: {
         name: featuredQuote.userName

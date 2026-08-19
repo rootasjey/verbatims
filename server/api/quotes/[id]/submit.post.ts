@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { eq, and } from 'drizzle-orm'
 import throwServer from '~~/server/utils/throw-server'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -62,19 +63,10 @@ export default defineEventHandler(async (event) => {
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      authorImageUrl: schema.authors.imageUrl,
-      referenceName: schema.quoteReferences.name,
-      referencePrimaryType: schema.quoteReferences.primaryType,
       userName: schema.users.name
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .where(eq(schema.quotes.id, parseInt(quoteId!)))
     .get()
@@ -94,16 +86,26 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.quoteTags.quoteId, parseInt(quoteId!)))
     .all()
 
-    // Process the quote result
+    const provenance = await getQuoteProvenance(u.id)
+    const attribution = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
+
     const processedQuote = {
-      ...u,
-      author_name: u.authorName || null,
-      author_is_fictional: u.authorIsFictional || false,
-      author_image_url: u.authorImageUrl || null,
-      reference_name: u.referenceName || null,
-      reference_type: u.referencePrimaryType || null,
-      user_name: u.userName || null,
-      tags
+      id: u.id,
+      name: u.name,
+      language: u.language,
+      status: u.status,
+      views_count: u.viewsCount,
+      likes_count: u.likesCount,
+      shares_count: u.sharesCount,
+      is_featured: u.isFeatured,
+      created_at: u.createdAt,
+      updated_at: u.updatedAt,
+      author: attribution?.author_id ? attribution.author : null,
+      reference: attribution?.reference_id ? attribution.reference : null,
+      user: { id: u.userId, name: u.userName },
+      tags,
+      attributions: provenance.attributions,
+      sources: provenance.sources,
     }
 
     return {

@@ -62,10 +62,10 @@ export default defineEventHandler(async (event) => {
       conditions.push(eq(schema.quotes.language, language))
     }
     if (authorId) {
-      conditions.push(eq(schema.quotes.authorId, authorId))
+      conditions.push(sql`EXISTS (SELECT 1 FROM ${schema.quoteAttributions} WHERE quote_id = ${schema.quotes.id} AND author_id = ${authorId})`)
     }
     if (referenceId) {
-      conditions.push(eq(schema.quotes.referenceId, referenceId))
+      conditions.push(sql`EXISTS (SELECT 1 FROM ${schema.quoteAttributions} WHERE quote_id = ${schema.quotes.id} AND reference_id = ${referenceId})`)
     }
     if (typeof minLen === 'number' && minLen > 0) {
       conditions.push(sql`LENGTH(${schema.quotes.name}) >= ${minLen}`)
@@ -130,21 +130,12 @@ export default defineEventHandler(async (event) => {
       isFeatured: schema.quotes.isFeatured,
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
-      authorId: schema.quotes.authorId,
-      referenceId: schema.quotes.referenceId,
       userId: schema.quotes.userId,
-      authorName: schema.authors.name,
-      authorIsFictional: schema.authors.isFictional,
-      authorImageUrl: schema.authors.imageUrl,
-      referenceName: schema.quoteReferences.name,
-      referenceType: schema.quoteReferences.primaryType,
       userName: schema.users.name,
       tagNames: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
       tagColors: sql<string>`GROUP_CONCAT(${schema.tags.color})`
     })
     .from(schema.quotes)
-    .leftJoin(schema.authors, eq(schema.quotes.authorId, schema.authors.id))
-    .leftJoin(schema.quoteReferences, eq(schema.quotes.referenceId, schema.quoteReferences.id))
     .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
     .leftJoin(schema.quoteTags, eq(schema.quotes.id, schema.quoteTags.quoteId))
     .leftJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
@@ -181,16 +172,16 @@ export default defineEventHandler(async (event) => {
         is_featured: row.isFeatured,
         created_at: row.createdAt,
         updated_at: row.updatedAt,
-        author: (attribution?.author_id ?? row.authorId) ? {
-          id: attribution?.author_id ?? row.authorId,
-          name: attribution?.author?.name ?? row.authorName,
-          is_fictional: row.authorIsFictional,
-          image_url: row.authorImageUrl
+        author: attribution?.author_id ? {
+          id: attribution.author_id,
+          name: attribution.author?.name,
+          is_fictional: attribution.author?.is_fictional,
+          image_url: attribution.author?.image_url
         } : undefined,
-        reference: (attribution?.reference_id ?? row.referenceId) ? {
-          id: attribution?.reference_id ?? row.referenceId,
-          name: attribution?.reference?.name ?? row.referenceName,
-          primary_type: row.referenceType
+        reference: attribution?.reference_id ? {
+          id: attribution.reference_id,
+          name: attribution.reference?.name,
+          primary_type: attribution.reference?.primary_type
         } : undefined,
         user: {
           id: row.userId,

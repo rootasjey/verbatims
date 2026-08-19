@@ -53,9 +53,10 @@ export default defineEventHandler(async (event) => {
   if (include.includes('quotes_count')) {
     const result = await db
       .select({ count: count() })
-      .from(schema.quotes)
+      .from(schema.quoteAttributions)
+      .innerJoin(schema.quotes, eq(schema.quoteAttributions.quoteId, schema.quotes.id))
       .where(and(
-        eq(schema.quotes.authorId, authorId),
+        eq(schema.quoteAttributions.authorId, authorId),
         eq(schema.quotes.status, 'approved'),
       ))
       .get()

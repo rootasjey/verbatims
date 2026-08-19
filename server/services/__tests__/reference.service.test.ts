@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { createTestDb, seedUser, seedQuote, seedReference } from '../../utils/__tests__/test-db'
+import { createTestDb, seedUser, seedQuote, seedQuoteAttribution, seedReference } from '../../utils/__tests__/test-db'
 
 let currentDb: ReturnType<typeof createTestDb>
 
@@ -43,8 +43,10 @@ describe('reference.service', () => {
 
     await seedUser(currentDb.db, { id: 5, email: 'u@t.c', name: 'U' })
     await seedReference(currentDb.db, { id: 80, name: 'Counted Ref', primaryType: 'book' })
-    await seedQuote(currentDb.db, { id: 200, referenceId: 80, userId: 5, status: 'approved' })
-    await seedQuote(currentDb.db, { id: 201, referenceId: 80, userId: 5, status: 'draft' })
+    await seedQuote(currentDb.db, { id: 200, userId: 5, status: 'approved' })
+    await seedQuoteAttribution(currentDb.db, { quoteId: 200, referenceId: 80 })
+    await seedQuote(currentDb.db, { id: 201, userId: 5, status: 'draft' })
+    await seedQuoteAttribution(currentDb.db, { quoteId: 201, referenceId: 80 })
 
     const count = await countReferenceQuotes(80)
     expect(count).toBe(1)
