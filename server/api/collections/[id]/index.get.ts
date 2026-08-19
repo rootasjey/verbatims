@@ -1,115 +1,105 @@
 import { db, schema } from 'hub:db'
-import { eq, sql } from 'drizzle-orm'
+import { and, count, desc, eq, inArray } from 'drizzle-orm'
+import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
-    const collectionId = getRouterParam(event, 'id')
-    if (!collectionId || isNaN(parseInt(collectionId))) {
-      throwServer(400, 'Invalid collection ID')
-      return
-    }
-    
-    const session = await getUserSession(event)
-    
-    // Get collection with user info
-    type CollectionRow = {
-      id: number
-      user_id: number
-      is_public: number | boolean
-      user_name: string | null
-      user_avatar: string | null
-      [key: string]: unknown
-    }
+    const collectionId = Number(getRouterParam(event, 'id'))
+    if (!Number.isInteger(collectionId)) throwServer(400, 'Invalid collection ID')
 
-    const collection = await db.get<CollectionRow>(sql`
-      SELECT 
-        c.*,
-        u.name as user_name,
-        u.avatar_url as user_avatar
-      FROM ${schema.userCollections} c
-      LEFT JOIN ${schema.users} u ON c.user_id = u.id
-      WHERE c.id = ${parseInt(collectionId)}
-    `)
-    
-    if (!collection) {
-      throwServer(404, 'Collection not found')
-    }
-    
-    // Check access permissions
-    const isPublic = collection.is_public === true || collection.is_public === 1
-    const canAccess = isPublic || 
-                     (session.user && session.user.id === collection.user_id) ||
-                     (session.user && (session.user.role === 'admin' || session.user.role === 'moderator'))
-    
-    if (!canAccess) { throwServer(403, 'Access denied') }
-    
-    // Get quotes in collection with pagination
+    const session = await getUserSession(event)
+    const collection = await db.select({
+      id: schema.userCollections.id,
+      user_id: schema.userCollections.userId,
+      is_public: schema.userCollections.isPublic,
+      name: schema.userCollections.name,
+      description: schema.userCollections.description,
+      created_at: schema.userCollections.createdAt,
+      updated_at: schema.userCollections.updatedAt,
+      user_name: schema.users.name,
+      user_avatar: schema.users.avatarUrl,
+    })
+      .from(schema.userCollections)
+      .leftJoin(schema.users, eq(schema.userCollections.userId, schema.users.id))
+      .where(eq(schema.userCollections.id, collectionId))
+      .get()
+
+    if (!collection) throwServer(404, 'Collection not found')
+
+    const canAccess = collection.is_public || session.user?.id === collection.user_id
+      || session.user?.role === 'admin' || session.user?.role === 'moderator'
+    if (!canAccess) throwServer(403, 'Access denied')
+
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
     const offset = (page - 1) * limit
-    
-    const quotesResult = await db.all(sql`
-      SELECT
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        a.image_url as author_image_url,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        cq.added_at,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM ${schema.collectionQuotes} cq
-      JOIN ${schema.quotes} q ON cq.quote_id = q.id
-      LEFT JOIN ${schema.authors} a ON q.author_id = a.id
-      LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
-      LEFT JOIN ${schema.users} u ON q.user_id = u.id
-      LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
-      LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
-      WHERE cq.collection_id = ${parseInt(collectionId)} AND q.status = 'approved'
-      GROUP BY q.id
-      ORDER BY cq.added_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `)
 
-    const quotes = quotesResult || []
+    const [quotes, totalResult] = await Promise.all([
+      db.select({
+        id: schema.quotes.id,
+        name: schema.quotes.name,
+        language: schema.quotes.language,
+        status: schema.quotes.status,
+        userId: schema.quotes.userId,
+        viewsCount: schema.quotes.viewsCount,
+        likesCount: schema.quotes.likesCount,
+        sharesCount: schema.quotes.sharesCount,
+        isFeatured: schema.quotes.isFeatured,
+        createdAt: schema.quotes.createdAt,
+        updatedAt: schema.quotes.updatedAt,
+        addedAt: schema.collectionQuotes.addedAt,
+        user_name: schema.users.name,
+      })
+        .from(schema.collectionQuotes)
+        .innerJoin(schema.quotes, eq(schema.collectionQuotes.quoteId, schema.quotes.id))
+        .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+        .where(and(eq(schema.collectionQuotes.collectionId, collectionId), eq(schema.quotes.status, 'approved')))
+        .orderBy(desc(schema.collectionQuotes.addedAt))
+        .limit(limit)
+        .offset(offset)
+        .all(),
+      db.select({ total: count() })
+        .from(schema.collectionQuotes)
+        .innerJoin(schema.quotes, eq(schema.collectionQuotes.quoteId, schema.quotes.id))
+        .where(and(eq(schema.collectionQuotes.collectionId, collectionId), eq(schema.quotes.status, 'approved')))
+        .get(),
+    ])
 
-    // Get total quotes count
-    const totalResult = await db.get<{ total: number }>(sql`
-      SELECT COUNT(*) as total
-      FROM ${schema.collectionQuotes} cq
-      JOIN ${schema.quotes} q ON cq.quote_id = q.id
-      WHERE cq.collection_id = ${parseInt(collectionId)} AND q.status = 'approved'
-    `)
+    const [provenance, tagRows] = await Promise.all([
+      getPrimaryQuoteProvenance(quotes.map(quote => quote.id)),
+      quotes.length ? db.select({ quoteId: schema.quoteTags.quoteId, name: schema.tags.name, color: schema.tags.color })
+        .from(schema.quoteTags)
+        .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+        .where(inArray(schema.quoteTags.quoteId, quotes.map(quote => quote.id)))
+        .all() : [],
+    ])
+    const tagsByQuoteId: Record<number, Array<{ name: string, color: string | null }>> = {}
+    for (const tag of tagRows) if (tag.quoteId !== null) (tagsByQuoteId[tag.quoteId] ??= []).push({ name: tag.name, color: tag.color })
 
     const total = Number(totalResult?.total) || 0
-    const hasMore = offset + quotes.length < total
-
-    // Process quotes data
-    const processedQuotes = quotes.map((quote: any) => ({
-      ...quote,
-      tags: parseTags(quote.tag_names, quote.tag_colors)
-    }))
-    
     return {
       success: true,
       data: {
         ...collection,
-        quotes: processedQuotes,
+        quotes: quotes.map((quote) => {
+          const quoteProvenance = provenance.get(quote.id)
+          const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
+          return {
+            ...quote,
+            author: attribution?.author_id ? attribution.author : null,
+            reference: attribution?.reference_id ? attribution.reference : null,
+            attributions: quoteProvenance?.attributions ?? [],
+            sources: quoteProvenance?.sources ?? [],
+            tags: tagsByQuoteId[quote.id] ?? [],
+          }
+        }),
         quotes_count: total,
-        pagination: {
-          page,
-          limit,
-          total,
-          hasMore,
-          totalPages: Math.ceil(total / limit)
-        }
-      }
+        pagination: { page, limit, total, hasMore: offset + quotes.length < total, totalPages: Math.ceil(total / limit) },
+      },
     }
   } catch (error: any) {
-    if ((error as any).statusCode) throw error    
+    if (error.statusCode) throw error
     console.error('Collection fetch error:', error)
     throwServer(500, 'Failed to fetch collection')
   }

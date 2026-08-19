@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
+import { getQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -71,46 +72,47 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.userCollections.id, parseInt(collectionId)))
       .run()
     
-    // Get the added quote with full details
-    const addedQuote = await db.get(sql`
-      SELECT 
-        q.*,
-        a.name as author_name,
-        a.is_fictional as author_is_fictional,
-        a.image_url as author_image_url,
-        r.name as reference_name,
-        r.primary_type as reference_type,
-        u.name as user_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors
-      FROM ${schema.quotes} q
-      LEFT JOIN ${schema.authors} a ON q.author_id = a.id
-      LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
-      LEFT JOIN ${schema.users} u ON q.user_id = u.id
-      LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
-      LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
-      WHERE q.id = ${parseInt(body.quote_id)}
-      GROUP BY q.id
-    `)
+    const addedQuote = await db.select({
+      id: schema.quotes.id,
+      name: schema.quotes.name,
+      language: schema.quotes.language,
+      status: schema.quotes.status,
+      userId: schema.quotes.userId,
+      viewsCount: schema.quotes.viewsCount,
+      likesCount: schema.quotes.likesCount,
+      sharesCount: schema.quotes.sharesCount,
+      isFeatured: schema.quotes.isFeatured,
+      createdAt: schema.quotes.createdAt,
+      updatedAt: schema.quotes.updatedAt,
+      user_name: schema.users.name,
+    })
+      .from(schema.quotes)
+      .leftJoin(schema.users, eq(schema.quotes.userId, schema.users.id))
+      .where(eq(schema.quotes.id, Number(body.quote_id)))
+      .get()
     
     // Ensure we have an added quote result
     if (!addedQuote) {
       throwServer(404, 'Failed to load added quote')
     }
 
-    // Process tags safely (DB result shapes can be loose)
-    const tagNames = (addedQuote as any).tag_names ?? ''
-    const tagColors = (addedQuote as any).tag_colors ?? ''
-    const parsedTags = tagNames
-      ? tagNames.split(',').map((name: string, index: number) => ({
-          name,
-          color: tagColors.split(',')[index] || 'gray'
-        }))
-      : []
+    const [tags, provenance] = await Promise.all([
+      db.select({ name: schema.tags.name, color: schema.tags.color })
+        .from(schema.quoteTags)
+        .innerJoin(schema.tags, eq(schema.quoteTags.tagId, schema.tags.id))
+        .where(eq(schema.quoteTags.quoteId, addedQuote.id))
+        .all(),
+      getQuoteProvenance(addedQuote.id),
+    ])
+    const attribution = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
 
     const processedQuote = {
-      ...(addedQuote as any),
-      tags: parsedTags
+      ...addedQuote,
+      author: attribution?.author_id ? attribution.author : null,
+      reference: attribution?.reference_id ? attribution.reference : null,
+      attributions: provenance.attributions,
+      sources: provenance.sources,
+      tags,
     }
     
     return {

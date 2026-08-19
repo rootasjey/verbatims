@@ -22,25 +22,28 @@ export default defineEventHandler(async (event) => {
     let authorsQuery = sql`
       SELECT 
         a.*,
-        COUNT(q.id) as quotes_count,
+        COUNT(DISTINCT q.id) as quotes_count,
         (
           SELECT r.id FROM ${schema.quotes} q2
-          JOIN ${schema.quoteReferences} r ON r.id = q2.reference_id
-          WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
-          GROUP BY q2.reference_id
+          JOIN ${schema.quoteAttributions} qa2 ON qa2.quote_id = q2.id
+          JOIN ${schema.quoteReferences} r ON r.id = qa2.reference_id
+          WHERE qa2.author_id = a.id AND q2.status = 'approved' AND qa2.reference_id IS NOT NULL
+          GROUP BY qa2.reference_id
           ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
           LIMIT 1
         ) AS origin_reference_id,
         (
           SELECT r.name FROM ${schema.quotes} q2
-          JOIN ${schema.quoteReferences} r ON r.id = q2.reference_id
-          WHERE q2.author_id = a.id AND q2.status = 'approved' AND q2.reference_id IS NOT NULL
-          GROUP BY q2.reference_id
+          JOIN ${schema.quoteAttributions} qa2 ON qa2.quote_id = q2.id
+          JOIN ${schema.quoteReferences} r ON r.id = qa2.reference_id
+          WHERE qa2.author_id = a.id AND q2.status = 'approved' AND qa2.reference_id IS NOT NULL
+          GROUP BY qa2.reference_id
           ORDER BY COUNT(*) DESC, MAX(q2.created_at) DESC
           LIMIT 1
         ) AS origin_reference_name
       FROM ${schema.authors} a
-      LEFT JOIN ${schema.quotes} q ON a.id = q.author_id AND q.status = 'approved'
+      LEFT JOIN ${schema.quoteAttributions} qa ON a.id = qa.author_id
+      LEFT JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
     `
     
     if (search || startsWith) {

@@ -56,8 +56,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
           GROUP_CONCAT(t.color) as tag_colors,
           'quote' as result_type
         FROM ${schema.quotes} q
-        LEFT JOIN ${schema.authors} a ON q.author_id = a.id
-        LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+        LEFT JOIN ${schema.quoteAttributions} qa ON qa.quote_id = q.id AND qa.is_primary = 1
+        LEFT JOIN ${schema.authors} a ON qa.author_id = a.id
+        LEFT JOIN ${schema.quoteReferences} r ON qa.reference_id = r.id
         LEFT JOIN ${schema.users} u ON q.user_id = u.id
         LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
         LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
@@ -71,12 +72,12 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
 
       // Add author filter
       if (authorId) {
-        quotesQuery = sql`${quotesQuery} AND q.author_id = ${authorId}`
+        quotesQuery = sql`${quotesQuery} AND EXISTS (SELECT 1 FROM ${schema.quoteAttributions} qa_filter WHERE qa_filter.quote_id = q.id AND qa_filter.author_id = ${authorId})`
       }
 
       // Add reference filter
       if (referenceId) {
-        quotesQuery = sql`${quotesQuery} AND q.reference_id = ${referenceId}`
+        quotesQuery = sql`${quotesQuery} AND EXISTS (SELECT 1 FROM ${schema.quoteAttributions} qa_filter WHERE qa_filter.quote_id = q.id AND qa_filter.reference_id = ${referenceId})`
       }
 
       quotesQuery = sql`${quotesQuery}
@@ -104,9 +105,10 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         SELECT
           a.*,
           'author' as result_type,
-          COUNT(q.id) as quotes_count
+          COUNT(DISTINCT q.id) as quotes_count
         FROM ${schema.authors} a
-        LEFT JOIN ${schema.quotes} q ON a.id = q.author_id AND q.status = 'approved'
+        LEFT JOIN ${schema.quoteAttributions} qa ON a.id = qa.author_id
+        LEFT JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
         WHERE ${foldAccentsSQL(sql`a.name`)} LIKE ${foldedPattern}
            OR a.description LIKE ${searchPattern}
            OR a.job LIKE ${searchPattern}
@@ -125,9 +127,10 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         SELECT
           r.*,
           'reference' as result_type,
-          COUNT(q.id) as quotes_count
+          COUNT(DISTINCT q.id) as quotes_count
         FROM ${schema.quoteReferences} r
-        LEFT JOIN ${schema.quotes} q ON r.id = q.reference_id AND q.status = 'approved'
+        LEFT JOIN ${schema.quoteAttributions} qa ON r.id = qa.reference_id
+        LEFT JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
         WHERE ${foldAccentsSQL(sql`r.name`)} LIKE ${foldedPattern}
            OR r.description LIKE ${searchPattern}
            OR r.secondary_type LIKE ${searchPattern}
@@ -163,13 +166,20 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
             GROUP_CONCAT(t.color) as tag_colors,
             'quote' as result_type
           FROM ${schema.quotes} q
-          LEFT JOIN ${schema.authors} a ON q.author_id = a.id
-          LEFT JOIN ${schema.quoteReferences} r ON q.reference_id = r.id
+          LEFT JOIN ${schema.quoteAttributions} qa ON qa.quote_id = q.id AND qa.is_primary = 1
+          LEFT JOIN ${schema.authors} a ON qa.author_id = a.id
+          LEFT JOIN ${schema.quoteReferences} r ON qa.reference_id = r.id
           LEFT JOIN ${schema.users} u ON q.user_id = u.id
           LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
           LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
           WHERE q.status = 'approved' AND (
-            a.name LIKE ${searchPattern} OR r.name LIKE ${searchPattern} OR
+            EXISTS (
+              SELECT 1 FROM ${schema.quoteAttributions} qa_search
+              LEFT JOIN ${schema.authors} a_search ON qa_search.author_id = a_search.id
+              LEFT JOIN ${schema.quoteReferences} r_search ON qa_search.reference_id = r_search.id
+              WHERE qa_search.quote_id = q.id
+                AND (a_search.name LIKE ${searchPattern} OR r_search.name LIKE ${searchPattern})
+            ) OR
             EXISTS (SELECT 1 FROM ${schema.tags} t2 JOIN ${schema.quoteTags} qt2 ON t2.id = qt2.tag_id WHERE qt2.quote_id = q.id AND t2.name LIKE ${searchPattern})
           )
           GROUP BY q.id

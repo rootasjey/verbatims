@@ -13,9 +13,10 @@ export default defineEventHandler(async (event) => {
       a.likes_count, a.views_count
     FROM ${schema.authors} a
     LEFT JOIN (
-      SELECT author_id, COUNT(*) AS quotes_count
-      FROM ${schema.quotes}
-      GROUP BY author_id
+      SELECT qa.author_id, COUNT(DISTINCT q.id) AS quotes_count
+      FROM ${schema.quoteAttributions} qa
+      INNER JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
+      GROUP BY qa.author_id
     ) q ON q.author_id = a.id
     ORDER BY RANDOM()
     LIMIT ${n}

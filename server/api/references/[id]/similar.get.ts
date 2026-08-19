@@ -52,24 +52,26 @@ export default defineEventHandler(async (event) => {
         ) as similarity_score
       FROM ${schema.quoteReferences} r
       LEFT JOIN (
-        SELECT reference_id, COUNT(*) as count
-        FROM ${schema.quotes}
-        WHERE status = 'approved'
-        GROUP BY reference_id
+        SELECT qa.reference_id, COUNT(DISTINCT q.id) as count
+        FROM ${schema.quoteAttributions} qa
+        INNER JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
+        GROUP BY qa.reference_id
       ) quotes_count ON quotes_count.reference_id = r.id
       LEFT JOIN (
         -- Count shared authors between references
         SELECT 
-          q2.reference_id,
-          COUNT(DISTINCT q2.author_id) as shared_count
-        FROM ${schema.quotes} q1
-        JOIN ${schema.quotes} q2 ON q1.author_id = q2.author_id
-        WHERE q1.reference_id = ${referenceId}
-          AND q2.reference_id != ${referenceId}
+          qa2.reference_id,
+          COUNT(DISTINCT qa2.author_id) as shared_count
+        FROM ${schema.quoteAttributions} qa1
+        JOIN ${schema.quotes} q1 ON q1.id = qa1.quote_id
+        JOIN ${schema.quoteAttributions} qa2 ON qa1.author_id = qa2.author_id
+        JOIN ${schema.quotes} q2 ON q2.id = qa2.quote_id
+        WHERE qa1.reference_id = ${referenceId}
+          AND qa2.reference_id != ${referenceId}
           AND q1.status = 'approved'
           AND q2.status = 'approved'
-          AND q1.author_id IS NOT NULL
-        GROUP BY q2.reference_id
+          AND qa1.author_id IS NOT NULL
+        GROUP BY qa2.reference_id
       ) shared_authors ON shared_authors.reference_id = r.id
       WHERE r.id != ${referenceId}
         AND quotes_count.count > 0
