@@ -21,7 +21,8 @@ defineRouteMeta({
             properties: {
               name: { type: 'string' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'] },
-              provenance: { type: 'object', description: 'Primary quote attribution and source provenance', properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true }, source: { type: 'object', properties: { source_type: { type: 'string' }, source_url: { type: 'string', format: 'uri', nullable: true }, label: { type: 'string', nullable: true }, verification_status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } } } },
+              attributions: { type: 'array', minItems: 1, description: 'Complete replacement attribution set. Exactly one item must be primary.', items: { type: 'object', required: ['is_primary'], properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, is_primary: { type: 'boolean' }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } } },
+              provenance: { type: 'object', description: 'Deprecated primary quote attribution and source provenance', deprecated: true, properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true }, source: { type: 'object', properties: { source_type: { type: 'string' }, source_url: { type: 'string', format: 'uri', nullable: true }, label: { type: 'string', nullable: true }, verification_status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } } } },
               new_author: { type: 'object', properties: { name: { type: 'string' }, is_fictional: { type: 'boolean' } } },
               new_reference: { type: 'object', properties: { name: { type: 'string' }, primary_type: { type: 'string' }, original_language: { type: 'string' } } },
             },
@@ -55,11 +56,26 @@ export default defineEventHandler(async (event) => {
 
   const currentProvenance = await getQuoteProvenance(quoteId)
   const primaryAttribution = currentProvenance.attributions.find(item => item.is_primary) ?? currentProvenance.attributions[0]
-  let authorId = primaryAttribution?.author_id ?? null
-  let referenceId = primaryAttribution?.reference_id ?? null
+  const replacementAttributions = body.attributions
+  const replacementPrimary = replacementAttributions?.find(attribution => attribution.is_primary)
+  let authorId = replacementPrimary?.author_id ?? primaryAttribution?.author_id ?? null
+  let referenceId = replacementPrimary?.reference_id ?? primaryAttribution?.reference_id ?? null
 
   if (body.provenance?.author_id !== undefined) authorId = body.provenance.author_id
   if (body.provenance?.reference_id !== undefined) referenceId = body.provenance.reference_id
+
+  for (const attribution of replacementAttributions ?? []) {
+    if (attribution.author_id) {
+      const author = await db.select({ id: schema.authors.id }).from(schema.authors)
+        .where(eq(schema.authors.id, attribution.author_id)).get()
+      if (!author) throwServer(400, 'Invalid author ID')
+    }
+    if (attribution.reference_id) {
+      const reference = await db.select({ id: schema.quoteReferences.id }).from(schema.quoteReferences)
+        .where(eq(schema.quoteReferences.id, attribution.reference_id)).get()
+      if (!reference) throwServer(400, 'Invalid reference ID')
+    }
+  }
 
   if (body.new_author?.name) {
     const newAuthor = await db.insert(schema.authors).values({
@@ -94,32 +110,42 @@ export default defineEventHandler(async (event) => {
     updatedAt: new Date(),
   }
 
-  await db.update(schema.quotes)
-    .set({
-      ...updateData,
-    } as any)
-    .where(eq(schema.quotes.id, quoteId))
-    .run()
-
-  const attributionStatus = isMod ? body.provenance?.status : 'unverified'
-  const attributionId = await syncPrimaryAttribution(
-    quoteId,
-    authorId || null,
-    referenceId || null,
-    api.userId,
-    attributionStatus,
-    body.provenance?.notes,
-  )
-  await syncPrimarySource(
-    quoteId,
-    attributionId,
-    provenanceSource?.source_type,
-    provenanceSource?.source_url,
-    api.userId,
-    isMod ? provenanceSource?.verification_status : 'unverified',
-    provenanceSource?.label,
-    provenanceSource?.notes,
-  )
+  if (replacementAttributions) {
+    await db.batch([
+      db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)),
+      db.delete(schema.quoteAttributions).where(eq(schema.quoteAttributions.quoteId, quoteId)),
+      db.insert(schema.quoteAttributions).values(replacementAttributions.map(attribution => ({
+        quoteId,
+        authorId: attribution.author_id,
+        referenceId: attribution.reference_id,
+        isPrimary: attribution.is_primary,
+        status: isMod ? attribution.status : 'unverified',
+        notes: attribution.notes,
+        createdBy: api.userId,
+      }))),
+    ] as any)
+  } else {
+    const attributionStatus = isMod ? body.provenance?.status : 'unverified'
+    const attributionId = await syncPrimaryAttribution(
+      quoteId,
+      authorId || null,
+      referenceId || null,
+      api.userId,
+      attributionStatus,
+      body.provenance?.notes,
+    )
+    await syncPrimarySource(
+      quoteId,
+      attributionId,
+      provenanceSource?.source_type,
+      provenanceSource?.source_url,
+      api.userId,
+      isMod ? provenanceSource?.verification_status : 'unverified',
+      provenanceSource?.label,
+      provenanceSource?.notes,
+    )
+    await db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, quoteId)).run()
+  }
 
   await logActivity(event, { type: 'quote_edited', userId: api.userId, targetId: quoteId, targetType: 'quote', metadata: { status: existingQuote.status, name: body.name } })
 

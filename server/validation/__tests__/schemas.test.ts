@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createQuoteSchema, updateQuoteSchema } from '../schemas'
+import { createQuoteSchema, createV1QuoteSchema, updateQuoteSchema, updateV1QuoteSchema } from '../schemas'
 
 describe('quote source validation', () => {
   it('accepts a source on user quote creation', () => {
@@ -42,8 +42,38 @@ describe('quote source validation', () => {
     expect(quote.provenance?.source?.label).toBe('First edition')
   })
 
-  it('rejects legacy fields on v1 writes', async () => {
-    const { createV1QuoteSchema } = await import('../schemas')
+  it('rejects legacy fields on v1 writes', () => {
     expect(() => createV1QuoteSchema.parse({ name: 'Legacy v1 payload', author_id: 1 })).toThrow()
+  })
+
+  it('accepts a complete v1 multi-attribution payload', () => {
+    const quote = createV1QuoteSchema.parse({
+      name: 'A quote with competing attributions',
+      attributions: [
+        { author_id: 1, is_primary: true, status: 'manually_verified' },
+        { reference_id: 2, is_primary: false, notes: 'Alternative attribution' },
+      ],
+    })
+
+    expect(quote.attributions).toHaveLength(2)
+    expect(quote.attributions?.filter(attribution => attribution.is_primary)).toHaveLength(1)
+  })
+
+  it('requires exactly one primary attribution on v1 writes', () => {
+    expect(() => createV1QuoteSchema.parse({
+      name: 'No primary attribution',
+      attributions: [{ author_id: 1, is_primary: false }],
+    })).toThrow()
+    expect(() => createV1QuoteSchema.parse({
+      name: 'Two primary attributions',
+      attributions: [{ author_id: 1, is_primary: true }, { reference_id: 2, is_primary: true }],
+    })).toThrow()
+  })
+
+  it('rejects mixed v1 replacement and legacy primary fields', () => {
+    expect(() => updateV1QuoteSchema.parse({
+      attributions: [{ author_id: 1, is_primary: true }],
+      provenance: { reference_id: 2 },
+    })).toThrow()
   })
 })

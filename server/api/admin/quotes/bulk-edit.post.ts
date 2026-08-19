@@ -90,31 +90,27 @@ export default defineEventHandler(async (event) => {
     // Update quote metadata and primary attributions together. The fields on
     // `quotes` are legacy compatibility columns and must not be written here.
     updateData.updatedAt = new Date()
-    await db.run(sql`BEGIN TRANSACTION`)
-    try {
-      await db.update(schema.quotes)
+    const statements: any[] = [
+      db.update(schema.quotes)
         .set(updateData as any)
-        .where(inArray(schema.quotes.id, quoteIds))
-        .run()
+        .where(inArray(schema.quotes.id, quoteIds)),
+    ]
 
-      if (authorId !== undefined || referenceId !== undefined) {
-        for (const id of quoteIds) {
-          const provenance = await getQuoteProvenance(id)
-          const primary = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
-          const nextAuthorId = authorId !== undefined ? authorId : primary?.author_id ?? null
-          const nextReferenceId = referenceId !== undefined ? referenceId : primary?.reference_id ?? null
-          if (nextAuthorId == null && nextReferenceId == null) {
-            throwServer(400, 'A quote requires an author or reference')
-          }
-          await syncPrimaryAttribution(id, nextAuthorId, nextReferenceId, user.id)
+    if (authorId !== undefined || referenceId !== undefined) {
+      const provenanceByQuote = await Promise.all(quoteIds.map(id => getQuoteProvenance(id)))
+      for (const [index, provenance] of provenanceByQuote.entries()) {
+        const primary = provenance.attributions.find(item => item.is_primary) ?? provenance.attributions[0]
+        const nextAuthorId = authorId !== undefined ? authorId : primary?.author_id ?? null
+        const nextReferenceId = referenceId !== undefined ? referenceId : primary?.reference_id ?? null
+        if (nextAuthorId == null && nextReferenceId == null) {
+          throwServer(400, 'A quote requires an author or reference')
         }
+        statements.push(db.update(schema.quoteAttributions)
+          .set({ authorId: nextAuthorId, referenceId: nextReferenceId, updatedAt: new Date() })
+          .where(eq(schema.quoteAttributions.id, primary!.id)))
       }
-
-      await db.run(sql`COMMIT`)
-    } catch (error) {
-      await db.run(sql`ROLLBACK`)
-      throw error
     }
+    await db.batch(statements as any)
 
     return {
       success: true,

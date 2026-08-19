@@ -41,25 +41,24 @@ export default defineEventHandler(async (event) => {
     `)
     const quotesCount = quotesResult?.count || 0
 
-    await db.run(sql`BEGIN TRANSACTION`)
-    try {
-      await db.update(schema.quoteAttributions)
+    const viewsResult = await db.get<{ count: number }>(sql`
+      SELECT COUNT(*) as count FROM ${schema.authorViews} WHERE author_id = ${sourceId}
+    `)
+    const viewsCount = viewsResult?.count || 0
+    const statements: any[] = [
+      db.update(schema.quoteAttributions)
         .set({ authorId: targetId })
-        .where(eq(schema.quoteAttributions.authorId, sourceId))
-        .run()
-
-      await db.update(schema.authorViews)
+        .where(eq(schema.quoteAttributions.authorId, sourceId)),
+      db.update(schema.authorViews)
         .set({ authorId: targetId })
-        .where(eq(schema.authorViews.authorId, sourceId))
-        .run()
-
-      await db.update(schema.userLikes)
+        .where(eq(schema.authorViews.authorId, sourceId)),
+      db.update(schema.userLikes)
         .set({ likeableId: targetId })
         .where(and(
           eq(schema.userLikes.likeableType, 'author'),
           eq(schema.userLikes.likeableId, sourceId),
-        ))
-        .run()
+        )),
+    ]
 
       if (fieldsToCopy.length > 0) {
         const updateData: Record<string, any> = {}
@@ -69,32 +68,21 @@ export default defineEventHandler(async (event) => {
           }
         }
         if (Object.keys(updateData).length > 0) {
-          await db.update(schema.authors)
+          statements.push(db.update(schema.authors)
             .set(updateData)
-            .where(eq(schema.authors.id, targetId))
-            .run()
+            .where(eq(schema.authors.id, targetId)))
         }
       }
 
-      const viewsResult = await db.get<{ count: number }>(sql`
-        SELECT COUNT(*) as count FROM ${schema.authorViews} WHERE author_id = ${sourceId}
-      `)
-      const viewsCount = viewsResult?.count || 0
-
-      await db.update(schema.authors)
+      statements.push(db.update(schema.authors)
         .set({
           viewsCount: (targetAuthor!.viewsCount ?? 0) + (sourceAuthor!.viewsCount ?? 0),
           likesCount: (targetAuthor!.likesCount ?? 0) + (sourceAuthor!.likesCount ?? 0),
           sharesCount: (targetAuthor!.sharesCount ?? 0) + (sourceAuthor!.sharesCount ?? 0),
         })
-        .where(eq(schema.authors.id, targetId))
-        .run()
-
-      await db.delete(schema.authors)
-        .where(eq(schema.authors.id, sourceId))
-        .run()
-
-      await db.run(sql`COMMIT`)
+        .where(eq(schema.authors.id, targetId)))
+      statements.push(db.delete(schema.authors).where(eq(schema.authors.id, sourceId)))
+      await db.batch(statements as any)
 
       return {
         success: true,
@@ -107,10 +95,6 @@ export default defineEventHandler(async (event) => {
           fieldsCopied: fieldsToCopy,
         },
       }
-    } catch (txErr) {
-      await db.run(sql`ROLLBACK`)
-      throwServer(500, 'Failed to merge authors')
-    }
   } catch (error: any) {
     if ((error as any).statusCode) throw error
     console.error('Error merging authors:', error)

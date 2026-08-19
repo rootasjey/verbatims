@@ -150,8 +150,9 @@ function buildQuotesQueryForDownload(filters: QuoteExportFilters, includeRelatio
       GROUP_CONCAT(DISTINCT t.name) as tag_names,
       GROUP_CONCAT(DISTINCT t.color) as tag_colors
     FROM quotes q
-    LEFT JOIN authors a ON q.author_id = a.id
-    LEFT JOIN quote_references r ON q.reference_id = r.id
+    LEFT JOIN quote_attributions qa ON qa.quote_id = q.id AND qa.is_primary = 1
+    LEFT JOIN authors a ON qa.author_id = a.id
+    LEFT JOIN quote_references r ON qa.reference_id = r.id
     LEFT JOIN users u ON q.user_id = u.id
     LEFT JOIN quote_tags qt ON q.id = qt.quote_id
     LEFT JOIN tags t ON qt.tag_id = t.id

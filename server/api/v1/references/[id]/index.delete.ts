@@ -64,13 +64,12 @@ export default defineEventHandler(async (event) => {
       throwServer(400, 'Related quotes exist. Provide strategy: "delete" or "anonymize".')
     }
 
-    await db.run(sql`BEGIN TRANSACTION`)
-    try {
+    const statements: any[] = []
       if (strategy === 'delete') {
-        await db.run(sql`
+        statements.push(db.run(sql`
           DELETE FROM ${schema.quotes}
           WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE reference_id = ${refId})
-        `)
+        `))
       } else {
         const invalid = await db.get<{ count: number }>(sql`
           SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
@@ -79,22 +78,13 @@ export default defineEventHandler(async (event) => {
         if ((invalid?.count || 0) > 0) {
           throwServer(400, 'Cannot anonymize reference-only attributions. Add an author first or use the delete strategy.')
         }
-        await db.update(schema.quoteAttributions)
+        statements.push(db.update(schema.quoteAttributions)
           .set({ referenceId: null, updatedAt: new Date() })
-          .where(eq(schema.quoteAttributions.referenceId, refId))
-          .run()
+          .where(eq(schema.quoteAttributions.referenceId, refId)))
       }
 
-      await db.delete(schema.quoteReferences)
-        .where(eq(schema.quoteReferences.id, refId))
-        .run()
-
-      await db.run(sql`COMMIT`)
-    } catch (error: any) {
-      await db.run(sql`ROLLBACK`)
-      if (error?.statusCode) throw error
-      throwServer(500, 'Failed to process deletion transaction')
-    }
+    statements.push(db.delete(schema.quoteReferences).where(eq(schema.quoteReferences.id, refId)))
+    await db.batch(statements as any)
 
     await logActivity(event, { type: 'reference_deleted', userId: api.userId, targetId: refId, targetType: 'reference', metadata: { strategy: strategy, quotes_affected: quoteCount, name: existing.name } })
 

@@ -20,9 +20,16 @@ defineRouteMeta({
             properties: {
               name: { type: 'string', description: 'Quote content' },
               language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], default: 'en' },
+              attributions: {
+                type: 'array',
+                minItems: 1,
+                description: 'Complete attribution set. Exactly one item must be primary.',
+                items: { type: 'object', required: ['is_primary'], properties: { author_id: { type: 'integer', nullable: true }, reference_id: { type: 'integer', nullable: true }, is_primary: { type: 'boolean' }, status: { type: 'string', enum: ['unverified', 'manually_verified', 'externally_verified', 'disputed'] }, notes: { type: 'string', nullable: true } } },
+              },
               provenance: {
                 type: 'object',
-                description: 'Primary quote attribution and source provenance',
+                description: 'Deprecated primary quote attribution and source provenance',
+                deprecated: true,
                 properties: {
                   author_id: { type: 'integer', nullable: true },
                   reference_id: { type: 'integer', nullable: true },
@@ -61,8 +68,10 @@ export default defineEventHandler(async (event) => {
 
   const body = await readValidatedBody(event, createV1QuoteSchema.parse)
 
-  let authorId = body.provenance?.author_id
-  let referenceId = body.provenance?.reference_id
+  const requestedAttributions = body.attributions
+  const requestedPrimary = requestedAttributions?.find(attribution => attribution.is_primary)
+  let authorId = requestedPrimary?.author_id ?? body.provenance?.author_id
+  let referenceId = requestedPrimary?.reference_id ?? body.provenance?.reference_id
 
   if (body.new_author?.name) {
     const authorResult = await db.insert(schema.authors).values({
@@ -101,6 +110,19 @@ export default defineEventHandler(async (event) => {
     if (!reference) throwServer(400, 'Invalid reference ID')
   }
 
+  for (const attribution of requestedAttributions ?? []) {
+    if (attribution.author_id) {
+      const author = await db.select({ id: schema.authors.id }).from(schema.authors)
+        .where(eq(schema.authors.id, attribution.author_id)).get()
+      if (!author) throwServer(400, 'Invalid author ID')
+    }
+    if (attribution.reference_id) {
+      const reference = await db.select({ id: schema.quoteReferences.id }).from(schema.quoteReferences)
+        .where(eq(schema.quoteReferences.id, attribution.reference_id)).get()
+      if (!reference) throwServer(400, 'Invalid reference ID')
+    }
+  }
+
   if (authorId == null && referenceId == null) {
     throwServer(400, 'A quote requires an author or reference')
   }
@@ -119,9 +141,8 @@ export default defineEventHandler(async (event) => {
   const provenanceSource = body.provenance?.source
 
   const attributionStatus = api.userRole === 'admin' || api.userRole === 'moderator'
-    ? body.provenance?.status
+    ? requestedPrimary?.status ?? body.provenance?.status
     : 'unverified'
-  await db.run(sql`BEGIN TRANSACTION`)
   let quoteId: number
   try {
     const quoteResult = await db.insert(schema.quotes).values({
@@ -140,7 +161,7 @@ export default defineEventHandler(async (event) => {
       referenceId || null,
       api.userId,
       attributionStatus,
-      body.provenance?.notes,
+      requestedPrimary?.notes ?? body.provenance?.notes,
     )
     if (provenanceSource) {
       await syncPrimarySource(
@@ -154,9 +175,22 @@ export default defineEventHandler(async (event) => {
         provenanceSource?.notes,
       )
     }
-    await db.run(sql`COMMIT`)
+    const additionalAttributions = (requestedAttributions ?? []).filter(attribution => !attribution.is_primary)
+    if (additionalAttributions.length) {
+      await db.batch(additionalAttributions.map(attribution => db.insert(schema.quoteAttributions).values({
+        quoteId,
+        authorId: attribution.author_id,
+        referenceId: attribution.reference_id,
+        isPrimary: false,
+        status: api.userRole === 'admin' || api.userRole === 'moderator' ? attribution.status : 'unverified',
+        notes: attribution.notes,
+        createdBy: api.userId,
+      })) as any)
+    }
   } catch (error) {
-    await db.run(sql`ROLLBACK`)
+    if (quoteId!) {
+      await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+    }
     throw error
   }
 

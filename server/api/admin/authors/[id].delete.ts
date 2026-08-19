@@ -47,14 +47,12 @@ export default defineEventHandler(async (event) => {
         throwServer(400, 'Related quotes exist. Provide strategy: "delete" or "anonymize".')
       }
 
-      // Run within a transaction for consistency
-      await db.run(sql`BEGIN TRANSACTION`)
-      try {
+      const statements: any[] = []
         if (strategy === 'delete') {
-          await db.run(sql`
+          statements.push(db.run(sql`
             DELETE FROM ${schema.quotes}
             WHERE id IN (SELECT quote_id FROM ${schema.quoteAttributions} WHERE author_id = ${parseInt(authorId)})
-          `)
+          `))
         } else {
           const invalid = await db.get<{ count: number }>(sql`
             SELECT COUNT(*) as count FROM ${schema.quoteAttributions}
@@ -63,23 +61,14 @@ export default defineEventHandler(async (event) => {
           if ((invalid?.count || 0) > 0) {
             throwServer(400, 'Cannot anonymize author-only attributions. Add a reference first or use the delete strategy.')
           }
-          await db.update(schema.quoteAttributions)
+          statements.push(db.update(schema.quoteAttributions)
             .set({ authorId: null, updatedAt: new Date() })
-            .where(eq(schema.quoteAttributions.authorId, parseInt(authorId)))
-            .run()
+            .where(eq(schema.quoteAttributions.authorId, parseInt(authorId))))
         }
 
         // Delete the author
-        await db.delete(schema.authors)
-          .where(eq(schema.authors.id, parseInt(authorId)))
-          .run()
-
-        await db.run(sql`COMMIT`)
-      } catch (txErr: any) {
-        await db.run(sql`ROLLBACK`)
-        if (txErr?.statusCode) throw txErr
-        throwServer(500, 'Failed to process deletion transaction')
-      }
+      statements.push(db.delete(schema.authors).where(eq(schema.authors.id, parseInt(authorId))))
+      await db.batch(statements as any)
 
       return {
         success: true,

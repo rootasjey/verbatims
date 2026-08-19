@@ -242,8 +242,9 @@ function buildQuotesQuery(filters: QuoteExportFilters, includeRelations: boolean
       ` : ''}
     FROM quotes q
     ${includeRelations ? `
-      LEFT JOIN authors a ON q.author_id = a.id
-      LEFT JOIN quote_references r ON q.reference_id = r.id
+      LEFT JOIN quote_attributions qa ON qa.quote_id = q.id AND qa.is_primary = 1
+      LEFT JOIN authors a ON qa.author_id = a.id
+      LEFT JOIN quote_references r ON qa.reference_id = r.id
       LEFT JOIN users u ON q.user_id = u.id
       LEFT JOIN users m ON q.moderator_id = m.id
       LEFT JOIN quote_tags qt ON q.id = qt.quote_id

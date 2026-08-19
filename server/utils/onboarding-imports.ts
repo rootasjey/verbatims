@@ -4,7 +4,7 @@
 
 import { updateStepProgress, addWarning } from './onboarding-progress'
 import { schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { parseTimestampInput } from '~~/server/utils/date-normalization'
 
 export async function extractDatasetsFromZip(zipBytes: Uint8Array): Promise<Record<string, any[]>> {
@@ -798,12 +798,13 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
             throw new Error('An author or reference is required')
           }
 
-          await db.run(sql`BEGIN TRANSACTION`)
+          let quoteId: number | undefined
           try {
             const quote = await db.insert(schema.quotes)
               .values(values)
               .returning({ id: schema.quotes.id })
               .get()
+            quoteId = quote.id
             const attribution = await db.insert(schema.quoteAttributions).values({
               quoteId: quote.id,
               authorId,
@@ -825,10 +826,11 @@ export async function importQuotesFromDataset(db: any, adminUserId: number, impo
                 updatedAt,
               })
             }
-            await db.run(sql`COMMIT`)
             batchImported++
           } catch (error) {
-            await db.run(sql`ROLLBACK`)
+            if (quoteId) {
+              await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+            }
             throw error
           }
         } catch (e: any) {
