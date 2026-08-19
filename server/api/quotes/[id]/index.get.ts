@@ -93,6 +93,9 @@ export default defineEventHandler(async (event) => {
         .all(),
     ])
 
+    const primaryAttribution = attributions.find(attribution => attribution.isPrimary) ?? attributions[0]
+    const primarySource = sources.find(source => source.isPrimary) ?? sources[0]
+
     const transformedQuote = {
       id: q.id,
       name: q.name,
@@ -102,19 +105,19 @@ export default defineEventHandler(async (event) => {
       likes_count: q.likesCount,
       shares_count: q.sharesCount,
       is_featured: q.isFeatured,
-      source_type: q.sourceType,
-      source_url: q.sourceUrl,
+      source_type: primarySource?.sourceType ?? q.sourceType,
+      source_url: primarySource?.sourceUrl ?? q.sourceUrl,
       created_at: q.createdAt,
       updated_at: q.updatedAt,
-      author: q.authorId ? {
-        id: q.authorId,
-        name: q.authorName,
+      author: (primaryAttribution?.authorId ?? q.authorId) ? {
+        id: primaryAttribution?.authorId ?? q.authorId!,
+        name: primaryAttribution?.authorName ?? q.authorName,
         is_fictional: q.authorIsFictional,
         image_url: q.authorImageUrl
       } : undefined,
-      reference: q.referenceId ? {
-        id: q.referenceId,
-        name: q.referenceName,
+      reference: (primaryAttribution?.referenceId ?? q.referenceId) ? {
+        id: primaryAttribution?.referenceId ?? q.referenceId!,
+        name: primaryAttribution?.referenceName ?? q.referenceName,
         primary_type: q.referencePrimaryType
       } : undefined,
       user: {
