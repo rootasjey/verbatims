@@ -103,7 +103,7 @@ function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations:
   query += ` FROM quote_references r`
 
   if (includeRelations) {
-    query += ` LEFT JOIN quotes q ON r.id = q.reference_id`
+    query += ` LEFT JOIN quote_attributions qa ON r.id = qa.reference_id LEFT JOIN quotes q ON q.id = qa.quote_id`
   }
 
   // Apply filters

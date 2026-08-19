@@ -188,8 +188,7 @@ export async function createQuote(data: {
     throw new Error('A quote requires an author or reference')
   }
 
-  await db.run(sql`BEGIN TRANSACTION`)
-  let result: { id: number }
+  let result: { id: number } | undefined
   try {
     result = await db.insert(schema.quotes)
       .values({
@@ -201,13 +200,14 @@ export async function createQuote(data: {
       .returning({ id: schema.quotes.id })
       .get()
     await syncPrimaryAttribution(result.id, authorId, referenceId, data.userId)
-    await db.run(sql`COMMIT`)
   } catch (error) {
-    await db.run(sql`ROLLBACK`)
+    if (result?.id) {
+      await db.delete(schema.quotes).where(eq(schema.quotes.id, result.id)).run().catch(() => undefined)
+    }
     throw error
   }
 
-  return result
+  return result!
 }
 
 export async function updateQuote(
@@ -226,9 +226,8 @@ export async function updateQuote(
   if (data.status !== undefined) setData.status = data.status as any
 
   const needsAttributionUpdate = data.authorId !== undefined || data.referenceId !== undefined
-  await db.run(sql`BEGIN TRANSACTION`)
-  try {
-    if (needsAttributionUpdate) {
+  let attributionStatement: any
+  if (needsAttributionUpdate) {
       const quote = await db.select({ userId: schema.quotes.userId })
         .from(schema.quotes)
         .where(eq(schema.quotes.id, id))
@@ -242,18 +241,17 @@ export async function updateQuote(
       if (authorId == null && referenceId == null) {
         throw new Error('A quote requires an author or reference')
       }
-      await syncPrimaryAttribution(id, authorId, referenceId, quote.userId)
-    }
-
-    await db.update(schema.quotes)
-      .set(setData)
-      .where(eq(schema.quotes.id, id))
-      .run()
-    await db.run(sql`COMMIT`)
-  } catch (error) {
-    await db.run(sql`ROLLBACK`)
-    throw error
+      if (!primary) throw new Error('Quote has no primary attribution')
+      attributionStatement = db.update(schema.quoteAttributions)
+        .set({ authorId, referenceId, updatedAt: new Date() })
+        .where(eq(schema.quoteAttributions.id, primary.id))
   }
+
+  const statements = [
+    ...(attributionStatement ? [attributionStatement] : []),
+    db.update(schema.quotes).set(setData).where(eq(schema.quotes.id, id)),
+  ]
+  await db.batch(statements as any)
 }
 
 export async function updateQuoteStatus(

@@ -177,20 +177,22 @@ export async function importQuotesInline(
             createdAt: q.created_at ? new Date(q.created_at) : new Date(),
             updatedAt: q.updated_at ? new Date(q.updated_at) : new Date(),
         }
+        let quoteId: number | undefined
         try {
-          await db.run(sql`BEGIN TRANSACTION`)
           const quote = await db.insert(schema.quotes)
             .values(values)
             .returning({ id: schema.quotes.id })
             .get()
+          quoteId = quote.id
           const attributionId = await syncPrimaryAttribution(quote.id, authorId ?? null, referenceId ?? null, userId)
           if (q.source_type || q.source_url) {
             await syncPrimarySource(quote.id, attributionId, q.source_type, q.source_url || null, userId)
           }
-          await db.run(sql`COMMIT`)
           inserted++
         } catch (error: any) {
-          await db.run(sql`ROLLBACK`)
+          if (quoteId) {
+            await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+          }
           skipped++
           report.addFailure({ index: i + j + 1, reason: error?.message || 'Failed to import quote' })
         }

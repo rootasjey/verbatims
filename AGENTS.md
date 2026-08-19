@@ -291,6 +291,10 @@ Schema changes are tracked in `server/db/migrations/sqlite/` as numbered SQL fil
 wrangler d1 execute verbatims --remote --file server/db/migrations/sqlite/0021_add_language_to_themes.sql
 ```
 
+### D1 mutation transactions
+
+Cloudflare D1 does not support application-managed `BEGIN`, `COMMIT`, or `ROLLBACK` statements. For an atomic sequence of mutations, build the Drizzle statements first and execute them with `await db.batch(statements as any)`. Validate all inputs and required reads before the batch; if a generated parent ID makes batching impossible, use a compensating delete on failure rather than issuing manual transaction statements.
+
 **Local dev** uses `.data/db/sqlite.db` through NuxtHub's explicit `libsql` driver. Use
 `bun run db:migrate`; do not use `wrangler d1 ... --local` for the application database.
 

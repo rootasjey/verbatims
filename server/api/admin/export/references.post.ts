@@ -213,7 +213,7 @@ function buildReferencesQuery(filters: ReferenceExportFilters, includeRelations:
       r.*
       ${includeRelations ? `, COUNT(q.id) as quotes_count` : ''}
     FROM quote_references r
-    ${includeRelations ? `LEFT JOIN quotes q ON r.id = q.reference_id AND q.status = 'approved'` : ''}
+    ${includeRelations ? `LEFT JOIN quote_attributions qa ON r.id = qa.reference_id LEFT JOIN quotes q ON q.id = qa.quote_id AND q.status = 'approved'` : ''}
   `
 
   const conditions: string[] = []

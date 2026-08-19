@@ -117,7 +117,8 @@ function buildAuthorsQuery(filters: AuthorExportFilters, includeRelations: boole
       ` : ''}
     FROM authors a
     ${includeRelations ? `
-      LEFT JOIN quotes q ON a.id = q.author_id AND q.status = 'approved'
+      LEFT JOIN quote_attributions qa ON a.id = qa.author_id
+      LEFT JOIN quotes q ON q.id = qa.quote_id AND q.status = 'approved'
     ` : ''}
   `
 

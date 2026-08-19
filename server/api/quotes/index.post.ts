@@ -83,7 +83,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const isPrivileged = user.role === 'admin' || user.role === 'moderator'
-    await db.run(sql`BEGIN TRANSACTION`)
     let quoteId: number
     try {
       const quoteResult = await db.insert(schema.quotes).values({
@@ -116,9 +115,10 @@ export default defineEventHandler(async (event) => {
           provenanceSource?.notes,
         )
       }
-      await db.run(sql`COMMIT`)
     } catch (error) {
-      await db.run(sql`ROLLBACK`)
+      if (quoteId!) {
+        await db.delete(schema.quotes).where(eq(schema.quotes.id, quoteId)).run().catch(() => undefined)
+      }
       throw error
     }
 
