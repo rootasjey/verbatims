@@ -8,10 +8,10 @@
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
       <div class="flex items-center gap-1">
-        <NButton btn="~" @click="handleLogoClick" rounded="none" class="group w-43 px-0 flex justify-start cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
+        <NuxtLink to="/" @click="handleLogoClick" class="group w-43 px-0 flex justify-start cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
           <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl relative z-1 transition-colors duration-300 group-hover:text-white dark:group-hover:text-[#0C0A09]">verbatims</span>
           <span class="absolute inset-0 bg-[#0C0A09] dark:bg-[#FAFAF9] w-0 group-hover:w-full transition-all duration-300 ease-out -z-0" />
-        </NButton>
+        </NuxtLink>
         <div class="h-5 w-px mx-4.2 hidden sm:block" />
         <span class="hidden sm:inline font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
           {{ currentDate }}
@@ -219,6 +219,8 @@ const handleScroll = () => {
 }
 
 const handleLogoClick = (event: MouseEvent) => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
   if (route.path !== '/') {
     navigateTo('/')
     return
