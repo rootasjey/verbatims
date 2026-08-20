@@ -17,7 +17,16 @@
           References
           <input v-model.number="auditLimit" type="number" min="1" max="50" class="mt-1 block w-28 rounded-sm border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-700">
         </label>
+        <label class="text-xs text-gray-500 dark:text-gray-400">
+          Type
+          <select v-model="auditType" class="mt-1 block rounded-sm border border-gray-300 bg-transparent px-2 py-1.5 text-sm dark:border-gray-700">
+            <option value="">All types</option>
+            <option value="music">Music</option>
+            <option value="tv_series">TV series</option>
+          </select>
+        </label>
         <NButton btn="solid-primary" :loading="loading" @click="runAudit">{{ loading ? 'Auditing…' : 'Run audit' }}</NButton>
+        <NButton btn="outline-gray" :disabled="loading" @click="resetFilters">Reset filters</NButton>
         <span v-if="loading" class="text-xs text-gray-500 dark:text-gray-400">Processed {{ results.length }} / {{ auditLimit }} in batches of 5</span>
       </div>
     </div>
@@ -59,7 +68,7 @@
           </tr>
           <tr v-if="expandedId === result.referenceId" :key="`${result.referenceId}-details`" class="bg-gray-50 dark:bg-gray-900/30">
             <td colspan="5" class="px-4 py-4">
-              <div class="grid gap-5 lg:grid-cols-3 text-xs">
+              <div class="grid gap-5 lg:grid-cols-4 text-xs">
                 <div>
                   <p class="mb-2 font-semibold uppercase tracking-wider text-gray-500">Selected match</p>
                   <p class="font-medium text-gray-900 dark:text-gray-100">{{ result.match?.label || 'No match' }}</p>
@@ -94,6 +103,26 @@
                   <p v-else class="text-gray-500">No proposals.</p>
                   <ul v-if="result.notes?.length" class="mt-3 list-disc space-y-1 pl-4 text-amber-700 dark:text-amber-300"><li v-for="note in result.notes" :key="note">{{ note }}</li></ul>
                 </div>
+                <div>
+                  <p class="mb-2 font-semibold uppercase tracking-wider text-gray-500">External sources</p>
+                  <p class="mb-2 text-gray-600 dark:text-gray-300">Audit-only score: {{ result.corroboration?.agreementScore ?? 0 }}</p>
+                  <ul v-if="result.corroboration?.sourceSignals.length" class="mb-3 space-y-1 text-emerald-700 dark:text-emerald-300"><li v-for="signal in result.corroboration.sourceSignals" :key="signal">{{ signal }}</li></ul>
+                  <ul v-if="result.corroboration?.conflicts.length" class="mb-3 space-y-1 text-amber-700 dark:text-amber-300"><li v-for="conflict in result.corroboration.conflicts" :key="conflict">{{ conflict }}</li></ul>
+                  <template v-if="result.externalSources?.length">
+                    <div v-for="source in result.externalSources" :key="source.source" class="mb-3">
+                      <p class="font-medium capitalize text-gray-900 dark:text-gray-100">{{ source.source }}</p>
+                      <ul v-if="source.results.length" class="mt-1 space-y-1 text-gray-500">
+                        <li v-for="candidate in source.results.slice(0, 3)" :key="candidate.externalId">
+                          <a v-if="candidate.url" :href="candidate.url" target="_blank" rel="noreferrer" class="hover:underline">{{ candidate.label }} ↗</a>
+                          <span v-else>{{ candidate.label }}</span>
+                          <span v-if="candidate.description"> — {{ candidate.description }}</span>
+                        </li>
+                      </ul>
+                      <p v-else class="mt-1 text-gray-500">No candidates.</p>
+                    </div>
+                  </template>
+                  <p v-else class="text-gray-500">Not queried for this reference type.</p>
+                </div>
               </div>
             </td>
           </tr>
@@ -112,6 +141,8 @@ interface AuditResult {
   match?: { label?: string, description?: string | null, confidence?: string, raw_score?: number, competing_score?: number | null, score_gap?: number | null, wikidata_url?: string } | null
   alternatives?: Array<{ external_id: string, label: string, description?: string | null, score: number, raw_score?: number }>
   proposals?: Array<{ field: string, proposed_value: string | null, confidence: number, recommended?: boolean }>
+  externalSources?: Array<{ source: string, results: Array<{ externalId: string, label: string, description: string | null, url: string | null }> }>
+  corroboration?: { agreementScore: number, sourceSignals: string[], conflicts: string[] }
   notes?: string[]
   error?: string
 }
@@ -119,6 +150,8 @@ interface AuditResult {
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 
 const auditLimit = ref(20)
+const auditType = ref('')
+const filtersReady = ref(false)
 const loading = ref(false)
 const results = ref<AuditResult[]>([])
 const activeFilter = ref('all')
@@ -129,6 +162,26 @@ const filters = [
   { value: 'ambiguous_match', label: 'Ambiguous' },
   { value: 'no_match', label: 'No match' },
 ]
+
+const AUDIT_FILTERS_KEY = 'verbatims:enrichment-audit-filters:v1'
+
+onMounted(() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUDIT_FILTERS_KEY) || '{}') as { limit?: number, type?: string, decision?: string }
+    const savedLimit = saved.limit
+    if (typeof savedLimit === 'number' && Number.isInteger(savedLimit) && savedLimit >= 1 && savedLimit <= 50) auditLimit.value = savedLimit
+    if (typeof saved.type === 'string' && ['', 'music', 'tv_series'].includes(saved.type)) auditType.value = saved.type
+    if (typeof saved.decision === 'string' && filters.some(filter => filter.value === saved.decision)) activeFilter.value = saved.decision
+  } catch {
+    // Ignore malformed local preferences and use defaults.
+  }
+  filtersReady.value = true
+})
+
+watch([auditLimit, auditType, activeFilter], () => {
+  if (!filtersReady.value || !import.meta.client) return
+  localStorage.setItem(AUDIT_FILTERS_KEY, JSON.stringify({ limit: auditLimit.value, type: auditType.value, decision: activeFilter.value }))
+})
 
 const filteredResults = computed(() => activeFilter.value === 'all' ? results.value : results.value.filter(result => result.decision === activeFilter.value))
 const summaryCards = computed(() => [
@@ -146,7 +199,7 @@ async function runAudit() {
   const total = Math.max(1, Math.min(50, Number(auditLimit.value) || 20))
   try {
     for (let offset = 0; offset < total; offset += 5) {
-      const response = await $fetch<{ data: { results: AuditResult[] } }>('/api/admin/enrichment/audit', { method: 'POST', body: { limit: Math.min(5, total - offset), offset } })
+      const response = await $fetch<{ data: { results: AuditResult[] } }>('/api/admin/enrichment/audit', { method: 'POST', body: { limit: Math.min(5, total - offset), offset, primaryType: auditType.value || undefined } })
       results.value.push(...response.data.results)
     }
   } finally {
@@ -160,6 +213,12 @@ function recommendedCount(result: AuditResult) {
 
 function toggleDetails(referenceId: number) {
   expandedId.value = expandedId.value === referenceId ? null : referenceId
+}
+
+function resetFilters() {
+  auditLimit.value = 20
+  auditType.value = ''
+  activeFilter.value = 'all'
 }
 
 function decisionClass(decision?: string) {
