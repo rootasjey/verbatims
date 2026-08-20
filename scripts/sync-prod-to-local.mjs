@@ -9,6 +9,7 @@ const wrangler = resolve(root, 'node_modules/.bin/wrangler')
 const targetDb = resolve(root, '.data/db/sqlite.db')
 const tempSql = resolve(root, '.data/db/.prod-export.sql')
 const ftsMigration = resolve(root, 'server/db/migrations/sqlite/0030_create_quotes_fts.sql')
+const activityLogsMigration = resolve(root, 'server/db/migrations/sqlite/0024_create_activity_logs.sql')
 const yes = process.argv.includes('--yes')
 
 function run(cmd, args, { json = false } = {}) {
@@ -71,6 +72,16 @@ try {
   db.exec('BEGIN;')
   db.exec(sql)
   db.exec('COMMIT;')
+
+  // Some production exports may predate activity_logs even though the
+  // migration tracker is already populated. Restore the table locally before
+  // marking migrations as applied so the generated database matches the app
+  // schema.
+  const activityLogsTable = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'activity_logs'").get()
+  if (!activityLogsTable && existsSync(activityLogsMigration)) {
+    console.log('Restoring missing activity_logs table...')
+    db.exec(readFileSync(activityLogsMigration, 'utf8'))
+  }
 
   if (existsSync(ftsMigration)) {
     console.log('Recreating FTS5 index (quotes_fts)...')

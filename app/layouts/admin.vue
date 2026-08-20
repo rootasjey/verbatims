@@ -200,6 +200,24 @@
                 </NuxtLink>
               </NTooltip>
 
+              <!-- Enrichment Audit -->
+              <NTooltip :content="sidebarCollapsed ? 'Enrichment Audit' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
+                <NuxtLink
+                  to="/admin/enrichment-audit"
+                  :class="[
+                    'flex items-center text-sm rounded-sm transition-all duration-200',
+                    sidebarCollapsed ? 'justify-center px-3 py-2' : 'justify-start px-3 py-2',
+                    isActive('/admin/enrichment-audit')
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-500'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
+                  ]"
+                  @click="sidebarOpen = false"
+                >
+                  <NIcon name="i-ph-chart-line-up" :class="['w-4 h-4', sidebarCollapsed ? '' : 'mr-3']" />
+                  <span :class="['whitespace-nowrap transition-opacity duration-200 text-sm', sidebarCollapsed ? 'opacity-0 pointer-events-none hidden' : 'opacity-100']">Enrichment Audit</span>
+                </NuxtLink>
+              </NTooltip>
+
               <!-- Harvest Quotes -->
               <NTooltip :content="sidebarCollapsed ? 'Harvest Quotes' : undefined" :_tooltip-content="{ side: 'right' }" :disabled="!sidebarCollapsed">
                 <NuxtLink

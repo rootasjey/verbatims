@@ -221,7 +221,7 @@ async function getEntityTypeDueCount(
         eq(stateAlias.entityType, 'author'),
         eq(stateAlias.entityId, schema.authors.id),
       ))
-      .where(dueConditions)
+      .where(and(dueConditions, buildMissingFieldCondition('author')))
 
     return Number(rows[0]?.total || 0)
   }
@@ -232,7 +232,7 @@ async function getEntityTypeDueCount(
       eq(stateAlias.entityType, 'reference'),
       eq(stateAlias.entityId, schema.quoteReferences.id),
     ))
-    .where(dueConditions)
+    .where(and(dueConditions, buildMissingFieldCondition('reference')))
 
   return Number(rows[0]?.total || 0)
 }
@@ -285,7 +285,7 @@ async function findDueCandidates(
         eq(stateAlias.entityType, 'author'),
         eq(stateAlias.entityId, schema.authors.id),
       ))
-      .where(and(dueConditions, noActiveJobs))
+      .where(and(dueConditions, buildMissingFieldCondition('author'), noActiveJobs))
       .orderBy(...orderColumns, desc(schema.authors.updatedAt), asc(schema.authors.id))
       .limit(limit)
     : await db.select({
@@ -297,7 +297,7 @@ async function findDueCandidates(
         eq(stateAlias.entityType, 'reference'),
         eq(stateAlias.entityId, schema.quoteReferences.id),
       ))
-      .where(and(dueConditions, noActiveJobs))
+      .where(and(dueConditions, buildMissingFieldCondition('reference'), noActiveJobs))
       .orderBy(...orderColumns, desc(schema.quoteReferences.updatedAt), asc(schema.quoteReferences.id))
       .limit(limit)
 
@@ -400,6 +400,28 @@ function buildDueCondition(
       eq(stateAlias.entityType, entityType),
       eq(stateAlias.verificationStatus, 'failed'),
     ),
+  )
+}
+
+function buildMissingFieldCondition(entityType: EnrichmentEntityType) {
+  if (entityType === 'author') {
+    return or(
+      sql`${schema.authors.birthDate} IS NULL OR ${schema.authors.birthDate} = ''`,
+      sql`${schema.authors.birthLocation} IS NULL OR ${schema.authors.birthLocation} = ''`,
+      sql`${schema.authors.deathDate} IS NULL OR ${schema.authors.deathDate} = ''`,
+      sql`${schema.authors.deathLocation} IS NULL OR ${schema.authors.deathLocation} = ''`,
+      sql`${schema.authors.job} IS NULL OR ${schema.authors.job} = ''`,
+      sql`${schema.authors.description} IS NULL OR ${schema.authors.description} = ''`,
+      sql`${schema.authors.imageUrl} IS NULL OR ${schema.authors.imageUrl} = ''`,
+      sql`${schema.authors.socials} IS NULL OR ${schema.authors.socials} = '' OR ${schema.authors.socials} = '[]'`,
+    )
+  }
+
+  return or(
+    sql`${schema.quoteReferences.releaseDate} IS NULL OR ${schema.quoteReferences.releaseDate} = ''`,
+    sql`${schema.quoteReferences.description} IS NULL OR ${schema.quoteReferences.description} = ''`,
+    sql`${schema.quoteReferences.imageUrl} IS NULL OR ${schema.quoteReferences.imageUrl} = ''`,
+    sql`${schema.quoteReferences.urls} IS NULL OR ${schema.quoteReferences.urls} = '' OR ${schema.quoteReferences.urls} = '[]'`,
   )
 }
 

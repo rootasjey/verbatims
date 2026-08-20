@@ -193,12 +193,6 @@ async function applyAuthorJob(
     .from(schema.entityEnrichmentFieldProposals)
     .where(eq(schema.entityEnrichmentFieldProposals.jobId, job.id))
 
-  const proposals = proposalRows.filter(proposal => selectedFields.has(proposal.fieldName as EnrichmentProposalField))
-
-  if (proposals.length === 0) {
-    throw new Error('No enrichment field selected')
-  }
-
   const author = await db.select()
     .from(schema.authors)
     .where(eq(schema.authors.id, job.entityId))
@@ -206,6 +200,14 @@ async function applyAuthorJob(
 
   if (!author) {
     throw new Error('Author not found')
+  }
+
+  const proposals = proposalRows
+    .filter(proposal => selectedFields.has(proposal.fieldName as EnrichmentProposalField))
+    .filter(proposal => !readAuthorFieldValue(author, proposal.fieldName))
+
+  if (proposals.length === 0) {
+    throw new Error('No enrichment field selected')
   }
 
   const updateData: Record<string, any> = {
@@ -325,11 +327,6 @@ async function applyReferenceJob(
     .from(schema.entityEnrichmentFieldProposals)
     .where(eq(schema.entityEnrichmentFieldProposals.jobId, job.id))
 
-  const proposals = proposalRows.filter(proposal => selectedFields.has(proposal.fieldName as EnrichmentProposalField))
-  if (proposals.length === 0) {
-    throw new Error('No enrichment field selected')
-  }
-
   const reference = await db.select()
     .from(schema.quoteReferences)
     .where(eq(schema.quoteReferences.id, job.entityId))
@@ -337,6 +334,13 @@ async function applyReferenceJob(
 
   if (!reference) {
     throw new Error('Reference not found')
+  }
+
+  const proposals = proposalRows
+    .filter(proposal => selectedFields.has(proposal.fieldName as EnrichmentProposalField))
+    .filter(proposal => !readReferenceFieldValue(reference, proposal.fieldName))
+  if (proposals.length === 0) {
+    throw new Error('No enrichment field selected')
   }
 
   const updateData: Record<string, any> = {

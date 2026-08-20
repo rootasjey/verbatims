@@ -7,6 +7,8 @@ import type {
 } from '#shared/types/enrichment'
 import type { AuthorSocialLink } from '#shared/types/author'
 import type { QuoteReferencePrimaryType, QuoteReferenceUrls } from '#shared/types/quote-reference'
+import { canAutomaticallyEnrich } from '#shared/constants/enrichment'
+import { resolveMatchConfidence } from '#shared/utils/enrichment-confidence'
 import { parseAuthorSocials } from '../author-transformer'
 import { resolveEnrichmentConfig } from './config'
 
@@ -100,7 +102,11 @@ interface MatchingThresholds {
 
 interface PreviewBuildOptions {
   preferredExternalId?: string | null
+  audit?: boolean
+  cache?: EnrichmentRequestCache
 }
+
+type EnrichmentRequestCache = Map<string, Promise<unknown>>
 
 const WIKIDATA_API = 'https://www.wikidata.org/w/api.php'
 const WIKIDATA_ENTITY_API = 'https://www.wikidata.org/wiki/Special:EntityData'
@@ -119,6 +125,8 @@ const SEMANTIC_KEYWORD_GROUPS: Record<string, string[]> = {
   politics: ['politician', 'president', 'minister', 'senator', 'governor', 'statesman', 'diplomat'],
   business: ['business', 'entrepreneur', 'executive', 'investor', 'founder', 'owner', 'ceo'],
   religion: ['priest', 'pastor', 'bishop', 'rabbi', 'imam', 'theologian'],
+  nationality_american: ['american', 'united states', 'u.s.'],
+  nationality_russian: ['russian', 'russia'],
 }
 const REQUEST_HEADERS = {
   'accept': 'application/json',
@@ -311,6 +319,10 @@ async function findBestAuthorCandidate(
     getOfficialWebsite(entity.claims?.P856),
   ])
   const confidence = resolveMatchConfidence(best.score, second?.score ?? null, best.signals, matching.ambiguousMatchGap)
+  if (!options.preferredExternalId && !canAutomaticallyEnrich(confidence) && !options.audit) {
+    notes.push('The best candidate did not reach high identity confidence; no automatic enrichment was generated.')
+    return null
+  }
   const alternativeMatches = buildAlternativeMatches(
     scoredResults.filter(candidate => {
       if (!candidate.entity) return true
@@ -335,6 +347,7 @@ async function findBestAuthorCandidate(
       wikidata_url: wikidataUrl,
       image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
       score: Math.min(100, best.score),
+      raw_score: best.score,
       confidence,
       competing_score: second?.score ?? null,
       score_gap: computeScoreGap(best.score, second?.score ?? null),
@@ -451,6 +464,10 @@ function createAuthorProposals(author: AuthorRecordInput, candidate: AuthorCandi
 
   return mappings
     .filter(item => item.confidence > 0 && item.proposedValue)
+    // Enrichment is currently limited to filling missing fields. Existing
+    // values must remain untouched until a separate, explicitly reviewed
+    // replacement workflow exists.
+    .filter(item => !item.currentValue)
     .filter(item => normalizeComparableString(item.currentValue) !== normalizeComparableString(item.proposedValue))
     .map((item) => {
       const overwrite = Boolean(item.currentValue)
@@ -476,13 +493,13 @@ async function findBestReferenceCandidate(
   matching: MatchingThresholds,
   options: PreviewBuildOptions,
 ) {
-  const searchResults = await searchWikidata(reference.name)
+  const searchResults = await searchWikidata(reference.name, options.cache)
   if (searchResults.length === 0) {
     notes.push('Wikidata search returned no result for this reference.')
     return null
   }
 
-  const scoredResults = await scoreReferenceCandidates(reference, searchResults)
+  const scoredResults = await scoreReferenceCandidates(reference, searchResults, options.cache)
 
   const best = resolvePreferredCandidate(scoredResults, options.preferredExternalId) || scoredResults[0]
   const second = scoredResults.find(candidate => candidate.result.id !== best?.result.id)
@@ -528,6 +545,10 @@ async function findBestReferenceCandidate(
     imdb: buildImdbUrl(entity.claims?.P345) || undefined,
   })
   const confidence = resolveMatchConfidence(best.score, second?.score ?? null, best.signals, matching.ambiguousMatchGap)
+  if (!options.preferredExternalId && !canAutomaticallyEnrich(confidence) && !options.audit) {
+    notes.push('The best candidate did not reach high identity confidence; no automatic enrichment was generated.')
+    return null
+  }
   const alternativeMatches = buildAlternativeMatches(scoredResults, best.result.id)
 
   if (confidence === 'ambiguous') {
@@ -544,6 +565,7 @@ async function findBestReferenceCandidate(
       wikidata_url: wikidataUrl,
       image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
       score: Math.min(100, best.score),
+      raw_score: best.score,
       confidence,
       competing_score: second?.score ?? null,
       score_gap: computeScoreGap(best.score, second?.score ?? null),
@@ -616,6 +638,10 @@ function createReferenceProposals(reference: ReferenceRecordInput, candidate: Re
 
   return mappings
     .filter(item => item.confidence > 0 && item.proposedValue)
+    // Enrichment is currently limited to filling missing fields. Existing
+    // values must remain untouched until a separate, explicitly reviewed
+    // replacement workflow exists.
+    .filter(item => !item.currentValue)
     .filter(item => normalizeComparableString(item.currentValue) !== normalizeComparableString(item.proposedValue))
     .map((item) => {
       const overwrite = Boolean(item.currentValue)
@@ -649,8 +675,8 @@ async function scoreAuthorCandidates(author: AuthorRecordInput, searchResults: W
     .sort((left, right) => right.score - left.score)
 }
 
-async function scoreReferenceCandidates(reference: ReferenceRecordInput, searchResults: WikidataSearchEntity[]) {
-  const hydrated = await hydrateSearchCandidates(searchResults)
+async function scoreReferenceCandidates(reference: ReferenceRecordInput, searchResults: WikidataSearchEntity[], cache?: EnrichmentRequestCache) {
+  const hydrated = await hydrateSearchCandidates(searchResults, cache)
   const relatedIds = uniqueStrings(hydrated.flatMap(({ entity }) => entity ? [
     ...extractEntityIds(entity.claims?.P31),
     ...extractEntityIds(entity.claims?.P50),
@@ -659,17 +685,17 @@ async function scoreReferenceCandidates(reference: ReferenceRecordInput, searchR
     ...extractEntityIds(entity.claims?.P170),
     ...extractEntityIds(entity.claims?.P175),
   ] : []))
-  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds) : {}
+  const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds, cache) : {}
 
   return hydrated
     .map(({ result, entity }) => scoreReferenceSearchResult(reference, result, entity, labels))
     .sort((left, right) => right.score - left.score)
 }
 
-async function hydrateSearchCandidates(searchResults: WikidataSearchEntity[]) {
+async function hydrateSearchCandidates(searchResults: WikidataSearchEntity[], cache?: EnrichmentRequestCache) {
   return await Promise.all(searchResults.map(async (result) => ({
     result,
-    entity: await fetchWikidataEntity(result.id),
+    entity: await fetchWikidataEntity(result.id, cache),
   })))
 }
 
@@ -821,8 +847,11 @@ function scoreReferenceSearchResult(
     exactBonus: 4,
     overlapBonus: 10,
     overlapStep: 4,
-    mismatchPenalty: 8,
-    weakPenalty: 4,
+    // A matching title is not enough to override a contradictory existing
+    // description. Keep automatic enrichment conservative when the context
+    // does not align.
+    mismatchPenalty: 20,
+    weakPenalty: 12,
   })
   score += descriptionAlignment.score
   if (descriptionAlignment.signal) signals.push(descriptionAlignment.signal)
@@ -945,7 +974,7 @@ function buildImdbUrl(claims?: WikidataClaim[]) {
   return `https://www.imdb.com/title/${encodeURIComponent(imdbId)}/`
 }
 
-async function searchWikidata(name: string) {
+async function searchWikidata(name: string, cache?: EnrichmentRequestCache) {
   const url = new URL(WIKIDATA_API)
   url.searchParams.set('action', 'wbsearchentities')
   url.searchParams.set('format', 'json')
@@ -954,16 +983,16 @@ async function searchWikidata(name: string) {
   url.searchParams.set('type', 'item')
   url.searchParams.set('search', name)
 
-  const payload = await fetchJson<{ search?: WikidataSearchEntity[] }>(url.toString())
+  const payload = await fetchJsonCached<{ search?: WikidataSearchEntity[] }>(url.toString(), cache)
   return payload?.search || []
 }
 
-async function fetchWikidataEntity(id: string) {
-  const payload = await fetchJson<{ entities?: Record<string, WikidataEntityDocument> }>(`${WIKIDATA_ENTITY_API}/${id}.json`)
+async function fetchWikidataEntity(id: string, cache?: EnrichmentRequestCache) {
+  const payload = await fetchJsonCached<{ entities?: Record<string, WikidataEntityDocument> }>(`${WIKIDATA_ENTITY_API}/${id}.json`, cache)
   return payload?.entities?.[id] || null
 }
 
-async function fetchEntityLabels(ids: string[]) {
+async function fetchEntityLabels(ids: string[], cache?: EnrichmentRequestCache) {
   const uniqueIds = uniqueStrings(ids)
   if (uniqueIds.length === 0) return {} as Record<string, string>
 
@@ -974,7 +1003,7 @@ async function fetchEntityLabels(ids: string[]) {
   url.searchParams.set('ids', uniqueIds.join('|'))
   url.searchParams.set('props', 'labels')
 
-  const payload = await fetchJson<{ entities?: Record<string, WikidataEntityDocument> }>(url.toString())
+  const payload = await fetchJsonCached<{ entities?: Record<string, WikidataEntityDocument> }>(url.toString(), cache)
   const entries = payload?.entities || {}
   const labels: Record<string, string> = {}
 
@@ -986,9 +1015,19 @@ async function fetchEntityLabels(ids: string[]) {
   return labels
 }
 
+async function fetchJsonCached<T>(url: string, cache?: EnrichmentRequestCache): Promise<T | null> {
+  if (!cache) return await fetchJson<T>(url)
+  const cached = cache.get(url)
+  if (cached) return await cached as T | null
+  const request = fetchJson<T>(url)
+  cache.set(url, request)
+  return await request
+}
+
 async function fetchJson<T>(url: string): Promise<T | null> {
+  const signal = AbortSignal.timeout(15_000)
   try {
-    const response = await fetch(url, { headers: REQUEST_HEADERS })
+    const response = await fetch(url, { headers: REQUEST_HEADERS, signal })
     if (!response.ok) return null
     return await response.json() as T
   } catch (error) {
@@ -1041,6 +1080,18 @@ function scoreSemanticAlignment(
   const candidateTokens = tokenizeComparableText(candidateText)
   if (currentTokens.length === 0 || candidateTokens.length === 0) return { score: 0, signal: null as string | null }
 
+  const currentGroups = detectSemanticGroups(currentText)
+  const candidateGroups = detectSemanticGroups(candidateText)
+  const currentNationalities = currentGroups.filter(group => group.startsWith('nationality_'))
+  const candidateNationalities = candidateGroups.filter(group => group.startsWith('nationality_'))
+  if (currentNationalities.length > 0 && candidateNationalities.length > 0
+    && !currentNationalities.some(group => candidateNationalities.includes(group))) {
+    return {
+      score: -options.mismatchPenalty,
+      signal: options.negativeSignal,
+    }
+  }
+
   const overlapCount = countTokenOverlap(currentTokens, candidateTokens)
   if (overlapCount > 0) {
     return {
@@ -1049,8 +1100,6 @@ function scoreSemanticAlignment(
     }
   }
 
-  const currentGroups = detectSemanticGroups(currentText)
-  const candidateGroups = detectSemanticGroups(candidateText)
   if (currentGroups.length > 0 && candidateGroups.length > 0 && !currentGroups.some(group => candidateGroups.includes(group))) {
     return {
       score: -options.mismatchPenalty,
@@ -1062,21 +1111,6 @@ function scoreSemanticAlignment(
     score: currentTokens.length >= 2 ? -options.weakPenalty : 0,
     signal: currentTokens.length >= 2 ? options.negativeSignal : null,
   }
-}
-
-function resolveMatchConfidence(
-  score: number,
-  competingScore: number | null,
-  signals: string[],
-  ambiguousMatchGap = 5,
-): NonNullable<EnrichmentMatchSummary['confidence']> {
-  const gap = computeScoreGap(score, competingScore)
-  const hasConflict = signals.some(signal => /does not align|conflicts/i.test(signal))
-
-  if (hasConflict || score < 66 || (gap ?? 0) < ambiguousMatchGap) return 'ambiguous'
-  if (score >= 82 && (gap ?? 0) >= MATCH_GAP_FOR_HIGH_CONFIDENCE) return 'high'
-  if (score >= 72 && (gap ?? 0) >= MATCH_GAP_FOR_MEDIUM_CONFIDENCE) return 'medium'
-  return 'low'
 }
 
 function buildAlternativeMatches(scoredResults: ScoredWikidataCandidate[], selectedExternalId?: string) {
@@ -1106,6 +1140,7 @@ function toAlternativeMatch(candidate: ScoredWikidataCandidate): EnrichmentAlter
     wikidata_url: `https://www.wikidata.org/wiki/${candidate.result.id}`,
     image_url: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
     score: Math.min(100, candidate.score),
+    raw_score: candidate.score,
     signals: candidate.signals,
   }
 }

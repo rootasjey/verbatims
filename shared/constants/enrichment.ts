@@ -14,6 +14,10 @@ export type EnrichmentVerificationStatus = (typeof ENRICHMENT_VERIFICATION_STATU
 export const ENRICHMENT_TRIGGER_SOURCES = ['cron', 'manual'] as const
 export type EnrichmentTriggerSource = (typeof ENRICHMENT_TRIGGER_SOURCES)[number]
 
+export function canAutomaticallyEnrich(confidence: 'high' | 'medium' | 'low' | 'ambiguous') {
+  return confidence === 'high'
+}
+
 export function isEnrichmentEntityType(value: string): value is EnrichmentEntityType {
   return (ENRICHMENT_ENTITY_TYPES as readonly string[]).includes(value)
 }
