@@ -405,6 +405,10 @@ Examples:
 - `📝 docs: update AGENTS.md with commands`
 - `🔗 refactor(auth): simplify session checks`
 
+### CI skip for documentation-only commits
+
+Append `[skip ci]` to the commit subject when the commit contains exclusively documentation or other files that cannot affect the deployed application. Do not use `[skip ci]` for source code, configuration, migrations, generated runtime assets, dependency changes, or any commit that should trigger validation or deployment.
+
 ### Versioning
 
 The version **must** be bumped on every commit that changes functionality.
