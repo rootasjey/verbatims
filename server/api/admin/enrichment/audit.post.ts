@@ -1,7 +1,7 @@
 import { db, schema } from 'hub:db'
 import { asc, desc, eq } from 'drizzle-orm'
 import { buildReferenceEnrichmentPreview } from '../../../utils/enrichment/wikidata'
-import { evaluateExternalCorroboration, searchMusicBrainzRecordings, searchTvmazeShows } from '../../../utils/enrichment/sources'
+import { evaluateExternalCorroboration, searchMusicBrainzRecordings, searchMusicBrainzReleaseGroups, searchTvmazeShows } from '../../../utils/enrichment/sources'
 import { applyCorroborationToConfidence } from '#shared/utils/enrichment-confidence'
 import type { QuoteReferencePrimaryType } from '#shared/types/quote-reference'
 
@@ -35,9 +35,12 @@ export default defineEventHandler(async (event) => {
         externalSources.push({ source: 'tvmaze', results: await searchTvmazeShows(reference.name).catch(() => []) })
       }
       if (reference.primaryType === 'music') {
-        externalSources.push({ source: 'musicbrainz', results: await searchMusicBrainzRecordings(reference.name).catch(() => []) })
+        const recordings = await searchMusicBrainzRecordings(reference.name).catch(() => [])
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        const releaseGroups = await searchMusicBrainzReleaseGroups(reference.name).catch(() => [])
+        externalSources.push({ source: 'musicbrainz', results: [...recordings, ...releaseGroups] })
       }
-      const corroboration = evaluateExternalCorroboration(preview.match?.label, externalSources)
+      const corroboration = evaluateExternalCorroboration(preview.match?.label, externalSources, preview.music_context, reference.releaseDate)
       const effectiveConfidence = applyCorroborationToConfidence(preview.match?.confidence, corroboration.agreementScore)
       const match = preview.match ? { ...preview.match, confidence: effectiveConfidence } : null
       const proposals = preview.proposals.map((proposal) => {
@@ -71,6 +74,7 @@ export default defineEventHandler(async (event) => {
         alternatives: preview.alternative_matches,
         externalSources,
         corroboration,
+        musicContext: preview.music_context,
         proposals,
         decision,
         notes: preview.notes,

@@ -90,6 +90,7 @@ export interface ReferenceEnrichmentPreview extends BaseEnrichmentPreview {
   entity_name: string
   reference_name: string
   reference_primary_type: string
+  music_context?: { artists: string[], albums: string[] }
 }
 
 export type EntityEnrichmentPreview = AuthorEnrichmentPreview | ReferenceEnrichmentPreview
