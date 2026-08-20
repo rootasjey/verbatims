@@ -47,7 +47,7 @@
           <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
           <div class="relative px-4">
             <blockquote
-              class="font-serif font-300 leading-tight text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
+              class="font-serif font-300 leading-tight break-words [overflow-wrap:anywhere] text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
               :class="[quoteTextSize, quoteTextIn ? 'opacity-100 blur-0' : 'opacity-0 blur-sm']">
               {{ quote.name }}
             </blockquote>
@@ -98,19 +98,24 @@
     </div>
 
     <!-- Error State -->
-    <div v-else class="px-4 md:px-8 py-16 md:py-24 animate-fade-in animate-duration-500">
-      <div class="max-w-2xl mx-auto">
-        <div class="bg-white/60 dark:bg-gray-900/60 backdrop-blur-lg rounded-3xl p-12 md:p-16 text-center shadow-lg border border-gray-200/40 dark:border-gray-800/40">
-          <div class="bg-gray-100 dark:bg-gray-800 w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto mb-8 flex items-center justify-center">
-            <NIcon name="i-ph-warning-circle" class="w-12 h-12 md:w-16 md:h-16 text-gray-500 dark:text-gray-400" />
-          </div>
-          <h2 class="text-3xl md:text-4xl font-serif font-bold text-gray-900 dark:text-white mb-4">{{ $ts('quote_detail_not_found_title') }}</h2>
-          <p class="text-lg font-sans text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-            {{ $ts('quote_detail_not_found_desc') }}
-          </p>
-          <NButton to="/" size="lg" class="font-sans">
-            {{ $ts('quote_detail_browse') }}
-          </NButton>
+    <div v-else class="px-6 py-20 md:py-32 animate-fade-in animate-duration-500">
+      <div class="max-w-3xl mx-auto text-center">
+        <div class="flex items-center gap-3 mb-10">
+          <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          <span class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">Erratum</span>
+          <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <p class="font-sans text-xs uppercase tracking-[0.24em] text-gray-400 dark:text-gray-500 mb-5">404 · Archives</p>
+        <h2 class="font-serif text-4xl md:text-6xl font-300 text-gray-900 dark:text-gray-100 leading-tight text-balance">
+          {{ $ts('quote_detail_not_found_title') }}
+        </h2>
+        <p class="max-w-xl mx-auto mt-5 font-sans text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed">
+          {{ $ts('quote_detail_not_found_desc') }}
+        </p>
+        <div class="flex flex-wrap justify-center items-center gap-x-5 gap-y-3 mt-10">
+          <HomeNavLink to="/" class="px-4 py-1">{{ $ts('quote_detail_browse') }}</HomeNavLink>
+          <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+          <HomeNavLink to="/quotes" class="px-4 py-1">{{ $ts('home.nav.quotes') }}</HomeNavLink>
         </div>
       </div>
     </div>

@@ -29,16 +29,40 @@
             </p>
             <div class="border border-gray-200 dark:border-gray-700 rounded-sm p-3 space-y-2">
               <div class="flex items-baseline justify-between gap-2">
-                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.quotes.toLocaleString() }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.quotes_label') }}</span>
+                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">
+                  <span class="2xl:hidden">{{ formatCompactCount(stats.quotes) }}</span>
+                  <span class="hidden 2xl:inline">{{ stats.quotes.toLocaleString() }}</span>
+                </span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <span class="hidden 2xl:inline">{{ $t('home.quotes_label') }}</span>
+                  <NTooltip :content="String($ts('home.quotes_label'))" placement="right">
+                    <NIcon name="i-ph-quotes" class="2xl:hidden w-4 h-4" :aria-label="$ts('home.quotes_label')" />
+                  </NTooltip>
+                </span>
               </div>
               <div class="flex items-baseline justify-between gap-2">
-                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.authors.toLocaleString() }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.authors_label') }}</span>
+                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">
+                  <span class="2xl:hidden">{{ formatCompactCount(stats.authors) }}</span>
+                  <span class="hidden 2xl:inline">{{ stats.authors.toLocaleString() }}</span>
+                </span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <span class="hidden 2xl:inline">{{ $t('home.authors_label') }}</span>
+                  <NTooltip :content="String($ts('home.authors_label'))" placement="right">
+                    <NIcon name="i-ph-users-three" class="2xl:hidden w-4 h-4" :aria-label="$ts('home.authors_label')" />
+                  </NTooltip>
+                </span>
               </div>
               <div class="flex items-baseline justify-between gap-2">
-                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100">{{ stats.references.toLocaleString() }}</span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('home.references_label') }}</span>
+                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">
+                  <span class="2xl:hidden">{{ formatCompactCount(stats.references) }}</span>
+                  <span class="hidden 2xl:inline">{{ stats.references.toLocaleString() }}</span>
+                </span>
+                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <span class="hidden 2xl:inline">{{ $t('home.references_label') }}</span>
+                  <NTooltip :content="String($ts('home.references_label'))" placement="right">
+                    <NIcon name="i-ph-book-open-text" class="2xl:hidden w-4 h-4" :aria-label="$ts('home.references_label')" />
+                  </NTooltip>
+                </span>
               </div>
             </div>
           </div>
@@ -62,7 +86,7 @@
               :to="`/quotes/${quote.id}`"
               class="block group"
             >
-              <blockquote class="font-body text-xs text-gray-700 dark:text-gray-300 italic leading-snug group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+              <blockquote class="font-body text-xs text-gray-700 dark:text-gray-300 italic leading-snug break-words [overflow-wrap:anywhere] group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
                 {{ truncateQuote(quote.name, 100) }}
               </blockquote>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -103,7 +127,7 @@
             :to="`/quotes/${featuredQuote.id}`"
             class="block group lg:px-8"
           >
-            <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-200 text-gray-900 dark:text-gray-100 leading-tight mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+          <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-200 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
               {{ featuredQuote.name }}
             </h2>
           </NuxtLink>
@@ -213,7 +237,7 @@
                   :to="`/quotes/${item.id}`"
                   class="block group"
                 >
-                  <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-snug group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                  <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-snug break-words [overflow-wrap:anywhere] group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
                     {{ truncateQuote(item.name, 120) }}
                   </blockquote>
                 </NuxtLink>
@@ -249,7 +273,7 @@
               :class="{ 'md:border-r md:border-gray-300 md:dark:border-gray-700 md:pr-6': index % 3 < 2 }"
             >
               <NuxtLink :to="`/quotes/${item.id}`" class="block group">
-                <h4 class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 leading-tight mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                <h4 class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {{ truncateQuote(item.name, 80) }}
                 </h4>
               </NuxtLink>
@@ -400,6 +424,7 @@ import type { UseHomeFeed } from '~/composables/useHomeFeed'
 import { navigateTo } from 'nuxt/app'
 
 const { $t, $ts } = useI18n()
+const { locale } = useI18nLocale()
 
 interface Props {
   feed: UseHomeFeed
@@ -514,6 +539,11 @@ const truncateQuote = (text: string, maxLength: number) => {
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength) + '...'
 }
+
+const formatCompactCount = (count: number) => new Intl.NumberFormat(locale.value || 'en', {
+  notation: 'compact',
+  maximumFractionDigits: 1
+}).format(count)
 
 const formatReferenceType = (type: string) => {
   const t = $ts('reference_types.' + type)
