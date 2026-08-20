@@ -61,6 +61,7 @@ interface ReferenceCandidate {
   description: string | null
   imageUrl: string | null
   urls: QuoteReferenceUrls
+  musicContext?: { artists: string[], albums: string[] }
 }
 
 interface AuthorRecordInput {
@@ -255,6 +256,7 @@ export async function buildReferenceEnrichmentPreview(reference: ReferenceRecord
       skipped_count: 0,
     },
     notes,
+    music_context: candidate.musicContext,
   }
 }
 
@@ -526,7 +528,8 @@ async function findBestReferenceCandidate(
     ...extractEntityIds(entity.claims?.P170),
     ...extractEntityIds(entity.claims?.P175),
   ])
-  const labels = await fetchEntityLabels([...instanceOfIds, ...creatorIds])
+  const albumIds = extractEntityIds(entity.claims?.P361)
+  const labels = await fetchEntityLabels([...instanceOfIds, ...creatorIds, ...albumIds])
   const instanceLabels = instanceOfIds.map(id => labels[id]).filter(Boolean) as string[]
 
   if (!matchesExpectedReferenceType(reference.primaryType, instanceLabels, getDescription(entity))) {
@@ -577,6 +580,9 @@ async function findBestReferenceCandidate(
     description,
     imageUrl: imageFileName ? buildCommonsImageUrl(imageFileName) : null,
     urls: mergeReferenceUrls(urls, { wikidata: wikidataUrl }),
+    musicContext: reference.primaryType === 'music'
+      ? { artists: extractEntityIds(entity.claims?.P175).map(id => labels[id]).filter((label): label is string => Boolean(label)), albums: albumIds.map(id => labels[id]).filter((label): label is string => Boolean(label)) }
+      : undefined,
   } satisfies ReferenceCandidate
 }
 
@@ -684,6 +690,7 @@ async function scoreReferenceCandidates(reference: ReferenceRecordInput, searchR
     ...extractEntityIds(entity.claims?.P86),
     ...extractEntityIds(entity.claims?.P170),
     ...extractEntityIds(entity.claims?.P175),
+    ...extractEntityIds(entity.claims?.P361),
   ] : []))
   const labels = relatedIds.length > 0 ? await fetchEntityLabels(relatedIds, cache) : {}
 

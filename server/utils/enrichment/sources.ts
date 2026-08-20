@@ -19,12 +19,19 @@ export interface ExternalEntityCandidate {
   url: string | null
   imageUrl: string | null
   releaseDate: string | null
+  matchScore?: number
+  kind?: 'recording' | 'release_group'
 }
 
 export interface ExternalCorroboration {
   agreementScore: number
   sourceSignals: string[]
   conflicts: string[]
+}
+
+export interface MusicContext {
+  artists: string[]
+  albums: string[]
 }
 
 const SOURCE_CHECKS: Array<{
@@ -124,12 +131,46 @@ export async function searchMusicBrainzRecordings(query: string): Promise<Extern
     url: `https://musicbrainz.org/recording/${recording.id}`,
     imageUrl: null,
     releaseDate: recording['first-release-date'] || null,
+    matchScore: titleSimilarity(normalizeTitle(query), normalizeTitle(recording.title)),
+    kind: 'recording' as const,
   }] : [])
+    .filter(candidate => (candidate.matchScore || 0) >= 0.5)
+    .sort((left, right) => (right.matchScore || 0) - (left.matchScore || 0))
+    .slice(0, 10)
+}
+
+export async function searchMusicBrainzReleaseGroups(query: string): Promise<ExternalEntityCandidate[]> {
+  const url = new URL('https://musicbrainz.org/ws/2/release-group/')
+  url.searchParams.set('query', `releasegroup:${query}`)
+  url.searchParams.set('fmt', 'json')
+  url.searchParams.set('limit', '10')
+  const response = await fetch(url, {
+    headers: { accept: 'application/json', 'user-agent': 'Verbatims/1.0 (https://verbatims.cc)' },
+    signal: AbortSignal.timeout(10_000),
+  })
+  if (!response.ok) return []
+  const payload = await response.json() as { 'release-groups'?: Array<{ id?: string; title?: string; 'first-release-date'?: string; 'artist-credit'?: Array<{ name?: string }> }> }
+  return (payload['release-groups'] || []).flatMap((group) => group.id && group.title ? [{
+    source: 'musicbrainz' as const,
+    externalId: group.id,
+    label: group.title,
+    description: group['artist-credit']?.map(artist => artist.name).filter(Boolean).join(', ') || null,
+    url: `https://musicbrainz.org/release-group/${group.id}`,
+    imageUrl: null,
+    releaseDate: group['first-release-date'] || null,
+    matchScore: titleSimilarity(normalizeTitle(query), normalizeTitle(group.title)),
+    kind: 'release_group' as const,
+  }] : [])
+    .filter(candidate => (candidate.matchScore || 0) >= 0.5)
+    .sort((left, right) => (right.matchScore || 0) - (left.matchScore || 0))
+    .slice(0, 10)
 }
 
 export function evaluateExternalCorroboration(
   label: string | null | undefined,
   sources: Array<{ source: string, results: ExternalEntityCandidate[] }>,
+  musicContext?: MusicContext,
+  referenceReleaseDate?: string | null,
 ): ExternalCorroboration {
   const sourceSignals: string[] = []
   const conflicts: string[] = []
@@ -143,15 +184,42 @@ export function evaluateExternalCorroboration(
     if (best?.similarity === 1) {
       agreementScore += 25
       sourceSignals.push(`${source.source}: exact title match`)
+      if (source.source === 'musicbrainz' && musicContext?.artists.length) {
+        const artistMatch = source.results.some(candidate =>
+          titleSimilarity(normalizeTitle(label), normalizeTitle(candidate.label)) === 1
+          && musicContext.artists.some(artist => normalizeTitle(candidate.description).includes(normalizeTitle(artist)))
+        )
+        if (artistMatch) {
+          agreementScore += 20
+          sourceSignals.push('musicbrainz: exact title and Wikidata artist match')
+        } else {
+          conflicts.push('musicbrainz: exact titles found, but no Wikidata artist match')
+        }
+      }
+      if (source.source === 'musicbrainz' && referenceReleaseDate) {
+        const referenceYear = Number.parseInt(referenceReleaseDate.slice(0, 4), 10)
+        const candidateYears = source.results
+          .filter(candidate => titleSimilarity(normalizeTitle(label), normalizeTitle(candidate.label)) === 1)
+          .filter(candidate => !musicContext?.artists.length || musicContext.artists.some(artist => normalizeTitle(candidate.description).includes(normalizeTitle(artist))))
+          .map(candidate => candidate.releaseDate?.slice(0, 4))
+          .filter((year): year is string => Boolean(year))
+          .map(year => Number.parseInt(year, 10))
+          .filter(year => Number.isFinite(year))
+        const closestDelta = candidateYears.length > 0 ? Math.min(...candidateYears.map(year => Math.abs(year - referenceYear))) : null
+        if (closestDelta === 0) {
+          agreementScore += 10
+          sourceSignals.push('musicbrainz: matching release year')
+        } else if (closestDelta === 1) {
+          agreementScore += 5
+          sourceSignals.push('musicbrainz: release year within one year')
+        }
+      }
     } else if (best && best.similarity >= 0.7 && isTitleVariant(normalizedLabel, normalizeTitle(best.candidate.label))) {
       agreementScore += 20
       sourceSignals.push(`${source.source}: compatible title variant (${best.candidate.label})`)
-    } else if (best && best.similarity >= 0.5) {
-      agreementScore += 10
-      sourceSignals.push(`${source.source}: partial title match (${best.candidate.label})`)
     } else if (source.results.length > 0) {
       agreementScore -= 10
-      conflicts.push(`${source.source}: candidates found, but no exact title match`)
+      conflicts.push(`${source.source}: candidates found, but no exact or compatible title match`)
     }
   }
 
