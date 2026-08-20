@@ -283,6 +283,8 @@ Do **not** run production build commands such as `npm run build`, `bun run build
 
 ## Database migrations
 
+For quote provenance reconstruction and other delicate D1 schema maintenance, read the [D1 quote provenance migration runbook](docs/operations/d1-quote-provenance-migration.md) before making changes.
+
 Schema changes are tracked in `server/db/migrations/sqlite/` as numbered SQL files (e.g. `0009_add_reference_id_filter.sql`). The consolidated `server/db/migrations/schema.sql` and Drizzle `server/db/schema.ts` are also updated for fresh deploys.
 
 **Production**: migration files are applied against Cloudflare D1 via wrangler:
