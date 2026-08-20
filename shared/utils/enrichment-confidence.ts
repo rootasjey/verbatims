@@ -24,3 +24,11 @@ export function resolveMatchConfidence(
   if (score >= 72 && (gap ?? 0) >= MATCH_GAP_FOR_MEDIUM_CONFIDENCE) return 'medium'
   return 'low'
 }
+
+export function applyCorroborationToConfidence(
+  confidence: string | null | undefined,
+  agreementScore: number,
+): string | null | undefined {
+  if (confidence !== 'medium' || agreementScore < 20) return confidence
+  return 'high'
+}
