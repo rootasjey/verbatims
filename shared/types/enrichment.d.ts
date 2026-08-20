@@ -40,6 +40,7 @@ export interface EnrichmentMatchSummary {
   wikidata_url: string
   image_url?: string | null
   score: number
+  raw_score?: number
   confidence?: EnrichmentMatchConfidence
   competing_score?: number | null
   score_gap?: number | null
@@ -56,6 +57,7 @@ export interface EnrichmentAlternativeMatch {
   wikidata_url: string
   image_url?: string | null
   score: number
+  raw_score?: number
   signals?: string[]
 }
 

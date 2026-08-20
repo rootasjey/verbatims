@@ -1,0 +1,11 @@
+[
+  { "referenceId": 210, "name": "How I Met Your Mother", "decision": "ambiguous_match", "confidence": "medium" },
+  { "referenceId": 248, "name": "Don't Look Up", "decision": "ambiguous_match", "confidence": "ambiguous" },
+  { "referenceId": 230, "name": "Downsizing", "decision": "ambiguous_match", "confidence": "ambiguous" },
+  { "referenceId": 240, "name": "Atypical", "decision": "accepted", "confidence": "high" },
+  { "referenceId": 249, "name": "Arcane", "decision": "accepted", "confidence": "high" },
+  { "referenceId": 236, "name": "Blast", "decision": "no_match", "confidence": null },
+  { "referenceId": 310, "name": "Calvin and Hobbs", "decision": "no_match", "confidence": null },
+  { "referenceId": 313, "name": "Monsieur Phi", "decision": "ambiguous_match", "confidence": "low" },
+  { "referenceId": 312, "name": "The Suicide of Rachel Foster", "decision": "accepted", "confidence": "high" }
+]
