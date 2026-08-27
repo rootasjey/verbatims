@@ -28,7 +28,7 @@ export default {
       provider: 'google',
       fonts: {
         body: 'Nunito:200,300,400,500,600,700',
-        sans: 'Archivo:200,300,400,500,600,700',
+        sans: 'IBM Plex Sans:200,300,400,500,600,700',
         serif: 'Fraunces:200,300,400,500,600,700',
         subtitle: 'Poetsen One',
         title: 'Khand:300,400,500,600,700',

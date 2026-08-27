@@ -6,8 +6,9 @@
       value-key="label"
       item-key="label"
       size="xs"
-      select="light:soft-rose dark:soft-blue"
-      select-item="light:rose dark:blue"
+      :_select-content="{ bodyLock: false }"
+      select="light:soft-rose dark:soft-gray"
+      select-item="light:rose dark:gray"
       @update:model-value="onThemeChange"
     >
       <template #value="{ modelValue }">

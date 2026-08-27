@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen" :style="themeVars">
+  <div class="homepage-v3-page min-h-screen" :style="themeVars">
     <!-- Skeleton: shown during SSR/hydration/data loading, delayed on client nav -->
     <div v-if="showSkeleton">
-      <div class="min-h-screen bg-[#FAFAF9] dark:bg-[#0C0A09]">
+      <div class="min-h-screen bg-[#F7F5EF] dark:bg-[#0C0A09]">
         <!-- Featured section skeleton -->
         <div class="px-6 pt-10 pb-6 animate-pulse">
           <div class="flex items-center gap-3 mb-4">
@@ -15,8 +15,6 @@
           </div>
           <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
         </div>
-
-        <div class="border-t border-dashed border-gray-200 dark:border-gray-700 mx-6" />
 
         <!-- Authors section skeleton -->
         <div class="px-6 py-6 animate-pulse">
@@ -35,8 +33,6 @@
           </div>
         </div>
 
-        <div class="border-t border-dashed border-gray-200 dark:border-gray-700 mx-6" />
-
         <!-- References section skeleton -->
         <div class="px-6 py-6 animate-pulse">
           <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-5" />
@@ -48,8 +44,6 @@
             </div>
           </div>
         </div>
-
-        <div class="border-t border-dashed border-gray-200 dark:border-gray-700 mx-6" />
 
         <!-- Recent quotes section skeleton -->
         <div class="px-6 py-6 animate-pulse">
@@ -111,6 +105,7 @@ const themeData = ref<{
   image_url: string | null
   config: Record<string, any> | null
 } | null>(null)
+const activeHomeTheme = useState<typeof themeData.value>('active-home-theme', () => null)
 
 const { data: statsData } = await useFetch<{ data?: StatsResponse }>('/api/stats')
 const { data: onboardingData } = await useFetch<{ data?: OnboardingResponse }>('/api/onboarding/status')
@@ -132,6 +127,7 @@ const { data: activeThemeData, refresh: refreshActiveTheme } = await useFetch<{ 
 if (activeThemeData.value?.data) {
   themeData.value = activeThemeData.value.data
 }
+activeHomeTheme.value = themeData.value
 // Track whether feed.setTheme() has been called to avoid redundant
 // themed-feed fetches (watcher + onMounted both try to call it).
 const themeFeedStarted = ref(false)
@@ -142,6 +138,7 @@ const themeFeedStarted = ref(false)
 watch(activeThemeData, async (data) => {
   if (data?.data) {
     themeData.value = data.data
+    activeHomeTheme.value = data.data
     if (import.meta.client && !themeFeedStarted.value) {
       themeFeedStarted.value = true
       await feed.setTheme(data.data)
@@ -186,6 +183,8 @@ useJsonLd({
 
 // Ensure the computed values always match the shapes expected by child components
 const stats = computed<StatsResponse>(() => statsData.value?.data || { quotes: 0, authors: 0, references: 0, users: 0 })
+const activeHomeStats = useState<StatsResponse>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0, users: 0 }))
+watch(stats, value => { activeHomeStats.value = value }, { immediate: true })
 const onboardingStatus = computed<OnboardingResponse>(() => onboardingData.value?.data || { needsOnboarding: false, step: undefined, hasAdminUser: false, hasData: false })
 const needsOnboarding = computed(() => !!onboardingStatus.value?.needsOnboarding)
 
@@ -291,9 +290,11 @@ watch(() => languageStore.currentLanguageValue, async (newLang, oldLang) => {
   await refreshActiveTheme()
   if (activeThemeData.value?.data) {
     themeData.value = activeThemeData.value.data
+    activeHomeTheme.value = activeThemeData.value.data
     await feed.setTheme(themeData.value)
   } else if (!themeData.value) {
     themeData.value = null
+    activeHomeTheme.value = null
     await feed.setTheme(null)
     await feed.init()
   }
