@@ -26,7 +26,7 @@
         :to="`/quotes/${featuredQuote.id}`"
         class="homepage-v3-quote block group"
       >
-        <blockquote class="font-serif text-3xl font-200 text-gray-900 dark:text-gray-100 leading-tight group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+        <blockquote class="font-serif text-3xl font-300 text-gray-900 dark:text-gray-100 leading-tight group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
           {{ featuredQuote.name }}
         </blockquote>
       </NuxtLink>
