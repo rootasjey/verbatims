@@ -105,7 +105,7 @@
             :to="`/quotes/${featuredQuote.id}`"
             class="homepage-v3-quote block group"
           >
-          <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-200 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+          <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
               {{ featuredQuote.name }}
             </h2>
           </NuxtLink>
@@ -198,8 +198,8 @@
             </p>
           </NuxtLink>
           <div class="mt-16 grid gap-24 md:grid-cols-2">
-            <NuxtLink v-for="item in opinionQuotes.slice(1, 3)" :key="item.id" :to="`/quotes/${item.id}`" class="group border-t border-gray-200 pt-8 dark:border-gray-800">
-              <blockquote class="font-serif text-2xl leading-[1.08] tracking-[-0.02em] text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100 lg:text-5xl">
+            <NuxtLink v-for="item in opinionQuotes.slice(1, 3)" :key="item.id" :to="`/quotes/${item.id}`" class="group min-w-0 border-t border-gray-200 pt-8 dark:border-gray-800">
+              <blockquote class="break-words font-serif text-2xl leading-[1.08] tracking-[-0.02em] text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100 lg:text-5xl [overflow-wrap:anywhere]">
                 {{ item.name }}
               </blockquote>
               <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ item.author?.name || $t('home.unknown') }}</p>
