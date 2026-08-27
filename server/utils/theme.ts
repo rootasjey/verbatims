@@ -256,6 +256,11 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     })
     const authorIds = [...new Set(primaryAttributions.map(attribution => attribution?.author_id).filter((id): id is number => !!id))]
     const referenceIds = [...new Set(primaryAttributions.map(attribution => attribution?.reference_id).filter((id): id is number => !!id))]
+    const authorQuoteCounts = new Map<number, number>()
+    for (const attribution of primaryAttributions) {
+      if (!attribution?.author_id) continue
+      authorQuoteCounts.set(attribution.author_id, (authorQuoteCounts.get(attribution.author_id) || 0) + 1)
+    }
     const authorRows = authorIds.length
       ? await db.select().from(schema.authors).where(inArray(schema.authors.id, authorIds)).orderBy(desc(schema.authors.likesCount)).all()
       : []
@@ -290,6 +295,7 @@ export async function getThemeFeed(themeSlug: string, language?: string): Promis
     const processedAuthors = authorRows.map((row: any) => ({
       id: row.id, name: row.name, job: row.job, description: row.description,
       image_url: row.imageUrl, likes_count: row.likesCount || 0,
+      quotes_count: authorQuoteCounts.get(row.id) || 0,
     }))
 
     const processedReferences = referenceRows.map((row: any) => ({

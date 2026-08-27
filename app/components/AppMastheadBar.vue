@@ -1,9 +1,9 @@
 <template>
   <div
-    class="sticky top-0 z-4 w-full hidden md:block border-b b-dashed transition-all duration-300"
+    class="sticky top-0 z-40 w-full hidden md:block transition-all duration-300"
     :class="scrollY === 0
-      ? 'bg-[#FAFAF9] dark:bg-[#0C0A09]'
-      : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md'
+      ? (route.path === '/' ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
+      : (route.path === '/' ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
     "
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
@@ -12,8 +12,49 @@
           <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl relative z-1 transition-colors duration-300 group-hover:text-white dark:group-hover:text-[#0C0A09]">verbatims</span>
           <span class="absolute inset-0 bg-[#0C0A09] dark:bg-[#FAFAF9] w-0 group-hover:w-full transition-all duration-300 ease-out -z-0" />
         </NuxtLink>
-        <div class="h-5 w-px mx-4.2 hidden sm:block" />
-        <span class="hidden sm:inline font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+        <div v-if="route.path === '/' && homeTheme" class="hidden sm:block relative">
+          <details ref="themeDetails" class="group">
+            <summary class="list-none cursor-pointer font-sans text-xs text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-gray-100 transition-colors">
+              {{ homeTheme.name }}
+              <span class="ml-1 text-[var(--theme-primary,#6366f1)]">⌄</span>
+            </summary>
+            <div class="absolute left-0 top-8 z-20 w-72 rounded-xl bg-white dark:bg-gray-900 p-4 shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+              <div class="flex items-start justify-between gap-3">
+                <p class="font-serif text-lg text-gray-900 dark:text-gray-100">{{ homeTheme.name }}</p>
+                <div class="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                    :aria-label="String($t('home.share_theme'))"
+                    :title="String($t('home.share_theme'))"
+                    @click="shareTheme"
+                  >
+                    <NIcon name="i-ph-share-network" class="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                    :aria-label="String($t('close'))"
+                    :title="String($t('close'))"
+                    @click="closeThemeDetails"
+                  >
+                    <NIcon name="i-ph-x" class="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <p v-if="homeTheme.description" class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                {{ homeTheme.description }}
+              </p>
+              <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+                {{ homeStats.quotes.toLocaleString() }} citations · {{ homeStats.references.toLocaleString() }} références · {{ homeStats.authors.toLocaleString() }} auteurs
+              </p>
+              <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+                {{ currentDate }}
+              </p>
+            </div>
+          </details>
+        </div>
+        <span v-else class="hidden sm:inline font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
           {{ currentDate }}
         </span>
       </div>
@@ -84,6 +125,9 @@ const { $t } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
 const { user } = useUserSession()
+const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
+const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
+const themeDetails = ref<HTMLDetailsElement | null>(null)
 const scrollY = ref(0)
 const showSearch = ref(false)
 const showAddQuote = ref(false)
@@ -95,6 +139,20 @@ const currentDate = computed(() => {
   const now = new Date()
   return now.toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 })
+
+const closeThemeDetails = () => {
+  if (themeDetails.value) themeDetails.value.open = false
+}
+
+const shareTheme = async () => {
+  if (!homeTheme.value || !import.meta.client) return
+  const url = window.location.href
+  if (navigator.share) {
+    await navigator.share({ title: homeTheme.value.name, text: homeTheme.value.description || homeTheme.value.name, url })
+    return
+  }
+  await navigator.clipboard?.writeText(url)
+}
 
 const runtimeConfig = useRuntimeConfig()
 

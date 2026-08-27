@@ -1,7 +1,7 @@
 <template>
-  <!-- Compact footer aligned with the home page spacing and typography -->
+  <!-- Editorial footer aligned with the home page spacing and typography -->
   <footer
-    class="pt-8 border-gray-3/20 dark:border-gray-8/80"
+    class="app-footer pt-8 border-gray-3/20 dark:border-gray-8/80"
     :class="{ 'border-t': route.path !== '/' }"
     role="contentinfo"
     aria-label="Site footer"
@@ -11,7 +11,7 @@
       <div class="px-8 flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
-          <AppIcon />
+          <span class="homepage-v3-footer-wordmark" aria-label="Verbatims">verbatims</span>
           <p class="mt-2 text-lg text-gray-600 dark:text-gray-400 max-w-sm">
             {{ $t('footer.tagline') }}
           </p>
@@ -67,7 +67,7 @@
       </div>
 
       <!-- Bottom row -->
-      <div class="mt-10 px-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t pt-2">
+      <div class="homepage-v3-footer-bottom mt-10 px-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-t pt-2">
         <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-testid="footer-copyright">
           {{ $t('footer.all_rights', { year }) }}
         </p>
@@ -212,5 +212,143 @@ const bottomLinks: BottomLink[] = [
 .link-muted:focus-visible {
   outline: 2px solid rgba(79, 70, 229, 0.6);
   outline-offset: 2px;
+}
+</style>
+
+<style>
+.homepage-v3-footer {
+  display: block;
+  background: #f7f5ef;
+}
+
+.dark .homepage-v3-footer {
+  background: #0c0a09;
+}
+
+.homepage-v3-footer.app-footer {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.homepage-v3-footer .u-container {
+  max-width: 1440px;
+  padding-top: 7rem;
+  padding-bottom: 2.5rem;
+}
+
+.homepage-v3-footer .u-container > div:first-child {
+  min-height: 22rem;
+  gap: 4rem;
+}
+
+.homepage-v3-footer .u-container > div:first-child > div:first-child {
+  max-width: 28rem;
+}
+
+.homepage-v3-footer .u-container > div:first-child > div:first-child p {
+  max-width: 24rem;
+  margin-top: 1.25rem;
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: #77746d;
+}
+
+.homepage-v3-footer-wordmark {
+  display: inline-block;
+  color: #181818;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 2rem;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.06em;
+}
+
+.homepage-v3-footer nav {
+  gap: 3.5rem;
+}
+
+.homepage-v3-footer nav h3 {
+  color: #77746d;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+}
+
+.homepage-v3-footer nav ul {
+  margin-top: 1rem;
+  line-height: 1.8;
+}
+
+.homepage-v3-footer nav li,
+.homepage-v3-footer nav a {
+  font-size: 0.875rem;
+}
+
+.homepage-v3-footer .u-container > div:last-child {
+  border-color: rgba(120, 116, 109, 0.24);
+  padding-top: 1.5rem;
+  color: rgba(119, 116, 109, 0.72);
+  font-size: 0.75rem;
+}
+
+.homepage-v3-footer-bottom .link-muted {
+  color: inherit;
+  text-decoration: none;
+}
+
+.homepage-v3-footer-bottom .link-muted:hover { color: #181818; }
+.homepage-v3-footer-bottom > div:last-child { gap: 1rem; }
+.homepage-v3-footer-bottom button,
+.homepage-v3-footer-bottom [role='button'] {
+  color: inherit;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.homepage-v3-footer-bottom button:hover,
+.homepage-v3-footer-bottom [role='button']:hover {
+  color: #181818;
+}
+
+.dark .homepage-v3-footer-wordmark { color: #f5f2ec; }
+.dark .homepage-v3-footer .u-container > div:first-child > div:first-child p { color: rgba(245, 242, 236, 0.62); }
+.dark .homepage-v3-footer nav h3 { color: rgba(245, 242, 236, 0.52); }
+.dark .homepage-v3-footer-bottom .link-muted:hover,
+.dark .homepage-v3-footer-bottom button:hover,
+.dark .homepage-v3-footer-bottom [role='button']:hover { color: #f5f2ec; }
+
+@media (max-width: 767px) {
+  .homepage-v3-footer .u-container {
+    padding: 4.5rem 1.5rem 1.5rem;
+  }
+
+  .homepage-v3-footer .u-container > div:first-child {
+    min-height: auto;
+  }
+
+  .homepage-v3-footer .u-container > div:first-child,
+  .homepage-v3-footer .u-container > div:last-child {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .homepage-v3-footer nav {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.25rem;
+  }
+
+  .homepage-v3-footer .u-container > div:first-child > div:first-child p {
+    max-width: 19rem;
+    font-size: 1.35rem;
+  }
+
+  .homepage-v3-footer-wordmark { font-size: 1.75rem; }
+
+  .homepage-v3-footer .u-container > div:last-child {
+    align-items: flex-start;
+  }
 }
 </style>
