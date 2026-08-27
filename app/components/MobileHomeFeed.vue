@@ -72,29 +72,41 @@
       <p class="font-sans text-xs uppercase tracking-[0.2em] text-[#9B7A30]">{{ $t('home.editorial_label') }}</p>
       <h2 class="mt-5 font-serif text-2xl leading-[0.98] tracking-[-0.02em] text-gray-900 dark:text-gray-100">{{ $t('home.editorial_title') }}</h2>
       <p class="mt-5 max-w-xs font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('home.editorial_desc') }}</p>
-      <NuxtLink :to="`/quotes/${quotesList[1]!.id}`" class="mt-12 block group">
-        <blockquote class="font-serif text-4xl leading-[0.98] tracking-[-0.035em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300">{{ quotesList[1]!.name }}</blockquote>
-        <p class="mt-4 font-sans text-sm text-gray-500 dark:text-gray-400">{{ quotesList[1]!.author?.name || $t('home.unknown') }}</p>
-      </NuxtLink>
-      <div class="mt-10 space-y-8">
-        <NuxtLink v-for="item in quotesList.slice(2, 4)" :key="item.id" :to="`/quotes/${item.id}`" class="block border-t border-gray-200 pt-4 dark:border-gray-800">
-          <blockquote class="font-serif text-xl italic leading-[1.1] tracking-[-0.015em] text-gray-700 dark:text-gray-300">{{ item.name }}</blockquote>
-          <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ item.author?.name || $t('home.unknown') }}</p>
+      <div class="mt-12 block group">
+        <NuxtLink :to="`/quotes/${quotesList[1]!.id}`" class="block">
+          <blockquote class="font-serif text-4xl leading-[0.98] tracking-[-0.035em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300">{{ quotesList[1]!.name }}</blockquote>
         </NuxtLink>
+        <p class="mt-4 flex flex-wrap gap-x-2 font-sans text-sm text-gray-500 dark:text-gray-400">
+          <NuxtLink v-if="quotesList[1]!.author" :to="`/authors/${quotesList[1]!.author.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ quotesList[1]!.author.name }}</NuxtLink>
+          <span v-if="quotesList[1]!.author && quotesList[1]!.reference" aria-hidden="true">·</span>
+          <NuxtLink v-if="quotesList[1]!.reference" :to="`/references/${quotesList[1]!.reference.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ quotesList[1]!.reference.name }}</NuxtLink>
+        </p>
+      </div>
+      <div class="mt-10 space-y-8">
+        <div v-for="item in quotesList.slice(2, 4)" :key="item.id" class="border-t border-gray-200 pt-4 dark:border-gray-800">
+          <NuxtLink :to="`/quotes/${item.id}`" class="block">
+            <blockquote class="font-serif text-xl italic leading-[1.1] tracking-[-0.015em] text-gray-700 dark:text-gray-300">{{ item.name }}</blockquote>
+          </NuxtLink>
+          <p class="mt-2 flex flex-wrap gap-x-2 font-sans text-xs text-gray-500 dark:text-gray-400">
+            <NuxtLink v-if="item.author" :to="`/authors/${item.author.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ item.author.name }}</NuxtLink>
+            <span v-if="item.author && item.reference" aria-hidden="true">·</span>
+            <NuxtLink v-if="item.reference" :to="`/references/${item.reference.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ item.reference.name }}</NuxtLink>
+          </p>
+        </div>
       </div>
     </section>
 
     <!-- ── Rich Quote Exploration ── -->
     <section v-if="quotesList.length > 4" class="homepage-v3-rich mx-6 py-14">
-      <div class="homepage-v3-rich-head space-y-4">
-        <h2 class="font-serif text-3xl leading-none tracking-[-0.03em] text-gray-900 dark:text-gray-100">
+      <div class="homepage-v3-rich-head space-y-2">
+        <h2 class="font-serif font-400 text-3xl leading-none tracking-[-0.03em] text-stone-700 dark:text-stone-300">
           {{ $t('home.rich_quotes_title') }}
         </h2>
         <p class="max-w-xs font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
           {{ $t('home.rich_quotes_desc') }}
         </p>
       </div>
-      <div class="homepage-v3-rich-grid mt-10 grid grid-cols-1">
+      <div class="homepage-v3-rich-grid mt-10 grid grid-cols-2">
         <NuxtLink v-for="item in quotesList.slice(4, 10)" :key="item.id" :to="`/quotes/${item.id}`" class="homepage-v3-rich-item group">
           <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 dark:text-gray-100', richQuoteClass(item.name)]">
             {{ item.name.length > 120 ? `${item.name.slice(0, 117)}…` : item.name }}
