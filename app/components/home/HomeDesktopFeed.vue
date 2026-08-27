@@ -182,11 +182,11 @@
         </div>
 
         <!-- Editorial introduction -->
-        <section v-if="opinionQuotes.length" id="home-exploration" class="homepage-v3-editorial mx-4 mb-16 scroll-mt-24 pt-14">
+        <section v-if="opinionQuotes.length" id="home-exploration" class="homepage-v3-editorial mx-4 mb-24 scroll-mt-24 pt-14">
           <p class="font-sans font-600 text-xs uppercase tracking-[0.2em] text-[#9B7A30]">
             {{ $t('home.editorial_label') }}
           </p>
-          <div class="mt-16 mb-12 space-y-2">
+          <div class="mt-8 mb-12 space-y-2">
             <h2 class="font-serif text-3xl leading-[0.98] tracking-[-0.025em] text-gray-900 dark:text-gray-100 lg:text-4xl">
               {{ $t('home.editorial_title') }}
             </h2>

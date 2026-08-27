@@ -68,7 +68,7 @@
     </div>
 
     <!-- ── Editorial Introduction ── -->
-    <section v-if="quotesList.length > 1" id="home-exploration" class="homepage-v3-editorial px-6 py-14 scroll-mt-20">
+    <section v-if="quotesList.length > 1" id="home-exploration" class="homepage-v3-editorial mb-16 px-6 py-14 scroll-mt-20">
       <p class="font-sans text-xs uppercase tracking-[0.2em] text-[#9B7A30]">{{ $t('home.editorial_label') }}</p>
       <h2 class="mt-5 font-serif text-2xl leading-[0.98] tracking-[-0.02em] text-gray-900 dark:text-gray-100">{{ $t('home.editorial_title') }}</h2>
       <p class="mt-5 max-w-xs font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('home.editorial_desc') }}</p>
