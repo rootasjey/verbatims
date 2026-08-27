@@ -213,10 +213,11 @@
 .homepage-v3-person:hover > div:first-child img { filter: grayscale(0); transform: scale(1.04); }
 
 @media (max-width: 680px) {
+  .homepage-v3-reference-grid { scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .homepage-v3-reference-grid::-webkit-scrollbar { display: none; }
   .homepage-v3-reference-card,
-  .homepage-v3-reference-card:first-child { height: 220px; padding: 14px; }
-  .homepage-v3-reference-card:first-child { height: 220px; grid-column: span 2; }
-  .homepage-v3-reference-card h3 { font-size: 1rem; }
+  .homepage-v3-reference-card:first-child { height: 320px; padding: 16px; }
+  .homepage-v3-reference-card h3 { font-size: 1.125rem; }
   .homepage-v3-person { min-height: 330px; padding: 14px; border: 0; border-radius: 12px; }
   .homepage-v3-rich { padding: 64px 0; }
   .homepage-v3-rich-item { min-height: 190px; padding: 20px 14px 20px 0; }

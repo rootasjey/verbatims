@@ -225,13 +225,15 @@
 
         <!-- References section: the next editorial chapter after the introduction -->
         <section v-if="featuredReferences.length" class="homepage-v3-references rounded-2 mx-0 mb-14 px-6 py-16 lg:px-10">
-          <div class="mb-6 flex items-end justify-between gap-4">
-            <h2 class="font-serif font-400 text-4xl leading-none tracking-[-0.035em] text-stone-700 dark:text-stone-300 lg:text-5xl">
-              {{ $t('nav.references') }}
-            </h2>
-            <NuxtLink to="/references" class="shrink-0 font-sans text-xs text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-              {{ $t('home.see_all') }} →
-            </NuxtLink>
+          <div class="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <h2 class="font-serif font-400 text-4xl leading-none tracking-[-0.035em] text-stone-700 dark:text-stone-300 lg:text-5xl">
+                {{ $t('nav.references') }}
+              </h2>
+              <p class="max-w-md font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                {{ $t('home.references_section_desc') }}
+              </p>
+            </div>
           </div>
           <div class="homepage-v3-reference-grid grid gap-4 lg:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))]">
             <NuxtLink v-for="ref in featuredReferences.slice(0, 4)" :key="ref.id" :to="`/references/${ref.id}`" class="homepage-v3-reference-card group">
@@ -244,6 +246,9 @@
               </div>
             </NuxtLink>
           </div>
+          <NuxtLink to="/references" class="mt-6 ml-auto block w-fit font-sans text-xs font-500 text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+            {{ $t('home.see_all') }} →
+          </NuxtLink>
         </section>
 
         <!-- Rich quote exploration -->
