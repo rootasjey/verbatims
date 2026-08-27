@@ -94,7 +94,7 @@
           {{ $t('home.rich_quotes_desc') }}
         </p>
       </div>
-      <div class="homepage-v3-rich-grid mt-10 grid grid-cols-2">
+      <div class="homepage-v3-rich-grid mt-10 grid grid-cols-1">
         <NuxtLink v-for="item in quotesList.slice(4, 10)" :key="item.id" :to="`/quotes/${item.id}`" class="homepage-v3-rich-item group">
           <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 dark:text-gray-100', richQuoteClass(item.name)]">
             {{ item.name.length > 120 ? `${item.name.slice(0, 117)}…` : item.name }}

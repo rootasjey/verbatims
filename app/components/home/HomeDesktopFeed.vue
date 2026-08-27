@@ -249,7 +249,7 @@
               {{ $t('home.rich_quotes_desc') }}
             </p>
           </div>
-          <div class="homepage-v3-rich-grid mt-12 grid md:grid-cols-3">
+          <div class="homepage-v3-rich-grid mt-12 grid md:grid-cols-2">
             <NuxtLink v-for="item in storyQuotes.slice(0, 6)" :key="item.id" :to="`/quotes/${item.id}`" class="homepage-v3-rich-item group">
               <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300', richQuoteClass(item.name)]">
                 {{ truncateQuote(item.name, 140) }}

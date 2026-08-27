@@ -146,7 +146,7 @@
 .homepage-v3-reference-overlay { background: linear-gradient(180deg, rgba(20, 22, 24, 0.02) 35%, rgba(20, 22, 24, 0.82) 100%); }
 
 .homepage-v3-rich {
-  padding: 96px 7%;
+  padding: 112px 7%;
 }
 
 .homepage-v3-rich-grid {
@@ -154,14 +154,9 @@
 }
 
 .homepage-v3-rich-item {
-  min-height: 220px;
-  padding: 25px 22px 24px 0;
+  min-height: 240px;
+  padding: 32px 0 36px;
   border-bottom: 1px solid rgba(120, 120, 120, 0.22);
-}
-
-.homepage-v3-rich-item:not(:nth-child(3n + 1)) {
-  padding-left: 22px;
-  border-left: 1px solid rgba(120, 120, 120, 0.22);
 }
 
 .homepage-v3-rich-item blockquote {
@@ -218,10 +213,8 @@
   .homepage-v3-reference-card:first-child { height: 220px; grid-column: span 2; }
   .homepage-v3-reference-card h3 { font-size: 1rem; }
   .homepage-v3-person { min-height: 330px; padding: 14px; border: 0; border-radius: 12px; }
-  .homepage-v3-rich { padding: 64px 0; }
-  .homepage-v3-rich-item { min-height: 190px; padding: 20px 14px 20px 0; }
-  .homepage-v3-rich-item:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
-  .homepage-v3-rich-item:nth-child(2n) { padding-left: 14px; border-left: 1px solid rgba(120, 120, 120, 0.22); }
+  .homepage-v3-rich { padding: 72px 0; }
+  .homepage-v3-rich-item { min-height: 210px; padding: 24px 0 28px; }
   .homepage-v3-cover { min-height: 690px; padding: 70px 24px 92px; }
 }
 
