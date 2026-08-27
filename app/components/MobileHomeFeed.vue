@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-home-feed bg-[#F7F5EF] dark:bg-[#0C0A09]">
     <!-- ── Featured Quote ── -->
-    <div class="homepage-v3-cover mx-4 mt-2 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
+    <div class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
       <div v-if="featuredQuote" class="homepage-v3-author-wrap mb-2">
         <div class="homepage-v3-author">
           <div @click="handleClickAuthor(quoteAuthor?.id)" class="homepage-v3-author-line flex flex-col items-center gap-1 cursor-pointer group">
@@ -34,13 +34,16 @@
           {{ featuredQuote.name }}
         </blockquote>
       </NuxtLink>
+    </div>
+    <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">
       <a
         href="#home-exploration"
-        class="homepage-v3-primary mt-8 inline-flex items-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-colors"
+        class="homepage-v3-primary inline-flex items-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-colors"
       >
-        {{ $t('home.explore_theme') }} →
+        {{ $t('home.explore_theme') }}
+        <NIcon name="i-lucide-arrow-down" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
       </a>
-      <div class="homepage-v3-actions mt-2 flex items-center gap-1">
+      <div class="homepage-v3-actions mt-0 flex items-center gap-1">
         <NTooltip :content="String($t('home.copy_quote'))">
           <button
             type="button"

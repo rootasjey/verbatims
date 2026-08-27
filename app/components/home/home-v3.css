@@ -84,14 +84,15 @@
 
 .homepage-v3-primary {
   order: 3;
-  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(39, 37, 34, 0.2);
+  background: transparent;
   color: #272522;
-  box-shadow: inset 0 0 0 1px rgba(39, 37, 34, 0.12);
+  box-shadow: none;
 }
 
-.homepage-v3-primary:hover { background: #fff; color: #111315; }
-.dark .homepage-v3-primary { background: var(--cover-ink); color: #25272a; box-shadow: none; }
-.dark .homepage-v3-primary:hover { background: #fff; color: #111315; }
+.homepage-v3-primary:hover { background: rgba(39, 37, 34, 0.06); color: #111315; }
+.dark .homepage-v3-primary { border-color: rgba(242, 238, 231, 0.24); background: transparent; color: var(--cover-ink); }
+.dark .homepage-v3-primary:hover { background: rgba(242, 238, 231, 0.08); color: #fff; }
 .homepage-v3-actions { order: 4; }
 .homepage-v3-actions button { color: var(--cover-muted); }
 .homepage-v3-actions button:hover { color: var(--cover-ink); background: rgba(255, 255, 255, 0.12); }

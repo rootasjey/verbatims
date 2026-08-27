@@ -100,7 +100,7 @@
       <!-- Center content -->
       <div class="mt-6 w-full">
         <!-- Featured quote (Philosophy section) -->
-        <div v-if="featuredQuote" class="homepage-v3-cover mb-16 rounded-2xl px-6 lg:px-10 py-16 lg:py-24 shadow-sm">
+        <div v-if="featuredQuote" class="homepage-v3-cover mb-4 rounded-2xl px-6 lg:px-10 py-16 lg:py-24 shadow-sm">
           <NuxtLink
             :to="`/quotes/${featuredQuote.id}`"
             class="homepage-v3-quote block group"
@@ -148,13 +148,16 @@
               </div>
             </template>
           </div>
+        </div>
+        <div class="homepage-v3-cover-actions relative mx-4 mb-16 flex items-center justify-center gap-4">
           <a
             href="#home-exploration"
-            class="homepage-v3-primary mt-10 inline-flex items-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-colors"
+            class="homepage-v3-primary inline-flex items-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-colors"
           >
-            {{ $t('home.explore_theme') }} →
+            {{ $t('home.explore_theme') }}
+            <NIcon name="i-lucide-arrow-down" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
           </a>
-          <div class="homepage-v3-actions mt-2 flex items-center gap-1">
+          <div class="homepage-v3-actions mt-0 flex items-center gap-1 lg:absolute lg:right-0">
             <NTooltip :content="String($t('home.copy_quote'))">
               <button
                 type="button"
