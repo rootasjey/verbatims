@@ -64,7 +64,7 @@
 
 .homepage-v3-quote {
   order: 1;
-  max-width: 930px;
+  max-width: 1040px;
   color: var(--cover-ink);
   text-shadow: none;
 }
@@ -72,7 +72,6 @@
 .homepage-v3-quote h2,
 .homepage-v3-quote blockquote {
   color: inherit;
-  font-size: clamp(3.6rem, 8.8vw, 7.75rem);
   line-height: 0.94;
   letter-spacing: -0.045em;
 }
@@ -224,8 +223,6 @@
   .homepage-v3-rich-item:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
   .homepage-v3-rich-item:nth-child(2n) { padding-left: 14px; border-left: 1px solid rgba(120, 120, 120, 0.22); }
   .homepage-v3-cover { min-height: 690px; padding: 70px 24px 92px; }
-  .homepage-v3-quote h2,
-  .homepage-v3-quote blockquote { font-size: clamp(3.15rem, 14vw, 4.9rem); }
 }
 
 @media (min-width: 1200px) {
