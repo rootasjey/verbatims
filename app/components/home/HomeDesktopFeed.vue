@@ -105,7 +105,7 @@
             :to="`/quotes/${featuredQuote.id}`"
             class="homepage-v3-quote block group"
           >
-            <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+            <h2 :class="['font-serif font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors', coverQuoteClass(featuredQuote.name)]">
               {{ featuredQuote.name }}
             </h2>
           </NuxtLink>
@@ -575,6 +575,14 @@ const richQuoteClass = (text: string) => {
   if (text.length <= 32) return 'text-3xl lg:text-4xl'
   if (text.length <= 72) return 'text-2xl lg:text-3xl'
   return 'text-xl lg:text-2xl'
+}
+
+const coverQuoteClass = (text: string) => {
+  if (text.length <= 70) return 'text-4xl md:text-6xl lg:text-[7rem]'
+  if (text.length <= 130) return 'text-3xl md:text-5xl lg:text-6xl'
+  if (text.length <= 210) return 'text-3xl md:text-4xl lg:text-5xl'
+  if (text.length <= 300) return 'text-2xl md:text-3xl lg:text-4xl'
+  return 'text-xl md:text-2xl lg:text-3xl'
 }
 
 const authorNameClass = (name: string) => {
