@@ -179,48 +179,33 @@
     </div>
 
     <!-- ── References Section ── -->
-    <div v-if="allReferences.length > 0 || curatedLoading" class="homepage-v3-references px-6 py-10 animate-fade-in-up" style="animation-delay: 0.15s">
-      <div class="flex items-center justify-between mb-5">
-        <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-          {{ $t('home.nav.references') }}
-        </p>
-
-        <NuxtLink
-          to="/references"
-          class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-4
-            font-sans text-xs font-600 tracking-[0.1em] text-gray-400
-            dark:text-gray-400
-            hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
-            hover:scale-105 active:scale-99
-            transition-[colors,transform]">
-          {{ $t('home.see_all') }}
-        </NuxtLink>
+    <div v-if="allReferences.length > 0 || curatedLoading" class="homepage-v3-references px-6 py-14 animate-fade-in-up" style="animation-delay: 0.15s">
+      <div class="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 class="font-serif font-400 text-4xl leading-none tracking-[-0.035em] text-stone-700 dark:text-stone-300">
+            {{ $t('home.nav.references') }}
+          </h2>
+          <p class="mt-3 max-w-xs font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+            {{ $t('home.references_section_desc') }}
+          </p>
+        </div>
       </div>
 
       <template v-if="allReferences.length > 0">
-        <div class="homepage-v3-reference-grid grid grid-cols-2 gap-3">
+        <div class="homepage-v3-reference-grid flex gap-3 overflow-x-auto pb-2">
           <NuxtLink
             v-for="ref in allReferences.slice(0, 6)"
             :key="ref.id"
             :to="`/references/${ref.id}`"
-            class="homepage-v3-reference-card min-w-0 group"
+            class="homepage-v3-reference-card w-52 shrink-0 snap-start group"
           >
-            <div class="w-full h-48 overflow-hidden rounded-sm mb-2">
-              <div
-                v-if="ref.image_url"
-                class="w-full h-full bg-cover bg-center grayscale transition-transform duration-300 group-hover:scale-105"
-                :style="{ backgroundImage: `url(${ref.image_url})` }"
-              />
-              <div v-else class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                <NIcon name="i-ph-image" class="w-8 h-8 text-gray-400 dark:text-gray-500" />
-              </div>
+            <div v-if="ref.image_url" class="homepage-v3-reference-image absolute inset-0 bg-cover bg-center grayscale" :style="{ backgroundImage: `url(${ref.image_url})` }" />
+            <div v-else class="homepage-v3-reference-image absolute inset-0 bg-gradient-to-br from-[#8c8f8b] to-[#25282b] dark:from-[#62645f] dark:to-[#141518]" />
+            <div class="homepage-v3-reference-overlay absolute inset-0" />
+            <div class="relative mt-auto">
+              <h3 class="font-serif text-lg leading-[1.08] text-white">{{ ref.name }}</h3>
+              <p class="mt-2 font-sans text-xs text-white/70">{{ formatReferenceType(ref.primary_type) }}</p>
             </div>
-            <h4 class="font-title text-sm font-600 text-gray-900 dark:text-gray-100 leading-snug line-clamp-2 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-              {{ ref.name }}
-            </h4>
-            <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {{ formatReferenceType(ref.primary_type) }}
-            </p>
           </NuxtLink>
         </div>
       </template>
@@ -233,6 +218,9 @@
           </div>
         </div>
       </template>
+      <NuxtLink to="/references" class="mt-5 ml-auto block w-fit font-sans text-xs text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+        {{ $t('home.see_all') }} →
+      </NuxtLink>
     </div>
 
     <!-- ── Recent Quotes Section ── -->
