@@ -262,14 +262,19 @@
             </p>
           </div>
           <div class="homepage-v3-rich-grid mt-12 grid md:grid-cols-3">
-            <NuxtLink v-for="item in storyQuotes.slice(0, 6)" :key="item.id" :to="`/quotes/${item.id}`" class="homepage-v3-rich-item group">
-              <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300', richQuoteClass(item.name)]">
-                {{ truncateQuote(item.name, 140) }}
-              </blockquote>
-              <small class="mt-4 block font-sans text-xs text-gray-500 dark:text-gray-400">
-                {{ item.author?.name || $t('home.unknown') }}
-              </small>
-            </NuxtLink>
+            <div v-for="item in storyQuotes.slice(0, 6)" :key="item.id" class="homepage-v3-rich-item group">
+              <NuxtLink :to="`/quotes/${item.id}`" class="block">
+                <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300', richQuoteClass(item.name)]">
+                  {{ truncateQuote(item.name, 140) }}
+                </blockquote>
+              </NuxtLink>
+              <p class="mt-4 flex flex-wrap gap-x-2 font-sans text-xs text-gray-500 dark:text-gray-400">
+                <NuxtLink v-if="item.author" :to="`/authors/${item.author.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ item.author.name }}</NuxtLink>
+                <span v-else class="font-500">{{ $t('home.unknown') }}</span>
+                <span v-if="item.reference" aria-hidden="true">·</span>
+                <NuxtLink v-if="item.reference" :to="`/references/${item.reference.id}`" class="text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-100">{{ item.reference.name }}</NuxtLink>
+              </p>
+            </div>
           </div>
         </section>
 
