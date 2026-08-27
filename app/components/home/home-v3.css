@@ -150,10 +150,14 @@
 }
 
 .homepage-v3-rich-grid {
+  min-width: 0;
+  grid-auto-rows: minmax(220px, 1fr);
   border-top: 1px solid rgba(120, 120, 120, 0.22);
 }
 
 .homepage-v3-rich-item {
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 220px;
   padding: 25px 22px 24px 0;
   border-bottom: 1px solid rgba(120, 120, 120, 0.22);
@@ -220,6 +224,7 @@
   .homepage-v3-reference-card h3 { font-size: 1.125rem; }
   .homepage-v3-person { min-height: 330px; padding: 14px; border: 0; border-radius: 12px; }
   .homepage-v3-rich { padding: 64px 0; }
+  .homepage-v3-rich-grid { grid-auto-rows: minmax(190px, 1fr); }
   .homepage-v3-rich-item { min-height: 190px; padding: 20px 14px 20px 0; }
   .homepage-v3-rich-item:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
   .homepage-v3-rich-item:nth-child(2n) { padding-left: 14px; border-left: 1px solid rgba(120, 120, 120, 0.22); }
