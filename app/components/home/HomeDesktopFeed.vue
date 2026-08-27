@@ -105,13 +105,13 @@
             :to="`/quotes/${featuredQuote.id}`"
             class="homepage-v3-quote block group"
           >
-          <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+            <h2 class="font-serif text-3xl md:text-4xl lg:text-6xl font-300 text-gray-900 dark:text-gray-100 leading-tight break-words [overflow-wrap:anywhere] mb-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
               {{ featuredQuote.name }}
             </h2>
           </NuxtLink>
-          <div class="homepage-v3-author flex items-start gap-3 mt-8">
+          <div class="homepage-v3-author mt-8 flex flex-col items-center gap-2">
             <div v-if="featuredQuote.author" class="homepage-v3-author-content">
-              <NuxtLink :to="`/authors/${featuredQuote.author.id}`" class="homepage-v3-author-line flex items-center gap-3 group">
+              <NuxtLink :to="`/authors/${featuredQuote.author.id}`" class="homepage-v3-author-line flex flex-col items-center gap-1 group">
                 <div
                   v-if="featuredQuote.author?.image_url && !imageErrors[featuredQuote.author.id]"
                   class="homepage-v3-author-avatar w-6 h-6 rounded-full overflow-hidden grayscale"
@@ -127,9 +127,13 @@
                   {{ featuredQuote.author?.name || $t('home.unknown_author') }}
                 </p>
               </NuxtLink>
-              <p v-if="featuredQuote.reference" class="homepage-v3-author-reference mt-1 pl-9 font-sans text-xs text-gray-500 dark:text-gray-400">
+              <NuxtLink
+                v-if="featuredQuote.reference"
+                :to="`/references/${featuredQuote.reference.id}`"
+                class="homepage-v3-author-reference mt-1 block text-center font-sans text-xs font-500 text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+              >
                 {{ featuredQuote.reference?.name }}
-              </p>
+              </NuxtLink>
             </div>
             <template v-else>
               <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -150,25 +154,27 @@
           >
             {{ $t('home.explore_theme') }} →
           </a>
-          <div class="homepage-v3-actions mt-4 flex items-center gap-1">
-            <button
-              type="button"
-              class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
-              :aria-label="String($t('home.copy_quote'))"
-              :title="String($t('home.copy_quote'))"
-              @click="copyFeaturedQuote"
-            >
-              <NIcon name="i-ph-copy-simple" class="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
-              :aria-label="String($t('home.share_quote'))"
-              :title="String($t('home.share_quote'))"
-              @click="shareFeaturedQuote"
-            >
-              <NIcon name="i-ph-share-network" class="h-4 w-4" />
-            </button>
+          <div class="homepage-v3-actions mt-2 flex items-center gap-1">
+            <NTooltip :content="String($t('home.copy_quote'))">
+              <button
+                type="button"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                :aria-label="String($t('home.copy_quote'))"
+                @click="copyFeaturedQuote"
+              >
+                <NIcon name="i-lucide-copy" class="h-4 w-4" />
+              </button>
+            </NTooltip>
+            <NTooltip :content="String($t('home.share_quote'))">
+              <button
+                type="button"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
+                :aria-label="String($t('home.share_quote'))"
+                @click="shareFeaturedQuote"
+              >
+                <NIcon name="i-lucide-share-2" class="h-4 w-4" />
+              </button>
+            </NTooltip>
           </div>
         </div>
 
