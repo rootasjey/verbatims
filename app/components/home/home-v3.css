@@ -56,7 +56,11 @@
     linear-gradient(135deg, #343431 0%, #252522 54%, #44413b 100%);
 }
 
-.dark .homepage-v3-cover::after { mix-blend-mode: screen; }
+.dark .homepage-v3-cover::after {
+  opacity: 0.14;
+  background: repeating-linear-gradient(115deg, transparent 0 4px, rgba(242, 238, 231, 0.1) 5px, transparent 6px 12px);
+  mix-blend-mode: screen;
+}
 
 .homepage-v3-quote {
   order: 1;
