@@ -4,7 +4,12 @@
     <div class="homepage-v3-cover mx-4 mt-2 mb-4 rounded-2xl px-6 py-16 animate-fade-in-up shadow-sm" style="animation-delay: 0s">
       <div v-if="featuredQuote" class="homepage-v3-author-wrap mb-2">
         <div class="homepage-v3-author">
-          <div @click="handleClickAuthor(quoteAuthor?.id)" class="homepage-v3-author-line flex flex-col items-center gap-1 cursor-pointer group">
+          <button
+            type="button"
+            :aria-label="`${$ts('home.nav.authors')}: ${quoteAuthor?.name || $ts('home.unknown_author')}`"
+            @click="handleClickAuthor(quoteAuthor?.id)"
+            class="homepage-v3-author-line flex flex-col items-center gap-1 cursor-pointer group text-center"
+          >
             <div v-if="quoteAuthor?.image_url" class="homepage-v3-author-avatar w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 p-.5" :style="{ '--un-ring-color': `var(--theme-primary, #6b7280)` }">
               <img :src="quoteAuthor.image_url" :alt="quoteAuthor.name" class="w-full h-full grayscale object-cover rounded-full" />
             </div>
@@ -14,7 +19,7 @@
             <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
               {{ quoteAuthor?.name || $t('home.unknown_author') }}
             </p>
-          </div>
+          </button>
           <NuxtLink
             v-if="featuredQuote?.reference"
             :to="`/references/${featuredQuote.reference.id}`"

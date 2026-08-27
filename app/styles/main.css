@@ -17,6 +17,18 @@ body {
   background-color: rgb(var(--color-gray-50));
 }
 
+/* Keep keyboard focus visible without competing with the editorial hierarchy. */
+.homepage-v3-desktop :where(a, button):focus-visible,
+.mobile-home-feed :where(a, button):focus-visible {
+  outline: 2px solid rgb(var(--color-gray-700));
+  outline-offset: 4px;
+}
+
+.dark .homepage-v3-desktop :where(a, button):focus-visible,
+.dark .mobile-home-feed :where(a, button):focus-visible {
+  outline-color: rgb(var(--color-gray-300));
+}
+
 /* Dark mode support */
 .dark body {
   color: rgb(var(--color-gray-100));
@@ -61,7 +73,7 @@ input:-webkit-autofill {
 
 /* Quote card animations */
 .quote-card {
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .quote-card:hover {
@@ -235,7 +247,22 @@ input:-webkit-autofill {
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Keep state changes immediate when the user requests reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .homepage-v3-desktop .animate-fade-in-up,
+  .mobile-home-feed .animate-fade-in-up {
+    animation: none;
+  }
+
+  .homepage-v3-desktop :where(a, button),
+  .mobile-home-feed :where(a, button),
+  .mobile-home-feed .grayscale,
+  .mobile-home-feed .group .grayscale {
+    transition-duration: 0.01ms;
+  }
 }
 
 .tag:hover {

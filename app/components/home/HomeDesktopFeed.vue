@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="homepage-v3-desktop">
     <!-- Single-column editorial layout -->
     <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
 
@@ -15,7 +15,7 @@
           <HomeNavLink to="/references">
             {{ $t('home.nav.references') }}
           </HomeNavLink>
-          <button @click="showSearch = true"
+          <button type="button" @click="showSearch = true"
             class="group relative inline-block overflow-hidden font-sans text-sm transition-colors duration-300 text-gray-700 dark:text-gray-300 hover:text-white dark:hover:text-[#0C0A09] group-active:scale-95 transition-transform text-left w-full">
             <span class="relative z-1 transition-colors duration-300">{{ $t('home.nav.search') }}</span>
             <span class="absolute inset-0 w-0 group-hover:w-full transition-all duration-300 ease-out -z-0 bg-[#0C0A09] dark:bg-[#FAFAF9]" />
