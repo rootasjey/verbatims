@@ -290,15 +290,15 @@
               </p>
             </div>
             <div class="flex shrink-0 items-center gap-2">
-              <button type="button" class="homepage-v3-carousel-control" :aria-label="String($t('common.previous'))" @click="scrollAuthors(-1)">
+              <button type="button" class="homepage-v3-carousel-control" :disabled="authorsAtStart" :aria-label="String($t('common.previous'))" @click="scrollAuthors(-1)">
                 <NIcon name="i-ph-arrow-left" class="h-4 w-4" />
               </button>
-              <button type="button" class="homepage-v3-carousel-control" :aria-label="String($t('common.next'))" @click="scrollAuthors(1)">
+              <button type="button" class="homepage-v3-carousel-control" :disabled="authorsAtEnd" :aria-label="String($t('common.next'))" @click="scrollAuthors(1)">
                 <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
               </button>
             </div>
           </div>
-          <div ref="authorsCarousel" class="homepage-v3-author-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+          <div ref="authorsCarousel" class="homepage-v3-author-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3" @scroll="updateAuthorsScrollState">
             <NuxtLink
               v-for="author in sidebarAuthors.slice(0, 6)"
               :key="author.id"
@@ -315,12 +315,18 @@
                 <p :class="['font-subtitle font-600 leading-tight text-white transition-colors group-hover:text-white/70 break-words [overflow-wrap:anywhere]', authorNameClass(author.name)]">
                   {{ author.name || $t('home.unknown') }}
                 </p>
+                <p v-if="author.job" class="mt-1 truncate font-sans text-sm text-white/65">
+                  {{ author.job }}
+                </p>
                 <p class="font-sans font-600 text-xs text-white/55">
                   {{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? $t('home.quote_singular') : $t('home.quote_plural') }}
                 </p>
               </div>
             </NuxtLink>
           </div>
+          <NuxtLink to="/authors" class="mt-6 ml-auto block w-fit font-sans text-xs font-500 text-white/65 transition-colors hover:text-white">
+            {{ $t('home.see_all') }} →
+          </NuxtLink>
         </section>
 
         <!-- Recent quotes section -->
@@ -501,10 +507,21 @@ const props = withDefaults(defineProps<Props>(), {
 
 const showSearch = ref(false)
 const authorsCarousel = ref<HTMLElement | null>(null)
+const authorsAtStart = ref(true)
+const authorsAtEnd = ref(false)
 
 const scrollAuthors = (direction: number) => {
   authorsCarousel.value?.scrollBy({ left: direction * authorsCarousel.value.clientWidth * 0.82, behavior: 'smooth' })
 }
+
+const updateAuthorsScrollState = () => {
+  const carousel = authorsCarousel.value
+  if (!carousel) return
+  authorsAtStart.value = carousel.scrollLeft <= 1
+  authorsAtEnd.value = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 1
+}
+
+onMounted(updateAuthorsScrollState)
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)

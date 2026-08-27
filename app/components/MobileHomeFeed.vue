@@ -124,34 +124,26 @@
     </section>
 
     <!-- ── Authors Section ── -->
-    <div v-if="allAuthors.length > 0 || curatedLoading" class="homepage-v3-authors scroll-mt-20 px-6 py-10 animate-fade-in-up" style="animation-delay: 0.1s">
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: `var(--theme-secondary, #6366f1)` }" />
-          <p class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
+    <div v-if="allAuthors.length > 0 || curatedLoading" class="homepage-v3-authors scroll-mt-20 px-6 py-14 animate-fade-in-up" style="animation-delay: 0.1s">
+      <div class="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 class="font-serif font-500 text-4xl leading-none tracking-[-0.035em] text-white">
             {{ $t('home.nav.authors') }}
+          </h2>
+          <p class="mt-3 max-w-xs font-sans text-sm leading-relaxed text-white/60">
+            {{ $t('home.authors_section_desc') }}
           </p>
         </div>
 
-        <NuxtLink
-          to="/authors"
-          class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-4
-            font-sans text-xs font-600 tracking-[0.1em] text-gray-400
-            dark:text-gray-400
-            hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-300
-            hover:scale-105 active:scale-99
-            transition-[colors,transform]">
-          {{ $t('home.see_all') }}
-        </NuxtLink>
       </div>
 
       <template v-if="allAuthors.length > 0">
-        <div class="homepage-v3-author-grid grid grid-cols-2 gap-3">
+        <div class="homepage-v3-author-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
           <NuxtLink
             v-for="author in allAuthors.slice(0, 8)"
             :key="author.id"
             :to="`/authors/${author.id}`"
-            class="homepage-v3-person min-w-0 group"
+            class="homepage-v3-person w-[78vw] shrink-0 snap-start group"
           >
             <div v-if="author.image_url" class="w-12 h-12 rounded-full overflow-hidden grayscale flex-shrink-0">
               <img :src="author.image_url" :alt="author.name" class="w-full h-full object-cover" />
@@ -162,6 +154,9 @@
             <div class="min-w-0">
               <p :class="['font-subtitle font-600 leading-tight text-white break-words [overflow-wrap:anywhere]', authorNameClass(author.name)]">
                 {{ author.name }}
+              </p>
+              <p v-if="author.job" class="mt-1 truncate font-sans text-xs text-white/65">
+                {{ author.job }}
               </p>
               <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? $t('home.quote_singular') : $t('home.quote_plural') }}
@@ -181,6 +176,9 @@
           </div>
         </div>
       </template>
+      <NuxtLink to="/authors" class="mt-5 ml-auto block w-fit font-sans text-xs font-500 text-white/65 transition-colors hover:text-white">
+        {{ $t('home.see_all') }} →
+      </NuxtLink>
     </div>
 
     <!-- ── References Section ── -->

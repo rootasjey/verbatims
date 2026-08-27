@@ -120,6 +120,8 @@
   transition: background 180ms ease, color 180ms ease;
 }
 .homepage-v3-carousel-control:hover { background: rgba(245, 242, 236, 0.14); color: #fff; }
+.homepage-v3-carousel-control:disabled { cursor: default; opacity: 0.3; }
+.homepage-v3-carousel-control:disabled:hover { background: transparent; color: rgba(245, 242, 236, 0.78); }
 
 .homepage-v3-authors .text-gray-900,
 .homepage-v3-authors .dark\:text-gray-100 { color: #f5f2ec; }
