@@ -186,7 +186,7 @@
           <p class="font-sans font-600 text-xs uppercase tracking-[0.2em] text-[#9B7A30]">
             {{ $t('home.editorial_label') }}
           </p>
-          <div class="mt-16 mb-12 space-y-4">
+          <div class="mt-16 mb-12 space-y-2">
             <h2 class="font-serif text-3xl leading-[0.98] tracking-[-0.025em] text-gray-900 dark:text-gray-100 lg:text-4xl">
               {{ $t('home.editorial_title') }}
             </h2>
@@ -194,32 +194,39 @@
               {{ $t('home.editorial_desc') }}
             </p>
           </div>
-          <NuxtLink
+          <div
             v-if="opinionQuotes[0]"
-            :to="`/quotes/${opinionQuotes[0].id}`"
             class="mt-14 block max-w-4xl group"
           >
-            <blockquote class="font-serif text-4xl leading-[0.98] tracking-[-0.035em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300 lg:text-6xl">
+            <NuxtLink :to="`/quotes/${opinionQuotes[0].id}`" class="block">
+              <blockquote class="font-serif text-4xl leading-[0.98] tracking-[-0.035em] text-gray-900 transition-colors hover:text-gray-500 dark:text-gray-100 dark:hover:text-gray-300 lg:text-6xl">
               {{ opinionQuotes[0].name }}
-            </blockquote>
-            <p class="mt-4 font-sans text-sm text-gray-500 dark:text-gray-400">
-              {{ opinionQuotes[0].author?.name || $t('home.unknown') }}<span v-if="opinionQuotes[0].reference"> · {{ opinionQuotes[0].reference?.name }}</span>
-            </p>
-          </NuxtLink>
-          <div class="mt-16 grid gap-24 md:grid-cols-2">
-            <NuxtLink v-for="item in opinionQuotes.slice(1, 3)" :key="item.id" :to="`/quotes/${item.id}`" class="group min-w-0 border-t border-gray-200 pt-8 dark:border-gray-800">
-              <blockquote class="break-words font-serif text-2xl leading-[1.08] tracking-[-0.02em] text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100 lg:text-5xl [overflow-wrap:anywhere]">
-                {{ item.name }}
               </blockquote>
-              <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">{{ item.author?.name || $t('home.unknown') }}</p>
             </NuxtLink>
+            <p class="mt-4 flex flex-wrap gap-x-2 font-sans text-sm text-gray-500 dark:text-gray-400">
+              <NuxtLink v-if="opinionQuotes[0].author" :to="`/authors/${opinionQuotes[0].author.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ opinionQuotes[0].author.name }}</NuxtLink>
+              <span v-if="opinionQuotes[0].author && opinionQuotes[0].reference" aria-hidden="true">·</span>
+              <NuxtLink v-if="opinionQuotes[0].reference" :to="`/references/${opinionQuotes[0].reference.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ opinionQuotes[0].reference.name }}</NuxtLink>
+            </p>
+          </div>
+          <div class="mt-16 grid gap-24 md:grid-cols-2">
+            <div v-for="item in opinionQuotes.slice(1, 3)" :key="item.id" class="group min-w-0 border-t border-gray-200 pt-8 dark:border-gray-800">
+              <NuxtLink :to="`/quotes/${item.id}`" class="block">
+                <blockquote class="break-words font-serif text-2xl leading-[1.08] tracking-[-0.02em] text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100 lg:text-5xl [overflow-wrap:anywhere]">{{ item.name }}</blockquote>
+              </NuxtLink>
+              <p class="mt-2 flex flex-wrap gap-x-2 font-sans text-xs text-gray-500 dark:text-gray-400">
+                <NuxtLink v-if="item.author" :to="`/authors/${item.author.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ item.author.name }}</NuxtLink>
+                <span v-if="item.author && item.reference" aria-hidden="true">·</span>
+                <NuxtLink v-if="item.reference" :to="`/references/${item.reference.id}`" class="font-500 hover:text-gray-900 dark:hover:text-gray-100">{{ item.reference.name }}</NuxtLink>
+              </p>
+            </div>
           </div>
         </section>
 
         <!-- References section: the next editorial chapter after the introduction -->
         <section v-if="featuredReferences.length" class="homepage-v3-references rounded-2 mx-0 mb-14 px-6 py-16 lg:px-10">
           <div class="mb-6 flex items-end justify-between gap-4">
-            <h2 class="font-serif font-500 text-4xl leading-none tracking-[-0.035em] text-gray-900 dark:text-gray-100 lg:text-6xl">
+            <h2 class="font-serif font-400 text-4xl leading-none tracking-[-0.035em] text-stone-700 dark:text-stone-300 lg:text-5xl">
               {{ $t('nav.references') }}
             </h2>
             <NuxtLink to="/references" class="shrink-0 font-sans text-xs text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
@@ -249,7 +256,7 @@
               {{ $t('home.rich_quotes_desc') }}
             </p>
           </div>
-          <div class="homepage-v3-rich-grid mt-12 grid md:grid-cols-2">
+          <div class="homepage-v3-rich-grid mt-12 grid md:grid-cols-3">
             <NuxtLink v-for="item in storyQuotes.slice(0, 6)" :key="item.id" :to="`/quotes/${item.id}`" class="homepage-v3-rich-item group">
               <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300', richQuoteClass(item.name)]">
                 {{ truncateQuote(item.name, 140) }}
