@@ -3,100 +3,6 @@
     <!-- Single-column editorial layout -->
     <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
 
-      <!-- Left sidebar: Navigation -->
-      <div class="hidden">
-        <nav class="flex flex-col space-y-2 font-500 px-4 md:px-8">
-          <HomeNavLink to="/quotes">
-            {{ $t('home.nav.quotes') }}
-          </HomeNavLink>
-          <HomeNavLink to="/authors">
-            {{ $t('home.nav.authors') }}
-          </HomeNavLink>
-          <HomeNavLink to="/references">
-            {{ $t('home.nav.references') }}
-          </HomeNavLink>
-          <button type="button" @click="showSearch = true"
-            class="group relative inline-block overflow-hidden font-sans text-sm transition-colors duration-300 text-gray-700 dark:text-gray-300 hover:text-white dark:hover:text-[#0C0A09] group-active:scale-95 transition-transform text-left w-full">
-            <span class="relative z-1 transition-colors duration-300">{{ $t('home.nav.search') }}</span>
-            <span class="absolute inset-0 w-0 group-hover:w-full transition-all duration-300 ease-out -z-0 bg-[#0C0A09] dark:bg-[#FAFAF9]" />
-          </button>
-        </nav>
-
-        <div class="mt-8 pt-8">
-          <div class="px-4 md:px-8">
-            <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600 mb-4">
-              {{ $t('home.stats') }}
-            </p>
-            <div class="border border-gray-200 dark:border-gray-700 rounded-sm p-3 space-y-2">
-              <div class="flex items-baseline justify-between gap-2">
-                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">
-                  <span class="2xl:hidden">{{ formatCompactCount(stats.quotes) }}</span>
-                  <span class="hidden 2xl:inline">{{ stats.quotes.toLocaleString() }}</span>
-                </span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <span class="hidden 2xl:inline">{{ $t('home.quotes_label') }}</span>
-                  <NTooltip :content="String($ts('home.quotes_label'))" placement="right">
-                    <NIcon name="i-ph-quotes" class="2xl:hidden w-4 h-4" :aria-label="$ts('home.quotes_label')" />
-                  </NTooltip>
-                </span>
-              </div>
-              <div class="flex items-baseline justify-between gap-2">
-                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">
-                  <span class="2xl:hidden">{{ formatCompactCount(stats.authors) }}</span>
-                  <span class="hidden 2xl:inline">{{ stats.authors.toLocaleString() }}</span>
-                </span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <span class="hidden 2xl:inline">{{ $t('home.authors_label') }}</span>
-                  <NTooltip :content="String($ts('home.authors_label'))" placement="right">
-                    <NIcon name="i-ph-users-three" class="2xl:hidden w-4 h-4" :aria-label="$ts('home.authors_label')" />
-                  </NTooltip>
-                </span>
-              </div>
-              <div class="flex items-baseline justify-between gap-2">
-                <span class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 tabular-nums">
-                  <span class="2xl:hidden">{{ formatCompactCount(stats.references) }}</span>
-                  <span class="hidden 2xl:inline">{{ stats.references.toLocaleString() }}</span>
-                </span>
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <span class="hidden 2xl:inline">{{ $t('home.references_label') }}</span>
-                  <NTooltip :content="String($ts('home.references_label'))" placement="right">
-                    <NIcon name="i-ph-book-open-text" class="2xl:hidden w-4 h-4" :aria-label="$ts('home.references_label')" />
-                  </NTooltip>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Quotes -->
-        <div class="mt-10 pt-8">
-          <div class="px-4 md:px-8 mb-4 flex items-center justify-between">
-            <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600">
-              {{ $t('home.recent_quotes') }}
-            </p>
-            <a href="/quotes" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              {{ $t('home.see_all') }}
-            </a>
-          </div>
-
-          <div class="px-4 md:px-8 space-y-6">
-            <NuxtLink
-              v-for="quote in recentSidebarQuotes"
-              :key="quote.id"
-              :to="`/quotes/${quote.id}`"
-              class="block group"
-            >
-              <blockquote class="font-body text-xs text-gray-700 dark:text-gray-300 italic leading-snug break-words [overflow-wrap:anywhere] group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-                {{ truncateQuote(quote.name, 100) }}
-              </blockquote>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {{ quote.author?.name || $t('home.unknown') }}
-              </p>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-
       <!-- Center content -->
       <div class="mt-6 w-full">
         <!-- Featured quote (Philosophy section) -->
@@ -329,134 +235,8 @@
           </NuxtLink>
         </section>
 
-        <!-- Recent quotes section -->
-        <section v-if="false" class="mx-4 mb-14 border-t border-gray-200/80 pt-10 dark:border-gray-800/80">
-          <div class="mb-6 flex items-end justify-between gap-4">
-            <div>
-              <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                {{ $t('home.recent_quotes') }}
-              </p>
-              <p class="mt-2 max-w-xl font-serif text-2xl text-gray-900 dark:text-gray-100">
-                {{ $t('home.recent_quotes_desc') }}
-              </p>
-            </div>
-            <NuxtLink to="/quotes" class="shrink-0 font-sans text-xs text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-              {{ $t('home.see_all') }} →
-            </NuxtLink>
-          </div>
-          <div class="grid gap-x-10 gap-y-8 md:grid-cols-2">
-            <NuxtLink
-              v-for="quote in recentSidebarQuotes.slice(0, 6)"
-              :key="quote.id"
-              :to="`/quotes/${quote.id}`"
-              class="group"
-            >
-              <blockquote class="font-body text-lg italic leading-relaxed text-gray-700 transition-colors group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-gray-100">
-                {{ truncateQuote(quote.name, 150) }}
-              </blockquote>
-              <p class="mt-2 font-sans text-xs text-gray-500 dark:text-gray-400">
-                {{ quote.author?.name || $t('home.unknown') }}
-                <span v-if="quote.reference" class="text-gray-300 dark:text-gray-600"> · {{ quote.reference?.name }}</span>
-              </p>
-            </NuxtLink>
-          </div>
-        </section>
       </div>
 
-      <!-- Right sidebar: Featured references -->
-      <div class="hidden">
-        <div class="px-4 md:px-8 mt-4 mb-6 pb-4 flex items-center justify-between">
-          <p class="font-sans text-sm font-600 text-gray-900 dark:text-gray-100">
-            {{ $t('home.featured_references') }}
-          </p>
-          <a href="/references" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-            {{ $t('home.see_all') }}
-          </a>
-        </div>
-
-        <div class="px-4 md:px-8 space-y-6">
-          <div
-            v-for="(ref, index) in featuredReferences"
-            :key="ref.id"
-            class="group cursor-pointer flex gap-3"
-            @click="navigateTo(`/references/${ref.id}`)"
-          >
-            <div class="flex-shrink-0 w-16 h-22 overflow-hidden rounded-sm">
-              <div
-                v-if="ref.image_url && !referenceImageErrors[ref.id]"
-                class="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105 grayscale"
-                :style="{ backgroundImage: `url(${ref.image_url})` }"
-              />
-              <div v-else class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                <NIcon name="i-ph-image" class="w-6 h-6 text-gray-400 dark:text-gray-500" />
-              </div>
-            </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-title text-md font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">
-                {{ ref.name }}
-              </h4>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {{ formatReferenceType(ref.primary_type) }}
-              </p>
-              <p v-if="ref.description" class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                {{ ref.description }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-8 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700 text-center">
-          <NButton
-            btn="link"
-            to="/references"
-            :label="$ts('home.see_more')"
-            trailing="i-ph-arrow-right"
-            class="font-sans text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-2"
-          />
-        </div>
-
-        <!-- Related Authors -->
-        <div v-if="sidebarAuthors.length" class="px-4 md:px-8 mt-8 pt-6 border-t b-dashed border-gray-300 dark:border-gray-700">
-          <div class="mb-4 flex items-center justify-between">
-            <p class="font-sans text-xs uppercase tracking-wider text-gray-400 dark:text-gray-600">
-              {{ $t('home.related_authors') }}
-            </p>
-            <a href="/authors" class="font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              {{ $t('home.see_all') }}
-            </a>
-          </div>
-          <div class="space-y-4">
-            <NuxtLink
-              v-for="author in sidebarAuthors"
-              :key="author.id"
-              :to="`/authors/${author.id}`"
-              class="flex items-center gap-3 group"
-            >
-              <div class="flex-shrink-0">
-                <div
-                  v-if="author.image_url && !imageErrors[author.id]"
-                  class="w-10 h-10 rounded-full overflow-hidden grayscale"
-                >
-                  <img :src="author.image_url" :alt="author.name" class="w-full h-full object-cover" @error="authorAvatarFailed(author.id)" />
-                </div>
-                <div v-else class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-                  <span class="font-subtitle text-xs text-gray-400 dark:text-gray-500">
-                    {{ getAuthorInitials(author.name) }}
-                  </span>
-                </div>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="font-subtitle text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                  {{ author.name || $t('home.unknown') }}
-                </p>
-                <p v-if="author.quotes_count" class="font-sans text-xs text-gray-500 dark:text-gray-400">
-                  {{ author.quotes_count }} {{ author.quotes_count === 1 ? $t('home.quote_singular') : $t('home.quote_plural') }}
-                </p>
-              </div>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div v-if="!props.theme && feed.hasMore?.value" class="mt-12">
@@ -483,7 +263,6 @@
 import './home-v3.css'
 import type { ProcessedQuoteResult } from '~~/server/types'
 import type { UseHomeFeed } from '~/composables/useHomeFeed'
-import { navigateTo } from 'nuxt/app'
 
 const { $t, $ts } = useI18n()
 const { locale } = useI18nLocale()
@@ -584,20 +363,6 @@ watch(featuredReferences, (refs) => {
 const sidebarAuthors = computed(() => {
   const auths = props.feed.authors?.value || []
   return auths.slice(0, 8)
-})
-
-// Extract recent quotes for sidebar (12 most recent)
-const recentSidebarQuotes = computed(() => {
-  const quotes = props.feed.quotes.value || []
-  // Use moderated_at if available, otherwise created_at
-  return quotes
-    .slice()
-    .sort((a, b) => {
-      const dateA = a.moderated_at || a.created_at
-      const dateB = b.moderated_at || b.created_at
-      return new Date(dateB).getTime() - new Date(dateA).getTime()
-    })
-    .slice(0, 24)
 })
 
 const truncateQuote = (text: string, maxLength: number) => {
