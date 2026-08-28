@@ -147,6 +147,7 @@
     "recent_quotes_desc": "The latest voices added to the collection",
     "editorial_label": "Voices · moments · destinies",
     "editorial_title": "Inside this universe",
+    "edition_date": "Today's edition · {date}",
     "rich_quotes_title": "Voices of the rebellion",
     "rich_quotes_desc": "A theme unfolds in fragments: a sentence, a face, a reference, then another path to follow.",
     "authors_section_desc": "The voices that give this universe its memory, conflicts, and hopes.",

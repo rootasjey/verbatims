@@ -36,12 +36,18 @@
           </NButton>
         </div>
 
-        <span v-if="route.path === '/' && homeTheme" class="min-w-0 flex-1 truncate text-center font-sans text-xs text-gray-600 dark:text-gray-300">
-          {{ homeTheme.name }} · {{ currentDate }}
-        </span>
-        <span v-else class="inline flex-1 text-center font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-          {{ currentDate }}
-        </span>
+        <span class="flex-1" aria-hidden="true" />
+        <NButton
+          v-if="route.path === '/' && homeTheme"
+          icon
+          btn="ghost-gray"
+          label="i-lucide-book-open"
+          size="sm"
+          :aria-label="String($t('home.theme_details'))"
+          :aria-expanded="showMobileTheme"
+          aria-controls="mobile-theme-sheet"
+          @click="showMobileTheme = true"
+        />
 
         <NButton
           icon
@@ -56,19 +62,53 @@
       </div>
     </header>
 
-    <Transition name="mobile-menu">
+    <ClientOnly>
+      <NDrawer
+        v-if="route.path === '/' && homeTheme"
+        v-model:open="showMobileTheme"
+        direction="bottom"
+        :dismissible="true"
+        :close-threshold="0.25"
+        :show-close="false"
+        :una="{ drawerContent: 'z-[60] rounded-t-3xl bg-[#F7F5EF] dark:bg-[#1C1917] shadow-2xl', drawerOverlay: 'z-[55] bg-black/45' }"
+      >
+        <template #body>
+          <div id="mobile-theme-sheet" class="px-6 pb-8 pt-5" aria-label="Theme details">
+            <div class="mx-auto mb-5 h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-700" />
+            <div class="flex items-start justify-between gap-4">
+              <h2 class="font-serif text-2xl text-gray-900 dark:text-gray-100">{{ homeTheme.name }}</h2>
+              <NButton icon btn="ghost-gray" label="i-ph-x" size="sm" :aria-label="String($t('common.close'))" @click="showMobileTheme = false" />
+            </div>
+            <p v-if="homeTheme.description" class="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              {{ homeTheme.description }}
+            </p>
+            <p class="mt-4 text-xs text-gray-500 dark:text-gray-500">
+              {{ homeStats.quotes.toLocaleString() }} citations · {{ homeStats.references.toLocaleString() }} références · {{ homeStats.authors.toLocaleString() }} auteurs
+            </p>
+            <p class="mt-2 font-sans text-xs text-gray-400 dark:text-gray-500">
+              {{ $t('home.edition_date', { date: currentEditionDate }) }}
+            </p>
+          </div>
+        </template>
+      </NDrawer>
+    </ClientOnly>
+
+    <ClientOnly>
+      <NDrawer
+        v-model:open="showMobileMenu"
+        direction="bottom"
+        :dismissible="true"
+        :close-threshold="0.25"
+        :show-close="false"
+        :una="{ drawerContent: 'z-[60] h-screen rounded-none bg-[#F7F5EF] dark:bg-[#0C0A09]', drawerOverlay: 'z-[55] bg-black/45' }"
+      >
+        <template #body>
       <div
-        v-if="showMobileMenu"
         id="mobile-site-menu"
-        class="mobile-site-menu fixed inset-0 z-50 flex flex-col bg-[#F7F5EF] px-6 pb-8 pt-20 dark:bg-[#0C0A09] md:hidden"
-        :class="{ 'mobile-site-menu-dragging': isDraggingMenu }"
-        :style="isDraggingMenu ? { transform: `translateY(${menuDragOffset}px)` } : undefined"
+        class="mobile-site-menu flex h-full flex-col px-6 pb-32 pt-20"
         role="dialog"
         aria-modal="true"
         :aria-label="String($t('nav.menu'))"
-        @touchstart="handleMenuTouchStart"
-        @touchmove.prevent="handleMenuTouchMove"
-        @touchend="handleMenuTouchEnd"
       >
         <div class="flex items-center justify-between gap-4">
           <div>
@@ -89,8 +129,16 @@
             {{ $t('nav.contribute') }}
           </button>
         </nav>
+        <div class="mt-12 border-t border-black/10 pt-5 dark:border-white/15" aria-label="Preferences">
+          <div class="flex items-center gap-2">
+            <I18nSelector />
+            <ThemeSelector />
+          </div>
+        </div>
       </div>
-    </Transition>
+        </template>
+      </NDrawer>
+    </ClientOnly>
 
     <!-- Main content: responsive top/bottom spacing -->
     <main class="pt-14 md:pt-0 pb-10 md:pb-10">
@@ -117,16 +165,15 @@
 <script setup lang="ts">
 const route = useRoute()
 const { $t } = useI18n()
+const { locale } = useI18nLocale()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
+const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
 const showMobileMenu = ref(false)
+const showMobileTheme = ref(false)
 const previousBodyOverflow = ref('')
 const previousDocumentOverflow = ref('')
-const menuTouchStartY = ref<number | null>(null)
-const menuDragOffset = ref(0)
-const isDraggingMenu = ref(false)
-const menuSwipeThreshold = 110
 
 const mobileMenuItems = computed(() => [
   { label: String($t('nav.explore')), leading: 'i-ph-compass', to: '/quotes' },
@@ -142,6 +189,16 @@ const currentDate = computed(() => {
     weekday: 'short',
     year: '2-digit',
     month: 'short',
+    day: 'numeric'
+  })
+})
+
+const currentEditionDate = computed(() => {
+  const now = new Date()
+  return now.toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
     day: 'numeric'
   })
 })
@@ -184,48 +241,23 @@ const openContribution = () => {
 }
 
 const handleMobileMenuKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') closeMobileMenu()
+  if (event.key !== 'Escape') return
+  if (showMobileMenu.value) closeMobileMenu()
+  if (showMobileTheme.value) showMobileTheme.value = false
 }
 
-const handleMenuTouchStart = (event: TouchEvent) => {
-  if (!event.touches[0]) return
-  menuTouchStartY.value = event.touches[0].clientY
-  isDraggingMenu.value = true
-}
-
-const handleMenuTouchMove = (event: TouchEvent) => {
-  if (menuTouchStartY.value === null || !event.touches[0]) return
-  const delta = event.touches[0].clientY - menuTouchStartY.value
-  menuDragOffset.value = Math.max(0, delta)
-}
-
-const handleMenuTouchEnd = () => {
-  if (menuTouchStartY.value === null) return
-  const shouldClose = menuDragOffset.value >= menuSwipeThreshold
-  menuTouchStartY.value = null
-  isDraggingMenu.value = false
-
-  if (shouldClose) {
-    closeMobileMenu()
-    menuDragOffset.value = 0
-    return
-  }
-
-  menuDragOffset.value = 0
-}
-
-watch(showMobileMenu, (isOpen) => {
+watch([showMobileMenu, showMobileTheme], ([menuOpen, themeOpen]) => {
   if (!import.meta.client) return
+  const isOpen = menuOpen || themeOpen
 
   if (isOpen) {
-    previousBodyOverflow.value = document.body.style.overflow
-    previousDocumentOverflow.value = document.documentElement.style.overflow
+    if (document.body.style.overflow !== 'hidden') {
+      previousBodyOverflow.value = document.body.style.overflow
+      previousDocumentOverflow.value = document.documentElement.style.overflow
+    }
     document.body.style.overflow = 'hidden'
     document.documentElement.style.overflow = 'hidden'
   } else {
-    menuTouchStartY.value = null
-    isDraggingMenu.value = false
-    menuDragOffset.value = 0
     document.body.style.overflow = previousBodyOverflow.value
     document.documentElement.style.overflow = previousDocumentOverflow.value
   }
@@ -293,6 +325,8 @@ useHead({
 .mobile-menu-leave-active {
   transition: opacity 260ms ease, transform 260ms ease;
 }
+
+.mobile-site-menu { transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1); }
 
 .mobile-site-menu-dragging { transition: none; }
 
