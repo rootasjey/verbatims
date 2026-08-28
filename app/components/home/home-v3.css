@@ -81,6 +81,9 @@
 .homepage-v3-author-wrap { order: 2; }
 .homepage-v3-author p { color: inherit; }
 
+/* Give the author block a quieter pause after the cover quote on mobile. */
+.mobile-home-feed .homepage-v3-author-wrap { margin-top: 1.25rem; }
+
 .homepage-v3-primary {
   order: 3;
   border: 1px solid rgba(39, 37, 34, 0.2);
@@ -108,6 +111,19 @@
 
 .homepage-v3-author-grid { scrollbar-width: none; }
 .homepage-v3-author-grid::-webkit-scrollbar { display: none; }
+.mobile-home-feed .homepage-v3-scroll-fade { position: relative; }
+.mobile-home-feed .homepage-v3-scroll-fade::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2.5rem;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #17191e);
+}
+.mobile-home-feed .homepage-v3-references .homepage-v3-scroll-fade::after { background: linear-gradient(90deg, transparent, #e7e4dd); }
+.dark .mobile-home-feed .homepage-v3-references .homepage-v3-scroll-fade::after { background: linear-gradient(90deg, transparent, #252522); }
 .homepage-v3-carousel-control {
   display: inline-flex;
   height: 36px;
@@ -213,6 +229,17 @@
 .homepage-v3-person > div:last-child {
   position: relative;
   z-index: 1;
+}
+
+.mobile-home-feed .homepage-v3-person {
+  align-items: flex-end;
+  justify-content: center;
+  text-align: center;
+}
+
+.mobile-home-feed .homepage-v3-reference-card > div:last-child {
+  width: 100%;
+  text-align: center;
 }
 
 .homepage-v3-person > div:first-child img { filter: grayscale(1); transition: filter 400ms ease, transform 500ms ease; }

@@ -143,7 +143,8 @@
       </div>
 
       <template v-if="allAuthors.length > 0">
-        <div class="homepage-v3-author-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+        <div class="homepage-v3-scroll-fade">
+          <div class="homepage-v3-author-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
           <NuxtLink
             v-for="author in allAuthors.slice(0, 8)"
             :key="author.id"
@@ -160,14 +161,15 @@
               <p :class="['font-subtitle font-600 leading-tight text-white break-words [overflow-wrap:anywhere]', authorNameClass(author.name)]">
                 {{ author.name }}
               </p>
-              <p v-if="author.job" class="mt-1 truncate font-sans text-xs text-white/65">
+              <p v-if="author.job" class="mt-1 truncate font-sans text-xs font-500 text-white/65">
                 {{ author.job }}
               </p>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p class="font-sans text-xs font-500 text-gray-500 dark:text-gray-400 mt-0.5">
                 {{ author.quotes_count || 0 }} {{ (author.quotes_count || 0) === 1 ? $t('home.quote_singular') : $t('home.quote_plural') }}
               </p>
             </div>
           </NuxtLink>
+          </div>
         </div>
       </template>
       <template v-else>
@@ -200,7 +202,8 @@
       </div>
 
       <template v-if="allReferences.length > 0">
-        <div class="homepage-v3-reference-grid flex gap-3 overflow-x-auto pb-2">
+        <div class="homepage-v3-scroll-fade">
+          <div class="homepage-v3-reference-grid flex gap-3 overflow-x-auto pb-2">
           <NuxtLink
             v-for="ref in allReferences.slice(0, 6)"
             :key="ref.id"
@@ -211,10 +214,11 @@
             <div v-else class="homepage-v3-reference-image absolute inset-0 bg-gradient-to-br from-[#8c8f8b] to-[#25282b] dark:from-[#62645f] dark:to-[#141518]" />
             <div class="homepage-v3-reference-overlay absolute inset-0" />
             <div class="relative mt-auto">
-              <h3 class="font-serif text-lg leading-[1.08] text-white">{{ ref.name }}</h3>
-              <p class="mt-2 font-sans text-xs text-white/70">{{ formatReferenceType(ref.primary_type) }}</p>
+              <h3 class="font-subtitle font-600 leading-tight text-white break-words [overflow-wrap:anywhere]">{{ ref.name }}</h3>
+              <p class="mt-1 font-sans text-xs font-500 text-white/65">{{ formatReferenceType(ref.primary_type) }}</p>
             </div>
           </NuxtLink>
+          </div>
         </div>
       </template>
       <template v-else>
@@ -284,11 +288,6 @@
           @load="handleLoadMore"
         />
       </div>
-    </div>
-
-    <!-- ── Version ── -->
-    <div class="px-6 py-4 text-center border-y b-dashed border-gray-200 dark:border-gray-700 animate-fade-in-up" style="animation-delay: 0.55s">
-      <NuxtLink to="/about" class="font-sans text-sm font-600 text-gray-400 dark:text-gray-500">v{{ config.public.appVersion }}</NuxtLink>
     </div>
 
     <!-- ── Empty state when no quotes ── -->
