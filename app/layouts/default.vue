@@ -43,11 +43,54 @@
           {{ currentDate }}
         </span>
 
-        <NDropdownMenu :items="mobileMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }">
-          <NButton icon btn="ghost-gray" label="i-ph-list" size="sm" :aria-label="String($t('nav.menu'))" />
-        </NDropdownMenu>
+        <NButton
+          icon
+          btn="ghost-gray"
+          :label="showMobileMenu ? 'i-ph-x' : 'i-ph-list'"
+          size="sm"
+          :aria-label="String($t(showMobileMenu ? 'common.close' : 'nav.menu'))"
+          :aria-expanded="showMobileMenu"
+          aria-controls="mobile-site-menu"
+          @click="showMobileMenu = !showMobileMenu"
+        />
       </div>
     </header>
+
+    <Transition name="mobile-menu">
+      <div
+        v-if="showMobileMenu"
+        id="mobile-site-menu"
+        class="mobile-site-menu fixed inset-0 z-50 flex flex-col bg-[#F7F5EF] px-6 pb-8 pt-20 dark:bg-[#0C0A09] md:hidden"
+        :class="{ 'mobile-site-menu-dragging': isDraggingMenu }"
+        :style="isDraggingMenu ? { transform: `translateY(${menuDragOffset}px)` } : undefined"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="String($t('nav.menu'))"
+        @touchstart="handleMenuTouchStart"
+        @touchmove.prevent="handleMenuTouchMove"
+        @touchend="handleMenuTouchEnd"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+              {{ currentDate }}
+            </p>
+            <p v-if="route.path === '/' && homeTheme" class="mt-2 font-sans text-sm text-gray-700 dark:text-gray-300">
+              {{ homeTheme.name }}
+            </p>
+          </div>
+          <NButton icon btn="ghost-gray" label="i-ph-x" size="sm" :aria-label="String($t('common.close'))" @click="closeMobileMenu" />
+        </div>
+        <nav class="mt-14 flex flex-col gap-5" :aria-label="String($t('nav.menu'))">
+          <NuxtLink v-for="(item, index) in mobileMenuItems.filter(item => item.to)" :key="item.to" :to="item.to!" class="mobile-site-menu-link" :style="{ '--menu-index': index }" @click="closeMobileMenu">
+            {{ item.label }}
+          </NuxtLink>
+          <button type="button" class="mobile-site-menu-link text-left" style="--menu-index: 4" @click="openContribution">
+            {{ $t('nav.contribute') }}
+          </button>
+        </nav>
+      </div>
+    </Transition>
 
     <!-- Main content: responsive top/bottom spacing -->
     <main class="pt-14 md:pt-0 pb-10 md:pb-10">
@@ -77,6 +120,13 @@ const { $t } = useI18n()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
+const showMobileMenu = ref(false)
+const previousBodyOverflow = ref('')
+const previousDocumentOverflow = ref('')
+const menuTouchStartY = ref<number | null>(null)
+const menuDragOffset = ref(0)
+const isDraggingMenu = ref(false)
+const menuSwipeThreshold = 110
 
 const mobileMenuItems = computed(() => [
   { label: String($t('nav.explore')), leading: 'i-ph-compass', to: '/quotes' },
@@ -124,13 +174,76 @@ const handleQuoteAdded = () => {
   showAddQuote.value = false
 }
 
+const closeMobileMenu = () => {
+  showMobileMenu.value = false
+}
+
+const openContribution = () => {
+  closeMobileMenu()
+  showAddQuote.value = true
+}
+
+const handleMobileMenuKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') closeMobileMenu()
+}
+
+const handleMenuTouchStart = (event: TouchEvent) => {
+  if (!event.touches[0]) return
+  menuTouchStartY.value = event.touches[0].clientY
+  isDraggingMenu.value = true
+}
+
+const handleMenuTouchMove = (event: TouchEvent) => {
+  if (menuTouchStartY.value === null || !event.touches[0]) return
+  const delta = event.touches[0].clientY - menuTouchStartY.value
+  menuDragOffset.value = Math.max(0, delta)
+}
+
+const handleMenuTouchEnd = () => {
+  if (menuTouchStartY.value === null) return
+  const shouldClose = menuDragOffset.value >= menuSwipeThreshold
+  menuTouchStartY.value = null
+  isDraggingMenu.value = false
+
+  if (shouldClose) {
+    closeMobileMenu()
+    menuDragOffset.value = 0
+    return
+  }
+
+  menuDragOffset.value = 0
+}
+
+watch(showMobileMenu, (isOpen) => {
+  if (!import.meta.client) return
+
+  if (isOpen) {
+    previousBodyOverflow.value = document.body.style.overflow
+    previousDocumentOverflow.value = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+  } else {
+    menuTouchStartY.value = null
+    isDraggingMenu.value = false
+    menuDragOffset.value = 0
+    document.body.style.overflow = previousBodyOverflow.value
+    document.documentElement.style.overflow = previousDocumentOverflow.value
+  }
+})
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('keydown', handleMobileMenuKeydown)
   scrollY.value = window.scrollY
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('keydown', handleMobileMenuKeydown)
+  if (import.meta.client) {
+    document.body.style.overflow = previousBodyOverflow.value
+    document.documentElement.style.overflow = previousDocumentOverflow.value
+  }
 })
 
 useHead({
@@ -151,4 +264,55 @@ useHead({
 .safe-area-pt {
   padding-top: max(0.75rem, env(safe-area-inset-top));
 }
+
+.mobile-site-menu-link {
+  color: #272522;
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(2.25rem, 10vw, 3.5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.mobile-site-menu-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+}
+
+.mobile-site-menu-link {
+  opacity: 0;
+  animation: mobile-menu-link-in 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--menu-index, 0) * 55ms + 100ms);
+}
+
+@keyframes mobile-menu-link-in {
+  from { opacity: 0; transform: translateY(0.75rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mobile-menu-enter-active,
+.mobile-menu-leave-active {
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.mobile-site-menu-dragging { transition: none; }
+
+.mobile-menu-enter-from,
+.mobile-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-1.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-enter-active,
+  .mobile-menu-leave-active {
+    transition-duration: 0.01ms;
+  }
+
+  .mobile-site-menu-link {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+:global(html.dark .mobile-site-menu-link) { color: #f5f2ec; }
 </style>

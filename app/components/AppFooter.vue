@@ -12,6 +12,9 @@
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
           <span class="homepage-v3-footer-wordmark" aria-label="Verbatims">verbatims</span>
+          <span class="homepage-v3-footer-version block mt-2 text-xs font-600 text-gray-500 dark:text-gray-400">
+            {{ $t('footer.version') }}: {{ version }}
+          </span>
           <p class="mt-2 text-lg text-gray-600 dark:text-gray-400 max-w-sm">
             {{ $t('footer.tagline') }}
           </p>
@@ -21,7 +24,7 @@
         <nav aria-label="Footer navigation" class="grid grid-cols-2 sm:grid-cols-4 gap-8">
           <section aria-labelledby="footer-explore" data-testid="footer-explore">
             <h3 id="footer-explore" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.explore') }}</h3>
-            <ul class="mt-3 space-y-2 text-sm">
+            <ul class="mt-3 text-sm">
               <li v-for="link in sectionExplore" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
@@ -30,7 +33,7 @@
 
           <section aria-labelledby="footer-about" data-testid="footer-about">
             <h3 id="footer-about" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.about') }}</h3>
-            <ul class="mt-3 space-y-2 text-sm">
+            <ul class="mt-3 text-sm">
               <li v-for="link in sectionAbout" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
@@ -39,7 +42,7 @@
 
           <section v-if="sectionContribute.length" aria-labelledby="footer-contribute" data-testid="footer-contribute">
             <h3 id="footer-contribute" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.contribute') }}</h3>
-            <ul class="mt-3 space-y-2 text-sm">
+            <ul class="mt-3 text-sm">
               <li v-for="link in sectionContribute" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
@@ -48,7 +51,7 @@
 
           <section v-if="sectionAccount.length" aria-labelledby="footer-account" data-testid="footer-account">
             <h3 id="footer-account" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.account') }}</h3>
-            <ul class="mt-3 space-y-2 text-sm">
+            <ul class="mt-3 text-sm">
               <li v-for="link in sectionAccount" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
@@ -57,7 +60,7 @@
 
           <section v-if="isAdmin && sectionAdmin.length" aria-labelledby="footer-admin" data-testid="footer-admin">
             <h3 id="footer-admin" class="text-xs uppercase font-600 tracking-wide text-gray-500 dark:text-gray-400">{{ $t('footer.admin') }}</h3>
-            <ul class="mt-3 space-y-2 text-sm">
+            <ul class="mt-3 text-sm">
               <li v-for="link in sectionAdmin" :key="link.path">
                 <NuxtLink class="link-muted" :to="link.path">{{ link.label }}</NuxtLink>
               </li>
@@ -73,19 +76,22 @@
         </p>
 
         <div class="flex items-center gap-1 sm:gap-6 xl:gap-6 text-xs sm:text-sm flex-wrap xl:flex-nowrap">
-          <template v-for="{ to, labelKey, icon } in bottomLinks" :key="to">
-            <NTooltip :content="$t(labelKey) as string">
-              <NuxtLink :to="to" class="link-muted flex items-center xl:hidden" :aria-label="$t(labelKey) as string" :data-testid="`footer-${to.slice(1)}`">
-                <NIcon :name="icon" size="5" />
-              </NuxtLink>
-            </NTooltip>
-            <NuxtLink :to="to" class="link-muted hidden xl:inline" :data-testid="`footer-${to.slice(1)}`">{{ $t(labelKey) }}</NuxtLink>
-          </template>
+          <div class="homepage-v3-footer-technical-links flex items-center gap-3">
+            <template v-for="{ to, labelKey, icon } in bottomLinks" :key="to">
+              <NTooltip :content="$t(labelKey) as string">
+                <NuxtLink :to="to" class="link-muted hidden" :aria-label="$t(labelKey) as string" :data-testid="`footer-${to.slice(1)}`">
+                  <NIcon :name="icon" size="5" />
+                </NuxtLink>
+              </NTooltip>
+              <NuxtLink :to="to" class="link-muted inline whitespace-nowrap" :data-testid="`footer-${to.slice(1)}`">{{ $t(labelKey) }}</NuxtLink>
+            </template>
+          </div>
 
-          <I18nSelector />
-          <ThemeSelector />
+          <div class="homepage-v3-footer-preferences flex items-center gap-2">
+            <I18nSelector />
+            <ThemeSelector />
+          </div>
 
-          <span class="color-gray-500 font-600 whitespace-nowrap">{{ $t('footer.version') }}: {{ version }}</span>
         </div>
       </div>
     </div>
@@ -321,7 +327,7 @@ const bottomLinks: BottomLink[] = [
 
 @media (max-width: 767px) {
   .homepage-v3-footer .u-container {
-    padding: 4.5rem 1.5rem 1.5rem;
+    padding: 4.5rem 1.5rem 8rem;
   }
 
   .homepage-v3-footer .u-container > div:first-child {
@@ -336,9 +342,26 @@ const bottomLinks: BottomLink[] = [
 
   .homepage-v3-footer nav {
     width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
   }
+
+  .homepage-v3-footer nav section { min-width: 0; }
+
+  .homepage-v3-footer nav ul {
+    display: flex;
+    max-width: 100%;
+    margin-top: 0.5rem;
+    padding-left: 0;
+    gap: 1.5rem;
+    overflow-x: auto;
+    line-height: 1.5;
+    scrollbar-width: none;
+  }
+
+  .homepage-v3-footer nav ul::-webkit-scrollbar { display: none; }
+  .homepage-v3-footer nav li { flex-shrink: 0; }
 
   .homepage-v3-footer .u-container > div:first-child > div:first-child p {
     max-width: 19rem;
@@ -349,6 +372,37 @@ const bottomLinks: BottomLink[] = [
 
   .homepage-v3-footer .u-container > div:last-child {
     align-items: flex-start;
+    gap: 1.25rem;
   }
+
+  .homepage-v3-footer .u-container > div:first-child > div:first-child p {
+    margin-top: 1.5rem;
+  }
+
+  .homepage-v3-footer-bottom > div:last-child {
+    flex-wrap: wrap;
+  }
+
+  .homepage-v3-footer-technical-links {
+    max-width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .homepage-v3-footer-technical-links::-webkit-scrollbar { display: none; }
+
+  .homepage-v3-footer-bottom > div:last-child {
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .homepage-v3-footer-preferences {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+
 }
 </style>
