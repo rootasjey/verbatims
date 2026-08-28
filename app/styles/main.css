@@ -271,7 +271,7 @@ input:-webkit-autofill {
 
 /* Button hover effects */
 .btn-hover {
-  transition: all 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .btn-hover:hover {

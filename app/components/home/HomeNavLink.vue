@@ -11,7 +11,7 @@
     <span class="relative z-1 transition-colors duration-300">
       <slot />
     </span>
-    <span class="absolute inset-0 w-0 group-hover:w-full transition-all duration-300 ease-out -z-0" :class="bgClasses" />
+    <span class="absolute inset-0 w-0 group-hover:w-full transition-[width] duration-300 ease-out -z-0" :class="bgClasses" />
   </NuxtLink>
 </template>
 
