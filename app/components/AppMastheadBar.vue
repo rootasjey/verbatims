@@ -89,16 +89,18 @@
                     </span>
                     <NIcon name="i-lucide-chevron-right" class="h-4 w-4 shrink-0 transition-transform" :class="showLanguageMenu ? 'rotate-90' : ''" />
                   </button>
-                  <div v-if="showLanguageMenu" class="ml-8 mt-1 grid gap-1 border-l border-gray-200 pl-2 dark:border-white/15">
-                    <button type="button" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10" @click="switchLocale('en')">
-                      <img src="/images/languages/usa.png" alt="" class="h-5 w-5 shrink-0 rounded-[2px] object-cover" />
-                      <span>English</span>
-                    </button>
-                    <button type="button" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10" @click="switchLocale('fr')">
-                      <img src="/images/languages/france.png" alt="" class="h-5 w-5 shrink-0 rounded-[2px] object-cover" />
-                      <span>Français</span>
-                    </button>
-                  </div>
+                  <Transition name="language-submenu">
+                    <div v-if="showLanguageMenu" class="ml-8 mt-1 grid gap-1 border-l border-gray-200 pl-2 dark:border-white/15">
+                      <button type="button" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10" @click="switchLocale('en')">
+                        <img src="/images/languages/usa.png" alt="" class="h-5 w-5 shrink-0 rounded-[2px] object-cover" />
+                        <span>English</span>
+                      </button>
+                      <button type="button" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10" @click="switchLocale('fr')">
+                        <img src="/images/languages/france.png" alt="" class="h-5 w-5 shrink-0 rounded-[2px] object-cover" />
+                        <span>Français</span>
+                      </button>
+                    </div>
+                  </Transition>
                 </template>
                 <NNavigationMenuContentItem v-else-if="(child as any).slot === 'search'" v-bind="child" class="w-full">
                   <div class="flex items-center justify-between gap-3">
@@ -363,3 +365,26 @@ onMounted(() => {
   })
 })
 </script>
+
+<style scoped>
+.language-submenu-enter-active,
+.language-submenu-leave-active {
+  overflow: hidden;
+  transition: opacity 160ms ease, transform 160ms ease, max-height 160ms ease;
+  max-height: 6rem;
+}
+
+.language-submenu-enter-from,
+.language-submenu-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .language-submenu-enter-active,
+  .language-submenu-leave-active {
+    transition: none;
+  }
+}
+</style>
