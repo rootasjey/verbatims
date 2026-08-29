@@ -12,7 +12,7 @@
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
           <span class="homepage-v3-footer-wordmark" aria-label="Verbatims">verbatims</span>
-          <span class="homepage-v3-footer-version block mt-2 text-xs font-600 text-gray-500 dark:text-gray-400">
+          <span class="homepage-v3-footer-version block italic ml-1 text-xs font-600 text-gray-500 dark:text-gray-400">
             {{ $t('footer.version') }}: {{ version }}
           </span>
           <p class="mt-2 text-lg text-gray-600 dark:text-gray-400 max-w-sm">

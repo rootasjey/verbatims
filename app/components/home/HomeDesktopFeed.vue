@@ -2,9 +2,8 @@
   <div class="homepage-v3-desktop">
     <!-- Single-column editorial layout -->
     <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
-
       <!-- Center content -->
-      <div class="mt-6 w-full">
+      <div class="w-full">
         <!-- Featured quote (Philosophy section) -->
         <div v-if="featuredQuote" class="homepage-v3-cover mb-4 rounded-2xl px-6 lg:px-10 py-16 lg:py-24 shadow-sm">
           <NuxtLink

@@ -7,18 +7,32 @@
     "
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
-      <div class="flex items-center gap-1">
-        <NuxtLink to="/" @click="handleLogoClick" class="group w-43 px-0 flex justify-start cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
+      <div class="flex items-center gap-3">
+        <NuxtLink to="/" @click="handleLogoClick" class="group w-auto px-0 flex justify-start cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
           <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl relative z-1 transition-colors duration-300 group-hover:text-white dark:group-hover:text-[#0C0A09]">verbatims</span>
           <span class="absolute inset-0 bg-[#0C0A09] dark:bg-[#FAFAF9] w-0 group-hover:w-full transition-all duration-300 ease-out -z-0" />
         </NuxtLink>
-        <div v-if="route.path === '/' && homeTheme" class="hidden sm:block relative">
-          <details ref="themeDetails" class="group">
-            <summary class="list-none cursor-pointer font-sans text-xs text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-gray-100 transition-colors">
-              {{ homeTheme.name }}
-              <span class="ml-1 text-[var(--theme-primary,#6366f1)]">⌄</span>
-            </summary>
-            <div class="absolute left-0 top-8 z-20 w-72 rounded-xl bg-white dark:bg-gray-900 p-4 shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+        <div v-if="route.path === '/' && homeTheme" class="hidden sm:block">
+          <span class="mr-3 inline-block h-3 w-px align-[-0.05em] bg-gray-300/70 dark:bg-white/20" aria-hidden="true" />
+          <NPopover
+            v-model:open="showThemePopover"
+            :_popover-content="{
+              align: 'start',
+              side: 'bottom',
+              sideOffset: 8,
+              class: 'w-72 rounded-xl bg-[#F7F5EF] p-4 text-gray-900 shadow-xl ring-1 ring-black/5 dark:bg-[#1C1917] dark:text-gray-100 dark:ring-white/10'
+            }"
+          >
+            <template #trigger>
+              <button
+                type="button"
+                class="cursor-pointer font-sans font-500 text-xs text-gray-700 transition-colors hover:text-gray-950 dark:text-gray-300 dark:hover:text-gray-100"
+                :aria-label="String($t('home.theme_details'))"
+              >
+                {{ homeTheme.name }}
+              </button>
+            </template>
+            <template #default>
               <div class="flex items-start justify-between gap-3">
                 <p class="font-serif text-lg text-gray-900 dark:text-gray-100">{{ homeTheme.name }}</p>
                 <div class="flex shrink-0 items-center gap-1">
@@ -35,8 +49,7 @@
                     type="button"
                     class="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-gray-100"
                     :aria-label="String($t('close'))"
-                    :title="String($t('close'))"
-                    @click="closeThemeDetails"
+                    @click="showThemePopover = false"
                   >
                     <NIcon name="i-ph-x" class="h-4 w-4" />
                   </button>
@@ -51,8 +64,8 @@
               <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
                 {{ currentDate }}
               </p>
-            </div>
-          </details>
+            </template>
+          </NPopover>
         </div>
         <span v-else class="hidden sm:inline font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
           {{ currentDate }}
@@ -66,38 +79,43 @@
         >
           <template #item-content="{ items: menuItems }">
             <ul class="grid gap-1 p-3 min-w-64 max-w-80">
-              <li v-for="child in menuItems" :key="child.label">
-                <NNavigationMenuContentItem v-bind="child" />
+              <li v-for="child in menuItems" :key="child.label" class="w-full">
+                <template v-if="(child as any).slot === 'language'">
+                  <button type="button" class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/10" :aria-expanded="showLanguageMenu" @click.stop.prevent="showLanguageMenu = !showLanguageMenu">
+                    <NIcon :name="child.leading" class="h-5 w-5 shrink-0" />
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-sm">{{ child.label }}</span>
+                      <span v-if="child.description" class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{{ child.description }}</span>
+                    </span>
+                    <NIcon name="i-lucide-chevron-right" class="h-4 w-4 shrink-0 transition-transform" :class="showLanguageMenu ? 'rotate-90' : ''" />
+                  </button>
+                  <div v-if="showLanguageMenu" class="ml-8 mt-1 grid gap-1 border-l border-gray-200 pl-2 dark:border-white/15">
+                    <button type="button" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10" @click="switchLocale('en')">
+                      <img src="/images/languages/usa.png" alt="" class="h-5 w-5 shrink-0 rounded-[2px] object-cover" />
+                      <span>English</span>
+                    </button>
+                    <button type="button" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-white/10" @click="switchLocale('fr')">
+                      <img src="/images/languages/france.png" alt="" class="h-5 w-5 shrink-0 rounded-[2px] object-cover" />
+                      <span>Français</span>
+                    </button>
+                  </div>
+                </template>
+                <NNavigationMenuContentItem v-else-if="(child as any).slot === 'search'" v-bind="child" class="w-full">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-sm">{{ child.label }}</span>
+                    <span class="inline-flex shrink-0 items-center gap-1">
+                      <NKbd label="⌘" size="sm" />
+                      <NKbd label="K" size="sm" />
+                    </span>
+                  </div>
+                </NNavigationMenuContentItem>
+                <NNavigationMenuContentItem v-else v-bind="child" class="w-full" />
               </li>
             </ul>
           </template>
         </NNavigationMenu>
 
-        <I18nSelector />
-
-        <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
-          <div class="flex">
-            <NTooltip :content="String($t('components.masthead.search'))" placement="bottom">
-              <NButton
-                icon
-                btn="ghost-gray"
-                label="i-ph-magnifying-glass-duotone"
-                @click="showSearch = true"
-              />
-            </NTooltip>
-
-            <UserMenu v-if="user" :user="user" />
-
-            <NTooltip v-else :content="String($t('components.masthead.sign_in'))">
-              <NButton
-                icon
-                btn="ghost-gray"
-                label="i-lucide-log-in"
-                to="/login"
-              />
-            </NTooltip>
-          </div>
-        </div>
+        <UserMenu v-if="user" :user="user" />
       </div>
     </div>
   </div>
@@ -121,15 +139,16 @@
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n() as any
+const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
 const { user } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
-const themeDetails = ref<HTMLDetailsElement | null>(null)
 const scrollY = ref(0)
 const showSearch = ref(false)
+const showThemePopover = ref(false)
+const showLanguageMenu = ref(false)
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
 const reportTargetType: Ref<ReportTargetType> = ref('general')
@@ -140,8 +159,8 @@ const currentDate = computed(() => {
   return now.toLocaleDateString(locale.value === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 })
 
-const closeThemeDetails = () => {
-  if (themeDetails.value) themeDetails.value.open = false
+const switchLocale = (value: string) => {
+  $switchLocale(value)
 }
 
 const shareTheme = async () => {
@@ -162,28 +181,35 @@ const navMenuItems = computed((): any[] => [
     trailing: '',
     items: [
       {
-        label: $t('nav.authors'),
-        leading: 'i-ph-users-duotone',
-        description: $t('nav.authors_desc'),
+        label: $t('nav.browse_authors'),
         to: '/authors'
       },
       {
-        label: $t('nav.references'),
-        leading: 'i-ph-book-duotone',
-        description: $t('nav.references_desc'),
+        label: $t('nav.browse_references'),
         to: '/references'
       },
       {
-        label: $t('nav.quotes'),
-        leading: 'i-ph-quotes',
-        description: $t('nav.quotes_desc'),
+        label: $t('nav.browse_quotes'),
         to: '/quotes'
       },
       {
-        label: $t('nav.tags'),
-        leading: 'i-ph-tag-duotone',
-        description: $t('nav.tags_desc'),
+        label: $t('nav.browse_tags'),
         to: '/tags'
+      },
+      {
+        slot: 'search',
+        label: $t('nav.search'),
+        onclick: () => { showSearch.value = true }
+      },
+      {
+        slot: 'language',
+        label: $t('components.dialogs.language'),
+        leading: 'i-ph-translate-duotone',
+        description: $t('components.dialogs.select_language'),
+        items: [
+          { label: 'English' },
+          { label: 'Français' }
+        ]
       },
     ]
   },
@@ -191,16 +217,19 @@ const navMenuItems = computed((): any[] => [
     label: $t('nav.contribute'),
     trailing: '',
     items: [
+      ...(!user.value ? [{
+        label: $t('nav.sign_in'),
+        leading: 'i-lucide-log-in',
+        to: '/login'
+      }] : []),
       {
         label: $t('nav.add_quote'),
         leading: 'i-ph-quotes-duotone',
-        description: $t('nav.add_quote_desc'),
         onclick: () => { showAddQuote.value = true }
       },
       {
         label: $t('nav.suggest_edit'),
         leading: 'i-ph-pencil-duotone',
-        description: $t('nav.suggest_edit_desc'),
         onclick: () => {
           reportTargetType.value = 'quote'
           reportCategory.value = 'content'
@@ -210,7 +239,6 @@ const navMenuItems = computed((): any[] => [
       {
         label: $t('nav.report_issue'),
         leading: 'i-ph-bug-duotone',
-        description: $t('nav.report_issue_desc'),
         onclick: () => {
           reportCategory.value = 'bug'
           showReportDrawer.value = true
@@ -236,7 +264,6 @@ const navMenuItems = computed((): any[] => [
       {
         label: $t('nav.contact'),
         leading: 'i-ph-envelope-duotone',
-        description: $t('nav.contact_desc'),
         onclick: () => {
           reportTargetType.value = 'general'
           reportCategory.value = 'feedback'
@@ -246,19 +273,16 @@ const navMenuItems = computed((): any[] => [
       {
         label: $t('nav.privacy'),
         leading: 'i-ph-shield-check-duotone',
-        description: $t('nav.privacy_desc'),
         to: '/privacy'
       },
       {
         label: $t('nav.terms'),
         leading: 'i-ph-file-text-duotone',
-        description: $t('nav.terms_desc'),
         to: '/terms'
       },
       {
         label: $t('nav.licenses'),
         leading: 'i-ph-book-open-duotone',
-        description: $t('nav.licenses_desc'),
         to: '/licenses'
       },
       {
