@@ -42,11 +42,13 @@
     </div>
     <div class="homepage-v3-cover-actions mb-14 flex items-center justify-center gap-3">
       <a
-        href="#home-exploration"
-        class="homepage-v3-primary inline-flex items-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-colors"
+        :href="hasScrolled ? '#top' : '#home-exploration'"
+        :class="hasScrolled ? 'w-48' : 'w-44'"
+        class="homepage-v3-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 font-sans text-xs font-600 transition-[width,colors] duration-300"
+        @click="handleExploreClick"
       >
-        {{ $t('home.explore_theme') }}
-        <NIcon name="i-lucide-arrow-down" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+        <span>{{ $t(hasScrolled ? 'home.back_to_cover' : 'home.explore_theme') }}</span>
+        <NIcon :name="hasScrolled ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'" class="ml-2 h-3.5 w-3.5" aria-hidden="true" />
       </a>
       <div class="homepage-v3-actions mt-0 flex items-center gap-1">
         <NTooltip :content="String($t('home.copy_quote'))">
@@ -112,7 +114,7 @@
         </p>
       </div>
       <div class="homepage-v3-rich-grid mt-10 grid grid-cols-2">
-        <div v-for="item in quotesList.slice(4, 10)" :key="item.id" class="homepage-v3-rich-item group">
+        <div v-for="item in quotesList.slice(4, 10)" :key="item.id" class="homepage-v3-rich-item group" @mousemove="trackRichItemPointer" @mouseleave="resetRichItemPointer">
           <NuxtLink :to="`/quotes/${item.id}`" class="block">
             <blockquote :class="['font-serif leading-[1.08] tracking-[-0.02em] text-gray-900 dark:text-gray-100', richQuoteClass(item.name)]">
               {{ item.name.length > 120 ? `${item.name.slice(0, 117)}…` : item.name }}
@@ -339,6 +341,21 @@ const emit = defineEmits<{
   newQuote: []
 }>()
 
+const hasScrolled = ref(false)
+
+onMounted(() => {
+  const updateScrollState = () => { hasScrolled.value = window.scrollY > 80 }
+  updateScrollState()
+  window.addEventListener('scroll', updateScrollState, { passive: true })
+  onBeforeUnmount(() => window.removeEventListener('scroll', updateScrollState))
+})
+
+const handleExploreClick = (event: MouseEvent) => {
+  event.preventDefault()
+  if (hasScrolled.value) window.scrollTo({ top: 0, behavior: 'smooth' })
+  else document.querySelector('#home-exploration')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 const featuredQuote = computed(() => {
   const qs = props.feed.quotes.value || []
   return qs[0] || null
@@ -379,6 +396,30 @@ const coverQuoteClass = (text: string) => {
   if (text.length <= 130) return 'text-3xl'
   if (text.length <= 210) return 'text-2xl'
   return 'text-xl'
+}
+
+const trackRichItemPointer = (event: MouseEvent) => {
+  const item = event.currentTarget as HTMLElement
+  const rect = item.getBoundingClientRect()
+  const threshold = Math.min(84, Math.max(40, Math.min(rect.width, rect.height) * 0.24))
+  const intensity = (distance: number) => Math.max(0, Math.min(1, 1 - distance / threshold)) * 0.58
+  const x = event.clientX - rect.left
+  const y = event.clientY - rect.top
+
+  item.style.setProperty('--rich-edge-top', intensity(y).toFixed(3))
+  item.style.setProperty('--rich-edge-right', intensity(rect.width - x).toFixed(3))
+  item.style.setProperty('--rich-edge-bottom', intensity(rect.height - y).toFixed(3))
+  item.style.setProperty('--rich-edge-left', intensity(x).toFixed(3))
+  item.style.setProperty('--rich-edge-opacity', '1')
+}
+
+const resetRichItemPointer = (event: MouseEvent) => {
+  const item = event.currentTarget as HTMLElement
+  item.style.setProperty('--rich-edge-top', '0')
+  item.style.setProperty('--rich-edge-right', '0')
+  item.style.setProperty('--rich-edge-bottom', '0')
+  item.style.setProperty('--rich-edge-left', '0')
+  item.style.setProperty('--rich-edge-opacity', '0')
 }
 
 const authorNameClass = (name: string) => {
