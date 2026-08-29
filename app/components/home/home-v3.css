@@ -10,6 +10,9 @@
 .homepage-v3-cover {
   --cover-ink: #272522;
   --cover-muted: rgba(39, 37, 34, 0.64);
+  --cover-stripe-x: 50%;
+  --cover-stripe-y: 50%;
+  --cover-stripe-highlight-opacity: 0;
   position: relative;
   isolation: isolate;
   display: flex;
@@ -20,9 +23,7 @@
   overflow: hidden;
   color: var(--cover-ink);
   text-align: center;
-  background:
-    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.56), transparent 34%),
-    linear-gradient(135deg, #e5e2db 0%, #d8d5ce 52%, #eeece6 100%);
+  background: linear-gradient(135deg, #dedbd4 0%, #d2cfc8 52%, #e2dfd8 100%);
 }
 
 .homepage-v3-cover::before,
@@ -35,11 +36,18 @@
 }
 
 .homepage-v3-cover::before {
-  opacity: 0.42;
-  background:
-    radial-gradient(ellipse at 14% 86%, rgba(111, 107, 99, 0.16), transparent 42%),
-    radial-gradient(ellipse at 86% 8%, rgba(255, 255, 255, 0.36), transparent 38%);
-  filter: blur(18px);
+  z-index: 0;
+  width: 160%;
+  height: 2px;
+  top: var(--cover-stripe-y);
+  left: var(--cover-stripe-x);
+  right: auto;
+  bottom: auto;
+  opacity: var(--cover-stripe-highlight-opacity);
+  background: rgba(39, 37, 34, 0.5);
+  box-shadow: none;
+  transform: translate(-50%, -50%) rotate(115deg);
+  transition: opacity 180ms ease;
 }
 
 .homepage-v3-cover::after {
@@ -51,15 +59,28 @@
 .dark .homepage-v3-cover {
   --cover-ink: #f2eee7;
   --cover-muted: rgba(242, 238, 231, 0.68);
-  background:
-    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.08), transparent 34%),
-    linear-gradient(135deg, #343431 0%, #252522 54%, #44413b 100%);
+  background: linear-gradient(135deg, #2b2b29 0%, #222220 54%, #30302d 100%);
 }
 
 .dark .homepage-v3-cover::after {
   opacity: 0.14;
   background: repeating-linear-gradient(115deg, transparent 0 4px, rgba(242, 238, 231, 0.1) 5px, transparent 6px 12px);
   mix-blend-mode: screen;
+}
+
+.dark .homepage-v3-cover::before {
+  background: rgba(242, 238, 231, 0.42);
+  box-shadow: none;
+}
+
+.homepage-v3-cover > * { position: relative; z-index: 1; }
+
+@media (hover: none), (pointer: coarse) {
+  .homepage-v3-cover::before { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-v3-cover::before { transition: none; }
 }
 
 .homepage-v3-quote {
@@ -174,11 +195,31 @@
 }
 
 .homepage-v3-rich-item {
+  --rich-edge-opacity: 0;
+  --rich-edge-top: 0;
+  --rich-edge-right: 0;
+  --rich-edge-bottom: 0;
+  --rich-edge-left: 0;
+  position: relative;
   min-width: 0;
   box-sizing: border-box;
   min-height: 220px;
   padding: 25px 22px 24px 0;
   border-bottom: 1px solid rgba(120, 120, 120, 0.22);
+}
+
+.homepage-v3-rich-item::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  opacity: var(--rich-edge-opacity);
+  background:
+    linear-gradient(to bottom, rgba(39 37 34 / var(--rich-edge-top)), transparent) 0 0 / 100% 1px no-repeat,
+    linear-gradient(to left, rgba(39 37 34 / var(--rich-edge-right)), transparent) 100% 0 / 1px 100% no-repeat,
+    linear-gradient(to top, rgba(39 37 34 / var(--rich-edge-bottom)), transparent) 0 100% / 100% 1px no-repeat,
+    linear-gradient(to right, rgba(39 37 34 / var(--rich-edge-left)), transparent) 0 0 / 1px 100% no-repeat;
+  transition: opacity 180ms ease;
 }
 
 .homepage-v3-rich-item:not(:nth-child(3n + 1)) {
@@ -193,6 +234,21 @@
 
 .dark .homepage-v3-rich-grid,
 .dark .homepage-v3-rich-item { border-color: rgba(220, 220, 220, 0.16); }
+.dark .homepage-v3-rich-item::after {
+  background:
+    linear-gradient(to bottom, rgba(242 238 231 / var(--rich-edge-top)), transparent) 0 0 / 100% 1px no-repeat,
+    linear-gradient(to left, rgba(242 238 231 / var(--rich-edge-right)), transparent) 100% 0 / 1px 100% no-repeat,
+    linear-gradient(to top, rgba(242 238 231 / var(--rich-edge-bottom)), transparent) 0 100% / 100% 1px no-repeat,
+    linear-gradient(to right, rgba(242 238 231 / var(--rich-edge-left)), transparent) 0 0 / 1px 100% no-repeat;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .homepage-v3-rich-item::after { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-v3-rich-item::after { transition: none; }
+}
 
 .homepage-v3-person {
   position: relative;
