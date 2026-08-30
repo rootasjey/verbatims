@@ -331,6 +331,7 @@
                         <NTooltip :content="$t('dialog_i18n_remove_translation')?.toString()">
                           <NButton btn="soft-gray" class="h-8 w-8" @click="removeTranslation(idx)"><NIcon name="i-ph-x" class="w-4 h-4" /></NButton>
                         </NTooltip>
+                        <NInput v-model="t.home_copy_json" class="col-span-full" type="textarea" :rows="2" placeholder="Homepage editorial copy (JSON)" size="sm" :disabled="submitting" />
                       </div>
                       <p v-if="translations.length === 0" class="animate-fade-in text-sm text-gray-500 dark:text-gray-400">{{ $t('dialog_i18n_empty') }}</p>
                     </div>
@@ -1103,7 +1104,17 @@ const applySuggestion = (index: number) => {
 }
 
 let translationKeyCounter = 0
-const translations = ref<{ _key: number; language: string; name: string; description: string }[]>([])
+const translations = ref<{ _key: number; language: string; name: string; description: string; home_copy_json: string }[]>([])
+
+const parseHomeCopy = (value: string) => {
+  if (!value.trim()) return null
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
 
 const form = ref({
   slug: '',
@@ -1267,6 +1278,7 @@ const duplicateTheme = async (theme: any) => {
       language: t.language,
       name: t.name,
       description: t.description || '',
+      home_copy_json: typeof t.home_copy === 'string' ? t.home_copy : (t.home_copy ? JSON.stringify(t.home_copy, null, 2) : ''),
     }))
     initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: undefined as number | undefined, type: f.type, value: f.value }))
@@ -1386,7 +1398,7 @@ const addTranslation = () => {
     useToast().toast({ toast: 'outline-warning', title: $t('toast_all_langs') as string })
     return
   }
-  translations.value.push({ _key: translationKeyCounter++, language: nextLang, name: '', description: '' })
+  translations.value.push({ _key: translationKeyCounter++, language: nextLang, name: '', description: '', home_copy_json: '' })
 }
 
 const removeTranslation = (idx: number) => {
@@ -1457,6 +1469,7 @@ const openEdit = async (theme: any) => {
       language: t.language,
       name: t.name,
       description: t.description || '',
+      home_copy_json: typeof t.home_copy === 'string' ? t.home_copy : (t.home_copy ? JSON.stringify(t.home_copy, null, 2) : ''),
     }))
     initPickerValues(colorPrimary, colorSecondary)
     filters.value = (data.filters || []).map((f: any) => ({ id: f.id, type: f.type, value: f.value }))
@@ -1828,7 +1841,7 @@ const saveTheme = async () => {
       language: form.value.language || null,
       translations: translations.value
         .filter(t => t.language && t.name.trim())
-        .map(t => ({ language: t.language, name: t.name.trim(), description: t.description.trim() || null })),
+        .map(t => ({ language: t.language, name: t.name.trim(), description: t.description.trim() || null, home_copy: parseHomeCopy(t.home_copy_json) })),
       is_active: form.value.is_active,
       is_default: form.value.is_default,
       scheduled_start: form.value.scheduled_start || null,

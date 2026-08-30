@@ -591,6 +591,7 @@ export const themeTranslations = sqliteTable('theme_translations', {
   language: text('language').notNull(),
   name: text('name').notNull(),
   description: text('description'),
+  homeCopy: text('home_copy'),
 }, (table) => ({
   themeIdx: index('idx_theme_translations_theme').on(table.themeId),
   languageIdx: index('idx_theme_translations_language').on(table.language),

@@ -92,14 +92,14 @@
         <!-- Editorial introduction -->
         <section v-if="opinionQuotes.length" id="home-exploration" class="homepage-v3-editorial mx-4 mb-24 scroll-mt-24 pt-14">
           <p class="font-sans font-600 text-xs uppercase tracking-[0.2em] text-[#9B7A30]">
-            {{ $t('home.editorial_label') }}
+            {{ homeCopy.label }}
           </p>
           <div class="mt-8 mb-12 space-y-2">
             <h2 class="font-serif text-3xl leading-[0.98] tracking-[-0.025em] text-gray-900 dark:text-gray-100 lg:text-4xl">
-              {{ $t('home.editorial_title') }}
+              {{ homeCopy.title }}
             </h2>
             <p class="max-w-md font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              {{ $t('home.editorial_desc') }}
+              {{ homeCopy.description }}
             </p>
           </div>
           <div
@@ -139,7 +139,7 @@
                 {{ $t('nav.references') }}
               </h2>
               <p class="max-w-md font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-                {{ $t('home.references_section_desc') }}
+                {{ homeCopy.referencesDescription }}
               </p>
             </div>
           </div>
@@ -163,10 +163,10 @@
         <section v-if="storyQuotes.length" class="homepage-v3-rich mx-4 mb-14">
           <div class="homepage-v3-rich-head flex items-baseline justify-between gap-5">
             <h2 class="font-serif font-500 text-4xl leading-none tracking-[-0.035em] text-gray-900 dark:text-gray-100 lg:text-6xl">
-              {{ $t('home.rich_quotes_title') }}
+              {{ homeCopy.richTitle }}
             </h2>
             <p class="max-w-sm font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-              {{ $t('home.rich_quotes_desc') }}
+              {{ homeCopy.richDescription }}
             </p>
           </div>
           <div class="homepage-v3-rich-grid mt-12 grid md:grid-cols-3">
@@ -194,7 +194,7 @@
                 {{ $t('nav.authors') }}
               </h2>
               <p class="max-w-xl font-sans text-md leading-relaxed text-white/60">
-                {{ $t('home.authors_section_desc') }}
+                {{ homeCopy.authorsDescription }}
               </p>
             </div>
             <div class="flex shrink-0 items-center gap-2">
@@ -278,6 +278,7 @@ interface Props {
     description: string | null
     image_url: string | null
     config: Record<string, any> | null
+    home_copy?: Record<string, string> | null
   } | null
 }
 
@@ -285,6 +286,16 @@ const props = withDefaults(defineProps<Props>(), {
   stats: () => ({ quotes: 0, authors: 0, references: 0 }),
   theme: null
 })
+
+const homeCopy = computed(() => ({
+  label: props.theme?.home_copy?.editorialLabel || $t('home.editorial_label'),
+  title: props.theme?.home_copy?.editorialTitle || $t('home.editorial_title'),
+  description: props.theme?.home_copy?.editorialDescription || $t('home.editorial_desc'),
+  richTitle: props.theme?.home_copy?.richQuotesTitle || $t('home.rich_quotes_title'),
+  richDescription: props.theme?.home_copy?.richQuotesDescription || $t('home.rich_quotes_desc'),
+  authorsDescription: props.theme?.home_copy?.authorsDescription || $t('home.authors_section_desc'),
+  referencesDescription: props.theme?.home_copy?.referencesDescription || $t('home.references_section_desc'),
+}))
 
 const showSearch = ref(false)
 const hasScrolled = ref(false)

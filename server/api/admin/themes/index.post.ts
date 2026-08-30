@@ -53,11 +53,12 @@ export default defineEventHandler(async (event) => {
 
     if (translations.length > 0) {
       await db.insert(schema.themeTranslations).values(
-        translations.map((t: { language: string; name: string; description?: string | null }) => ({
+          translations.map((t: { language: string; name: string; description?: string | null; home_copy?: object | null }) => ({
           themeId: theme.id,
           language: t.language,
           name: t.name,
-          description: t.description || null,
+            description: t.description || null,
+            homeCopy: t.home_copy ? JSON.stringify(t.home_copy) : null,
         }))
       )
     }

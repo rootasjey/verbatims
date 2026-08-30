@@ -104,6 +104,7 @@ const themeData = ref<{
   description: string | null
   image_url: string | null
   config: Record<string, any> | null
+  home_copy?: Record<string, string> | null
 } | null>(null)
 const activeHomeTheme = useState<typeof themeData.value>('active-home-theme', () => null)
 

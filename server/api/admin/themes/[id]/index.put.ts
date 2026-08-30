@@ -81,11 +81,12 @@ export default defineEventHandler(async (event) => {
 
       if (body.translations.length > 0) {
         stmts.push(db.insert(schema.themeTranslations).values(
-          body.translations.map((t: { language: string; name: string; description?: string | null }) => ({
+          body.translations.map((t: { language: string; name: string; description?: string | null; home_copy?: object | null }) => ({
             themeId,
             language: t.language,
             name: t.name,
             description: t.description || null,
+            homeCopy: t.home_copy ? JSON.stringify(t.home_copy) : null,
           }))
         ))
       }

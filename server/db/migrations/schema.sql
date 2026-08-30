@@ -824,6 +824,7 @@ CREATE TABLE IF NOT EXISTS theme_translations (
   language TEXT NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
+  home_copy TEXT,
   UNIQUE(theme_id, language)
 );
 CREATE INDEX IF NOT EXISTS idx_theme_translations_theme ON theme_translations(theme_id);

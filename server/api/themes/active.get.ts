@@ -1,11 +1,14 @@
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
+import { parseThemeHomeCopy } from '~~/server/utils/theme'
+import type { ThemeHomeCopy } from '~~/shared/types/theme'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<{
   slug: string
   name: string
   description: string | null
   config: Record<string, any> | null
+  home_copy: ThemeHomeCopy | null
   filters_count: number
 } | null>> => {
   try {
@@ -54,6 +57,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
     ])
 
     const localized = resolveLocalizedField(translations, language, theme.name, theme.description)
+    const localizedTranslation = language ? translations.find(t => t.language === language) : undefined
 
     return {
       success: true,
@@ -62,6 +66,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<{
         name: localized.name,
         description: localized.description,
         config,
+        home_copy: parseThemeHomeCopy(localizedTranslation?.home_copy),
         filters_count: filters.length,
       },
     }
