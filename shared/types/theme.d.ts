@@ -4,6 +4,17 @@ export interface ThemeTranslation {
   language: string
   name: string
   description: string | null
+  home_copy?: ThemeHomeCopy | null
+}
+
+export interface ThemeHomeCopy {
+  editorialLabel?: string
+  editorialTitle?: string
+  editorialDescription?: string
+  richQuotesTitle?: string
+  richQuotesDescription?: string
+  authorsDescription?: string
+  referencesDescription?: string
 }
 
 export interface Theme {
@@ -38,6 +49,7 @@ export interface CreateThemeTranslationData {
   language: string
   name: string
   description?: string | null
+  home_copy?: ThemeHomeCopy | null
 }
 
 export interface CreateThemeData {

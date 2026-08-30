@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, and, like, inArray, desc } from 'drizzle-orm'
 import { combineFilterMatchSets, getThemeContentLanguages } from './theme-selection'
 import { getPrimaryQuoteProvenance } from './quote-provenance'
+import type { ThemeHomeCopy } from '~~/shared/types/theme'
 
 type QuoteLanguage = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'ja' | 'zh' | 'la'
 
@@ -11,6 +12,17 @@ export interface ThemeTranslationRow {
   language: string
   name: string
   description: string | null
+  home_copy: string | null
+}
+
+export function parseThemeHomeCopy(value: string | null | undefined): ThemeHomeCopy | null {
+  if (!value) return null
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object' ? parsed as ThemeHomeCopy : null
+  } catch {
+    return null
+  }
 }
 
 export interface ThemeRow {

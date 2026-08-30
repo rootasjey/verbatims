@@ -76,9 +76,9 @@
 
     <!-- ── Editorial Introduction ── -->
     <section v-if="quotesList.length > 1" id="home-exploration" class="homepage-v3-editorial mb-16 px-6 py-14 scroll-mt-20">
-      <p class="font-sans text-xs uppercase tracking-[0.2em] text-[#9B7A30]">{{ $t('home.editorial_label') }}</p>
-      <h2 class="mt-5 font-serif text-2xl leading-[0.98] tracking-[-0.02em] text-gray-900 dark:text-gray-100">{{ $t('home.editorial_title') }}</h2>
-      <p class="mt-5 max-w-xs font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">{{ $t('home.editorial_desc') }}</p>
+      <p class="font-sans text-xs uppercase tracking-[0.2em] text-[#9B7A30]">{{ homeCopy.label }}</p>
+      <h2 class="mt-5 font-serif text-2xl leading-[0.98] tracking-[-0.02em] text-gray-900 dark:text-gray-100">{{ homeCopy.title }}</h2>
+      <p class="mt-5 max-w-xs font-sans text-base leading-relaxed text-gray-500 dark:text-gray-400">{{ homeCopy.description }}</p>
       <div class="mt-12 block group">
         <NuxtLink :to="`/quotes/${quotesList[1]!.id}`" class="block">
           <blockquote class="font-serif text-4xl leading-[0.98] tracking-[-0.035em] text-gray-900 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300">{{ quotesList[1]!.name }}</blockquote>
@@ -107,10 +107,10 @@
     <section v-if="quotesList.length > 4" class="homepage-v3-rich mx-6 py-14">
       <div class="homepage-v3-rich-head space-y-2">
         <h2 class="font-serif font-400 text-3xl leading-none tracking-[-0.03em] text-stone-700 dark:text-stone-300">
-          {{ $t('home.rich_quotes_title') }}
+          {{ homeCopy.richTitle }}
         </h2>
         <p class="max-w-xs font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-          {{ $t('home.rich_quotes_desc') }}
+          {{ homeCopy.richDescription }}
         </p>
       </div>
       <div class="homepage-v3-rich-grid mt-10 grid grid-cols-2">
@@ -138,7 +138,7 @@
             {{ $t('home.nav.authors') }}
           </h2>
           <p class="mt-3 max-w-xs font-sans text-sm leading-relaxed text-white/60">
-            {{ $t('home.authors_section_desc') }}
+          {{ homeCopy.authorsDescription }}
           </p>
         </div>
 
@@ -198,7 +198,7 @@
             {{ $t('home.nav.references') }}
           </h2>
           <p class="mt-3 max-w-xs font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-            {{ $t('home.references_section_desc') }}
+            {{ homeCopy.referencesDescription }}
           </p>
         </div>
       </div>
@@ -324,6 +324,7 @@ interface Props {
     description: string | null
     image_url: string | null
     config: Record<string, any> | null
+    home_copy?: Record<string, string> | null
   } | null
   stats?: {
     quotes: number
@@ -336,6 +337,16 @@ const props = withDefaults(defineProps<Props>(), {
   theme: null,
   stats: undefined
 })
+
+const homeCopy = computed(() => ({
+  label: props.theme?.home_copy?.editorialLabel || $t('home.editorial_label'),
+  title: props.theme?.home_copy?.editorialTitle || $t('home.editorial_title'),
+  description: props.theme?.home_copy?.editorialDescription || $t('home.editorial_desc'),
+  richTitle: props.theme?.home_copy?.richQuotesTitle || $t('home.rich_quotes_title'),
+  richDescription: props.theme?.home_copy?.richQuotesDescription || $t('home.rich_quotes_desc'),
+  authorsDescription: props.theme?.home_copy?.authorsDescription || $t('home.authors_section_desc'),
+  referencesDescription: props.theme?.home_copy?.referencesDescription || $t('home.references_section_desc'),
+}))
 
 const emit = defineEmits<{
   newQuote: []
