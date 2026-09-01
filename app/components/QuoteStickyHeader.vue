@@ -1,11 +1,12 @@
 <template>
   <!-- Sticky Top Header: compact title + stats/actions -->
-  <div v-if="quote" class="sticky top-[60px] md:top-[61px] z-1 border-b border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+  <Transition name="quote-context-bar">
+  <div v-if="quote && visible" class="sticky top-[60px] md:top-[60px] z-1 bg-[#F7F5EF]/95 dark:bg-[#0C0A09]/95 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex flex-wrap items-center justify-between gap-1.5 md:gap-3">
         <!-- Left: compact quote title and context (hidden on mobile — visible in hero below) -->
         <div class="hidden md:flex min-w-0 items-center gap-3">
-          <NTooltip :content="$t('components.quote_sticky.back')" :_tooltip-content="{ side: 'bottom' }">
+            <NTooltip :content="String($t('components.quote_sticky.back'))" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               icon
               btn="ghost-gray"
@@ -16,9 +17,8 @@
               <NIcon name="i-ph-arrow-left-bold" />
             </NButton>
           </NTooltip>
-          <NIcon name="i-ph-quotes" class="w-5 h-5 text-gray-400" />
           <div class="truncate">
-            <div class="text-sm font-serif text-gray-900 dark:text-white truncate">"{{ headerTitle }}"</div>
+            <div class="text-sm font-serif text-gray-900 dark:text-white truncate">{{ headerTitle }}</div>
             <div class="text-xs sm:text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
               <template v-if="quote.author || quote.reference">
                 <NuxtLink
@@ -43,103 +43,27 @@
           </div>
         </div>
 
-        <!-- Middle: stats chips -->
-        <div class="flex items-center gap-2 md:gap-2">
-          <NTooltip :content="$t('components.quote_sticky.back')" :_tooltip-content="{ side: 'bottom' }">
+        <!-- Mobile back control -->
+        <div class="flex items-center md:hidden">
+          <NTooltip :content="String($t('components.quote_sticky.back'))" :_tooltip-content="{ side: 'bottom' }">
             <NButton
               icon
               btn="soft-gray"
               size="xs"
               label="i-lucide-chevron-left"
-              class="md:hidden bg-gray-100 dark:bg-gray-800 min-w-0 min-h-0 p-1 h-auto w-auto rounded-2"
+              class="md:hidden min-w-0 min-h-0 p-1 h-auto w-auto rounded-full"
               @click.stop="$emit('navigate-back')"
             />
           </NTooltip>
 
-          <NTooltip :content="$t('components.quote_sticky.views')" :_tooltip-content="{ side: 'bottom' }">
-            <div class="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1 rounded-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-              <NIcon name="i-ph-eye-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5" />
-              <span class="text-xs md:text-xs font-500">{{ formatNumber(quote.views_count || 0) }}</span>
-            </div>
-          </NTooltip>
-
-          <NTooltip :content="$t('components.quote_sticky.shares')" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              btn="~"
-              size="xs"
-              :disabled="sharePending"
-              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-2 text-gray-600 hover:text-primary-600 bg-gray-100 dark:bg-gray-800 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
-              @click="$emit('share')"
-            >
-              <NIcon name="i-ph-share-network-duotone" class="w-3 md:w-3.5 h-3 md:h-3.5 mr-0.5 md:mr-1" />
-              <span class="text-2xs md:text-xs" :class="[sharePending && 'animate-pulse']">{{ formatNumber(quote.shares_count || 0) }}</span>
-            </NButton>
-          </NTooltip>
-
-          <NTooltip :content="$t('components.quote_sticky.likes')" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              btn="~"
-              size="xs"
-              :disabled="!user || likePending"
-              :class="[
-                'min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full',
-                isLiked
-                  ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
-                !user && 'cursor-not-allowed opacity-50'
-              ]"
-              @click="$emit('toggle-like')"
-            >
-              <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart-duotone'" :class="['w-3 md:w-3.5 h-3 md:h-3.5 mr-0.5 md:mr-1', likePending && 'animate-pulse']" />
-              <span class="text-2xs md:text-xs">{{ formatNumber(quote.likes_count || 0) }}</span>
-            </NButton>
-          </NTooltip>
-        </div>
-
-        <!-- Right: quick actions -->
-        <div class="flex items-center gap-1 md:gap-2">
-            <NTooltip :content="$t('components.quote_sticky.copy_link')" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              :btn="copyState === 'copied' ? 'soft-green' : 'soft-gray'"
-              size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full"
-              @click="$emit('copy-link')"
-            >
-              <NIcon :name="copyState === 'copied' ? 'i-ph-check' : 'i-ph-link'" class="w-3.5 h-3.5 mr-1" />
-              <span class="hidden sm:inline">{{ copyState === 'copied' ? $t('components.quote_sticky.copied') : $t('components.quote_sticky.copy') }}</span>
-            </NButton>
-          </NTooltip>
-
-            <NTooltip :content="$t('components.quote_sticky.save')" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              :btn="savedState === 'saved' ? 'soft-green' : 'soft-blue'"
-              size="xs"
-              :disabled="!user"
-              class="min-w-0 min-h-0 h-auto w-auto px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full"
-              @click="$emit('add-to-collection')"
-            >
-              <NIcon :name="savedState === 'saved' ? 'i-ph-check' : 'i-ph-folder-plus'" class="w-3.5 h-3.5 mr-1" />
-              <span class="hidden sm:inline">{{ savedState === 'saved' ? 'Saved' : 'Save' }}</span>
-            </NButton>
-          </NTooltip>
-
-          <NDropdownMenu :items="menuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'end' }" class="font-sans">
-            <NButton
-              icon
-              btn="ghost-gray"
-              label="i-ph-dots-three-vertical-bold"
-              size="xs"
-              class="min-w-0 min-h-0 h-auto w-auto p-1 md:px-2.5 md:py-1 rounded-full"
-              title="            {{ $t('components.quote_sticky.more') }}"
-            />
-          </NDropdownMenu>
-        </div>
+      </div>
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
   quote: { type: Object, required: true },
   user: { type: Object, default: null },
@@ -148,7 +72,8 @@ const props = defineProps({
   sharePending: { type: Boolean, default: false },
   savedState: { type: String, default: 'idle' },
   copyState: { type: String, default: 'idle' },
-  menuItems: { type: Array, default: () => [] }
+  menuItems: { type: Array, default: () => [] },
+  visible: { type: Boolean, default: false }
 })
 
 const { $t } = useI18n()

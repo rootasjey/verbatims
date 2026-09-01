@@ -1,16 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-[#0C0A09]">
+  <div class="quote-detail-page min-h-screen bg-[#F7F5EF] dark:bg-[#0C0A09]">
     <!-- Sticky Header (client-only to avoid SSR hydration mismatch due to teleports/popovers) -->
     <ClientOnly>
       <QuoteStickyHeader
         v-if="quote"
         class="animate-fade-in animate-duration-300 animate-ease-out"
         :quote="quote"
-        :user="user"
+        :user="user || undefined"
         :is-liked="isLiked"
         :like-pending="likePending"
         :share-pending="sharePending"
         :saved-state="savedState"
+        :visible="showQuoteContextBar"
         :copy-state="copyState"
         :menu-items="headerMenuItems"
         @toggle-like="toggleLike"
@@ -38,20 +39,17 @@
       </div>
     </div>
 
-    <div v-else-if="quote" class="px-4 md:px-8 py-8 md:py-16">
-      <div class="max-w-5xl mx-auto space-y-8">
+    <div v-else-if="quote" class="px-4 md:px-8 py-8 md:py-12">
+      <div class="max-w-6xl mx-auto">
         <!-- Quote Hero -->
-        <div class="py-20 md:py-32 relative overflow-hidden">
-          <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:20px_20px] opacity-80" />
-          <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
-          <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
-          <div class="relative px-4">
+        <div ref="quoteHero" class="quote-detail-hero pb-4 md:py-40" :class="quoteHeroSpacing">
+          <div class="px-2 md:px-8">
             <blockquote
-              class="font-serif font-300 leading-tight break-words [overflow-wrap:anywhere] text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
+              class="mx-auto max-w-5xl font-serif font-300 leading-[0.98] tracking-[-0.04em] break-words [overflow-wrap:anywhere] text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
               :class="[quoteTextSize, quoteTextIn ? 'opacity-100 blur-0' : 'opacity-0 blur-sm']">
               {{ quote.name }}
             </blockquote>
-            <div class="mt-12 transform-gpu transition-all duration-700 ease-out"
+            <div class="mt-14 transform-gpu transition-all duration-700 ease-out"
               :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'">
               <MobileQuoteAuthorReference :quote="quote" v-if="isMobile" />
               <QuoteAuthorReference v-else :quote="quote" signature />
@@ -59,23 +57,41 @@
           </div>
         </div>
 
+        <!-- Quiet actions -->
+        <div class="mt-6 mb-2 flex flex-nowrap items-center justify-center gap-x-5 overflow-x-auto px-2 text-xs font-600 uppercase tracking-[0.12em] text-stone-500 scrollbar-none dark:text-stone-400 md:mt-18 md:overflow-visible">
+          <button v-if="user" type="button" :aria-label="isLiked ? 'Liked' : 'Like'" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="toggleLike">
+            <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" class="h-4 w-4 md:hidden" />
+            <span class="hidden md:inline">{{ isLiked ? 'Liked' : 'Like' }}</span>
+          </button>
+          <button type="button" aria-label="Share" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="shareQuote">
+            <NIcon name="i-lucide-share" class="h-4 w-4 md:hidden" />
+            <span class="hidden md:inline">Share</span>
+          </button>
+          <button type="button" aria-label="Download image" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="downloadQuote">
+            <NIcon name="i-lucide-download" class="h-4 w-4 md:hidden" />
+            <span class="hidden md:inline">Download image</span>
+          </button>
+          <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'center' }" class="font-sans">
+            <button type="button" aria-label="More actions" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0">
+              <NIcon name="i-lucide-ellipsis" class="h-4 w-4 md:hidden" />
+              <span class="hidden md:inline">More</span>
+            </button>
+          </NDropdownMenu>
+        </div>
+
         <!-- Tags -->
         <div v-if="quote.tags?.length"
-          class="transform-gpu transition-all duration-700 ease-out"
+          class="mt-3"
           :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
-          <div class="flex flex-wrap justify-center gap-2.5">
+          <div class="flex flex-nowrap justify-center gap-x-5 overflow-x-auto pb-2 scrollbar-none md:flex-wrap md:overflow-visible md:pb-8">
               <NuxtLink
                 v-for="tag in quote.tags"
                 :key="tag.name"
                 :to="`/tags/${encodeURIComponent(tag.name)}`"
-                :style="{ '--tag-color': tag.color }"
-                class="inline-flex items-center px-4 py-2 rounded-12 text-sm
-                  font-medium font-sans transition-all hover:scale-102 active:scale-99
-                  bg-white/60 dark:bg-gray-800/60 border border-gray-200/60
-                  dark:border-gray-700/60 text-gray-700 dark:text-gray-300
-                  tag-chip"
+                :style="{ '--tag-color': tag.color || '' }"
+                class="inline-flex shrink-0 items-center py-1 text-xs font-600 font-sans uppercase tracking-[0.12em] transition-colors text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 tag-chip"
               >
-                <span class="inline-block w-3.5 h-3.5 mr-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: tag.color }" aria-hidden="true"></span>
+                <span class="inline-block w-1.5 h-1.5 mr-2 rounded-full flex-shrink-0" :style="{ backgroundColor: tag.color || '' }" aria-hidden="true"></span>
                 {{ tag.name }}
               </NuxtLink>
           </div>
@@ -83,14 +99,14 @@
 
         <!-- Quote Metadata -->
         <div
-          class="transform-gpu transition-all duration-700 ease-out"
+          class="mt-0 transform-gpu transition-all duration-700 ease-out md:mt-16"
           :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
           <QuoteMetadata :quote="quote" class="flex flex-col items-center md:mx-auto" />
         </div>
 
         <!-- Related Quotes -->
         <div
-          class="transform-gpu transition-all duration-700 ease-out"
+          class="mt-20 transform-gpu transition-all duration-700 ease-out"
           :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
           <RelatedQuotes :quote="quote" :related-quotes="relatedQuotes" />
         </div>
@@ -184,8 +200,11 @@
   </ClientOnly>
 </template>
 
-<script setup>import { useJsonLd } from '../../composables/useSeo'
+<script setup lang="ts">
+import { useJsonLd } from '../../composables/useSeo'
 import { useQuotesFeedStore } from '~/stores/quotes'
+import type { QuoteWithRelations } from '~/../shared/types/quote'
+import type { CollectionWithStats } from '~/../shared/types/user-interactions'
 const { $t, $ts } = useI18n()
 const { isMobile } = useMobileDetection()
 const route = useRoute()
@@ -196,8 +215,10 @@ const quotesFeedStore = useQuotesFeedStore()
 // Use a stable initial layout for SSR/hydration; switch after Nuxt is ready on the client
 definePageMeta({ layout: 'default' })
 
-const { data: quoteData, pending } = await useFetch(`/api/quotes/${route.params.id}`)
+const { data: quoteData, pending } = await useFetch<{ data?: QuoteWithRelations }>(`/api/quotes/${route.params.id}`)
 const quote = computed(() => quoteData.value?.data)
+const quoteHero = ref(null)
+const showQuoteContextBar = ref(false)
 
 const quoteTextSize = computed(() => {
   const length = quote.value?.name?.length || 0
@@ -207,7 +228,24 @@ const quoteTextSize = computed(() => {
   return 'text-2xl sm:text-3xl lg:text-4xl xl:text-5xl'
 })
 
-const { data: relatedData } = await useFetch(`/api/quotes/${route.params.id}/related`)
+const quoteHeroSpacing = computed(() => {
+  const length = quote.value?.name?.length || 0
+  if (length > 300) return 'pt-0'
+  if (length > 200) return 'pt-8'
+  return 'pt-16'
+})
+
+onMounted(() => {
+  if (!quoteHero.value || typeof IntersectionObserver === 'undefined') return
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+    if (entry) showQuoteContextBar.value = !entry.isIntersecting
+  }, { threshold: 0.05 })
+  observer.observe(quoteHero.value)
+  onBeforeUnmount(() => observer.disconnect())
+})
+
+const { data: relatedData } = await useFetch<{ data?: QuoteWithRelations[] }>(`/api/quotes/${route.params.id}/related`)
 const relatedQuotes = computed(() => relatedData.value?.data || [])
 
 useVerbatimsSeo(() => {
@@ -281,7 +319,7 @@ const isLiked = ref(false)
 const likePending = ref(false)
 const sharePending = ref(false)
 const savedState = ref('idle') // 'idle' | 'saved'
-let savedTimeoutId
+let savedTimeoutId: ReturnType<typeof setTimeout> | undefined
 
 const quoteTextIn = ref(false)
 const signatureIn = ref(false)
@@ -308,13 +346,13 @@ const showDeleteQuoteDialog = ref(false)
 const showEditTagsDialog = ref(false)
 
 // Global keyboard shortcuts (letters)
-const handleGlobalKeydown = (e) => {
+const handleGlobalKeydown = (e: KeyboardEvent) => {
   if (!e || !quote.value) return
 
   // ignore interactive elements
-  const target = e.target
+  const target = e.target as HTMLElement | null
   const tag = target?.tagName?.toLowerCase?.()
-  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag)
+  const isEditable = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag || '')
   if (isEditable) return
 
   // ignore if modifier keys are pressed (to allow browser/default shortcuts)
@@ -384,9 +422,9 @@ const handleGlobalKeydown = (e) => {
 const onQuoteUpdated = async () => {
   try {
     // Refresh main quote and related quotes after edit
-    const fresh = await $fetch(`/api/quotes/${route.params.id}`)
+    const fresh = await $fetch<{ data?: QuoteWithRelations }>(`/api/quotes/${route.params.id}`)
     quoteData.value = fresh
-    const freshRelated = await $fetch(`/api/quotes/${route.params.id}/related`)
+    const freshRelated = await $fetch<{ data?: QuoteWithRelations[] }>(`/api/quotes/${route.params.id}/related`)
     relatedData.value = freshRelated
 
   } catch (error) {
@@ -403,7 +441,7 @@ const onQuoteDeleted = async () => {
 
 const onTagsUpdated = async () => {
   try {
-    const fresh = await $fetch(`/api/quotes/${route.params.id}`)
+    const fresh = await $fetch<{ data?: QuoteWithRelations }>(`/api/quotes/${route.params.id}`)
     quoteData.value = fresh
   } catch (e) {
     console.error('Failed to refresh quote after tags update', e)
@@ -418,17 +456,17 @@ const headerMenuItems = computed(() => {
   if (isAdminMod || isOwnerDraft) {
     items.push({
       label: $ts('quote_detail_menu_edit'),
-      leading: 'i-ph-pencil-simple',
+      leading: 'i-lucide-pencil',
       onclick: () => { showEditQuoteDialog.value = true }
     })
     items.push({
       label: $ts('quote_detail_menu_edit_tag'),
-      leading: 'i-ph-tag',
+      leading: 'i-lucide-tag',
       onclick: () => { showEditTagsDialog.value = true }
     })
     items.push({
       label: $ts('quote_detail_menu_delete'),
-      leading: 'i-ph-trash',
+      leading: 'i-lucide-trash-2',
       onclick: () => { showDeleteQuoteDialog.value = true }
     })
   }
@@ -436,30 +474,28 @@ const headerMenuItems = computed(() => {
   items.push(
     {
       label: $ts('quote_detail_menu_copy_link'),
-      leading: 'i-ph-link',
+      leading: 'i-lucide-link',
       onclick: () => copyLink()
     },
     {
       label: $ts('quote_detail_menu_copy_text'),
-      leading: 'i-ph-quotes',
+      leading: 'i-lucide-copy',
       onclick: () => copyQuoteText()
     },
     {
-      label: $ts('quote_detail_menu_share'),
-      leading: 'i-ph-share-network',
-      onclick: () => shareQuote()
-    },
-    {
-      label: $ts('quote_detail_menu_download'),
-      leading: 'i-ph-download-simple',
-      onclick: () => downloadQuote()
-    },
-    {
       label: $ts('quote_detail_menu_report'),
-      leading: 'i-ph-flag',
+      leading: 'i-lucide-flag',
       onclick: () => reportQuote()
     }
   )
+
+  if (user.value) {
+    items.push({
+      label: savedState.value === 'saved' ? 'Saved' : 'Save to collection',
+      leading: 'i-ph-folder-plus',
+      onclick: () => addToCollection()
+    })
+  }
 
   return items
 })
@@ -534,7 +570,7 @@ const addToCollection = () => {
   showAddQuoteToCollectionModal.value = true
 }
 
-const onAddedToCollection = (collection) => {
+const onAddedToCollection = (_collection: CollectionWithStats) => {
   // Show temporary Saved state (icon/text/green style) for a few seconds
   savedState.value = 'saved'
   if (savedTimeoutId) clearTimeout(savedTimeoutId)
@@ -557,7 +593,7 @@ const onDownloadedImage = () => {
   // toast({ title: 'Image downloaded', variant: 'success' })
 }
 
-const onDownloadDrawerOpenChange = (v) => { showDownloadDrawer.value = v }
+const onDownloadDrawerOpenChange = (v: boolean) => { showDownloadDrawer.value = v }
 
 const showReportDialog = ref(false)
 const reportQuote = () => { showReportDialog.value = true }
@@ -678,5 +714,12 @@ onUnmounted(() => {
 .tag-chip:focus-visible {
   outline: 2px solid var(--tag-color);
   outline-offset: 2px;
+}
+.quote-action:focus-visible {
+  outline: 2px solid #57534e;
+  outline-offset: 4px;
+}
+.dark .quote-action:focus-visible {
+  outline-color: #d6d3d1;
 }
 </style>

@@ -54,7 +54,7 @@
           :class="{'-ml-4': quote.author?.is_fictional}">
           <NuxtLink
             :to="`/references/${quote.reference.id}`"
-            class="font-subtitle text-center text-size-6 font-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            class="font-sans text-center text-base font-500 leading-relaxed hover:text-primary-600 dark:hover:text-primary-400 transition-colors sm:text-lg"
           >
             {{ quote.reference.name }}
           </NuxtLink>

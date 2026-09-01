@@ -1,47 +1,42 @@
 <template>
-  <div>
+  <div class="flex w-full justify-center">
     <ClientOnly>
-      <NCollapsible>
-      <template #trigger>
-        <div class="flex-col items-center mx-auto">
-          <NButton btn="text-gray" class="min-w-330px md:w-600px mb-4 underline decoration-offset-8">
-            Show metadata
-          </NButton>
-        </div>
-      </template>
+      <NCollapsible v-model:open="metadataOpen" class="w-full max-w-600px">
+      <NCollapsibleTrigger as-child class="flex w-full justify-center">
+        <NButton
+          btn="text-gray"
+          class="grid min-w-0 grid-cols-[1rem_auto_1rem] items-center gap-2 rounded-md p-1 font-sans text-xs font-600 uppercase tracking-[0.16em] text-stone-500 transition-colors hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+          :class="metadataOpen ? 'text-stone-800 dark:text-stone-100' : ''"
+        >
+          <span aria-hidden="true" />
+          <span>Metadata</span>
+          <NIcon name="i-ph-caret-down" class="h-4 w-4 transition-transform duration-200" :class="metadataOpen ? 'rotate-180' : ''" />
+        </NButton>
+      </NCollapsibleTrigger>
 
-      <template #content>
-        <div class="md:w-600px rounded-xl border-0.5px border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-[#0C0A09]/50">
-          <div class="border-b border-gray-200 dark:border-gray-800 mb-6 p-6">
-            <h3 class="md:text-xl line-height-4 sm:text-size-4 font-title font-semibold text-gray-900 dark:text-white">
-              Metadata
-            </h3>
-            <span class="text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
-              All secondary information about the quote.
-            </span>
-          </div>
+      <NCollapsibleContent>
+        <div class="mx-auto w-full max-w-600px rounded-2xl bg-[#EFEEE8]/70 px-4 py-6 dark:bg-white/5 md:p-6">
 
-          <dl class="space-y-4 pb-4">
+          <dl class="space-y-5">
             <!-- Language -->
-            <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-globe-hemisphere-east-duotone" class="w-4 h-4 mr-2 text-gray-400" />
                 {{ $t('components.dialogs.language') }}
               </dt>
-              <dd class=" text-size-3.5 ml-5.5 sm:ml-0 sm:col-span-2 text-base font-sans font-500 text-gray-900 dark:text-white">
+              <dd class="text-size-3.5 ml-0 sm:col-span-2 text-base font-sans font-500 text-gray-900 dark:text-white">
                 {{ getLanguageName(quote.language) }}
               </dd>
             </div>
 
-            <div class="border-t border-gray-200 dark:border-gray-800"></div>
 
             <!-- Source -->
-            <div v-if="primarySource?.source_url" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div v-if="primarySource?.source_url" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-link" class="w-4 h-4 mr-2 text-gray-400" />
                 Source
               </dt>
-              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500">
+              <dd class="sm:col-span-2 ml-0 text-base text-size-3.5 font-sans font-500">
                 <a
                   :href="primarySource.source_url"
                   target="_blank"
@@ -55,65 +50,62 @@
               </dd>
             </div>
 
-            <div v-if="primaryAttribution && primaryAttribution.status !== 'unverified'" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div v-if="primaryAttribution && primaryAttribution.status !== 'unverified'" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-seal-check" class="w-4 h-4 mr-2 text-gray-400" />
                 Verification
               </dt>
-              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-sm font-sans font-500 text-gray-700 dark:text-gray-300">
+              <dd class="sm:col-span-2 ml-0 text-sm font-sans font-500 text-gray-700 dark:text-gray-300">
                 {{ provenanceLabel(primaryAttribution.status) }}
               </dd>
             </div>
 
-            <div v-if="quote.attributions?.length" class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+            <div v-if="quote.attributions?.length" class="grid grid-cols-1 items-start gap-3 px-2 py-1 sm:grid-cols-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-git-branch" class="w-4 h-4 mr-2 text-gray-400" />
                 Attributions
               </dt>
-              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 space-y-2 text-sm font-sans text-gray-700 dark:text-gray-300">
+              <dd class="sm:col-span-2 ml-0 space-y-2 text-sm font-sans text-gray-700 dark:text-gray-300">
                 <div v-for="attribution in quote.attributions" :key="attribution.id" class="flex flex-wrap items-center gap-1.5">
                   <span>{{ attribution.author?.name || 'Unknown author' }}</span>
                   <span class="text-gray-400">·</span>
                   <span>{{ attribution.reference?.name || 'Unknown reference' }}</span>
-                  <NBadge v-if="attribution.is_primary" badge="soft-blue" size="xs">Primary</NBadge>
+                  <span v-if="attribution.is_primary" class="inline-flex items-center rounded-md border border-stone-300/70 bg-stone-200/50 px-1.5 py-0.5 font-sans text-[0.6rem] font-600 uppercase tracking-[0.12em] text-stone-600 dark:border-stone-600/70 dark:bg-stone-700/40 dark:text-stone-300">Primary</span>
                 </div>
               </dd>
             </div>
 
             <!-- Submitted by -->
-            <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-person-arms-spread" class="w-4 h-4 mr-2 text-gray-400" />
                 {{ $t('common.submitted') }}
               </dt>
-              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user?.name }}</dd>
+              <dd class="sm:col-span-2 ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ quote.user?.name }}</dd>
             </div>
 
-            <div class="border-t border-gray-200 dark:border-gray-800"></div>
 
             <!-- Added on -->
-            <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
               <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                 <NIcon name="i-ph-calendar-dots-duotone" class="w-4 h-4 mr-2 text-gray-400" />
                 {{ $t('common.added') }}
               </dt>
-              <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
+              <dd class="sm:col-span-2 ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white">{{ formatDate(quote.created_at) }}</dd>
             </div>
 
             <div v-if="quote.reference">
-              <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
               <!-- Reference type -->
-              <div class="px-4 py-1 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-2 px-2 py-1 sm:grid-cols-3 sm:gap-3 md:px-4">
                 <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
                   <NIcon :name="getReferenceIcon(quote.reference.primary_type)" class="w-4 h-4 mr-2 text-gray-400" />
                   Reference type
                 </dt>
-                <dd class="sm:col-span-2 ml-5.5 sm:ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white capitalize">{{ quote.reference.primary_type.replace('_',' ') }}</dd>
+                <dd class="sm:col-span-2 ml-0 text-base text-size-3.5 font-sans font-500 text-gray-900 dark:text-white capitalize">{{ quote.reference.primary_type.replace('_',' ') }}</dd>
               </div>
             </div>
 
             <div v-if="quote.is_featured">
-              <div class="border-t border-gray-200 dark:border-gray-800 my-4"></div>
               <!-- Status -->
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
                 <dt class="flex items-center text-sm font-sans font-medium text-gray-500 dark:text-gray-400">
@@ -130,13 +122,13 @@
             </div>
           </dl>
         </div>
-      </template>
+      </NCollapsibleContent>
       </NCollapsible>
 
       <template #fallback>
         <div class="flex-col items-center mx-auto">
-          <div class="min-w-330px md:w-600px mb-4 underline decoration-offset-8 text-gray-600 dark:text-gray-400 text-center">
-            Show metadata
+          <div class="mx-auto flex w-full max-w-600px items-center justify-center px-1 font-sans text-xs font-600 uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+            Metadata
           </div>
         </div>
       </template>
@@ -150,6 +142,7 @@ import { getReferenceIcon } from '~/utils/reference'
 import { getLanguageName } from '~/utils/quote'
 
 const { $t } = useI18n()
+const metadataOpen = ref(false)
 
 const sourceLabels: Record<string, string> = {
   'wikiquote-en': 'Wikiquote (English)',

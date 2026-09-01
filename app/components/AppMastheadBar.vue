@@ -2,8 +2,8 @@
   <div
     class="sticky top-0 z-40 w-full hidden md:block transition-all duration-300"
     :class="scrollY === 0
-      ? (route.path === '/' ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
-      : (route.path === '/' ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
+      ? (route.path === '/' || route.path.startsWith('/quotes/') ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
+      : (route.path === '/' || route.path.startsWith('/quotes/') ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
     "
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
@@ -67,9 +67,12 @@
             </template>
           </NPopover>
         </div>
-        <span v-else class="hidden sm:inline font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-          {{ currentDate }}
-        </span>
+        <div v-else class="hidden sm:flex items-center">
+          <span class="mr-3 inline-block h-3 w-px bg-gray-300/70 dark:bg-white/20" aria-hidden="true" />
+          <span class="font-sans text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+            {{ currentDate }}
+          </span>
+        </div>
       </div>
 
       <div class="flex items-center gap-4">
