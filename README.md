@@ -130,3 +130,12 @@ Internal/operational documentation is available in `docs/admin/`:
 
 - **OG Image Generation** – dynamic OG images, caching, and admin cache controls → [`docs/admin/OG_IMAGE_GENERATION.md`](docs/admin/OG_IMAGE_GENERATION.md)
 - **Automated Social Posting** – social queue, provider config, scheduling, Meta reconnect flow → [`docs/admin/SOCIAL_AUTOPOST.md`](docs/admin/SOCIAL_AUTOPOST.md)
+
+## Design references
+
+Archived standalone prototypes for the editorial visual system are kept in
+[`docs/design/archive/`](docs/design/archive/). These HTML files are design references
+only and are not included in the Nuxt or Cloudflare build.
+
+- Homepage storyboard and density explorations → [`docs/design/archive/homepage/`](docs/design/archive/homepage/)
+- Quote page hero compositions → [`docs/design/archive/quote-page/`](docs/design/archive/quote-page/)

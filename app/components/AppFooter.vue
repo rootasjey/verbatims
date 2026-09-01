@@ -227,6 +227,42 @@ const bottomLinks: BottomLink[] = [
   background: #f7f5ef;
 }
 
+.quote-detail-footer {
+  background: #f7f5ef;
+}
+
+.quote-detail-footer.app-footer {
+  padding-top: 0;
+}
+
+.quote-detail-footer .u-container {
+  padding-top: 7rem;
+  padding-bottom: 2.5rem;
+}
+
+.quote-detail-footer .u-container > div:first-child {
+  min-height: 22rem;
+  gap: 4rem;
+}
+
+.quote-detail-footer .u-container > div:first-child > div:first-child p {
+  max-width: 24rem;
+  margin-top: 1.25rem;
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: #77746d;
+}
+
+.dark .quote-detail-footer .u-container > div:first-child > div:first-child p {
+  color: rgba(245, 242, 236, 0.62);
+}
+
+.dark .quote-detail-footer {
+  background: #0c0a09;
+}
+
 .dark .homepage-v3-footer {
   background: #0c0a09;
 }

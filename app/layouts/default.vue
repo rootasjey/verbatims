@@ -1,7 +1,7 @@
 <template>
   <div
     class="min-h-screen"
-    :class="route.path === '/'
+    :class="route.path === '/' || route.path.startsWith('/quotes/')
       ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]'
       : 'bg-gray-50 dark:bg-[#0C0A09]'"
   >
@@ -14,9 +14,9 @@
         px-4 py-3 safe-area-pt"
         :class="[
           {
-            'bg-[#F7F5EF] dark:bg-[#0C0A09]': scrollY === 0 && route.path === '/',
-            'bg-[#FAFAF9] dark:bg-[#0C0A09]': scrollY === 0 && route.path !== '/',
-            'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && route.path === '/',
+            'bg-[#F7F5EF] dark:bg-[#0C0A09]': scrollY === 0 && (route.path === '/' || route.path.startsWith('/quotes/')),
+            'bg-[#FAFAF9] dark:bg-[#0C0A09]': scrollY === 0 && route.path !== '/' && !route.path.startsWith('/quotes/'),
+            'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && (route.path === '/' || route.path.startsWith('/quotes/')),
             'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && route.path !== '/'
           }
         ]"
@@ -141,12 +141,17 @@
     </ClientOnly>
 
     <!-- Main content: responsive top/bottom spacing -->
-    <main class="pt-14 md:pt-0 pb-10 md:pb-10">
+    <main
+      class="pt-14 md:pt-0 md:pb-10"
+      :class="route.path.startsWith('/quotes/')
+        ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
+        : 'pb-10'"
+    >
       <slot />
     </main>
 
     <!-- The homepage footer is part of the editorial scroll; inner pages keep the desktop convention. -->
-    <AppFooter :class="route.path === '/' ? 'homepage-v3-footer' : 'hidden md:block'" />
+    <AppFooter :class="route.path === '/' ? 'homepage-v3-footer' : route.path.startsWith('/quotes/') ? 'quote-detail-footer hidden md:block' : 'hidden md:block'" />
 
     <!-- Mobile-only drawers (client-only to avoid SSR issues with NDrawer) -->
     <ClientOnly>
