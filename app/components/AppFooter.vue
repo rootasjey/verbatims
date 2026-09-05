@@ -12,9 +12,15 @@
         <!-- Brand + short tagline -->
         <div class="max-w-xl">
           <span class="homepage-v3-footer-wordmark" aria-label="Verbatims">verbatims</span>
-          <span class="homepage-v3-footer-version block italic ml-1 text-xs font-600 text-gray-500 dark:text-gray-400">
+          <NuxtLink
+            to="https://github.com/rootasjey/verbatims"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="homepage-v3-footer-version block italic ml-1 text-xs font-600 text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:outline-gray-100"
+            :aria-label="`${$t('footer.version')}: ${version} — GitHub`"
+          >
             {{ $t('footer.version') }}: {{ version }}
-          </span>
+          </NuxtLink>
           <p class="mt-2 text-lg text-gray-600 dark:text-gray-400 max-w-sm">
             {{ $t('footer.tagline') }}
           </p>

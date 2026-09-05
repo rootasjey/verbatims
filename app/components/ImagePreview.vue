@@ -1,6 +1,7 @@
 <template>
-  <NDialog
-    v-model:open="internalOpen"
+    <NDialog
+    :open="dialogOpen"
+    @update:open="handleDialogUpdate"
     :mask-closable="maskClosable"
     :show-close="false"
     :una="{
@@ -34,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, watch } from 'vue'
+import { nextTick, onUnmounted, watch, type PropType } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
@@ -42,26 +43,144 @@ const props = defineProps({
   alt: { type: String, default: '' },
   imgClass: { type: String, default: '' },
   overlayClass: { type: String, default: '' },
+  transitionOrigin: { type: Object as PropType<HTMLElement | null>, default: null },
   closeOnScroll: { type: Boolean, default: true },
   maskClosable: { type: Boolean, default: true },
   closeOnImageClick: { type: Boolean, default: true }
 })
 const emit = defineEmits(['update:modelValue'])
 
-const internalOpen = computed({
-  get: () => props.modelValue,
-  set: (v: boolean) => emit('update:modelValue', v)
-})
+const dialogOpen = ref(props.modelValue)
+const isClosing = ref(false)
 
-const close = () => { internalOpen.value = false }
+const emitClosed = () => {
+  dialogOpen.value = false
+  isClosing.value = false
+  showTransitionOrigin()
+  emit('update:modelValue', false)
+}
+
+const close = () => { void requestClose() }
 const onImageClick = (e: Event) => {
   if (props.closeOnImageClick) close()
   else e.stopPropagation()
 }
 
-const handleCloseOnScroll = () => { internalOpen.value = false }
+const getTransitionOrigin = (): HTMLElement | null => {
+  const origin = props.transitionOrigin as HTMLElement | null
+  if (!(origin instanceof HTMLElement)) return null
+  return origin.querySelector('img') || origin
+}
 
-watch(internalOpen, (open) => {
+const getPreviewImage = (): HTMLImageElement | null => {
+  return document.querySelector('.image-preview-img')
+}
+
+let sourceWasHidden = false
+
+const hideTransitionOrigin = () => {
+  const origin = getTransitionOrigin()
+  if (!origin || sourceWasHidden) return
+  origin.style.visibility = 'hidden'
+  sourceWasHidden = true
+}
+
+const showTransitionOrigin = () => {
+  const origin = getTransitionOrigin()
+  if (!origin || !sourceWasHidden) return
+  origin.style.visibility = ''
+  sourceWasHidden = false
+}
+
+const getTransformFromOrigin = (origin: HTMLElement, image: HTMLImageElement) => {
+  const sourceRect = origin.getBoundingClientRect()
+  const targetRect = image.getBoundingClientRect()
+  if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) return null
+
+  const sourceCenterX = sourceRect.left + sourceRect.width / 2
+  const sourceCenterY = sourceRect.top + sourceRect.height / 2
+  const targetCenterX = targetRect.left + targetRect.width / 2
+  const targetCenterY = targetRect.top + targetRect.height / 2
+  const scale = Math.min(sourceRect.width / targetRect.width, sourceRect.height / targetRect.height)
+
+  return {
+    transform: `translate(${sourceCenterX - targetCenterX}px, ${sourceCenterY - targetCenterY}px) scale(${scale})`
+  }
+}
+
+const animateFromOrigin = async () => {
+  const origin = getTransitionOrigin()
+  const image = getPreviewImage()
+  if (!origin || !image || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    showTransitionOrigin()
+    return
+  }
+
+  await image.decode().catch(() => undefined)
+  const initial = getTransformFromOrigin(origin, image)
+  if (!initial) {
+    showTransitionOrigin()
+    return
+  }
+
+  image.animate([initial, { transform: 'none' }], {
+    duration: 600,
+    easing: 'cubic-bezier(.16,1,.3,1)',
+    fill: 'both'
+  })
+}
+
+const animateToOrigin = async () => {
+  const origin = getTransitionOrigin()
+  const image = getPreviewImage()
+  if (!origin || !image || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    showTransitionOrigin()
+    return
+  }
+
+  const target = getTransformFromOrigin(origin, image)
+  if (!target) {
+    showTransitionOrigin()
+    return
+  }
+
+  await image.animate([{ transform: 'none' }, target], {
+    duration: 500,
+    easing: 'cubic-bezier(.4,0,.2,1)',
+    fill: 'both'
+  }).finished
+  showTransitionOrigin()
+}
+
+const handleCloseOnScroll = () => { void requestClose() }
+
+const requestClose = async () => {
+  if (!dialogOpen.value || isClosing.value) return
+  isClosing.value = true
+  await nextTick()
+  await animateToOrigin()
+  emitClosed()
+}
+
+const handleDialogUpdate = (open: boolean) => {
+  if (open) {
+    dialogOpen.value = true
+    return
+  }
+  // Keep the dialog mounted while the reverse shared-element transition runs.
+  dialogOpen.value = true
+  void requestClose()
+}
+
+watch(() => props.modelValue, async (open, previousOpen) => {
+  if (open) {
+    dialogOpen.value = true
+    hideTransitionOrigin()
+    await nextTick()
+    requestAnimationFrame(() => { void animateFromOrigin() })
+  } else if (previousOpen) {
+    void requestClose()
+  }
   if (!props.closeOnScroll || typeof window === 'undefined') return
   if (open) {
     window.addEventListener('scroll', handleCloseOnScroll, { passive: true })
@@ -75,6 +194,7 @@ watch(internalOpen, (open) => {
 })
 
 onUnmounted(() => {
+  showTransitionOrigin()
   if (typeof window !== 'undefined') {
     window.removeEventListener('scroll', handleCloseOnScroll)
     window.removeEventListener('wheel', handleCloseOnScroll)

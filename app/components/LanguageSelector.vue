@@ -1,36 +1,41 @@
 <template>
-  <NCombobox
-    v-model="selectedLanguage"
-    :items="availableLanguages"
-    by="value"
-    :_combobox-input="{
-      placeholder: 'Select language...',
-    }"
-    :_combobox-trigger="{
-      class: triggerClass,
-    }"
-    data-testid="language-selector"
-    @update:model-value="onLanguageChange"
-  >
-    <template #trigger="{ modelValue }">
-      <template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
+  <div :class="{ 'language-selector--compact': props.compact }">
+    <NCombobox
+      v-model="selectedLanguage"
+      :items="availableLanguages"
+      by="value"
+      :_combobox-input="{
+        placeholder: 'Select language...',
+      }"
+      :_combobox-trigger="{
+        class: triggerClass,
+        block: false,
+        trailing: props.compact ? 'i-lucide-chevron-down' : undefined,
+      }"
+      :_combobox-list="props.compact ? { class: '!w-max !min-w-40' } : undefined"
+      data-testid="language-selector"
+      @update:model-value="onLanguageChange"
+    >
+      <template #trigger="{ modelValue }">
+        <template v-if="modelValue && typeof modelValue === 'object' && 'icon' in modelValue">
+          <div class="flex items-center gap-2">
+            <NIcon v-if="!props.compact" :name="modelValue.icon" />
+            {{ modelValue.display }}
+          </div>
+        </template>
+        <template v-else>
+          Select language...
+        </template>
+      </template>
+
+      <template #label="{ item }">
         <div class="flex items-center gap-2">
-          <NIcon :name="modelValue.icon" />
-          {{ modelValue.display }}
+          <NIcon :name="item.icon"  />
+          {{ item.display }}
         </div>
       </template>
-      <template v-else>
-        Select language...
-      </template>
-    </template>
-
-    <template #label="{ item }">
-      <div class="flex items-center gap-2">
-        <NIcon :name="item.icon"  />
-        {{ item.display }}
-      </div>
-    </template>
-  </NCombobox>
+    </NCombobox>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -41,17 +46,20 @@ interface Props {
   // Optional callback for when language changes (for custom handling)
   onLanguageChanged?: (language: LanguageOption) => void | Promise<void>
   useClassicDesign?: boolean
+  compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   onLanguageChanged: undefined,
   useClassicDesign: false,
+  compact: false,
 })
 
 const triggerClass = computed(() => {
   const base = 'bg-transparent'
   const classicFlag = ' !text-xs bg-gray-100 dark:bg-gray-900 ring-none !rounded-0 shadow-none'
-  return `${base} ${props.useClassicDesign ? classicFlag : ''}`
+  const compactFlag = ' !h-auto !min-h-0 !w-auto !max-w-max !border-0 !bg-transparent !p-0 !shadow-none !text-xs !font-500 !text-gray-500 dark:!text-gray-400'
+  return `${base} ${props.useClassicDesign ? classicFlag : ''} ${props.compact ? compactFlag : ''}`
 })
 
 // Use the language store (initialization handled by plugin)
@@ -90,3 +98,41 @@ const onLanguageChange = async (newLanguage: LanguageOption) => {
   }
 }
 </script>
+
+<style scoped>
+.language-selector--compact :deep(button),
+.language-selector--compact :deep([role='combobox']),
+.language-selector--compact :deep([data-slot='combobox-trigger']),
+.language-selector--compact :deep(input) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  appearance: none;
+}
+
+.language-selector--compact :deep(button:hover),
+.language-selector--compact :deep([role='combobox']:hover),
+.language-selector--compact :deep([data-slot='combobox-trigger']:hover),
+.language-selector--compact :deep(input:hover) {
+  background: transparent !important;
+}
+
+.language-selector--compact :deep([class*='chevrons-up-down']),
+.language-selector--compact :deep([class*='arrows-vertical']),
+.language-selector--compact :deep([class*='arrows-up-down']) {
+  display: none !important;
+}
+
+.language-selector--compact {
+  display: inline-block;
+  width: max-content;
+}
+
+.language-selector--compact :deep([data-slot='combobox']),
+.language-selector--compact :deep([data-slot='combobox-anchor']),
+.language-selector--compact :deep([data-slot='combobox-trigger']) {
+  width: max-content !important;
+  min-width: 0 !important;
+}
+</style>

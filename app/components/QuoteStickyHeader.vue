@@ -85,3 +85,16 @@ const headerTitle = computed(() => {
   return text.length > 80 ? text.slice(0, 80) + '…' : text
 })
 </script>
+
+<style scoped>
+.quote-context-bar-enter-active,
+.quote-context-bar-leave-active {
+  transition: opacity 220ms ease-out, transform 220ms ease-out;
+}
+
+.quote-context-bar-enter-from,
+.quote-context-bar-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+</style>

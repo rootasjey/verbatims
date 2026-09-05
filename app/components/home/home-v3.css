@@ -250,7 +250,7 @@
   .homepage-v3-rich-item::after { transition: none; }
 }
 
-.homepage-v3-person {
+.homepage-v3-author-card {
   position: relative;
   display: flex;
   min-height: 420px;
@@ -261,18 +261,18 @@
   background: linear-gradient(155deg, #b9b8b0, #45494c 45%, #17191e);
 }
 
-.homepage-v3-person::after {
+.homepage-v3-author-card::after {
   position: absolute;
   inset: 0;
   content: '';
   background: linear-gradient(180deg, rgba(23, 25, 30, 0.04) 25%, rgba(23, 25, 30, 0.9) 100%);
 }
 
-.homepage-v3-person:nth-child(2) { background: linear-gradient(155deg, #8a8f92, #26292f 55%, #17191e); }
-.homepage-v3-person:nth-child(3) { background: linear-gradient(155deg, #c0b8a8, #55565b 55%, #17191e); }
-.homepage-v3-person:nth-child(4) { background: linear-gradient(155deg, #767a7c, #1f2228 55%, #17191e); }
+.homepage-v3-author-card:nth-child(2) { background: linear-gradient(155deg, #8a8f92, #26292f 55%, #17191e); }
+.homepage-v3-author-card:nth-child(3) { background: linear-gradient(155deg, #c0b8a8, #55565b 55%, #17191e); }
+.homepage-v3-author-card:nth-child(4) { background: linear-gradient(155deg, #767a7c, #1f2228 55%, #17191e); }
 
-.homepage-v3-person > div:first-child {
+.homepage-v3-author-card > div:first-child {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -282,12 +282,12 @@
   opacity: 0.8;
 }
 
-.homepage-v3-person > div:last-child {
+.homepage-v3-author-card > div:last-child {
   position: relative;
   z-index: 1;
 }
 
-.mobile-home-feed .homepage-v3-person {
+.mobile-home-feed .homepage-v3-author-card {
   align-items: flex-end;
   justify-content: center;
   text-align: center;
@@ -298,8 +298,8 @@
   text-align: center;
 }
 
-.homepage-v3-person > div:first-child img { filter: grayscale(1); transition: filter 400ms ease, transform 500ms ease; }
-.homepage-v3-person:hover > div:first-child img { filter: grayscale(0); transform: scale(1.04); }
+.homepage-v3-author-card > div:first-child img { filter: grayscale(1); transition: filter 400ms ease, transform 500ms ease; }
+.homepage-v3-author-card:hover > div:first-child img { filter: grayscale(0); transform: scale(1.04); }
 
 @media (max-width: 680px) {
   .homepage-v3-reference-grid { scroll-snap-type: x mandatory; scrollbar-width: none; }
@@ -307,7 +307,7 @@
   .homepage-v3-reference-card,
   .homepage-v3-reference-card:first-child { height: 320px; padding: 16px; }
   .homepage-v3-reference-card h3 { font-size: 1.125rem; }
-  .homepage-v3-person { min-height: 330px; padding: 14px; border: 0; border-radius: 12px; }
+  .homepage-v3-author-card { min-height: 330px; padding: 14px; border: 0; border-radius: 12px; }
   .homepage-v3-rich { padding: 64px 0; }
   .homepage-v3-rich-grid { grid-auto-rows: minmax(190px, 1fr); }
   .homepage-v3-rich-item { min-height: 190px; padding: 20px 14px 20px 0; }
@@ -317,5 +317,5 @@
 }
 
 @media (min-width: 1200px) {
-  .homepage-v3-author-grid > .homepage-v3-person { width: calc((100% - 4rem) / 5); }
+  .homepage-v3-author-grid > .homepage-v3-author-card { width: calc((100% - 4rem) / 5); }
 }

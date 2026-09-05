@@ -149,8 +149,8 @@
               <div v-else class="homepage-v3-reference-image absolute inset-0 bg-gradient-to-br from-[#8c8f8b] to-[#25282b] dark:from-[#62645f] dark:to-[#141518]" />
               <div class="homepage-v3-reference-overlay absolute inset-0" />
               <div class="relative mt-auto">
-                <h3 class="font-serif text-xl leading-[1.08] text-white">{{ ref.name }}</h3>
-                <p class="mt-2 font-sans text-xs text-white/70">{{ formatReferenceType(ref.primary_type) }}</p>
+                <h3 class="font-subtitle text-xl font-600 leading-tight break-words [overflow-wrap:anywhere] text-white">{{ ref.name }}</h3>
+                <p class="mt-2 font-sans text-xs font-600 text-white/70">{{ formatReferenceType(ref.primary_type) }}</p>
               </div>
             </NuxtLink>
           </div>
@@ -211,7 +211,7 @@
               v-for="author in sidebarAuthors.slice(0, 6)"
               :key="author.id"
               :to="`/authors/${author.id}`"
-              class="homepage-v3-person w-[min(78vw,280px)] shrink-0 snap-start group flex flex-col items-start gap-4 lg:w-[calc((100%-3rem)/4)]"
+              class="homepage-v3-author-card w-[min(78vw,280px)] shrink-0 snap-start group flex flex-col items-start gap-4 lg:w-[calc((100%-3rem)/4)]"
             >
               <div v-if="author.image_url && !imageErrors[author.id]" class="h-12 w-12 shrink-0 overflow-hidden rounded-full grayscale transition group-hover:grayscale-0">
                 <img :src="author.image_url" :alt="author.name" class="h-full w-full object-cover" @error="authorAvatarFailed(author.id)" />

@@ -1,5 +1,6 @@
 <template>
-  <div class="sticky top-[60px] z-2 border-b border-dashed border-gray-200/80 dark:border-gray-800/80 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+  <Transition name="reference-context-bar">
+  <div v-if="visible" class="sticky top-[60px] z-2 bg-[#FAFAF9] dark:bg-[#0C0A09]/70 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex items-center justify-between gap-3">
         <!-- Left: compact reference title and context -->
@@ -53,48 +54,6 @@
           </div>
         </div>
 
-        <!-- Middle: stats chips -->
-        <div class="hidden md:flex items-center gap-2">
-          <NTooltip :content="$t('components.quote_sticky.views') as string" :_tooltip-content="{ side: 'bottom' }">
-            <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-xs sm:text-xs text-gray-600 dark:text-gray-300">
-              <NIcon name="i-ph-eye-duotone" class="w-3.5 h-3.5" />
-              <span class="font-medium">{{ formatNumber(reference.views_count || 0) }}</span>
-            </div>
-          </NTooltip>
-
-          <NTooltip :content="$t('components.quote_sticky.shares') as string" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              btn="~"
-              size="xs"
-              :disabled="sharePending"
-              class="min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full text-gray-600 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:bg-primary-900/20"
-              @click="$emit('share')"
-            >
-              <NIcon name="i-ph-share-network-duotone" class="w-3.5 h-3.5 mr-1" />
-              <span :class="[sharePending && 'animate-pulse']">{{ formatNumber(reference.shares_count || 0) }}</span>
-            </NButton>
-          </NTooltip>
-
-          <NTooltip :content="$t('components.quote_sticky.likes') as string" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              btn="~"
-              size="xs"
-              :disabled="!hasUser || likePending"
-              :class="[
-                'min-w-0 min-h-0 h-auto w-auto px-2.5 py-1 rounded-full',
-                isLiked
-                  ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
-                  : 'text-gray-600 hover:text-red-500 hover:bg-red-50 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-900/20',
-                !hasUser && 'cursor-not-allowed opacity-50'
-              ]"
-              @click="$emit('toggle-like')"
-            >
-              <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-hand-heart-duotone'" :class="['w-3.5 h-3.5 mr-1', likePending && 'animate-pulse']" />
-              <span>{{ formatNumber(reference.likes_count || 0) }}</span>
-            </NButton>
-          </NTooltip>
-        </div>
-
         <!-- Right: quick actions -->
         <div class="flex items-center gap-2">
           <NTooltip :content="$t('components.quote_sticky.copy_link') as string" :_tooltip-content="{ side: 'bottom' }">
@@ -133,6 +92,7 @@
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script lang="ts" setup>
@@ -144,6 +104,7 @@ interface Props {
   // optional poster thumbnail shown before the title
   posterUrl?: string
   posterAlt?: string
+  visible?: boolean
   sharePending?: boolean
   likePending?: boolean
   isLiked?: boolean
@@ -170,7 +131,9 @@ interface Emits {
   (e: 'scroll-to-quotes'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  visible: true,
+})
 const emit = defineEmits<Emits>()
 
 // expose internal element so parents can restore focus when needed
@@ -179,4 +142,14 @@ defineExpose({ posterEl })
 </script>
 
 <style scoped>
+.reference-context-bar-enter-active,
+.reference-context-bar-leave-active {
+  transition: opacity 220ms ease-out, transform 220ms ease-out;
+}
+
+.reference-context-bar-enter-from,
+.reference-context-bar-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
 </style>

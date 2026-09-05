@@ -150,8 +150,8 @@
       <slot />
     </main>
 
-    <!-- The homepage footer is part of the editorial scroll; inner pages keep the desktop convention. -->
-    <AppFooter :class="route.path === '/' ? 'homepage-v3-footer' : route.path.startsWith('/quotes/') ? 'quote-detail-footer hidden md:block' : 'hidden md:block'" />
+    <!-- Homepage and reference pages share the editorial footer layout. -->
+    <AppFooter class="homepage-v3-footer" />
 
     <!-- Mobile-only drawers (client-only to avoid SSR issues with NDrawer) -->
     <ClientOnly>

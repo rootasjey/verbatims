@@ -11,11 +11,11 @@
           class="flex gap-3 overflow-x-auto scroll-smooth scrollbar-hide"
           @scroll="onScroll"
         >
-          <div
+          <NuxtLink
             v-for="(ref, index) in references"
             :key="ref.id"
-            class="shrink-0 w-[90px] cursor-pointer"
-            @click="navigateTo(`/references/${ref.id}`)"
+            :to="`/references/${ref.id}`"
+            class="block shrink-0 w-[90px] cursor-pointer"
           >
             <div class="group">
               <div v-if="ref.image_url" class="w-full aspect-[3/4] overflow-hidden rounded-sm bg-gray-100 dark:bg-[#0C0A09] mb-1.5">
@@ -30,25 +30,30 @@
                 {{ ref.name }}
               </p>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </template>
 
     <!-- Full variant (standalone section) -->
     <template v-else>
-      <div class="mt-8 px-8 pb-16">
-        <div class="max-w-6xl mx-auto mb-6">
-          <div class="flex items-center justify-between">
-            <h2 class="font-title text-2xl md:text-3xl font-400">
+      <section class="homepage-v3-references mx-4 mb-14 rounded-2 px-4 py-6 md:py-12 md:mx-6 md:px-8 lg:mx-10 lg:px-16 lg:py-16">
+        <div class="mx-auto mb-8 max-w-7xl">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <h2 class="font-serif text-4xl font-400 leading-none tracking-[-0.035em] text-stone-700 dark:text-stone-300 lg:text-5xl">
               {{ $t('components.related.references') }}
-            </h2>
-            <div class="flex items-center gap-2">
+              </h2>
+              <p class="max-w-md font-sans text-sm font-500 italic leading-relaxed text-gray-500 dark:text-gray-400">
+                {{ $t('components.related.references_description') }}
+              </p>
+            </div>
+            <div v-if="canScrollLeft || canScrollRight" class="flex items-center gap-2 lg:hidden">
               <NButton
                 icon
                 btn="outline-gray"
                 size="xs"
-                class="rounded-full min-w-0 min-h-0 h-8 w-8!"
+                class="rounded-full min-w-0 min-h-0 h-8 w-8! disabled:opacity-35"
                 :disabled="!canScrollLeft"
                 :aria-label="$t('common.previous') as string"
                 @click="scrollLeft"
@@ -59,7 +64,7 @@
                 icon
                 btn="outline-gray"
                 size="xs"
-                class="rounded-full min-w-0 min-h-0 h-8 w-8!"
+                class="rounded-full min-w-0 min-h-0 h-8 w-8! disabled:opacity-35"
                 :disabled="!canScrollRight"
                 :aria-label="$t('common.next') as string"
                 @click="scrollRight"
@@ -70,57 +75,50 @@
           </div>
         </div>
 
-        <div class="relative max-w-6xl mx-auto">
+        <div class="relative mx-auto max-w-7xl">
           <div
             ref="scrollContainer"
-            class="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-18"
+            class="homepage-v3-reference-grid flex flex-nowrap gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:grid-cols-3 lg:overflow-visible"
             @scroll="onScroll"
           >
-            <div
+            <NuxtLink
               v-for="(ref, index) in references"
               :key="ref.id"
-              class="snap-start shrink-0 w-[180px] md:w-[200px] cursor-pointer similar-item"
+              :to="`/references/${ref.id}`"
+              class="homepage-v3-reference-card block h-[320px] snap-start shrink-0 w-[240px] cursor-pointer p-0 similar-item md:w-[280px] lg:h-[440px] lg:w-auto"
               :class="{ 'in': true }"
               :style="{ transitionDelay: `${index * 60}ms` }"
-              @click="navigateTo(`/references/${ref.id}`)"
             >
-              <div class="group flex flex-col rounded-1 overflow-hidden h-full
-                bg-white dark:bg-[#101010]
-                border border-gray-200 dark:border-gray-700
-                hover:border-primary-400 dark:hover:border-primary-500
-                hover:shadow-lg
-                active:scale-[0.98] active:shadow-none
-                transition-all duration-300">
-                <div v-if="ref.image_url" class="w-full aspect-[3/4] overflow-hidden">
-                  <img
-                    :src="ref.image_url"
-                    :alt="ref.name"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-all duration-500 grayscale group-hover:grayscale-0"
-                  />
+              <div class="group relative flex h-full flex-col justify-end overflow-hidden rounded-xl border-0 bg-[#4a4d4c] text-white">
+                <div v-if="ref.image_url" class="homepage-v3-reference-image absolute inset-0 bg-cover bg-center grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0" :style="{ backgroundImage: `url(${ref.image_url})` }" />
+                <div
+                  v-else
+                  class="homepage-v3-reference-image absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#34312f] to-[#1b1b1b] text-white/55"
+                  role="img"
+                  :aria-label="`${$t('components.related.poster_unavailable')}: ${ref.name}`"
+                >
+                  <NIcon name="i-lucide-image-off" class="h-8 w-8" aria-hidden="true" />
+                  <span class="px-4 text-center font-sans text-[10px] font-600 uppercase tracking-[0.14em]">
+                    {{ $t('components.related.poster_unavailable') }}
+                  </span>
                 </div>
-                <div class="flex-1 p-4 text-center flex flex-col items-center justify-center">
-                  <p class="font-medium text-sm line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                    {{ ref.name }}
-                  </p>
-                  <p v-if="ref.primary_type" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
+                <div class="homepage-v3-reference-overlay absolute inset-0" />
+                <div class="relative mt-auto p-5">
+                  <p class="font-subtitle text-xl font-600 leading-tight break-words [overflow-wrap:anywhere] lg:text-2xl xl:text-3xl">{{ ref.name }}</p>
+                  <p v-if="ref.primary_type" class="font-sans text-xs font-600 text-white/70 lg:text-sm">
                     {{ formatReferenceType(ref.primary_type) }}
                   </p>
-                  <div class="mt-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
-                    <NIcon name="i-ph-quotes" class="w-3 h-3" />
-                    {{ formatNumber(ref.quotes_count) }}
-                  </div>
                 </div>
               </div>
-            </div>
+            </NuxtLink>
           </div>
         </div>
-      </div>
+      </section>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { navigateTo } from 'nuxt/app'
 const { $t } = useI18n()
 
 interface SimilarReference {
@@ -142,7 +140,7 @@ withDefaults(defineProps<Props>(), {
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
-const canScrollRight = ref(true)
+const canScrollRight = ref(false)
 
 const updateScrollState = () => {
   const el = scrollContainer.value
@@ -202,6 +200,10 @@ const formatNumber = (num?: number | null): string => {
 </script>
 
 <style scoped>
+.similar-item.homepage-v3-reference-card {
+  padding: 0;
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
