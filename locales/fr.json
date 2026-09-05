@@ -683,7 +683,9 @@
     "related": {
       "quotes": "Citations associées",
       "authors": "Auteurs similaires",
-      "references": "Voir aussi"
+      "references": "Voir aussi",
+      "references_description": "D'autres œuvres liées à cette référence.",
+      "poster_unavailable": "Affiche indisponible"
     },
     "mobile_actions": {
       "unlike": "Ne plus aimer",

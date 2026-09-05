@@ -1,5 +1,5 @@
 <template>
-  <div v-if="entries.length" class="text-center pt-4 border-t b-dashed border-gray-200 dark:border-gray-700" :class="$attrs.class">
+  <div v-if="entries.length" class="text-center pt-4 border-t border-gray-200/70 dark:border-gray-700/70" :class="$attrs.class">
     <h3 v-if="title" class="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ title }}</h3>
     <div class="flex flex-wrap justify-start gap-3">
       <NBadge
@@ -12,7 +12,7 @@
         class="hover:scale-102 active:scale-99 transition-transform duration-200 ease-in-out cursor-pointer"
         :class="badgeColors[key] || defaultBadgeClasses"
       >
-        <NLink :to="url" target="_blank" class="flex items-center gap-2">
+        <NLink :to="url" target="_blank" class="flex items-center gap-2 dark:!text-gray-100 dark:hover:!text-gray-100">
           <NIcon :name="linkIcons[key] || 'i-ph-link'" />
           <span>{{ linkLabels[key] || key }}</span>
         </NLink>

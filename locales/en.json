@@ -649,7 +649,9 @@
     "related": {
       "quotes": "Related Quotes",
       "authors": "Similar Authors",
-      "references": "See also"
+      "references": "See also",
+      "references_description": "Other works connected to this reference.",
+      "poster_unavailable": "Poster unavailable"
     },
     "mobile_actions": {
       "unlike": "Unlike",

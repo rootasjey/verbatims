@@ -151,7 +151,7 @@
             v-for="author in allAuthors.slice(0, 8)"
             :key="author.id"
             :to="`/authors/${author.id}`"
-            class="homepage-v3-person w-[78vw] shrink-0 snap-start group"
+            class="homepage-v3-author-card w-[78vw] shrink-0 snap-start group"
           >
             <div v-if="author.image_url" class="w-12 h-12 rounded-full overflow-hidden grayscale flex-shrink-0">
               <img :src="author.image_url" :alt="author.name" class="w-full h-full object-cover" />

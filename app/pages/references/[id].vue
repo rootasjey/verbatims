@@ -3,7 +3,7 @@
     <!-- Initial-only loading: render identically on SSR and during hydration -->
     <div v-if="!hydrated || !isLanguageReady || pending" class="flex items-center justify-center py-16">
       <div class="flex items-center gap-3">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+        <div class="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-primary-500 dark:border-gray-700 dark:border-t-primary-400"></div>
         <span class="text-gray-600 dark:text-gray-400">
           {{ !hydrated ? $t('common.loading') : (!isLanguageReady ? $t('common.initializing') : $t('reference_detail_loading')) }}
         </span>
@@ -14,6 +14,7 @@
       <ClientOnly>
         <ReferenceTopHeader
           ref="posterRef"
+          :visible="showReferenceContextBar"
           :header-title="headerTitle"
           :reference="{
             ...reference,
@@ -40,17 +41,24 @@
         />
       </ClientOnly>
 
-      <!-- 3-column newspaper layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b b-dashed border-gray-300 dark:border-gray-700">
+      <!-- Editorial reference layout -->
+      <div ref="referenceHero" class="reference-detail-layout mx-auto grid max-w-7xl grid-cols-1 gap-0 lg:grid-cols-12">
         <!-- Poster column -->
-        <div class="lg:col-span-3 lg:border-r b-dashed border-gray-300 dark:border-gray-700">
-          <div class="p-6 md:p-8">
-            <div v-if="reference.imageUrl" class="group relative w-full shadow-xl overflow-hidden rounded-sm bg-gray-100 dark:bg-[#0C0A09] cursor-pointer" @click="openPosterPreview">
+        <div class="lg:col-span-4 lg:pr-12">
+          <div class="px-4 pt-4 md:px-8 md:pt-8 lg:sticky lg:top-24">
+            <div v-if="reference.imageUrl" class="group relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-gray-100 shadow-xl dark:bg-[#0C0A09]">
               <img
+                ref="posterImageRef"
                 :src="reference.imageUrl"
                 :alt="reference.name"
-                class="w-full object-cover hover:scale-102 transition-transform duration-300"
+                role="button"
+                tabindex="0"
+                :aria-label="$ts('components.dialogs.poster_preview')"
+                class="w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-102 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100"
                 style="aspect-ratio: 3/4;"
+                @click="openPosterPreview"
+                @keyup.enter.prevent="openPosterPreview"
+                @keyup.space.prevent="openPosterPreview"
               />
               <button
                 v-if="canEditReference"
@@ -61,32 +69,38 @@
                 <NIcon name="i-ph-pencil-simple-line" class="w-4 h-4" />
               </button>
             </div>
-            <div v-else class="w-full aspect-[3/4] rounded-sm bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800" />
-          </div>
-          <div class="hidden lg:block">
-            <SimilarReferences :references="similarReferences" compact />
+            <div
+              v-else
+              class="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded-2xl bg-gray-100 text-gray-400 dark:bg-gray-800/60 dark:text-gray-500"
+              role="img"
+              :aria-label="$ts('reference_detail_poster_unavailable')"
+            >
+              <NIcon name="i-lucide-image-off" class="h-10 w-10" aria-hidden="true" />
+              <span class="font-sans text-xs font-600 uppercase tracking-[0.16em]">
+                {{ $ts('reference_detail_poster_unavailable') }}
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Content column -->
-        <div class="lg:col-span-6 lg:border-r b-dashed border-gray-300 dark:border-gray-700 p-6 md:p-8 md:pr-12 lg:pr-16">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: getTypeDotColor(reference.primaryType) }" />
+        <div class="lg:col-span-8 px-4 py-10 md:px-8 md:py-12 lg:pl-0 lg:pr-16">
+          <div class="mb-5 flex flex-wrap items-center gap-2">
             <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-600">
               {{ reference.primaryType ? formatReferenceType(reference.primaryType) : $t('reference_detail_label') }}
             </span>
             <template v-if="reference.secondary_type || reference.release_date">
-              <span class="text-gray-300 dark:text-gray-600">·</span>
+              <span class="text-gray-300 dark:text-gray-600">/</span>
               <span class="font-sans text-xs font-600 text-gray-400 dark:text-gray-400">
                 <template v-if="reference.secondary_type">{{ reference.secondary_type }}</template>
-                <template v-if="reference.secondary_type && reference.release_date"><span class="mx-2"> · </span></template>
+                <template v-if="reference.secondary_type && reference.release_date"><span class="mx-2">/</span></template>
                 <template v-if="reference.release_date">{{ formatReleaseDate(reference.release_date) }}</template>
               </span>
             </template>
           </div>
 
           <h1
-            class="font-title font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
+            class="max-w-4xl font-serif font-400 hyphens-auto overflow-hidden break-words leading-[0.95] tracking-[-0.035em] mb-8 transform-gpu transition-all duration-700 ease-out"
             :class="[titleSizeClass, headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]']"
             :style="enterAnim(0)"
           >
@@ -94,12 +108,12 @@
           </h1>
 
           <div v-if="reference.description"
-            class="mb-6 transform-gpu transition-all duration-700 ease-out"
+            class="mb-10 max-w-3xl transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
             :style="enterAnim(2)"
           >
             <div class="relative">
-              <p class="font-serif text-base md:text-lg font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+              <p class="font-serif text-lg md:text-xl font-400 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
                 {{ reference.description }}
               </p>
             </div>
@@ -127,106 +141,94 @@
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- Quotes sidebar -->
-        <div id="quotes" class="lg:col-span-3 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-          <div class="p-6 md:p-8">
-            <div class="flex items-center gap-3 mb-6">
-              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-              <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
-                {{ $ts('reference_detail_quotes_heading') + ' ·' }} {{ referenceQuotes.length }}
+      <!-- Quotes -->
+      <section id="quotes" class="mx-4 mb-14 mt-14 rounded-2 bg-[#eeece6] px-4 py-6 md:py-12 md:mx-6 md:px-8 lg:mx-10 lg:mt-20 lg:px-16 lg:py-16 dark:bg-[#1f1e1b]">
+        <div class="mx-auto max-w-7xl">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <h2 class="font-serif text-4xl font-600 leading-none tracking-[-0.035em] text-stone-700 dark:text-stone-300 md:text-5xl">
+                {{ $ts('reference_detail_quotes_heading') }}
+              </h2>
+              <p class="mt-1 max-w-md font-sans text-sm font-500 italic leading-relaxed text-gray-500 dark:text-gray-400">
+                {{ $ts('reference_detail_quotes_description') }}
               </p>
-              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-            </div>
-
-            <div class="mb-6 space-y-3">
-              <NSelect
-                v-model="sortBy"
-                :items="sortOptions"
-                :placeholder="$ts('reference_detail_sort_placeholder')"
-                item-key="label"
-                value-key="label"
-                size="sm"
-              />
-              <LanguageSelector @language-changed="onLanguageChange" />
-            </div>
-
-            <div v-if="quotesLoading" class="space-y-4">
-              <div v-for="i in 4" :key="i" class="animate-pulse">
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1.5" />
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-3" />
-                <div class="h-px bg-gray-100 dark:bg-gray-800" />
-              </div>
-            </div>
-
-            <div v-else-if="referenceQuotes.length > 0" class="space-y-6">
-              <div v-for="[authorName, quotes] in quotesByAuthor" :key="authorName">
-                <p class="font-sans text-[10px] font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-3">
-                  {{ authorName }}
-                </p>
-                <div class="space-y-4">
-                  <div
-                    v-for="quote in quotes"
-                    :key="quote.id"
-                    class="pb-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+              <div class="mt-2 mb-10 flex max-w-2xl flex-wrap items-center gap-x-5 gap-y-2 font-sans text-xs text-gray-500 dark:text-gray-400">
+                <span class="sr-only">{{ $ts('reference_detail_sort_placeholder') }}</span>
+                <div class="reference-sort-selector">
+                  <NCombobox
+                    v-model="sortBy"
+                    :items="sortOptions"
+                    by="value"
+                    :_combobox-input="{ placeholder: $ts('reference_detail_sort_placeholder') }"
+                    :_combobox-list="{ class: '!w-max !min-w-48' }"
+                    :_combobox-trigger="{
+                      class: 'reference-sort-trigger !h-auto !min-h-0 !w-auto !max-w-max !border-0 !bg-transparent !p-0 !shadow-none !text-xs !font-500 !text-gray-500 dark:!text-gray-400',
+                      block: false,
+                      trailing: 'i-lucide-chevron-down'
+                    }"
                   >
-                    <NLink
-                      :to="`/quotes/${quote.id}`"
-                      class="block group"
-                    >
-                      <blockquote
-                        class="font-serif text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-3"
-                        :class="{
-                          'text-sm': (quote.name || '').length <= 100,
-                          'text-xs': (quote.name || '').length > 100
-                        }"
-                      >
-                        {{ quote.name }}
-                      </blockquote>
-                    </NLink>
-                    <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
-                      <NuxtLink
-                        v-if="quote.author"
-                        :to="`/authors/${quote.author.id}`"
-                        class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors truncate"
-                      >
-                        {{ quote.author.name }}
-                      </NuxtLink>
-                      <span class="flex items-center gap-1.5 ml-auto shrink-0">
-                        <span class="flex items-center gap-0.5">
-                          <NIcon name="i-ph-hand-heart" class="w-3 h-3" />
-                          {{ formatNumber(quote.likes_count) }}
-                        </span>
-                        <span class="flex items-center gap-0.5">
-                          <NIcon name="i-ph-eye" class="w-3 h-3" />
-                          {{ formatNumber(quote.views_count) }}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
+                    <template #trigger="{ modelValue }">
+                      {{ modelValue?.label }}
+                    </template>
+                  </NCombobox>
                 </div>
+                <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">·</span>
+                <LanguageSelector compact @language-changed="onLanguageChange" />
               </div>
-            </div>
-
-            <div v-else class="text-center py-8">
-              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">{{ $ts('reference_detail_empty') }}</p>
-            </div>
-
-            <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
-              <LoadMoreButton
-                :idleText="$ts('reference_detail_load_more')"
-                :loadingText="$ts('reference_detail_loading_more')"
-                :isLoading="loadingMoreQuotes"
-                @load="loadMoreQuotes"
-              />
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="lg:hidden">
-        <SimilarReferences :references="similarReferences" />
-      </div>
+          <div class="mb-10 border-t border-stone-300/70 dark:border-stone-700/70" aria-hidden="true" />
+
+          <div v-if="quotesLoading" class="space-y-4">
+            <div v-for="i in 4" :key="i" class="animate-pulse">
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1.5" />
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-3" />
+              <div class="h-px bg-gray-100 dark:bg-gray-800" />
+            </div>
+          </div>
+
+          <div v-else-if="referenceQuotes.length > 0" class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
+            <div v-for="quote in referenceQuotes" :key="quote.id" class="md:pb-5">
+              <p v-if="quote.author?.id && quote.author.name?.trim()" class="mb-2 md:mb-4 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
+                <NuxtLink
+                  :to="`/authors/${quote.author.id}`"
+                  class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
+                >
+                  {{ quote.author.name.trim() }}
+                </NuxtLink>
+              </p>
+              <NLink
+                :to="`/quotes/${quote.id}`"
+                class="block group"
+              >
+                <blockquote
+                  class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover:text-gray-600 dark:text-gray-100 dark:group-hover:text-gray-300 line-clamp-4 md:text-xl"
+                >
+                  {{ quote.name }}
+                </blockquote>
+              </NLink>
+            </div>
+          </div>
+
+          <div v-else class="text-center py-8">
+            <p class="font-serif text-sm text-gray-400 dark:text-gray-500">{{ $ts('reference_detail_empty') }}</p>
+          </div>
+
+          <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
+            <LoadMoreButton
+              :idleText="$ts('reference_detail_load_more')"
+              :loadingText="$ts('reference_detail_loading_more')"
+              :isLoading="loadingMoreQuotes"
+              @load="loadMoreQuotes"
+            />
+          </div>
+        </div>
+      </section>
+
+      <SimilarReferences :references="similarReferences" />
     </div>
 
     <div v-else class="p-8">
@@ -270,6 +272,7 @@
         v-model="posterPreviewOpen"
         :src="reference?.imageUrl || ''"
         :alt="reference?.name || ''"
+        :transition-origin="posterImageRef"
         :closeOnScroll="true"
         :mask-closable="true"
       >
@@ -415,23 +418,6 @@ const loadingMoreQuotes = ref<boolean>(false)
 const hasMoreQuotes = ref<boolean>(true)
 const currentQuotePage = ref<number>(1)
 
-const quotesByAuthor = computed(() => {
-  const groups = new Map<string, Quote[]>()
-  for (const quote of referenceQuotes.value) {
-    const authorName = quote.author?.name?.trim() || 'Other'
-    if (!groups.has(authorName)) {
-      groups.set(authorName, [])
-    }
-    groups.get(authorName)!.push(quote)
-  }
-  const entries = Array.from(groups.entries())
-  return entries.sort((a, b) => {
-    if (a[0] === 'Other') return 1
-    if (b[0] === 'Other') return -1
-    return b[1].length - a[1].length
-  })
-})
-
 const sortBy = ref<{ label: string; value: string }>({ label: $ts('reference_detail_sort_most_recent'), value: 'created_at' })
 const mobileFiltersOpen = ref<boolean>(false)
 
@@ -441,11 +427,14 @@ const sortOptions = [
   { label: $ts('reference_detail_sort_most_viewed'), value: 'views_count' }
 ]
 
+
 const isLiked = ref<boolean>(false)
 const likePending = ref<boolean>(false)
 const sharePending = ref<boolean>(false)
 const copyState = ref<'idle' | 'copied'>('idle')
 const headerIn = ref<boolean>(false)
+const referenceHero = ref<HTMLElement | null>(null)
+const showReferenceContextBar = ref(false)
 const showTypeBadge = ref<boolean>(false)
 const similarReferences = ref<any[]>([])
 // Header title (truncated for compact sticky header)
@@ -465,6 +454,7 @@ const titleSizeClass = computed(() => {
 // poster preview state and focus
 const posterPreviewOpen = ref(false)
 const posterRef = ref<any>(null)
+const posterImageRef = ref<HTMLImageElement | null>(null)
 
 const openPosterPreview = () => {
   if (!reference.value?.imageUrl) return
@@ -898,6 +888,21 @@ const loadSimilarReferences = async () => {
 }
 
 const hydrated = ref(false)
+let referenceHeroObserver: IntersectionObserver | null = null
+
+const observeReferenceHero = (hero: HTMLElement | null) => {
+  referenceHeroObserver?.disconnect()
+  referenceHeroObserver = null
+  if (!hero || typeof IntersectionObserver === 'undefined') return
+
+  referenceHeroObserver = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+    if (entry) showReferenceContextBar.value = !entry.isIntersecting
+  }, { threshold: 0.05 })
+  referenceHeroObserver.observe(hero)
+}
+
+watch(referenceHero, observeReferenceHero, { flush: 'post' })
 
 onNuxtReady(() => {
   hydrated.value = true
@@ -926,6 +931,8 @@ onMounted(async () => {
   // Trigger enter animation and delayed type badge
   await triggerHeaderEnter()
 })
+
+onBeforeUnmount(() => referenceHeroObserver?.disconnect())
 
 watch(reference, (newReference) => {
   if (!newReference) return
@@ -997,6 +1004,26 @@ onUnmounted(() => {
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
+}
+
+.reference-sort-selector {
+  display: inline-block;
+  width: max-content;
+}
+
+.reference-sort-selector :deep([data-slot='combobox-anchor']),
+.reference-sort-selector :deep([data-slot='combobox-trigger']) {
+  width: max-content !important;
+  min-width: 0 !important;
+}
+
+.reference-sort-selector :deep(button),
+.reference-sort-selector :deep([data-slot='combobox-trigger']),
+.reference-sort-selector :deep(.reference-sort-trigger) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 </style>

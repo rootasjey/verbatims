@@ -39,57 +39,67 @@
 
     <!-- Full variant (standalone section) -->
     <template v-else>
-      <div class="px-8 pb-16">
-        <div class="mt-8 flex items-center justify-center gap-4 mb-12">
-          <span class="flex-1 max-w-12 h-px bg-gray-300 dark:bg-gray-600"></span>
-          <h2 class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 flex-shrink-0">
-            {{ $t('components.related.authors') }}
-          </h2>
-          <span class="flex-1 max-w-12 h-px bg-gray-300 dark:bg-gray-600"></span>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          <div
-            v-for="(author, index) in authors"
-            :key="author.id"
-            class="group cursor-pointer similar-item text-center"
-            :class="{ 'in': authors.length > 0 }"
-            :style="{ transitionDelay: `${index * 60}ms` }"
-            @click="navigateTo(`/authors/${author.id}`)"
-          >
-            <div class="flex flex-col justify-center items-center p-4 rounded-sm
-              hover:bg-gray-50 dark:hover:bg-white/[0.02]
-              transition-all duration-300">
-              <div class="mb-3 p-0.5 flex rounded-full overflow-hidden ring-2 ring-gray-300 dark:ring-gray-600 grayscale group-hover:grayscale-0 transition-all duration-500">
-                <NAvatar
-                  :src="author.image_url || undefined"
-                  :alt="author.name"
-                  size="lg"
-                  :fallback="getAuthorInitials(author.name)"
-                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-              <div class="flex-1 w-full">
-                <p class="font-subtitle text-base font-600 text-gray-900 dark:text-gray-100 line-clamp-1 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                  {{ author.name }}
-                </p>
-                <p v-if="author.job" class="font-sans text-xs text-gray-400 dark:text-gray-500 line-clamp-1 mt-0.5">
-                  {{ author.job }}
-                </p>
-                <p class="font-serif text-xs text-gray-400 dark:text-gray-500 mt-2">
-                  {{ formatNumber(author.quotes_count) }} quote{{ author.quotes_count === 1 ? '' : 's' }}
-                </p>
-              </div>
+      <section class="homepage-v3-authors mx-4 mb-14 rounded-2 px-4 py-6 md:py-12 md:mx-6 md:px-8 lg:mx-16 lg:px-16 lg:py-16">
+        <div class="mx-auto mb-8 max-w-7xl">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <h2 class="font-serif text-4xl font-400 leading-none tracking-[-0.035em] text-stone-200 lg:text-5xl">
+                {{ $t('components.related.authors') }}
+              </h2>
+              <p class="max-w-md font-sans text-sm font-500 italic leading-relaxed text-white/60">
+                {{ $t('author_detail_similar_authors_description') }}
+              </p>
+            </div>
+            <div v-if="canScrollLeft || canScrollRight" class="flex shrink-0 items-center gap-2">
+              <button type="button" class="homepage-v3-carousel-control" :disabled="!canScrollLeft" :aria-label="String($t('common.previous'))" @click="scrollAuthors(-1)">
+                <NIcon name="i-ph-arrow-left" class="h-4 w-4" />
+              </button>
+              <button type="button" class="homepage-v3-carousel-control" :disabled="!canScrollRight" :aria-label="String($t('common.next'))" @click="scrollAuthors(1)">
+                <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
-      </div>
+        <div class="relative mx-auto max-w-7xl">
+          <div
+            ref="scrollContainer"
+            class="homepage-v3-author-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3"
+            @scroll="updateScrollState"
+          >
+            <NuxtLink
+              v-for="(author, index) in authors"
+              :key="author.id"
+              :to="`/authors/${author.id}`"
+              class="homepage-v3-author-card similar-item w-[min(78vw,280px)] shrink-0 snap-start group flex flex-col items-start gap-4 lg:w-[calc((100%-3rem)/4)]"
+              :class="{ 'in': authors.length > 0 }"
+              :style="{ transitionDelay: `${index * 60}ms` }"
+            >
+              <div v-if="author.image_url" class="h-12 w-12 shrink-0 overflow-hidden rounded-full grayscale transition group-hover:grayscale-0">
+                <img :src="author.image_url" :alt="author.name" class="h-full w-full object-cover">
+              </div>
+              <div v-else role="img" :aria-label="author.name" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700">
+                <span aria-hidden="true" class="font-subtitle text-xs text-gray-400 dark:text-gray-500">{{ getAuthorInitials(author.name) }}</span>
+              </div>
+              <div class="min-w-0">
+                <p class="font-subtitle font-600 leading-tight text-white transition-colors group-hover:text-white/70 break-words [overflow-wrap:anywhere]">
+                  {{ author.name }}
+                </p>
+                <p v-if="author.job" class="mt-1 truncate font-sans text-sm text-white/65">
+                  {{ author.job }}
+                </p>
+                <p v-if="author.quotes_count != null" class="font-sans text-xs font-600 text-white/55">
+                  {{ formatNumber(author.quotes_count) }} {{ author.quotes_count === 1 ? $t('author_detail_quote') : $t('author_detail_quotes_count') }}
+                </p>
+              </div>
+            </NuxtLink>
+          </div>
+        </div>
+      </section>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { navigateTo } from 'nuxt/app'
 const { $t } = useI18n()
 
 interface SimilarAuthor {
@@ -109,6 +119,24 @@ withDefaults(defineProps<Props>(), {
   compact: false
 })
 
+const scrollContainer = ref<HTMLElement | null>(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+
+const updateScrollState = () => {
+  const el = scrollContainer.value
+  if (!el) return
+  canScrollLeft.value = el.scrollLeft > 4
+  canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 4
+}
+
+const scrollAuthors = (direction: -1 | 1) => {
+  const el = scrollContainer.value
+  if (!el) return
+  const cardWidth = el.querySelector('.snap-start')?.clientWidth ?? 240
+  el.scrollBy({ left: direction * (cardWidth + 16), behavior: 'smooth' })
+}
+
 const getAuthorInitials = (name: string): string => {
   if (!name) return '??'
   return name
@@ -125,6 +153,8 @@ const formatNumber = (num?: number | null): string => {
   if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
   return num.toString()
 }
+
+onMounted(updateScrollState)
 </script>
 
 <style scoped>

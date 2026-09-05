@@ -12,136 +12,143 @@
 
     <div v-else-if="author">
       <ClientOnly>
-      <AuthorTopHeader
-        :author="author"
-        :header-title="headerTitle"
-        :header-menu-items="headerMenuItems"
-        :share-pending="sharePending"
-        :like-pending="likePending"
-        :is-liked="isLiked"
-        :user="headerUser"
-        :copy-state="copyState"
-        :format-life-dates="formatLifeDates"
-        :format-number="formatNumber"
-        @scroll-to-top="scrollToTop"
-        @share-author="shareAuthor"
-        @toggle-like="toggleLike"
-        @copy-link="copyLink"
-        @navigate-back="navigateBack"
-        @scroll-to-quotes="scrollToQuotes"
-      />
+        <AuthorTopHeader
+          :visible="showAuthorContextBar"
+          :author="author"
+          :header-title="headerTitle"
+          :header-menu-items="headerMenuItems"
+          :share-pending="sharePending"
+          :like-pending="likePending"
+          :is-liked="isLiked"
+          :user="headerUser"
+          :copy-state="copyState"
+          :format-life-dates="formatLifeDates"
+          :format-number="formatNumber"
+          @scroll-to-top="scrollToTop"
+          @share-author="shareAuthor"
+          @toggle-like="toggleLike"
+          @copy-link="copyLink"
+          @navigate-back="navigateBack"
+          @scroll-to-quotes="scrollToQuotes"
+        />
       </ClientOnly>
 
-      <!-- 2-column newspaper layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 border-b b-dashed border-gray-300 dark:border-gray-700">
+      <div class="grid grid-cols-1 gap-0">
         <!-- Content column -->
-        <div class="lg:col-span-9 lg:border-r b-dashed border-gray-300 dark:border-gray-700 p-6 md:p-8 md:pr-12 lg:pr-16">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="rounded-full flex p-0.5 cursor-pointer shrink-0"
-              @click="openAvatarPreview"
-            >
-              <NAvatar
-                ref="avatarRef"
-                :src="author.image_url || undefined"
-                :alt="author.name"
-                size="xs"
-                :fallback="getAuthorInitials(author.name)"
-                class="avatar-entrance"
-                :class="headerIn ? 'scale-in' : 'scale-out'"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <NLink
-                to="/authors/"
-                class="font-sans text-xs font-600 uppercase
-                  tracking-[0.2em] text-gray-400 dark:text-gray-600
-                  underline decoration-solid decoration-2 decoration-offset-6
-                  transition-[colors] duration-300 ease-in-out"
-                :class="{
-                   'decoration-purple-500 hover:text-purple-500': author.is_fictional,
-                   'decoration-blue-500 hover:text-blue-500': !author.is_fictional,
-                }"
-              >
+        <div ref="authorHero" class="lg:col-span-12 px-6 py-10 md:px-8 md:py-12 lg:px-16">
+          <div class="mb-2 md:mb-8 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500">
                 {{ $ts('author_detail_label') }}
-              </NLink>
+              </span>
               <template v-if="author.job">
-                <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">{{ author.job }}</span>
+                <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ author.job }}</span>
               </template>
               <template v-if="!author.is_fictional && (author.birth_date || author.death_date)">
-                <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
+                <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ formatLifeDates(author.birth_date, author.death_date) }}</span>
               </template>
               <template v-if="author.birth_location">
-                <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">Born in {{ author.birth_location }}</span>
+                <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">Born in {{ author.birth_location }}</span>
               </template>
               <template v-if="author.death_location && author.death_location !== author.birth_location">
-                <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-sm text-gray-400 dark:text-gray-400">Died in {{ author.death_location }}</span>
+                <span class="text-gray-300 dark:text-gray-700" aria-hidden="true">/</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">Died in {{ author.death_location }}</span>
               </template>
             </div>
-          </div>
-          <h1
-            class="font-title font-600 hyphens-auto overflow-hidden break-words line-height-none uppercase mb-4 transform-gpu transition-all duration-700 ease-out"
-            :class="[titleSizeClass, headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]']"
-            :style="enterAnim(0)"
-          >
-            {{ author.name }}
-          </h1>
+          <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-16">
+            <div>
+              <h1
+                class="max-w-5xl font-serif font-400 hyphens-auto break-words leading-[1.05] tracking-[-0.035em] mb-8 transform-gpu transition-all duration-700 ease-out"
+                :class="[titleSizeClass, headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]']"
+                :style="enterAnim(0)"
+              >
+                {{ author.name }}
+              </h1>
 
-          <div v-if="author.description"
-            class="mb-6 transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(2)"
-          >
-            <div class="relative">
-              <p class="font-serif text-base md:text-lg lg:text-5xl font-200 text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                {{ author.description }}
-              </p>
+              <div v-if="author.description"
+                class="mb-8 transform-gpu transition-all duration-700 ease-out"
+                :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+                :style="enterAnim(2)"
+              >
+                <p class="max-w-3xl font-serif text-lg font-400 leading-relaxed text-gray-700 dark:text-gray-300 md:text-xl">
+                  {{ author.description }}
+                </p>
+              </div>
+
+              <div
+                class="transform-gpu transition-all duration-700 ease-out"
+                :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
+                :style="enterAnim(3)"
+              >
+                <ExternalLinksBadges :links="author.socials" />
+                <button
+                  v-if="canEditAuthorLinks"
+                  type="button"
+                  class="mt-4 inline-flex items-center gap-1.5 font-sans text-xs text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+                  @click="openEditLinks"
+                >
+                  <NIcon name="i-ph-link-simple" class="h-3.5 w-3.5" />
+                  {{ $ts('author_detail_edit_links') }}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div
-            class="transform-gpu transition-all duration-700 ease-out"
-            :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
-            :style="enterAnim(3)"
-          >
-            <ExternalLinksBadges :links="author.socials" />
             <button
-              v-if="canEditAuthorLinks"
+              v-if="author.image_url"
               type="button"
-              class="mt-4 inline-flex items-center gap-1.5 font-sans text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              @click="openEditLinks"
+              ref="avatarRef"
+              class="group mx-auto block w-full max-w-[14rem] cursor-zoom-in text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100 md:max-w-[18rem] lg:mt-2 lg:max-w-[20rem]"
+              :aria-label="$ts('components.dialogs.avatar_preview')"
+              @click="openAvatarPreview"
             >
-              <NIcon name="i-ph-link-simple" class="w-3.5 h-3.5" />
-              {{ $ts('author_detail_edit_links') }}
+              <img
+                :src="author.image_url"
+                :alt="author.name"
+                class="avatar-entrance aspect-square h-auto w-full rounded-2xl object-cover grayscale transition duration-500 group-hover:grayscale-0"
+                :class="headerIn ? 'scale-in' : 'scale-out'"
+              >
             </button>
           </div>
         </div>
 
-        <!-- Quotes sidebar -->
-        <div id="quotes" class="lg:col-span-3 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-          <div class="p-6 md:p-8">
-            <div class="flex items-center gap-3 mb-6">
-              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-              <p class="font-sans text-xs uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 flex-shrink-0 whitespace-nowrap">
-                {{ $ts('author_detail_quotes_heading') + ' ·' }} {{ authorQuotes.length }}
-              </p>
-              <span class="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        <!-- Quotes  -->
+        <div id="quotes" class="lg:col-span-12 mx-4 mb-14 mt-14 rounded-2 bg-[#eeece6] px-4 py-6 md:mx-6 md:px-8 lg:mx-16 lg:mt-20 lg:px-16 lg:py-16 dark:bg-[#1f1e1b]">
+          <div class="mx-auto max-w-7xl">
+            <div class="flex items-end justify-between gap-4">
+              <div>
+                <h2 class="font-serif text-4xl font-600 leading-none tracking-[-0.035em] text-gray-900 dark:text-gray-100 md:text-5xl">
+                  {{ $ts('author_detail_quotes_heading') }}
+                </h2>
+                <p class="mt-1 max-w-md font-sans text-sm font-500 italic leading-relaxed text-gray-500 dark:text-gray-400">
+                  {{ $ts('author_detail_quotes_description') }}
+                </p>
+                <div class="mt-2 mb-10 flex max-w-2xl flex-wrap items-center gap-x-5 gap-y-2 font-sans text-xs text-gray-500 dark:text-gray-400">
+                  <div class="reference-sort-selector">
+                    <NCombobox
+                      v-model="sortBy"
+                      :items="sortOptions"
+                      by="value"
+                      :_combobox-input="{ placeholder: $ts('author_detail_sort_placeholder') }"
+                      :_combobox-list="{ class: '!w-max !min-w-48' }"
+                      :_combobox-trigger="{
+                        class: 'reference-sort-trigger !h-auto !min-h-0 !w-auto !max-w-max !border-0 !bg-transparent !p-0 !shadow-none !text-xs !font-500 !text-gray-500 dark:!text-gray-400',
+                        block: false,
+                        trailing: 'i-lucide-chevron-down'
+                      }"
+                    >
+                      <template #trigger="{ modelValue }">
+                        {{ modelValue?.label }}
+                      </template>
+                    </NCombobox>
+                  </div>
+                  <LanguageSelector compact @language-changed="onLanguageChange" />
+                </div>
+              </div>
             </div>
 
-            <div class="mb-6 space-y-3">
-              <NSelect
-                v-model="sortBy"
-                :items="sortOptions"
-                :placeholder="$ts('author_detail_sort_placeholder')"
-                item-key="label"
-                value-key="label"
-                size="sm"
-              />
-              <LanguageSelector @language-changed="onLanguageChange" />
-            </div>
+            <div class="mb-10 border-t border-stone-300/70 dark:border-stone-700/70" aria-hidden="true" />
 
             <div v-if="quotesLoading" class="space-y-4">
               <div v-for="i in 4" :key="i" class="animate-pulse">
@@ -151,45 +158,31 @@
               </div>
             </div>
 
-            <div v-else-if="authorQuotes.length > 0" class="space-y-4">
+            <div v-else-if="authorQuotes.length > 0" class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
               <div
                 v-for="quote in authorQuotes"
                 :key="quote.id"
-                class="pb-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                class="pb-5"
               >
+                <p v-if="quote.reference" class="mb-2 md:mb-4 font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">
+                  <NuxtLink
+                    v-if="quote.reference"
+                    :to="`/references/${quote.reference.id}`"
+                    class="transition-colors hover:text-gray-700 hover:underline hover:underline-offset-4 dark:hover:text-gray-300"
+                  >
+                    {{ quote.reference.name }}
+                  </NuxtLink>
+                </p>
                 <NLink
                   :to="`/quotes/${quote.id}`"
                   class="block group"
                 >
                   <blockquote
-                    class="font-body font-600 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-3"
-                    :class="{
-                      'text-md': (quote.name || '').length <= 100,
-                      'text-sm': (quote.name || '').length > 100
-                    }"
+                    class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover:text-gray-600 dark:text-gray-100 dark:group-hover:text-gray-300 line-clamp-4 md:text-xl"
                   >
                     {{ quote.name }}
                   </blockquote>
                 </NLink>
-                <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
-                  <NuxtLink
-                    v-if="quote.reference"
-                    :to="`/references/${quote.reference.id}`"
-                    class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors truncate"
-                  >
-                    {{ quote.reference.name }}
-                  </NuxtLink>
-                  <span class="flex items-center gap-1.5 ml-auto shrink-0">
-                    <span class="flex items-center gap-0.5">
-                      <NIcon name="i-ph-hand-heart" class="w-3 h-3" />
-                      {{ formatNumber(quote.likes_count) }}
-                    </span>
-                    <span class="flex items-center gap-0.5">
-                      <NIcon name="i-ph-eye" class="w-3 h-3" />
-                      {{ formatNumber(quote.views_count) }}
-                    </span>
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -209,10 +202,8 @@
         </div>
       </div>
 
-      <div class="lg:hidden">
-        <SimilarAuthors :authors="similarAuthors" />
-      </div>
-  </div>
+      <SimilarAuthors :authors="similarAuthors" />
+    </div>
 
     <!-- Error State -->
     <div v-else class="p-8">
@@ -270,6 +261,7 @@
         v-model="avatarPreviewOpen"
         :src="author?.image_url || ''"
         :alt="author?.name || ''"
+        :transition-origin="avatarRef"
         :closeOnScroll="true"
         :mask-closable="true"
       />
@@ -397,6 +389,8 @@ const sortBy = ref<SortOption>(sortOptions[0]!)
 const mobileFiltersOpen = ref<boolean>(false)
 
 const headerIn = ref(false)
+const authorHero = ref<HTMLElement | null>(null)
+const showAuthorContextBar = ref(false)
 
 const isLiked = ref(false)
 const likePending = ref(false)
@@ -410,6 +404,21 @@ const similarAuthors = ref<any[]>([])
 // Avatar preview state (opened when clicking the avatar)
 const avatarPreviewOpen = ref(false)
 const avatarRef = ref<any>(null)
+let authorHeroObserver: IntersectionObserver | null = null
+
+const observeAuthorHero = (hero: HTMLElement | null) => {
+  authorHeroObserver?.disconnect()
+  authorHeroObserver = null
+  if (!hero || typeof IntersectionObserver === 'undefined') return
+
+  authorHeroObserver = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+    if (entry) showAuthorContextBar.value = !entry.isIntersecting
+  }, { threshold: 0.05 })
+  authorHeroObserver.observe(hero)
+}
+
+watch(authorHero, observeAuthorHero, { flush: 'post' })
 
 // Convert AuthorWithSocials to Author for AddAuthorDialog
 const authorAsEditAuthor = computed(() => {
@@ -481,10 +490,10 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
 
 const titleSizeClass = computed(() => {
   const len = (author.value?.name || '').length
-  if (len <= 20) return 'text-size-24 md:text-size-42 lg:text-size-48'
-  if (len <= 40) return 'text-size-20 md:text-size-34 lg:text-size-40'
-  if (len <= 60) return 'text-size-18 md:text-size-28 lg:text-size-34'
-  return 'text-size-16 md:text-size-24 lg:text-size-28'
+  if (len <= 20) return 'text-5xl md:text-7xl lg:text-8xl'
+  if (len <= 40) return 'text-4xl md:text-6xl lg:text-7xl'
+  if (len <= 60) return 'text-3xl md:text-5xl lg:text-6xl'
+  return 'text-3xl md:text-4xl lg:text-5xl'
 })
 
 // Header title (truncated for compact sticky header)
@@ -906,6 +915,7 @@ watch(pending, (now, prev) => {
 })
 
 onUnmounted(() => {
+  authorHeroObserver?.disconnect()
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleGlobalKeydown)
   }
@@ -942,5 +952,24 @@ onUnmounted(() => {
 .avatar-entrance.scale-out { transform: scale(0.96); opacity: 0; pointer-events: none; }
 .avatar-entrance:hover { transform: scale(1.03); opacity: 1; }
 
+.reference-sort-selector {
+  display: inline-block;
+  width: max-content;
+}
+
+.reference-sort-selector :deep([data-slot='combobox-anchor']),
+.reference-sort-selector :deep([data-slot='combobox-trigger']) {
+  width: max-content !important;
+  min-width: 0 !important;
+}
+
+.reference-sort-selector :deep(button),
+.reference-sort-selector :deep([data-slot='combobox-trigger']),
+.reference-sort-selector :deep(.reference-sort-trigger) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
 
 </style>
