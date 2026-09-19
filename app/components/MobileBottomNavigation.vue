@@ -1,6 +1,9 @@
 <template>
   <nav
-    class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 safe-area-pb md:hidden"
+    :aria-hidden="isHidden ? 'true' : undefined"
+    :inert="isHidden ? true : undefined"
+    :class="{ 'mobile-bottom-navigation--hidden': isHidden }"
+    class="mobile-bottom-navigation fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 safe-area-pb md:hidden"
   >
     <!-- Floating Navigation Container -->
     <div class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50 px-2 py-2">
@@ -71,6 +74,41 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const isHidden = ref(false)
+const lastScrollY = ref(0)
+
+const scrollThreshold = 8
+let scrollFramePending = false
+
+const updateVisibility = () => {
+  if (!import.meta.client) return
+
+  const currentScrollY = Math.max(window.scrollY, 0)
+  const scrollDelta = currentScrollY - lastScrollY.value
+  const maxScrollY = document.documentElement.scrollHeight - window.innerHeight
+  const isNearTop = currentScrollY <= 24
+  const isNearBottom = maxScrollY > 0 && currentScrollY >= maxScrollY - 24
+
+  if (isNearTop || isNearBottom) {
+    isHidden.value = false
+  } else if (scrollDelta > scrollThreshold) {
+    isHidden.value = true
+  } else if (scrollDelta < -scrollThreshold) {
+    isHidden.value = false
+  }
+
+  lastScrollY.value = currentScrollY
+}
+
+const handleScroll = () => {
+  if (scrollFramePending) return
+
+  scrollFramePending = true
+  requestAnimationFrame(() => {
+    scrollFramePending = false
+    updateVisibility()
+  })
+}
 
 const emit = defineEmits<{
   addQuote: []
@@ -104,9 +142,46 @@ const handleAddQuote = () => {
   // Emit add quote event to parent
   emit('addQuote')
 }
+
+onMounted(() => {
+  lastScrollY.value = window.scrollY
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
+watch(() => route.fullPath, () => {
+  isHidden.value = false
+
+  if (import.meta.client) {
+    lastScrollY.value = window.scrollY
+  }
+})
 </script>
 
 <style scoped>
+.mobile-bottom-navigation {
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+}
+
+.mobile-bottom-navigation--hidden {
+  transform: translate(-50%, calc(100% + 1.5rem));
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-bottom-navigation {
+    transition: opacity 160ms ease;
+  }
+
+  .mobile-bottom-navigation--hidden {
+    transform: translateX(-50%);
+  }
+}
+
 /* Safe area support for devices with notches */
 .safe-area-pb {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
