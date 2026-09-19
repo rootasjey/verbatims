@@ -3,23 +3,23 @@
     <template #body>
       <div class="p-5 space-y-5">
         <div class="flex items-center justify-between">
-          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">{{ $t('mobile.sort_authors.sort') }}</h3>
+          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">{{ $t('mobile.sort.title') }}</h3>
           <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
         </div>
 
         <div class="space-y-3">
-          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('mobile.sort_authors.sort_by') }}</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('mobile.sort.sort_by') }}</label>
           <NSelect
             v-model="internalSortOption"
             :items="sortOptions"
-            :placeholder="$t('mobile.sort_authors.sort_by') as string"
+            :placeholder="$t('mobile.sort.sort_by') as string"
             item-key="label"
             value-key="label"
           />
         </div>
 
         <div class="space-y-3">
-          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('mobile.sort_authors.order') }}</label>
+          <label class="block font-sans text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('mobile.sort.order') }}</label>
           <div class="flex items-center gap-2">
             <NButton
               icon
@@ -29,13 +29,13 @@
               class="rounded-full"
               @click="$emit('toggle-sort-order')"
             />
-            <span class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ sortOrder === 'ASC' ? $t('mobile.sort_authors.ascending') : $t('mobile.sort_authors.descending') }}</span>
+            <span class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ sortOrder === 'ASC' ? $t('mobile.sort.ascending') : $t('mobile.sort.descending') }}</span>
           </div>
         </div>
 
         <div class="pt-1">
           <NButton btn="solid-black" class="w-full rounded-sm" size="sm" @click="internalOpen = false">
-            {{ $t('mobile.sort_authors.done') }}
+            {{ $t('mobile.sort.done') }}
           </NButton>
         </div>
       </div>
