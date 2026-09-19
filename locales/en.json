@@ -125,6 +125,17 @@
     "add_to_collection": "Add to Collection",
     "context_menu_native_hint": "Press Ctrl + right-click for browser menu"
   },
+  "mobile": {
+    "sort": {
+      "title": "Sort authors",
+      "sort_by": "Sort by",
+      "order": "Order",
+      "ascending": "A–Z",
+      "descending": "Z–A",
+      "done": "Done",
+      "open_filters": "Open filters"
+    }
+  },
   "home": {
     "page_title": "Verbatims • A flow of quotes",
     "page_desc": "Discover inspiring quotes from authors, films, books, and more.",
