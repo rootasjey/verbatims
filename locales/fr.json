@@ -125,6 +125,17 @@
     "add_to_collection": "Ajouter à une collection",
     "context_menu_native_hint": "Ctrl + clic droit pour le menu navigateur"
   },
+  "mobile": {
+    "sort": {
+      "title": "Trier les auteurs",
+      "sort_by": "Trier par",
+      "order": "Ordre",
+      "ascending": "A–Z",
+      "descending": "Z–A",
+      "done": "Terminé",
+      "open_filters": "Ouvrir les filtres"
+    }
+  },
   "home": {
     "page_title": "Verbatims • Un flux de citations",
     "page_desc": "Découvrez des citations inspirantes d'auteurs, films, livres et plus encore.",
