@@ -1,16 +1,16 @@
 <template>
-  <div class="mb-8">
-    <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
-      <div class="flex-1">
+  <div>
+    <div class="flex items-center gap-2 sm:flex-row sm:items-center">
+      <div class="min-w-0 flex-1">
         <NInput
           ref="searchInput"
           input="outline-gray"
           v-model="searchQueryModel"
-          :placeholder="$t('authors.search.search_placeholder', { count: totalAuthors || 0 }) as string"
+          :placeholder="$t('authors_search_placeholder') as string"
+          :aria-label="$t('authors_search_placeholder') as string"
           leading="i-ph-magnifying-glass"
           :trailing="searchQueryModel ? 'i-ph-x' : undefined"
           size="md"
-          class="focus:border-2 focus:border-lime-500"
           @input="$emit('search-input')"
           @trailing="searchQueryModel = ''; focus()"
           :una="{
@@ -18,11 +18,11 @@
           }"
         />
       </div>
-      <div class="hidden md:flex gap-2">
+      <div class="hidden shrink-0 gap-2 md:flex">
         <NSelect
           v-model="sortByModel"
           :items="sortOptions"
-          :placeholder="$t('authors.search.sort_by') as string"
+          :placeholder="$t('authors_sort_name') as string"
           item-key="label"
           value-key="label"
           select="outline-gray"
@@ -35,13 +35,13 @@
           @click="$emit('toggle-sort-order')"
         />
       </div>
-      <div class="block md:hidden">
+      <div class="shrink-0 md:hidden">
         <NButton
           icon
           label="i-ph-faders"
           size="sm"
           btn="outline-gray"
-          class="rounded-full"
+          :aria-label="$t('mobile.sort.open_filters') as string"
           @click="mobileFiltersOpenModel = true"
         />
       </div>

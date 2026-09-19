@@ -11,5 +11,7 @@
   "authors_sort_quote_count": "Quote Count",
   "authors_sort_popularity": "Popularity",
   "authors_sort_recent": "Recently Added",
-  "authors_search_placeholder": "Search authors..."
+  "authors_search_placeholder": "Search authors...",
+  "authors_alphabet_navigation": "Author index",
+  "authors_index_letter_label": "Jump to authors beginning with {letter}"
 }
