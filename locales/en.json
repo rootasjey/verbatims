@@ -134,6 +134,18 @@
       "descending": "Z–A",
       "done": "Done",
       "open_filters": "Open filters"
+    },
+    "sort_references": {
+      "filters_sort": "Sort references",
+      "type": "Type",
+      "all_types": "All types",
+      "sort_by": "Sort by",
+      "order": "Order",
+      "ascending": "A–Z",
+      "descending": "Z–A",
+      "done": "Done",
+      "open_filters": "Open filters",
+      "close": "Close"
     }
   },
   "home": {

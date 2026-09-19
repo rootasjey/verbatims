@@ -1,12 +1,13 @@
 <template>
-  <div class="mb-8">
-    <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
-      <div class="flex-1">
+  <div>
+    <div class="flex items-center gap-2 sm:flex-row sm:items-center">
+      <div class="min-w-0 flex-1">
         <NInput
           ref="searchInput"
           input="outline-gray"
           v-model="searchModel"
-          :placeholder="$t('references.search.search_placeholder', { count: totalCount || 0 }) as string"
+          :placeholder="$t('references_search_placeholder') as string"
+          :aria-label="$t('references_search_placeholder') as string"
           leading="i-ph-magnifying-glass"
           :trailing="searchModel ? 'i-ph-x' : undefined"
           size="md"
@@ -17,22 +18,24 @@
           }"
         />
       </div>
-      <div class="hidden md:flex gap-2">
+      <div class="hidden shrink-0 gap-2 md:flex">
         <NSelect
           v-model="primaryTypeModel"
           :items="typeOptions"
-          :placeholder="$t('references.search.all_types') as string"
+          :placeholder="typeOptions[0]?.label || ''"
           item-key="label"
           value-key="label"
           select="outline-gray"
+          :_select-content="{ bodyLock: false }"
         />
         <NSelect
           v-model="sortByModel"
           :items="sortOptions"
-          :placeholder="$t('references.search.sort_by') as string"
+          :placeholder="sortOptions[0]?.label || ''"
           item-key="label"
           value-key="label"
           select="outline-gray"
+          :_select-content="{ bodyLock: false }"
         />
         <NButton
           icon
@@ -41,14 +44,14 @@
           @click="$emit('toggle-sort-order')"
         />
       </div>
-      <div class="block md:hidden">
+      <div class="shrink-0 md:hidden">
         <NButton
           icon
           label="i-ph-faders"
           size="sm"
           btn="outline-gray"
-          class="rounded-full"
-          @click="$emit('open-mobile-filters')"
+          :aria-label="$t('mobile.sort_references.open_filters') as string"
+          @click="mobileFiltersOpenModel = true"
         />
       </div>
     </div>
@@ -71,6 +74,7 @@ const props = withDefaults(defineProps<{
   sortOrder?: 'ASC' | 'DESC' | string
   typeOptions?: Option[]
   sortOptions?: Option[]
+  mobileFiltersOpen?: boolean
 }>(), {
   visibleCount: 0,
   totalCount: 0,
@@ -79,7 +83,8 @@ const props = withDefaults(defineProps<{
   sortBy: 'name',
   sortOrder: 'ASC',
   typeOptions: () => [],
-  sortOptions: () => []
+  sortOptions: () => [],
+  mobileFiltersOpen: false
 })
 
 const emit = defineEmits([
@@ -87,7 +92,7 @@ const emit = defineEmits([
   'update:primaryType',
   'update:sortBy',
   'toggle-sort-order',
-  'open-mobile-filters'
+  'update:mobileFiltersOpen'
 ])
 
 const searchModel = computed({
@@ -103,6 +108,11 @@ const primaryTypeModel = computed({
 const sortByModel = computed({
   get: () => (props.sortOptions as Option[]).find((o) => o.value === props.sortBy) ?? (props.sortOptions as Option[])[0] ?? { label: '', value: '' },
   set: (opt: Option) => emit('update:sortBy', opt.value)
+})
+
+const mobileFiltersOpenModel = computed({
+  get: () => props.mobileFiltersOpen,
+  set: (value: boolean) => emit('update:mobileFiltersOpen', value)
 })
 
 const focus = () => {
