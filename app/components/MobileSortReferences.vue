@@ -4,7 +4,7 @@
       <div class="p-5 space-y-5">
         <div class="flex items-center justify-between">
           <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">{{ $t('mobile.sort_references.filters_sort') }}</h3>
-          <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
+          <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" :aria-label="$t('mobile.sort_references.close') as string" @click="internalOpen = false" />
         </div>
 
         <!-- Primary Type -->

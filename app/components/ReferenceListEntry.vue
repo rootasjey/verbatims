@@ -1,32 +1,41 @@
 <template>
   <NuxtLink
     :to="`/references/${reference.id}`"
-    class="flex items-center gap-3 px-4 py-2.5 no-underline rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
+    class="group flex items-center gap-3 rounded-xl px-3 py-3 no-underline transition-[colors,transform] hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900 dark:hover:bg-white/6 dark:focus-visible:outline-gray-100 sm:gap-4 sm:px-5 sm:py-4 active:scale-99"
   >
     <img
       v-if="reference.image_url && !imgError"
       :src="reference.image_url"
       :alt="reference.name"
-      class="w-8 h-8 rounded-lg object-cover shrink-0 hover:scale-105 active:scale-99 transition-transform"
+      class="h-10 w-10 shrink-0 rounded-xl object-cover transition-transform group-hover:scale-105"
       @error="imgError = true"
     />
     <div
       v-else
-      class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 hover:scale-105 active:scale-99 transition-transform"
+      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105"
       :class="iconBgClass"
     >
       <NIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4" :class="iconColorClass" />
     </div>
-    <span class="text-sm font-500 text-gray-900 dark:text-white truncate transition-colors" :class="nameHoverClass">
-      {{ reference.name }}
+    <div class="min-w-0 flex-1">
+      <span class="block truncate font-subtitle text-base font-600 leading-tight text-gray-900 transition-colors dark:text-white sm:text-lg" :class="nameHoverClass">
+        {{ reference.name }}
+      </span>
+      <span class="mt-1 block truncate font-sans text-sm text-gray-500 dark:text-gray-400">
+        {{ formatReferenceType(reference.primary_type) }}
+      </span>
+    </div>
+    <span class="shrink-0 whitespace-nowrap font-sans text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+      <span class="sm:hidden">
+        {{ formatNumber(reference.quotes_count || 0) }}
+        <span class="sr-only">{{ (reference.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
+      </span>
+      <span class="hidden sm:inline">
+        {{ formatNumber(reference.quotes_count || 0) }}
+        {{ (reference.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
+      </span>
     </span>
-    <span class="text-xs text-gray-400 dark:text-gray-500 truncate hidden sm:inline flex-1 min-w-0">
-      {{ formatReferenceType(reference.primary_type) }}
-    </span>
-    <span class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap shrink-0 ml-auto">
-      {{ formatNumber(reference.quotes_count || 0) }}
-      <span class="hidden sm:inline">{{ (reference.quotes_count || 0) === 1 ? ' quote' : ' quotes' }}</span>
-    </span>
+    <NIcon name="i-ph-arrow-up-right" class="hidden h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-gray-500 sm:block" aria-hidden="true" />
   </NuxtLink>
 </template>
 
