@@ -26,6 +26,7 @@
           item-key="label"
           value-key="label"
           select="outline-gray"
+          :_select-content="{ bodyLock: false }"
           @change="$emit('change-sort')"
         />
         <NButton

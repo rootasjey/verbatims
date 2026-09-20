@@ -33,7 +33,8 @@
       <div
         v-if="!searchQuery && sortBy === 'name' && dbLetters.size > 0"
         :style="{ top: `${alphabetNavTop}px` }"
-        class="relative sticky z-20 mb-6 border-y border-black/10 bg-[#FAFAF9] transition-[top] duration-300 ease-out dark:border-white/10 dark:bg-[#0C0A09] sm:mb-8"
+        class="relative sticky z-20 mb-6 border-black/10 bg-[#FAFAF9] transition-[top] duration-300 ease-out dark:border-white/10 dark:bg-[#0C0A09] sm:mb-8"
+        :class="searchToolbarVisible && !isAtPageTop ? 'border-b' : 'border-y'"
       >
         <nav
           ref="alphabetNav"
@@ -217,6 +218,7 @@ const alphabetNavHeight = ref(54)
 const alphabetCanScrollLeft = ref(false)
 const alphabetCanScrollRight = ref(false)
 const searchToolbarVisible = ref(true)
+const isAtPageTop = ref(true)
 const alphabetNavTop = computed(() => (searchToolbarVisible.value ? 56 + searchToolbarHeight.value : 56))
 const groupHeadingTop = computed(() => alphabetNavTop.value + alphabetNavHeight.value)
 const isSearching = ref(false)
@@ -499,6 +501,8 @@ const handleSearchToolbarScroll = () => {
   const scrollDelta = currentScrollY - lastSearchToolbarScrollY
   const searchHasFocus = searchToolbar.value?.contains(document.activeElement)
 
+  isAtPageTop.value = currentScrollY <= 1
+
   if (currentScrollY <= 80 || scrollDelta < -4 || searchHasFocus) {
     searchToolbarVisible.value = true
   } else if (scrollDelta > 4) {
@@ -521,6 +525,7 @@ onMounted(() => {
   if (typeof window !== 'undefined') {
     window.addEventListener('scroll', debouncedSaveScrollState, { passive: true })
     lastSearchToolbarScrollY = window.scrollY
+    isAtPageTop.value = window.scrollY <= 1
     window.addEventListener('scroll', handleSearchToolbarScroll, { passive: true })
   }
 
@@ -542,6 +547,7 @@ onMounted(() => {
       if (typeof window !== 'undefined') {
         window.scrollTo({ top: snapshot.scrollY, behavior: 'auto' })
         lastSearchToolbarScrollY = snapshot.scrollY
+        isAtPageTop.value = snapshot.scrollY <= 1
         searchToolbarVisible.value = snapshot.scrollY <= 80
       }
 
