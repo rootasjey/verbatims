@@ -33,7 +33,7 @@
 
       <!-- Letter Navigation -->
       <div
-        v-if="!searchQuery && !primaryType && sortBy === 'name' && dbLetters.size > 0"
+        v-if="!renderedSearchQuery && !renderedPrimaryType && renderedSortBy === 'name' && dbLetters.size > 0"
         :style="{ top: `${alphabetNavTop}px` }"
         class="relative sticky z-20 mb-6 border-black/10 bg-[#FAFAF9] transition-[top] duration-300 ease-out dark:border-white/10 dark:bg-[#0C0A09] sm:mb-8"
         :class="searchToolbarVisible && !isAtPageTop ? 'border-b' : 'border-y'"
@@ -75,62 +75,81 @@
       >
         <h2 id="references-directory-title" class="sr-only">{{ $t('references_title') }}</h2>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="space-y-2" aria-busy="true" aria-live="polite">
-          <div v-for="i in 10" :key="i" class="flex items-center gap-4 rounded-xl px-4 py-4 animate-pulse">
-            <div class="h-10 w-10 shrink-0 rounded-lg bg-black/10 dark:bg-white/10"></div>
-            <div class="min-w-0 flex-1 space-y-2">
-              <div class="h-4 max-w-xs rounded bg-black/10 dark:bg-white/10"></div>
-              <div class="h-3 max-w-sm rounded bg-black/10 dark:bg-white/10"></div>
+        <div
+          ref="referencesResultsShell"
+          class="references-results-shell"
+          :aria-busy="loading || isSearching"
+          aria-live="polite"
+        >
+          <div ref="referencesResultsContent">
+            <!-- Loading State: only shown when the first request is actually slow. -->
+            <div v-if="showReferencesSkeleton" class="space-y-2" aria-busy="true">
+              <div v-for="i in 10" :key="i" class="flex items-center gap-4 rounded-xl px-4 py-4 animate-pulse">
+                <div class="h-10 w-10 shrink-0 rounded-lg bg-black/10 dark:bg-white/10"></div>
+                <div class="min-w-0 flex-1 space-y-2">
+                  <div class="h-4 max-w-xs rounded bg-black/10 dark:bg-white/10"></div>
+                  <div class="h-3 max-w-sm rounded bg-black/10 dark:bg-white/10"></div>
+                </div>
+                <div class="h-3 w-16 rounded bg-black/10 dark:bg-white/10"></div>
+              </div>
             </div>
-            <div class="h-3 w-16 rounded bg-black/10 dark:bg-white/10"></div>
-          </div>
-        </div>
 
-        <ReferencesEmptyView
-          v-else-if="references.length === 0"
-          :search-query="searchQuery"
-          :selected-type="primaryType"
-          class="mt-16"
-          @clear-filters="clearFilters"
-          @open-submit-reference="openSubmitReference"
-        />
+            <ReferencesEmptyView
+              v-else-if="!loading && references.length === 0"
+              :search-query="searchQuery"
+              :selected-type="primaryType"
+              class="mt-16"
+              @clear-filters="clearFilters"
+              @open-submit-reference="openSubmitReference"
+            />
 
-        <div v-else>
-          <!-- Directory: grouped by first letter -->
-          <template v-if="sortBy === 'name' && !searchQuery && !primaryType">
-            <div
-              v-for="(group, letter) in groupedReferences"
-              :key="letter"
-              :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
-              class="mb-8 last:mb-0"
-            >
-              <div
-                :style="{ top: `${groupHeadingTop}px` }"
-                class="sticky z-2 flex items-center gap-3 bg-[#e7e4dd] py-3 transition-[top] duration-300 ease-out dark:bg-[#17191e]"
-              >
-                <button
-                  type="button"
-                  :aria-label="$t('references_index_letter_label', { letter }) as string"
-                  class="-my-3 flex h-12 shrink-0 items-center rounded px-2 font-serif text-2xl font-400 leading-none text-gray-700 transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900 dark:text-gray-200 dark:hover:bg-white/8 dark:focus-visible:outline-gray-100"
-                  @click="scrollToLetter(letter)"
+            <div v-else-if="references.length > 0">
+              <!-- Directory: grouped by first letter -->
+              <template v-if="renderedSortBy === 'name' && !renderedSearchQuery && !renderedPrimaryType">
+                <div
+                  v-for="(group, letter) in groupedReferences"
+                  :key="letter"
+                  :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
+                  class="mb-8 last:mb-0"
                 >
-                  {{ letter }}
-                </button>
-                <div class="h-px flex-1 bg-black/15 dark:bg-white/15" />
-              </div>
-              <div>
-                <ReferenceListEntry v-for="reference in group" :key="reference.id" :reference="reference" />
-              </div>
-            </div>
-          </template>
+                  <div
+                    :style="{ top: `${groupHeadingTop}px` }"
+                    class="sticky z-2 flex items-center gap-3 bg-[#e7e4dd] py-3 transition-[top] duration-300 ease-out dark:bg-[#17191e]"
+                  >
+                    <button
+                      type="button"
+                      :aria-label="$t('references_index_letter_label', { letter }) as string"
+                      class="-my-3 flex h-12 shrink-0 items-center rounded px-2 font-serif text-2xl font-400 leading-none text-gray-700 transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900 dark:text-gray-200 dark:hover:bg-white/8 dark:focus-visible:outline-gray-100"
+                      @click="scrollToLetter(letter)"
+                    >
+                      {{ letter }}
+                    </button>
+                    <div class="h-px flex-1 bg-black/15 dark:bg-white/15" />
+                  </div>
+                  <TransitionGroup name="references-list" tag="div" class="relative" appear>
+                    <ReferenceListEntry
+                      v-for="(reference, index) in group"
+                      :key="`${resultsAnimationKey}-${reference.id}`"
+                      :reference="reference"
+                      :style="{ '--reference-entry-delay': `${Math.min(index, 8) * 18}ms` }"
+                    />
+                  </TransitionGroup>
+                </div>
+              </template>
 
-          <!-- Flat list: other sort modes or active search/type filter -->
-          <template v-else>
-            <div>
-              <ReferenceListEntry v-for="reference in references" :key="reference.id" :reference="reference" />
+              <!-- Flat list: other sort modes or active search/type filter -->
+              <template v-else>
+                <TransitionGroup name="references-list" tag="div" class="relative" appear>
+                  <ReferenceListEntry
+                    v-for="(reference, index) in references"
+                    :key="`${resultsAnimationKey}-${reference.id}`"
+                    :reference="reference"
+                    :style="{ '--reference-entry-delay': `${Math.min(index, 8) * 18}ms` }"
+                  />
+                </TransitionGroup>
+              </template>
             </div>
-          </template>
+          </div>
         </div>
 
         <div v-if="references.length > 0 && hasMore" class="mt-10 flex justify-center">
@@ -208,10 +227,14 @@ const ALPHABET = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i
 const searchQuery = ref<string>('')
 const primaryType = ref<string>('')
 const sortBy = ref<string>('name')
+const renderedSearchQuery = ref<string>('')
+const renderedPrimaryType = ref<string>('')
+const renderedSortBy = ref<string>('name')
 const sortOrder = ref<'ASC' | 'DESC'>('ASC')
 const references = ref<QuoteReferenceWithMetadata[]>([])
 const allFetchedReferences = ref<QuoteReferenceWithMetadata[]>([])
 const loading = ref<boolean>(true)
+const showReferencesSkeleton = ref(false)
 const loadingMore = ref<boolean>(false)
 const hasMore = ref<boolean>(true)
 const currentPage = ref<number>(1)
@@ -220,6 +243,8 @@ const totalReferences = ref<number>(0)
 const searchInput = ref<any>(null)
 const searchToolbar = ref<HTMLElement | null>(null)
 const alphabetNav = ref<HTMLElement | null>(null)
+const referencesResultsShell = ref<HTMLElement | null>(null)
+const referencesResultsContent = ref<HTMLElement | null>(null)
 const searchToolbarHeight = ref(64)
 const alphabetNavHeight = ref(54)
 const alphabetCanScrollLeft = ref(false)
@@ -233,6 +258,13 @@ const mobileFiltersOpen = ref<boolean>(false)
 const isProgrammaticReset = ref<boolean>(false)
 const isRestoringState = ref<boolean>(false)
 const letterRefs = reactive<Record<string, HTMLElement>>({})
+const resultsAnimationKey = ref(0)
+
+const REFERENCES_LOADING_DELAY = 180
+const REFERENCES_RESULTS_TRANSITION = 360
+let referencesLoadingTimer: ReturnType<typeof setTimeout> | undefined
+let referencesResultsHeightTimer: ReturnType<typeof setTimeout> | undefined
+let referencesResultsHeightFrame: number | undefined
 
 const groupedReferences = computed(() => {
   const groups: Record<string, QuoteReferenceWithMetadata[]> = {}
@@ -299,6 +331,91 @@ const scrollToLetter = async (letter: string) => {
   }
 }
 
+const stopReferencesLoadingFeedback = () => {
+  if (referencesLoadingTimer) {
+    clearTimeout(referencesLoadingTimer)
+    referencesLoadingTimer = undefined
+  }
+  showReferencesSkeleton.value = false
+}
+
+const animateReferencesResultsHeight = async () => {
+  await nextTick()
+
+  const shell = referencesResultsShell.value
+  if (!shell) return
+
+  if (referencesResultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(referencesResultsHeightFrame)
+    referencesResultsHeightFrame = undefined
+  }
+  if (referencesResultsHeightTimer) {
+    clearTimeout(referencesResultsHeightTimer)
+    referencesResultsHeightTimer = undefined
+  }
+
+  const fromHeight = shell.getBoundingClientRect().height
+  shell.style.gridTemplateRows = 'auto'
+  const targetHeight = referencesResultsContent.value?.scrollHeight ?? shell.scrollHeight
+
+  if (Math.abs(fromHeight - targetHeight) < 1) {
+    shell.style.gridTemplateRows = 'auto'
+    return
+  }
+
+  shell.style.gridTemplateRows = `${fromHeight}px`
+
+  if (typeof window === 'undefined') {
+    shell.style.gridTemplateRows = 'auto'
+    return
+  }
+
+  referencesResultsHeightFrame = window.requestAnimationFrame(() => {
+    referencesResultsHeightFrame = undefined
+    if (referencesResultsShell.value) {
+      referencesResultsShell.value.style.gridTemplateRows = `${targetHeight}px`
+    }
+  })
+
+  referencesResultsHeightTimer = setTimeout(() => {
+    if (referencesResultsShell.value) {
+      referencesResultsShell.value.style.gridTemplateRows = 'auto'
+    }
+    referencesResultsHeightTimer = undefined
+  }, REFERENCES_RESULTS_TRANSITION)
+}
+
+const freezeReferencesResultsHeight = () => {
+  const shell = referencesResultsShell.value
+  if (!shell) return
+
+  if (referencesResultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(referencesResultsHeightFrame)
+    referencesResultsHeightFrame = undefined
+  }
+  if (referencesResultsHeightTimer) {
+    clearTimeout(referencesResultsHeightTimer)
+    referencesResultsHeightTimer = undefined
+  }
+
+  const currentHeight = shell.getBoundingClientRect().height
+  if (currentHeight > 0) {
+    shell.style.gridTemplateRows = `${currentHeight}px`
+  }
+}
+
+const startReferencesLoadingFeedback = () => {
+  stopReferencesLoadingFeedback()
+
+  referencesLoadingTimer = setTimeout(() => {
+    referencesLoadingTimer = undefined
+    if (!loading.value || references.value.length > 0) return
+
+    showReferencesSkeleton.value = true
+    void animateReferencesResultsHeight()
+  }, REFERENCES_LOADING_DELAY)
+}
+
 const saveCurrentReferencesState = () => {
   referencesListStore.saveSnapshot({
     references: references.value,
@@ -321,6 +438,9 @@ const restoreReferencesState = async (snapshot: ReferencesListSnapshot) => {
   searchQuery.value = snapshot.searchQuery
   primaryType.value = snapshot.primaryType
   sortBy.value = snapshot.sortBy
+  renderedSearchQuery.value = snapshot.searchQuery
+  renderedPrimaryType.value = snapshot.primaryType
+  renderedSortBy.value = snapshot.sortBy
   sortOrder.value = snapshot.sortOrder
   references.value = [...snapshot.references]
   allFetchedReferences.value = [...snapshot.allFetchedReferences]
@@ -328,6 +448,7 @@ const restoreReferencesState = async (snapshot: ReferencesListSnapshot) => {
   hasMore.value = snapshot.hasMore
   totalReferences.value = snapshot.totalReferences
   loading.value = false
+  stopReferencesLoadingFeedback()
   loadingMore.value = false
 
   if (snapshot.availableLetters) {
@@ -371,9 +492,10 @@ const sortOptions: Option[] = [
 
 const loadReferences = async (reset = true) => {
   if (reset) {
+    freezeReferencesResultsHeight()
     loading.value = true
+    startReferencesLoadingFeedback()
     currentPage.value = 1
-    references.value = []
   } else {
     loadingMore.value = true
   }
@@ -395,6 +517,10 @@ const loadReferences = async (reset = true) => {
     if (reset) {
       references.value = referencesData
       allFetchedReferences.value = [...referencesData]
+      renderedSearchQuery.value = searchQuery.value
+      renderedPrimaryType.value = primaryType.value
+      renderedSortBy.value = sortBy.value
+      resultsAnimationKey.value++
     } else {
       references.value = [...references.value, ...referencesData]
       allFetchedReferences.value = [...allFetchedReferences.value, ...referencesData]
@@ -410,15 +536,16 @@ const loadReferences = async (reset = true) => {
     }
   } catch (error) {
     console.error('Failed to load references:', error)
-    if (reset) {
-      references.value = []
-      allFetchedReferences.value = []
+    if (reset && references.value.length === 0) {
+      hasMore.value = false
+      totalReferences.value = 0
     }
-
-    hasMore.value = false
-    totalReferences.value = 0
   } finally {
     loading.value = false
+    if (reset) {
+      stopReferencesLoadingFeedback()
+      await animateReferencesResultsHeight()
+    }
     loadingMore.value = false
   }
 }
@@ -441,6 +568,11 @@ const performSearch = async (query: string) => {
       references.value = [...allFetchedReferences.value]
       totalReferences.value = allFetchedReferences.value.length
       hasMore.value = allFetchedReferences.value.length >= 20
+      renderedSearchQuery.value = ''
+      renderedPrimaryType.value = primaryType.value
+      renderedSortBy.value = sortBy.value
+      resultsAnimationKey.value++
+      await animateReferencesResultsHeight()
     } else {
       await loadReferences()
     }
@@ -456,6 +588,9 @@ const performSearch = async (query: string) => {
     (reference.secondary_type && reference.secondary_type.toLowerCase().includes(searchTerm))
   )
 
+  renderedSearchQuery.value = query
+  renderedPrimaryType.value = primaryType.value
+  renderedSortBy.value = sortBy.value
   references.value = localResults
 
   try {
@@ -479,10 +614,12 @@ const performSearch = async (query: string) => {
     references.value = [...localResults, ...newResults]
     totalReferences.value = response.pagination?.total || references.value.length
     hasMore.value = false
+    resultsAnimationKey.value++
   } catch (error) {
     console.error('Failed to search references:', error)
   } finally {
     isSearching.value = false
+    await animateReferencesResultsHeight()
   }
 }
 
@@ -622,6 +759,16 @@ onBeforeRouteLeave((to) => {
 
 onUnmounted(() => {
   stickyResizeObserver?.disconnect()
+  stopReferencesLoadingFeedback()
+
+  if (referencesResultsHeightTimer) {
+    clearTimeout(referencesResultsHeightTimer)
+    referencesResultsHeightTimer = undefined
+  }
+  if (referencesResultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(referencesResultsHeightFrame)
+    referencesResultsHeightFrame = undefined
+  }
 
   if (typeof window !== 'undefined') {
     window.removeEventListener('scroll', saveCurrentReferencesState)
@@ -652,3 +799,51 @@ watch(searchQuery, (newQuery) => {
   debouncedSearch()
 })
 </script>
+
+<style scoped>
+.references-results-shell {
+  display: grid;
+  grid-template-rows: auto;
+  overflow: clip;
+  transition: grid-template-rows 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.references-results-shell > :first-child {
+  min-height: 0;
+}
+
+:deep(.references-list-enter-active) {
+  transition: opacity 260ms ease, transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reference-entry-delay, 0ms);
+}
+
+:deep(.references-list-leave-active) {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+:deep(.references-list-move) {
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:deep(.references-list-enter-from),
+:deep(.references-list-leave-to) {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .references-results-shell {
+    transition-duration: 1ms;
+  }
+
+  :deep(.references-list-enter-active),
+  :deep(.references-list-leave-active),
+  :deep(.references-list-move) {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+}
+</style>

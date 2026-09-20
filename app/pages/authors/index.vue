@@ -31,7 +31,7 @@
 
       <!-- Letter Navigation -->
       <div
-        v-if="!searchQuery && sortBy === 'name' && dbLetters.size > 0"
+        v-if="!searchQuery && renderedSortBy === 'name' && dbLetters.size > 0"
         :style="{ top: `${alphabetNavTop}px` }"
         class="relative sticky z-20 mb-6 border-black/10 bg-[#FAFAF9] transition-[top] duration-300 ease-out dark:border-white/10 dark:bg-[#0C0A09] sm:mb-8"
         :class="searchToolbarVisible && !isAtPageTop ? 'border-b' : 'border-y'"
@@ -73,61 +73,90 @@
       >
         <h2 id="authors-directory-title" class="sr-only">{{ $t('authors_title') }}</h2>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="space-y-2" aria-busy="true" aria-live="polite">
-          <div v-for="i in 10" :key="i" class="flex items-center gap-4 rounded-xl px-4 py-4 animate-pulse">
-            <div class="h-10 w-10 shrink-0 rounded-lg bg-black/10 dark:bg-white/10"></div>
-            <div class="min-w-0 flex-1 space-y-2">
-              <div class="h-4 max-w-xs rounded bg-black/10 dark:bg-white/10"></div>
-              <div class="h-3 max-w-sm rounded bg-black/10 dark:bg-white/10"></div>
+        <div
+          ref="authorsResultsShell"
+          class="authors-results-shell"
+          :aria-busy="loading || isSearching"
+          aria-live="polite"
+        >
+          <div ref="authorsResultsContent">
+            <!-- Loading State: only shown when the first request is actually slow. -->
+            <div v-if="showAuthorsSkeleton" class="space-y-2" aria-busy="true">
+              <div v-for="i in 10" :key="i" class="flex items-center gap-4 rounded-xl px-4 py-4 animate-pulse">
+                <div class="h-10 w-10 shrink-0 rounded-lg bg-black/10 dark:bg-white/10"></div>
+                <div class="min-w-0 flex-1 space-y-2">
+                  <div class="h-4 max-w-xs rounded bg-black/10 dark:bg-white/10"></div>
+                  <div class="h-3 max-w-sm rounded bg-black/10 dark:bg-white/10"></div>
+                </div>
+                <div class="h-3 w-16 rounded bg-black/10 dark:bg-white/10"></div>
+              </div>
             </div>
-            <div class="h-3 w-16 rounded bg-black/10 dark:bg-white/10"></div>
-          </div>
-        </div>
 
-        <AuthorsEmptyView
-          v-else-if="authors.length === 0"
-          :search-query="searchQuery"
-          class="mt-16"
-          @clear-filters="clearFilters"
-          @open-submit-author="openSubmitAuthor"
-        />
+            <AuthorsEmptyView
+              v-else-if="!loading && authors.length === 0"
+              :search-query="searchQuery"
+              class="mt-16"
+              @clear-filters="clearFilters"
+              @open-submit-author="openSubmitAuthor"
+            />
 
-        <div v-else>
-          <!-- Directory: grouped by first letter -->
-          <template v-if="sortBy === 'name' && !searchQuery">
-            <div
-              v-for="(group, letter) in groupedAuthors"
-              :key="letter"
-              :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
-              class="mb-8 last:mb-0"
-            >
-              <div
-                :style="{ top: `${groupHeadingTop}px` }"
-                class="sticky z-2 flex items-center gap-3 bg-[#e7e4dd] py-3 transition-[top] duration-300 ease-out dark:bg-[#17191e]"
-              >
-                <button
-                  type="button"
-                  :aria-label="$t('authors_index_letter_label', { letter }) as string"
-                  class="-my-3 flex h-12 shrink-0 items-center rounded px-2 font-serif text-2xl font-400 leading-none text-gray-700 transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900 dark:text-gray-200 dark:hover:bg-white/8 dark:focus-visible:outline-gray-100"
-                  @click="scrollToLetter(letter)"
+            <div v-else-if="authors.length > 0">
+              <!-- Directory: grouped by first letter -->
+              <template v-if="renderedSortBy === 'name' && !searchQuery">
+                <div
+                  v-for="(group, letter) in groupedAuthors"
+                  :key="letter"
+                  :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
+                  class="mb-8 last:mb-0"
                 >
-                  {{ letter }}
-                </button>
-                <div class="h-px flex-1 bg-black/15 dark:bg-white/15" />
-              </div>
-              <div>
-                <AuthorListEntry v-for="author in group" :key="author.id" :author="author" />
-              </div>
-            </div>
-          </template>
+                  <div
+                    :style="{ top: `${groupHeadingTop}px` }"
+                    class="sticky z-2 flex items-center gap-3 bg-[#e7e4dd] py-3 transition-[top] duration-300 ease-out dark:bg-[#17191e]"
+                  >
+                    <button
+                      type="button"
+                      :aria-label="$t('authors_index_letter_label', { letter }) as string"
+                      class="-my-3 flex h-12 shrink-0 items-center rounded px-2 font-serif text-2xl font-400 leading-none text-gray-700 transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900 dark:text-gray-200 dark:hover:bg-white/8 dark:focus-visible:outline-gray-100"
+                      @click="scrollToLetter(letter)"
+                    >
+                      {{ letter }}
+                    </button>
+                    <div class="h-px flex-1 bg-black/15 dark:bg-white/15" />
+                  </div>
+                  <TransitionGroup
+                    name="authors-list"
+                    tag="div"
+                    class="relative"
+                    appear
+                  >
+                    <AuthorListEntry
+                      v-for="(author, index) in group"
+                      :key="`${resultsAnimationKey}-${author.id}`"
+                      :author="author"
+                      :style="{ '--author-entry-delay': `${Math.min(index, 8) * 18}ms` }"
+                    />
+                  </TransitionGroup>
+                </div>
+              </template>
 
-          <!-- Flat list: other sort modes or active search -->
-          <template v-else>
-            <div>
-              <AuthorListEntry v-for="author in authors" :key="author.id" :author="author" />
+              <!-- Flat list: other sort modes or active search -->
+              <template v-else>
+                <TransitionGroup
+                  name="authors-list"
+                  tag="div"
+                  class="relative"
+                  appear
+                >
+                  <AuthorListEntry
+                    v-for="(author, index) in authors"
+                    :key="`${resultsAnimationKey}-${author.id}`"
+                    :author="author"
+                    :style="{ '--author-entry-delay': `${Math.min(index, 8) * 18}ms` }"
+                  />
+                </TransitionGroup>
+              </template>
             </div>
-          </template>
+          </div>
         </div>
 
         <div v-if="authors.length > 0 && hasMore" class="mt-10 flex justify-center">
@@ -202,10 +231,12 @@ const ALPHABET = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i
 
 const searchQuery = ref<string>('')
 const sortBy = ref<string>('name')
+const renderedSortBy = ref<string>('name')
 const sortOrder = ref<'ASC' | 'DESC'>('ASC')
 const authors: Ref<Author[]> = ref([])
 const allFetchedAuthors: Ref<Author[]> = ref([])
 const loading = ref<boolean>(true)
+const showAuthorsSkeleton = ref(false)
 const loadingMore = ref<boolean>(false)
 const hasMore = ref<boolean>(true)
 const currentPage = ref<number>(1)
@@ -213,6 +244,8 @@ const totalAuthors = ref<number>(0)
 const searchInput = ref<any>(null)
 const searchToolbar = ref<HTMLElement | null>(null)
 const alphabetNav = ref<HTMLElement | null>(null)
+const authorsResultsShell = ref<HTMLElement | null>(null)
+const authorsResultsContent = ref<HTMLElement | null>(null)
 const searchToolbarHeight = ref(64)
 const alphabetNavHeight = ref(54)
 const alphabetCanScrollLeft = ref(false)
@@ -225,6 +258,13 @@ const isSearching = ref(false)
 const mobileFiltersOpen = ref(false)
 const isRestoringState = ref(false)
 const letterRefs = reactive<Record<string, HTMLElement>>({})
+const resultsAnimationKey = ref(0)
+
+const AUTHORS_LOADING_DELAY = 180
+const AUTHORS_RESULTS_TRANSITION = 360
+let authorsLoadingTimer: ReturnType<typeof setTimeout> | undefined
+let authorsResultsHeightTimer: ReturnType<typeof setTimeout> | undefined
+let authorsResultsHeightFrame: number | undefined
 
 const groupedAuthors = computed(() => {
   const groups: Record<string, Author[]> = {}
@@ -337,11 +377,97 @@ const clearFilters = async () => {
   await loadAuthors()
 }
 
+const stopAuthorsLoadingFeedback = () => {
+  if (authorsLoadingTimer) {
+    clearTimeout(authorsLoadingTimer)
+    authorsLoadingTimer = undefined
+  }
+  showAuthorsSkeleton.value = false
+}
+
+const animateAuthorsResultsHeight = async () => {
+  await nextTick()
+
+  const shell = authorsResultsShell.value
+  if (!shell) return
+
+  if (authorsResultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(authorsResultsHeightFrame)
+    authorsResultsHeightFrame = undefined
+  }
+  if (authorsResultsHeightTimer) {
+    clearTimeout(authorsResultsHeightTimer)
+    authorsResultsHeightTimer = undefined
+  }
+
+  const fromHeight = shell.getBoundingClientRect().height
+  shell.style.gridTemplateRows = 'auto'
+  const targetHeight = authorsResultsContent.value?.scrollHeight ?? shell.scrollHeight
+
+  if (Math.abs(fromHeight - targetHeight) < 1) {
+    shell.style.gridTemplateRows = 'auto'
+    return
+  }
+
+  shell.style.gridTemplateRows = `${fromHeight}px`
+
+  if (typeof window === 'undefined') {
+    shell.style.gridTemplateRows = 'auto'
+    return
+  }
+
+  authorsResultsHeightFrame = window.requestAnimationFrame(() => {
+    authorsResultsHeightFrame = undefined
+    if (authorsResultsShell.value) {
+      authorsResultsShell.value.style.gridTemplateRows = `${targetHeight}px`
+    }
+  })
+
+  authorsResultsHeightTimer = setTimeout(() => {
+    if (authorsResultsShell.value) {
+      authorsResultsShell.value.style.gridTemplateRows = 'auto'
+    }
+    authorsResultsHeightTimer = undefined
+  }, AUTHORS_RESULTS_TRANSITION)
+}
+
+const freezeAuthorsResultsHeight = () => {
+  const shell = authorsResultsShell.value
+  if (!shell) return
+
+  if (authorsResultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(authorsResultsHeightFrame)
+    authorsResultsHeightFrame = undefined
+  }
+  if (authorsResultsHeightTimer) {
+    clearTimeout(authorsResultsHeightTimer)
+    authorsResultsHeightTimer = undefined
+  }
+
+  const currentHeight = shell.getBoundingClientRect().height
+  if (currentHeight > 0) {
+    shell.style.gridTemplateRows = `${currentHeight}px`
+  }
+}
+
+const startAuthorsLoadingFeedback = () => {
+  stopAuthorsLoadingFeedback()
+
+  authorsLoadingTimer = setTimeout(() => {
+    authorsLoadingTimer = undefined
+    if (!loading.value || authors.value.length > 0) return
+
+    showAuthorsSkeleton.value = true
+    void animateAuthorsResultsHeight()
+  }, AUTHORS_LOADING_DELAY)
+}
+
 const restoreAuthorsState = async (snapshot: AuthorsListSnapshot) => {
   isRestoringState.value = true
 
   searchQuery.value = snapshot.searchQuery
   sortBy.value = snapshot.sortBy
+  renderedSortBy.value = snapshot.sortBy
   sortOrder.value = snapshot.sortOrder
   authors.value = [...snapshot.authors]
   allFetchedAuthors.value = [...snapshot.allFetchedAuthors]
@@ -349,6 +475,7 @@ const restoreAuthorsState = async (snapshot: AuthorsListSnapshot) => {
   hasMore.value = snapshot.hasMore
   totalAuthors.value = snapshot.totalAuthors
   loading.value = false
+  stopAuthorsLoadingFeedback()
   loadingMore.value = false
 
   if (snapshot.availableLetters) {
@@ -361,9 +488,10 @@ const restoreAuthorsState = async (snapshot: AuthorsListSnapshot) => {
 
 const loadAuthors = async (reset = true) => {
   if (reset) {
+    freezeAuthorsResultsHeight()
     loading.value = true
+    startAuthorsLoadingFeedback()
     currentPage.value = 1
-    authors.value = []
   } else {
     loadingMore.value = true
   }
@@ -391,6 +519,8 @@ const loadAuthors = async (reset = true) => {
     if (reset) {
       authors.value = authorsData
       allFetchedAuthors.value = [...authorsData]
+      renderedSortBy.value = sortBy.value
+      resultsAnimationKey.value++
     } else {
       authors.value.push(...authorsData)
       allFetchedAuthors.value.push(...authorsData)
@@ -406,6 +536,10 @@ const loadAuthors = async (reset = true) => {
     console.error('Failed to load authors:', error)
   } finally {
     loading.value = false
+    if (reset) {
+      stopAuthorsLoadingFeedback()
+      await animateAuthorsResultsHeight()
+    }
     loadingMore.value = false
   }
 }
@@ -514,6 +648,16 @@ const handleSearchToolbarScroll = () => {
 
 onUnmounted(() => {
   stickyResizeObserver?.disconnect()
+  stopAuthorsLoadingFeedback()
+
+  if (authorsResultsHeightTimer) {
+    clearTimeout(authorsResultsHeightTimer)
+    authorsResultsHeightTimer = undefined
+  }
+  if (authorsResultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(authorsResultsHeightFrame)
+    authorsResultsHeightFrame = undefined
+  }
 
   if (typeof window !== 'undefined') {
     window.removeEventListener('scroll', debouncedSaveScrollState)
@@ -618,6 +762,52 @@ watch(
 </script>
 
 <style scoped>
+.authors-results-shell {
+  display: grid;
+  grid-template-rows: auto;
+  overflow: clip;
+  transition: grid-template-rows 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.authors-results-shell > :first-child {
+  min-height: 0;
+}
+
+:deep(.authors-list-enter-active) {
+  transition: opacity 260ms ease, transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--author-entry-delay, 0ms);
+}
+
+:deep(.authors-list-leave-active) {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+:deep(.authors-list-move) {
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:deep(.authors-list-enter-from),
+:deep(.authors-list-leave-to) {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authors-results-shell {
+    transition-duration: 1ms;
+  }
+
+  :deep(.authors-list-enter-active),
+  :deep(.authors-list-leave-active),
+  :deep(.authors-list-move) {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+}
+
 .authors-alphabet-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
