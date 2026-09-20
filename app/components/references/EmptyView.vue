@@ -57,6 +57,9 @@ const selectedTypeLabel = computed(() => {
 
   if (!normalized) return ''
 
+  const translated = $t(`reference_types.${normalized}`)
+  if (translated !== `reference_types.${normalized}`) return String(translated)
+
   return normalized
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase())

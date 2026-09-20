@@ -42,18 +42,26 @@
           class="authors-alphabet-scroll flex flex-nowrap items-center gap-1 overflow-x-auto py-3 sm:flex-wrap sm:overflow-visible"
           @scroll="updateAlphabetOverflow"
         >
-          <button
+          <NTooltip
             v-for="letter in ALPHABET"
             :key="letter"
-            type="button"
-            :aria-label="$t('authors_index_letter_label', { letter }) as string"
-            :aria-busy="loadingLetter === letter"
-            @click="scrollToLetter(letter)"
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded font-sans text-sm font-600 text-gray-600 transition-colors hover:bg-black/8 hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:outline-gray-100 sm:h-7 sm:w-7 sm:text-xs"
+            :content="emptyLetterTooltipContent as string"
+            :open="emptyLetterTooltip === letter"
+            :disabled="emptyLetterTooltip !== letter"
+            :delay-duration="0"
+            :_tooltip-content="{ side: 'bottom' }"
           >
-            <NIcon v-if="loadingLetter === letter" name="i-ph-spinner-gap" class="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-            <span v-else>{{ letter }}</span>
-          </button>
+            <button
+              type="button"
+              :aria-label="$t('authors_index_letter_label', { letter }) as string"
+              :aria-busy="loadingLetter === letter"
+              @click="scrollToLetter(letter)"
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded font-sans text-sm font-600 text-gray-600 transition-colors hover:bg-black/8 hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:outline-gray-100 sm:h-7 sm:w-7 sm:text-xs"
+            >
+              <NIcon v-if="loadingLetter === letter" name="i-ph-spinner-gap" class="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              <span v-else>{{ letter }}</span>
+            </button>
+          </NTooltip>
         </nav>
         <span
           v-if="alphabetCanScrollLeft"
@@ -106,7 +114,10 @@
                 <div
                   v-for="(group, letter) in groupedAuthors"
                   :key="letter"
-                  :ref="el => { if (el) letterRefs[letter] = el as HTMLElement }"
+                  :ref="el => {
+                    if (el) letterRefs[letter] = el as HTMLElement
+                    else delete letterRefs[letter]
+                  }"
                   class="mb-8 last:mb-0"
                 >
                   <div
@@ -279,15 +290,46 @@ const groupedAuthors = computed(() => {
 
 const dbLetters = ref<Set<string>>(new Set())
 const loadingLetter = ref<string | null>(null)
+const emptyLetterTooltip = ref<string | null>(null)
+const emptyLetterTooltipContent = computed(() => {
+  if (!emptyLetterTooltip.value) return ''
+  return String($t('authors_empty_letter', { letter: emptyLetterTooltip.value }))
+})
+let emptyLetterTooltipTimer: ReturnType<typeof setTimeout> | undefined
+
+const dismissEmptyLetterTooltip = () => {
+  if (emptyLetterTooltipTimer) {
+    clearTimeout(emptyLetterTooltipTimer)
+    emptyLetterTooltipTimer = undefined
+  }
+  emptyLetterTooltip.value = null
+}
+
+const showEmptyLetterTooltip = (letter: string) => {
+  dismissEmptyLetterTooltip()
+  emptyLetterTooltip.value = letter
+  emptyLetterTooltipTimer = setTimeout(() => {
+    emptyLetterTooltip.value = null
+    emptyLetterTooltipTimer = undefined
+  }, 2400)
+}
 
 const scrollToLetter = async (letter: string) => {
+  dismissEmptyLetterTooltip()
+
   const el = letterRefs[letter]
-  if (el) {
+  if (el?.isConnected) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     return
   }
+  delete letterRefs[letter]
 
   if (loadingLetter.value === letter) return
+
+  if (!dbLetters.value.has(letter)) {
+    showEmptyLetterTooltip(letter)
+    return
+  }
 
   let loadingTimer: ReturnType<typeof setTimeout> | undefined
   loadingTimer = setTimeout(() => {
@@ -311,7 +353,10 @@ const scrollToLetter = async (letter: string) => {
     const newAuthors = (response.data || []).filter(
       a => !authors.value.some(existing => existing.id === a.id)
     )
-    if (newAuthors.length === 0) return
+    if (newAuthors.length === 0) {
+      showEmptyLetterTooltip(letter)
+      return
+    }
 
     const insertIdx = authors.value.findIndex(a => {
       const l = (a.name.charAt(0) || '').toUpperCase()
@@ -325,7 +370,10 @@ const scrollToLetter = async (letter: string) => {
     allFetchedAuthors.value.push(...newAuthors)
 
     await nextTick()
-    letterRefs[letter]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const loadedLetter = letterRefs[letter]
+    if (loadedLetter?.isConnected) {
+      loadedLetter.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
   } catch (error) {
     console.error(`Failed to load authors for ${letter}:`, error)
   } finally {
@@ -647,6 +695,7 @@ const handleSearchToolbarScroll = () => {
 }
 
 onUnmounted(() => {
+  dismissEmptyLetterTooltip()
   stickyResizeObserver?.disconnect()
   stopAuthorsLoadingFeedback()
 

@@ -13,5 +13,16 @@
   "authors_sort_recent": "Ajout récent",
   "authors_search_placeholder": "Rechercher des auteurs...",
   "authors_alphabet_navigation": "Index des auteurs",
-  "authors_index_letter_label": "Aller aux auteurs commençant par {letter}"
+  "authors_index_letter_label": "Aller aux auteurs commençant par {letter}",
+  "authors_empty_letter": "Aucun auteur ne commence par {letter}.",
+  "authors": {
+    "empty_view": {
+      "no_match": "Aucun auteur ne correspond à vos filtres.",
+      "no_authors": "Aucun auteur pour le moment.",
+      "no_results_for": "Aucun auteur ne correspond à « {query} ».",
+      "empty_description": "Soyez le premier à proposer un auteur.",
+      "clear_filters": "Effacer la recherche",
+      "submit_author": "Proposer un auteur"
+    }
+  }
 }
