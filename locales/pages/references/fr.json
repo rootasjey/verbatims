@@ -15,6 +15,10 @@
   "references_sort_popularity": "Popularité",
   "references_sort_release_date": "Date de sortie",
   "references_sort_recent": "Ajout récent",
+  "references_sort_order_ascending": "Trier les références par ordre croissant",
+  "references_sort_order_descending": "Trier les références par ordre décroissant",
+  "references_results_count_one": "1 référence affichée",
+  "references_results_count_other": "{count} références affichées",
   "references_empty_letter": "Aucune référence ne commence par {letter}.",
   "references_empty_letter_in_type": "Aucune référence de type {type} ne commence par {letter}.",
   "references": {

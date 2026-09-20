@@ -29,12 +29,18 @@
           :_select-content="{ bodyLock: false }"
           @change="$emit('change-sort')"
         />
-        <NButton
-          icon
-          :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
-          btn="soft-gray"
-          @click="$emit('toggle-sort-order')"
-        />
+        <NTooltip
+          :content="$t(sortOrder === 'ASC' ? 'authors_sort_order_ascending' : 'authors_sort_order_descending') as string"
+          :_tooltip-content="{ side: 'bottom' }"
+        >
+          <NButton
+            icon
+            :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+            :aria-label="$t(sortOrder === 'ASC' ? 'authors_sort_order_ascending' : 'authors_sort_order_descending') as string"
+            btn="soft-gray"
+            @click="$emit('toggle-sort-order')"
+          />
+        </NTooltip>
       </div>
       <div class="shrink-0 md:hidden">
         <NButton
