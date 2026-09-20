@@ -14,5 +14,19 @@
   "references_sort_quote_count": "Quote Count",
   "references_sort_popularity": "Popularity",
   "references_sort_release_date": "Release Date",
-  "references_sort_recent": "Recently Added"
+  "references_sort_recent": "Recently Added",
+  "references_empty_letter": "No references begin with {letter}.",
+  "references_empty_letter_in_type": "No {type} references begin with {letter}.",
+  "references": {
+    "empty_view": {
+      "no_match": "No references match your filters.",
+      "no_references": "No references yet.",
+      "no_results_for_type": "No {type} references match “{query}”.",
+      "no_match_with_query": "No references match “{query}”.",
+      "no_references_in_type": "No {type} references yet.",
+      "empty_description": "Be the first to suggest a reference.",
+      "clear_filters": "Clear filters",
+      "submit_reference": "Suggest a reference"
+    }
+  }
 }

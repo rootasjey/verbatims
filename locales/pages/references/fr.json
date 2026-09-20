@@ -14,5 +14,19 @@
   "references_sort_quote_count": "Nombre de citations",
   "references_sort_popularity": "Popularité",
   "references_sort_release_date": "Date de sortie",
-  "references_sort_recent": "Ajout récent"
+  "references_sort_recent": "Ajout récent",
+  "references_empty_letter": "Aucune référence ne commence par {letter}.",
+  "references_empty_letter_in_type": "Aucune référence de type {type} ne commence par {letter}.",
+  "references": {
+    "empty_view": {
+      "no_match": "Aucune référence ne correspond à vos filtres.",
+      "no_references": "Aucune référence pour le moment.",
+      "no_results_for_type": "Aucune référence de type {type} ne correspond à « {query} ».",
+      "no_match_with_query": "Aucune référence ne correspond à « {query} ».",
+      "no_references_in_type": "Aucune référence de type {type} pour le moment.",
+      "empty_description": "Soyez le premier à proposer une référence.",
+      "clear_filters": "Effacer les filtres",
+      "submit_reference": "Proposer une référence"
+    }
+  }
 }

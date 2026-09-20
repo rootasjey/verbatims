@@ -52,11 +52,19 @@ export default defineEventHandler(async (event) => {
       LIMIT ${limit} OFFSET ${offset}
     `
 
-    // Letter availability (ignores search/filters — always based on full DB)
+    // Keep letter availability global across searches, but scoped to the selected type.
+    const letterConditions = [
+      sql`name IS NOT NULL`,
+      sql`name != ''`
+    ]
+    if (primaryType) {
+      letterConditions.push(sql`primary_type = ${primaryType}`)
+    }
+
     const lettersQuery = sql`
       SELECT DISTINCT UPPER(SUBSTR(name, 1, 1)) as letter
       FROM ${schema.quoteReferences}
-      WHERE name IS NOT NULL AND name != ''
+      WHERE ${sql.join(letterConditions, sql` AND `)}
       ORDER BY letter
     `
 
