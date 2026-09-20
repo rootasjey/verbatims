@@ -14,6 +14,8 @@
   "authors_sort_order_ascending": "Trier les auteurs par ordre croissant",
   "authors_sort_order_descending": "Trier les auteurs par ordre décroissant",
   "authors_search_placeholder": "Rechercher des auteurs...",
+  "authors_results_count_one": "1 auteur trouvé",
+  "authors_results_count_other": "{count} auteurs trouvés",
   "authors_alphabet_navigation": "Index des auteurs",
   "authors_index_letter_label": "Aller aux auteurs commençant par {letter}",
   "authors_empty_letter": "Aucun auteur ne commence par {letter}.",

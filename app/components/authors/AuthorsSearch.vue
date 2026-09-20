@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="space-y-2">
     <div class="flex items-center gap-2 sm:flex-row sm:items-center">
       <div class="min-w-0 flex-1">
         <NInput
@@ -53,6 +53,16 @@
         />
       </div>
     </div>
+
+    <p
+      role="status"
+      aria-atomic="true"
+      :aria-hidden="!showResultCount"
+      :style="{ visibility: showResultCount ? 'visible' : 'hidden' }"
+      class="h-4 font-sans text-xs leading-4 text-gray-500 dark:text-gray-400"
+    >
+      {{ $t(totalAuthors === 1 ? 'authors_results_count_one' : 'authors_results_count_other', { count: totalAuthors }) }}
+    </p>
   </div>
 </template>
 
@@ -66,6 +76,7 @@ const searchInput = ref<any>(null)
 const props = withDefaults(defineProps<{
   authorsCount?: number
   totalAuthors?: number
+  showResultCount?: boolean
   searchQuery?: string
   sortBy?: string
   sortOrder?: 'ASC' | 'DESC' | string
@@ -74,6 +85,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   authorsCount: 0,
   totalAuthors: 0,
+  showResultCount: false,
   searchQuery: '',
   sortBy: 'name',
   sortOrder: 'ASC',
