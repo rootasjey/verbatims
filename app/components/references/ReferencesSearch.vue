@@ -63,10 +63,11 @@
     </div>
 
     <p
-      v-if="showResultCount"
       role="status"
       aria-atomic="true"
-      class="font-sans text-xs text-gray-500 dark:text-gray-400"
+      :aria-hidden="!showResultCount"
+      :style="{ visibility: showResultCount ? 'visible' : 'hidden' }"
+      class="h-4 font-sans text-xs leading-4 text-gray-500 dark:text-gray-400"
     >
       {{ $t(visibleCount === 1 ? 'references_results_count_one' : 'references_results_count_other', { count: visibleCount }) }}
     </p>

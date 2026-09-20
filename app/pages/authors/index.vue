@@ -20,6 +20,7 @@
           ref="searchInput"
           :authors-count="authors.length"
           :total-authors="totalAuthors"
+          :show-result-count="showAuthorsResultCount"
           v-model:search-query="searchQuery"
           v-model:sort-by="sortBy"
           :sort-order="sortOrder"
@@ -298,6 +299,15 @@ const isAtPageTop = ref(true)
 const alphabetNavTop = computed(() => (searchToolbarVisible.value ? 56 + searchToolbarHeight.value : 56))
 const groupHeadingTop = computed(() => alphabetNavTop.value + alphabetNavHeight.value)
 const isSearching = ref(false)
+const renderedSearchQuery = ref('')
+const showAuthorsResultCount = computed(() => {
+  const activeQuery = searchQuery.value.trim()
+
+  return Boolean(activeQuery) &&
+    !loading.value &&
+    !isSearching.value &&
+    activeQuery === renderedSearchQuery.value.trim()
+})
 const mobileFiltersOpen = ref(false)
 const isRestoringState = ref(false)
 const isApplyingRouteFilters = ref(false)
@@ -566,6 +576,7 @@ const restoreAuthorsState = async (snapshot: AuthorsListSnapshot) => {
   isRestoringState.value = true
 
   searchQuery.value = snapshot.searchQuery
+  renderedSearchQuery.value = snapshot.searchQuery.trim()
   sortBy.value = snapshot.sortBy
   renderedSortBy.value = snapshot.sortBy
   sortOrder.value = snapshot.sortOrder
@@ -597,6 +608,8 @@ const loadAuthors = async (reset = true) => {
   }
 
   try {
+    const requestedSearchQuery = searchQuery.value
+
     type AuthorsApiResponse = {
       success: boolean
       data: any[]
@@ -628,6 +641,7 @@ const loadAuthors = async (reset = true) => {
 
     hasMore.value = response.pagination?.hasMore ?? false
     totalAuthors.value = response.pagination?.total ?? 0
+    renderedSearchQuery.value = requestedSearchQuery.trim()
 
     if (response.availableLetters) {
       dbLetters.value = new Set(response.availableLetters)
@@ -690,7 +704,8 @@ const performSearch = async (query: string) => {
     const newResults = apiResults.filter(author => !existingIds.has(author.id))
 
     authors.value = [...localResults, ...newResults]
-    totalAuthors.value = response?.pagination?.total || authors.value.length
+    totalAuthors.value = response?.pagination?.total ?? authors.value.length
+    renderedSearchQuery.value = query.trim()
     hasMore.value = false
   } catch (error) {
     console.error('Failed to search authors:', error)

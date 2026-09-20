@@ -2,14 +2,16 @@
   <div class="px-8 py-6 sm:py-12">
     <div class="max-w-xl mx-auto text-center">
       <p class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-        {{ hasActiveFilters ? $t('references.empty_view.no_match') : $t('references.empty_view.no_references') }}
+        <span class="sr-only">{{ emptyStateHeading }}</span>
+        <span aria-hidden="true">{{ typedHeading }}</span>
       </p>
 
       <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
-        {{ emptyDescription }}
+        <span class="sr-only">{{ emptyStateDescription }}</span>
+        <span aria-hidden="true">{{ typedDescription }}</span>
       </p>
 
-      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div class="empty-state-actions mt-8 flex flex-wrap items-center justify-center gap-3">
         <NButton
           v-if="hasActiveFilters"
           leading="i-ph-funnel-simple-x"
@@ -84,4 +86,35 @@ const emptyDescription = computed(() => {
 
   return $t('references.empty_view.empty_description')
 })
+
+const emptyStateHeading = computed(() => String($t(
+  hasActiveFilters.value ? 'references.empty_view.no_match' : 'references.empty_view.no_references'
+)))
+const emptyStateDescription = computed(() => String(emptyDescription.value))
+const { displayedText: typedHeading } = useTypewriterText(emptyStateHeading, hasActiveFilters)
+const { displayedText: typedDescription } = useTypewriterText(emptyStateDescription, hasActiveFilters)
 </script>
+
+<style scoped>
+.empty-state-actions {
+  animation: empty-state-actions-in 180ms ease-out 160ms both;
+}
+
+@keyframes empty-state-actions-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-state-actions {
+    animation: none;
+  }
+}
+</style>

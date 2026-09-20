@@ -2,17 +2,22 @@
   <div class="px-8 py-6 sm:py-12">
     <div class="max-w-xl mx-auto text-center">
       <p v-if="searchQuery" class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-        {{ $t('authors.empty_view.no_match') }}
+        <span class="sr-only">{{ noMatchHeading }}</span>
+        <span aria-hidden="true">{{ typedHeading }}</span>
       </p>
       <p v-else class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
         {{ $t('authors.empty_view.no_authors') }}
       </p>
 
       <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
-        {{ searchQuery ? $t('authors.empty_view.no_results_for', { query: searchQuery }) : $t('authors.empty_view.empty_description') }}
+        <template v-if="searchQuery">
+          <span class="sr-only">{{ noMatchDescription }}</span>
+          <span aria-hidden="true">{{ typedDescription }}</span>
+        </template>
+        <template v-else>{{ $t('authors.empty_view.empty_description') }}</template>
       </p>
 
-      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div class="empty-state-actions mt-8 flex flex-wrap items-center justify-center gap-3">
         <NButton
           v-if="searchQuery"
           leading="i-ph-funnel-simple-x"
@@ -36,6 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 const { $t } = useI18n()
 
 const props = defineProps({
@@ -45,5 +52,35 @@ const props = defineProps({
   }
 })
 
+const noMatchHeading = computed(() => String($t('authors.empty_view.no_match')))
+const noMatchDescription = computed(() => String($t('authors.empty_view.no_results_for', { query: props.searchQuery })))
+const shouldAnimateNoMatch = computed(() => Boolean(props.searchQuery))
+const { displayedText: typedHeading } = useTypewriterText(noMatchHeading, shouldAnimateNoMatch)
+const { displayedText: typedDescription } = useTypewriterText(noMatchDescription, shouldAnimateNoMatch)
+
 defineEmits(['openSubmitAuthor', 'clearFilters'])
 </script>
+
+<style scoped>
+.empty-state-actions {
+  animation: empty-state-actions-in 180ms ease-out 160ms both;
+}
+
+@keyframes empty-state-actions-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-state-actions {
+    animation: none;
+  }
+}
+</style>
