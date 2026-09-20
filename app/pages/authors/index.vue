@@ -239,11 +239,43 @@ useJsonLd({
 })
 
 const ALPHABET = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
+const route = useRoute()
+const router = useRouter()
+type DebouncedAction = (() => void) & { cancel: () => void }
+const createDebouncedAction = (action: () => void | Promise<void>, delay: number): DebouncedAction => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const debounced = (() => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = undefined
+      void action()
+    }, delay)
+  }) as DebouncedAction
 
-const searchQuery = ref<string>('')
-const sortBy = ref<string>('name')
+  debounced.cancel = () => {
+    if (timer) clearTimeout(timer)
+    timer = undefined
+  }
+
+  return debounced
+}
+const authorSortValues = new Set(['name', 'quotes_count', 'likes_count', 'created_at'])
+const readQueryString = (value: unknown) => typeof value === 'string' ? value : ''
+const readAuthorsFiltersFromRoute = () => {
+  const routeSortBy = readQueryString(route.query.sort)
+
+  return {
+    searchQuery: readQueryString(route.query.q).trim() ? readQueryString(route.query.q) : '',
+    sortBy: authorSortValues.has(routeSortBy) ? routeSortBy : 'name',
+    sortOrder: route.query.order === 'DESC' ? 'DESC' as const : 'ASC' as const
+  }
+}
+const initialAuthorsFilters = readAuthorsFiltersFromRoute()
+
+const searchQuery = ref<string>(initialAuthorsFilters.searchQuery)
+const sortBy = ref<string>(initialAuthorsFilters.sortBy)
 const renderedSortBy = ref<string>('name')
-const sortOrder = ref<'ASC' | 'DESC'>('ASC')
+const sortOrder = ref<'ASC' | 'DESC'>(initialAuthorsFilters.sortOrder)
 const authors: Ref<Author[]> = ref([])
 const allFetchedAuthors: Ref<Author[]> = ref([])
 const loading = ref<boolean>(true)
@@ -268,6 +300,7 @@ const groupHeadingTop = computed(() => alphabetNavTop.value + alphabetNavHeight.
 const isSearching = ref(false)
 const mobileFiltersOpen = ref(false)
 const isRestoringState = ref(false)
+const isApplyingRouteFilters = ref(false)
 const letterRefs = reactive<Record<string, HTMLElement>>({})
 const resultsAnimationKey = ref(0)
 
@@ -408,6 +441,25 @@ const sortOptions = [
   { label: $ts('authors_sort_popularity'), value: 'likes_count' },
   { label: $ts('authors_sort_recent'), value: 'created_at' }
 ]
+
+const syncAuthorsFiltersToRoute = async () => {
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
+
+  const query = { ...route.query }
+  delete query.q
+  delete query.sort
+  delete query.order
+
+  if (searchQuery.value.trim()) query.q = searchQuery.value
+  if (sortBy.value !== 'name') query.sort = sortBy.value
+  if (sortOrder.value !== 'ASC') query.order = sortOrder.value
+
+  const filterKeys = ['q', 'sort', 'order'] as const
+  if (filterKeys.every(key => route.query[key] === query[key])) return
+
+  await router.replace({ path: route.path, query, hash: route.hash })
+}
+const debouncedSyncAuthorsFiltersToRoute = createDebouncedAction(syncAuthorsFiltersToRoute, 250)
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,
@@ -647,7 +699,7 @@ const performSearch = async (query: string) => {
   }
 }
 
-const debouncedSearch = useDebounceFn(() => {
+const debouncedSearch = createDebouncedAction(() => {
   performSearch(searchQuery.value)
 }, 300)
 
@@ -698,6 +750,8 @@ onUnmounted(() => {
   dismissEmptyLetterTooltip()
   stickyResizeObserver?.disconnect()
   stopAuthorsLoadingFeedback()
+  debouncedSearch.cancel()
+  debouncedSyncAuthorsFiltersToRoute.cancel()
 
   if (authorsResultsHeightTimer) {
     clearTimeout(authorsResultsHeightTimer)
@@ -733,7 +787,14 @@ onMounted(() => {
     : null
 
   const initializePage = async () => {
-    if (shouldRestore && snapshot) {
+    const hasExplicitFilterQuery = ['q', 'sort', 'order'].some(key => route.query[key] !== undefined)
+    const snapshotMatchesRoute = snapshot && (
+      snapshot.searchQuery === searchQuery.value &&
+      snapshot.sortBy === sortBy.value &&
+      snapshot.sortOrder === sortOrder.value
+    )
+
+    if (shouldRestore && snapshot && (!hasExplicitFilterQuery || snapshotMatchesRoute)) {
       await restoreAuthorsState(snapshot)
       await nextTick()
 
@@ -745,8 +806,15 @@ onMounted(() => {
       }
 
       authorsListStore.clearRestoreRequest()
+      await syncAuthorsFiltersToRoute()
     } else {
-      await loadAuthors()
+      if (shouldRestore) authorsListStore.clearRestoreRequest()
+      await syncAuthorsFiltersToRoute()
+      if (searchQuery.value.trim()) {
+        await performSearch(searchQuery.value)
+      } else {
+        await loadAuthors()
+      }
     }
 
     await nextTick()
@@ -780,7 +848,7 @@ onBeforeRouteLeave((to) => {
 })
 
 watch([sortBy], () => {
-  if (isRestoringState.value) return
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
 
   if (searchQuery.value) {
     performSearch(searchQuery.value)
@@ -790,7 +858,7 @@ watch([sortBy], () => {
 })
 
 watch(searchQuery, (newQuery) => {
-  if (isRestoringState.value) return
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
 
   if (!newQuery || newQuery.trim().length === 0) {
     loadAuthors()
@@ -800,10 +868,42 @@ watch(searchQuery, (newQuery) => {
   debouncedSearch()
 })
 
+watch([searchQuery, sortBy, sortOrder], () => {
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
+  debouncedSyncAuthorsFiltersToRoute()
+}, { flush: 'post' })
+
+watch(() => route.query, async () => {
+  const nextFilters = readAuthorsFiltersFromRoute()
+  const filtersChanged = nextFilters.searchQuery !== searchQuery.value ||
+    nextFilters.sortBy !== sortBy.value ||
+    nextFilters.sortOrder !== sortOrder.value
+
+  if (!filtersChanged) {
+    debouncedSyncAuthorsFiltersToRoute()
+    return
+  }
+
+  debouncedSyncAuthorsFiltersToRoute.cancel()
+  debouncedSearch.cancel()
+  isApplyingRouteFilters.value = true
+  searchQuery.value = nextFilters.searchQuery
+  sortBy.value = nextFilters.sortBy
+  sortOrder.value = nextFilters.sortOrder
+  await nextTick()
+  isApplyingRouteFilters.value = false
+
+  if (searchQuery.value.trim()) {
+    await performSearch(searchQuery.value)
+  } else {
+    await loadAuthors()
+  }
+}, { deep: true })
+
 watch(
   [authors, allFetchedAuthors, currentPage, hasMore, totalAuthors, searchQuery, sortBy, sortOrder],
   () => {
-    if (isRestoringState.value) return
+    if (isRestoringState.value || isApplyingRouteFilters.value) return
     saveCurrentAuthorsState()
   },
   { deep: true }

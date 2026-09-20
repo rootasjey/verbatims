@@ -19,7 +19,7 @@
           v-if="loading || references.length > 0 || searchQuery || primaryType"
           ref="searchInput"
           :visible-count="references.length"
-          :total-count="totalReferences || 0"
+          :show-result-count="showReferenceResultCount"
           v-model:search-query="searchQuery"
           v-model:primary-type="primaryType"
           v-model:sort-by="sortBy"
@@ -234,14 +234,53 @@ useJsonLd({
 })
 
 const ALPHABET = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
+const route = useRoute()
+const router = useRouter()
+type DebouncedAction = (() => void) & { cancel: () => void }
+const createDebouncedAction = (action: () => void | Promise<void>, delay: number): DebouncedAction => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const debounced = (() => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = undefined
+      void action()
+    }, delay)
+  }) as DebouncedAction
 
-const searchQuery = ref<string>('')
-const primaryType = ref<string>('')
-const sortBy = ref<string>('name')
+  debounced.cancel = () => {
+    if (timer) clearTimeout(timer)
+    timer = undefined
+  }
+
+  return debounced
+}
+const referenceSortValues = new Set(['name', 'quotes_count', 'likes_count', 'release_date', 'created_at'])
+const referenceTypeValues = new Set([
+  'book', 'film', 'tv_series', 'music', 'speech', 'podcast', 'interview',
+  'documentary', 'media_stream', 'writings', 'video_game', 'other'
+])
+const readQueryString = (value: unknown) => typeof value === 'string' ? value : ''
+const readReferencesFiltersFromRoute = () => {
+  const routeSortBy = readQueryString(route.query.sort)
+  const routeType = readQueryString(route.query.type)
+  const routeSearchQuery = readQueryString(route.query.q)
+
+  return {
+    searchQuery: routeSearchQuery.trim() ? routeSearchQuery : '',
+    primaryType: referenceTypeValues.has(routeType) ? routeType : '',
+    sortBy: referenceSortValues.has(routeSortBy) ? routeSortBy : 'name',
+    sortOrder: route.query.order === 'DESC' ? 'DESC' as const : 'ASC' as const
+  }
+}
+const initialReferencesFilters = readReferencesFiltersFromRoute()
+
+const searchQuery = ref<string>(initialReferencesFilters.searchQuery)
+const primaryType = ref<string>(initialReferencesFilters.primaryType)
+const sortBy = ref<string>(initialReferencesFilters.sortBy)
 const renderedSearchQuery = ref<string>('')
 const renderedPrimaryType = ref<string>('')
 const renderedSortBy = ref<string>('name')
-const sortOrder = ref<'ASC' | 'DESC'>('ASC')
+const sortOrder = ref<'ASC' | 'DESC'>(initialReferencesFilters.sortOrder)
 const references = ref<QuoteReferenceWithMetadata[]>([])
 const allFetchedReferences = ref<QuoteReferenceWithMetadata[]>([])
 const loading = ref<boolean>(true)
@@ -265,9 +304,17 @@ const isAtPageTop = ref(true)
 const alphabetNavTop = computed(() => (searchToolbarVisible.value ? 56 + searchToolbarHeight.value : 56))
 const groupHeadingTop = computed(() => alphabetNavTop.value + alphabetNavHeight.value)
 const isSearching = ref<boolean>(false)
+const showReferenceResultCount = computed(() => {
+  const hasActiveFilters = Boolean(searchQuery.value.trim() || primaryType.value)
+  const searchIsCurrent = searchQuery.value.trim() === renderedSearchQuery.value.trim()
+  const typeIsCurrent = primaryType.value === renderedPrimaryType.value
+
+  return hasActiveFilters && !loading.value && !isSearching.value && searchIsCurrent && typeIsCurrent
+})
 const mobileFiltersOpen = ref<boolean>(false)
 const isProgrammaticReset = ref<boolean>(false)
 const isRestoringState = ref<boolean>(false)
+const isApplyingRouteFilters = ref<boolean>(false)
 const letterRefs = reactive<Record<string, HTMLElement>>({})
 const resultsAnimationKey = ref(0)
 
@@ -550,6 +597,27 @@ const sortOptions: Option[] = [
   { label: $ts('references_sort_recent'), value: 'created_at' }
 ]
 
+const syncReferencesFiltersToRoute = async () => {
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
+
+  const query = { ...route.query }
+  delete query.q
+  delete query.type
+  delete query.sort
+  delete query.order
+
+  if (searchQuery.value.trim()) query.q = searchQuery.value
+  if (primaryType.value) query.type = primaryType.value
+  if (sortBy.value !== 'name') query.sort = sortBy.value
+  if (sortOrder.value !== 'ASC') query.order = sortOrder.value
+
+  const filterKeys = ['q', 'type', 'sort', 'order'] as const
+  if (filterKeys.every(key => route.query[key] === query[key])) return
+
+  await router.replace({ path: route.path, query, hash: route.hash })
+}
+const debouncedSyncReferencesFiltersToRoute = createDebouncedAction(syncReferencesFiltersToRoute, 250)
+
 const loadReferences = async (reset = true) => {
   if (reset) {
     freezeReferencesResultsHeight()
@@ -683,7 +751,7 @@ const performSearch = async (query: string) => {
   }
 }
 
-const debouncedSearch = useDebounceFn(() => {
+const debouncedSearch = createDebouncedAction(() => {
   performSearch(searchQuery.value)
 }, 300)
 
@@ -777,7 +845,15 @@ onMounted(() => {
     : null
 
   const initializePage = async () => {
-    if (shouldRestore && snapshot) {
+    const hasExplicitFilterQuery = ['q', 'type', 'sort', 'order'].some(key => route.query[key] !== undefined)
+    const snapshotMatchesRoute = snapshot && (
+      snapshot.searchQuery === searchQuery.value &&
+      snapshot.primaryType === primaryType.value &&
+      snapshot.sortBy === sortBy.value &&
+      snapshot.sortOrder === sortOrder.value
+    )
+
+    if (shouldRestore && snapshot && (!hasExplicitFilterQuery || snapshotMatchesRoute)) {
       await restoreReferencesState(snapshot)
 
       if (typeof window !== 'undefined') {
@@ -788,8 +864,15 @@ onMounted(() => {
       }
 
       referencesListStore.clearRestoreRequest()
+      await syncReferencesFiltersToRoute()
     } else {
-      await loadReferences()
+      if (shouldRestore) referencesListStore.clearRestoreRequest()
+      await syncReferencesFiltersToRoute()
+      if (searchQuery.value.trim()) {
+        await performSearch(searchQuery.value)
+      } else {
+        await loadReferences()
+      }
     }
 
     await nextTick()
@@ -821,6 +904,8 @@ onUnmounted(() => {
   dismissEmptyLetterTooltip()
   stickyResizeObserver?.disconnect()
   stopReferencesLoadingFeedback()
+  debouncedSearch.cancel()
+  debouncedSyncReferencesFiltersToRoute.cancel()
 
   if (referencesResultsHeightTimer) {
     clearTimeout(referencesResultsHeightTimer)
@@ -843,7 +928,7 @@ watch([sortBy, primaryType], async () => {
 })
 
 watch([sortBy, primaryType], () => {
-  if (isRestoringState.value) return
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
   if (isProgrammaticReset.value) return
 
   if (searchQuery.value) {
@@ -854,22 +939,58 @@ watch([sortBy, primaryType], () => {
 })
 
 watch(searchQuery, (newQuery) => {
-  if (isRestoringState.value) return
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
   if (isProgrammaticReset.value) return
 
   debouncedSearch()
 })
+
+watch([searchQuery, primaryType, sortBy, sortOrder], () => {
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
+  debouncedSyncReferencesFiltersToRoute()
+}, { flush: 'post' })
+
+watch(() => route.query, async () => {
+  const nextFilters = readReferencesFiltersFromRoute()
+  const filtersChanged = nextFilters.searchQuery !== searchQuery.value ||
+    nextFilters.primaryType !== primaryType.value ||
+    nextFilters.sortBy !== sortBy.value ||
+    nextFilters.sortOrder !== sortOrder.value
+
+  if (!filtersChanged) {
+    debouncedSyncReferencesFiltersToRoute()
+    return
+  }
+
+  debouncedSyncReferencesFiltersToRoute.cancel()
+  debouncedSearch.cancel()
+  isApplyingRouteFilters.value = true
+  searchQuery.value = nextFilters.searchQuery
+  primaryType.value = nextFilters.primaryType
+  sortBy.value = nextFilters.sortBy
+  sortOrder.value = nextFilters.sortOrder
+  await nextTick()
+  isApplyingRouteFilters.value = false
+
+  if (searchQuery.value.trim()) {
+    await performSearch(searchQuery.value)
+  } else {
+    await loadReferences()
+  }
+}, { deep: true })
 </script>
 
 <style scoped>
 .references-results-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto;
   overflow: clip;
   transition: grid-template-rows 360ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .references-results-shell > :first-child {
+  min-width: 0;
   min-height: 0;
 }
 

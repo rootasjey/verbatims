@@ -11,6 +11,8 @@
   "authors_sort_quote_count": "Nombre de citations",
   "authors_sort_popularity": "Popularité",
   "authors_sort_recent": "Ajout récent",
+  "authors_sort_order_ascending": "Trier les auteurs par ordre croissant",
+  "authors_sort_order_descending": "Trier les auteurs par ordre décroissant",
   "authors_search_placeholder": "Rechercher des auteurs...",
   "authors_alphabet_navigation": "Index des auteurs",
   "authors_index_letter_label": "Aller aux auteurs commençant par {letter}",

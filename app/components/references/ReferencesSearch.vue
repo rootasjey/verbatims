@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="space-y-2">
     <div class="flex items-center gap-2 sm:flex-row sm:items-center">
       <div class="min-w-0 flex-1">
         <NInput
@@ -37,12 +37,18 @@
           select="outline-gray"
           :_select-content="{ bodyLock: false }"
         />
-        <NButton
-          icon
-          :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
-          btn="soft-gray"
-          @click="$emit('toggle-sort-order')"
-        />
+        <NTooltip
+          :content="$t(sortOrder === 'ASC' ? 'references_sort_order_ascending' : 'references_sort_order_descending') as string"
+          :_tooltip-content="{ side: 'bottom' }"
+        >
+          <NButton
+            icon
+            :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+            :aria-label="$t(sortOrder === 'ASC' ? 'references_sort_order_ascending' : 'references_sort_order_descending') as string"
+            btn="soft-gray"
+            @click="$emit('toggle-sort-order')"
+          />
+        </NTooltip>
       </div>
       <div class="shrink-0 md:hidden">
         <NButton
@@ -55,6 +61,15 @@
         />
       </div>
     </div>
+
+    <p
+      v-if="showResultCount"
+      role="status"
+      aria-atomic="true"
+      class="font-sans text-xs text-gray-500 dark:text-gray-400"
+    >
+      {{ $t(visibleCount === 1 ? 'references_results_count_one' : 'references_results_count_other', { count: visibleCount }) }}
+    </p>
   </div>
 </template>
 
@@ -67,7 +82,7 @@ const searchInput = ref<any>(null)
 
 const props = withDefaults(defineProps<{
   visibleCount?: number
-  totalCount?: number
+  showResultCount?: boolean
   searchQuery?: string
   primaryType?: string
   sortBy?: string
@@ -77,7 +92,7 @@ const props = withDefaults(defineProps<{
   mobileFiltersOpen?: boolean
 }>(), {
   visibleCount: 0,
-  totalCount: 0,
+  showResultCount: false,
   searchQuery: '',
   primaryType: '',
   sortBy: 'name',

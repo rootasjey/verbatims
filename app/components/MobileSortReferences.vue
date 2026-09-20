@@ -38,6 +38,7 @@
             <NButton
               icon
               :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+              :aria-label="$t(sortOrder === 'ASC' ? 'references_sort_order_ascending' : 'references_sort_order_descending') as string"
               btn="soft-gray"
               size="sm"
               class="rounded-full"
