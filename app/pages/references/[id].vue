@@ -119,6 +119,15 @@
             </div>
           </div>
 
+          <button
+            type="button"
+            class="mb-10 inline-flex min-h-11 items-center gap-2 px-1 font-sans text-xs font-600 uppercase tracking-[0.12em] text-stone-500 transition-colors hover:text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 dark:text-stone-400 dark:hover:text-stone-100"
+            @click="navigateBack"
+          >
+            <NIcon name="i-ph-arrow-left" class="h-4 w-4" aria-hidden="true" />
+            <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
+          </button>
+
           <div
             class="transform-gpu transition-all duration-700 ease-out"
             :class="headerIn ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-2 blur-[2px]'"
