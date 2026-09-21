@@ -6,9 +6,12 @@
         v-for="relatedQuote in relatedQuotes"
         :key="relatedQuote.id"
         :to="`/quotes/${relatedQuote.id}`"
-        class="group block no-underline"
+        class="group block rounded-sm no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-500"
       >
-        <p class="font-serif text-base leading-relaxed text-gray-700 transition-colors duration-300 group-hover:text-gray-950 dark:text-gray-300 dark:group-hover:text-white">
+        <p class="mb-2 font-sans text-xs text-gray-500 dark:text-gray-400">
+          {{ $t(`components.related.reasons.${relatedQuote.relation}`) }}
+        </p>
+        <p class="max-w-[65ch] font-serif text-base leading-relaxed text-gray-700 underline decoration-gray-400/60 underline-offset-4 transition-colors duration-300 group-hover:text-gray-950 group-hover:decoration-gray-700 dark:text-gray-300 dark:decoration-gray-500/70 dark:group-hover:text-white dark:group-hover:decoration-gray-300 sm:no-underline sm:group-hover:underline sm:group-focus-visible:underline">
           {{ truncateText(relatedQuote.name, 200) }}
         </p>
         <p v-if="relatedQuote.author" class="mt-1.5 font-sans text-sm text-gray-500 dark:text-gray-400">
@@ -20,9 +23,11 @@
 </template>
 
 <script lang="ts" setup>
+import type { RelatedQuote } from '~~/shared/types/quote'
+
 interface Props {
   quote: QuoteWithRelations;
-  relatedQuotes?: QuoteWithRelations[];
+  relatedQuotes?: RelatedQuote[];
 }
 
 defineProps<Props>();

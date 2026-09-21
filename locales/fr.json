@@ -679,6 +679,7 @@
     },
     "quote_sticky": {
       "back": "Retour à la liste des citations",
+      "back_to_results": "Retour aux résultats",
       "views": "Nombre de vues",
       "shares": "Nombre de partages",
       "likes": "Nombre de j'aimes",
@@ -705,6 +706,11 @@
     },
     "related": {
       "quotes": "Citations associées",
+      "reasons": {
+        "author": "Même auteur",
+        "reference": "Même référence",
+        "tags": "Tags en commun"
+      },
       "authors": "Auteurs similaires",
       "references": "Voir aussi",
       "references_description": "D'autres œuvres liées à cette référence.",

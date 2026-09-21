@@ -1,6 +1,7 @@
 import { db, schema } from 'hub:db'
 import { and, desc, eq, inArray, ne, notInArray, sql } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance, getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import type { RelatedQuoteRelation } from '~~/shared/types/quote'
 
 const quoteFields = {
   id: schema.quotes.id,
@@ -33,6 +34,7 @@ export default defineEventHandler(async (event) => {
     const currentAttribution = currentProvenance.attributions.find(attribution => attribution.is_primary)
       ?? currentProvenance.attributions[0]
     let relatedQuotes: any[] = []
+    const relationByQuoteId = new Map<number, RelatedQuoteRelation>()
 
     if (currentAttribution?.author_id) {
       relatedQuotes = await db.select(quoteFields)
@@ -50,6 +52,8 @@ export default defineEventHandler(async (event) => {
         .orderBy(desc(schema.quotes.likesCount), desc(schema.quotes.viewsCount))
         .limit(3)
         .all()
+
+      relatedQuotes.forEach(quote => relationByQuoteId.set(quote.id, 'author'))
     }
 
     if (relatedQuotes.length < 4 && currentAttribution?.reference_id) {
@@ -70,6 +74,7 @@ export default defineEventHandler(async (event) => {
         .limit(4 - relatedQuotes.length)
         .all()
 
+      referenceQuotes.forEach(quote => relationByQuoteId.set(quote.id, 'reference'))
       relatedQuotes.push(...referenceQuotes)
     }
 
@@ -96,6 +101,7 @@ export default defineEventHandler(async (event) => {
           .limit(4 - relatedQuotes.length)
           .all()
 
+        tagQuotes.forEach(quote => relationByQuoteId.set(quote.id, 'tags'))
         relatedQuotes.push(...tagQuotes)
       }
     }
@@ -129,6 +135,7 @@ export default defineEventHandler(async (event) => {
         return {
           id: quote.id,
           name: quote.name,
+          relation: relationByQuoteId.get(quote.id) ?? 'tags',
           language: quote.language,
           status: quote.status,
           views_count: quote.viewsCount,

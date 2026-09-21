@@ -645,6 +645,7 @@
     },
     "quote_sticky": {
       "back": "Back to quotes list",
+      "back_to_results": "Back to results",
       "views": "View count",
       "shares": "Share count",
       "likes": "Like count",
@@ -671,6 +672,11 @@
     },
     "related": {
       "quotes": "Related Quotes",
+      "reasons": {
+        "author": "Same author",
+        "reference": "Same reference",
+        "tags": "Shared tags"
+      },
       "authors": "Similar Authors",
       "references": "See also",
       "references_description": "Other works connected to this reference.",

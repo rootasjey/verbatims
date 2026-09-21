@@ -81,6 +81,12 @@ export interface QuoteWithRelations extends Quote {
   };
 }
 
+export type RelatedQuoteRelation = 'author' | 'reference' | 'tags'
+
+export interface RelatedQuote extends QuoteWithRelations {
+  relation: RelatedQuoteRelation;
+}
+
 export type QuoteProvenanceStatus = 'unverified' | 'manually_verified' | 'externally_verified' | 'disputed'
 
 export interface QuoteAttribution {
