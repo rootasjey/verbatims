@@ -77,22 +77,22 @@
 
         <!-- Quiet actions -->
         <div class="mt-6 mb-2 flex flex-nowrap items-center justify-center gap-x-5 overflow-x-auto px-2 text-xs font-600 uppercase tracking-[0.12em] text-stone-500 scrollbar-none dark:text-stone-400 md:mt-18 md:overflow-visible">
-          <button v-if="user" type="button" :aria-label="isLiked ? 'Liked' : 'Like'" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="toggleLike">
+          <button v-if="user" type="button" :aria-label="isLiked ? $ts('components.mobile_actions.unlike') : $ts('components.mobile_actions.like')" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="toggleLike">
             <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" class="h-4 w-4 md:hidden" />
-            <span class="hidden md:inline">{{ isLiked ? 'Liked' : 'Like' }}</span>
+            <span class="hidden md:inline">{{ isLiked ? $ts('components.mobile_actions.unlike') : $ts('components.mobile_actions.like') }}</span>
           </button>
-          <button type="button" aria-label="Share" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="shareQuote">
+          <button type="button" :aria-label="$ts('components.quote_actions.share')" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="shareQuote">
             <NIcon name="i-lucide-share" class="h-4 w-4 md:hidden" />
-            <span class="hidden md:inline">Share</span>
+            <span class="hidden md:inline">{{ $ts('components.quote_actions.share') }}</span>
           </button>
-          <button type="button" aria-label="Download image" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="downloadQuote">
+          <button type="button" :aria-label="$ts('components.quote_actions.download_image')" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="downloadQuote">
             <NIcon name="i-lucide-download" class="h-4 w-4 md:hidden" />
-            <span class="hidden md:inline">Download image</span>
+            <span class="hidden md:inline">{{ $ts('components.quote_actions.download_image') }}</span>
           </button>
           <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'center' }" class="font-sans">
-            <button type="button" aria-label="More actions" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0">
+            <button type="button" :aria-label="$ts('components.quote_sticky.more')" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0">
               <NIcon name="i-lucide-ellipsis" class="h-4 w-4 md:hidden" />
-              <span class="hidden md:inline">More</span>
+              <span class="hidden md:inline">{{ $ts('components.quote_sticky.more') }}</span>
             </button>
           </NDropdownMenu>
         </div>
