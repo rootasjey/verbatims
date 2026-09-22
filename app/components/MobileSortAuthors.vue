@@ -3,8 +3,13 @@
     <template #body>
       <div class="p-5 space-y-5">
         <div class="flex items-center justify-between">
-          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">{{ $t('mobile.sort.title') }}</h3>
-          <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
+          <h3 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">{{ title || $t('mobile.sort.title') }}</h3>
+          <div class="flex items-center gap-2">
+            <NButton v-if="hasActiveFilters" btn="ghost-gray" size="xs" @click="$emit('reset-filters')">
+              {{ resetLabel || $t('common.reset_filters') }}
+            </NButton>
+            <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="internalOpen = false" />
+          </div>
         </div>
 
         <div class="space-y-3">
@@ -15,6 +20,7 @@
             :placeholder="$t('mobile.sort.sort_by') as string"
             item-key="label"
             value-key="label"
+            :_select-content="{ bodyLock: false }"
           />
         </div>
 
@@ -57,6 +63,9 @@ const props = defineProps<{
   sortBy: string
   sortOrder: 'ASC' | 'DESC' | string
   sortOptions: SortOption[]
+  title?: string
+  hasActiveFilters?: boolean
+  resetLabel?: string
 }>()
 
 const emit = defineEmits<{
@@ -64,6 +73,7 @@ const emit = defineEmits<{
   (e: 'update:sortBy', value: string): void
   (e: 'update:sortOrder', value: 'ASC' | 'DESC' | string): void
   (e: 'toggle-sort-order'): void
+  (e: 'reset-filters'): void
 }>()
 
 const internalOpen = computed({
@@ -78,4 +88,5 @@ const internalSortOption = computed({
 
 // sortOrder is read-only here; toggling is delegated to parent via event
 const sortOrder = computed(() => props.sortOrder)
+const hasActiveFilters = computed(() => props.hasActiveFilters ?? false)
 </script>

@@ -1,71 +1,83 @@
 <template>
   <div class="min-h-screen">
-    <header class="mt-10 md:mt-6 p-8">
-      <h1 class="font-title text-5xl md:text-6xl lg:text-7xl font-600 text-center line-height-none uppercase">
+    <header class="mx-auto max-w-6xl px-6 pb-8 pt-12 sm:px-8 md:pb-16 md:pt-28 lg:px-10">
+      <h1 class="font-serif text-5xl font-400 leading-none tracking-[-0.035em] text-gray-900 dark:text-gray-100 md:text-6xl lg:text-7xl">
         {{ $t('tags_title') }}
       </h1>
-      <p class="italic font-body text-md md:text-base text-center text-gray-500 dark:text-gray-400">
+      <p class="mt-4 max-w-2xl font-sans text-lg leading-relaxed text-gray-600 dark:text-gray-400 md:mt-5 md:text-xl">
         {{ $t('tags_subtitle') }}
       </p>
     </header>
 
-    <div class="max-w-6xl mx-auto px-8 pb-16">
-      <TagSearch
+    <main class="mx-auto max-w-6xl px-4 pb-24 sm:px-6 lg:px-10">
+      <div
         v-if="loading || tags.length > 0 || searchQuery"
-        ref="searchInput"
-        :tags-count="tags.length"
-        :total-tags="totalTags"
-        v-model:search-query="searchQuery"
-        v-model:sort-by="sortBy"
-        :sort-order="sortOrder"
-        :sort-options="sortOptions"
-        v-model:mobile-filters-open="mobileFiltersOpen"
-        @toggle-sort-order="toggleSortOrder"
-        @change-sort="loadTags"
-        @search-input="debouncedSearch"
-      />
-
-      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
-        <div v-for="i in 8" :key="i" class="border p-6 animate-pulse">
-          <div class="border-b b-dashed b-gray-200 dark:border-gray-400 pb-2 mb-4">
-            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          </div>
-          <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-        </div>
+        ref="searchToolbar"
+        class="sticky top-14 z-20 mb-5 bg-[#FAFAF9]/95 pt-2 backdrop-blur-md transition-transform duration-300 ease-out dark:bg-[#0C0A09]/95 md:mb-8 md:pt-3"
+        :class="searchToolbarVisible ? 'translate-y-0' : '-translate-y-[calc(100%+1rem)] pointer-events-none'"
+      >
+        <TagSearch
+          ref="searchInput"
+          :tags-count="tags.length"
+          :total-tags="totalTags"
+          :show-result-count="!loading"
+          :has-active-filters="hasActiveFilters"
+          v-model:search-query="searchQuery"
+          v-model:sort-by="sortBy"
+          :sort-order="sortOrder"
+          :sort-options="sortOptions"
+          v-model:mobile-filters-open="mobileFiltersOpen"
+          @toggle-sort-order="toggleSortOrder"
+          @search-input="debouncedSearch"
+        />
       </div>
 
-      <TagEmptyView
-        v-else-if="tags.length === 0"
-        :search-query="searchQuery"
-        class="mt-24"
-        @clear-filters="clearFilters"
-        @create-tag="showCreateTag = true"
-      />
+      <section
+        v-if="loading || tags.length > 0 || searchQuery"
+        aria-labelledby="tags-directory-title"
+        class="mt-8 rounded-2xl bg-[#e7e4dd] px-4 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10 dark:bg-[#17191e]"
+      >
+        <h2 id="tags-directory-title" class="sr-only">{{ $t('tags_title') }}</h2>
 
-      <div v-else>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 mb-12">
+        <div v-if="loading" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4" aria-busy="true">
+          <div v-for="i in 8" :key="i" class="min-h-52 animate-pulse rounded-xl border border-black/6 bg-white/35 p-5 dark:border-white/8 dark:bg-white/3">
+            <div class="mb-5 flex items-center gap-2">
+              <div class="h-2 w-2 rounded-full bg-black/10 dark:bg-white/10" />
+              <div class="h-3 w-20 rounded bg-black/10 dark:bg-white/10" />
+            </div>
+            <div class="mb-3 h-7 w-3/4 rounded bg-black/10 dark:bg-white/10" />
+            <div class="space-y-2">
+              <div class="h-3 w-full rounded bg-black/10 dark:bg-white/10" />
+              <div class="h-3 w-4/5 rounded bg-black/10 dark:bg-white/10" />
+            </div>
+          </div>
+        </div>
+
+        <TagEmptyView
+          v-else-if="tags.length === 0"
+          :search-query="searchQuery"
+          @clear-filters="clearFilters"
+          @create-tag="showCreateTag = true"
+        />
+
+        <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4">
           <TagGridItem
             v-for="tag in tags"
             :key="tag.id"
             :tag="tag"
-            class="fade-in"
           />
         </div>
-      </div>
+      </section>
 
-      <div class="flex justify-center">
+      <div v-if="tags.length > 0 && hasMore" class="mt-8 flex justify-center">
         <LoadMoreButton
-          v-if="tags.length > 0 && hasMore"
-          class="mb-4"
           :idleText="$ts('tags_load_more')"
           :loadingText="$ts('tags_loading')"
           :isLoading="loadingMore"
           @load="loadMore"
         />
       </div>
-    </div>
+    </main>
 
     <MobileSortAuthors
       v-if="isMobile"
@@ -73,7 +85,11 @@
       v-model:sortBy="sortBy"
       :sort-order="sortOrder"
       :sort-options="sortOptions"
+      :title="$ts('tags_mobile_sort_title')"
+      :has-active-filters="hasActiveFilters"
+      :reset-label="$ts('tags_reset_filters')"
       @toggle-sort-order="toggleSortOrder"
+      @reset-filters="resetFilters"
     />
 
     <ClientOnly>
@@ -96,6 +112,40 @@ definePageMeta({
 })
 
 const { $t, $ts } = useI18n()
+const route = useRoute()
+const router = useRouter()
+type DebouncedAction = (() => void) & { cancel: () => void }
+const createDebouncedAction = (action: () => void | Promise<void>, delay: number): DebouncedAction => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const debounced = (() => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = undefined
+      void action()
+    }, delay)
+  }) as DebouncedAction
+
+  debounced.cancel = () => {
+    if (timer) clearTimeout(timer)
+    timer = undefined
+  }
+
+  return debounced
+}
+
+const tagSortValues = new Set(['name', 'quotes_count', 'created_at'])
+const readQueryString = (value: unknown) => typeof value === 'string' ? value : ''
+const readTagsFiltersFromRoute = () => {
+  const routeSearchQuery = readQueryString(route.query.q)
+  const routeSortBy = readQueryString(route.query.sort)
+
+  return {
+    searchQuery: routeSearchQuery.trim() ? routeSearchQuery : '',
+    sortBy: tagSortValues.has(routeSortBy) ? routeSortBy : 'name',
+    sortOrder: route.query.order === 'DESC' ? 'DESC' as const : 'ASC' as const
+  }
+}
+const initialTagsFilters = readTagsFiltersFromRoute()
 
 useHead({
   title: $ts('tags_meta_title'),
@@ -126,9 +176,9 @@ interface TagListItem {
   quotes_count?: number
 }
 
-const searchQuery = ref<string>('')
-const sortBy = ref<string>('name')
-const sortOrder = ref<'ASC' | 'DESC'>('ASC')
+const searchQuery = ref<string>(initialTagsFilters.searchQuery)
+const sortBy = ref<string>(initialTagsFilters.sortBy)
+const sortOrder = ref<'ASC' | 'DESC'>(initialTagsFilters.sortOrder)
 const tags = ref<TagListItem[]>([])
 const allFetchedTags = ref<TagListItem[]>([])
 const loading = ref<boolean>(true)
@@ -140,12 +190,41 @@ const searchInput = ref<any>(null)
 const mobileFiltersOpen = ref(false)
 const showCreateTag = ref(false)
 const isRestoringState = ref(false)
+const isResettingFilters = ref(false)
+const isApplyingRouteFilters = ref(false)
+const searchToolbar = ref<HTMLElement | null>(null)
+const searchToolbarVisible = ref(true)
+
+const hasActiveFilters = computed(() => (
+  searchQuery.value.trim().length > 0 || sortBy.value !== 'name' || sortOrder.value !== 'ASC'
+))
+
+let lastSearchToolbarScrollY = 0
 
 const sortOptions = [
   { label: $ts('tags_sort_name'), value: 'name' },
   { label: $ts('tags_sort_quote_count'), value: 'quotes_count' },
   { label: $ts('tags_sort_recent'), value: 'created_at' }
 ]
+
+const syncTagsFiltersToRoute = async () => {
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
+
+  const query = { ...route.query }
+  delete query.q
+  delete query.sort
+  delete query.order
+
+  if (searchQuery.value.trim()) query.q = searchQuery.value
+  if (sortBy.value !== 'name') query.sort = sortBy.value
+  if (sortOrder.value !== 'ASC') query.order = sortOrder.value
+
+  const filterKeys = ['q', 'sort', 'order'] as const
+  if (filterKeys.every(key => route.query[key] === query[key])) return
+
+  await router.replace({ path: route.path, query, hash: route.hash })
+}
+const debouncedSyncTagsFiltersToRoute = createDebouncedAction(syncTagsFiltersToRoute, 250)
 
 useFocusOnTyping(searchInput, {
   skipOnMobile: true,
@@ -202,7 +281,7 @@ const loadTags = async (reset = true) => {
     const response = await $fetch('/api/tags', {
       query: {
         page: currentPage.value,
-        limit: 24,
+        limit: 48,
         search: searchQuery.value || undefined,
         sort_by: sortBy.value,
         sort_order: sortOrder.value
@@ -246,13 +325,42 @@ const clearFilters = async () => {
   await loadTags()
 }
 
-const debouncedSearch = useDebounceFn(() => {
+const resetFilters = async () => {
+  debouncedSearch.cancel()
+  isResettingFilters.value = true
+  searchQuery.value = ''
+  sortBy.value = 'name'
+  sortOrder.value = 'ASC'
+  await nextTick()
+  isResettingFilters.value = false
+  await loadTags()
+}
+
+const handleSearchToolbarScroll = () => {
+  if (typeof window === 'undefined') return
+
+  const currentScrollY = window.scrollY
+  const scrollDelta = currentScrollY - lastSearchToolbarScrollY
+  const searchHasFocus = searchToolbar.value?.contains(document.activeElement)
+
+  if (currentScrollY <= 80 || scrollDelta < -4 || searchHasFocus || mobileFiltersOpen.value) {
+    searchToolbarVisible.value = true
+  } else if (scrollDelta > 4) {
+    searchToolbarVisible.value = false
+  }
+
+  lastSearchToolbarScrollY = currentScrollY
+}
+
+const debouncedSearch = createDebouncedAction(() => {
   loadTags()
 }, 300)
 
 onMounted(() => {
   if (typeof window !== 'undefined') {
     window.addEventListener('scroll', debouncedSaveScrollState, { passive: true })
+    lastSearchToolbarScrollY = window.scrollY
+    window.addEventListener('scroll', handleSearchToolbarScroll, { passive: true })
   }
 
   const shouldRestore = tagsListStore.shouldRestore
@@ -266,15 +374,27 @@ onMounted(() => {
     : null
 
   const initializePage = async () => {
-    if (shouldRestore && snapshot) {
+    const hasExplicitFilterQuery = ['q', 'sort', 'order'].some(key => route.query[key] !== undefined)
+    const snapshotMatchesRoute = snapshot && (
+      snapshot.searchQuery === searchQuery.value &&
+      snapshot.sortBy === sortBy.value &&
+      snapshot.sortOrder === sortOrder.value
+    )
+
+    if (shouldRestore && snapshot && (!hasExplicitFilterQuery || snapshotMatchesRoute)) {
       await restoreTagsState(snapshot)
 
       if (typeof window !== 'undefined') {
         window.scrollTo({ top: snapshot.scrollY, behavior: 'auto' })
+        lastSearchToolbarScrollY = snapshot.scrollY
+        searchToolbarVisible.value = snapshot.scrollY <= 80
       }
 
       tagsListStore.clearRestoreRequest()
+      await syncTagsFiltersToRoute()
     } else {
+      if (shouldRestore) tagsListStore.clearRestoreRequest()
+      await syncTagsFiltersToRoute()
       await loadTags()
     }
 
@@ -297,22 +417,53 @@ onBeforeRouteLeave((to) => {
 })
 
 onUnmounted(() => {
+  debouncedSearch.cancel()
+  debouncedSyncTagsFiltersToRoute.cancel()
+
   if (typeof window !== 'undefined') {
     window.removeEventListener('scroll', debouncedSaveScrollState)
+    window.removeEventListener('scroll', handleSearchToolbarScroll)
   }
 })
 
 watch([sortBy], () => {
-  if (isRestoringState.value) return
+  if (isRestoringState.value || isResettingFilters.value || isApplyingRouteFilters.value) return
   loadTags()
 })
 
 watch(searchQuery, (newQuery) => {
-  if (isRestoringState.value) return
+  if (isRestoringState.value || isResettingFilters.value || isApplyingRouteFilters.value) return
   if (!newQuery || newQuery.trim().length === 0) {
     loadTags()
   }
 })
+
+watch([searchQuery, sortBy, sortOrder], () => {
+  if (isRestoringState.value || isApplyingRouteFilters.value) return
+  debouncedSyncTagsFiltersToRoute()
+}, { flush: 'post' })
+
+watch(() => route.query, async () => {
+  const nextFilters = readTagsFiltersFromRoute()
+  const filtersChanged = nextFilters.searchQuery !== searchQuery.value ||
+    nextFilters.sortBy !== sortBy.value ||
+    nextFilters.sortOrder !== sortOrder.value
+
+  if (!filtersChanged) {
+    debouncedSyncTagsFiltersToRoute()
+    return
+  }
+
+  debouncedSyncTagsFiltersToRoute.cancel()
+  debouncedSearch.cancel()
+  isApplyingRouteFilters.value = true
+  searchQuery.value = nextFilters.searchQuery
+  sortBy.value = nextFilters.sortBy
+  sortOrder.value = nextFilters.sortOrder
+  await nextTick()
+  isApplyingRouteFilters.value = false
+  await loadTags()
+}, { deep: true })
 </script>
 
 <style scoped>

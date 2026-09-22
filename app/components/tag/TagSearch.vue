@@ -1,16 +1,17 @@
 <template>
-  <div class="mb-8">
-    <div class="flex sm:flex-row gap-4 max-w-2xl mx-auto">
-      <div class="flex-1">
+  <div class="space-y-2 pb-3">
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div class="min-w-0 flex-1">
         <NInput
           ref="searchInput"
           input="outline-gray"
           v-model="searchQueryModel"
-          :placeholder="$t('tags.tag_search.search_placeholder', { count: totalTags || 0 }) as string"
+          :placeholder="$ts('tags_search_placeholder') as string"
+          :aria-label="$ts('tags_search_placeholder') as string"
           leading="i-ph-magnifying-glass"
           :trailing="searchQueryModel ? 'i-ph-x' : undefined"
           size="md"
-          class="focus:border-2 focus:border-lime-500"
+          class="focus:border-gray-500 dark:focus:border-gray-400"
           @input="$emit('search-input')"
           @trailing="searchQueryModel = ''; focus()"
           :una="{
@@ -18,39 +19,59 @@
           }"
         />
       </div>
-      <div class="hidden md:flex gap-2">
+      <div class="hidden shrink-0 gap-2 md:flex">
         <NSelect
           v-model="sortByModel"
           :items="sortOptions"
-          :placeholder="$t('tags.tag_search.sort_by') as string"
+          :placeholder="$ts('tags_sort_name') as string"
           item-key="label"
           value-key="label"
           select="outline-gray"
-          @change="$emit('change-sort')"
+          :_select-content="{ bodyLock: false }"
         />
-        <NButton
-          icon
-          :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
-          btn="soft-gray"
-          @click="$emit('toggle-sort-order')"
-        />
+        <NTooltip :content="$ts(sortOrder === 'ASC' ? 'tags_sort_order_ascending' : 'tags_sort_order_descending') as string" :_tooltip-content="{ side: 'bottom' }">
+          <NButton
+            icon
+            :label="sortOrder === 'ASC' ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+            :aria-label="$ts(sortOrder === 'ASC' ? 'tags_sort_order_ascending' : 'tags_sort_order_descending') as string"
+            btn="soft-gray"
+            @click="$emit('toggle-sort-order')"
+          />
+        </NTooltip>
       </div>
-      <div class="block md:hidden">
-        <NButton
-          icon
-          label="i-ph-faders"
-          size="sm"
-          btn="outline-gray"
-          class="rounded-full"
-          @click="mobileFiltersOpenModel = true"
-        />
+      <div class="shrink-0 md:hidden">
+        <span class="relative inline-flex overflow-visible">
+          <NButton
+            icon
+            label="i-ph-faders"
+            size="sm"
+            btn="outline-gray"
+            :aria-label="$ts(hasActiveFilters ? 'tags_open_filters_active' : 'tags_open_filters') as string"
+            @click="mobileFiltersOpenModel = true"
+          />
+          <span
+            v-if="hasActiveFilters"
+            class="pointer-events-none absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#FAFAF9] bg-gray-400 dark:border-[#0C0A09] dark:bg-gray-300"
+            aria-hidden="true"
+          />
+        </span>
       </div>
     </div>
+
+    <p
+      role="status"
+      aria-atomic="true"
+      :aria-hidden="!showResultCount"
+      :style="{ visibility: showResultCount ? 'visible' : 'hidden' }"
+      class="h-4 font-sans text-xs leading-4 text-gray-500 dark:text-gray-400"
+    >
+      {{ $ts(totalTags === 1 ? 'tags_results_count_one' : 'tags_results_count_other', { count: totalTags }) }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-const { $t } = useI18n()
+const { $ts } = useI18n()
 
 interface Option { label: string; value: string }
 
@@ -59,6 +80,8 @@ const searchInput = ref<any>(null)
 const props = withDefaults(defineProps<{
   tagsCount?: number
   totalTags?: number
+  showResultCount?: boolean
+  hasActiveFilters?: boolean
   searchQuery?: string
   sortBy?: string
   sortOrder?: 'ASC' | 'DESC' | string
@@ -67,6 +90,8 @@ const props = withDefaults(defineProps<{
 }>(), {
   tagsCount: 0,
   totalTags: 0,
+  showResultCount: false,
+  hasActiveFilters: false,
   searchQuery: '',
   sortBy: 'name',
   sortOrder: 'ASC',
@@ -79,7 +104,6 @@ const emit = defineEmits([
   'update:sortBy',
   'update:mobileFiltersOpen',
   'toggle-sort-order',
-  'change-sort',
   'search-input'
 ])
 
