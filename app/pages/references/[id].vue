@@ -191,12 +191,22 @@
 
           <div class="mb-10 border-t border-stone-300/70 dark:border-stone-700/70" aria-hidden="true" />
 
-          <div v-if="quotesLoading" class="space-y-4">
+          <div v-if="quotesLoading" class="space-y-4" role="status" aria-live="polite">
             <div v-for="i in 4" :key="i" class="animate-pulse">
               <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1.5" />
               <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-3" />
               <div class="h-px bg-gray-100 dark:bg-gray-800" />
             </div>
+          </div>
+
+          <div v-else-if="quotesError" class="flex flex-col items-center gap-4 py-8 text-center" role="alert">
+            <NIcon name="i-ph-warning-circle" class="h-8 w-8 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+            <p class="max-w-md font-serif text-sm text-gray-500 dark:text-gray-400">
+              {{ $ts('reference_detail_quotes_error') }}
+            </p>
+            <NButton btn="outline-gray" size="sm" @click="loadQuotes(true)">
+              {{ $ts('reference_detail_quotes_retry') }}
+            </NButton>
           </div>
 
           <div v-else-if="referenceQuotes.length > 0" class="grid gap-x-16 gap-y-10 lg:grid-cols-2">
@@ -423,6 +433,7 @@ watchEffect(() => {
 })
 const referenceQuotes = ref<Quote[]>([])
 const quotesLoading = ref<boolean>(false)
+const quotesError = ref<boolean>(false)
 const loadingMoreQuotes = ref<boolean>(false)
 const hasMoreQuotes = ref<boolean>(true)
 const currentQuotePage = ref<number>(1)
@@ -575,6 +586,7 @@ const loadQuotes = async (reset = true) => {
 
   if (reset) {
     quotesLoading.value = true
+    quotesError.value = false
     currentQuotePage.value = 1
     referenceQuotes.value = []
   } else {
@@ -603,6 +615,7 @@ const loadQuotes = async (reset = true) => {
   } catch (error) {
     console.error('Failed to load quotes:', error)
     if (reset) {
+      quotesError.value = true
       referenceQuotes.value = []
     }
     hasMoreQuotes.value = false
@@ -1033,6 +1046,14 @@ onUnmounted(() => {
   background: transparent !important;
   box-shadow: none !important;
   outline: none !important;
+}
+
+.reference-sort-selector :deep(button:focus-visible),
+.reference-sort-selector :deep([data-slot='combobox-trigger']:focus-visible),
+.reference-sort-selector :deep(.reference-sort-trigger:focus-visible) {
+  border-radius: 0.375rem !important;
+  outline: 2px solid rgba(120, 113, 108, 0.7) !important;
+  outline-offset: 4px !important;
 }
 
 </style>
