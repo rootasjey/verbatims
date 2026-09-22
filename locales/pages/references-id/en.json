@@ -13,6 +13,8 @@
   "reference_detail_sort_most_popular": "Most Popular",
   "reference_detail_sort_most_viewed": "Most Viewed",
   "reference_detail_empty": "No quotes yet",
+  "reference_detail_quotes_error": "We couldn't load the quotes for this reference.",
+  "reference_detail_quotes_retry": "Try again",
   "reference_detail_load_more": "Load More Quotes",
   "reference_detail_loading_more": "Loading Quotes...",
   "reference_detail_not_found_title": "Reference Not Found",
