@@ -222,6 +222,12 @@ const props = withDefaults(defineProps<Props>(), {
 - In select components, prefer human-friendly display values
 - In dropdown menu items, use `onclick` for actions when following existing menu patterns
 
+### Interactive images and cards
+
+- For clickable image or card surfaces, use a restrained tactile interaction by default: `hover:scale-105 hover:shadow-lg active:scale-99 active:shadow-none`, with `transition-[transform,box-shadow] duration-200`.
+- Apply this only to the interactive surface, not decorative images or unrelated controls. Omit or soften the scale/shadow when a dense layout would cause collisions; raise the hovered item above siblings only when needed.
+- Keep keyboard interaction discoverable with a visible focus style, and respect reduced-motion preferences. Hover must remain an enhancement, not the only feedback path on touch devices.
+
 ### UnaUI component style props
 
 Do **not** assume a generic `variant` prop exists.

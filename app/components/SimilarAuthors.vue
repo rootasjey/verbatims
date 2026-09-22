@@ -51,10 +51,10 @@
               </p>
             </div>
             <div v-if="canScrollLeft || canScrollRight" class="flex shrink-0 items-center gap-2">
-              <button type="button" class="homepage-v3-carousel-control" :disabled="!canScrollLeft" :aria-label="String($t('common.previous'))" @click="scrollAuthors(-1)">
+              <button type="button" class="homepage-v3-carousel-control similar-authors-carousel-control active:scale-96" :disabled="!canScrollLeft" :aria-label="String($t('common.previous'))" @click="scrollAuthors(-1)">
                 <NIcon name="i-ph-arrow-left" class="h-4 w-4" />
               </button>
-              <button type="button" class="homepage-v3-carousel-control" :disabled="!canScrollRight" :aria-label="String($t('common.next'))" @click="scrollAuthors(1)">
+              <button type="button" class="homepage-v3-carousel-control similar-authors-carousel-control active:scale-96" :disabled="!canScrollRight" :aria-label="String($t('common.next'))" @click="scrollAuthors(1)">
                 <NIcon name="i-ph-arrow-right" class="h-4 w-4" />
               </button>
             </div>
@@ -166,5 +166,15 @@ onMounted(updateScrollState)
 .similar-item.in {
   opacity: 1;
   transform: translateY(0);
+}
+.similar-authors-carousel-control {
+  border-radius: 0.625rem;
+  transition: background 180ms ease, color 180ms ease, transform 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .similar-authors-carousel-control:active {
+    transform: none;
+  }
 }
 </style>
