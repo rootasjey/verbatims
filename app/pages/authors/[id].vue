@@ -118,7 +118,7 @@
               v-if="author.image_url"
               type="button"
               ref="avatarRef"
-              class="group mx-auto block w-full max-w-[14rem] cursor-zoom-in text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100 md:max-w-[18rem] lg:mt-2 lg:max-w-[20rem]"
+              class="group mx-auto block w-full max-w-[14rem] cursor-zoom-in text-left transition-transform duration-150 active:scale-99 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-900 dark:focus-visible:outline-gray-100 md:max-w-[18rem] lg:mt-2 lg:max-w-[20rem]"
               :aria-label="$ts('components.dialogs.avatar_preview')"
               @click="openAvatarPreview"
             >
