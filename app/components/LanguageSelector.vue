@@ -5,12 +5,13 @@
       :items="availableLanguages"
       by="value"
       :_combobox-input="{
-        placeholder: 'Select language...',
+        placeholder: $t('common.select_language') as string,
       }"
       :_combobox-trigger="{
         class: triggerClass,
         block: false,
         trailing: props.compact ? 'i-lucide-chevron-down' : undefined,
+        ariaLabel: props.ariaLabel ?? $t('common.select_language') as string,
       }"
       :_combobox-list="props.compact ? { class: '!w-max !min-w-40' } : undefined"
       data-testid="language-selector"
@@ -24,7 +25,7 @@
           </div>
         </template>
         <template v-else>
-          Select language...
+          {{ $t('common.select_language') }}
         </template>
       </template>
 
@@ -47,13 +48,17 @@ interface Props {
   onLanguageChanged?: (language: LanguageOption) => void | Promise<void>
   useClassicDesign?: boolean
   compact?: boolean
+  ariaLabel?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   onLanguageChanged: undefined,
   useClassicDesign: false,
   compact: false,
+  ariaLabel: undefined,
 })
+
+const { $t } = useI18n()
 
 const triggerClass = computed(() => {
   const base = 'bg-transparent'
@@ -68,19 +73,19 @@ const languageStore = useLanguageStore()
 // Reactive references with proper initialization handling
 const selectedLanguage = computed({
   get: () => {
-    // Ensure we return a valid language option even during initialization
     const current = languageStore.currentLanguage
-    if (!current || !current.value) {
-      return languageStore.availableLanguages[0] // Default to "All Languages"
-    }
-    return current
+    return availableLanguages.value.find(language => language.value === current?.value)
+      ?? availableLanguages.value[0]
   },
   set: (value: LanguageOption) => {
     languageStore.setLanguage(value)
   }
 })
 
-const availableLanguages = computed(() => languageStore.availableLanguages)
+const availableLanguages = computed(() => languageStore.availableLanguages.map(language => ({
+  ...language,
+  display: String($t(`content_language.${language.value}`))
+})))
 
 // Handle language change
 const onLanguageChange = async (newLanguage: LanguageOption) => {

@@ -1,51 +1,82 @@
 <template>
-  <div class="group relative">
-    <NuxtLink
-      :to="`/quotes/${quote.id}`"
-      class="block no-underline"
-    >
-      <blockquote
-        class="font-serif text-gray-900 dark:text-gray-100 leading-relaxed text-balance relative overflow-hidden py-2 -mx-2 px-2
-          active:scale-99
-          transition-all duration-300"
-        :class="{
-          'text-base': (quote.name || '').length > 200,
-          'text-lg': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
-          'text-xl font-500': (quote.name || '').length <= 100,
-          'group-hover:text-white dark:group-hover:text-black': quote.tags?.length === 0
-        }"
-      >
-        <span class="absolute inset-0 translate-x-[-101%]
-          group-hover:translate-x-0 transition-transform duration-500 ease-out"
-          :class="{ 'bg-black dark:bg-white': !quote.tags?.length }"
-          :style="quote.tags?.length ? { background: tagBackground } : {}"
-        />
-        <span class="relative">{{ quote.name }}</span>
-      </blockquote>
-    </NuxtLink>
+  <div class="relative w-full">
+    <div class="mb-1 flex items-center justify-between gap-3">
+      <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-500 dark:text-gray-400">
+        <NuxtLink
+          v-if="quote.author"
+          :to="`/authors/${quote.author.id}`"
+          class="font-500 text-gray-700 transition-colors hover:text-gray-950 focus-visible:underline dark:text-gray-300 dark:hover:text-white"
+        >
+          {{ quote.author.name }}
+        </NuxtLink>
+        <span v-else class="font-500 text-gray-700 dark:text-gray-300">
+          {{ $t('home.unknown_author') }}
+        </span>
 
-    <div class="flex items-center gap-2 mt-3">
-      <div class="text-sm font-500 text-gray-700 dark:text-gray-300">
-        <span>— </span> <NLink :to="quote.author ? `/authors/${quote.author.id}` : null">{{ quote.author?.name || 'Unknown' }}</NLink>
+        <template v-if="quote.reference?.name">
+          <span aria-hidden="true">·</span>
+          <NuxtLink
+            :to="`/references/${quote.reference.id}`"
+            class="text-gray-500 transition-colors hover:text-gray-800 focus-visible:underline dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            {{ quote.reference.name }}
+          </NuxtLink>
+        </template>
+
+        <span
+          v-if="quote.tags?.length"
+          class="quote-tag-cluster hidden shrink-0 items-center pl-1 md:inline-flex"
+          role="group"
+          :aria-label="$t('tags') as string"
+          :style="{ width: `${14 + quote.tags.length * 8}px` }"
+        >
+          <NTooltip v-for="(tag, index) in quote.tags" :key="tag.name" :content="tag.name">
+            <NuxtLink
+              :to="`/tags/${encodeURIComponent(tag.name)}`"
+              :aria-label="tag.name"
+              class="quote-tag-dot h-2.5 w-2.5 rounded-full border border-[#e7e4dd] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:border-[#17191e] dark:focus-visible:outline-gray-100"
+              :class="{ 'quote-tag-dot-first': index === 0 }"
+              :style="{ '--tag-index': index, backgroundColor: tag.color?.trim() || '#78716c', zIndex: quote.tags.length - index }"
+            >
+              <span class="sr-only">{{ tag.name }}</span>
+            </NuxtLink>
+          </NTooltip>
+        </span>
+
+        <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs">{{ $t('home.featured') }}</NBadge>
+        <NBadge v-if="quote.language !== 'en'" badge="outline-gray" size="xs">{{ quote.language }}</NBadge>
       </div>
-      <span v-if="quote.reference?.name" class="text-xs text-gray-400 dark:text-gray-500">
-        {{ quote.reference.name }}
-      </span>
-      <NBadge v-if="quote.is_featured" color="yellow" badge="soft" size="xs">Featured</NBadge>
-      <NBadge v-if="quote.language !== 'en'" badge="outline-gray" size="xs">{{ quote.language }}</NBadge>
-      <NDropdownMenu :items="menuItems">
-        <NButton
-          icon
-          btn="ghost-gray"
-          size="xs"
-          label="i-ph-dots-three-vertical"
-          @click.stop
-        />
-      </NDropdownMenu>
+      <div class="shrink-0">
+        <NDropdownMenu :items="menuItems" :modal="false">
+          <NButton
+            icon
+            btn="ghost-gray"
+            size="xs"
+            label="i-ph-dots-three-vertical"
+            :aria-label="$t('components.quote_actions.quick_actions') as string"
+            :title="$t('components.quote_actions.quick_actions') as string"
+            @click.stop
+          />
+        </NDropdownMenu>
+      </div>
     </div>
 
-    <!-- Thin separator -->
-    <div class="h-px my-12 bg-gradient-to-r from-gray-200 via-gray-100 to-transparent dark:from-gray-700 dark:via-gray-800" />
+    <NuxtLink
+      :to="`/quotes/${quote.id}`"
+      class="quote-link group block no-underline"
+    >
+      <blockquote
+        class="relative -mx-2 max-w-[64ch] px-2 pb-0 pt-1 font-serif leading-relaxed text-gray-900 text-balance dark:text-gray-100"
+        :class="{
+          'text-base sm:text-lg': (quote.name || '').length > 200,
+          'text-lg sm:text-xl': (quote.name || '').length <= 200 && (quote.name || '').length > 100,
+          'text-xl font-500 sm:text-2xl': (quote.name || '').length <= 100
+        }"
+        :style="{ '--quote-hover-accent': tagAccent }"
+      >
+        <span class="quote-underline">{{ quote.name }}</span>
+      </blockquote>
+    </NuxtLink>
   </div>
 </template>
 
@@ -57,17 +88,15 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { $t } = useI18n()
 
 const tagColors = computed(() => {
   if (!Array.isArray(props.quote.tags)) return []
   return props.quote.tags.map(t => t.color?.trim()).filter((c): c is string => Boolean(c))
 })
 
-const tagBackground = computed(() => {
-  const colors = tagColors.value
-  if (colors.length === 0) return 'transparent'
-  if (colors.length === 1) return `${colors[0]}25`
-  return `linear-gradient(135deg, ${colors.map(c => c + '15').join(', ')})`
+const tagAccent = computed(() => {
+  return tagColors.value[0] || 'currentColor'
 })
 const emit = defineEmits<{
   (e: 'edit', quote: ProcessedQuoteResult): void
@@ -85,16 +114,16 @@ const menuItems = computed(() => {
   const role = user.value?.role
   if (role === 'admin' || role === 'moderator') {
     items.push(
-      { label: 'Edit', leading: 'i-ph-pencil-simple', onclick: () => emit('edit', props.quote) },
-      { label: 'Delete', leading: 'i-ph-trash', onclick: () => emit('delete', props.quote) }
+      { label: String($t('components.quote_actions.edit')), leading: 'i-ph-pencil-simple', onclick: () => emit('edit', props.quote) },
+      { label: String($t('components.quote_actions.delete')), leading: 'i-ph-trash', onclick: () => emit('delete', props.quote) }
     )
   }
 
   items.push(
-    { label: 'Copy link', leading: 'i-ph-link', onclick: () => copyLink() },
-    { label: 'Copy text', leading: 'i-ph-quotes', onclick: () => copyQuoteText() },
-    { label: 'Share', leading: 'i-ph-share-network', onclick: () => shareQuote() },
-    { label: 'Report', leading: 'i-ph-flag', onclick: () => emit('report', props.quote) }
+    { label: String($t('components.quote_actions.copy_link')), leading: 'i-ph-link', onclick: () => copyLink() },
+    { label: String($t('components.quote_actions.copy_text')), leading: 'i-ph-quotes', onclick: () => copyQuoteText() },
+    { label: String($t('components.quote_actions.share')), leading: 'i-ph-share-network', onclick: () => shareQuote() },
+    { label: String($t('components.quote_actions.report')), leading: 'i-ph-flag', onclick: () => emit('report', props.quote) }
   )
 
   return items
@@ -106,9 +135,12 @@ const copyLink = async () => {
     const url = typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
     if (!url) throw new Error('no-url')
     await navigator.clipboard.writeText(url)
-    toast({ title: 'Link copied', toast: 'outline-success' })
+    toast({ title: String($t('components.quote_actions.link_copied')), toast: 'outline-success' })
   } catch {
-    showErrorToast(null, { title: 'Copy failed', fallback: 'Could not copy the link.' })
+    showErrorToast(null, {
+      title: String($t('components.quote_actions.copy_failed')),
+      fallback: String($t('components.quote_actions.copy_link_failed'))
+    })
   }
 }
 
@@ -117,9 +149,12 @@ const copyQuoteText = async () => {
   try {
     const text = `"${props.quote.name}"${props.quote.author ? ` — ${props.quote.author.name}` : ''}${props.quote.reference ? ` (${props.quote.reference.name})` : ''}`
     await navigator.clipboard.writeText(text)
-    toast({ title: 'Text copied', toast: 'outline-success' })
+    toast({ title: String($t('components.quote_actions.text_copied')), toast: 'outline-success' })
   } catch {
-    showErrorToast(null, { title: 'Copy failed', fallback: 'Clipboard is not available.' })
+    showErrorToast(null, {
+      title: String($t('components.quote_actions.copy_failed')),
+      fallback: String($t('components.quote_actions.clipboard_unavailable'))
+    })
   }
 }
 
@@ -129,21 +164,71 @@ const shareQuote = async () => {
   const { toast } = useToast()
   try {
     const shareData = {
-      title: 'Quote from Verbatims',
+      title: String($t('components.quote_actions.share_title')),
       text: `"${props.quote.name}" ${props.quote.author ? `- ${props.quote.author.name}` : ''}`,
       url: typeof window !== 'undefined' ? `${window.location.origin}/quotes/${props.quote.id}` : ''
     }
     if (navigator.share) {
       await navigator.share(shareData as any)
-      toast({ title: 'Quote shared!', toast: 'outline-success' })
+      toast({ title: String($t('components.quote_actions.quote_shared')), toast: 'outline-success' })
     } else {
       await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
-      toast({ title: 'Quote link copied', toast: 'outline-success' })
+      toast({ title: String($t('components.quote_actions.quote_link_copied')), toast: 'outline-success' })
     }
   } catch {
-    showErrorToast(null, { title: 'Failed to share', fallback: 'Please try again.' })
+    showErrorToast(null, {
+      title: String($t('components.quote_actions.share_failed')),
+      fallback: String($t('components.quote_actions.try_again'))
+    })
   } finally {
     sharePending.value = false
   }
 }
 </script>
+
+<style scoped>
+.quote-underline {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-image: linear-gradient(var(--quote-hover-accent, currentColor), var(--quote-hover-accent, currentColor));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.quote-link:hover .quote-underline,
+.quote-link:focus-visible .quote-underline {
+  background-size: 100% 1px;
+}
+
+.quote-tag-cluster {
+  position: relative;
+  isolation: isolate;
+}
+
+.quote-tag-dot {
+  position: relative;
+  margin-left: -0.375rem;
+  transition: transform 180ms ease-out;
+}
+
+.quote-tag-dot-first {
+  margin-left: 0;
+}
+
+.quote-tag-cluster:hover .quote-tag-dot,
+.quote-tag-cluster:focus-within .quote-tag-dot {
+  transform: translateX(calc(var(--tag-index, 0) * 0.5rem));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-underline {
+    transition: none;
+  }
+
+  .quote-tag-dot {
+    transition: none;
+  }
+}
+</style>

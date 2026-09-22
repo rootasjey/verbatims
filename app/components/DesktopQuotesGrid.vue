@@ -1,91 +1,122 @@
 <template>
-  <div class="max-w-4xl mx-auto px-8 pb-16">
+  <div class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-10">
+    <ScrollableTags class="mb-2" />
+
     <!-- Sticky controls bar -->
-    <div v-if="feed.quotesLoading?.value || feed.quotes.value.length > 0 || feed.searchQuery?.value" class="sticky top-14 z-3 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6">
+    <div class="sticky top-14 z-3 bg-gray-50 dark:bg-[#0C0A09] py-3 mb-6">
       <div class="flex gap-3 items-center">
-        <div class="hidden md:block">
-          <LanguageSelector @language-changed="feed.onLanguageChange" />
-        </div>
-        <div class="flex-1">
+        <div class="quotes-search-control flex-1">
           <NInput
             ref="searchInput"
             :model-value="feed.searchQuery?.value"
             @update:model-value="val => (feed.searchQuery.value = val)"
             :placeholder="$t('desktop_quotes_grid.search_placeholder') as string"
+            :aria-label="$t('desktop_quotes_grid.search_placeholder') as string"
             leading="i-ph-magnifying-glass"
             :trailing="feed.searchQuery?.value ? 'i-ph-x' : undefined"
             size="md"
             :loading="feed.quotesLoading?.value"
-            @trailing="feed.searchQuery.value = ''; feed.searchQuery.value = ''"
+            @trailing="feed.searchQuery.value = ''"
             :una="{
               inputTrailing: 'pointer-events-auto cursor-pointer'
             }"
           />
         </div>
+        <div class="hidden md:block">
+          <LanguageSelector :on-language-changed="feed.onLanguageChange" />
+        </div>
         <div>
           <NSelect
-            :model-value="feed.selectedSortBy?.value"
-            @update:model-value="(val) => { feed.selectedSortBy.value = val }"
-            :items="feed.sortByOptions"
+            :model-value="selectedSortOption"
+            @update:model-value="updateSort"
+            :items="sortOptions"
             :placeholder="$t('desktop_quotes_grid.sort_by') as string"
+            :_select-trigger="{ ariaLabel: $t('desktop_quotes_grid.sort_by') as string }"
+            :_select-content="{ bodyLock: false }"
             size="sm"
             item-key="label"
             value-key="label"
             select="outline-gray"
           />
         </div>
-        <NButton
-          icon
-          :label="feed.isAsc?.value ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
-          btn="soft-gray"
-          size="sm"
-          @click="feed.isAsc.value = !feed.isAsc.value"
-        />
+        <NTooltip
+          :content="$t(feed.isAsc?.value ? 'desktop_quotes_grid.sort_order_ascending' : 'desktop_quotes_grid.sort_order_descending') as string"
+          :_tooltip-content="{ side: 'bottom' }"
+        >
+          <NButton
+            icon
+            :label="feed.isAsc?.value ? 'i-ph-sort-ascending' : 'i-ph-sort-descending'"
+            :aria-label="$t(feed.isAsc?.value ? 'desktop_quotes_grid.sort_order_ascending' : 'desktop_quotes_grid.sort_order_descending') as string"
+            btn="soft-gray"
+            size="sm"
+            @click="feed.isAsc.value = !feed.isAsc.value"
+          />
+        </NTooltip>
+      </div>
+
+      <div class="mt-2">
+        <p
+          role="status"
+          aria-atomic="true"
+          :aria-hidden="feed.initialLoading.value || feed.initialLoadError.value || feed.quotesLoading?.value"
+          :style="{ visibility: feed.initialLoading.value || feed.initialLoadError.value || feed.quotesLoading?.value ? 'hidden' : 'visible' }"
+          class="h-4 font-sans text-xs leading-4 text-gray-500 dark:text-gray-400"
+        >
+          {{ $t(feed.meta.value.total === 1 ? 'desktop_quotes_grid.results_count_one' : 'desktop_quotes_grid.results_count_other', { count: feed.meta.value.total }) }}
+        </p>
       </div>
     </div>
 
-    <ScrollableTags class="mb-2" />
+    <div class="mt-12 mb-12 rounded-2xl bg-[#e7e4dd] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]">
+      <div
+        ref="quotesResultsShell"
+        class="quotes-results-shell"
+        :aria-busy="feed.initialLoading.value || feed.quotesLoading?.value"
+        aria-live="polite"
+      >
+        <div ref="quotesResultsContent">
+          <div v-if="showInitialSkeleton || showResultsSkeleton" class="space-y-8" role="status" :aria-label="$t('desktop_quotes_grid.loading_initial') as string" aria-busy="true">
+            <div v-for="item in 6" :key="item" class="animate-pulse space-y-3">
+              <div class="h-6 w-3/4 rounded bg-black/10 dark:bg-white/10" />
+              <div class="h-4 w-40 rounded bg-black/8 dark:bg-white/8" />
+            </div>
+          </div>
 
-    <template v-if="feed.quotes.value.length > 0">
-      <div class="flex flex-wrap gap-2 mt-16 mb-12">
-        <QuoteTextEntry
-          v-for="q in feed.quotes.value"
-          :key="q.id"
-          :quote="q"
-          @edit="openEdit"
-          @delete="openDelete"
-          @report="openReport"
-        />
-      </div>
-    </template>
+          <div v-else-if="feed.initialLoadError.value" class="px-4 py-12 text-center sm:py-16" role="alert">
+            <p class="font-serif text-3xl leading-tight text-gray-900 dark:text-gray-100">
+              {{ $t('desktop_quotes_grid.initial_load_error') }}
+            </p>
+            <NButton btn="outline-gray" class="mt-6" @click="feed.refresh()">
+              {{ $t('desktop_quotes_grid.retry') }}
+            </NButton>
+          </div>
 
-    <div v-else-if="!feed.quotesLoading?.value" class="px-8 py-24 sm:py-32">
-      <div class="max-w-xl mx-auto text-center">
-        <p v-if="feed.searchQuery?.value" class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-          {{ $t('desktop_quotes_grid.no_quotes_match') }}
-        </p>
-        <p v-else class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
-          {{ $t('desktop_quotes_grid.no_quotes_yet') }}
-        </p>
+          <QuotesEmptyView
+            v-else-if="!feed.initialLoading.value && !feed.quotesLoading?.value && feed.quotes.value.length === 0"
+            :search-query="feed.searchQuery?.value"
+            :has-active-filters="hasActiveFilters"
+            @clear-filters="$emit('clear-filters')"
+            @open-submit-quote="showNewQuoteDialog = true"
+          />
 
-        <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
-          <template v-if="feed.searchQuery?.value">
-            {{ $t('desktop_quotes_grid.no_results_for', { query: feed.searchQuery.value }) }}
-          </template>
-          <template v-else>
-            {{ $t('desktop_quotes_grid.empty_description') }}
-          </template>
-        </p>
-
-        <div v-if="!feed.searchQuery?.value" class="mt-8">
-          <NButton
-            btn="light:soft-secondary dark:soft-blue"
-            leading="i-ph-plus-circle"
-            class="hover:scale-102 active:scale-99 transition-[transform] duration-150"
-            @click="showNewQuoteDialog = true"
+          <TransitionGroup
+            v-else-if="feed.quotes.value.length > 0"
+            name="quotes-list"
+            tag="div"
+            class="relative flex flex-col gap-10 sm:gap-12"
+            appear
           >
-            {{ $t('desktop_quotes_grid.submit_quote') }}
-          </NButton>
+            <QuoteTextEntry
+              v-for="(q, index) in feed.quotes.value"
+              :key="`${resultsAnimationKey}-${q.id}`"
+              :quote="q"
+              class="w-full"
+              :style="{ '--quote-entry-delay': `${Math.min(index, 8) * 18}ms` }"
+              @edit="openEdit"
+              @delete="openDelete"
+              @report="openReport"
+            />
+          </TransitionGroup>
         </div>
       </div>
     </div>
@@ -117,6 +148,15 @@ const { $t } = useI18n()
 
 const props = defineProps<{
   feed: UseQuoteSearchFeed
+  sortOptions: { label: string; value: string }[]
+  showInitialSkeleton: boolean
+  showResultsSkeleton: boolean
+  resultsAnimationKey: number
+  hasActiveFilters: boolean
+}>()
+
+defineEmits<{
+  (event: 'clear-filters'): void
 }>()
 
 const selectedQuote = ref<ProcessedQuoteResult | null>(null)
@@ -124,6 +164,20 @@ const showNewQuoteDialog = ref(false)
 const showEditQuoteDialog = ref(false)
 const showDeleteQuoteDialog = ref(false)
 const showReportDialog = ref(false)
+const quotesResultsShell = ref<HTMLElement | null>(null)
+const quotesResultsContent = ref<HTMLElement | null>(null)
+const RESULTS_TRANSITION = 360
+let resultsHeightTimer: ReturnType<typeof setTimeout> | undefined
+let resultsHeightFrame: number | undefined
+
+const selectedSortOption = computed(() =>
+  props.sortOptions.find(option => option.value === props.feed.selectedSortBy.value.value)
+  ?? props.sortOptions[0]
+)
+
+const updateSort = (option: { label: string; value: string }) => {
+  if (option?.value) props.feed.selectedSortBy.value = option
+}
 
 const openEdit = (quote: ProcessedQuoteResult) => {
   selectedQuote.value = quote
@@ -165,6 +219,78 @@ const typeCharacter = (key: string) => {
 
 defineExpose({ focus, typeCharacter })
 
+const freezeResultsHeight = () => {
+  const shell = quotesResultsShell.value
+  if (!shell) return
+
+  if (resultsHeightFrame !== undefined && typeof window !== 'undefined') {
+    window.cancelAnimationFrame(resultsHeightFrame)
+    resultsHeightFrame = undefined
+  }
+  if (resultsHeightTimer) {
+    clearTimeout(resultsHeightTimer)
+    resultsHeightTimer = undefined
+  }
+
+  const currentHeight = shell.getBoundingClientRect().height
+  if (currentHeight > 0) shell.style.gridTemplateRows = `${currentHeight}px`
+}
+
+const animateResultsHeight = async () => {
+  await nextTick()
+
+  const shell = quotesResultsShell.value
+  if (!shell) return
+
+  const fromHeight = shell.getBoundingClientRect().height
+  shell.style.gridTemplateRows = 'auto'
+  const targetHeight = quotesResultsContent.value?.scrollHeight ?? shell.scrollHeight
+
+  if (Math.abs(fromHeight - targetHeight) < 1) {
+    shell.style.gridTemplateRows = 'auto'
+    return
+  }
+
+  shell.style.gridTemplateRows = `${fromHeight}px`
+  if (typeof window === 'undefined') {
+    shell.style.gridTemplateRows = 'auto'
+    return
+  }
+
+  resultsHeightFrame = window.requestAnimationFrame(() => {
+    resultsHeightFrame = undefined
+    if (quotesResultsShell.value) quotesResultsShell.value.style.gridTemplateRows = `${targetHeight}px`
+  })
+  resultsHeightTimer = setTimeout(() => {
+    if (quotesResultsShell.value) quotesResultsShell.value.style.gridTemplateRows = 'auto'
+    resultsHeightTimer = undefined
+  }, RESULTS_TRANSITION)
+}
+
+watch(() => props.feed.quotesLoading.value, (isLoading, wasLoading) => {
+  if (isLoading && !wasLoading) {
+    freezeResultsHeight()
+  }
+})
+
+watch(() => props.showResultsSkeleton, (showSkeleton) => {
+  if (showSkeleton) freezeResultsHeight()
+})
+
+watch(() => props.resultsAnimationKey, () => {
+  void animateResultsHeight()
+}, { flush: 'post' })
+
+watch(() => props.feed.initialLoading.value, (isLoading, wasLoading) => {
+  if (!isLoading && wasLoading) void animateResultsHeight()
+}, { flush: 'post' })
+
+watch(() => props.feed.quotes.value.length, () => {
+  if (!props.feed.initialLoading.value && !props.feed.quotesLoading.value) {
+    void animateResultsHeight()
+  }
+}, { flush: 'post' })
+
 const closeEditAfterUpdate = async () => {
   showEditQuoteDialog.value = false
 
@@ -183,3 +309,55 @@ const onQuoteDeleted = async () => {
   }
 }
 </script>
+
+<style scoped>
+.quotes-results-shell {
+  display: grid;
+  grid-template-rows: auto;
+  overflow: clip;
+  transition: grid-template-rows 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quotes-results-shell > :first-child {
+  min-height: 0;
+}
+
+.quotes-search-control :deep(.input:focus) {
+  box-shadow: 0 0 0 1px #78716c, 0 1px 2px rgb(0 0 0 / 5%) !important;
+}
+
+:deep(.quotes-list-enter-active) {
+  transition: opacity 260ms ease, transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--quote-entry-delay, 0ms);
+}
+
+:deep(.quotes-list-leave-active) {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+:deep(.quotes-list-move) {
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:deep(.quotes-list-enter-from),
+:deep(.quotes-list-leave-to) {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quotes-results-shell {
+    transition-duration: 1ms;
+  }
+
+  :deep(.quotes-list-enter-active),
+  :deep(.quotes-list-leave-active),
+  :deep(.quotes-list-move) {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+}
+</style>

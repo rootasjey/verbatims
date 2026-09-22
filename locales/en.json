@@ -146,6 +146,18 @@
       "done": "Done",
       "open_filters": "Open filters",
       "close": "Close"
+    },
+    "quote_filters": {
+      "title": "Quote filters",
+      "content_language": "Content language",
+      "order": "Order",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "done": "Done",
+      "open_filters": "Open quote filters",
+      "open_filters_active": "Open quote filters (filters active)",
+      "close": "Close quote filters",
+      "reset": "Reset"
     }
   },
   "home": {
@@ -553,6 +565,32 @@
     "theme_dark": "Dark",
     "image_photo_hint": "Best effort — falls back to solid if no photo is available for the quote"
   },
+  "desktop_quotes_grid": {
+    "search_placeholder": "Search quotes...",
+    "sort_by": "Sort by",
+    "sort_recent": "Most Recent",
+    "sort_updated": "Recently Updated",
+    "sort_liked": "Most Liked",
+    "sort_viewed": "Most Viewed",
+    "sort_shared": "Most Shared",
+    "sort_order_ascending": "Sort quotes in ascending order",
+    "sort_order_descending": "Sort quotes in descending order",
+    "popular_tags": "Popular tags",
+    "tags_scroll_left": "Scroll tags left",
+    "tags_scroll_right": "Scroll tags right",
+    "loading_initial": "Loading quotes",
+    "initial_load_error": "Quotes couldn't be loaded.",
+    "retry": "Try again",
+    "results_count_one": "1 quote shown",
+    "results_count_other": "{count} quotes shown",
+    "no_quotes_match": "No quotes match your filters.",
+    "no_quotes_yet": "No quotes yet.",
+    "no_results_for": "No results for “{query}”.",
+    "empty_description": "Be the first to share a quote.",
+    "submit_quote": "Submit a quote",
+    "load_more": "Load more",
+    "loading": "Loading..."
+  },
   "content_language": {
     "all": "All Languages",
     "en": "English",
@@ -641,7 +679,17 @@
       "copy_link": "Copy link",
       "copy_text": "Copy text",
       "download_image": "Download image",
-      "share_this": "Share this quote"
+      "share_this": "Share this quote",
+      "link_copied": "Link copied",
+      "text_copied": "Text copied",
+      "copy_failed": "Copy failed",
+      "copy_link_failed": "Could not copy the link.",
+      "clipboard_unavailable": "Clipboard is not available.",
+      "share_title": "Quote from Verbatims",
+      "quote_shared": "Quote shared!",
+      "quote_link_copied": "Quote link copied",
+      "share_failed": "Failed to share",
+      "try_again": "Please try again."
     },
     "quote_sticky": {
       "back": "Back to quotes list",
