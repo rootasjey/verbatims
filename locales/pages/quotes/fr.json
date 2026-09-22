@@ -1,8 +1,18 @@
 {
   "quotes_title": "Citations",
-  "quotes_subtitle": "Parcourez les dernières citations ajoutées par la communauté.",
+  "quotes_subtitle": "Explorez des citations mémorables de livres, de films et d’ailleurs.",
   "quotes_meta_title": "Citations - Verbatims",
   "quotes_meta_desc": "Découvrez les citations les plus récentes sur Verbatims.",
   "quotes_breadcrumb_home": "Accueil",
-  "quotes_breadcrumb": "Citations"
+  "quotes_breadcrumb": "Citations",
+  "quotes": {
+    "empty_view": {
+      "no_match": "Aucune citation ne correspond à vos filtres.",
+      "no_quotes": "Pas encore de citations.",
+      "no_results_for": "Aucune citation ne correspond à « {query} ».",
+      "empty_description": "Soyez le premier à partager une citation.",
+      "clear_filters": "Effacer les filtres",
+      "submit_quote": "Ajouter une citation"
+    }
+  }
 }

@@ -47,6 +47,7 @@ export function useQuoteSearchFeed() {
 
   const limit = 50
   const initialLoading = ref(true)
+  const initialLoadError = ref(false)
   const lastSuccessfulQuotes = ref<ProcessedQuoteResult[]>([])
 
   interface LastSuccessfulMeta {
@@ -93,7 +94,7 @@ export function useQuoteSearchFeed() {
     }
   )
 
-  const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading } = useLazyFetch('/api/quotes/search', {
+  const { data: quotesData, refresh: refreshQuotesFromAPI, pending: quotesLoading, status } = useLazyFetch('/api/quotes/search', {
     query: computed(() => {
       const isAscending = (selectedSortOrder.value?.value || 'desc') === 'asc'
       const sort = mapSort(selectedSortBy.value?.value, !!debouncedQuery.value)
@@ -144,13 +145,24 @@ export function useQuoteSearchFeed() {
     }
   }
 
-  watch(quotesData, (val) => {
-    const payload = val.data
+  watch([quotesData, status], ([val, requestStatus]) => {
+    if (requestStatus === 'idle' || requestStatus === 'pending') return
+
+    if (requestStatus === 'error') {
+      if (initialLoading.value) {
+        initialLoadError.value = true
+        initialLoading.value = false
+      }
+      return
+    }
+
+    const payload = val?.data
     const quotes = payload?.quotes
     if (Array.isArray(quotes)) {
       lastSuccessfulQuotes.value = quotes as ProcessedQuoteResult[]
       lastSuccessfulMeta.value = mergeMeta(payload as Partial<LastSuccessfulMeta>)
-      if (initialLoading.value) initialLoading.value = false
+      initialLoadError.value = false
+      initialLoading.value = false
     }
   }, { immediate: true })
 
@@ -232,6 +244,11 @@ export function useQuoteSearchFeed() {
 
   const refresh = async () => {
     await waitForLanguageStore()
+    debouncedQuery.value = searchQuery.value.trim()
+    if (initialLoadError.value) {
+      initialLoadError.value = false
+      initialLoading.value = true
+    }
     additionalQuotes.value = []
     currentPage.value = 1
     await refreshQuotesFromAPI()
@@ -309,6 +326,7 @@ export function useQuoteSearchFeed() {
 
     // status
     initialLoading,
+    initialLoadError,
     quotesLoading,
     loadingMore,
 

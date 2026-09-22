@@ -1,8 +1,18 @@
 {
   "quotes_title": "Quotes",
-  "quotes_subtitle": "Browse the latest quotes added by the community.",
+  "quotes_subtitle": "Explore memorable quotes from books, films, and beyond.",
   "quotes_meta_title": "Quotes - Verbatims",
   "quotes_meta_desc": "Discover the most recently added quotes on Verbatims.",
   "quotes_breadcrumb_home": "Home",
-  "quotes_breadcrumb": "Quotes"
+  "quotes_breadcrumb": "Quotes",
+  "quotes": {
+    "empty_view": {
+      "no_match": "No quotes match your filters.",
+      "no_quotes": "No quotes yet.",
+      "no_results_for": "No quotes match “{query}”.",
+      "empty_description": "Be the first to share a quote.",
+      "clear_filters": "Clear filters",
+      "submit_quote": "Submit a quote"
+    }
+  }
 }

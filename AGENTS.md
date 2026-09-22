@@ -241,6 +241,10 @@ When using `NSelect`, keep `v-model` and `:items` on compatible types.
 - Prefer typed option arrays over `any[]` / `unknown[]`
 - Do not mix object options with primitive model values directly
 
+### Overlay controls inside sticky or scrolling content
+
+For `NSelect` controls inside sticky or scrollable page content, pass `:_select-content="{ bodyLock: false }"` so opening the list does not alter the document scroll geometry. For `NDropdownMenu` controls in the same context, pass `:modal="false"`; the default modal menu locks outside scrolling and can make sticky content jump. Keep the default modal behavior for menus that intentionally need focus and scroll isolation.
+
 ### NTabs items API
 
 When passing `:items` to `NTabs`, each item object uses:
