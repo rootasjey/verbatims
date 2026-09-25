@@ -1,139 +1,74 @@
 <template>
-  <NDialog 
-    v-if="isOpen" 
-    v-model:open="isOpen" 
-    :una="{ dialogContent: 'sm:max-w-md md:max-w-lg lg:max-w-xl' }"
-    :ui="{ 
-      width: 'sm:max-w-2xl',
-      height: 'max-h-[80vh]'
-    }"
-    :_dialog-close="{
-      btn: 'ghost-gray',
-    }"
-  >
-    <NCard class="border-none m-0 p-0 shadow-none">
+  <SearchBoxOverlay v-if="isOpen" v-model:open="isOpen" :mobile="isMobile">
+    <NCard class="border-none m-0 p-0 shadow-none" :class="isMobile ? 'search-box-mobile-card' : ''">
       <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">
-            {{ mode === 'nav' ? $t('components.search_box.quick_nav') : mode === 'cmd' ? $t('components.search_box.commands') : $t('components.search_box.search_quotes') }}
+        <div class="flex items-center justify-between gap-3" :class="isMobile ? 'mx-0' : 'mx-3'">
+          <h3 class="font-serif font-400 text-gray-900 dark:text-white" :class="isMobile ? 'text-2xl' : 'text-3xl'">
+            {{ mode === 'nav' ? $t('components.search_box.quick_nav') : mode === 'cmd' ? $t('components.search_box.commands') : $t('components.search_box.search') }}
           </h3>
+          <NButton
+            v-if="mode === 'search' && !isMobile"
+            btn="ghost-gray"
+            size="sm"
+            leading="i-ph-sliders-horizontal"
+            @click="goToSearchPage"
+          >
+            {{ $t('components.search_box.advanced_filters') }}
+          </NButton>
+          <NButton
+            v-if="isMobile"
+            btn="ghost-gray"
+            size="sm"
+            icon
+            label="i-ph-x"
+            :aria-label="String($t('common.close'))"
+            @click="isOpen = false"
+          />
         </div>
       </template>
 
-      <div class="space-y-4">
-        <NInput
-          v-model="storeQuery"
-          :placeholder="mode === 'nav' ? $t('components.search_box.navigate_placeholder') as string : mode === 'cmd' ? $t('components.search_box.command_placeholder') as string : $t('components.search_box.search_placeholder') as string"
-          leading="i-ph-magnifying-glass"
-          size="md"
-          autofocus
-          @input="debouncedSearch"
-        />
-
-        <template v-if="mode === 'search'">
-          <!-- Active Filter Chips -->
-          <div
-            v-if="selectedLanguage || selectedAuthor || selectedReference"
-            class="flex flex-wrap items-center gap-2 -mt-2"
-          >
-            <!-- Language chip -->
-            <span
-              v-if="selectedLanguageLabel"
-              class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 border border-primary-200 dark:border-primary-800"
-            >
-              <NIcon name="i-ph-translate" class="w-3.5 h-3.5" />
-              <span>{{ selectedLanguageLabel }}</span>
-              <button
-                class="ml-1 text-primary-700/70 hover:text-primary-900 dark:text-primary-300/80 dark:hover:text-primary-200"
-                :aria-label="$t('components.search_box.remove_language') as string"
-                @click="removeLanguageFilter"
-                type="button"
-              >
-                <NIcon name="i-ph-x" class="w-3.5 h-3.5" />
-              </button>
-            </span>
-
-            <!-- Author chip -->
-            <span
-              v-if="selectedAuthorLabel"
-              class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-            >
-              <NIcon name="i-ph-user" class="w-3.5 h-3.5" />
-              <span>{{ selectedAuthorLabel }}</span>
-              <button
-                class="ml-1 text-emerald-700/70 hover:text-emerald-900 dark:text-emerald-300/80 dark:hover:text-emerald-200"
-                :aria-label="$t('components.search_box.remove_author') as string"
-                @click="removeAuthorFilter"
-                type="button"
-              >
-                <NIcon name="i-ph-x" class="w-3.5 h-3.5" />
-              </button>
-            </span>
-
-            <!-- Reference chip -->
-            <span
-              v-if="selectedReferenceLabel"
-              class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
-            >
-              <NIcon name="i-ph-book" class="w-3.5 h-3.5" />
-              <span>{{ selectedReferenceLabel }}</span>
-              <button
-                class="ml-1 text-blue-700/70 hover:text-blue-900 dark:text-blue-300/80 dark:hover:text-blue-200"
-                :aria-label="$t('components.search_box.remove_reference') as string"
-                @click="removeReferenceFilter"
-                type="button"
-              >
-                <NIcon name="i-ph-x" class="w-3.5 h-3.5" />
-              </button>
-            </span>
-
-            <NButton
-              btn="ghost-gray"
-              size="xs"
-              class="ml-1"
-              rounded="full"
-              @click="clearFilters"
-            >
-              {{ $t('components.search_box.clear_all') }}
-            </NButton>
-          </div>
-
-          <div class="flex gap-2">
-            <NSelect
-              v-model="selectedLanguage"
-              :items="languageOptions"
-              :placeholder="$t('components.search_box.language') as string"
-              item-key="label"
-              value-key="label"
-              size="sm"
-            />
-            <NSelect
-              v-model="selectedAuthor"
-              :items="authorOptions"
-              :placeholder="$t('components.search_box.author') as string"
-              item-key="label"
-              value-key="label"
-              size="sm"
-              searchable
-            />
-            <NSelect
-              v-model="selectedReference"
-              :items="referenceOptions"
-              :placeholder="$t('components.search_box.reference') as string"
-              item-key="label"
-              value-key="label"
-              size="sm"
-              searchable
-            />
-          </div>
-        </template>
+      <div :class="isMobile ? 'search-box-mobile-content' : 'space-y-6'">
+        <div :class="isMobile ? 'search-box-mobile-search-row' : ''">
+          <NInput
+            v-model="storeQuery"
+            :class="isMobile ? 'min-w-0 flex-1' : ''"
+            :aria-label="$t('components.search_box.search_placeholder') as string"
+            aria-controls="search-result-list"
+            :aria-activedescendant="activeDescendantId"
+            :placeholder="mode === 'nav' ? $t('components.search_box.navigate_placeholder') as string : mode === 'cmd' ? $t('components.search_box.command_placeholder') as string : $t('components.search_box.search_placeholder') as string"
+            leading="i-ph-magnifying-glass"
+            size="md"
+            autofocus
+            :una="{ input: 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400 focus-visible:border-gray-500 dark:focus-visible:border-gray-400' }"
+            @input="debouncedSearch"
+          />
+          <NButton
+            v-if="mode === 'search' && isMobile"
+            btn="outline-gray"
+            size="sm"
+            icon
+            label="i-ph-faders"
+            :aria-label="String($t('components.search_box.advanced_filters'))"
+            class="shrink-0"
+            @click="goToSearchPage"
+          />
+        </div>
 
         <!-- Search Results / Navigation -->
-        <div class="max-h-96 overflow-y-auto" ref="resultsContainer">
+        <div
+          id="search-result-list"
+          class="overflow-y-auto pr-1"
+          :class="isMobile ? 'search-box-mobile-results' : 'max-h-[min(58vh,36rem)]'"
+          ref="resultsContainer"
+          role="listbox"
+          :aria-label="mode === 'search' ? $t('components.search_box.search_results') as string : mode === 'nav' ? $t('components.search_box.quick_nav') as string : $t('components.search_box.commands') as string"
+          :aria-busy="mode === 'search' ? loading : undefined"
+        >
           <template v-if="mode === 'search'">
-            <div v-if="loading" class="space-y-3">
-              <div v-for="i in 3" :key="i" class="animate-pulse">
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+            <div v-if="loading" class="space-y-5 py-4" role="status">
+              <span class="sr-only">{{ $t('components.search_box.searching') }}</span>
+              <div v-for="i in 3" :key="i" class="animate-pulse border-b border-gray-200 pb-4 dark:border-gray-800">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
                 <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
               </div>
             </div>
@@ -143,114 +78,118 @@
               <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.no_results') }} "{{ storeQuery }}"</p>
             </div>
 
-            <div v-else-if="totalResults > 0" class="space-y-4">
+            <div
+              v-else-if="totalResults > 0"
+              class="grid gap-8"
+              :class="searchResults.quotes?.length && (searchResults.authors?.length || searchResults.references?.length) ? 'lg:grid-cols-[minmax(0,1.6fr)_minmax(16rem,0.9fr)]' : 'lg:grid-cols-1'"
+            >
               <!-- Quotes Section -->
-              <div v-if="searchResults.quotes?.length > 0">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                  <NIcon name="i-ph-quotes" class="w-4 h-4 mr-2" />
-                  {{ $t('components.search_box.results_quotes') }} ({{ searchResults.quotes.length }})
+              <section v-if="searchResults.quotes?.length > 0" role="group" :aria-label="$t('components.search_box.results_quotes') as string">
+                <h4 class="mt-6 mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                  {{ $t('components.search_box.results_quotes') }}
+                  <span class="ml-1 font-500 tabular-nums text-gray-400 dark:text-gray-500">({{ searchResults.quotes.length }})</span>
                 </h4>
-                <div class="space-y-2">
+                <div class="space-y-1" :class="isMobile ? '-ml-3' : ''">
                   <div
                     v-for="(quote, index) in searchResults.quotes"
                     :key="`quote-${quote.id}`"
                     :ref="el => setResultRef(el, 'quotes', index)"
-                    class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-colors"
-                    :class="selectedIndex === getGlobalIndex('quotes', index) ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                    :id="resultId('quote', quote.id)"
+                    role="option"
+                    :aria-selected="selectedIndex === getGlobalIndex('quotes', index)"
+                    tabindex="-1"
+                    class="cursor-pointer rounded-lg px-3 py-4 first:pt-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400"
+                    :class="selectedIndex === getGlobalIndex('quotes', index) ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
                     @click="selectResult(quote, 'quote')"
                   >
-                    <p class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2" v-html="highlightText(quote.name)"></p>
-                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <div class="flex items-center space-x-3">
-                        <span v-if="quote.author_name">{{ quote.author_name }}</span>
-                        <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
-                      </div>
-                      <div class="flex items-center space-x-2">
-                        <NIcon name="i-ph-heart" class="w-3 h-3" />
-                        <span>{{ quote.likes_count }}</span>
-                        <NIcon name="i-ph-eye" class="w-3 h-3" />
-                        <span>{{ quote.views_count }}</span>
-                      </div>
+                    <p class="font-serif text-lg leading-relaxed text-gray-900 dark:text-gray-100 line-clamp-2" v-html="highlightText(quote.name)"></p>
+                    <div class="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-gray-600 dark:text-gray-400">
+                      <span v-if="quote.author_name" class="font-600 text-gray-800 dark:text-gray-200">{{ quote.author_name }}</span>
+                      <span v-if="quote.author_name && quote.reference_name" aria-hidden="true">·</span>
+                      <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
 
-              <!-- Authors Section -->
-              <div v-if="searchResults.authors?.length > 0">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                  <NIcon name="i-ph-user" class="w-4 h-4 mr-2" />
-                  {{ $t('components.search_box.results_authors') }} ({{ searchResults.authors.length }})
-                </h4>
-                <div class="space-y-2">
+              <div class="space-y-7">
+                <!-- Authors Section -->
+                <section v-if="searchResults.authors?.length > 0" role="group" :aria-label="$t('components.search_box.results_authors') as string">
+                  <h4 class="mt-6 mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                    {{ $t('components.search_box.results_authors') }}
+                    <span class="ml-1 font-500 tabular-nums text-gray-400 dark:text-gray-500">({{ searchResults.authors.length }})</span>
+                  </h4>
+                  <div class="grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-2">
                   <div
                     v-for="(author, index) in searchResults.authors"
                     :key="`author-${author.id}`"
                     :ref="el => setResultRef(el, 'authors', index)"
-                    class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-colors"
-                    :class="selectedIndex === getGlobalIndex('authors', index) ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                    :id="resultId('author', author.id)"
+                    role="option"
+                    :aria-selected="selectedIndex === getGlobalIndex('authors', index)"
+                    tabindex="-1"
+                    class="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors"
+                    :class="selectedIndex === getGlobalIndex('authors', index) ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
                     @click="selectResult(author, 'author')"
                   >
-                    <div class="flex items-center space-x-3">
-                      <NAvatar :src="author.image_url" :alt="author.name" size="md">
-                        <template #fallback>
-                          <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                            <NIcon name="i-ph-user" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                          </div>
-                        </template>
-                      </NAvatar>
-                      <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900 dark:text-white" v-html="highlightText(author.name)"></p>
-                        <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ author.quotes_count || 0 }} quotes</p>
-                      </div>
+                    <NAvatar :src="author.image_url" :alt="author.name" size="sm" class="shrink-0" />
+                    <div class="min-w-0">
+                      <NTooltip :content="author.name" :_tooltip-content="{ side: 'top', class: 'max-w-[min(20rem,calc(100vw-2rem))] whitespace-normal break-words text-left' }">
+                        <p class="truncate text-sm font-600 text-gray-900 dark:text-white" v-html="highlightText(author.name)"></p>
+                      </NTooltip>
+                      <p class="truncate text-xs text-gray-600 dark:text-gray-400">{{ author.job || $t('components.search_box.quote_count', { count: author.quotes_count || 0 }) }}</p>
                     </div>
                   </div>
-                </div>
-              </div>
+                  </div>
+                </section>
 
-              <!-- References Section -->
-              <div v-if="searchResults.references?.length > 0">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                  <NIcon name="i-ph-book" class="w-4 h-4 mr-2" />
-                  {{ $t('components.search_box.results_references') }} ({{ searchResults.references.length }})
-                </h4>
-                <div class="space-y-2">
+                <!-- References Section -->
+                <section v-if="searchResults.references?.length > 0" role="group" :aria-label="$t('components.search_box.results_references') as string">
+                  <h4 class="mt-6 mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                    {{ $t('components.search_box.results_references') }}
+                    <span class="ml-1 font-500 tabular-nums text-gray-400 dark:text-gray-500">({{ searchResults.references.length }})</span>
+                  </h4>
+                  <div class="grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-2">
                   <div
                     v-for="(reference, index) in searchResults.references"
                     :key="`reference-${reference.id}`"
                     :ref="el => setResultRef(el, 'references', index)"
-                    class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-colors"
-                    :class="selectedIndex === getGlobalIndex('references', index) ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                    :id="resultId('reference', reference.id)"
+                    role="option"
+                    :aria-selected="selectedIndex === getGlobalIndex('references', index)"
+                    tabindex="-1"
+                    class="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors"
+                    :class="selectedIndex === getGlobalIndex('references', index) ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
                     @click="selectResult(reference, 'reference')"
                   >
-                    <div class="flex items-center space-x-3">
-                      <NAvatar :src="reference.image_url" :alt="reference.name" size="md">
-                        <template #fallback>
-                          <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                            <NIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                          </div>
-                        </template>
-                      </NAvatar>
-                      <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900 dark:text-white" v-html="highlightText(reference.name)"></p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ reference.primary_type.replace('_', ' ') }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ reference.quotes_count || 0 }} quotes</p>
-                      </div>
+                    <NAvatar :src="reference.image_url" :alt="reference.name" rounded="2" size="sm" class="shrink-0">
+                      <template #fallback>
+                        <div class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                          <NIcon :name="getReferenceIcon(reference.primary_type)" class="w-4 h-4" />
+                        </div>
+                      </template>
+                    </NAvatar>
+                    <div class="min-w-0">
+                      <NTooltip :content="reference.name" :_tooltip-content="{ side: 'top', class: 'max-w-[min(20rem,calc(100vw-2rem))] whitespace-normal break-words text-left' }">
+                        <p class="truncate text-sm font-600 text-gray-900 dark:text-white" v-html="highlightText(reference.name)"></p>
+                      </NTooltip>
+                      <p class="truncate text-xs text-gray-600 dark:text-gray-400">{{ $t('components.search_box.quote_count', { count: reference.quotes_count || 0 }) }}</p>
                     </div>
                   </div>
-                </div>
+                  </div>
+                </section>
               </div>
             </div>
 
             <div v-else class="text-center py-8">
-              <NIcon name="i-ph-quotes" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <NIcon name="i-tabler-search" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.empty_hint') }}</p>
             </div>
+
           </template>
 
           <template v-else-if="mode === 'nav'">
-            <div v-if="filteredNavItems.length > 0" class="space-y-1">
+            <div v-if="filteredNavItems.length > 0" class="space-y-1" role="group" :aria-label="$t('components.search_box.quick_nav') as string">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center px-1">
                 <NIcon name="i-ph-compass" class="w-4 h-4 mr-2" />
                 {{ $t('components.search_box.quick_nav') }}
@@ -259,8 +198,12 @@
                 v-for="(item, index) in filteredNavItems"
                 :key="`nav-${item.label}`"
                 :data-nav-index="index"
-                class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-colors"
-                :class="selectedNavIndex === index ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                :id="navResultId(index)"
+                role="option"
+                :aria-selected="selectedNavIndex === index"
+                tabindex="-1"
+                class="cursor-pointer rounded-lg px-3 py-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400"
+                :class="selectedNavIndex === index ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
                 @click="navigateToNavItem(item)"
               >
                 <div class="flex items-center space-x-3">
@@ -281,7 +224,7 @@
           </template>
 
           <template v-else-if="mode === 'cmd'">
-            <div v-if="filteredCmdItems.length > 0" class="space-y-1">
+            <div v-if="filteredCmdItems.length > 0" class="space-y-1" role="group" :aria-label="$t('components.search_box.commands') as string">
               <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center px-1">
                 <NIcon name="i-ph-terminal" class="w-4 h-4 mr-2" />
                 {{ $t('components.search_box.commands') }}
@@ -290,8 +233,12 @@
                 v-for="(item, index) in filteredCmdItems"
                 :key="`cmd-${item.action}`"
                 :data-cmd-index="index"
-                class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer transition-colors"
-                :class="selectedCmdIndex === index ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                :id="cmdResultId(index)"
+                role="option"
+                :aria-selected="selectedCmdIndex === index"
+                tabindex="-1"
+                class="cursor-pointer rounded-lg px-3 py-3 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400"
+                :class="selectedCmdIndex === index ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
                 @click="executeCmdItem(item)"
               >
                 <div class="flex items-center space-x-3">
@@ -314,23 +261,49 @@
         </div>
       </div>
 
-      <template #footer>
-        <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <span>{{ totalResults }} {{ $t('components.search_box.results') }}</span>
-          <div class="flex items-center space-x-4">
+      <template #footer v-if="!isMobile">
+        <div class="mx-3 flex items-center justify-between gap-x-2 text-xs text-gray-500 dark:text-gray-400">
+          <span v-if="mode !== 'search' || storeQuery.trim()">{{ totalResults }} {{ $t('components.search_box.results') }}</span>
+          <div class="flex items-center justify-end gap-x-2">
+            <span v-if="mode === 'search'">{{ $t('components.search_box.mode_hint') }}</span>
             <span>{{ $t('components.search_box.footer_navigate') }}</span>
             <span>{{ $t('components.search_box.footer_select') }}</span>
             <span>{{ $t('components.search_box.footer_close') }}</span>
+            <NButton
+              v-if="mode === 'search' && storeQuery.trim()"
+              btn="ghost-gray"
+              size="sm"
+              @click="goToSearchPage"
+            >
+              {{ $t('components.search_box.view_all_results') }}
+            </NButton>
           </div>
         </div>
       </template>
     </NCard>
-  </NDialog>
+
+    <template #footer>
+      <div v-if="isMobile && (mode !== 'search' || storeQuery.trim())" class="flex min-w-0 items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <span class="font-600">{{ totalResults }} {{ $t('components.search_box.results') }}</span>
+        <div v-if="mode === 'search' && storeQuery.trim()" class="flex shrink-0 items-center gap-3">
+          <span aria-hidden="true" class="h-4 w-px bg-gray-300 dark:bg-gray-700" />
+          <NButton
+            btn="ghost-gray"
+            size="xs"
+            @click="goToSearchPage"
+          >
+            {{ $t('components.search_box.view_all_results') }}
+          </NButton>
+        </div>
+      </div>
+    </template>
+  </SearchBoxOverlay>
 </template>
 
 <script lang="ts" setup>
 import { useSearchStore } from '~/stores/search'
 import type { AuthorSearchResult, ProcessedQuoteResult, ReferenceSearchResult } from '~~/server/types';
+import SearchBoxOverlay from '~/components/SearchBoxOverlay.vue'
 
 interface Props {
   modelValue: boolean
@@ -348,6 +321,8 @@ const isOpen = computed({
 })
 
 const { $t } = useI18n()
+const { isMobile } = useMobileDetection()
+const route = useRoute()
 const searchStore = useSearchStore()
 const storeQuery = computed({
   get: () => searchStore.query,
@@ -422,19 +397,7 @@ const selectedNavIndex = ref(-1)
 const selectedCmdIndex = ref(-1)
 const resultRefs = ref<{ quotes?: HTMLElement[]; authors?: HTMLElement[]; references?: HTMLElement[] }>({})
 const resultsContainer = ref<HTMLDivElement | null>(null)
-
-const selectedLanguage = ref<{ label: string; value: string | number }>()
-const selectedAuthor = ref<{ label: string; value: string | number }>()
-const selectedReference = ref<{ label: string; value: string | number }>()
-
-const languageOptions = [
-  { label: $t('languages.en') as string, value: 'en' },
-  { label: $t('languages.fr') as string, value: 'fr' },
-  { label: $t('languages.la') as string, value: 'la' },
-]
-
-const authorOptions: Ref<Array<{ label: string; value: number | string }>> = ref([])
-const referenceOptions: Ref<Array<{ label: string; value: number | string }>> = ref([])
+let closingThroughNavigation = false
 
 type ResultItem =
   | (ProcessedQuoteResult & { type: 'quote'; sectionIndex: number })
@@ -464,6 +427,18 @@ const allResults = computed<ResultItem[]>(() => {
     })
   }
   return results
+})
+const resultId = (type: ResultItem['type'], id: string | number) => `search-result-${type}-${id}`
+const activeResultId = computed(() => {
+  const result = allResults.value[selectedIndex.value]
+  return result ? resultId(result.type, result.id) : undefined
+})
+const navResultId = (index: number) => `search-nav-result-${index}`
+const cmdResultId = (index: number) => `search-command-result-${index}`
+const activeDescendantId = computed(() => {
+  if (mode.value === 'nav' && selectedNavIndex.value >= 0) return navResultId(selectedNavIndex.value)
+  if (mode.value === 'cmd' && selectedCmdIndex.value >= 0) return cmdResultId(selectedCmdIndex.value)
+  return mode.value === 'search' ? activeResultId.value : undefined
 })
 
 const setResultRef = (
@@ -513,8 +488,16 @@ const getReferenceIcon = (type: QuoteReferencePrimaryType | string) => {
 
 const highlightText = (text: string) => {
   if (!storeQuery.value.trim() || !text) return text
-  const regex = new RegExp(`(${storeQuery.value.trim()})`, 'gi')
-  return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">$1</mark>')
+  const escapedQuery = storeQuery.value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`(${escapedQuery})`, 'gi')
+  const escapedText = text.replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character] as string)
+  return escapedText.replace(regex, '<mark class="rounded-[0.2em] bg-gray-200 px-[0.2em] py-[0.05em] text-gray-950 [box-decoration-break:clone] dark:bg-gray-700 dark:text-white">$1</mark>')
 }
 
 const debouncedSearch = useDebounceFn(async () => {
@@ -533,12 +516,7 @@ const debouncedSearch = useDebounceFn(async () => {
   }
 
   try {
-    await searchStore.search({
-      limit: 20,
-      language: selectedLanguage.value?.value as any,
-      author: selectedAuthor.value?.value as any,
-      reference: selectedReference.value?.value as any
-    })
+    await searchStore.search({ limit: 20 })
     selectedIndex.value = -1
   } catch (error) {
     console.error('Search error:', error)
@@ -546,85 +524,34 @@ const debouncedSearch = useDebounceFn(async () => {
   }
 }, 300)
 
-// Re-run search when filters change (if a query is present)
-watch([selectedLanguage, selectedAuthor, selectedReference], () => {
-  if (storeQuery.value.trim()) debouncedSearch()
-})
+const goToSearchPage = () => {
+  const query = storeQuery.value.trim()
+  const searchQuery: Record<string, string> = {}
 
-const loadFilterOptions = async () => {
-  // simple cache to avoid refetching every open
-  if (authorOptions.value.length && referenceOptions.value.length) return
-  try {
-    const [authorsData, referencesData] = await Promise.all([
-      $fetch<ApiResponse<Author[]>>('/api/authors?limit=100'),
-      $fetch<ApiResponse<QuoteReference[]>>('/api/references?limit=100')
-    ])
+  if (query) searchQuery.q = query
 
-    authorOptions.value = (authorsData.data || [])
-    .map((author: { id: number | string; name: string }) => ({
-      label: author.name,
-      value: author.id
-    }))
-
-    referenceOptions.value = (referencesData.data || [])
-    .map((reference: { id: number | string; name: string }) => ({
-      label: reference.name,
-      value: reference.id
-    }))
-  } catch (error) {
-    console.error('Failed to load filter options:', error)
+  // Keep advanced filters when the dialog is opened from the search page.
+  if (route.path === '/search') {
+    for (const key of ['language', 'author', 'reference'] as const) {
+      const value = route.query[key]
+      if (typeof value === 'string' && value) searchQuery[key] = value
+    }
   }
+
+  closeAndNavigate()
+  navigateTo({ path: '/search', query: searchQuery })
 }
 
-const clearFilters = () => {
-  selectedLanguage.value = undefined
-  selectedAuthor.value = undefined
-  selectedReference.value = undefined
-  if (storeQuery.value.trim()) debouncedSearch()
-}
-
-// Labels for chips
-const selectedLanguageLabel = computed<string | null>(() => {
-  const val = selectedLanguage.value
-  if (!val) return null
-  const item = languageOptions.find(o => o.value === val.value || o.label === val.label)
-  return item ? (item.label as string) : String(val.label)
-})
-
-const selectedAuthorLabel = computed<string | null>(() => {
-  const val = selectedAuthor.value
-  if (!val) return null
-  const item = (authorOptions.value || []).find(o => o.value === val.value || o.label === val.label)
-  return item ? item.label : String(val.label)
-})
-
-const selectedReferenceLabel = computed<string | null>(() => {
-  const val = selectedReference.value
-  if (!val) return null
-  const item = (referenceOptions.value || []).find(o => o.value === val.value || o.label === val.label)
-  return item ? item.label : String(val.label)
-})
-
-const removeLanguageFilter = () => {
-  selectedLanguage.value = undefined
-  if (storeQuery.value.trim()) debouncedSearch()
-}
-
-const removeAuthorFilter = () => {
-  selectedAuthor.value = undefined
-  if (storeQuery.value.trim()) debouncedSearch()
-}
-
-const removeReferenceFilter = () => {
-  selectedReference.value = undefined
-  if (storeQuery.value.trim()) debouncedSearch()
+const closeAndNavigate = () => {
+  closingThroughNavigation = true
+  isOpen.value = false
 }
 
 const selectResult = (
   result: ProcessedQuoteResult | AuthorSearchResult | ReferenceSearchResult,
   type: 'quote' | 'author' | 'reference'
 ) => {
-  isOpen.value = false
+  closeAndNavigate()
 
   switch (type) {
     case 'quote':
@@ -640,12 +567,12 @@ const selectResult = (
 }
 
 const navigateToNavItem = (item: any) => {
-  isOpen.value = false
+  closeAndNavigate()
   navigateTo(item.to)
 }
 
 const executeCmdItem = (item: any) => {
-  isOpen.value = false
+  closeAndNavigate()
   emit('action', item.action)
 }
 
@@ -712,6 +639,12 @@ const scrollToSelectedCmd = () => {
   }
 }
 
+const getCircularIndex = (current: number, direction: 1 | -1, length: number) => {
+  if (!length) return -1
+  if (current < 0) return direction === 1 ? 0 : length - 1
+  return (current + direction + length) % length
+}
+
 const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Escape') {
     isOpen.value = false
@@ -721,11 +654,11 @@ const handleKeydown = (event: KeyboardEvent) => {
   if (mode.value === 'nav' || mode.value === 'cmd') {
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      if (mode.value === 'nav' && selectedNavIndex.value < filteredNavItems.value.length - 1) {
-        selectedNavIndex.value++
+      if (mode.value === 'nav' && filteredNavItems.value.length) {
+        selectedNavIndex.value = getCircularIndex(selectedNavIndex.value, 1, filteredNavItems.value.length)
         scrollToSelectedNav()
-      } else if (mode.value === 'cmd' && selectedCmdIndex.value < filteredCmdItems.value.length - 1) {
-        selectedCmdIndex.value++
+      } else if (mode.value === 'cmd' && filteredCmdItems.value.length) {
+        selectedCmdIndex.value = getCircularIndex(selectedCmdIndex.value, 1, filteredCmdItems.value.length)
         scrollToSelectedCmd()
       }
       return
@@ -733,11 +666,11 @@ const handleKeydown = (event: KeyboardEvent) => {
 
     if (event.key === 'ArrowUp') {
       event.preventDefault()
-      if (mode.value === 'nav' && selectedNavIndex.value > 0) {
-        selectedNavIndex.value--
+      if (mode.value === 'nav' && filteredNavItems.value.length) {
+        selectedNavIndex.value = getCircularIndex(selectedNavIndex.value, -1, filteredNavItems.value.length)
         scrollToSelectedNav()
-      } else if (mode.value === 'cmd' && selectedCmdIndex.value > 0) {
-        selectedCmdIndex.value--
+      } else if (mode.value === 'cmd' && filteredCmdItems.value.length) {
+        selectedCmdIndex.value = getCircularIndex(selectedCmdIndex.value, -1, filteredCmdItems.value.length)
         scrollToSelectedCmd()
       }
       return
@@ -753,8 +686,8 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (event.key === 'ArrowDown') {
     event.preventDefault()
-    if (selectedIndex.value < allResults.value.length - 1) {
-      selectedIndex.value++
+    if (allResults.value.length) {
+      selectedIndex.value = getCircularIndex(selectedIndex.value, 1, allResults.value.length)
       scrollToSelected()
     }
     return
@@ -762,8 +695,8 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (event.key === 'ArrowUp') {
     event.preventDefault()
-    if (selectedIndex.value > 0) {
-      selectedIndex.value--
+    if (allResults.value.length) {
+      selectedIndex.value = getCircularIndex(selectedIndex.value, -1, allResults.value.length)
       scrollToSelected()
     }
     return
@@ -778,7 +711,6 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 watch(isOpen, (isStillOpen) => {
   if (isStillOpen) {
-    loadFilterOptions()
     nextTick(() => {
       document.addEventListener('keydown', handleKeydown)
       const searchInput = document.querySelector<HTMLInputElement>('input[placeholder]')
@@ -789,13 +721,27 @@ watch(isOpen, (isStillOpen) => {
   }
 
   document.removeEventListener('keydown', handleKeydown)
+  if (closingThroughNavigation) {
+    closingThroughNavigation = false
+  } else if (route.path === '/search') {
+    const query = typeof route.query.q === 'string' ? route.query.q : ''
+    searchStore.setQuery(query)
+    if (query) {
+      void searchStore.search({
+        limit: 50,
+        language: typeof route.query.language === 'string' ? route.query.language : undefined,
+        author: typeof route.query.author === 'string' ? route.query.author : undefined,
+        reference: typeof route.query.reference === 'string' ? route.query.reference : undefined
+      })
+    } else {
+      searchStore.clear()
+    }
+  }
+
   // Preserve store state when closing; only reset local UI state
   selectedIndex.value = -1
   selectedNavIndex.value = -1
   selectedCmdIndex.value = -1
-  selectedLanguage.value = undefined
-  selectedAuthor.value = undefined
-  selectedReference.value = undefined
   resultRefs.value = {}
 })
 
@@ -805,6 +751,62 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+:global(body .dialog-content.search-box-dialog) {
+  width: 94vw !important;
+  max-width: min(94vw, 58rem) !important;
+}
+
+.search-box-mobile-card {
+  display: flex;
+  height: auto;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+}
+
+.search-box-mobile-card :deep(.card-header) {
+  flex: none;
+  padding: 1.25rem 1rem 0.75rem;
+}
+
+.search-box-mobile-card :deep(.card-content) {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 1rem;
+}
+
+:deep(.search-box-mobile-content) {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+:deep(.search-box-mobile-search-row) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+:deep(.search-box-mobile-search-row > .input-wrapper) {
+  min-width: 0;
+  flex: 1;
+}
+
+:deep(.search-box-mobile-results) {
+  min-height: 0;
+  max-height: min(56dvh, 32rem);
+  flex: 1;
+  overscroll-behavior: contain;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   line-clamp: 2;

@@ -1,7 +1,7 @@
 <template>
   <div
     class="min-h-screen"
-    :class="route.path === '/' || route.path.startsWith('/quotes/')
+    :class="usesWarmEditorialSurface
       ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]'
       : 'bg-gray-50 dark:bg-[#0C0A09]'"
   >
@@ -14,10 +14,10 @@
         px-4 py-3 safe-area-pt"
         :class="[
           {
-            'bg-[#F7F5EF] dark:bg-[#0C0A09]': scrollY === 0 && (route.path === '/' || route.path.startsWith('/quotes/')),
-            'bg-[#FAFAF9] dark:bg-[#0C0A09]': scrollY === 0 && route.path !== '/' && !route.path.startsWith('/quotes/'),
-            'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && (route.path === '/' || route.path.startsWith('/quotes/')),
-            'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && route.path !== '/'
+            'bg-[#F7F5EF] dark:bg-[#0C0A09]': scrollY === 0 && usesWarmEditorialSurface,
+            'bg-[#FAFAF9] dark:bg-[#0C0A09]': scrollY === 0 && !usesWarmEditorialSurface,
+            'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && usesWarmEditorialSurface,
+            'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md': scrollY !== 0 && !usesWarmEditorialSurface
           }
         ]"
     >
@@ -169,6 +169,7 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search')
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)

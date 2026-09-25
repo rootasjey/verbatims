@@ -2,8 +2,8 @@
   <div
     class="sticky top-0 z-40 w-full hidden md:block transition-all duration-300"
     :class="scrollY === 0
-      ? (route.path === '/' || route.path.startsWith('/quotes/') ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
-      : (route.path === '/' || route.path.startsWith('/quotes/') ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
+      ? (usesWarmEditorialSurface ? 'bg-[#F7F5EF] dark:bg-[#0C0A09]' : 'bg-[#FAFAF9] dark:bg-[#0C0A09]')
+      : (usesWarmEditorialSurface ? 'bg-[#F7F5EF]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md' : 'bg-[#FAFAF9]/80 dark:bg-[#0C0A09]/80 backdrop-blur-md')
     "
   >
     <div class="flex items-center justify-between px-4 lg:px-8 py-3 mx-auto">
@@ -147,6 +147,7 @@
 const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search')
 const { user } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
