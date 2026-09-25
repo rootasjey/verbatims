@@ -221,12 +221,23 @@ const props = withDefaults(defineProps<Props>(), {
 - Reuse existing spacing, border, and status-color conventions already present in admin pages
 - In select components, prefer human-friendly display values
 - In dropdown menu items, use `onclick` for actions when following existing menu patterns
+- In a shared visual group, favor consistent dimensions (such as height, width, and spacing) among related elements. Use asymmetry intentionally when it clarifies hierarchy or strengthens page identity; maintain comfortable touch targets on mobile.
 
 ### Interactive images and cards
 
 - For clickable image or card surfaces, use a restrained tactile interaction by default: `hover:scale-105 hover:shadow-lg active:scale-99 active:shadow-none`, with `transition-[transform,box-shadow] duration-200`.
 - Apply this only to the interactive surface, not decorative images or unrelated controls. Omit or soften the scale/shadow when a dense layout would cause collisions; raise the hovered item above siblings only when needed.
 - Keep keyboard interaction discoverable with a visible focus style, and respect reduced-motion preferences. Hover must remain an enhancement, not the only feedback path on touch devices.
+
+### Mobile content-page controls
+
+- On mobile content and search pages, keep the search field primary and avoid stacking several persistent filters below it. Group related filters behind one clearly labeled control that opens a bottom `NDrawer`.
+- Prefer a bottom `NDrawer` on mobile for search/filter panels and other long, scrollable tasks; reserve centered `NDialog` for brief confirmations. Keep drawer content within the dynamic viewport, let long results scroll inside the drawer, and keep mobile footers compact. Preserve inline controls and keyboard guidance on desktop.
+
+### Search and filter result updates
+
+- Keep the currently rendered results in place while a new search or filter request is pending; avoid replacing the whole result area on every keystroke.
+- Debounce text input and delay visible loading feedback briefly (about 180 ms) so fast requests do not flash a loading state. Show a blocking skeleton only when no existing results can be retained, and keep the result region marked busy for assistive technology while updates are pending.
 
 ### UnaUI component style props
 

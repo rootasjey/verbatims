@@ -17,10 +17,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
     const authorId = query.author ? parseInt(query.author as string) : null
     const referenceId = query.reference ? parseInt(query.reference as string) : null
     const limit = Math.min(parseInt(query.limit as string) || 20, 50)
-    const contentType = (query.type as SearchContentType) || 'all'
+    const requestedContentType = (query.type as SearchContentType) || 'all'
 
     const normalized = normalizeSearch(searchTerm)
-    if (!normalized.hasContent) {
+    const hasFilters = Boolean(language || authorId || referenceId)
+    if (!normalized.hasContent && !hasFilters) {
       return {
         success: true,
         data: {
@@ -34,12 +35,20 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
 
     const searchPattern = normalized.likePattern
     const foldedPattern = normalized.foldedLikePattern
+    const contentType: SearchContentType = !normalized.hasContent && hasFilters ? 'quotes' : requestedContentType
     const results: SearchResults = {
       quotes: [],
       authors: [],
       references: [],
       total: 0
     }
+
+    const matchingQuoteConditions = sql`
+      AND q_filter.status = 'approved'
+      ${language ? sql`AND q_filter.language = ${language}` : sql``}
+      ${authorId ? sql`AND qa_filter.author_id = ${authorId}` : sql``}
+      ${referenceId ? sql`AND qa_filter.reference_id = ${referenceId}` : sql``}
+    `
 
     // Search quotes if requested
     if (!contentType || contentType === 'all' || contentType === 'quotes') {
@@ -62,7 +71,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         LEFT JOIN ${schema.users} u ON q.user_id = u.id
         LEFT JOIN ${schema.quoteTags} qt ON q.id = qt.quote_id
         LEFT JOIN ${schema.tags} t ON qt.tag_id = t.id
-        WHERE q.status = 'approved' AND q.id IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})
+        WHERE q.status = 'approved'
+        ${normalized.hasContent ? sql`AND q.id IN (SELECT rowid FROM quotes_fts WHERE name MATCH ${normalized.toMatchQuery()})` : sql``}
       `
 
       // Add language filter
@@ -109,9 +119,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         FROM ${schema.authors} a
         LEFT JOIN ${schema.quoteAttributions} qa ON a.id = qa.author_id
         LEFT JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
-        WHERE ${foldAccentsSQL(sql`a.name`)} LIKE ${foldedPattern}
-           OR a.description LIKE ${searchPattern}
-           OR a.job LIKE ${searchPattern}
+        WHERE (
+          ${foldAccentsSQL(sql`a.name`)} LIKE ${foldedPattern}
+          OR a.description LIKE ${searchPattern}
+          OR a.job LIKE ${searchPattern}
+        )
+        ${hasFilters ? sql`AND EXISTS (
+          SELECT 1
+          FROM ${schema.quoteAttributions} qa_filter
+          INNER JOIN ${schema.quotes} q_filter ON q_filter.id = qa_filter.quote_id
+          WHERE qa_filter.author_id = a.id ${matchingQuoteConditions}
+        )` : sql``}
         GROUP BY a.id
         ORDER BY a.likes_count DESC, a.views_count DESC, quotes_count DESC
         LIMIT ${limit}
@@ -131,9 +149,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         FROM ${schema.quoteReferences} r
         LEFT JOIN ${schema.quoteAttributions} qa ON r.id = qa.reference_id
         LEFT JOIN ${schema.quotes} q ON q.id = qa.quote_id AND q.status = 'approved'
-        WHERE ${foldAccentsSQL(sql`r.name`)} LIKE ${foldedPattern}
-           OR r.description LIKE ${searchPattern}
-           OR r.secondary_type LIKE ${searchPattern}
+        WHERE (
+          ${foldAccentsSQL(sql`r.name`)} LIKE ${foldedPattern}
+          OR r.description LIKE ${searchPattern}
+          OR r.secondary_type LIKE ${searchPattern}
+        )
+        ${hasFilters ? sql`AND EXISTS (
+          SELECT 1
+          FROM ${schema.quoteAttributions} qa_filter
+          INNER JOIN ${schema.quotes} q_filter ON q_filter.id = qa_filter.quote_id
+          WHERE qa_filter.reference_id = r.id ${matchingQuoteConditions}
+        )` : sql``}
         GROUP BY r.id
         ORDER BY r.likes_count DESC, r.views_count DESC, quotes_count DESC
         LIMIT ${limit}
@@ -182,6 +208,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
             ) OR
             EXISTS (SELECT 1 FROM ${schema.tags} t2 JOIN ${schema.quoteTags} qt2 ON t2.id = qt2.tag_id WHERE qt2.quote_id = q.id AND t2.name LIKE ${searchPattern})
           )
+          ${language ? sql`AND q.language = ${language}` : sql``}
+          ${authorId ? sql`AND EXISTS (SELECT 1 FROM ${schema.quoteAttributions} qa_filter WHERE qa_filter.quote_id = q.id AND qa_filter.author_id = ${authorId})` : sql``}
+          ${referenceId ? sql`AND EXISTS (SELECT 1 FROM ${schema.quoteAttributions} qa_filter WHERE qa_filter.quote_id = q.id AND qa_filter.reference_id = ${referenceId})` : sql``}
           GROUP BY q.id
           ORDER BY q.likes_count DESC, q.views_count DESC
           LIMIT ${remaining}

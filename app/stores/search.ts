@@ -65,7 +65,7 @@ export const useSearchStore = defineStore('search', () => {
   async function search(options: SearchOptions = {}) {
     const { limit = 20, language, author, reference } = options
     const q = query.value.trim()
-    if (!q) {
+    if (!q && !language && !author && !reference) {
       clear()
       return
     }
@@ -75,7 +75,8 @@ export const useSearchStore = defineStore('search', () => {
 
     loading.value = true
     try {
-      const fetchQuery: Record<string, any> = { q, limit }
+      const fetchQuery: Record<string, any> = { limit }
+      if (q) fetchQuery.q = q
       if (language) fetchQuery.language = language
       if (author) fetchQuery.author = author
       if (reference) fetchQuery.reference = reference
@@ -88,7 +89,7 @@ export const useSearchStore = defineStore('search', () => {
       results.value = (data?.data as SearchResults) ?? { quotes: [], authors: [], references: [], total: 0 }
       lastFetchedAt.value = Date.now()
 
-      if (!recent.value.includes(q)) {
+      if (q && !recent.value.includes(q)) {
         recent.value.unshift(q)
         recent.value = recent.value.slice(0, 5)
       }
