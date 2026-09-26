@@ -644,6 +644,7 @@
       "searching": "Searching results",
       "quote_count": "{count} quotes",
       "view_all_results": "View all results",
+      "footer_open_search": "Open full search",
       "mode_hint": "@ pages · / actions",
       "navigate_placeholder": "Navigate to a page...",
       "command_placeholder": "Type a command...",
@@ -673,7 +674,8 @@
       "results": "results",
       "footer_navigate": "Press ↑↓ to navigate",
       "footer_select": "Press Enter to select",
-      "footer_close": "Press Esc to close"
+      "footer_close": "Press Esc to close",
+      "footer_close_tooltip": "Close this dialogue"
     },
     "quote_actions": {
       "quick_actions": "Quick actions",

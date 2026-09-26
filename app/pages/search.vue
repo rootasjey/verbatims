@@ -35,6 +35,7 @@
             <label for="search-page-query" class="sr-only">{{ $t('search_placeholder') }}</label>
             <input
               id="search-page-query"
+              ref="searchInputElement"
               v-model="searchInput"
               type="text"
               autocomplete="off"
@@ -48,46 +49,72 @@
               @input="handleSearchInput"
               @keydown="handleSearchKeydown"
             />
-            <button
-              v-if="searchInput"
-              type="button"
-              :aria-label="$t('clear_search') as string"
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200 md:h-9 md:w-9"
-              @click="clearSearchQuery"
-            >
-              <NIcon name="i-ph-x" class="h-4 w-4" aria-hidden="true" />
-            </button>
+            <NTooltip v-if="searchInput" :content="$t('clear_search') as string">
+              <button
+                type="button"
+                :aria-label="$t('clear_search') as string"
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200 md:h-9 md:w-9"
+                @click="clearSearchQuery"
+              >
+                <NIcon name="i-ph-x" class="h-4 w-4" aria-hidden="true" />
+              </button>
+            </NTooltip>
           </div>
         </div>
 
         <div v-if="filterCommand" id="search-filter-suggestions" role="listbox" :aria-label="$t('filter_suggestions') as string" class="absolute inset-x-6 top-full z-30 mt-2 max-h-72 overflow-y-auto rounded-md border border-black/10 bg-[#F7F5EF] p-2 shadow-lg sm:inset-x-8 lg:inset-x-10 dark:border-white/10 dark:bg-[#17191e]">
           <p v-if="filterSuggestions.length === 0" class="px-3 py-2 font-sans text-sm text-gray-500 dark:text-gray-400">{{ filterSuggestionMessage || $t('filter_suggestions_empty') }}</p>
-          <button
-            v-for="(option, index) in filterSuggestions"
-            :id="`search-filter-option-${index}`"
-            :key="`${filterCommand.kind}-${option.value}`"
-            type="button"
-            role="option"
-            :aria-selected="index === activeSuggestionIndex"
-            class="flex min-h-11 w-full items-center justify-between gap-3 rounded px-3 py-2 text-left font-sans text-sm text-gray-800 transition-colors hover:bg-black/[0.05] focus-visible:bg-black/[0.05] focus-visible:outline-none dark:text-gray-200 dark:hover:bg-white/[0.07] dark:focus-visible:bg-white/[0.07]"
-            @mousemove="activeSuggestionIndex = index"
-            @click="selectFilterSuggestion(option)"
-          >
-            <span class="truncate font-600">{{ option.label }}</span>
-            <span v-if="option.detail" class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ option.detail }}</span>
-          </button>
+          <div v-else class="relative">
+            <div
+              v-if="activeSuggestionIndex >= 0"
+              aria-hidden="true"
+              class="pointer-events-none absolute inset-x-0 top-0 z-0 h-11 rounded bg-black/[0.06] transition-transform duration-200 ease-out motion-reduce:transition-none dark:bg-white/[0.1]"
+              :style="{ transform: `translateY(${activeSuggestionIndex * 2.75}rem)` }"
+            />
+            <button
+              v-for="(option, index) in filterSuggestions"
+              :id="`search-filter-option-${index}`"
+              :key="`${filterCommand.kind}-${option.value}`"
+              type="button"
+              role="option"
+              :aria-selected="index === activeSuggestionIndex"
+              class="relative z-10 flex h-11 w-full shrink-0 items-center justify-between gap-3 rounded px-3 py-2 text-left font-sans text-sm text-gray-800 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-800 dark:text-gray-200 dark:focus-visible:outline-gray-200"
+              @mousemove="activeSuggestionIndex = index"
+              @click="selectFilterSuggestion(option)"
+            >
+            <span class="inline-flex min-w-0 flex-1 items-center gap-2 font-600">
+              <NAvatar v-if="option.kind && option.kind !== 'language'" :src="option.imageUrl" alt="" :rounded="option.kind === 'reference' ? '2' : undefined" size="xs" class="shrink-0">
+                <template #fallback>
+                  <div class="flex h-full w-full items-center justify-center bg-black/[0.05] text-gray-500 dark:bg-white/[0.08] dark:text-gray-400">
+                    <NIcon :name="option.kind === 'author' ? 'i-ph-user' : 'i-ph-book-open'" class="h-3.5 w-3.5" aria-hidden="true" />
+                  </div>
+                </template>
+              </NAvatar>
+              <span class="truncate">{{ option.label }}</span>
+            </span>
+            <span v-if="option.detail || option.icon" class="inline-flex shrink-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              {{ option.detail }}
+              <NIcon v-if="option.icon" :name="option.icon" class="h-3.5 w-3.5" :class="option.iconTone" aria-hidden="true" />
+            </span>
+            </button>
+          </div>
         </div>
 
-        <div v-else-if="!hasActiveFilters" class="mt-3 font-sans text-xs text-gray-500 dark:text-gray-400">
-          {{ $t('search_syntax_hint') }}
-        </div>
-
-        <div v-if="hasActiveFilters || (searchResults.total > 0 && renderedSearchQuery)" class="mt-4 flex flex-wrap items-center gap-2">
-          <button v-if="selectedLanguage" type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedLanguage.label }) as string" @click="selectedLanguage = undefined"><span>{{ selectedLanguage.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
-          <button v-if="selectedAuthor" type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedAuthor.label }) as string" @click="selectedAuthor = undefined"><span>{{ selectedAuthor.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
-          <button v-if="selectedReference" type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedReference.label }) as string" @click="selectedReference = undefined"><span>{{ selectedReference.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
+        <div v-if="!filterCommand || hasActiveFilters" class="mt-3 flex flex-wrap items-center gap-2">
+          <p v-if="!hasActiveFilters && !filterCommand" class="font-sans text-xs text-gray-500 dark:text-gray-400">
+            {{ $t('search_syntax_hint') }}
+          </p>
+          <NTooltip v-if="selectedLanguage" :content="$t('click_to_remove') as string">
+            <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedLanguage.label }) as string" @click="selectedLanguage = undefined"><span>{{ selectedLanguage.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
+          </NTooltip>
+          <NTooltip v-if="selectedAuthor" :content="$t('click_to_remove') as string">
+            <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedAuthor.label }) as string" @click="selectedAuthor = undefined"><span>{{ selectedAuthor.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
+          </NTooltip>
+          <NTooltip v-if="selectedReference" :content="$t('click_to_remove') as string">
+            <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedReference.label }) as string" @click="selectedReference = undefined"><span>{{ selectedReference.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
+          </NTooltip>
           <button v-if="hasActiveFilters" type="button" class="px-2 py-1 font-sans text-xs text-gray-500 underline underline-offset-4 hover:text-gray-900 dark:hover:text-white" @click="clearFilters">{{ $t('clear_filters') }}</button>
-          <p v-if="searchResults.total > 0 && (renderedSearchQuery || hasActiveFilters)" class="ml-auto border-l border-black/10 pl-4 font-sans text-sm font-600 text-gray-600 dark:border-white/10 dark:text-gray-400" role="status" aria-atomic="true">
+          <p v-if="searchResults.total > 0 && (renderedSearchQuery || hasActiveFilters)" class="ml-auto border-l border-black/10 pl-4 font-sans text-sm font-600 leading-5 text-gray-600 dark:border-white/10 dark:text-gray-400" role="status" aria-atomic="true">
             {{ renderedSearchQuery ? $t('results_count', { count: searchResults.total, query: renderedSearchQuery }) : $t('filtered_results_count', { count: searchResults.total }) }}
           </p>
         </div>
@@ -113,45 +140,32 @@
 
           <!-- Suggested searches -->
           <section :aria-labelledby="'suggested-searches-heading'">
-            <div class="mb-5 flex items-center justify-between gap-4">
+            <div class="mb-5">
               <h2 id="suggested-searches-heading" class="font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_suggested') }}</h2>
-              <NTooltip :content="$t('refresh_suggestions') as string">
-                <NButton
-                  @click="refreshSuggestions()"
-                  icon
-                  label="i-ph-arrows-clockwise"
-                  btn="ghost-gray"
-                />
-              </NTooltip>
             </div>
             <div class="flex flex-wrap gap-2">
-              <button v-for="s in suggestions" :key="s.text" type="button" class="group inline-flex min-h-10 items-center gap-2 rounded-md bg-black/[0.045] px-3 font-sans text-sm text-gray-700 transition-colors hover:bg-black/[0.08] hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:hover:text-white dark:focus-visible:outline-gray-200" @click="setSearchTerm(s.text)">
-                <NIcon :name="s.icon" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-                {{ s.text }}
-              </button>
+              <NTooltip v-for="s in suggestions" :key="s.text" :content="$t('click_to_search', { terms: s.text }) as string">
+                <button type="button" class="group inline-flex min-h-10 items-center gap-2 rounded-md bg-black/[0.045] px-3 font-sans text-sm text-gray-700 transition-[transform,background-color,color] duration-150 hover:bg-black/[0.08] hover:text-gray-950 active:scale-99 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:hover:text-white dark:focus-visible:outline-gray-200" @click="setSearchTerm(s.text)">
+                  <NIcon :name="s.icon" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                  {{ s.text }}
+                </button>
+              </NTooltip>
             </div>
+            <NButton size="sm" btn="link-gray" class="mt-3 px-0 font-sans text-sm" @click="refreshSuggestions()">
+              {{ $t('refresh_suggestions') }}
+            </NButton>
           </section>
 
           <!-- Random authors -->
           <div class="grid gap-x-14 gap-y-12 pt-2 md:grid-cols-2">
           <section class="min-w-0" :aria-labelledby="'explore-authors-heading'">
-            <div class="flex items-center justify-between mb-5">
-              <h2 id="explore-authors-heading" class="font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_authors') }}</h2>
-              <div class="flex items-center gap-2">
-                <NTooltip :content="$t('refresh_authors') as string">
-                  <NButton
-                    @click="fetchRandomAuthors()"
-                    icon
-                    label="i-ph-arrows-clockwise"
-                    btn="ghost-gray"
-                  />
-                </NTooltip>
-                <NuxtLink
-                  to="/authors"
-                  class="font-sans text-xs font-600 text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-950 dark:text-gray-400 dark:decoration-gray-700 dark:hover:text-white">
-                  {{ $t('see_all') }}
+            <div class="mb-5">
+              <h2 id="explore-authors-heading" class="font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">
+                <NuxtLink to="/authors" class="group inline-flex items-center gap-1.5 rounded-sm transition-colors hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-800 dark:hover:text-gray-300 dark:focus-visible:outline-gray-200">
+                  {{ $t('section_authors') }}
+                  <NIcon name="i-tabler-arrow-up-right" class="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-gray-500" aria-hidden="true" />
                 </NuxtLink>
-              </div>
+              </h2>
             </div>
             <div class="space-y-4">
               <NuxtLink
@@ -160,7 +174,7 @@
                 :to="`/authors/${author.id}`"
                 class="group flex min-w-0 items-center gap-3 py-3 first:pt-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200"
               >
-                <NAvatar :src="author.image_url" :alt="author.name" size="sm" class="shrink-0 transition-transform duration-200 group-hover:scale-105">
+                <NAvatar :src="author.image_url" :alt="author.name" size="sm" class="shrink-0 transition-transform duration-200 group-hover:scale-105 group-active:scale-99">
                   <template #fallback>
                     <div class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                       <NIcon name="i-ph-user-circle-duotone" class="h-5 w-5" />
@@ -176,27 +190,20 @@
               </NuxtLink>
               <div v-if="randomAuthors.length === 0" class="py-3 font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('empty_authors') }}</div>
             </div>
+            <NButton size="sm" btn="link-gray" class="mt-2 px-0 font-sans text-sm" @click="fetchRandomAuthors()">
+              {{ $t('refresh_authors') }}
+            </NButton>
           </section>
 
           <!-- Random references -->
           <section class="min-w-0" :aria-labelledby="'explore-references-heading'">
-            <div class="flex items-center justify-between mb-5">
-              <h2 id="explore-references-heading" class="font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_references') }}</h2>
-              <div class="flex items-center gap-2">
-                <NTooltip :content="$t('refresh_references') as string">
-                  <NButton
-                    @click="fetchRandomReferences()"
-                    icon
-                    label="i-ph-arrows-clockwise"
-                    btn="ghost-gray"
-                  />
-                </NTooltip>
-                <NuxtLink
-                  to="/references"
-                  class="font-sans text-xs font-600 text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-950 dark:text-gray-400 dark:decoration-gray-700 dark:hover:text-white">
-                  {{ $t('see_all') }}
+            <div class="mb-5">
+              <h2 id="explore-references-heading" class="font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">
+                <NuxtLink to="/references" class="group inline-flex items-center gap-1.5 rounded-sm transition-colors hover:text-gray-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gray-800 dark:hover:text-gray-300 dark:focus-visible:outline-gray-200">
+                  {{ $t('section_references') }}
+                  <NIcon name="i-tabler-arrow-up-right" class="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-gray-500" aria-hidden="true" />
                 </NuxtLink>
-              </div>
+              </h2>
             </div>
             <div class="space-y-4">
               <NuxtLink
@@ -205,7 +212,7 @@
                 :to="`/references/${reference.id}`"
                 class="group flex min-w-0 items-center gap-3 py-3 first:pt-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200"
               >
-                <NAvatar :src="reference.image_url" :alt="reference.name" rounded="2" size="sm" class="shrink-0 transition-transform duration-200 group-hover:scale-105">
+                <NAvatar :src="reference.image_url" :alt="reference.name" rounded="2" size="sm" class="shrink-0 transition-transform duration-200 group-hover:scale-105 group-active:scale-99">
                   <template #fallback>
                     <div class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                       <NIcon name="i-ph-book-duotone" class="h-5 w-5" />
@@ -223,6 +230,9 @@
               </NuxtLink>
               <div v-if="randomReferences.length === 0" class="py-3 font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('empty_references') }}</div>
             </div>
+            <NButton size="sm" btn="link-gray" class="mt-2 px-0 font-sans text-sm" @click="fetchRandomReferences()">
+              {{ $t('refresh_references') }}
+            </NButton>
           </section>
           </div>
         </div>
@@ -242,31 +252,35 @@
               :class="searchResults.quotes.length > 0 && (searchResults.authors.length > 0 || searchResults.references.length > 0) ? 'lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.85fr)]' : 'lg:grid-cols-1'"
             >
               <section v-if="searchResults.quotes.length > 0" class="min-w-0" :aria-labelledby="'search-quotes-heading'">
-                <h2 id="search-quotes-heading" class="mb-3 font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_quotes') }}</h2>
+                <h2 id="search-quotes-heading" class="search-results-heading mb-3">{{ $t('section_quotes') }}</h2>
                 <TransitionGroup name="search-results" tag="div" class="relative space-y-6" appear>
-                  <NuxtLink v-for="(quote, index) in searchResults.quotes" :key="quote.id" :to="`/quotes/${quote.id}`" :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }" class="search-quote-result group block py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200">
-                    <blockquote class="w-fit max-w-[68ch] pb-1 font-serif text-xl leading-relaxed text-gray-900 dark:text-gray-100 sm:text-2xl">
-                      <span class="search-quote-underline">{{ quote.name }}</span>
-                    </blockquote>
+                  <article v-for="(quote, index) in searchResults.quotes" :key="quote.id" :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }" class="search-quote-result py-3">
+                    <NuxtLink :to="`/quotes/${quote.id}`" class="search-quote-link group block w-fit max-w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200">
+                      <blockquote class="w-fit max-w-[68ch] pb-1 font-serif text-xl leading-relaxed text-gray-900 dark:text-gray-100 sm:text-2xl">
+                        <span class="search-quote-underline">{{ quote.name }}</span>
+                      </blockquote>
+                    </NuxtLink>
                     <div class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
-                      <span v-if="quote.author_name" class="font-600 text-gray-800 dark:text-gray-200">{{ quote.author_name }}</span>
+                      <NuxtLink v-if="quote.author_name && quote.author_id" :to="`/authors/${quote.author_id}`" class="font-600 text-gray-800 underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:text-gray-200 dark:focus-visible:outline-gray-200">{{ quote.author_name }}</NuxtLink>
+                      <span v-else-if="quote.author_name" class="font-600 text-gray-800 dark:text-gray-200">{{ quote.author_name }}</span>
                       <span v-if="quote.author_name && quote.reference_name" aria-hidden="true">·</span>
-                      <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
+                      <NuxtLink v-if="quote.reference_name && quote.reference_id" :to="`/references/${quote.reference_id}`" class="underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200">{{ quote.reference_name }}</NuxtLink>
+                      <span v-else-if="quote.reference_name">{{ quote.reference_name }}</span>
                     </div>
-                  </NuxtLink>
+                  </article>
                 </TransitionGroup>
               </section>
 
               <aside class="space-y-10 lg:pl-8">
                 <section v-if="searchResults.authors.length > 0" :aria-labelledby="'search-authors-heading'">
-                  <h2 id="search-authors-heading" class="mb-4 font-serif text-xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_results_authors') }}</h2>
+                  <h2 id="search-authors-heading" class="search-results-heading mb-4">{{ $t('section_results_authors') }}</h2>
                   <TransitionGroup name="search-results" tag="div" class="relative grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-1" appear>
                     <NuxtLink v-for="(author, index) in searchResults.authors" :key="author.id" :to="`/authors/${author.id}`" :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }" class="group flex min-w-0 items-center gap-3 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200">
                     <NAvatar
                       :src="author.image_url"
                       :alt="author.name"
                       size="sm"
-                      class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+                      class="shrink-0 transition-transform duration-200 group-hover:scale-105 group-active:scale-99"
                     />
                     <div class="min-w-0">
                       <h3 class="truncate font-sans text-sm font-600 text-gray-800 dark:text-gray-200">{{ author.name }}</h3>
@@ -277,7 +291,7 @@
                 </section>
 
                 <section v-if="searchResults.references.length > 0" :aria-labelledby="'search-references-heading'">
-                  <h2 id="search-references-heading" class="mb-4 font-serif text-xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_results_references') }}</h2>
+                  <h2 id="search-references-heading" class="search-results-heading mb-4">{{ $t('section_results_references') }}</h2>
                   <TransitionGroup name="search-results" tag="div" class="relative grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-1" appear>
                     <NuxtLink v-for="(reference, index) in searchResults.references" :key="reference.id" :to="`/references/${reference.id}`" :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }" class="group flex min-w-0 items-center gap-3 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:focus-visible:outline-gray-200">
                     <NAvatar
@@ -285,7 +299,7 @@
                       :alt="reference.name"
                       rounded="2"
                       size="sm"
-                      class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+                      class="shrink-0 transition-transform duration-200 group-hover:scale-105 group-active:scale-99"
                     >
                       <template #fallback>
                         <div class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
@@ -306,6 +320,14 @@
             </div>
           </div>
 
+          <div v-else-if="searchStore.searchError && !isSearchPending" class="max-w-xl py-16" role="alert">
+            <h2 class="mb-3 font-serif text-3xl font-400 text-gray-900 dark:text-gray-100">{{ $t('search_error_title') }}</h2>
+            <p class="font-sans leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('search_error_desc') }}</p>
+            <NButton size="sm" btn="link-gray" class="mt-4 px-0 font-sans text-sm" @click="scheduleSearch()">
+              {{ $t('search_retry') }}
+            </NButton>
+          </div>
+
           <!-- No Results -->
           <div v-else-if="!isSearchPending" class="max-w-xl py-16">
             <h2 class="font-serif text-3xl font-400 text-gray-900 dark:text-gray-100 mb-3">{{ $t('empty_title') }}</h2>
@@ -324,6 +346,7 @@ import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
 import { useVerbatimsSeo } from '~/composables/useSeo'
 import { formatReferenceType, getReferenceIcon } from '~/utils/reference'
+import { getReferenceIconTone } from '#shared/constants/reference'
 
 const appReady = useState('app-ready', () => false)
 const hydrated = ref(appReady.value)
@@ -366,7 +389,18 @@ const searchQuery = computed({
   get: () => searchStore.query,
   set: (v: string) => searchStore.setQuery(v)
 })
-const searchInput = ref(searchStore.query)
+// The URL is authoritative on entry; the shared store may still contain a
+// previous query while route filters are being loaded and synchronized.
+const searchInput = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const searchInputElement = ref<HTMLInputElement | null>(null)
+
+function focusSearchInput() {
+  searchInputElement.value?.focus({ preventScroll: true })
+}
+
+function handleExplicitSearchFocus() {
+  if (window.innerWidth < 768) focusSearchInput()
+}
 
 const searchResults = computed<SearchResults>(() => searchStore.results)
 const recentSearches = computed<string[]>(() => searchStore.recent)
@@ -393,7 +427,7 @@ watch(isSearchPending, (pending) => {
 })
 
 type FilterOption = { label: string; value: string | number }
-type FilterSuggestion = FilterOption & { detail?: string }
+type FilterSuggestion = FilterOption & { detail?: string; icon?: string; iconTone?: string; kind?: 'author' | 'language' | 'reference'; imageUrl?: string }
 type FilterCommand = { kind: 'author' | 'language' | 'reference'; prefix: string; index: number }
 
 const languageOptions: FilterOption[] = [
@@ -453,7 +487,7 @@ const debouncedLoadCommandSuggestions = useDebounceFn(async (command: FilterComm
     if (command.kind === 'author') {
       const response = await $fetch<ApiResponse<Author[]>>('/api/authors/search', { params: { q: command.prefix, limit: 8 } })
       if (requestSequence !== suggestionRequestSequence) return
-      authorSuggestions.value = (response.data || []).map(author => ({ label: author.name, value: author.id, detail: author.job || undefined }))
+      authorSuggestions.value = (response.data || []).map(author => ({ label: author.name, value: author.id, detail: author.job || undefined, kind: 'author', imageUrl: author.image_url || undefined }))
     } else {
       const response = await $fetch<ApiResponse<QuoteReference[]>>('/api/references/search', { params: { q: command.prefix, limit: 8 } })
       if (requestSequence !== suggestionRequestSequence) return
@@ -462,7 +496,15 @@ const debouncedLoadCommandSuggestions = useDebounceFn(async (command: FilterComm
         const releaseYear = reference.release_date?.match(/^(\d{4})(?:-\d{2}-\d{2})?$/)?.[1]
         const detail = [translateReferenceType(reference.primary_type), releaseYear].filter(Boolean).join(' · ')
 
-        return { label: reference.name, value: reference.id, detail }
+        return {
+          label: reference.name,
+          value: reference.id,
+          detail,
+          kind: 'reference',
+          imageUrl: reference.image_url || undefined,
+          icon: getReferenceIcon(reference.primary_type),
+          iconTone: getReferenceIconTone(reference.primary_type),
+        }
       })
     }
     filterSuggestionMessage.value = String($t('filter_suggestions_empty'))
@@ -604,7 +646,7 @@ async function syncFiltersFromRoute(forceSearch = false) {
   const currentLanguage = String(selectedLanguage.value?.value ?? '')
   const currentAuthor = String(selectedAuthor.value?.value ?? '')
   const currentReference = String(selectedReference.value?.value ?? '')
-  const changed = query !== searchStore.query || language !== currentLanguage || author !== currentAuthor || reference !== currentReference
+  const changed = query !== searchInput.value || query !== searchStore.query || language !== currentLanguage || author !== currentAuthor || reference !== currentReference
 
   if (!changed && !forceSearch) return
 
@@ -664,6 +706,8 @@ const debouncedSearch = useDebounceFn(async (updateSequence: number) => {
       })
     } else {
       searchStore.clear()
+      renderedSearchQuery.value = ''
+      await Promise.all([fetchRandomAuthors(4), fetchRandomReferences(4)])
     }
 
     if (updateSequence === searchUpdateSequence) renderedSearchQuery.value = q
@@ -679,7 +723,12 @@ function scheduleSearch() {
 
 onBeforeUnmount(() => {
   if (searchLoadingTimer) clearTimeout(searchLoadingTimer)
+  window.removeEventListener('verbatims:focus-search-page-input', handleExplicitSearchFocus)
 })
+
+watch(hydrated, (ready) => {
+  if (ready && window.innerWidth >= 768) void nextTick(focusSearchInput)
+}, { flush: 'post' })
 
 watch([selectedLanguage, selectedAuthor, selectedReference], () => {
   if (filterOptionsReady.value && !applyingRouteState) scheduleSearch()
@@ -708,6 +757,9 @@ async function fetchRandomReferences(n = 4) {
 }
 
 onMounted(async () => {
+  window.addEventListener('verbatims:focus-search-page-input', handleExplicitSearchFocus)
+  if (window.innerWidth >= 768) void nextTick(focusSearchInput)
+
   try {
     await loadFilterOptions()
   } catch (error) {
@@ -724,6 +776,10 @@ onMounted(async () => {
     ])
   }
 })
+
+onActivated(() => {
+  if (window.innerWidth >= 768) void nextTick(focusSearchInput)
+})
 </script>
 
 <style scoped>
@@ -732,16 +788,18 @@ onMounted(async () => {
 }
 
 .search-filter-chip {
-  @apply inline-flex min-h-8 max-w-full items-center gap-2 rounded-md bg-black/[0.06] px-3 py-1 font-sans text-xs font-600 text-gray-700 transition-colors hover:bg-black/[0.1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.09] dark:text-gray-200 dark:hover:bg-white/[0.14] dark:focus-visible:outline-gray-200;
+  @apply inline-flex min-h-8 max-w-full items-center gap-2 rounded-md bg-black/[0.06] px-3 py-1 font-sans text-xs font-600 text-gray-700 transition-[transform,background-color,color] duration-150 hover:bg-black/[0.1] active:scale-99 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.09] dark:text-gray-200 dark:hover:bg-white/[0.14] dark:focus-visible:outline-gray-200;
 }
 
-:deep(#search-filter-suggestions [role="option"][aria-selected="true"]) {
-  background-color: rgb(0 0 0 / 0.06);
+.search-results-heading {
+  @apply font-sans text-xs font-700 uppercase tracking-[0.12em] text-gray-600 dark:text-gray-400;
+}
+
+:global(#search-filter-suggestions [role="option"][aria-selected="true"]) {
   color: #111827;
 }
 
-:deep(.dark #search-filter-suggestions [role="option"][aria-selected="true"]) {
-  background-color: rgb(255 255 255 / 0.1);
+:global(.dark #search-filter-suggestions [role="option"][aria-selected="true"]) {
   color: #fff;
 }
 
@@ -755,8 +813,8 @@ onMounted(async () => {
   transition: background-size 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.search-quote-result:hover .search-quote-underline,
-.search-quote-result:focus-visible .search-quote-underline {
+.search-quote-link:hover .search-quote-underline,
+.search-quote-link:focus-visible .search-quote-underline {
   background-size: 100% 1px;
 }
 

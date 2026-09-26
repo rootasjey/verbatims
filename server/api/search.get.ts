@@ -55,6 +55,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
       let quotesQuery = sql`
         SELECT
           q.*,
+          qa.author_id as author_id,
+          qa.reference_id as reference_id,
           a.name as author_name,
           a.is_fictional as author_is_fictional,
           a.image_url as author_image_url,
@@ -182,6 +184,8 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SearchResul
         const additionalQuotesResult = await db.all(sql`
           SELECT
             q.*,
+            qa.author_id as author_id,
+            qa.reference_id as reference_id,
             a.name as author_name,
             a.is_fictional as author_is_fictional,
             a.image_url as author_image_url,

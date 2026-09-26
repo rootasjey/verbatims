@@ -127,6 +127,11 @@ const handleNavigation = (path: string) => {
     navigator.vibrate(50)
   }
 
+  if (path === '/search' && route.path === path) {
+    window.dispatchEvent(new Event('verbatims:focus-search-page-input'))
+    return
+  }
+
   // Navigate to the path
   if (route.path !== path) {
     navigateTo(path)
