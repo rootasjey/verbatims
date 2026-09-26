@@ -249,6 +249,10 @@ Use the component-specific style prop instead, for example:
 - `NInput` → `input`
 - `NAvatar` → `avatar`
 
+### Tooltips
+
+- Prefer UnaUI's `NTooltip` for explanatory tooltips; avoid native HTML `title` attributes for tooltip UI. Keep tooltip copy localized and preserve an accessible name on the trigger.
+
 ### NSelect typing rule
 
 When using `NSelect`, keep `v-model` and `:items` on compatible types.
