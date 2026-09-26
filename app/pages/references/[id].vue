@@ -46,7 +46,7 @@
         <!-- Poster column -->
         <div class="lg:col-span-4 lg:pr-12">
           <div class="px-4 pt-4 md:px-8 md:pt-8 lg:sticky lg:top-24">
-            <div v-if="reference.imageUrl" class="group relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-gray-100 shadow-xl dark:bg-[#0C0A09]">
+            <div v-if="reference.imageUrl" class="group relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-gray-100 shadow-xl dark:bg-[#0C0A09] active:scale-99 transition-[transform]">
               <img
                 ref="posterImageRef"
                 :src="reference.imageUrl"

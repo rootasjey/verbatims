@@ -667,6 +667,7 @@
       "searching": "Recherche des résultats",
       "quote_count": "{count} citations",
       "view_all_results": "Voir tous les résultats",
+      "footer_open_search": "Ouvrir la recherche complète",
       "mode_hint": "@ pages · / commandes",
       "navigate_placeholder": "Naviguer vers une page...",
       "command_placeholder": "Taper une commande...",
@@ -696,7 +697,8 @@
       "results": "résultats",
       "footer_navigate": "↑↓ pour naviguer",
       "footer_select": "Entrée pour sélectionner",
-      "footer_close": "Échap pour fermer"
+      "footer_close": "Échap pour fermer",
+      "footer_close_tooltip": "Fermer cette fenêtre de dialogue"
     },
     "quote_actions": {
       "quick_actions": "Actions rapides",

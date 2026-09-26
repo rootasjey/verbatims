@@ -2,21 +2,11 @@
   <SearchBoxOverlay v-if="isOpen" v-model:open="isOpen" :mobile="isMobile">
     <NCard class="border-none m-0 p-0 shadow-none" :class="isMobile ? 'search-box-mobile-card' : ''">
       <template #header>
-        <div class="flex items-center justify-between gap-3" :class="isMobile ? 'mx-0' : 'mx-3'">
+        <div class="flex items-center justify-between gap-3">
           <h3 class="font-serif font-400 text-gray-900 dark:text-white" :class="isMobile ? 'text-2xl' : 'text-3xl'">
             {{ mode === 'nav' ? $t('components.search_box.quick_nav') : mode === 'cmd' ? $t('components.search_box.commands') : $t('components.search_box.search') }}
           </h3>
           <NButton
-            v-if="mode === 'search' && !isMobile"
-            btn="ghost-gray"
-            size="sm"
-            leading="i-ph-sliders-horizontal"
-            @click="goToSearchPage"
-          >
-            {{ $t('components.search_box.advanced_filters') }}
-          </NButton>
-          <NButton
-            v-if="isMobile"
             btn="ghost-gray"
             size="sm"
             icon
@@ -42,35 +32,38 @@
             :una="{ input: 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400 focus-visible:border-gray-500 dark:focus-visible:border-gray-400' }"
             @input="debouncedSearch"
           />
-          <NButton
-            v-if="mode === 'search' && isMobile"
-            btn="outline-gray"
-            size="sm"
-            icon
-            label="i-ph-faders"
-            :aria-label="String($t('components.search_box.advanced_filters'))"
-            class="shrink-0"
-            @click="goToSearchPage"
-          />
         </div>
 
         <!-- Search Results / Navigation -->
         <div
           id="search-result-list"
-          class="overflow-y-auto pr-1"
-          :class="isMobile ? 'search-box-mobile-results' : 'max-h-[min(58vh,36rem)]'"
+          class="relative isolate overflow-y-auto pr-1"
+          :class="isMobile ? (mode === 'search' ? 'search-box-mobile-search-results' : 'search-box-mobile-results') : (mode === 'search' ? 'search-box-desktop-search-results' : 'max-h-[min(58vh,36rem)]')"
           ref="resultsContainer"
           role="listbox"
           :aria-label="mode === 'search' ? $t('components.search_box.search_results') as string : mode === 'nav' ? $t('components.search_box.quick_nav') as string : $t('components.search_box.commands') as string"
           :aria-busy="mode === 'search' ? loading : undefined"
         >
+          <div
+            v-if="mode === 'search' && selectionIndicator"
+            aria-hidden="true"
+            class="pointer-events-none absolute left-0 top-0 z-0 rounded-lg bg-gray-100 transition-[transform,width,height] duration-200 ease-out dark:bg-gray-800/70 motion-reduce:transition-none"
+            :style="{
+              width: `${selectionIndicator.width}px`,
+              height: `${selectionIndicator.height}px`,
+              transform: `translate3d(${selectionIndicator.x}px, ${selectionIndicator.y}px, 0)`
+            }"
+          />
           <template v-if="mode === 'search'">
-            <div v-if="loading" class="space-y-5 py-4" role="status">
-              <span class="sr-only">{{ $t('components.search_box.searching') }}</span>
-              <div v-for="i in 3" :key="i" class="animate-pulse border-b border-gray-200 pb-4 dark:border-gray-800">
-                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+            <div v-if="loading && totalResults === 0" class="min-h-full">
+              <div v-if="showLoadingState" class="space-y-5 py-4" role="status">
+                <span class="sr-only">{{ $t('components.search_box.searching') }}</span>
+                <div v-for="i in 3" :key="i" class="animate-pulse border-b border-gray-200 pb-4 dark:border-gray-800">
+                  <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+                  <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
               </div>
+              <span v-else class="sr-only" role="status">{{ $t('components.search_box.searching') }}</span>
             </div>
 
             <div v-else-if="totalResults === 0 && storeQuery" class="text-center py-8">
@@ -89,17 +82,25 @@
                   {{ $t('components.search_box.results_quotes') }}
                   <span class="ml-1 font-500 tabular-nums text-gray-400 dark:text-gray-500">({{ searchResults.quotes.length }})</span>
                 </h4>
-                <div class="space-y-1" :class="isMobile ? '-ml-3' : ''">
+                <TransitionGroup
+                  name="search-box-results"
+                  tag="div"
+                  class="relative space-y-1"
+                  :class="isMobile ? '-ml-3' : ''"
+                  appear
+                >
                   <div
                     v-for="(quote, index) in searchResults.quotes"
                     :key="`quote-${quote.id}`"
+                    :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }"
                     :ref="el => setResultRef(el, 'quotes', index)"
                     :id="resultId('quote', quote.id)"
                     role="option"
                     :aria-selected="selectedIndex === getGlobalIndex('quotes', index)"
                     tabindex="-1"
-                    class="cursor-pointer rounded-lg px-3 py-4 first:pt-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400"
-                    :class="selectedIndex === getGlobalIndex('quotes', index) ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
+                    class="relative cursor-pointer rounded-lg px-3 py-4 first:pt-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400 motion-reduce:transition-none"
+                    :class="selectedIndex === getGlobalIndex('quotes', index) ? 'z-10 bg-transparent' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
+                    @mouseenter="selectResultIndex(getGlobalIndex('quotes', index))"
                     @click="selectResult(quote, 'quote')"
                   >
                     <p class="font-serif text-lg leading-relaxed text-gray-900 dark:text-gray-100 line-clamp-2" v-html="highlightText(quote.name)"></p>
@@ -109,7 +110,7 @@
                       <span v-if="quote.reference_name">{{ quote.reference_name }}</span>
                     </div>
                   </div>
-                </div>
+                </TransitionGroup>
               </section>
 
               <div class="space-y-7">
@@ -119,17 +120,19 @@
                     {{ $t('components.search_box.results_authors') }}
                     <span class="ml-1 font-500 tabular-nums text-gray-400 dark:text-gray-500">({{ searchResults.authors.length }})</span>
                   </h4>
-                  <div class="grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-2">
+                  <TransitionGroup name="search-box-results" tag="div" class="relative grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-2" appear>
                   <div
                     v-for="(author, index) in searchResults.authors"
                     :key="`author-${author.id}`"
+                    :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }"
                     :ref="el => setResultRef(el, 'authors', index)"
                     :id="resultId('author', author.id)"
                     role="option"
                     :aria-selected="selectedIndex === getGlobalIndex('authors', index)"
                     tabindex="-1"
-                    class="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors"
-                    :class="selectedIndex === getGlobalIndex('authors', index) ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
+                    class="relative flex min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors duration-150 motion-reduce:transition-none"
+                    :class="selectedIndex === getGlobalIndex('authors', index) ? 'z-10 bg-transparent' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
+                    @mouseenter="selectResultIndex(getGlobalIndex('authors', index))"
                     @click="selectResult(author, 'author')"
                   >
                     <NAvatar :src="author.image_url" :alt="author.name" size="sm" class="shrink-0" />
@@ -140,7 +143,7 @@
                       <p class="truncate text-xs text-gray-600 dark:text-gray-400">{{ author.job || $t('components.search_box.quote_count', { count: author.quotes_count || 0 }) }}</p>
                     </div>
                   </div>
-                  </div>
+                  </TransitionGroup>
                 </section>
 
                 <!-- References Section -->
@@ -149,17 +152,19 @@
                     {{ $t('components.search_box.results_references') }}
                     <span class="ml-1 font-500 tabular-nums text-gray-400 dark:text-gray-500">({{ searchResults.references.length }})</span>
                   </h4>
-                  <div class="grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-2">
+                  <TransitionGroup name="search-box-results" tag="div" class="relative grid grid-cols-1 gap-x-3 gap-y-3 sm:grid-cols-2" appear>
                   <div
                     v-for="(reference, index) in searchResults.references"
                     :key="`reference-${reference.id}`"
+                    :style="{ '--search-entry-delay': `${Math.min(index, 8) * 18}ms` }"
                     :ref="el => setResultRef(el, 'references', index)"
                     :id="resultId('reference', reference.id)"
                     role="option"
                     :aria-selected="selectedIndex === getGlobalIndex('references', index)"
                     tabindex="-1"
-                    class="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors"
-                    :class="selectedIndex === getGlobalIndex('references', index) ? 'bg-gray-100 dark:bg-gray-800/70' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
+                    class="relative flex min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors duration-150 motion-reduce:transition-none"
+                    :class="selectedIndex === getGlobalIndex('references', index) ? 'z-10 bg-transparent' : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'"
+                    @mouseenter="selectResultIndex(getGlobalIndex('references', index))"
                     @click="selectResult(reference, 'reference')"
                   >
                     <NAvatar :src="reference.image_url" :alt="reference.name" rounded="2" size="sm" class="shrink-0">
@@ -176,7 +181,7 @@
                       <p class="truncate text-xs text-gray-600 dark:text-gray-400">{{ $t('components.search_box.quote_count', { count: reference.quotes_count || 0 }) }}</p>
                     </div>
                   </div>
-                  </div>
+                  </TransitionGroup>
                 </section>
               </div>
             </div>
@@ -262,21 +267,47 @@
       </div>
 
       <template #footer v-if="!isMobile">
-        <div class="mx-3 flex items-center justify-between gap-x-2 text-xs text-gray-500 dark:text-gray-400">
-          <span v-if="mode !== 'search' || storeQuery.trim()">{{ totalResults }} {{ $t('components.search_box.results') }}</span>
-          <div class="flex items-center justify-end gap-x-2">
-            <span v-if="mode === 'search'">{{ $t('components.search_box.mode_hint') }}</span>
-            <span>{{ $t('components.search_box.footer_navigate') }}</span>
-            <span>{{ $t('components.search_box.footer_select') }}</span>
-            <span>{{ $t('components.search_box.footer_close') }}</span>
-            <NButton
-              v-if="mode === 'search' && storeQuery.trim()"
-              btn="ghost-gray"
-              size="sm"
-              @click="goToSearchPage"
-            >
-              {{ $t('components.search_box.view_all_results') }}
-            </NButton>
+        <div class="mx-3 overflow-x-auto">
+          <div class="flex w-full min-w-max items-center justify-between gap-x-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+            <span v-if="mode !== 'search' || storeQuery.trim()" class="shrink-0 font-600">{{ totalResults }} {{ $t('components.search_box.results') }}</span>
+            <div class="flex shrink-0 items-center gap-x-3">
+              <span
+                v-if="mode !== 'search' || storeQuery.trim()"
+                aria-hidden="true"
+                class="h-4 w-px shrink-0 bg-gray-300 dark:bg-gray-700"
+              />
+              <div class="flex shrink-0 items-center gap-x-3">
+                <span v-if="mode === 'search'" class="shrink-0">{{ $t('components.search_box.mode_hint') }}</span>
+                <span class="shrink-0">{{ $t('components.search_box.footer_navigate') }}</span>
+                <span class="shrink-0">{{ $t('components.search_box.footer_select') }}</span>
+              </div>
+              <span aria-hidden="true" class="h-4 w-px shrink-0 bg-gray-300 dark:bg-gray-700" />
+              <div class="flex shrink-0 items-center gap-x-3">
+                <NTooltip :content="$t('components.search_box.footer_close_tooltip') as string">
+                  <button
+                    type="button"
+                    class="rounded px-1 py-0.5 text-xs text-gray-500 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-gray-500"
+                    @click="isOpen = false"
+                  >
+                    {{ $t('components.search_box.footer_close') }}
+                  </button>
+                </NTooltip>
+                <NTooltip
+                  v-if="mode === 'search' && storeQuery.trim()"
+                  :content="`${$t('components.search_box.footer_open_search')} (${searchShortcut})`"
+                >
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-xs text-gray-500 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-gray-500"
+                    :aria-keyshortcuts="searchShortcutAria"
+                    @click="goToSearchPage"
+                  >
+                    {{ $t('components.search_box.view_all_results') }}
+                    <kbd class="rounded border border-gray-300 px-1 py-0.5 text-[10px] leading-none text-gray-400 dark:border-gray-700 dark:text-gray-500">{{ searchShortcut }}</kbd>
+                  </button>
+                </NTooltip>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -287,13 +318,17 @@
         <span class="font-600">{{ totalResults }} {{ $t('components.search_box.results') }}</span>
         <div v-if="mode === 'search' && storeQuery.trim()" class="flex shrink-0 items-center gap-3">
           <span aria-hidden="true" class="h-4 w-px bg-gray-300 dark:bg-gray-700" />
-          <NButton
-            btn="ghost-gray"
-            size="xs"
-            @click="goToSearchPage"
-          >
-            {{ $t('components.search_box.view_all_results') }}
-          </NButton>
+          <NTooltip :content="`${$t('components.search_box.footer_open_search')} (${searchShortcut})`">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-xs text-gray-500 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-gray-500"
+              :aria-keyshortcuts="searchShortcutAria"
+              @click="goToSearchPage"
+            >
+              {{ $t('components.search_box.view_all_results') }}
+              <kbd class="rounded border border-gray-300 px-1 py-0.5 text-[10px] leading-none text-gray-400 dark:border-gray-700 dark:text-gray-500">{{ searchShortcut }}</kbd>
+            </button>
+          </NTooltip>
         </div>
       </div>
     </template>
@@ -392,12 +427,33 @@ const filteredCmdItems = computed(() => {
 
 const searchResults = computed(() => searchStore.results)
 const loading = computed(() => searchStore.loading)
+const showLoadingState = ref(false)
+const selectionIndicator = ref<{ x: number; y: number; width: number; height: number } | null>(null)
 const selectedIndex = ref<number>(-1)
 const selectedNavIndex = ref(-1)
 const selectedCmdIndex = ref(-1)
 const resultRefs = ref<{ quotes?: HTMLElement[]; authors?: HTMLElement[]; references?: HTMLElement[] }>({})
 const resultsContainer = ref<HTMLDivElement | null>(null)
 let closingThroughNavigation = false
+let loadingDelay: ReturnType<typeof setTimeout> | undefined
+
+const searchShortcut = computed(() => {
+  const isMac = import.meta.client && /Mac|iPhone|iPad/.test(navigator.platform)
+  return isMac ? '⌘ O' : 'Ctrl O'
+})
+const searchShortcutAria = computed(() => searchShortcut.value.startsWith('⌘') ? 'Meta+O' : 'Control+O')
+
+watch(loading, (isLoading) => {
+  if (loadingDelay) clearTimeout(loadingDelay)
+  if (!isLoading) {
+    showLoadingState.value = false
+    return
+  }
+
+  loadingDelay = setTimeout(() => {
+    showLoadingState.value = true
+  }, 180)
+}, { immediate: true })
 
 type ResultItem =
   | (ProcessedQuoteResult & { type: 'quote'; sectionIndex: number })
@@ -525,7 +581,7 @@ const debouncedSearch = useDebounceFn(async () => {
 }, 300)
 
 const goToSearchPage = () => {
-  const query = storeQuery.value.trim()
+  const query = mode.value === 'search' ? storeQuery.value.trim() : ''
   const searchQuery: Record<string, string> = {}
 
   if (query) searchQuery.q = query
@@ -598,20 +654,43 @@ const selectCurrentResult = () => {
   }
 }
 
-const scrollToSelected = () => {
-  const index = selectedIndex.value ; if (index < 0 || index >= allResults.value.length) return
-  const result = allResults.value[index] ; if (!result) return
+const scrollToSelected = (ensureVisible = false) => {
+  const index = selectedIndex.value
+  if (index < 0 || index >= allResults.value.length) {
+    selectionIndicator.value = null
+    return
+  }
+  const result = allResults.value[index]
+  if (!result || !resultsContainer.value) return
 
   const section = result.type === 'quote' ? 'quotes' : result.type === 'author' ? 'authors' : 'references'
 
-  const element = resultRefs.value[section]?.[result.sectionIndex] ; if (!element || !resultsContainer.value) return
-  const containerRect = resultsContainer.value.getBoundingClientRect()
+  const element = resultRefs.value[section]?.[result.sectionIndex]
+  if (!element) return
+  const container = resultsContainer.value
+  const containerRect = container.getBoundingClientRect()
   const elementRect = element.getBoundingClientRect()
 
-  if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
-    element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  if (ensureVisible && (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom)) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    element.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' })
+  }
+
+  selectionIndicator.value = {
+    x: elementRect.left - containerRect.left - container.clientLeft,
+    y: elementRect.top - containerRect.top - container.clientTop + container.scrollTop,
+    width: elementRect.width,
+    height: elementRect.height
   }
 }
+
+const selectResultIndex = (index: number) => {
+  selectedIndex.value = index
+}
+
+watch(selectedIndex, () => {
+  void nextTick(scrollToSelected)
+})
 
 const scrollToSelectedNav = () => {
   const index = selectedNavIndex.value
@@ -646,6 +725,12 @@ const getCircularIndex = (current: number, direction: 1 | -1, length: number) =>
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'o') {
+    event.preventDefault()
+    goToSearchPage()
+    return
+  }
+
   if (event.key === 'Escape') {
     isOpen.value = false
     return
@@ -688,7 +773,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     event.preventDefault()
     if (allResults.value.length) {
       selectedIndex.value = getCircularIndex(selectedIndex.value, 1, allResults.value.length)
-      scrollToSelected()
+      scrollToSelected(true)
     }
     return
   }
@@ -697,7 +782,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     event.preventDefault()
     if (allResults.value.length) {
       selectedIndex.value = getCircularIndex(selectedIndex.value, -1, allResults.value.length)
-      scrollToSelected()
+      scrollToSelected(true)
     }
     return
   }
@@ -743,10 +828,12 @@ watch(isOpen, (isStillOpen) => {
   selectedNavIndex.value = -1
   selectedCmdIndex.value = -1
   resultRefs.value = {}
+  selectionIndicator.value = null
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  if (loadingDelay) clearTimeout(loadingDelay)
 })
 </script>
 
@@ -805,6 +892,48 @@ onUnmounted(() => {
   max-height: min(56dvh, 32rem);
   flex: 1;
   overscroll-behavior: contain;
+}
+
+.search-box-desktop-search-results {
+  height: clamp(12rem, 50vh, 32rem);
+}
+
+.search-box-mobile-search-results {
+  height: min(42dvh, 24rem);
+  min-height: 0;
+  flex: none;
+  overscroll-behavior: contain;
+}
+
+:deep(.search-box-results-enter-active) {
+  transition: opacity 260ms ease, transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--search-entry-delay, 0ms);
+}
+
+:deep(.search-box-results-leave-active) {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+:deep(.search-box-results-move) {
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:deep(.search-box-results-enter-from),
+:deep(.search-box-results-leave-to) {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :deep(.search-box-results-enter-active),
+  :deep(.search-box-results-leave-active),
+  :deep(.search-box-results-move) {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
 }
 
 .line-clamp-2 {

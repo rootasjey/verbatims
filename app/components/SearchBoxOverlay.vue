@@ -4,7 +4,8 @@
       v-if="!mobile"
       v-model:open="openModel"
       :una="{ dialogContent: 'search-box-dialog' }"
-      :ui="{ height: 'max-h-[86vh]' }"
+      :ui="{ height: 'max-h-[90vh]' }"
+      :show-close="false"
       :_dialog-close="{ btn: 'ghost-gray' }"
     >
       <slot />

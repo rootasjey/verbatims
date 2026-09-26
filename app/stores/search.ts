@@ -12,10 +12,12 @@ export const useSearchStore = defineStore('search', () => {
   const query = ref<string>('')
   const results = ref<SearchResults>({ quotes: [], authors: [], references: [], total: 0 })
   const loading = ref<boolean>(false)
+  const searchError = ref<boolean>(false)
   const recent = ref<string[]>([])
   const lastFetchedAt = ref<number | null>(null)
 
   let abortController: AbortController | null = null
+  let requestSequence = 0
 
   const suggestedSearches = [
     { text: 'cinema', icon: 'i-ph-film-reel-duotone' },
@@ -50,8 +52,12 @@ export const useSearchStore = defineStore('search', () => {
   }
 
   function clear() {
+    requestSequence++
+    abortController?.abort()
+    abortController = null
     results.value = { quotes: [], authors: [], references: [], total: 0 }
     loading.value = false
+    searchError.value = false
   }
 
   function removeRecent(search: string) {
@@ -70,10 +76,13 @@ export const useSearchStore = defineStore('search', () => {
       return
     }
 
-    if (abortController) abortController.abort()
+    abortController?.abort()
+    const currentSequence = ++requestSequence
     abortController = typeof AbortController !== 'undefined' ? new AbortController() : null
+    const currentController = abortController
 
     loading.value = true
+    searchError.value = false
     try {
       const fetchQuery: Record<string, any> = { limit }
       if (q) fetchQuery.q = q
@@ -83,9 +92,10 @@ export const useSearchStore = defineStore('search', () => {
 
       const data = await $fetch<SearchApiResponse>('/api/search', {
         query: fetchQuery,
-        signal: abortController?.signal
+        signal: currentController?.signal
       })
 
+      if (currentSequence !== requestSequence) return
       results.value = (data?.data as SearchResults) ?? { quotes: [], authors: [], references: [], total: 0 }
       lastFetchedAt.value = Date.now()
 
@@ -94,12 +104,13 @@ export const useSearchStore = defineStore('search', () => {
         recent.value = recent.value.slice(0, 5)
       }
     } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+      if (currentSequence === requestSequence && err?.name !== 'AbortError') {
         console.error('Search error:', err)
         results.value = { quotes: [], authors: [], references: [], total: 0 }
+        searchError.value = true
       }
     } finally {
-      loading.value = false
+      if (currentSequence === requestSequence) loading.value = false
     }
   }
 
@@ -108,6 +119,7 @@ export const useSearchStore = defineStore('search', () => {
     query,
     results,
     loading,
+    searchError,
     recent,
 
     // getters

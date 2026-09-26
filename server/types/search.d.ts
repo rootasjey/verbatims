@@ -15,6 +15,12 @@ export type SearchContentType = 'quotes' | 'authors' | 'references' | 'all';
  * Extends Quote with additional fields from JOIN operations
  */
 export interface QuoteSearchResult extends Quote {
+  /** Primary author attribution ID from the quote attribution join */
+  author_id?: number;
+
+  /** Primary reference attribution ID from the quote attribution join */
+  reference_id?: number;
+
   /** Author name from JOIN with authors table */
   author_name?: string;
   
