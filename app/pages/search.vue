@@ -100,27 +100,47 @@
           </div>
         </div>
 
-        <div v-if="!filterCommand || hasActiveFilters" class="mt-3 flex flex-wrap items-center gap-2">
-          <p v-if="!hasActiveFilters && !filterCommand" class="font-sans text-xs text-gray-500 dark:text-gray-400">
+        <div v-if="!filterCommand || hasActiveFilters" class="mt-3">
+          <p v-if="!hasActiveFilters && !filterCommand" class="hidden font-sans text-xs text-gray-500 dark:text-gray-400 md:block">
             {{ $t('search_syntax_hint') }}
           </p>
-          <NTooltip v-if="selectedLanguage" :content="$t('click_to_remove') as string">
-            <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedLanguage.label }) as string" @click="selectedLanguage = undefined"><span>{{ selectedLanguage.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
-          </NTooltip>
-          <NTooltip v-if="selectedAuthor" :content="$t('click_to_remove') as string">
-            <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedAuthor.label }) as string" @click="selectedAuthor = undefined"><span>{{ selectedAuthor.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
-          </NTooltip>
-          <NTooltip v-if="selectedReference" :content="$t('click_to_remove') as string">
-            <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: selectedReference.label }) as string" @click="selectedReference = undefined"><span>{{ selectedReference.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
-          </NTooltip>
-          <button v-if="hasActiveFilters" type="button" class="px-2 py-1 font-sans text-xs text-gray-500 underline underline-offset-4 hover:text-gray-900 dark:hover:text-white" @click="clearFilters">{{ $t('clear_filters') }}</button>
-          <p v-if="searchResults.total > 0 && (renderedSearchQuery || hasActiveFilters)" class="ml-auto border-l border-black/10 pl-4 font-sans text-sm font-600 leading-5 text-gray-600 dark:border-white/10 dark:text-gray-400" role="status" aria-atomic="true">
-            {{ renderedSearchQuery ? $t('results_count', { count: searchResults.total, query: renderedSearchQuery }) : $t('filtered_results_count', { count: searchResults.total }) }}
-          </p>
+          <div class="mt-2 flex min-w-0 items-center gap-3">
+            <div v-if="activeFilterItems.length > 0" class="search-filter-scroller -mx-6 min-w-0 flex-1 overflow-x-auto px-6 md:mx-0 md:overflow-visible md:px-0">
+              <div class="flex w-max min-w-full flex-nowrap items-center gap-2 md:w-full md:flex-wrap">
+                <NTooltip :content="$t('clear_filters') as string">
+                  <button type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-black/[0.045] text-gray-600 transition-colors hover:bg-black/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:focus-visible:outline-gray-200 md:hidden" :aria-label="$t('clear_filters') as string" @click="clearFilters">
+                    <NIcon name="i-tabler-filter-x" class="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </NTooltip>
+                <NTooltip v-for="filter in activeFilterItems" :key="filter.key" :content="$t('click_to_remove') as string">
+                  <button type="button" class="search-filter-chip" :aria-label="$t('remove_filter', { filter: filter.label }) as string" @click="filter.remove"><span>{{ filter.label }}</span><NIcon name="i-ph-x" class="h-3.5 w-3.5" aria-hidden="true" /></button>
+                </NTooltip>
+                <button type="button" class="hidden px-2 py-1 font-sans text-xs text-gray-500 underline underline-offset-4 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200 md:inline-flex" @click="clearFilters">{{ $t('clear_filters') }}</button>
+              </div>
+            </div>
+            <p v-if="searchResults.total > 0 && (renderedSearchQuery || hasActiveFilters)" class="ml-auto hidden shrink-0 border-l border-black/10 pl-4 font-sans text-sm font-600 leading-5 text-gray-600 dark:border-white/10 dark:text-gray-400 md:block" role="status" aria-atomic="true">
+              {{ renderedSearchQuery ? $t('results_count', { count: searchResults.total, query: renderedSearchQuery }) : $t('filtered_results_count', { count: searchResults.total }) }}
+            </p>
+          </div>
         </div>
       </div>
 
       <main class="pt-4">
+        <div v-if="showMobileResultSummary" class="mb-5 flex min-h-12 items-center justify-between gap-3 rounded-xl border border-black/10 bg-black/[0.025] px-4 dark:border-white/10 dark:bg-white/[0.035] md:hidden">
+          <p class="font-sans text-sm font-600 leading-5 text-gray-700 dark:text-gray-300" role="status" aria-atomic="true">
+            {{ isSearchPending && searchResults.total === 0 ? $t('status_searching') : searchResults.total === 1 ? $t('mobile_results_count_one') : $t('mobile_results_count_other', { count: searchResults.total }) }}
+          </p>
+          <NButton
+            btn="ghost-gray"
+            size="md"
+            icon
+            label="i-ph-info"
+            :aria-label="$t('search_help_title') as string"
+            aria-haspopup="dialog"
+            @click="isSearchHelpOpen = true"
+          />
+        </div>
+
         <!-- Empty State Start Page -->
         <div v-if="!searchQuery.trim() && !hasActiveFilters" class="space-y-12">
           <!-- Recent searches -->
@@ -337,6 +357,48 @@
       </main>
     </div>
 
+    <ClientOnly>
+      <NDrawer
+        v-model:open="isSearchHelpOpen"
+        direction="bottom"
+        :una="{ drawerContent: 'h-auto max-h-[75dvh] w-full overflow-y-auto rounded-t-2xl bg-[#F7F5EF] dark:bg-[#0C0A09] shadow-2xl', drawerOverlay: 'bg-black/45' }"
+      >
+        <template #body>
+          <div class="space-y-5 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('search_help_title') }}</h2>
+                <p class="mt-1 max-w-prose font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('search_help_description') }}</p>
+              </div>
+              <NButton
+                btn="ghost-gray"
+                size="md"
+                icon
+                label="i-ph-x"
+                :aria-label="$t('search_help_close') as string"
+                @click="isSearchHelpOpen = false"
+              />
+            </div>
+
+            <dl class="divide-y divide-black/10 font-sans dark:divide-white/10">
+              <div class="flex items-center justify-between gap-4 py-3 first:pt-0">
+                <dt class="text-sm text-gray-700 dark:text-gray-300">{{ $t('search_help_author') }}</dt>
+                <dd><code class="rounded-sm bg-black/[0.045] px-2 py-1 text-sm text-gray-800 dark:bg-white/[0.07] dark:text-gray-200">author:Einstein</code></dd>
+              </div>
+              <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="text-sm text-gray-700 dark:text-gray-300">{{ $t('search_help_language') }}</dt>
+                <dd><code class="rounded-sm bg-black/[0.045] px-2 py-1 text-sm text-gray-800 dark:bg-white/[0.07] dark:text-gray-200">language:English</code></dd>
+              </div>
+              <div class="flex items-center justify-between gap-4 py-3 last:pb-0">
+                <dt class="text-sm text-gray-700 dark:text-gray-300">{{ $t('search_help_reference') }}</dt>
+                <dd><code class="rounded-sm bg-black/[0.045] px-2 py-1 text-sm text-gray-800 dark:bg-white/[0.07] dark:text-gray-200">reference:Arrival</code></dd>
+              </div>
+            </dl>
+          </div>
+        </template>
+      </NDrawer>
+    </ClientOnly>
+
   </div>
 </template>
 
@@ -358,6 +420,7 @@ onNuxtReady(() => {
 const route = useRoute()
 const router = useRouter()
 const searchStore = useSearchStore()
+const isSearchHelpOpen = ref(false)
 
 definePageMeta({
   layout: 'default',
@@ -450,6 +513,11 @@ let applyingRouteState = false
 const hasActiveFilters = computed(() => Boolean(
   selectedLanguage.value || selectedAuthor.value || selectedReference.value
 ))
+const activeFilterItems = computed(() => [
+  ...(selectedLanguage.value ? [{ key: 'language', label: selectedLanguage.value.label, remove: () => { selectedLanguage.value = undefined } }] : []),
+  ...(selectedAuthor.value ? [{ key: 'author', label: selectedAuthor.value.label, remove: () => { selectedAuthor.value = undefined } }] : []),
+  ...(selectedReference.value ? [{ key: 'reference', label: selectedReference.value.label, remove: () => { selectedReference.value = undefined } }] : [])
+])
 
 const filterCommand = computed<FilterCommand | null>(() => {
   const match = /(?:^|\s)(author|a|language|l|reference|r):([^\s]*)$/i.exec(searchInput.value)
@@ -462,6 +530,9 @@ const filterCommand = computed<FilterCommand | null>(() => {
     index: match.index + tokenOffset
   }
 })
+const showMobileResultSummary = computed(() => Boolean(
+  !filterCommand.value && (searchInput.value.trim() || hasActiveFilters.value)
+))
 
 const filterSuggestions = computed<FilterSuggestion[]>(() => {
   const command = filterCommand.value
@@ -840,7 +911,16 @@ onActivated(() => {
 }
 
 .search-filter-chip {
-  @apply inline-flex min-h-8 max-w-full items-center gap-2 rounded-md bg-black/[0.06] px-3 py-1 font-sans text-xs font-600 text-gray-700 transition-[transform,background-color,color] duration-150 hover:bg-black/[0.1] active:scale-99 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.09] dark:text-gray-200 dark:hover:bg-white/[0.14] dark:focus-visible:outline-gray-200;
+  @apply inline-flex min-h-11 max-w-full shrink-0 items-center gap-2 rounded-md bg-black/[0.06] px-3 py-1 font-sans text-xs font-600 text-gray-700 transition-[transform,background-color,color] duration-150 hover:bg-black/[0.1] active:scale-99 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.09] dark:text-gray-200 dark:hover:bg-white/[0.14] dark:focus-visible:outline-gray-200 md:min-h-8;
+}
+
+.search-filter-scroller {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.search-filter-scroller::-webkit-scrollbar {
+  display: none;
 }
 
 .search-results-heading {
