@@ -14,6 +14,8 @@
   "author_detail_sort_most_viewed": "Most Viewed",
   "author_detail_sort_placeholder": "Sort",
   "author_detail_empty": "No quotes yet",
+  "author_detail_empty_language": "No quotes in {language} yet.",
+  "author_detail_view_language": "View quotes in {language}",
   "author_detail_load_more": "Load More Quotes",
   "author_detail_loading_more": "Loading Quotes...",
   "author_detail_not_found_title": "Author Not Found",

@@ -14,6 +14,8 @@
   "author_detail_sort_most_viewed": "Plus vues",
   "author_detail_sort_placeholder": "Trier",
   "author_detail_empty": "Aucune citation pour l'instant",
+  "author_detail_empty_language": "Aucune citation en {language} pour l'instant.",
+  "author_detail_view_language": "Voir les citations en {language}",
   "author_detail_load_more": "Voir plus de citations",
   "author_detail_loading_more": "Chargement des citations...",
   "author_detail_not_found_title": "Auteur introuvable",

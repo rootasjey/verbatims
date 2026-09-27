@@ -13,6 +13,8 @@
   "reference_detail_sort_most_popular": "Plus populaires",
   "reference_detail_sort_most_viewed": "Plus vues",
   "reference_detail_empty": "Aucune citation pour l'instant",
+  "reference_detail_empty_language": "Aucune citation en {language} pour l'instant.",
+  "reference_detail_view_language": "Voir les citations en {language}",
   "reference_detail_quotes_error": "Les citations de cette référence n'ont pas pu être chargées.",
   "reference_detail_quotes_retry": "Réessayer",
   "reference_detail_load_more": "Voir plus de citations",

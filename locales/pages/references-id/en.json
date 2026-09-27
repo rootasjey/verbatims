@@ -13,6 +13,8 @@
   "reference_detail_sort_most_popular": "Most Popular",
   "reference_detail_sort_most_viewed": "Most Viewed",
   "reference_detail_empty": "No quotes yet",
+  "reference_detail_empty_language": "No quotes in {language} yet.",
+  "reference_detail_view_language": "View quotes in {language}",
   "reference_detail_quotes_error": "We couldn't load the quotes for this reference.",
   "reference_detail_quotes_retry": "Try again",
   "reference_detail_load_more": "Load More Quotes",
