@@ -63,14 +63,6 @@
                 <MobileQuoteAuthorReference :quote="quote" v-if="isMobile" />
                 <QuoteAuthorReference v-else :quote="quote" signature />
               </div>
-              <button
-                type="button"
-                class="inline-flex min-h-11 items-center gap-2 px-1 font-sans text-xs font-600 uppercase tracking-[0.12em] text-stone-500 transition-colors hover:text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 dark:text-stone-400 dark:hover:text-stone-100 md:hidden"
-                @click="navigateToQuotesList"
-              >
-                <NIcon name="i-ph-arrow-left" class="h-4 w-4" aria-hidden="true" />
-                <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
-              </button>
             </div>
           </div>
         </div>
@@ -120,6 +112,17 @@
           class="mt-0 transform-gpu transition-all duration-700 ease-out md:mt-16"
           :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
           <QuoteMetadata :quote="quote" class="flex flex-col items-center md:mx-auto" />
+        </div>
+
+        <div class="mt-4 flex justify-center md:hidden">
+          <button
+            type="button"
+            class="inline-flex min-h-11 items-center justify-center gap-2 px-1 font-sans text-xs font-600 uppercase tracking-[0.12em] text-stone-500 transition-colors hover:text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 dark:text-stone-400 dark:hover:text-stone-100"
+            @click="navigateToQuotesList"
+          >
+            <NIcon name="i-ph-arrow-left" class="h-4 w-4" aria-hidden="true" />
+            <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
+          </button>
         </div>
 
         <!-- Related Quotes -->
