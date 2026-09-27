@@ -810,13 +810,16 @@ watch(isOpen, (isStillOpen) => {
     closingThroughNavigation = false
   } else if (route.path === '/search') {
     const query = typeof route.query.q === 'string' ? route.query.q : ''
+    const language = typeof route.query.language === 'string' ? route.query.language : undefined
+    const author = typeof route.query.author === 'string' ? route.query.author : undefined
+    const reference = typeof route.query.reference === 'string' ? route.query.reference : undefined
     searchStore.setQuery(query)
-    if (query) {
+    if (query || language || author || reference) {
       void searchStore.search({
         limit: 50,
-        language: typeof route.query.language === 'string' ? route.query.language : undefined,
-        author: typeof route.query.author === 'string' ? route.query.author : undefined,
-        reference: typeof route.query.reference === 'string' ? route.query.reference : undefined
+        language,
+        author,
+        reference
       })
     } else {
       searchStore.clear()
