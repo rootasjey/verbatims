@@ -105,7 +105,7 @@
         <template #body>
       <div
         id="mobile-site-menu"
-        class="mobile-site-menu flex h-full flex-col px-6 pb-32 pt-20"
+        class="mobile-site-menu flex h-full flex-col overflow-y-auto px-6 pb-32 pt-20"
         role="dialog"
         aria-modal="true"
         :aria-label="String($t('nav.menu'))"
@@ -129,6 +129,25 @@
             {{ $t('nav.contribute') }}
           </button>
         </nav>
+
+        <details class="group mt-10 border-t border-black/10 pt-5 dark:border-white/15">
+          <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between font-sans text-sm font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+            {{ $t('nav.more_information') }}
+            <NIcon name="i-ph-caret-down" class="transition-transform group-open:rotate-180" />
+          </summary>
+          <nav class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1" :aria-label="String($t('nav.more_information'))">
+            <NuxtLink
+              v-for="item in mobileInformationLinks"
+              :key="item.to"
+              :to="item.to"
+              class="flex min-h-11 items-center font-sans text-base text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2"
+              @click="closeMobileMenu"
+            >
+              {{ item.label }}
+            </NuxtLink>
+          </nav>
+        </details>
+
         <div class="mt-12 border-t border-black/10 pt-5 dark:border-white/15" aria-label="Preferences">
           <div class="flex items-center gap-2">
             <I18nSelector />
@@ -150,8 +169,10 @@
       <slot />
     </main>
 
-    <!-- Homepage and reference pages share the editorial footer layout. -->
-    <AppFooter class="homepage-v3-footer" />
+    <!-- Keep the full editorial footer on desktop; mobile navigation owns those destinations. -->
+    <div class="hidden md:block">
+      <AppFooter class="homepage-v3-footer" />
+    </div>
 
     <!-- Mobile-only drawers (client-only to avoid SSR issues with NDrawer) -->
     <ClientOnly>
@@ -187,6 +208,15 @@ const mobileMenuItems = computed(() => [
   { label: String($t('nav.references')), leading: 'i-ph-book-open-text', to: '/references' },
   { label: String($t('nav.about')), leading: 'i-ph-info', to: '/about' },
   { label: String($t('nav.contribute')), leading: 'i-ph-plus-circle', onclick: () => { showAddQuote.value = true } },
+])
+
+const mobileInformationLinks = computed(() => [
+  { to: '/sponsor', label: String($t('nav.sponsorships')) },
+  { to: '/developers', label: String($t('footer.developers')) },
+  { to: '/status', label: String($t('footer.status')) },
+  { to: '/licenses', label: String($t('footer.licenses')) },
+  { to: '/privacy', label: String($t('footer.privacy')) },
+  { to: '/terms', label: String($t('footer.terms')) },
 ])
 
 const currentDate = computed(() => {
