@@ -8,6 +8,13 @@ interface SearchOptions {
   reference?: string | number
 }
 
+interface RememberedSearch {
+  query: string
+  language?: string | number
+  author?: string | number
+  reference?: string | number
+}
+
 export const useSearchStore = defineStore('search', () => {
   const query = ref<string>('')
   const results = ref<SearchResults>({ quotes: [], authors: [], references: [], total: 0 })
@@ -15,6 +22,7 @@ export const useSearchStore = defineStore('search', () => {
   const searchError = ref<boolean>(false)
   const recent = ref<string[]>([])
   const lastFetchedAt = ref<number | null>(null)
+  const lastSearch = ref<RememberedSearch | null>(null)
 
   let abortController: AbortController | null = null
   let requestSequence = 0
@@ -49,6 +57,17 @@ export const useSearchStore = defineStore('search', () => {
 
   function setQuery(q: string) {
     query.value = q
+  }
+
+  function rememberSearch(search: RememberedSearch) {
+    lastSearch.value = { ...search }
+  }
+
+  function resetSearch() {
+    query.value = ''
+    lastSearch.value = null
+    lastFetchedAt.value = null
+    clear()
   }
 
   function clear() {
@@ -121,6 +140,7 @@ export const useSearchStore = defineStore('search', () => {
     loading,
     searchError,
     recent,
+    lastSearch,
 
     // getters
     hasResults,
@@ -130,6 +150,8 @@ export const useSearchStore = defineStore('search', () => {
     clear,
     getRandomSuggestedSearch,
     removeRecent,
+    rememberSearch,
+    resetSearch,
     search,
     setQuery,
   }

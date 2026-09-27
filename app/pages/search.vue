@@ -569,12 +569,23 @@ function clearFilters() {
 function clearSearchQuery() {
   searchInput.value = ''
   searchQuery.value = ''
+  if (hasActiveFilters.value) {
+    searchStore.rememberSearch({
+      query: '',
+      language: selectedLanguage.value?.value,
+      author: selectedAuthor.value?.value,
+      reference: selectedReference.value?.value
+    })
+  } else {
+    searchStore.resetSearch()
+  }
   scheduleSearch()
 }
 
 function handleSearchInput() {
   if (filterCommand.value) return
   searchQuery.value = searchInput.value
+  if (!searchInput.value.trim() && !hasActiveFilters.value) searchStore.resetSearch()
   scheduleSearch()
 }
 
@@ -637,12 +648,18 @@ function routeValue(value: unknown) {
 }
 
 async function syncFiltersFromRoute(forceSearch = false) {
-  if (!filterOptionsReady.value) return
+  if (!filterOptionsReady.value || route.path !== '/search') return
 
-  const query = routeValue(route.query.q)
-  const language = routeValue(route.query.language)
-  const author = routeValue(route.query.author)
-  const reference = routeValue(route.query.reference)
+  const routeQuery = routeValue(route.query.q)
+  const routeLanguage = routeValue(route.query.language)
+  const routeAuthor = routeValue(route.query.author)
+  const routeReference = routeValue(route.query.reference)
+  const hasRouteSearch = Boolean(routeQuery || routeLanguage || routeAuthor || routeReference)
+  const remembered = !hasRouteSearch ? searchStore.lastSearch : null
+  const query = hasRouteSearch ? routeQuery : remembered?.query || ''
+  const language = hasRouteSearch ? routeLanguage : String(remembered?.language ?? '')
+  const author = hasRouteSearch ? routeAuthor : String(remembered?.author ?? '')
+  const reference = hasRouteSearch ? routeReference : String(remembered?.reference ?? '')
   const currentLanguage = String(selectedLanguage.value?.value ?? '')
   const currentAuthor = String(selectedAuthor.value?.value ?? '')
   const currentReference = String(selectedReference.value?.value ?? '')
@@ -659,29 +676,54 @@ async function syncFiltersFromRoute(forceSearch = false) {
   applyingRouteState = false
 
   if (query || language || author || reference) {
-    const updateSequence = ++searchUpdateSequence
-    isSearchPending.value = true
-    try {
-      await searchStore.search({
-        limit: 50,
-        language: selectedLanguage.value?.value,
-        author: selectedAuthor.value?.value,
-        reference: selectedReference.value?.value
-      })
-      if (updateSequence === searchUpdateSequence) renderedSearchQuery.value = query
-    } finally {
-      if (updateSequence === searchUpdateSequence) isSearchPending.value = false
+    if (remembered && !hasRouteSearch) {
+      const restoredRouteQuery: Record<string, string | number> = {}
+      if (query) restoredRouteQuery.q = query
+      if (language) restoredRouteQuery.language = language
+      if (author) restoredRouteQuery.author = author
+      if (reference) restoredRouteQuery.reference = reference
+      await router.replace({ path: '/search', query: restoredRouteQuery })
+    }
+
+    const searchOptions = {
+      limit: 50,
+      language: selectedLanguage.value?.value,
+      author: selectedAuthor.value?.value,
+      reference: selectedReference.value?.value
+    }
+
+    searchStore.rememberSearch({
+      query,
+      language: searchOptions.language,
+      author: searchOptions.author,
+      reference: searchOptions.reference
+    })
+
+    // A remembered result set stays visible immediately on return. Refresh it
+    // only when it is stale, rather than clearing it during route sync.
+    if (hasRouteSearch || forceSearch && !remembered || searchStore.isStale()) {
+      const updateSequence = ++searchUpdateSequence
+      isSearchPending.value = true
+      try {
+        await searchStore.search(searchOptions)
+        if (updateSequence === searchUpdateSequence) renderedSearchQuery.value = query
+      } finally {
+        if (updateSequence === searchUpdateSequence) isSearchPending.value = false
+      }
+    } else {
+      renderedSearchQuery.value = query
+      isSearchPending.value = false
     }
   } else {
     searchUpdateSequence++
-    searchStore.clear()
+    searchStore.resetSearch()
     renderedSearchQuery.value = ''
     isSearchPending.value = false
   }
 }
 
 watch(
-  () => [route.query.q, route.query.language, route.query.author, route.query.reference],
+  () => [route.path, route.query.q, route.query.language, route.query.author, route.query.reference],
   () => { void syncFiltersFromRoute() }
 )
 
@@ -692,6 +734,17 @@ const debouncedSearch = useDebounceFn(async (updateSequence: number) => {
   if (selectedLanguage.value) query.language = selectedLanguage.value.value
   if (selectedAuthor.value) query.author = selectedAuthor.value.value
   if (selectedReference.value) query.reference = selectedReference.value.value
+
+  if (q || hasActiveFilters.value) {
+    searchStore.rememberSearch({
+      query: q,
+      language: selectedLanguage.value?.value,
+      author: selectedAuthor.value?.value,
+      reference: selectedReference.value?.value
+    })
+  } else {
+    searchStore.resetSearch()
+  }
 
   try {
     // Keep the search term and quote filters shareable and back/forward aware.
@@ -705,7 +758,6 @@ const debouncedSearch = useDebounceFn(async (updateSequence: number) => {
         reference: selectedReference.value?.value
       })
     } else {
-      searchStore.clear()
       renderedSearchQuery.value = ''
       await Promise.all([fetchRandomAuthors(4), fetchRandomReferences(4)])
     }
