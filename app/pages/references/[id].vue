@@ -232,8 +232,20 @@
             </div>
           </div>
 
-          <div v-else class="text-center py-8">
-            <p class="font-serif text-sm text-gray-400 dark:text-gray-500">{{ $ts('reference_detail_empty') }}</p>
+          <div v-else class="py-8 text-center">
+            <template v-if="alternateQuotesLanguage">
+              <p class="font-serif text-sm text-gray-400 dark:text-gray-500">
+                {{ $ts('reference_detail_empty_language', { language: formatLanguage(languageStore.currentLanguageValue as langCode) }) }}
+              </p>
+              <button
+                type="button"
+                class="mt-2 font-sans text-sm font-600 text-stone-600 underline underline-offset-4 transition-colors hover:text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-stone-500 dark:text-stone-300 dark:hover:text-white"
+                @click="switchQuotesLanguage(alternateQuotesLanguage)"
+              >
+                {{ $ts('reference_detail_view_language', { language: formatLanguage(alternateQuotesLanguage as langCode) }) }}
+              </button>
+            </template>
+            <p v-else class="font-serif text-sm text-gray-400 dark:text-gray-500">{{ $ts('reference_detail_empty') }}</p>
           </div>
 
           <div v-if="hasMoreQuotes && !quotesLoading" class="mt-6 flex justify-center">
@@ -432,6 +444,7 @@ watchEffect(() => {
   useJsonLd(jsonLd)
 })
 const referenceQuotes = ref<Quote[]>([])
+const alternateQuotesLanguage = ref<string | null>(null)
 const quotesLoading = ref<boolean>(false)
 const quotesError = ref<boolean>(false)
 const loadingMoreQuotes = ref<boolean>(false)
@@ -589,6 +602,7 @@ const loadQuotes = async (reset = true) => {
     quotesError.value = false
     currentQuotePage.value = 1
     referenceQuotes.value = []
+    alternateQuotesLanguage.value = null
   } else {
     loadingMoreQuotes.value = true
   }
@@ -607,6 +621,25 @@ const loadQuotes = async (reset = true) => {
 
     if (reset) {
       referenceQuotes.value = response?.data || []
+      if (!referenceQuotes.value.length && languageStore.currentLanguageValue !== 'all') {
+        try {
+          const anyLanguageResponse = await $fetch<ApiResponse<Array<{ language?: string }>>>('/api/quotes', {
+            query: {
+              reference_id: reference.value.id,
+              page: 1,
+              limit: 1,
+              sort_by: sortBy.value?.value,
+              sort_order: 'DESC'
+            }
+          })
+          const candidateLanguage = anyLanguageResponse?.data?.[0]?.language
+          if (candidateLanguage && candidateLanguage !== languageStore.currentLanguageValue && languageStore.availableLanguages.some(language => language.value === candidateLanguage)) {
+            alternateQuotesLanguage.value = candidateLanguage
+          }
+        } catch (error) {
+          console.warn('Failed to check for quotes in other languages:', error)
+        }
+      }
     } else {
       referenceQuotes.value.push(...(response?.data || []))
     }
@@ -623,6 +656,11 @@ const loadQuotes = async (reset = true) => {
     quotesLoading.value = false
     loadingMoreQuotes.value = false
   }
+}
+
+const switchQuotesLanguage = async (code: string) => {
+  await languageStore.setLanguageByValue(code)
+  await onLanguageChange()
 }
 
 const loadMoreQuotes = async () => {
