@@ -2,13 +2,12 @@
   <div v-if="quote.author || quote.reference">
     <!-- Signature variant: minimal, no wave -->
     <template v-if="signature">
-      <div class="flex flex-col items-end">
+      <div class="flex flex-col items-center md:items-end">
         <NuxtLink
           v-if="quote.author"
           :to="`/authors/${quote.author.id}`"
-          class="group flex items-center gap-2"
+          class="group flex items-center"
         >
-          <span class="font-serif text-base font-400 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">—</span>
           <span class="font-serif text-base font-400 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
             {{ quote.author.name }}
           </span>

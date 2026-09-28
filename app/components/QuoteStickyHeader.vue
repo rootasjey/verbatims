@@ -1,7 +1,7 @@
 <template>
   <!-- Sticky Top Header: compact title + stats/actions -->
   <Transition name="quote-context-bar">
-  <div v-if="quote && visible" class="sticky top-[60px] md:top-[60px] z-1 bg-[#F7F5EF]/95 dark:bg-[#0C0A09]/95 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
+  <div v-if="quote && visible" class="hidden md:block sticky top-[60px] z-1 bg-[#F7F5EF]/95 dark:bg-[#0C0A09]/95 backdrop-blur supports-backdrop-blur:backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex flex-wrap items-center justify-between gap-1.5 md:gap-3">
         <!-- Left: compact quote title and context (hidden on mobile — visible in hero below) -->
@@ -43,20 +43,6 @@
           </div>
         </div>
 
-        <!-- Mobile back control -->
-        <div class="flex items-center md:hidden">
-          <NTooltip :content="String($t('components.quote_sticky.back'))" :_tooltip-content="{ side: 'bottom' }">
-            <NButton
-              icon
-              btn="soft-gray"
-              size="xs"
-              label="i-lucide-chevron-left"
-              class="md:hidden min-w-0 min-h-0 p-1 h-auto w-auto rounded-full"
-              @click.stop="$emit('navigate-back')"
-            />
-          </NTooltip>
-
-      </div>
       </div>
     </div>
   </div>

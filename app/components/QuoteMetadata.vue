@@ -1,15 +1,15 @@
 <template>
   <div class="flex w-full justify-center">
     <ClientOnly>
-      <NCollapsible v-model:open="metadataOpen" class="w-full max-w-600px">
-      <NCollapsibleTrigger as-child class="flex w-full justify-center">
+      <NCollapsible v-model:open="metadataOpenModel" class="w-full max-w-600px">
+      <NCollapsibleTrigger v-if="showTrigger" as-child class="flex w-full justify-center">
         <NButton
           btn="text-gray"
           class="grid min-w-0 grid-cols-[1rem_auto_1rem] items-center gap-2 rounded-md p-1 font-sans text-xs font-600 uppercase tracking-[0.16em] text-stone-500 transition-colors hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
           :class="metadataOpen ? 'text-stone-800 dark:text-stone-100' : ''"
         >
           <span aria-hidden="true" />
-          <span>Metadata</span>
+          <span>{{ $t('components.quote_sticky.metadata') }}</span>
           <NIcon name="i-ph-caret-down" class="h-4 w-4 transition-transform duration-200" :class="metadataOpen ? 'rotate-180' : ''" />
         </NButton>
       </NCollapsibleTrigger>
@@ -128,7 +128,7 @@
       <template #fallback>
         <div class="flex-col items-center mx-auto">
           <div class="mx-auto flex w-full max-w-600px items-center justify-center px-1 font-sans text-xs font-600 uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
-            Metadata
+            {{ $t('components.quote_sticky.metadata') }}
           </div>
         </div>
       </template>
@@ -153,11 +153,18 @@ const getSourceLabel = (sourceType?: string) => sourceType ? (sourceLabels[sourc
 
 interface Props {
   quote: QuoteWithRelations;
+  showTrigger?: boolean;
   relatedQuotes?: QuoteWithRelations[];
   waveColor?: string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { showTrigger: true });
+const metadataOpenModel = computed({
+  get: () => !props.showTrigger || metadataOpen.value,
+  set: (open: boolean) => {
+    if (props.showTrigger) metadataOpen.value = open
+  }
+})
 
 const primaryAttribution = computed(() => props.quote.attributions?.find(attribution => attribution.is_primary))
 const primarySource = computed(() => props.quote.sources?.find(source => source.is_primary) ?? props.quote.sources?.[0])

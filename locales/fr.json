@@ -728,6 +728,9 @@
     "quote_sticky": {
       "back": "Retour à la liste des citations",
       "back_to_results": "Retour aux résultats",
+      "metadata": "Métadonnées",
+      "pull_to_go_back": "Tirez vers le bas pour revenir",
+      "release_to_go_back": "Relâchez pour revenir",
       "views": "Nombre de vues",
       "shares": "Nombre de partages",
       "likes": "Nombre de j'aimes",
