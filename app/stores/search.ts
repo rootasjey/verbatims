@@ -51,7 +51,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function getRandomSuggestedSearch(max: number = 5) {
     const safeMax = Math.min(max, suggestedSearches.length)
-    const shuffled = suggestedSearches.sort(() => 0.5 - Math.random())
+    const shuffled = [...suggestedSearches].sort(() => 0.5 - Math.random())
     return shuffled.slice(0, safeMax)
   }
 

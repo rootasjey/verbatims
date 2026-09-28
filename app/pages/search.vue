@@ -408,6 +408,7 @@ import type { SearchResults } from '~/types'
 import { useSearchStore } from '~/stores/search'
 import { useVerbatimsSeo } from '~/composables/useSeo'
 import { formatReferenceType, getReferenceIcon } from '~/utils/reference'
+import { hasEditableFocus, isPrintableSearchKey } from '~/utils/search-keyboard'
 import { getReferenceIconTone } from '#shared/constants/reference'
 
 const appReady = useState('app-ready', () => false)
@@ -660,6 +661,17 @@ function handleSearchInput() {
   scheduleSearch()
 }
 
+function handleTypeToSearch(event: KeyboardEvent) {
+  if (!searchInputElement.value) return
+  if (document.querySelector('[role="dialog"]')) return
+  if (!isPrintableSearchKey(event) || hasEditableFocus()) return
+
+  event.preventDefault()
+  searchInput.value += event.key
+  focusSearchInput()
+  handleSearchInput()
+}
+
 function handleSearchKeydown(event: KeyboardEvent) {
   if (!filterCommand.value || filterSuggestions.value.length === 0) return
   if (event.key === 'ArrowDown') {
@@ -846,6 +858,7 @@ function scheduleSearch() {
 
 onBeforeUnmount(() => {
   if (searchLoadingTimer) clearTimeout(searchLoadingTimer)
+  window.removeEventListener('keydown', handleTypeToSearch)
   window.removeEventListener('verbatims:focus-search-page-input', handleExplicitSearchFocus)
 })
 
@@ -880,6 +893,7 @@ async function fetchRandomReferences(n = 4) {
 }
 
 onMounted(async () => {
+  window.addEventListener('keydown', handleTypeToSearch)
   window.addEventListener('verbatims:focus-search-page-input', handleExplicitSearchFocus)
   if (window.innerWidth >= 768) void nextTick(focusSearchInput)
 
@@ -901,7 +915,12 @@ onMounted(async () => {
 })
 
 onActivated(() => {
+  window.addEventListener('keydown', handleTypeToSearch)
   if (window.innerWidth >= 768) void nextTick(focusSearchInput)
+})
+
+onDeactivated(() => {
+  window.removeEventListener('keydown', handleTypeToSearch)
 })
 </script>
 
