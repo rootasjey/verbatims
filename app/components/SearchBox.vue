@@ -40,9 +40,9 @@
           class="relative isolate overflow-y-auto pr-1"
           :class="isMobile ? (mode === 'search' ? 'search-box-mobile-search-results' : 'search-box-mobile-results') : (mode === 'search' ? 'search-box-desktop-search-results' : 'max-h-[min(58vh,36rem)]')"
           ref="resultsContainer"
-          role="listbox"
-          :aria-label="mode === 'search' ? $t('components.search_box.search_results') as string : mode === 'nav' ? $t('components.search_box.quick_nav') as string : $t('components.search_box.commands') as string"
+          :aria-label="mode === 'search' && !storeQuery.trim() ? undefined : mode === 'search' ? $t('components.search_box.search_results') as string : mode === 'nav' ? $t('components.search_box.quick_nav') as string : $t('components.search_box.commands') as string"
           :aria-busy="mode === 'search' ? loading : undefined"
+          :role="mode !== 'search' || storeQuery.trim() ? 'listbox' : undefined"
         >
           <div
             v-if="mode === 'search' && selectionIndicator"
@@ -186,9 +186,42 @@
               </div>
             </div>
 
-            <div v-else class="text-center py-8">
-              <NIcon name="i-tabler-search" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.empty_hint') }}</p>
+            <div v-else class="space-y-6 py-5">
+              <section v-if="recentSearches.length" :aria-labelledby="'search-box-recent-heading'">
+                <h4 id="search-box-recent-heading" class="mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                  {{ $t('components.search_box.recent_searches') }}
+                </h4>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="search in recentSearches"
+                    :key="`recent-${search}`"
+                    type="button"
+                    class="inline-flex min-h-9 items-center gap-2 rounded-md bg-gray-100/80 px-3 font-sans text-sm text-gray-700 transition-colors hover:bg-gray-200/80 hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:hover:text-white dark:focus-visible:outline-gray-400"
+                    @click="startSearch(search)"
+                  >
+                    <NIcon name="i-ph-clock-counter-clockwise" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                    {{ search }}
+                  </button>
+                </div>
+              </section>
+
+              <section :aria-labelledby="'search-box-suggested-heading'">
+                <h4 id="search-box-suggested-heading" class="mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                  {{ $t('components.search_box.suggested_searches') }}
+                </h4>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="suggestion in emptyStateSuggestions"
+                    :key="`suggested-${suggestion.text}`"
+                    type="button"
+                    class="inline-flex min-h-9 items-center gap-2 rounded-md bg-gray-100/80 px-3 font-sans text-sm text-gray-700 transition-colors hover:bg-gray-200/80 hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:hover:text-white dark:focus-visible:outline-gray-400"
+                    @click="startSearch(suggestion.text)"
+                  >
+                    <NIcon :name="suggestion.icon" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                    {{ suggestion.text }}
+                  </button>
+                </div>
+              </section>
             </div>
 
           </template>
@@ -278,8 +311,8 @@
               />
               <div class="flex shrink-0 items-center gap-x-3">
                 <span v-if="mode === 'search'" class="shrink-0">{{ $t('components.search_box.mode_hint') }}</span>
-                <span class="shrink-0">{{ $t('components.search_box.footer_navigate') }}</span>
-                <span class="shrink-0">{{ $t('components.search_box.footer_select') }}</span>
+                <span v-if="!isEmptySearchState" class="shrink-0">{{ $t('components.search_box.footer_navigate') }}</span>
+                <span v-if="!isEmptySearchState" class="shrink-0">{{ $t('components.search_box.footer_select') }}</span>
               </div>
               <span aria-hidden="true" class="h-4 w-px shrink-0 bg-gray-300 dark:bg-gray-700" />
               <div class="flex shrink-0 items-center gap-x-3">
@@ -339,6 +372,7 @@
 import { useSearchStore } from '~/stores/search'
 import type { AuthorSearchResult, ProcessedQuoteResult, ReferenceSearchResult } from '~~/server/types';
 import SearchBoxOverlay from '~/components/SearchBoxOverlay.vue'
+import { hasEditableFocus, isPrintableSearchKey } from '~/utils/search-keyboard'
 
 interface Props {
   modelValue: boolean
@@ -426,6 +460,9 @@ const filteredCmdItems = computed(() => {
 })
 
 const searchResults = computed(() => searchStore.results)
+const recentSearches = computed(() => searchStore.recent.slice(0, 5))
+const emptyStateSuggestions = searchStore.getRandomSuggestedSearch(5)
+const isEmptySearchState = computed(() => mode.value === 'search' && !storeQuery.value.trim() && !loading.value)
 const loading = computed(() => searchStore.loading)
 const showLoadingState = ref(false)
 const selectionIndicator = ref<{ x: number; y: number; width: number; height: number } | null>(null)
@@ -580,6 +617,12 @@ const debouncedSearch = useDebounceFn(async () => {
   }
 }, 300)
 
+const startSearch = (query: string) => {
+  storeQuery.value = query
+  selectedIndex.value = -1
+  void searchStore.search({ limit: 20 })
+}
+
 const goToSearchPage = () => {
   const query = mode.value === 'search' ? storeQuery.value.trim() : ''
   const searchQuery: Record<string, string> = {}
@@ -733,6 +776,18 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (event.key === 'Escape') {
     isOpen.value = false
+    return
+  }
+
+  if (mode.value === 'search' && isPrintableSearchKey(event) && !hasEditableFocus()) {
+    const searchInput = document.querySelector<HTMLInputElement>('[role="dialog"] input[placeholder]')
+    if (!searchInput) return
+
+    event.preventDefault()
+    storeQuery.value += event.key
+    selectedIndex.value = -1
+    searchInput.focus()
+    debouncedSearch()
     return
   }
 
