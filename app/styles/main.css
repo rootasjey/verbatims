@@ -265,6 +265,34 @@ input:-webkit-autofill {
   }
 }
 
+.auth-page-enter-active,
+.auth-page-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.auth-page-enter-from {
+  opacity: 0;
+  transform: translateX(0.5rem);
+}
+
+.auth-page-leave-to {
+  opacity: 0;
+  transform: translateX(-0.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-page-enter-active,
+  .auth-page-leave-active {
+    transition: none;
+  }
+
+  .auth-page-enter-from,
+  .auth-page-leave-to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .tag:hover {
   transform: scale(1.05);
 }

@@ -438,7 +438,7 @@ const storeQuery = computed({
   set: (v: string) => searchStore.setQuery(v)
 })
 
-type NavItemAccess = 'public' | 'authenticated' | 'staff'
+type NavItemAccess = 'public' | 'guest' | 'authenticated' | 'staff'
 
 interface SearchNavItem {
   label: string
@@ -446,6 +446,7 @@ interface SearchNavItem {
   description: string
   to: string
   access: NavItemAccess
+  keywords?: string[]
 }
 
 const navItems = computed<SearchNavItem[]>(() => {
@@ -457,6 +458,8 @@ const navItems = computed<SearchNavItem[]>(() => {
     { label: String($t('nav.references')), icon: 'i-ph-book-duotone', description: String($t('nav.references_desc')), to: '/references', access: 'public' },
     { label: String($t('nav.quotes')), icon: 'i-ph-quotes', description: String($t('nav.quotes_desc')), to: '/quotes', access: 'public' },
     { label: String($t('nav.tags')), icon: 'i-ph-tag-duotone', description: String($t('nav.tags_desc')), to: '/tags', access: 'public' },
+    { label: String($t('components.search_box.nav_sign_in')), icon: 'i-ph-sign-in', description: String($t('components.search_box.nav_sign_in_desc')), to: '/login', access: 'guest', keywords: ['login', 'sign', 'signin'] },
+    { label: String($t('components.search_box.nav_sign_up')), icon: 'i-ph-user-plus', description: String($t('components.search_box.nav_sign_up_desc')), to: '/signup', access: 'guest', keywords: ['signup', 'sign', 'register'] },
     { label: String($t('nav.dashboard')), icon: 'i-ph-square-split-vertical-duotone', description: String($t('nav.overview')), to: '/dashboard', access: 'authenticated' },
     { label: String($t('nav.admin')), icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin', access: 'staff' },
     { label: 'Pending Quotes', icon: 'i-ph-clock-countdown', description: 'Review and moderate pending quotes', to: '/admin/quotes/pending', access: 'staff' },
@@ -466,6 +469,7 @@ const navItems = computed<SearchNavItem[]>(() => {
   ]
 
   return items.filter((item) => {
+    if (item.access === 'guest') return !loggedIn.value
     if (item.access === 'authenticated') return loggedIn.value
     if (item.access === 'staff') return isStaff
     return true
@@ -498,7 +502,8 @@ const filteredNavItems = computed(() => {
   const q = navQuery.value.toLowerCase()
   return items.filter(item =>
     item.label.toLowerCase().includes(q) ||
-    item.description.toLowerCase().includes(q)
+    item.description.toLowerCase().includes(q) ||
+    item.keywords?.some(keyword => keyword.includes(q))
   )
 })
 
