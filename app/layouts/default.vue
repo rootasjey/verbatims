@@ -12,6 +12,7 @@
     <header
       class="fixed top-0 left-0 right-0 z-40 md:hidden
         px-4 py-3 safe-area-pt"
+      :style="isQuoteDetailPage && scrollY === 0 ? { backgroundColor: 'transparent', backdropFilter: 'none' } : undefined"
         :class="[
           {
             'bg-[#F7F5EF] dark:bg-[#0C0A09]': scrollY === 0 && usesWarmEditorialSurface,
@@ -27,13 +28,26 @@
       >
         <div class="flex items-center">
           <NButton
-            btn="~"
-            @click="handleAppIconClick"
+            v-if="isQuoteDetailPage"
+            icon
+            btn="ghost-gray"
+            label="i-ph-arrow-left"
             size="sm"
-            class="m-0 p-3"
-          >
-            <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl">verbatims</span>
-          </NButton>
+            class="mr-1 min-h-11 min-w-11"
+            :aria-label="String($t('components.quote_sticky.back_to_results'))"
+            @click.stop="navigateBackToQuoteResults"
+          />
+          <Transition name="quote-masthead-brand">
+            <NButton
+              v-if="!isQuoteDetailPage || scrollY > 48"
+              btn="~"
+              @click="handleAppIconClick"
+              size="sm"
+              class="m-0 p-3"
+            >
+              <span class="font-subtitle font-700 italic tracking-[0.1rem] text-xl">verbatims</span>
+            </NButton>
+          </Transition>
         </div>
 
         <span class="flex-1" aria-hidden="true" />
@@ -189,8 +203,12 @@
 </template>
 
 <script setup lang="ts">
+import { useQuotesFeedStore } from '~/stores/quotes'
+
 const route = useRoute()
+const quotesFeedStore = useQuotesFeedStore()
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search')
+const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
@@ -263,6 +281,10 @@ const handleAppIconClick = (event: MouseEvent) => {
   scrollToTop()
 }
 
+const navigateBackToQuoteResults = () => {
+  navigateTo(quotesFeedStore.snapshot?.sourcePath || '/quotes')
+}
+
 const handleQuoteAdded = () => {
   showAddQuote.value = false
 }
@@ -327,6 +349,26 @@ useHead({
   ]
 })
 </script>
+
+<style scoped>
+.quote-masthead-brand-enter-active,
+.quote-masthead-brand-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.quote-masthead-brand-enter-from,
+.quote-masthead-brand-leave-to {
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-masthead-brand-enter-active,
+  .quote-masthead-brand-leave-active {
+    transition: none;
+  }
+}
+</style>
 
 <style scoped>
 .safe-area-pt {

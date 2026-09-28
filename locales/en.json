@@ -705,6 +705,9 @@
     "quote_sticky": {
       "back": "Back to quotes list",
       "back_to_results": "Back to results",
+      "metadata": "Metadata",
+      "pull_to_go_back": "Pull down to go back",
+      "release_to_go_back": "Release to go back",
       "views": "View count",
       "shares": "Share count",
       "likes": "Like count",

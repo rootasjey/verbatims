@@ -22,6 +22,54 @@
       />
     </ClientOnly>
 
+    <ClientOnly>
+      <NDrawer
+        v-model:open="showActionsDrawer"
+        direction="bottom"
+        :dismissible="true"
+        :close-threshold="0.25"
+        :show-close="false"
+        :una="{ drawerContent: 'z-[60] max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-[#F7F5EF] dark:bg-[#1C1917] shadow-2xl', drawerOverlay: 'z-[55] bg-black/45' }"
+      >
+        <template #body>
+          <div v-if="quote" id="quote-actions-drawer" class="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex min-w-0 items-center gap-3">
+                <NButton
+                  v-if="showActionDrawerMetadata"
+                  icon
+                  btn="ghost-gray"
+                  label="i-ph-arrow-left"
+                  size="sm"
+                  :aria-label="String($t('components.quote_sticky.more'))"
+                  @click="showActionDrawerMetadata = false"
+                />
+                <h2 class="truncate font-serif text-2xl text-gray-900 dark:text-gray-100">
+                  {{ showActionDrawerMetadata ? $t('components.quote_sticky.metadata') : $ts('components.quote_sticky.more') }}
+                </h2>
+              </div>
+              <NButton icon btn="ghost-gray" label="i-ph-x" size="sm" :aria-label="String($t('common.close'))" @click="showActionsDrawer = false" />
+            </div>
+            <Transition name="quote-drawer-content" mode="out-in">
+              <QuoteMetadata v-if="showActionDrawerMetadata" :key="'metadata'" :quote="quote" :show-trigger="false" class="mt-5" />
+              <div v-else key="'actions'" class="mt-4 space-y-1">
+                <button
+                  v-for="item in mobileHeaderMenuItems"
+                  :key="item.id || item.label"
+                  type="button"
+                  class="flex min-h-14 w-full items-center gap-4 rounded-xl px-4 text-left font-sans text-base font-500 text-gray-800 transition-colors hover:bg-black/5 active:scale-[0.99] dark:text-gray-100 dark:hover:bg-white/8"
+                  @click="handleMobileMenuItem(item)"
+                >
+                  <NIcon :name="item.leading" class="h-5 w-5 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                  <span>{{ item.label }}</span>
+                </button>
+              </div>
+            </Transition>
+          </div>
+        </template>
+      </NDrawer>
+    </ClientOnly>
+
     <div v-if="pending" class="px-4 md:px-8 py-16 md:py-24">
       <div class="max-w-5xl mx-auto">
         <div class="animate-pulse space-y-8">
@@ -39,14 +87,36 @@
       </div>
     </div>
 
-    <div v-else-if="quote" class="px-4 md:px-8 py-8 md:py-12">
-      <div class="max-w-6xl mx-auto">
+    <div v-else-if="quote" class="px-4 md:px-8 py-6 md:py-12">
+      <div class="relative max-w-6xl mx-auto">
+        <div
+          v-if="quotePullActive"
+          class="pointer-events-none absolute inset-x-0 top-10 z-20 flex justify-center md:hidden"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="flex items-center gap-2 font-sans text-[10px] font-600 uppercase tracking-[0.14em] text-stone-500/80 dark:text-stone-400/80">
+            <NIcon name="i-ph-arrow-down" class="h-3.5 w-3.5 transition-transform duration-200" :class="quotePullReady ? 'rotate-180' : ''" aria-hidden="true" />
+            <span>{{ quotePullHint }}</span>
+          </div>
+        </div>
+
         <!-- Quote Hero -->
-        <div ref="quoteHero" class="quote-detail-hero pb-4 md:py-40" :class="quoteHeroSpacing">
-          <div class="px-2 md:px-8">
+        <div
+          ref="quoteHero"
+          class="quote-detail-hero mx-auto max-w-5xl rounded-[2rem] bg-[#EEECE5] px-5 dark:bg-[#17181D]"
+          :class="[quoteHeroSpacing, quotePullActive ? 'relative z-10 transition-none' : 'transition-transform duration-300 ease-out motion-reduce:transition-none']"
+          :style="quotePullStyle"
+        >
+          <div class="px-1 md:px-2">
             <blockquote
-              class="mx-auto max-w-5xl font-serif font-300 leading-[0.98] tracking-[-0.04em] break-words [overflow-wrap:anywhere] text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
-              :class="[quoteTextSize, quoteTextIn ? 'opacity-100 blur-0' : 'opacity-0 blur-sm']">
+              class="mx-auto max-w-4xl font-serif font-300 leading-[0.98] tracking-[-0.04em] break-words [overflow-wrap:anywhere] text-gray-900 dark:text-white text-center transform-gpu transition-all duration-1000 ease-out"
+              :class="[quoteTextSize, quoteTextIn ? 'opacity-100 blur-0' : 'opacity-0 blur-sm']"
+              @touchstart.passive="handleQuoteTouchStart"
+              @touchmove="handleQuoteTouchMove"
+              @touchend.passive="handleQuoteTouchEnd"
+              @touchcancel.passive="handleQuoteTouchCancel"
+            >
               {{ quote.name }}
             </blockquote>
             <div class="mt-14 grid grid-cols-1 items-end gap-y-2 md:grid-cols-2 transform-gpu transition-all duration-700 ease-out"
@@ -60,7 +130,7 @@
                 <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
               </button>
               <div class="md:col-start-2 md:row-start-1">
-                <MobileQuoteAuthorReference :quote="quote" v-if="isMobile" />
+                <MobileQuoteAuthorReference v-if="isMobile" :quote="quote" signature />
                 <QuoteAuthorReference v-else :quote="quote" signature />
               </div>
             </div>
@@ -68,7 +138,7 @@
         </div>
 
         <!-- Quiet actions -->
-        <div class="mt-6 mb-2 flex flex-nowrap items-center justify-center gap-x-5 overflow-x-auto px-2 text-xs font-600 uppercase tracking-[0.12em] text-stone-500 scrollbar-none dark:text-stone-400 md:mt-18 md:overflow-visible">
+        <div class="mt-6 mb-2 flex flex-nowrap items-center justify-center gap-x-5 overflow-x-auto px-2 text-xs font-600 uppercase tracking-[0.12em] text-stone-500 scrollbar-none dark:text-stone-400 md:mt-18 md:overflow-visible" :class="quotePullActive ? 'transition-none' : 'transition-opacity duration-200 ease-out'" :style="quotePullControlsStyle">
           <button v-if="user" type="button" :aria-label="isLiked ? $ts('components.mobile_actions.unlike') : $ts('components.mobile_actions.like')" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0" @click="toggleLike">
             <NIcon :name="isLiked ? 'i-ph-heart-fill' : 'i-ph-heart'" class="h-4 w-4 md:hidden" />
             <span class="hidden md:inline">{{ isLiked ? $ts('components.mobile_actions.unlike') : $ts('components.mobile_actions.like') }}</span>
@@ -81,10 +151,20 @@
             <NIcon name="i-lucide-download" class="h-4 w-4 md:hidden" />
             <span class="hidden md:inline">{{ $ts('components.quote_actions.download_image') }}</span>
           </button>
-          <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'center' }" class="font-sans">
-            <button type="button" :aria-label="$ts('components.quote_sticky.more')" class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:min-h-0 md:min-w-0">
-              <NIcon name="i-lucide-ellipsis" class="h-4 w-4 md:hidden" />
-              <span class="hidden md:inline">{{ $ts('components.quote_sticky.more') }}</span>
+          <button
+            type="button"
+            :aria-label="$ts('components.quote_sticky.more')"
+            aria-haspopup="dialog"
+            :aria-expanded="showActionsDrawer"
+            aria-controls="quote-actions-drawer"
+            class="quote-action inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:hidden"
+            @click="openMobileActionsDrawer"
+          >
+            <NIcon name="i-lucide-ellipsis" class="h-4 w-4" aria-hidden="true" />
+          </button>
+          <NDropdownMenu :items="headerMenuItems" :modal="false" :_dropdown-menu-content="{ side: 'bottom', align: 'center' }" class="hidden font-sans md:block">
+            <button type="button" :aria-label="$ts('components.quote_sticky.more')" class="quote-action hidden min-h-11 min-w-11 shrink-0 items-center justify-center transition-colors hover:text-stone-900 dark:hover:text-stone-100 md:inline-flex md:min-h-0 md:min-w-0">
+              <span>{{ $ts('components.quote_sticky.more') }}</span>
             </button>
           </NDropdownMenu>
         </div>
@@ -92,7 +172,11 @@
         <!-- Tags -->
         <div v-if="quote.tags?.length"
           class="mt-3"
-          :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+          :class="[
+            signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
+            quotePullActive ? 'transition-none' : 'transition-opacity duration-200 ease-out'
+          ]"
+          :style="quotePullControlsStyle">
           <div class="flex flex-nowrap justify-center gap-x-5 overflow-x-auto pb-2 scrollbar-none md:flex-wrap md:overflow-visible md:pb-8">
               <NuxtLink
                 v-for="tag in quote.tags"
@@ -107,22 +191,15 @@
           </div>
         </div>
 
-        <!-- Quote Metadata -->
+        <!-- Quote Metadata (desktop) -->
         <div
-          class="mt-0 transform-gpu transition-all duration-700 ease-out md:mt-16"
-          :class="signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">
+          class="hidden md:block"
+          :style="quotePullControlsStyle"
+          :class="[
+            signatureIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
+            quotePullActive ? 'transition-none' : 'transition-all duration-700 ease-out'
+          ]">
           <QuoteMetadata :quote="quote" class="flex flex-col items-center md:mx-auto" />
-        </div>
-
-        <div class="mt-4 flex justify-center md:hidden">
-          <button
-            type="button"
-            class="inline-flex min-h-11 items-center justify-center gap-2 px-1 font-sans text-xs font-600 uppercase tracking-[0.12em] text-stone-500 transition-colors hover:text-stone-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 dark:text-stone-400 dark:hover:text-stone-100"
-            @click="navigateToQuotesList"
-          >
-            <NIcon name="i-ph-arrow-left" class="h-4 w-4" aria-hidden="true" />
-            <span>{{ $ts('components.quote_sticky.back_to_results') }}</span>
-          </button>
         </div>
 
         <!-- Related Quotes -->
@@ -240,6 +317,106 @@ const { data: quoteData, pending } = await useFetch<{ data?: QuoteWithRelations 
 const quote = computed(() => quoteData.value?.data)
 const quoteHero = ref(null)
 const showQuoteContextBar = ref(false)
+const showActionsDrawer = ref(false)
+const showActionDrawerMetadata = ref(false)
+const quotePullDistance = ref(0)
+const quotePullActive = ref(false)
+const quotePullThreshold = 96
+const quotePullFadeDistance = 72
+const quotePullProgress = computed(() => Math.min(quotePullDistance.value / quotePullFadeDistance, 1))
+const quotePullReady = computed(() => quotePullDistance.value >= quotePullThreshold)
+const quotePullHint = computed(() => $ts(
+  quotePullReady.value
+    ? 'components.quote_sticky.release_to_go_back'
+    : 'components.quote_sticky.pull_to_go_back'
+))
+const quotePullStyle = computed(() => ({
+  transform: quotePullDistance.value > 0 ? `translate3d(0, ${quotePullDistance.value}px, 0)` : undefined
+}))
+const quotePullControlsStyle = computed(() => ({
+  opacity: 1 - quotePullProgress.value,
+  translate: `0 ${quotePullProgress.value * 8}px`,
+  pointerEvents: quotePullActive.value ? 'none' as const : 'auto' as const
+}))
+
+interface QuotePullGesture {
+  startX: number
+  startY: number
+  startedAtTop: boolean
+}
+
+let quotePullGesture: QuotePullGesture | null = null
+
+const handleQuoteTouchStart = (event: TouchEvent) => {
+  if (!isMobile.value || event.touches.length !== 1 || typeof window === 'undefined') {
+    quotePullGesture = null
+    return
+  }
+
+  const target = event.target as HTMLElement | null
+  if (target?.closest('a, button, input, textarea, select, [contenteditable="true"]')) {
+    quotePullGesture = null
+    return
+  }
+
+  const touch = event.touches[0]
+  if (!touch) return
+
+  quotePullGesture = {
+    startX: touch.clientX,
+    startY: touch.clientY,
+    startedAtTop: window.scrollY <= 1
+  }
+}
+
+const handleQuoteTouchMove = (event: TouchEvent) => {
+  const gesture = quotePullGesture
+  const touch = event.touches[0]
+  if (!gesture || !gesture.startedAtTop || !touch) return
+  if (event.touches.length !== 1) {
+    resetQuotePull()
+    return
+  }
+
+  const deltaX = touch.clientX - gesture.startX
+  const deltaY = touch.clientY - gesture.startY
+
+  if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    quotePullGesture = null
+    return
+  }
+
+  if (deltaY < 8 || deltaY < Math.abs(deltaX)) return
+
+  if (event.cancelable) event.preventDefault()
+  quotePullActive.value = true
+  quotePullDistance.value = Math.min(deltaY, 128)
+}
+
+const resetQuotePull = () => {
+  quotePullGesture = null
+  quotePullActive.value = false
+  quotePullDistance.value = 0
+}
+
+const handleQuoteTouchEnd = async () => {
+  const shouldGoBack = quotePullActive.value && quotePullDistance.value >= quotePullThreshold
+  quotePullGesture = null
+
+  if (shouldGoBack) {
+    try {
+      await navigateToQuotesList()
+    } finally {
+      resetQuotePull()
+    }
+  } else {
+    resetQuotePull()
+  }
+}
+
+const handleQuoteTouchCancel = () => {
+  resetQuotePull()
+}
 
 const quoteTextSize = computed(() => {
   const length = quote.value?.name?.length || 0
@@ -251,9 +428,9 @@ const quoteTextSize = computed(() => {
 
 const quoteHeroSpacing = computed(() => {
   const length = quote.value?.name?.length || 0
-  if (length > 300) return 'pt-0'
-  if (length > 200) return 'pt-8'
-  return 'pt-16'
+  if (length > 300) return 'py-8 md:py-14'
+  if (length > 200) return 'py-10 md:py-18'
+  return 'py-12 md:py-24'
 })
 
 onMounted(() => {
@@ -469,8 +646,15 @@ const onTagsUpdated = async () => {
   }
 }
 
-const headerMenuItems = computed(() => {
-  const items = []
+interface QuoteMenuItem {
+  id?: string
+  label: string
+  leading: string
+  onclick: () => void
+}
+
+const headerMenuItems = computed<QuoteMenuItem[]>(() => {
+  const items: QuoteMenuItem[] = []
 
   const isAdminMod = user.value && (user.value.role === 'admin' || user.value.role === 'moderator')
   const isOwnerDraft = user.value && quote.value && quote.value.user && quote.value.user.id === user.value.id && quote.value.status === 'draft'
@@ -519,6 +703,35 @@ const headerMenuItems = computed(() => {
   }
 
   return items
+})
+
+const mobileHeaderMenuItems = computed<QuoteMenuItem[]>(() => [
+  {
+    id: 'metadata',
+    label: $ts('components.quote_sticky.metadata'),
+    leading: 'i-ph-list-bullets',
+    onclick: () => { showActionDrawerMetadata.value = true }
+  },
+  ...headerMenuItems.value
+])
+
+const openMobileActionsDrawer = () => {
+  showActionDrawerMetadata.value = false
+  showActionsDrawer.value = true
+}
+
+const handleMobileMenuItem = (item: QuoteMenuItem) => {
+  if (item.id === 'metadata') {
+    showActionDrawerMetadata.value = true
+    return
+  }
+
+  showActionsDrawer.value = false
+  item.onclick()
+}
+
+watch(showActionsDrawer, (isOpen) => {
+  if (!isOpen) showActionDrawerMetadata.value = false
 })
 
 const checkLikeStatus = async () => {
@@ -742,5 +955,23 @@ onUnmounted(() => {
 }
 .dark .quote-action:focus-visible {
   outline-color: #d6d3d1;
+}
+.quote-drawer-content-enter-active,
+.quote-drawer-content-leave-active {
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.quote-drawer-content-enter-from {
+  opacity: 0;
+  transform: translateX(6px);
+}
+.quote-drawer-content-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .quote-drawer-content-enter-active,
+  .quote-drawer-content-leave-active {
+    transition-duration: 1ms;
+  }
 }
 </style>

@@ -6,9 +6,8 @@
         <NuxtLink
           v-if="quote.author"
           :to="`/authors/${quote.author.id}`"
-          class="group flex items-center gap-2"
+          class="group flex items-center"
         >
-          <span class="font-serif text-lg md:text-xl font-400 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">—</span>
           <span class="font-serif text-lg md:text-xl font-400 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
             {{ quote.author.name }}
           </span>
