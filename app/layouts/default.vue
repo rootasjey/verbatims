@@ -185,7 +185,7 @@
 
     <!-- Keep the full editorial footer on desktop; mobile navigation owns those destinations. -->
     <div class="hidden md:block">
-      <AppFooter class="homepage-v3-footer" />
+      <AppFooter v-if="!isAuthPage" class="homepage-v3-footer" />
     </div>
 
     <!-- Mobile-only drawers (client-only to avoid SSR issues with NDrawer) -->
@@ -207,7 +207,8 @@ import { useQuotesFeedStore } from '~/stores/quotes'
 
 const route = useRoute()
 const quotesFeedStore = useQuotesFeedStore()
-const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search')
+const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || isAuthPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()

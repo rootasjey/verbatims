@@ -147,7 +147,7 @@
 const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
-const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search')
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path === '/login' || route.path === '/signup')
 const { user } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))

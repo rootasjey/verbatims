@@ -3,7 +3,7 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <MobileBottomNavigation />
+    <MobileBottomNavigation v-if="!isAuthPage" />
     <NuxtRouteAnnouncer />
     <NToaster />
   </div>
@@ -13,6 +13,9 @@
 import '@una-ui/preset/una.css'
 import '@/styles/main.css'
 import MobileBottomNavigation from '~/components/MobileBottomNavigation.vue'
+
+const route = useRoute()
+const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
 
 const appReady = useState('app-ready', () => false)
 onNuxtReady(() => {
