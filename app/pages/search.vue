@@ -1,23 +1,129 @@
 <template>
   <div class="min-h-screen bg-[#F7F5EF] dark:bg-[#0C0A09]">
-    <!-- Loading skeleton (SSR/hydration) — skip when store already has data -->
-    <div v-if="!hydrated && !searchStore.hasResults" class="search-page mx-auto max-w-6xl px-6 pb-24 pt-12 sm:px-8 md:pt-24 lg:px-10 animate-pulse">
-      <div class="h-14 w-40 bg-gray-200/70 dark:bg-white/10" />
-      <div class="mt-10 h-14 border-b border-black/15 dark:border-white/15" />
-      <div class="mt-16 grid gap-12 border-t border-black/10 pt-8 dark:border-white/10 md:grid-cols-2 md:gap-14">
-        <section v-for="section in 2" :key="section" class="space-y-5">
-          <div class="h-7 w-32 bg-gray-200/70 dark:bg-white/10" />
-          <div class="space-y-4">
-            <div v-for="item in 3" :key="item" class="flex items-center gap-3 py-4 first:pt-0">
-              <div class="h-10 w-10 shrink-0 bg-gray-200 dark:bg-white/10" :class="section === 1 ? 'rounded-full' : 'rounded'" />
-              <div class="min-w-0 flex-1 space-y-2">
-                <div class="h-4 w-2/3 bg-gray-200 dark:bg-white/10" />
-                <div class="h-3 w-1/3 bg-gray-200/70 dark:bg-white/10" />
-              </div>
+    <!-- Keep the initial skeleton until the route's first data load has settled. -->
+    <div v-if="!initialDataReady && !searchStore.hasResults" class="search-page mx-auto max-w-6xl px-6 pb-24 sm:px-8 lg:px-10" aria-busy="true">
+      <header class="pb-8 pt-12 md:pb-16 md:pt-28">
+        <h1 class="font-serif text-5xl font-400 leading-none tracking-[-0.035em] text-gray-900 dark:text-gray-100 md:text-6xl lg:text-7xl">
+          {{ $t('page_title') }}
+        </h1>
+      </header>
+
+      <div class="sticky top-14 z-20 -mx-6 mb-8 bg-[#F7F5EF]/95 px-6 pb-5 pt-2 backdrop-blur-md dark:bg-[#0C0A09]/95 sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
+        <div class="search-field flex min-h-11 items-center gap-3 rounded-md border border-black/15 px-3 dark:border-white/20 md:min-h-0 md:gap-4 md:rounded-none md:border-0 md:border-b md:px-0 md:pb-3">
+          <NIcon name="i-ph-magnifying-glass" class="h-6 w-6 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+          <span class="min-w-0 flex-1 truncate font-sans text-base text-gray-900 dark:text-gray-100 md:text-2xl">
+            {{ searchInput || $t('search_placeholder') }}
+          </span>
+          <span v-if="searchInput" class="invisible h-8 w-8 shrink-0 md:h-9 md:w-9" aria-hidden="true" />
+        </div>
+        <div v-if="searchInput.trim() || hasActiveFilters" class="mt-3 hidden min-h-5 min-w-0 items-center justify-between gap-3 md:flex">
+          <p class="min-w-0 flex-1 font-sans text-xs text-gray-500 dark:text-gray-400">
+            {{ $t('search_syntax_hint') }}
+          </p>
+          <div class="ml-auto flex shrink-0 items-center border-l border-black/10 pl-4 dark:border-white/10" aria-hidden="true">
+            <div class="h-5 w-36 animate-pulse rounded bg-black/[0.05] dark:bg-white/[0.07]" />
+          </div>
+        </div>
+      </div>
+
+      <main class="pt-4">
+        <div v-if="searchInput.trim() || hasActiveFilters">
+          <div class="mb-5 flex min-h-12 items-center justify-between gap-3 rounded-xl border border-black/10 bg-black/[0.025] px-4 md:hidden dark:border-white/10 dark:bg-white/[0.035]" aria-hidden="true">
+            <div class="h-4 w-20 animate-pulse rounded bg-black/[0.05] dark:bg-white/[0.07]" />
+            <div class="h-9 w-9 animate-pulse rounded-full bg-black/[0.05] dark:bg-white/[0.07]" />
+          </div>
+          <div class="space-y-8 rounded-2xl bg-[#E6E4DD] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]">
+            <div class="grid gap-10 lg:gap-14 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.85fr)]">
+              <section class="min-w-0">
+                <h2 class="search-results-heading mb-3">{{ $t('section_quotes') }}</h2>
+                <div class="space-y-6 animate-pulse" aria-hidden="true">
+                  <article v-for="item in 4" :key="item" class="space-y-3 py-3">
+                    <div class="h-6 w-11/12 rounded bg-black/[0.08] dark:bg-white/[0.08] sm:h-7" />
+                    <div class="h-6 w-3/4 rounded bg-black/[0.08] dark:bg-white/[0.08] sm:h-7" />
+                    <div class="mt-3 h-3 w-2/5 rounded bg-black/[0.06] dark:bg-white/[0.06]" />
+                  </article>
+                </div>
+              </section>
+
+              <aside class="space-y-10 lg:pl-8">
+                <section>
+                  <h2 class="search-results-heading mb-4">{{ $t('section_results_authors') }}</h2>
+                  <div class="grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-1 animate-pulse" aria-hidden="true">
+                    <div v-for="item in 2" :key="item" class="flex items-center gap-3 py-1">
+                      <div class="h-10 w-10 shrink-0 rounded-full bg-black/[0.08] dark:bg-white/[0.08]" />
+                      <div class="min-w-0 flex-1 space-y-2">
+                        <div class="h-3.5 w-2/3 rounded bg-black/[0.08] dark:bg-white/[0.08]" />
+                        <div class="h-3 w-1/3 rounded bg-black/[0.06] dark:bg-white/[0.06]" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section>
+                  <h2 class="search-results-heading mb-4">{{ $t('section_results_references') }}</h2>
+                  <div class="grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-1 animate-pulse" aria-hidden="true">
+                    <div v-for="item in 2" :key="item" class="flex items-center gap-3 py-1">
+                      <div class="h-10 w-10 shrink-0 rounded bg-black/[0.08] dark:bg-white/[0.08]" />
+                      <div class="min-w-0 flex-1 space-y-2">
+                        <div class="h-3.5 w-2/3 rounded bg-black/[0.08] dark:bg-white/[0.08]" />
+                        <div class="h-3 w-1/3 rounded bg-black/[0.06] dark:bg-white/[0.06]" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </aside>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+
+        <div v-else class="space-y-12">
+          <section v-if="recentSearches.length > 0">
+            <h2 class="mb-4 font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_recent') }}</h2>
+            <div class="flex flex-wrap gap-2 animate-pulse" aria-hidden="true">
+              <div v-for="item in Math.min(recentSearches.length, 5)" :key="item" class="h-10 w-28 rounded-md bg-black/[0.05] dark:bg-white/[0.07]" />
+            </div>
+          </section>
+
+          <section>
+            <h2 class="mb-5 font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_suggested') }}</h2>
+            <div class="flex flex-wrap gap-2">
+              <span v-for="suggestion in suggestions" :key="suggestion.text" class="inline-flex min-h-10 items-center gap-2 rounded-md bg-black/[0.045] px-3 font-sans text-sm text-gray-700 dark:bg-white/[0.07] dark:text-gray-300">
+                <NIcon :name="suggestion.icon" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                {{ suggestion.text }}
+              </span>
+            </div>
+            <div class="mt-3 h-4 w-36 rounded bg-black/[0.05] dark:bg-white/[0.07] animate-pulse" aria-hidden="true" />
+          </section>
+
+          <div class="grid gap-x-14 gap-y-12 pt-2 md:grid-cols-2">
+            <section>
+              <h2 class="mb-5 font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_authors') }}</h2>
+              <div class="space-y-4 animate-pulse" aria-hidden="true">
+                <div v-for="item in 4" :key="item" class="flex items-center gap-3 py-3">
+                  <div class="h-10 w-10 shrink-0 rounded-full bg-gray-200 dark:bg-white/10" />
+                  <div class="min-w-0 flex-1 space-y-2">
+                    <div class="h-3.5 w-2/3 rounded bg-gray-200 dark:bg-white/10" />
+                    <div class="h-3 w-1/3 rounded bg-gray-200/70 dark:bg-white/[0.07]" />
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 h-4 w-32 rounded bg-black/[0.05] dark:bg-white/[0.07] animate-pulse" aria-hidden="true" />
+            </section>
+            <section>
+              <h2 class="mb-5 font-serif text-2xl font-400 text-gray-900 dark:text-gray-100">{{ $t('section_references') }}</h2>
+              <div class="space-y-4 animate-pulse" aria-hidden="true">
+                <div v-for="item in 4" :key="item" class="flex items-center gap-3 py-3">
+                  <div class="h-10 w-10 shrink-0 rounded bg-gray-200 dark:bg-white/10" />
+                  <div class="min-w-0 flex-1 space-y-2">
+                    <div class="h-3.5 w-2/3 rounded bg-gray-200 dark:bg-white/10" />
+                    <div class="h-3 w-1/3 rounded bg-gray-200/70 dark:bg-white/[0.07]" />
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 h-4 w-36 rounded bg-black/[0.05] dark:bg-white/[0.07] animate-pulse" aria-hidden="true" />
+            </section>
+          </div>
+        </div>
+      </main>
     </div>
 
     <!-- Search page -->
@@ -56,7 +162,7 @@
                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200 md:h-9 md:w-9"
                 @click="clearSearchQuery"
               >
-                <NIcon name="i-ph-x" class="h-4 w-4" aria-hidden="true" />
+                <NIcon name="i-tabler-eraser" class="h-4 w-4" aria-hidden="true" />
               </button>
             </NTooltip>
           </div>
@@ -100,12 +206,12 @@
           </div>
         </div>
 
-        <div v-if="!filterCommand || hasActiveFilters" class="mt-3">
-          <p v-if="!hasActiveFilters && !filterCommand" class="hidden font-sans text-xs text-gray-500 dark:text-gray-400 md:block">
+        <div v-if="!filterCommand || hasActiveFilters" class="mt-3 min-h-5 min-w-0 items-center gap-3" :class="activeFilterItems.length > 0 ? 'flex' : 'hidden md:flex'">
+          <p v-if="!hasActiveFilters && !filterCommand" class="hidden min-w-0 flex-1 font-sans text-xs text-gray-500 dark:text-gray-400 md:block">
             {{ $t('search_syntax_hint') }}
           </p>
-          <div class="mt-2 flex min-w-0 items-center gap-3">
-            <div v-if="activeFilterItems.length > 0" class="search-filter-scroller -mx-6 min-w-0 flex-1 overflow-x-auto px-6 md:mx-0 md:overflow-visible md:px-0">
+          <div v-if="activeFilterItems.length > 0" class="ml-auto flex min-w-0 flex-1 items-center gap-3 md:ml-0">
+            <div class="search-filter-scroller -mx-6 min-w-0 flex-1 overflow-x-auto px-6 md:mx-0 md:overflow-visible md:px-0">
               <div class="flex w-max min-w-full flex-nowrap items-center gap-2 md:w-full md:flex-wrap">
                 <NTooltip :content="$t('clear_filters') as string">
                   <button type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-black/[0.045] text-gray-600 transition-colors hover:bg-black/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:focus-visible:outline-gray-200 md:hidden" :aria-label="$t('clear_filters') as string" @click="clearFilters">
@@ -118,10 +224,10 @@
                 <button type="button" class="hidden px-2 py-1 font-sans text-xs text-gray-500 underline underline-offset-4 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200 md:inline-flex" @click="clearFilters">{{ $t('clear_filters') }}</button>
               </div>
             </div>
-            <p v-if="searchResults.total > 0 && (renderedSearchQuery || hasActiveFilters)" class="ml-auto hidden shrink-0 border-l border-black/10 pl-4 font-sans text-sm font-600 leading-5 text-gray-600 dark:border-white/10 dark:text-gray-400 md:block" role="status" aria-atomic="true">
-              {{ renderedSearchQuery ? $t('results_count', { count: searchResults.total, query: renderedSearchQuery }) : $t('filtered_results_count', { count: searchResults.total }) }}
-            </p>
           </div>
+          <p v-if="searchResults.total > 0 && (renderedSearchQuery || hasActiveFilters)" class="ml-auto hidden shrink-0 border-l border-black/10 pl-4 font-sans text-sm font-600 leading-5 text-gray-600 dark:border-white/10 dark:text-gray-400 md:block" role="status" aria-atomic="true">
+            {{ renderedSearchQuery ? $t('results_count', { count: searchResults.total, query: renderedSearchQuery }) : $t('filtered_results_count', { count: searchResults.total }) }}
+          </p>
         </div>
       </div>
 
@@ -413,6 +519,7 @@ import { getReferenceIconTone } from '#shared/constants/reference'
 
 const appReady = useState('app-ready', () => false)
 const hydrated = ref(appReady.value)
+const initialDataReady = ref(false)
 
 onNuxtReady(() => {
   hydrated.value = true
@@ -898,19 +1005,23 @@ onMounted(async () => {
   if (window.innerWidth >= 768) void nextTick(focusSearchInput)
 
   try {
-    await loadFilterOptions()
-  } catch (error) {
-    console.error('Failed to load search filter options:', error)
-  }
-  filterOptionsReady.value = true
-  await syncFiltersFromRoute(true)
+    try {
+      await loadFilterOptions()
+    } catch (error) {
+      console.error('Failed to load search filter options:', error)
+    }
+    filterOptionsReady.value = true
+    await syncFiltersFromRoute(true)
 
-  // Fetch random authors/references if no search query
-  if (!searchStore.query.trim() && !hasActiveFilters.value) {
-    await Promise.all([
-      fetchRandomAuthors(4),
-      fetchRandomReferences(4)
-    ])
+    // Fetch random authors/references if no search query
+    if (!searchStore.query.trim() && !hasActiveFilters.value) {
+      await Promise.all([
+        fetchRandomAuthors(4),
+        fetchRandomReferences(4)
+      ])
+    }
+  } finally {
+    initialDataReady.value = true
   }
 })
 

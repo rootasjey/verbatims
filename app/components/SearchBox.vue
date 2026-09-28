@@ -11,6 +11,7 @@
             size="sm"
             icon
             label="i-ph-x"
+            class="mr-3"
             :aria-label="String($t('common.close'))"
             @click="isOpen = false"
           />
@@ -29,16 +30,29 @@
             leading="i-ph-magnifying-glass"
             size="md"
             autofocus
-            :una="{ input: 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400 focus-visible:border-gray-500 dark:focus-visible:border-gray-400' }"
+            :una="{ input: 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-500 dark:focus-visible:ring-gray-400 focus-visible:border-gray-500 dark:focus-visible:border-gray-400', inputTrailingWrapper: 'pointer-events-auto' }"
             @input="debouncedSearch"
-          />
+          >
+            <template #trailing>
+              <NTooltip v-if="mode === 'search' && storeQuery.trim()" :content="$t('components.search_box.clear_search') as string">
+                <button
+                  type="button"
+                  :aria-label="$t('components.search_box.clear_search') as string"
+                  class="flex h-8 w-8 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200"
+                  @click="clearSearchQuery"
+                >
+                  <NIcon name="i-tabler-eraser" class="h-4 w-4" aria-hidden="true" />
+                </button>
+              </NTooltip>
+            </template>
+          </NInput>
         </div>
 
         <!-- Search Results / Navigation -->
         <div
           id="search-result-list"
           class="relative isolate overflow-y-auto pr-1"
-          :class="isMobile ? (mode === 'search' ? 'search-box-mobile-search-results' : 'search-box-mobile-results') : (mode === 'search' ? 'search-box-desktop-search-results' : 'max-h-[min(58vh,36rem)]')"
+          :class="isMobile ? 'search-box-mobile-results' : 'search-box-desktop-results'"
           ref="resultsContainer"
           :aria-label="mode === 'search' && !storeQuery.trim() ? undefined : mode === 'search' ? $t('components.search_box.search_results') as string : mode === 'nav' ? $t('components.search_box.quick_nav') as string : $t('components.search_box.commands') as string"
           :aria-busy="mode === 'search' ? loading : undefined"
@@ -66,9 +80,20 @@
               <span v-else class="sr-only" role="status">{{ $t('components.search_box.searching') }}</span>
             </div>
 
-            <div v-else-if="totalResults === 0 && storeQuery" class="text-center py-8">
-              <NIcon name="i-ph-magnifying-glass" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 dark:text-gray-400">{{ $t('components.search_box.no_results') }} "{{ storeQuery }}"</p>
+            <div v-else-if="hasNoResultsForCurrentQuery" class="space-y-1 py-4" role="status">
+              <template v-if="storeQuery.trim().length < 2">
+                <p class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
+                  {{ $t('components.search_box.no_results_short_query_hint') }}
+                </p>
+              </template>
+              <template v-else>
+                <p class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">
+                  {{ $t('components.search_box.no_results_for', { query: storeQuery }) }}
+                </p>
+                <p class="font-sans text-sm text-gray-500 dark:text-gray-400">
+                  {{ $t('components.search_box.no_results_hint') }}
+                </p>
+              </template>
             </div>
 
             <div
@@ -192,16 +217,30 @@
                   {{ $t('components.search_box.recent_searches') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
-                  <button
+                  <div
                     v-for="search in recentSearches"
                     :key="`recent-${search}`"
-                    type="button"
-                    class="inline-flex min-h-9 items-center gap-2 rounded-md bg-gray-100/80 px-3 font-sans text-sm text-gray-700 transition-colors hover:bg-gray-200/80 hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:hover:text-white dark:focus-visible:outline-gray-400"
-                    @click="startSearch(search)"
+                    class="inline-flex min-h-9 items-center gap-1 rounded-md bg-gray-100/80 pl-3 pr-1 dark:bg-white/[0.07]"
                   >
-                    <NIcon name="i-ph-clock-counter-clockwise" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-                    {{ search }}
-                  </button>
+                    <button
+                      type="button"
+                      class="inline-flex min-h-9 items-center gap-2 font-sans text-sm text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-500 dark:text-gray-300 dark:hover:text-white dark:focus-visible:outline-gray-400"
+                      @click="startSearch(search)"
+                    >
+                      <NIcon name="i-ph-clock-counter-clockwise" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                      {{ search }}
+                    </button>
+                    <NTooltip :content="$t('components.search_box.remove_recent', { search }) as string">
+                      <button
+                        type="button"
+                        :aria-label="$t('components.search_box.remove_recent', { search }) as string"
+                        class="flex h-7 w-7 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200"
+                        @click="searchStore.removeRecent(search)"
+                      >
+                        <NIcon name="i-ph-x" class="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    </NTooltip>
+                  </div>
                 </div>
               </section>
 
@@ -234,7 +273,7 @@
               </h4>
               <div
                 v-for="(item, index) in filteredNavItems"
-                :key="`nav-${item.label}`"
+                :key="`nav-${item.to}`"
                 :data-nav-index="index"
                 :id="navResultId(index)"
                 role="option"
@@ -391,6 +430,7 @@ const isOpen = computed({
 
 const { $t } = useI18n()
 const { isMobile } = useMobileDetection()
+const { loggedIn, user } = useUserSession()
 const route = useRoute()
 const searchStore = useSearchStore()
 const storeQuery = computed({
@@ -398,19 +438,39 @@ const storeQuery = computed({
   set: (v: string) => searchStore.setQuery(v)
 })
 
-const navItems = computed((): any[] => [
-  { label: $t('components.search_box.nav_home'), icon: 'i-ph-house', description: $t('components.search_box.nav_home_desc'), to: '/' },
-  { label: $t('nav.authors'), icon: 'i-ph-users-duotone', description: $t('nav.authors_desc'), to: '/authors' },
-  { label: $t('nav.references'), icon: 'i-ph-book-duotone', description: $t('nav.references_desc'), to: '/references' },
-  { label: $t('nav.quotes'), icon: 'i-ph-quotes', description: $t('nav.quotes_desc'), to: '/quotes' },
-  { label: $t('nav.tags'), icon: 'i-ph-tag-duotone', description: $t('nav.tags_desc'), to: '/tags' },
-  { label: $t('nav.dashboard'), icon: 'i-ph-square-split-vertical-duotone', description: $t('nav.overview'), to: '/dashboard' },
-  { label: $t('nav.admin'), icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin' },
-  { label: 'Pending Quotes', icon: 'i-ph-clock-countdown', description: 'Review and moderate pending quotes', to: '/admin/quotes/pending' },
-  { label: $t('nav.drafts'), icon: 'i-ph-file-text', description: 'Manage quote drafts', to: '/admin/quotes/drafts' },
-  { label: 'Social Queue', icon: 'i-ph-share-network', description: 'Manage scheduled social media posts', to: '/admin/social-queue' },
-  { label: $t('nav.tags'), icon: 'i-ph-tag-duotone', description: 'Manage tag taxonomy', to: '/admin/tags' },
-])
+type NavItemAccess = 'public' | 'authenticated' | 'staff'
+
+interface SearchNavItem {
+  label: string
+  icon: string
+  description: string
+  to: string
+  access: NavItemAccess
+}
+
+const navItems = computed<SearchNavItem[]>(() => {
+  const isStaff = user.value?.role === 'admin' || user.value?.role === 'moderator'
+
+  const items: SearchNavItem[] = [
+    { label: String($t('components.search_box.nav_home')), icon: 'i-ph-house', description: String($t('components.search_box.nav_home_desc')), to: '/', access: 'public' },
+    { label: String($t('nav.authors')), icon: 'i-ph-users-duotone', description: String($t('nav.authors_desc')), to: '/authors', access: 'public' },
+    { label: String($t('nav.references')), icon: 'i-ph-book-duotone', description: String($t('nav.references_desc')), to: '/references', access: 'public' },
+    { label: String($t('nav.quotes')), icon: 'i-ph-quotes', description: String($t('nav.quotes_desc')), to: '/quotes', access: 'public' },
+    { label: String($t('nav.tags')), icon: 'i-ph-tag-duotone', description: String($t('nav.tags_desc')), to: '/tags', access: 'public' },
+    { label: String($t('nav.dashboard')), icon: 'i-ph-square-split-vertical-duotone', description: String($t('nav.overview')), to: '/dashboard', access: 'authenticated' },
+    { label: String($t('nav.admin')), icon: 'i-ph-shield-check', description: 'Admin panel', to: '/admin', access: 'staff' },
+    { label: 'Pending Quotes', icon: 'i-ph-clock-countdown', description: 'Review and moderate pending quotes', to: '/admin/quotes/pending', access: 'staff' },
+    { label: String($t('nav.drafts')), icon: 'i-ph-file-text', description: 'Manage quote drafts', to: '/admin/quotes/drafts', access: 'staff' },
+    { label: 'Social Queue', icon: 'i-ph-share-network', description: 'Manage scheduled social media posts', to: '/admin/social-queue', access: 'staff' },
+    { label: String($t('nav.tags')), icon: 'i-ph-tag-duotone', description: 'Manage tag taxonomy', to: '/admin/tags', access: 'staff' },
+  ]
+
+  return items.filter((item) => {
+    if (item.access === 'authenticated') return loggedIn.value
+    if (item.access === 'staff') return isStaff
+    return true
+  })
+})
 
 const cmdItems = computed((): any[] => [
   { label: $t('components.search_box.cmd_add_quote'), icon: 'i-ph-quotes-duotone', description: $t('components.search_box.cmd_add_quote_desc'), shortcut: '⌘N', action: 'add-quote' },
@@ -436,7 +496,7 @@ const filteredNavItems = computed(() => {
   const items = navItems.value
   if (!navQuery.value) return items
   const q = navQuery.value.toLowerCase()
-  return items.filter((item: any) =>
+  return items.filter(item =>
     item.label.toLowerCase().includes(q) ||
     item.description.toLowerCase().includes(q)
   )
@@ -464,6 +524,15 @@ const recentSearches = computed(() => searchStore.recent.slice(0, 5))
 const emptyStateSuggestions = searchStore.getRandomSuggestedSearch(5)
 const isEmptySearchState = computed(() => mode.value === 'search' && !storeQuery.value.trim() && !loading.value)
 const loading = computed(() => searchStore.loading)
+const settledSearchQuery = ref<string | null>(null)
+const hasNoResultsForCurrentQuery = computed(() => {
+  const query = storeQuery.value.trim()
+  return mode.value === 'search'
+    && query.length > 0
+    && settledSearchQuery.value === query
+    && !loading.value
+    && totalResults.value === 0
+})
 const showLoadingState = ref(false)
 const selectionIndicator = ref<{ x: number; y: number; width: number; height: number } | null>(null)
 const selectedIndex = ref<number>(-1)
@@ -604,24 +673,44 @@ const debouncedSearch = useDebounceFn(async () => {
 
   if (!storeQuery.value.trim()) {
     searchStore.clear()
+    settledSearchQuery.value = ''
     selectedIndex.value = -1
     return
   }
 
+  const query = storeQuery.value.trim()
   try {
     await searchStore.search({ limit: 20 })
     selectedIndex.value = -1
   } catch (error) {
     console.error('Search error:', error)
     searchStore.clear()
+  } finally {
+    if (storeQuery.value.trim() === query) settledSearchQuery.value = query
   }
 }, 300)
 
-const startSearch = (query: string) => {
+const startSearch = async (query: string) => {
   storeQuery.value = query
+  settledSearchQuery.value = null
   selectedIndex.value = -1
-  void searchStore.search({ limit: 20 })
+  try {
+    await searchStore.search({ limit: 20 })
+  } finally {
+    if (storeQuery.value.trim() === query.trim()) settledSearchQuery.value = query.trim()
+  }
 }
+
+const clearSearchQuery = () => {
+  storeQuery.value = ''
+  settledSearchQuery.value = ''
+  selectedIndex.value = -1
+  searchStore.clear()
+}
+
+watch(storeQuery, () => {
+  settledSearchQuery.value = null
+})
 
 const goToSearchPage = () => {
   const query = mode.value === 'search' ? storeQuery.value.trim() : ''
@@ -785,6 +874,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
     event.preventDefault()
     storeQuery.value += event.key
+    settledSearchQuery.value = null
     selectedIndex.value = -1
     searchInput.focus()
     debouncedSearch()
@@ -899,6 +989,19 @@ onUnmounted(() => {
 :global(body .dialog-content.search-box-dialog) {
   width: 94vw !important;
   max-width: min(94vw, 58rem) !important;
+  padding: 1rem !important;
+}
+
+:deep(.card-header) {
+  padding: 1rem;
+}
+
+:deep(.card-content) {
+  padding: 0 1rem 1rem;
+}
+
+:deep(.card-footer) {
+  padding: 0 1rem 1rem;
 }
 
 .search-box-mobile-card {
@@ -946,21 +1049,14 @@ onUnmounted(() => {
 }
 
 :deep(.search-box-mobile-results) {
-  min-height: 0;
-  max-height: min(56dvh, 32rem);
-  flex: 1;
-  overscroll-behavior: contain;
-}
-
-.search-box-desktop-search-results {
-  height: clamp(12rem, 50vh, 32rem);
-}
-
-.search-box-mobile-search-results {
   height: min(42dvh, 24rem);
   min-height: 0;
   flex: none;
   overscroll-behavior: contain;
+}
+
+.search-box-desktop-results {
+  height: clamp(12rem, 50vh, 32rem);
 }
 
 :deep(.search-box-results-enter-active) {

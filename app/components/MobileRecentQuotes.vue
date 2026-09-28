@@ -11,7 +11,7 @@
             :placeholder="$t('desktop_quotes_grid.search_placeholder') as string"
             :aria-label="$t('desktop_quotes_grid.search_placeholder') as string"
             leading="i-ph-magnifying-glass"
-            :trailing="feed.searchQuery.value ? 'i-ph-x' : undefined"
+            :trailing="feed.searchQuery.value ? 'i-tabler-eraser' : undefined"
             size="md"
             :loading="feed.quotesLoading.value"
             @trailing="feed.searchQuery.value = ''"

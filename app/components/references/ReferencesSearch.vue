@@ -9,14 +9,25 @@
           :placeholder="$t('references_search_placeholder') as string"
           :aria-label="$t('references_search_placeholder') as string"
           leading="i-ph-magnifying-glass"
-          :trailing="searchModel ? 'i-ph-x' : undefined"
           size="md"
           class="focus:border-2 focus:border-lime-500"
-          @trailing="searchModel = ''; focus()"
           :una="{
-            inputTrailing: 'pointer-events-auto cursor-pointer'
+            inputTrailingWrapper: 'pointer-events-auto'
           }"
-        />
+        >
+          <template #trailing>
+            <NTooltip v-if="searchModel" :content="$t('components.search_box.clear_search') as string">
+              <button
+                type="button"
+                :aria-label="$t('components.search_box.clear_search') as string"
+                class="flex h-8 w-8 items-center justify-center rounded text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-800 dark:hover:text-white dark:focus-visible:outline-gray-200"
+                @click="searchModel = ''; focus()"
+              >
+                <NIcon name="i-tabler-eraser" class="h-4 w-4" aria-hidden="true" />
+              </button>
+            </NTooltip>
+          </template>
+        </NInput>
       </div>
       <div class="hidden shrink-0 gap-2 md:flex">
         <NSelect
