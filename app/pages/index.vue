@@ -1,61 +1,161 @@
 <template>
   <div class="homepage-v3-page min-h-screen" :style="themeVars">
-    <!-- Skeleton: shown during SSR/hydration/data loading, delayed on client nav -->
-    <div v-if="showSkeleton">
-      <div class="min-h-screen bg-[#F7F5EF] dark:bg-[#0C0A09]">
-        <!-- Featured section skeleton -->
-        <div class="px-6 pt-10 pb-6 animate-pulse">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700" />
-            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28" />
+    <!-- Loading shells follow the editorial cover and section layouts at each breakpoint. -->
+    <div v-if="showSkeleton" aria-busy="true" class="min-h-screen bg-[#F7F5EF] dark:bg-[#0C0A09]">
+      <div class="hidden md:block">
+        <div class="mx-auto w-full max-w-[1440px] px-4 lg:px-8">
+          <section class="homepage-v3-cover mb-4 min-h-[710px] rounded-2xl px-10 py-24 shadow-sm" aria-hidden="true">
+            <div class="w-full max-w-[1040px] space-y-5 animate-pulse">
+              <div class="mx-auto h-12 w-5/6 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
+              <div class="mx-auto h-12 w-2/3 rounded bg-black/10 dark:bg-white/10 lg:h-16" />
+              <div class="mx-auto mt-10 h-6 w-48 rounded bg-black/10 dark:bg-white/10" />
+              <div class="mx-auto h-3 w-28 rounded bg-black/10 dark:bg-white/10" />
+            </div>
+          </section>
+
+          <div class="relative mx-4 mb-16 flex items-center justify-center gap-4" aria-hidden="true">
+            <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
+              {{ $t('home.explore_theme') }}
+              <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
+            </div>
+            <div class="absolute right-0 flex gap-2">
+              <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+              <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+            </div>
           </div>
-          <div class="space-y-3 mb-6">
-            <div class="h-7 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
-            <div class="h-7 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+
+          <section class="mx-4 mb-24 pt-14" aria-hidden="true">
+            <div class="animate-pulse">
+              <div class="h-3 w-44 rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="mt-8 h-10 w-2/3 rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="mt-3 h-4 w-1/3 rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="mt-14 max-w-4xl space-y-3">
+                <div class="h-10 w-5/6 rounded bg-gray-200 dark:bg-gray-800 lg:h-14" />
+                <div class="h-10 w-2/3 rounded bg-gray-200 dark:bg-gray-800 lg:h-14" />
+                <div class="mt-4 h-3 w-48 rounded bg-gray-200 dark:bg-gray-800" />
+              </div>
+              <div class="mt-16 grid grid-cols-2 gap-24">
+                <div v-for="item in 2" :key="item" class="space-y-3 border-t border-gray-200 pt-8 dark:border-gray-800">
+                  <div class="h-7 w-full rounded bg-gray-200 dark:bg-gray-800" />
+                  <div class="h-7 w-3/4 rounded bg-gray-200 dark:bg-gray-800" />
+                  <div class="h-3 w-32 rounded bg-gray-200 dark:bg-gray-800" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="mb-14 rounded-2xl bg-[#e7e4dd] px-6 py-16 dark:bg-[#252522] lg:px-10" aria-hidden="true">
+            <h2 class="mb-8 font-serif text-4xl text-stone-700 dark:text-stone-300 lg:text-5xl">{{ $t('nav.references') }}</h2>
+            <div class="grid grid-cols-4 gap-4 animate-pulse">
+              <div v-for="item in 4" :key="item" class="flex h-[440px] flex-col justify-end rounded-xl bg-black/[0.08] p-5 dark:bg-white/[0.06]">
+                <div class="h-5 w-4/5 rounded bg-black/10 dark:bg-white/10" />
+                <div class="mt-2 h-3 w-1/2 rounded bg-black/10 dark:bg-white/10" />
+              </div>
+            </div>
+          </section>
+
+          <section class="mx-4 mb-14" aria-hidden="true">
+            <div class="flex items-end justify-between gap-6">
+              <div class="h-10 w-2/5 rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="h-4 w-1/4 rounded bg-gray-200 dark:bg-gray-800" />
+            </div>
+            <div class="mt-12 grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-800 animate-pulse">
+              <div v-for="item in 6" :key="item" class="min-h-[190px] space-y-3 p-5 first:pl-0">
+                <div class="h-6 w-full rounded bg-gray-200 dark:bg-gray-800" />
+                <div class="h-6 w-4/5 rounded bg-gray-200 dark:bg-gray-800" />
+                <div class="h-3 w-28 rounded bg-gray-200 dark:bg-gray-800" />
+              </div>
+            </div>
+          </section>
+
+          <section class="mb-14 rounded-2xl bg-[#17191e] px-6 py-16 lg:px-10" aria-hidden="true">
+            <h2 class="mb-3 font-serif text-4xl text-white lg:text-6xl">{{ $t('nav.authors') }}</h2>
+            <div class="mb-8 h-4 w-80 max-w-full rounded bg-white/10" />
+            <div class="flex gap-4 overflow-hidden animate-pulse">
+              <div v-for="item in 5" :key="item" class="flex w-[calc((100%-4rem)/5)] shrink-0 flex-col gap-4">
+                <div class="h-12 w-12 rounded-full bg-white/10" />
+                <div class="h-4 w-4/5 rounded bg-white/10" />
+                <div class="h-3 w-1/2 rounded bg-white/10" />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="md:hidden">
+        <section class="homepage-v3-cover mx-4 mt-2 mb-4 min-h-[690px] rounded-2xl px-6 py-16 shadow-sm" aria-hidden="true">
+          <div class="w-full max-w-md space-y-3 text-center animate-pulse">
+            <div class="mx-auto h-7 w-11/12 rounded bg-black/10 dark:bg-white/10" />
+            <div class="mx-auto h-7 w-10/12 rounded bg-black/10 dark:bg-white/10" />
+            <div class="mx-auto h-7 w-8/12 rounded bg-black/10 dark:bg-white/10" />
+            <div class="mx-auto mt-8 h-8 w-8 rounded-full bg-black/10 dark:bg-white/10" />
+            <div class="mx-auto h-4 w-40 rounded bg-black/10 dark:bg-white/10" />
+            <div class="mx-auto h-3 w-24 rounded bg-black/10 dark:bg-white/10" />
           </div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+        </section>
+        <div class="mb-14 flex items-center justify-center gap-3" aria-hidden="true">
+          <div class="inline-flex h-10 w-44 items-center justify-center gap-2 rounded-full border border-black/10 font-sans text-xs font-600 text-gray-500 dark:border-white/10 dark:text-gray-400">
+            {{ $t('home.explore_theme') }}
+            <NIcon name="i-lucide-arrow-down" class="h-3.5 w-3.5" />
+          </div>
+          <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
+          <div class="h-9 w-9 rounded-full bg-black/[0.04] dark:bg-white/[0.06]" />
         </div>
 
-        <!-- Authors section skeleton -->
-        <div class="px-6 py-6 animate-pulse">
-          <div class="flex items-center gap-2 mb-5">
-            <div class="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700" />
-            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
-          </div>
-          <div class="flex gap-4 overflow-hidden">
-            <div v-for="i in 4" :key="i" class="flex-shrink-0 flex gap-3">
-              <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700" />
-              <div class="space-y-2">
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
-                <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded w-14" />
+        <section class="mb-16 px-6 py-14" aria-hidden="true">
+          <div class="animate-pulse">
+            <div class="h-3 w-36 rounded bg-gray-200 dark:bg-gray-800" />
+            <div class="mt-5 h-7 w-4/5 rounded bg-gray-200 dark:bg-gray-800" />
+            <div class="mt-5 h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-800" />
+            <div class="mt-12 space-y-3">
+              <div class="h-8 w-full rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="h-8 w-4/5 rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="mt-4 h-3 w-36 rounded bg-gray-200 dark:bg-gray-800" />
+            </div>
+            <div class="mt-10 space-y-8">
+              <div v-for="item in 2" :key="item" class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+                <div class="h-5 w-full rounded bg-gray-200 dark:bg-gray-800" />
+                <div class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-800" />
+                <div class="h-3 w-28 rounded bg-gray-200 dark:bg-gray-800" />
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- References section skeleton -->
-        <div class="px-6 py-6 animate-pulse">
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-5" />
-          <div class="flex gap-4 overflow-hidden">
-            <div v-for="i in 3" :key="i" class="flex-shrink-0 w-36">
-              <div class="h-48 bg-gray-200 dark:bg-gray-700 rounded-sm mb-2" />
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-1" />
-              <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+        <section class="mx-6 py-14" aria-hidden="true">
+          <div class="h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-800" />
+          <div class="mt-3 h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-800" />
+          <div class="mt-10 grid grid-cols-2 animate-pulse">
+            <div v-for="item in 4" :key="item" class="min-h-[190px] space-y-3 border-b border-gray-200 p-4 first:pl-0 dark:border-gray-800">
+              <div class="h-5 w-full rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="h-5 w-4/5 rounded bg-gray-200 dark:bg-gray-800" />
+              <div class="h-3 w-24 rounded bg-gray-200 dark:bg-gray-800" />
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Recent quotes section skeleton -->
-        <div class="px-6 py-6 animate-pulse">
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-6" />
-          <div class="space-y-5">
-            <div v-for="i in 3" :key="i" class="space-y-2 pb-5 border-b border-gray-100 dark:border-gray-800">
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5" />
-              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 mt-2" />
+        <section class="px-6 py-14 text-white" aria-hidden="true">
+          <h2 class="mb-3 font-serif text-4xl">{{ $t('home.nav.authors') }}</h2>
+          <div class="mb-8 h-4 w-3/4 rounded bg-white/10" />
+          <div class="flex gap-4 overflow-hidden animate-pulse">
+            <div v-for="item in 3" :key="item" class="flex h-[330px] w-[78vw] shrink-0 flex-col justify-end gap-3 rounded-xl border border-white/10 p-4">
+              <div class="h-12 w-12 rounded-full bg-white/10" />
+              <div class="h-4 w-3/4 rounded bg-white/10" />
+              <div class="h-3 w-1/2 rounded bg-white/10" />
             </div>
           </div>
-        </div>
+        </section>
+
+        <section class="bg-[#e7e4dd] px-6 py-14 dark:bg-[#252522]" aria-hidden="true">
+          <h2 class="mb-3 font-serif text-4xl text-stone-700 dark:text-stone-300">{{ $t('home.nav.references') }}</h2>
+          <div class="mb-8 h-4 w-3/4 rounded bg-black/10 dark:bg-white/10" />
+          <div class="flex gap-3 overflow-hidden animate-pulse">
+            <div v-for="item in 3" :key="item" class="flex h-[320px] w-52 shrink-0 flex-col justify-end rounded-xl bg-black/[0.08] p-4 dark:bg-white/[0.06]">
+              <div class="h-4 w-4/5 rounded bg-black/10 dark:bg-white/10" />
+              <div class="mt-2 h-3 w-1/2 rounded bg-black/10 dark:bg-white/10" />
+            </div>
+          </div>
+        </section>
       </div>
     </div>
 

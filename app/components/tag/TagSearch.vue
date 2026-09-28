@@ -9,7 +9,7 @@
           :placeholder="$ts('tags_search_placeholder') as string"
           :aria-label="$ts('tags_search_placeholder') as string"
           leading="i-ph-magnifying-glass"
-          :trailing="searchQueryModel ? 'i-ph-x' : undefined"
+          :trailing="searchQueryModel ? 'i-tabler-eraser' : undefined"
           size="md"
           class="focus:border-gray-500 dark:focus:border-gray-400"
           @input="$emit('search-input')"
