@@ -163,14 +163,12 @@ export interface CreateQuoteData {
     primary_type: QuoteReferencePrimaryType;
     original_language?: QuoteLanguage;
   };
-  user_id: number;
-  status?: QuoteStatus;
 }
 
 /**
  * Data for updating an existing quote
  */
-export interface UpdateQuoteData extends Partial<Omit<CreateQuoteData, 'user_id'>> {
+export interface UpdateQuoteData extends Partial<CreateQuoteData> {
   id: number;
 }
 

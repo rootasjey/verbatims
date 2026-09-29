@@ -287,7 +287,6 @@ const loadUserStats = async () => {
 }
 
 const handleQuoteAdded = () => {
-  showAddQuote.value = false
   loadUserStats()
   fetchRecentQuote()
 }

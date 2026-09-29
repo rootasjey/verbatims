@@ -161,7 +161,7 @@
 
     <!-- Mobile-only drawers -->
     <ClientOnly>
-      <AddQuoteDrawer v-model:open="showAddQuote" @submitted="handleQuoteAdded" />
+      <AddQuoteDrawer v-model:open="showAddQuote" />
       <ReportDrawer v-model:open="showReportDrawer" :target-type="'general'" />
     </ClientOnly>
   </div>
@@ -202,10 +202,6 @@ const loadQuoteCounts = async () => {
   } catch (error) {
     console.error('Failed to load quote counts:', error)
   }
-}
-
-const handleQuoteAdded = () => {
-  showAddQuote.value = false
 }
 
 // Close sidebar when route changes (mobile)

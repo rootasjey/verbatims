@@ -194,8 +194,8 @@
     />
 
     <ClientOnly>
-      <AddQuoteDialog v-if="!isMobile" v-model="showSubmitModal" @quote-added="showSubmitModal = false; loadAuthors()" />
-      <AddQuoteDrawer v-else v-model:open="showSubmitModal" @submitted="showSubmitModal = false; loadAuthors()" />
+      <AddQuoteDialog v-if="!isMobile" v-model="showSubmitModal" @quote-added="loadAuthors()" />
+      <AddQuoteDrawer v-else v-model:open="showSubmitModal" @submitted="loadAuthors()" />
     </ClientOnly>
 
     <ClientOnly>

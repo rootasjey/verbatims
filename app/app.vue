@@ -5,7 +5,7 @@
     </NuxtLayout>
     <MobileBottomNavigation v-if="!isAuthPage" />
     <NuxtRouteAnnouncer />
-    <NToaster />
+    <NToaster :_toast-viewport="{ class: 'z-[200]' }" />
   </div>
 </template>
 

@@ -6,21 +6,32 @@
     :_dialog-content="dialogContentProps"
   >
     <template #header>
-      <div class="flex justify-between items-start mb-1 pb-2 border-b b-dashed border-gray-200">
-        <slot name="header-title"></slot>
-        <h3 v-if="title" class="font-title uppercase text-size-4 font-600">
+      <div :class="[
+        'mb-5 grid items-center gap-4 pb-4 border-b border-gray-200/80 dark:border-neutral-700/80',
+        centerTitle ? 'grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_auto]'
+      ]">
+        <div v-if="centerTitle" class="flex min-w-0 items-center gap-3">
+          <slot name="header-title"></slot>
+        </div>
+        <div v-else class="flex min-w-0 items-center gap-3">
+          <slot name="header-title"></slot>
+          <h2 v-if="title" :class="['min-w-0 font-serif font-500 tracking-tight text-gray-900 dark:text-gray-100', titleClass || 'text-2xl']">
+            <slot name="title">{{ title }}</slot>
+          </h2>
+        </div>
+        <h2 v-if="centerTitle && title" :class="['min-w-0 max-w-full text-center font-serif font-500 tracking-tight text-gray-900 dark:text-gray-100', titleClass || 'text-2xl']">
           <slot name="title">{{ title }}</slot>
-        </h3>
-        <div class="flex items-center gap-2">
+        </h2>
+        <div :class="['flex items-center gap-2', centerTitle && 'justify-end']">
           <slot name="header-actions" />
           <NTooltip :content="$t('components.app_dialog.close')?.toString()">
-            <NButton btn="~" @click="close" size="xs" label="i-ph-x-bold" icon class="dialog-close-btn hover:scale-110 active:scale-99 transition-[transform,color] duration-300" />
+            <NButton btn="ghost-gray" @click="close" size="sm" label="i-ph-x" icon class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400" />
           </NTooltip>
         </div>
       </div>
     </template>
 
-    <div v-if="scrollable" ref="dialogContentRef" class="overflow-auto max-h-[70vh]">
+    <div v-if="scrollable" ref="dialogContentRef" class="overflow-auto max-h-[min(70dvh,48rem)]">
       <slot />
     </div>
     <div v-else ref="dialogContentRef">
@@ -29,10 +40,10 @@
 
     <template v-if="!hideFooter" #footer>
       <slot name="footer">
-        <div class="w-full flex justify-end gap-3 pt-3 border-t b-dashed border-gray-200">
-          <NButton btn="link-gray" class="font-600" :disabled="submitting" @click="close">{{ cancelText }}</NButton>
+        <div class="w-full flex justify-end gap-3 pt-4 border-t border-gray-200/80 dark:border-neutral-700/80">
+          <NButton btn="ghost-gray" class="font-600" :disabled="submitting" @click="close">{{ cancelText }}</NButton>
           <slot name="submit">
-            <PrimaryButton :disabled="!canSubmit" :loading="submitting" @click="$emit('submit')" class="rounded-0 px-3">
+            <PrimaryButton :disabled="!canSubmit" :loading="submitting" @click="$emit('submit')" class="rounded-full px-5">
               <span class="flex items-center gap-2">
                 {{ submitText }}
                 <NIcon v-if="!submitting" name="i-ph-check" class="inline-block" />
@@ -49,6 +60,8 @@
 interface Props {
   modelValue: boolean
   title?: string
+  titleClass?: string
+  centerTitle?: boolean
   submitText?: string
   cancelText?: string
   submitting?: boolean
@@ -69,6 +82,7 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   submitting: false,
   canSubmit: true,
+  centerTitle: false,
   maxWidth: 'sm',
   maxHeight: 'none',
   hideFooter: false,
@@ -83,7 +97,6 @@ const { $t } = useI18n()
 const submitText = computed(() => props.submitText ?? String($t('components.app_dialog.save')))
 const cancelText = computed(() => props.cancelText ?? String($t('components.app_dialog.cancel')))
 
-const DIALOG_COLOR = '#687FE5'
 const dialogContentRef = ref<HTMLElement | null>(null)
 
 const isOpen = computed({
@@ -114,7 +127,13 @@ const maxHeightClass = computed(() => {
 })
 
 const unaConfig = computed(() => ({
-  dialogContent: `border-2 ${maxWidthClass.value} ${maxHeightClass.value}`
+  ...props.una,
+  dialogContent: [
+    'w-[calc(100vw-2rem)] border border-gray-200 bg-[#FAFAF9] text-gray-900 shadow-2xl rounded-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAFAF9] dark:border-neutral-800 dark:bg-[#151515] dark:text-gray-100 dark:focus-visible:ring-stone-400/80 dark:focus-visible:ring-offset-[#151515]',
+    maxWidthClass.value,
+    maxHeightClass.value,
+    props.una?.dialogContent
+  ].filter(Boolean).join(' ')
 }))
 
 function close() {
@@ -142,26 +161,4 @@ function handleOpenAutoFocus(event: Event) {
 // UnaUI's DialogContent forwards extra attributes ($attrs) to reka-ui at runtime.
 const dialogContentProps = { onOpenAutoFocus: handleOpenAutoFocus } as any
 
-function applyDialogColor() {
-  const el = dialogContentRef.value?.closest<HTMLElement>('[role="dialog"]')
-  if (!el) return
-  el.style.borderColor = DIALOG_COLOR
-  const existing = getComputedStyle(el).boxShadow
-  const tint = `inset 0 0 0 1000px ${DIALOG_COLOR}0C`
-  el.style.boxShadow = existing && existing !== 'none' ? `${tint}, ${existing}` : tint
-
-  const closeBtn = el.querySelector<HTMLElement>('.dialog-close-btn')
-  if (closeBtn) {
-    closeBtn.style.color = DIALOG_COLOR
-    closeBtn.style.backgroundColor = `${DIALOG_COLOR}15`
-  }
-}
-
-watch(isOpen, (open) => {
-  if (open) nextTick(applyDialogColor)
-})
-
-onMounted(() => {
-  if (isOpen.value) nextTick(applyDialogColor)
-})
 </script>

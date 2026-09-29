@@ -133,7 +133,6 @@
 
   <AddQuoteDialog
     v-model="showAddQuote"
-    @quote-added="handleQuoteAdded"
   />
 
   <ReportDialog
@@ -346,10 +345,6 @@ const handleSearchAction = (action: string) => {
   }
 }
 
-const handleQuoteAdded = () => {
-  // Dialog shows a toast on success; nothing extra needed here
-}
-
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   scrollY.value = window.scrollY
@@ -358,6 +353,24 @@ onMounted(() => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault()
       showSearch.value = true
+    }
+
+    const target = e.target as HTMLElement | null
+    const isTextEntry = !!target?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')
+    if (
+      window.matchMedia('(min-width: 768px)').matches
+      && user.value
+      && (e.metaKey || e.ctrlKey)
+      && e.key.toLowerCase() === 'a'
+      && !isTextEntry
+      && !showSearch.value
+      && !showAddQuote.value
+      && !showReportDrawer.value
+      && !showThemePopover.value
+      && !showLanguageMenu.value
+    ) {
+      e.preventDefault()
+      showAddQuote.value = true
     }
   }
 

@@ -34,7 +34,7 @@
 
       <div class="flex items-center font-sans font-700 color-gray-6 dark:color-gray-4">
         <div class="flex">
-          <NTooltip v-if="user" :content="$t('nav.add_quote') + ' (Ctrl/Cmd+N)'" placement="bottom">
+          <NTooltip v-if="user" :content="$t('nav.add_quote') + ' (Ctrl/Cmd+A)'" placement="bottom">
             <NButton
             icon
             btn="ghost-gray"
@@ -78,7 +78,6 @@
 
   <AddQuoteDialog 
     v-model="showAddQuote"
-    @quote-added="handleQuoteAdded"
   />
   
   <ReportDialog
@@ -282,11 +281,6 @@ onMounted(() => {
   })
 })
 
-const handleQuoteAdded = () => {
-  // Optionally refresh page data or show success message
-  // The dialog already shows a toast, so we don't need to do anything here
-}
-
 const handleSearchAction = (action: string) => {
   switch (action) {
     case 'add-quote':
@@ -320,8 +314,9 @@ onMounted(() => {
       e.preventDefault()
       showSearch.value = true
     }
-    // Cmd+N (Mac) or Ctrl+N (Win/Linux)
-    if (user && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+    const target = e.target as HTMLElement | null
+    const isTextEntry = !!target?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')
+    if (user.value && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a' && !isTextEntry && !showSearch.value && !showAddQuote.value && !showReportDrawer.value) {
       e.preventDefault()
       showAddQuote.value = true
     }
