@@ -50,6 +50,9 @@ export default defineEventHandler(async (event) => {
   if (!existingQuote) throwServer(404, 'Quote not found')
 
   const isMod = api.userRole === 'admin' || api.userRole === 'moderator'
+  if (body.language !== undefined && !isMod) {
+    throwServer(403, 'Only moderators and admins can change a quote language')
+  }
   const isOwner = existingQuote!.userId === api.userId
   if (!isMod && !isOwner) throwServer(403, 'You can only update your own quotes')
 

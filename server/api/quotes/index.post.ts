@@ -2,6 +2,7 @@ import { db, schema } from 'hub:db'
 import { eq, sql, and, ne } from 'drizzle-orm'
 import { createQuoteSchema } from '../../validation/schemas'
 import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
+import { detectSubmittedQuoteLanguage } from '~~/server/utils/quote-language'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -80,11 +81,12 @@ export default defineEventHandler(async (event) => {
     }
 
     const isPrivileged = user.role === 'admin' || user.role === 'moderator'
+    const language = await detectSubmittedQuoteLanguage(event, body.name)
     let quoteId: number
     try {
       const quoteResult = await db.insert(schema.quotes).values({
         name: body.name,
-        language: body.language,
+        language,
         userId: user.id,
         status: 'draft',
         createdAt: new Date(),

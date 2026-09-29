@@ -261,13 +261,14 @@ export function useQuoteForm() {
           break
         case 'Enter':
           event.preventDefault()
-          if (config.selectedIndex.value >= 0) {
-            if (config.selectedIndex.value < config.suggestions.value.length) {
-              const candidate = config.suggestions.value[config.selectedIndex.value]
-              if (candidate) config.select(candidate)
-            } else {
-              config.createNew()
-            }
+          // Make Enter useful directly from the input: choose the highlighted
+          // row when navigating, otherwise the first result (or the create row).
+          const itemIndex = config.selectedIndex.value >= 0 ? config.selectedIndex.value : 0
+          if (itemIndex < config.suggestions.value.length) {
+            const candidate = config.suggestions.value[itemIndex]
+            if (candidate) config.select(candidate)
+          } else if (hasCreateOption) {
+            config.createNew()
           }
           break
         case 'Escape':

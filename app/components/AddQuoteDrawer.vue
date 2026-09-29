@@ -65,23 +65,6 @@
 							/>
 							<span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
 						</div>
-						<div>
-							<label class="mb-1.5 block font-sans text-sm font-600 text-gray-700 dark:text-gray-300">
-								{{ $t('components.dialogs.language') }}
-							</label>
-							<NSelect
-								v-model="form.language"
-								:items="languageOptions"
-								:placeholder="$t('components.dialogs.select_language') as string"
-								item-key="label"
-								value-key="label"
-								:disabled="submitting"
-								@update:model-value="onLanguageSelected"
-							/>
-							<p v-if="languageDetection.source === 'auto' && languageDetection.label" class="mt-1.5 font-sans text-xs text-gray-500 dark:text-gray-400">
-								{{ $t('components.dialogs.detected_language', { language: languageDetection.label }) }}
-							</p>
-						</div>
 					</div>
 
 					<div v-else key="attribution" data-quote-step="2" class="space-y-5">
@@ -315,8 +298,6 @@ watch(isOpen, (open) => {
 })
 const {
 	form,
-	languageOptions,
-	languageDetection,
 	authorQuery,
 	referenceQuery,
 	authorSuggestions,
@@ -346,7 +327,6 @@ const {
 	createNewReference,
 	clearAuthor,
 	clearReference,
-	onLanguageSelected,
 } = useQuoteForm()
 
 const authorSuggestionsHeight = ref('0px')

@@ -9,6 +9,7 @@ describe('quote attribution validation', () => {
     })
 
     expect(quote.attributions[0]?.author_id).toBe(1)
+    expect(quote.language).toBeUndefined()
   })
 
   it('accepts attribution replacement on quote updates', () => {
