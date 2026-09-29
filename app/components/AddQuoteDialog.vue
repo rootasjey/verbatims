@@ -52,7 +52,7 @@
           rows="5"
           :disabled="submitting"
           required
-          @input="draftSaved = false"
+          @input="draftSaved = false; clearDraftSavedPulse()"
           class="min-h-40 w-full resize-y rounded-1.5 bg-gray-100/80 px-4 pb-10 pt-4 font-serif text-xl leading-snug text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-600 dark:focus-visible:ring-gray-500"
         />
           <span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
@@ -142,7 +142,7 @@
       </Transition>
       </div>
 
-      <p v-if="draftSaved" role="status" aria-live="polite" class="flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300">
+      <p v-if="draftSaved" role="status" aria-live="polite" :class="['quote-draft-saved-feedback flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300', { 'quote-draft-saved-feedback--pulse': draftSavedPulseActive }]">
         <NIcon name="i-tabler-circle-check" class="h-4 w-4 shrink-0" />
         {{ $t('components.dialogs.draft_saved_continue') }}
       </p>
@@ -364,6 +364,8 @@ const quoteTextarea = ref<HTMLTextAreaElement | null>(null)
 const quoteStep = ref<1 | 2>(1)
 const lastSavedQuote = ref('')
 const draftSaved = ref(false)
+const draftSavedPulseActive = ref(false)
+let draftSavedPulseTimer: ReturnType<typeof setTimeout> | undefined
 const quotePlaceholder = computed(() => {
   if (!lastSavedQuote.value) return String($t('components.dialogs.quote_placeholder'))
   const excerpt = lastSavedQuote.value.replace(/\s+/g, ' ').trim()
@@ -520,8 +522,22 @@ const clearReferenceFromField = () => {
   nextTick(() => referenceInputRef.value?.focus?.())
 }
 
+const clearDraftSavedPulse = () => {
+  draftSavedPulseActive.value = false
+  if (draftSavedPulseTimer) clearTimeout(draftSavedPulseTimer)
+  draftSavedPulseTimer = undefined
+}
+
+const triggerDraftSavedPulse = async () => {
+  clearDraftSavedPulse()
+  await nextTick()
+  draftSavedPulseActive.value = true
+  draftSavedPulseTimer = setTimeout(clearDraftSavedPulse, 1400)
+}
+
 const onAuthorInput = () => {
   draftSaved.value = false
+  clearDraftSavedPulse()
   showAuthorSuggestions.value = Boolean(authorQuery.value.trim())
   if (authorQuery.value.trim()) void searchAuthors($fetch, { limit: 5, minLength: 1 })
   else authorSuggestions.value = []
@@ -529,6 +545,7 @@ const onAuthorInput = () => {
 
 const onReferenceInput = () => {
   draftSaved.value = false
+  clearDraftSavedPulse()
   showReferenceSuggestions.value = Boolean(referenceQuery.value.trim())
   if (referenceQuery.value.trim()) void searchReferences($fetch, { limit: 5, minLength: 1 })
   else referenceSuggestions.value = []
@@ -540,6 +557,7 @@ watch(isOpen, (open) => {
     quoteStep.value = 1
     nextTick(() => quoteTextarea.value?.focus())
   }
+  else clearDraftSavedPulse()
 })
 
 watch(() => props.editQuote, (newQuote) => {
@@ -602,6 +620,7 @@ const submitCreateQuote = async (payload: CreateQuoteData) => {
   lastSavedQuote.value = savedText
   form.value.content = ''
   draftSaved.value = true
+  void triggerDraftSavedPulse()
   emit('quote-added')
   await changeStep(1)
 }
@@ -623,5 +642,8 @@ const handleClickOutside = (event: Event) => {
 }
 
 onMounted(() => { document.addEventListener('click', handleClickOutside) })
-onUnmounted(() => { document.removeEventListener('click', handleClickOutside) })
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  clearDraftSavedPulse()
+})
 </script>
