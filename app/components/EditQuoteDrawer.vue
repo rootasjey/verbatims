@@ -31,47 +31,12 @@
 						<!-- Character Counter -->
 						<div class="mt-2 text-right">
 							<span class="text-xs text-gray-500 dark:text-gray-400">
-								{{ form.content.length }} {{ $t('components.dialogs.language') }}
+								{{ $t('components.dialogs.character_count', { count: form.content.length }) }}
 							</span>
 						</div>
 					</div>
 
 					<div class="grid grid-cols-1 gap-4">
-						<!-- Language Selection -->
-						<div>
-							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-								{{ $t('components.dialogs.language') }}
-							</label>
-							<div>
-								<NSelect
-									v-model="form.language"
-									:items="languageOptions"
-									:placeholder="$t('components.dialogs.select_language') as string"
-									item-key="label"
-									value-key="label"
-									:disabled="submitting"
-									@update:model-value="onLanguageSelected"
-								/>
-								<div
-									v-if="languageDetection.label"
-									class="mt-2 flex flex-wrap items-center gap-2 text-xs"
-								>
-									<span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
-										{{ languageDetection.source === 'manual'
-											? $t('components.dialogs.language') + ': ' + languageDetection.label
-											: $t('components.dialogs.select_language') + ': ' + languageDetection.label
-										}}
-									</span>
-									<span
-										v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'"
-										class="text-amber-700 dark:text-amber-300"
-									>
-										Low confidence — please confirm.
-									</span>
-								</div>
-							</div>
-						</div>
-
 						<!-- Author Selection -->
 						<div>
 							<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -271,12 +236,8 @@ const isOpen = computed({
 
 const editMode = computed(() => !!props.editQuote)
 
-const { user } = useUserSession()
-
 const {
 	form,
-	languageOptions,
-	languageDetection,
 	authorQuery,
 	referenceQuery,
 	authorSuggestions,
@@ -306,7 +267,6 @@ const {
 	createNewReference,
 	clearAuthor,
 	clearReference,
-	onLanguageSelected,
 	resetForm,
 	initializeFormForEdit,
 } = useQuoteForm()
@@ -346,7 +306,6 @@ const submitQuote = async () => {
 			// Update existing quote
 			const payload = {
 				name: form.value.content.trim(),
-				language: form.value.language.value,
 				attributions: [{
 					author_id: form.value.selectedAuthor?.id || null,
 					reference_id: form.value.selectedReference?.id || null,

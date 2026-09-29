@@ -20,6 +20,9 @@ export default defineEventHandler(async (event) => {
     const e = existingQuote
 
     const isAdmin = user.role === 'admin' || user.role === 'moderator'
+    if (body.language !== undefined && !isAdmin) {
+      throwServer(403, 'Only moderators and admins can change a quote language')
+    }
     const isOwner = e.userId === user.id
     const isDraft = e.status === 'draft'
 

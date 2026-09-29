@@ -3,6 +3,7 @@ import { eq, sql, and, ne } from 'drizzle-orm'
 import { createV1QuoteSchema } from '../../../validation/schemas'
 import { logActivity } from '~~/server/utils/activity-log'
 import { syncPrimaryAttribution, getQuoteProvenance } from '~~/server/utils/quote-provenance'
+import { detectSubmittedQuoteLanguage } from '~~/server/utils/quote-language'
 
 defineRouteMeta({
   openAPI: {
@@ -19,7 +20,7 @@ defineRouteMeta({
             required: ['name'],
             properties: {
               name: { type: 'string', description: 'Quote content' },
-              language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], default: 'en' },
+              language: { type: 'string', enum: ['en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'ja', 'zh', 'la', 'ar', 'ko'], description: 'Optional language override; automatically detected when omitted' },
               attributions: {
                 type: 'array',
                 minItems: 1,
@@ -126,6 +127,8 @@ export default defineEventHandler(async (event) => {
 
   if (similarQuotes) throwServer(409, 'A similar quote already exists')
 
+  const language = body.language ?? await detectSubmittedQuoteLanguage(event, body.name)
+
   const attributionStatus = api.userRole === 'admin' || api.userRole === 'moderator'
     ? requestedPrimary.status
     : 'unverified'
@@ -133,7 +136,7 @@ export default defineEventHandler(async (event) => {
   try {
     const quoteResult = await db.insert(schema.quotes).values({
       name: body.name,
-      language: body.language,
+      language,
       userId: api.userId,
       status: 'draft',
       createdAt: new Date(),

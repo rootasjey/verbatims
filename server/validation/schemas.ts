@@ -43,7 +43,7 @@ const attributionOrInlineEntity = (data: { attributions: Array<{ author_id: numb
 
 export const createQuoteSchema = z.object({
   name: z.string().min(2).max(4000).trim(),
-  language: z.enum(validLanguages).optional().default('en'),
+  language: z.enum(validLanguages).optional(),
   attributions: quoteAttributionsPayloadSchema,
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),

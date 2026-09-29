@@ -57,24 +57,6 @@
         />
           <span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
         </div>
-        <div class="flex items-start justify-end gap-4">
-          <div class="min-w-40 flex-1 sm:max-w-56">
-            <label class="sr-only" for="add-quote-language">{{ $t('components.dialogs.language') }}</label>
-            <NSelect
-              id="add-quote-language"
-              v-model="form.language"
-              :items="languageOptions"
-              :placeholder="$t('components.dialogs.select_language') as string"
-              item-key="label"
-              value-key="label"
-              :disabled="submitting"
-              @update:model-value="onLanguageSelected"
-            />
-          </div>
-        </div>
-        <p v-if="languageDetection.source === 'auto' && languageDetection.label" class="font-sans text-xs text-gray-500 dark:text-gray-400">
-          {{ $t('components.dialogs.detected_language', { language: languageDetection.label }) }}
-        </p>
       </section>
 
       <section v-else key="attribution" data-quote-step="2" class="space-y-4">
@@ -322,25 +304,6 @@
         </div>
       </div>
 
-      <!-- Language -->
-      <div>
-        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.language') }}</label>
-        <select
-          v-model="form.language"
-          :disabled="submitting"
-          class="w-full font-sans text-base bg-transparent border-b border-gray-300 dark:border-neutral-700 px-0 py-3 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none focus:border-gray-700 dark:focus:border-gray-300"
-          @change="onLanguageSelected(form.language)"
-        >
-          <option v-for="opt in languageOptions" :key="opt.value" :value="opt" class="dark:bg-gray-800">{{ opt.label }}</option>
-        </select>
-        <div v-if="languageDetection.label" class="mt-2 flex flex-wrap items-center gap-2 font-sans text-xs">
-          <span class="inline-flex items-center bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
-            {{ languageDetection.source === 'manual' ? `${$t('components.dialogs.language')}: ${languageDetection.label}` : `${$t('components.dialogs.language')}: ${languageDetection.label}` }}
-          </span>
-          <span v-if="languageDetection.lowConfidence && languageDetection.source === 'auto'" class="text-amber-700 dark:text-amber-300">{{ $t('components.dialogs.language') }} &mdash; {{ $t('common.confirm') }}.</span>
-        </div>
-      </div>
-
       <!-- Provenance (moderators and admins only) -->
       <div v-if="canEditProvenance" class="border-t border-gray-200 dark:border-gray-800 pt-6 space-y-4">
         <div>
@@ -420,8 +383,6 @@ const dialogTitle = computed(() => isEditMode.value ? String($t('components.dial
 const submitButtonText = computed(() => isEditMode.value ? String($t('components.dialogs.update')) : String($t('common.save')))
 const {
   form,
-  languageOptions,
-  languageDetection,
   authorQuery,
   referenceQuery,
   authorSuggestions,
@@ -437,7 +398,6 @@ const {
   referenceSuggestionsRef,
   searchAuthors,
   searchReferences,
-  onLanguageSelected,
   handleAuthorInputFocus,
   handleAuthorInputBlur,
   handleAuthorSuggestionsBlur,
@@ -621,7 +581,8 @@ const submitQuote = async () => {
   try {
     const payload = createPayload()
     if (isEditMode.value && props.editQuote) {
-      await submitUpdateQuote(props.editQuote.id, payload)
+      const { language: _language, ...updatePayload } = payload
+      await submitUpdateQuote(props.editQuote.id, updatePayload)
       return
     }
     await submitCreateQuote(payload)
@@ -645,7 +606,7 @@ const submitCreateQuote = async (payload: CreateQuoteData) => {
   await changeStep(1)
 }
 
-const submitUpdateQuote = async (editQuoteId: number, payload: CreateQuoteData) => {
+const submitUpdateQuote = async (editQuoteId: number, payload: CreateQuoteData | Omit<CreateQuoteData, 'language'>) => {
   await $fetch(`/api/quotes/${editQuoteId}`, { method: 'PUT', body: payload })
   emit('quote-updated')
   closeDialog()
