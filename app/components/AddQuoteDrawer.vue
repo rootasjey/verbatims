@@ -42,7 +42,7 @@
 							<span class="mr-2 text-xs tabular-nums opacity-60">02</span>{{ $t('components.dialogs.attribution_step') }}
 						</button>
 					</div>
-					<p v-if="draftSaved" role="status" aria-live="polite" class="mb-4 flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300">
+					<p v-if="draftSaved" role="status" aria-live="polite" :class="['quote-draft-saved-feedback mb-4 flex items-center gap-2 font-sans text-sm text-gray-600 dark:text-gray-300', { 'quote-draft-saved-feedback--pulse': draftSavedPulseActive }]">
 						<NIcon name="i-tabler-circle-check" class="h-4 w-4 shrink-0" />
 						{{ $t('components.dialogs.draft_saved_continue') }}
 					</p>
@@ -60,7 +60,7 @@
 								:placeholder="quotePlaceholder"
 								:rows="4"
 								:disabled="submitting"
-								@input="draftSaved = false"
+								@input="draftSaved = false; clearDraftSavedPulse()"
 								required
 							/>
 							<span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
@@ -263,7 +263,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useQuoteForm } from '~/composables/useQuoteForm'
 import { useQuoteStepTransition } from '~/composables/useQuoteStepTransition'
 
@@ -281,6 +281,8 @@ const step = ref<number>(1)
 const quoteInputRef = ref<any>(null)
 const lastSavedQuote = ref('')
 const draftSaved = ref(false)
+const draftSavedPulseActive = ref(false)
+let draftSavedPulseTimer: ReturnType<typeof setTimeout> | undefined
 const quotePlaceholder = computed(() => {
 	if (!lastSavedQuote.value) return String($t('components.dialogs.quote_placeholder'))
 	const excerpt = lastSavedQuote.value.replace(/\s+/g, ' ').trim()
@@ -295,6 +297,7 @@ const isOpen = computed({
 
 watch(isOpen, (open) => {
 	if (open) step.value = 1
+	else clearDraftSavedPulse()
 })
 const {
 	form,
@@ -380,6 +383,7 @@ const goToAuth = async (path: '/login' | '/signup') => {
 
 const onAuthorInput = () => {
 	draftSaved.value = false
+	clearDraftSavedPulse()
 	showAuthorSuggestions.value = Boolean(authorQuery.value.trim())
 	if (authorQuery.value.trim()) void searchAuthors($fetch, { limit: 10, minLength: 2 })
 	else authorSuggestions.value = []
@@ -387,6 +391,7 @@ const onAuthorInput = () => {
 
 const onReferenceInput = () => {
 	draftSaved.value = false
+	clearDraftSavedPulse()
 	showReferenceSuggestions.value = Boolean(referenceQuery.value.trim())
 	if (referenceQuery.value.trim()) void searchReferences($fetch, { limit: 10, minLength: 2 })
 	else referenceSuggestions.value = []
@@ -418,6 +423,19 @@ const clearAuthorFromField = () => {
 const clearReferenceFromField = () => {
 	clearReference()
 	nextTick(() => referenceInputRef.value?.focus?.())
+}
+
+const clearDraftSavedPulse = () => {
+	draftSavedPulseActive.value = false
+	if (draftSavedPulseTimer) clearTimeout(draftSavedPulseTimer)
+	draftSavedPulseTimer = undefined
+}
+
+const triggerDraftSavedPulse = async () => {
+	clearDraftSavedPulse()
+	await nextTick()
+	draftSavedPulseActive.value = true
+	draftSavedPulseTimer = setTimeout(clearDraftSavedPulse, 1400)
 }
 
 const goToAttributionStep = async () => {
@@ -485,6 +503,7 @@ const submitQuote = async () => {
 		lastSavedQuote.value = savedText
 		form.value.content = ''
 		draftSaved.value = true
+		void triggerDraftSavedPulse()
 		emit('submitted')
 		await goToQuoteStep()
 	} catch (error: any) {
@@ -495,4 +514,6 @@ const submitQuote = async () => {
 		if (draftSaved.value) nextTick(() => quoteInputRef.value?.$el?.querySelector('textarea')?.focus())
 	}
 }
+
+onUnmounted(clearDraftSavedPulse)
 </script>
