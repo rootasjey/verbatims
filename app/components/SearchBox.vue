@@ -55,13 +55,14 @@
           :class="isMobile ? 'search-box-mobile-results' : 'search-box-desktop-results'"
           ref="resultsContainer"
           :aria-label="mode === 'search' && !storeQuery.trim() ? undefined : mode === 'search' ? $t('components.search_box.search_results') as string : mode === 'nav' ? $t('components.search_box.quick_nav') as string : $t('components.search_box.commands') as string"
-          :aria-busy="mode === 'search' ? loading : undefined"
+          :aria-busy="mode === 'search' ? loading || browseSuggestionsLoading : undefined"
           :role="mode !== 'search' || storeQuery.trim() ? 'listbox' : undefined"
         >
           <div
-            v-if="mode === 'search' && selectionIndicator"
+            v-if="mode === 'search' && selectionIndicator && (selectedIndex >= 0 || (isEmptySearchState && emptyStateSelectedIndex >= 0))"
             aria-hidden="true"
-            class="pointer-events-none absolute left-0 top-0 z-0 rounded-lg bg-gray-100 transition-[transform,width,height] duration-200 ease-out dark:bg-gray-800/70 motion-reduce:transition-none"
+            class="pointer-events-none absolute left-0 top-0 z-0 rounded-lg bg-gray-100 transition-[transform,width,height,background-color] duration-200 ease-out motion-reduce:transition-none"
+            :class="isSearchBadgeHighlighted ? 'dark:bg-stone-700/80' : 'dark:bg-gray-800/70'"
             :style="{
               width: `${selectionIndicator.width}px`,
               height: `${selectionIndicator.height}px`,
@@ -216,16 +217,20 @@
                 <h4 id="search-box-recent-heading" class="mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
                   {{ $t('components.search_box.recent_searches') }}
                 </h4>
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap gap-2 px-1 py-1">
                   <div
-                    v-for="search in recentSearches"
+                    v-for="(search, index) in recentSearches"
                     :key="`recent-${search}`"
-                    class="inline-flex min-h-9 items-center gap-1 rounded-md bg-gray-100/80 pl-3 pr-1 dark:bg-white/[0.07]"
+                    :data-empty-state-highlight-index="getEmptyStateIndex('recent', index)"
+                    class="relative inline-flex min-h-9 items-center gap-1 rounded-md pl-3 pr-1"
+                    :class="emptyStateSelectedIndex === getEmptyStateIndex('recent', index) ? 'z-10 bg-transparent' : 'bg-gray-100/80 dark:bg-white/[0.07]'"
                   >
                     <button
                       type="button"
-                      class="inline-flex min-h-9 items-center gap-2 font-sans text-sm text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-gray-500 dark:text-gray-300 dark:hover:text-white dark:focus-visible:outline-gray-400"
+                      :data-empty-state-index="getEmptyStateIndex('recent', index)"
+                      class="inline-flex min-h-9 items-center gap-2 font-sans text-sm text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-none dark:text-gray-300 dark:hover:text-white"
                       @click="startSearch(search)"
+                      @mouseenter="handleEmptyStatePointer(getEmptyStateIndex('recent', index))"
                     >
                       <NIcon name="i-ph-clock-counter-clockwise" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       {{ search }}
@@ -248,19 +253,105 @@
                 <h4 id="search-box-suggested-heading" class="mb-3 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
                   {{ $t('components.search_box.suggested_searches') }}
                 </h4>
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap gap-2 px-1 py-1">
                   <button
-                    v-for="suggestion in emptyStateSuggestions"
+                    v-for="(suggestion, index) in emptyStateSuggestions"
                     :key="`suggested-${suggestion.text}`"
                     type="button"
-                    class="inline-flex min-h-9 items-center gap-2 rounded-md bg-gray-100/80 px-3 font-sans text-sm text-gray-700 transition-colors hover:bg-gray-200/80 hover:text-gray-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 dark:bg-white/[0.07] dark:text-gray-300 dark:hover:bg-white/[0.12] dark:hover:text-white dark:focus-visible:outline-gray-400"
+                    :data-empty-state-index="getEmptyStateIndex('suggested', index)"
+                    class="inline-flex min-h-9 items-center gap-2 rounded-md px-3 font-sans text-sm text-gray-700 transition-colors hover:text-gray-950 focus-visible:outline-none dark:text-gray-300 dark:hover:text-white"
+                    :data-empty-state-highlight-index="getEmptyStateIndex('suggested', index)"
+                    :class="emptyStateSelectedIndex === getEmptyStateIndex('suggested', index) ? 'relative z-10 bg-transparent' : 'bg-gray-100/80 hover:bg-gray-200/80 dark:bg-white/[0.07] dark:hover:bg-white/[0.12]'"
                     @click="startSearch(suggestion.text)"
+                    @mouseenter="handleEmptyStatePointer(getEmptyStateIndex('suggested', index))"
                   >
                     <NIcon :name="suggestion.icon" class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                     {{ suggestion.text }}
                   </button>
                 </div>
               </section>
+
+              <div v-if="browseSuggestionsLoading || browseAuthors.length > 0 || browseReferences.length > 0" class="grid min-w-0 gap-x-8 gap-y-5 border-t border-gray-200 pt-5 dark:border-gray-800 sm:grid-cols-2">
+                <section v-if="browseSuggestionsLoading || browseAuthors.length > 0" class="min-w-0" :aria-labelledby="'search-box-browse-authors-heading'">
+                  <h4 id="search-box-browse-authors-heading" class="mb-2 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                    {{ $t('components.search_box.results_authors') }}
+                  </h4>
+                  <div v-if="browseSuggestionsLoading && browseAuthors.length === 0" class="space-y-3" aria-hidden="true">
+                    <div v-for="index in 3" :key="`author-skeleton-${index}`" class="flex items-center gap-2">
+                      <div class="h-8 w-8 shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+                      <div class="min-w-0 flex-1 space-y-1.5">
+                        <div class="h-3 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                        <div class="h-2.5 w-1/2 animate-pulse rounded bg-gray-100 dark:bg-gray-900" />
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="space-y-1 px-1">
+                    <NuxtLink
+                      v-for="(author, index) in browseAuthors"
+                      :key="`browse-author-${author.id}`"
+                      :to="`/authors/${author.id}`"
+                      :data-empty-state-index="getEmptyStateIndex('author', index)"
+                      :data-empty-state-highlight-index="getEmptyStateIndex('author', index)"
+                      class="group relative flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 focus-visible:outline-none"
+                      :class="emptyStateSelectedIndex === getEmptyStateIndex('author', index) ? 'z-10 bg-transparent' : 'hover:bg-gray-50 dark:hover:bg-white/[0.04]'"
+                      @click="closeAndNavigate"
+                      @mouseenter="handleEmptyStatePointer(getEmptyStateIndex('author', index))"
+                    >
+                      <NAvatar :src="author.image_url || undefined" alt="" size="sm" class="shrink-0 transition-transform duration-200 group-hover:scale-105 group-active:scale-99">
+                        <template #fallback>
+                          <div class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                            <NIcon name="i-ph-user-circle-duotone" class="h-5 w-5" aria-hidden="true" />
+                          </div>
+                        </template>
+                      </NAvatar>
+                      <span class="min-w-0">
+                        <span class="block truncate text-sm font-600 text-gray-800 transition-colors group-hover:text-gray-950 dark:text-gray-200 dark:group-hover:text-white">{{ author.name }}</span>
+                        <span class="block truncate text-xs text-gray-500 dark:text-gray-400">{{ author.job || $t('components.search_box.quote_count', { count: author.quotes_count || 0 }) }}</span>
+                      </span>
+                    </NuxtLink>
+                  </div>
+                </section>
+
+                <section v-if="browseSuggestionsLoading || browseReferences.length > 0" class="min-w-0" :aria-labelledby="'search-box-browse-references-heading'">
+                  <h4 id="search-box-browse-references-heading" class="mb-2 font-sans text-xs font-600 uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                    {{ $t('components.search_box.results_references') }}
+                  </h4>
+                  <div v-if="browseSuggestionsLoading && browseReferences.length === 0" class="space-y-3" aria-hidden="true">
+                    <div v-for="index in 3" :key="`reference-skeleton-${index}`" class="flex items-center gap-2">
+                      <div class="h-8 w-8 shrink-0 animate-pulse rounded-md bg-gray-200 dark:bg-gray-800" />
+                      <div class="min-w-0 flex-1 space-y-1.5">
+                        <div class="h-3 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                        <div class="h-2.5 w-1/2 animate-pulse rounded bg-gray-100 dark:bg-gray-900" />
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="space-y-1 px-1">
+                    <NuxtLink
+                      v-for="(reference, index) in browseReferences"
+                      :key="`browse-reference-${reference.id}`"
+                      :to="`/references/${reference.id}`"
+                      :data-empty-state-index="getEmptyStateIndex('reference', index)"
+                      :data-empty-state-highlight-index="getEmptyStateIndex('reference', index)"
+                      class="group relative flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 focus-visible:outline-none"
+                      :class="emptyStateSelectedIndex === getEmptyStateIndex('reference', index) ? 'z-10 bg-transparent' : 'hover:bg-gray-50 dark:hover:bg-white/[0.04]'"
+                      @click="closeAndNavigate"
+                      @mouseenter="handleEmptyStatePointer(getEmptyStateIndex('reference', index))"
+                    >
+                      <NAvatar :src="reference.image_url || undefined" alt="" rounded="2" size="sm" class="shrink-0 transition-transform duration-200 group-hover:scale-105 group-active:scale-99">
+                        <template #fallback>
+                          <div class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                            <NIcon :name="getReferenceIcon(reference.primary_type)" class="h-4 w-4" aria-hidden="true" />
+                          </div>
+                        </template>
+                      </NAvatar>
+                      <span class="min-w-0">
+                        <span class="block truncate text-sm font-600 text-gray-800 transition-colors group-hover:text-gray-950 dark:text-gray-200 dark:group-hover:text-white">{{ reference.name }}</span>
+                        <span class="block truncate text-xs text-gray-500 dark:text-gray-400">{{ $t('components.search_box.quote_count', { count: reference.quotes_count || 0 }) }}</span>
+                      </span>
+                    </NuxtLink>
+                  </div>
+                </section>
+              </div>
             </div>
 
           </template>
@@ -477,7 +568,7 @@ const navItems = computed<SearchNavItem[]>(() => {
 })
 
 const cmdItems = computed((): any[] => [
-  { label: $t('components.search_box.cmd_add_quote'), icon: 'i-ph-quotes-duotone', description: $t('components.search_box.cmd_add_quote_desc'), shortcut: '⌘N', action: 'add-quote' },
+  { label: $t('components.search_box.cmd_add_quote'), icon: 'i-ph-quotes-duotone', description: $t('components.search_box.cmd_add_quote_desc'), shortcut: '⌘A', action: 'add-quote' },
   { label: $t('components.search_box.cmd_suggest_edit'), icon: 'i-ph-pencil-duotone', description: $t('components.search_box.cmd_suggest_edit_desc'), action: 'suggest-edit' },
   { label: $t('components.search_box.cmd_report'), icon: 'i-ph-bug-duotone', description: $t('components.search_box.cmd_report_desc'), action: 'report-bug' },
   { label: $t('components.search_box.cmd_contact'), icon: 'i-ph-chat-circle-duotone', description: $t('components.search_box.cmd_contact_desc'), action: 'contact' },
@@ -527,7 +618,48 @@ const filteredCmdItems = computed(() => {
 const searchResults = computed(() => searchStore.results)
 const recentSearches = computed(() => searchStore.recent.slice(0, 5))
 const emptyStateSuggestions = searchStore.getRandomSuggestedSearch(5)
+interface BrowseAuthorSuggestion {
+  id: number
+  name: string
+  job?: string | null
+  image_url?: string | null
+  quotes_count?: number
+}
+
+interface BrowseReferenceSuggestion {
+  id: number
+  name: string
+  primary_type: string
+  image_url?: string | null
+  quotes_count?: number
+}
+
+type EmptyStateItem =
+  | { type: 'search'; value: string }
+  | { type: 'author'; value: BrowseAuthorSuggestion }
+  | { type: 'reference'; value: BrowseReferenceSuggestion }
+
+const browseAuthors = ref<BrowseAuthorSuggestion[]>([])
+const browseReferences = ref<BrowseReferenceSuggestion[]>([])
+const browseSuggestionsLoading = ref(false)
+const browseSuggestionsLoaded = ref(false)
+const emptyStateSelectedIndex = ref(-1)
 const isEmptySearchState = computed(() => mode.value === 'search' && !storeQuery.value.trim() && !loading.value)
+const emptyStateItems = computed<EmptyStateItem[]>(() => [
+  ...recentSearches.value.map(value => ({ type: 'search' as const, value })),
+  ...emptyStateSuggestions.map(suggestion => ({ type: 'search' as const, value: suggestion.text })),
+  ...browseAuthors.value.map(value => ({ type: 'author' as const, value })),
+  ...browseReferences.value.map(value => ({ type: 'reference' as const, value }))
+])
+const isSearchBadgeHighlighted = computed(() =>
+  isEmptySearchState.value && emptyStateItems.value[emptyStateSelectedIndex.value]?.type === 'search'
+)
+const getEmptyStateIndex = (section: 'recent' | 'suggested' | 'author' | 'reference', index: number) => {
+  if (section === 'recent') return index
+  if (section === 'suggested') return recentSearches.value.length + index
+  if (section === 'author') return recentSearches.value.length + emptyStateSuggestions.length + index
+  return recentSearches.value.length + emptyStateSuggestions.length + browseAuthors.value.length + index
+}
 const loading = computed(() => searchStore.loading)
 const settledSearchQuery = ref<string | null>(null)
 const hasNoResultsForCurrentQuery = computed(() => {
@@ -553,6 +685,30 @@ const searchShortcut = computed(() => {
   return isMac ? '⌘ O' : 'Ctrl O'
 })
 const searchShortcutAria = computed(() => searchShortcut.value.startsWith('⌘') ? 'Meta+O' : 'Control+O')
+
+const loadBrowseSuggestions = async () => {
+  if (browseSuggestionsLoading.value || browseSuggestionsLoaded.value) return
+
+  browseSuggestionsLoading.value = true
+  try {
+    const [authorsResponse, referencesResponse] = await Promise.all([
+      $fetch<{ authors: BrowseAuthorSuggestion[] }>('/api/authors/random', { params: { count: 3 } }).catch(() => null),
+      $fetch<{ references: BrowseReferenceSuggestion[] }>('/api/references/random', { params: { count: 3 } }).catch(() => null)
+    ])
+
+    if (authorsResponse) browseAuthors.value = authorsResponse.authors || []
+    if (referencesResponse) browseReferences.value = referencesResponse.references || []
+    browseSuggestionsLoaded.value = Boolean(authorsResponse || referencesResponse)
+  } finally {
+    browseSuggestionsLoading.value = false
+  }
+}
+
+watch([isOpen, storeQuery], ([open, query]) => {
+  if (open && !query.trim() && mode.value === 'search') {
+    void loadBrowseSuggestions()
+  }
+})
 
 watch(loading, (isLoading) => {
   if (loadingDelay) clearTimeout(loadingDelay)
@@ -699,6 +855,7 @@ const startSearch = async (query: string) => {
   storeQuery.value = query
   settledSearchQuery.value = null
   selectedIndex.value = -1
+  emptyStateSelectedIndex.value = -1
   try {
     await searchStore.search({ limit: 20 })
   } finally {
@@ -715,6 +872,7 @@ const clearSearchQuery = () => {
 
 watch(storeQuery, () => {
   settledSearchQuery.value = null
+  emptyStateSelectedIndex.value = -1
 })
 
 const goToSearchPage = () => {
@@ -813,6 +971,15 @@ const scrollToSelected = (ensureVisible = false) => {
     element.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' })
   }
 
+  updateSelectionIndicator(element)
+}
+
+const updateSelectionIndicator = (element: HTMLElement) => {
+  const container = resultsContainer.value
+  if (!container) return
+  const containerRect = container.getBoundingClientRect()
+  const elementRect = element.getBoundingClientRect()
+
   selectionIndicator.value = {
     x: elementRect.left - containerRect.left - container.clientLeft,
     y: elementRect.top - containerRect.top - container.clientTop + container.scrollTop,
@@ -861,6 +1028,50 @@ const getCircularIndex = (current: number, direction: 1 | -1, length: number) =>
   return (current + direction + length) % length
 }
 
+const handleEmptyStatePointer = (index: number) => {
+  emptyStateSelectedIndex.value = index
+  void nextTick(() => {
+    const element = resultsContainer.value?.querySelector<HTMLElement>(`[data-empty-state-highlight-index="${index}"]`)
+    if (element) updateSelectionIndicator(element)
+  })
+}
+
+const moveEmptyStateSelection = (direction: 1 | -1) => {
+  emptyStateSelectedIndex.value = getCircularIndex(emptyStateSelectedIndex.value, direction, emptyStateItems.value.length)
+  const selectedIndex = emptyStateSelectedIndex.value
+  if (selectedIndex < 0) return
+
+  nextTick(() => {
+    const focusTarget = resultsContainer.value?.querySelector<HTMLElement>(`[data-empty-state-index="${selectedIndex}"]`)
+    const highlightTarget = resultsContainer.value?.querySelector<HTMLElement>(`[data-empty-state-highlight-index="${selectedIndex}"]`)
+    if (!focusTarget || !highlightTarget) return
+    focusTarget.focus({ preventScroll: true })
+
+    const container = resultsContainer.value
+    if (!container) return
+    const containerRect = container.getBoundingClientRect()
+    const elementRect = highlightTarget.getBoundingClientRect()
+    if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      highlightTarget.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' })
+    }
+    updateSelectionIndicator(highlightTarget)
+  })
+}
+
+const activateEmptyStateSelection = () => {
+  const item = emptyStateItems.value[emptyStateSelectedIndex.value]
+  if (!item) return
+
+  if (item.type === 'search') {
+    void startSearch(item.value)
+    return
+  }
+
+  closeAndNavigate()
+  navigateTo(item.type === 'author' ? `/authors/${item.value.id}` : `/references/${item.value.id}`)
+}
+
 const handleKeydown = (event: KeyboardEvent) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'o') {
     event.preventDefault()
@@ -881,6 +1092,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     storeQuery.value += event.key
     settledSearchQuery.value = null
     selectedIndex.value = -1
+    emptyStateSelectedIndex.value = -1
     searchInput.focus()
     debouncedSearch()
     return
@@ -916,6 +1128,18 @@ const handleKeydown = (event: KeyboardEvent) => {
       selectCurrentResult()
       return
     }
+    return
+  }
+
+  if (isEmptySearchState.value && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+    event.preventDefault()
+    moveEmptyStateSelection(event.key === 'ArrowDown' ? 1 : -1)
+    return
+  }
+
+  if (isEmptySearchState.value && event.key === 'Enter' && emptyStateSelectedIndex.value >= 0) {
+    event.preventDefault()
+    activateEmptyStateSelection()
     return
   }
 
@@ -980,6 +1204,7 @@ watch(isOpen, (isStillOpen) => {
   selectedIndex.value = -1
   selectedNavIndex.value = -1
   selectedCmdIndex.value = -1
+  emptyStateSelectedIndex.value = -1
   resultRefs.value = {}
   selectionIndicator.value = null
 })
