@@ -372,8 +372,6 @@ const submitQuote = async () => {
 				}],
 				new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
 				new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value, primary_type: 'other' as const } : undefined,
-				user_id: user.value?.id,
-				status: 'draft'
 			}
 
 			await $fetch('/api/quotes', {

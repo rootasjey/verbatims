@@ -39,7 +39,7 @@
     </div>
 
     <ClientOnly>
-      <AddQuoteDrawer v-model:open="showAddQuote" @submitted="showAddQuote = false; feed.refresh()" />
+      <AddQuoteDrawer v-model:open="showAddQuote" @submitted="feed.refresh()" />
     </ClientOnly>
   </div>
 </template>

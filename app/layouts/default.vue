@@ -192,7 +192,6 @@
     <ClientOnly>
       <AddQuoteDrawer
         v-model:open="showAddQuote"
-        @submitted="handleQuoteAdded"
       />
       <ReportDrawer
         v-model:open="showReportDrawer"
@@ -212,6 +211,7 @@ const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
+const { user } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
 const showAddQuote = ref(false)
@@ -286,10 +286,6 @@ const navigateBackToQuoteResults = () => {
   navigateTo(quotesFeedStore.snapshot?.sourcePath || '/quotes')
 }
 
-const handleQuoteAdded = () => {
-  showAddQuote.value = false
-}
-
 const closeMobileMenu = () => {
   showMobileMenu.value = false
 }
@@ -304,6 +300,20 @@ const handleMobileMenuKeydown = (event: KeyboardEvent) => {
   if (showMobileMenu.value) closeMobileMenu()
   if (showMobileTheme.value) showMobileTheme.value = false
 }
+
+const handleAddQuoteShortcut = (event: KeyboardEvent) => {
+  if (!import.meta.client || window.matchMedia('(min-width: 768px)').matches) return
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'a' || !user.value || showAddQuote.value) return
+  const target = event.target as HTMLElement | null
+  if (target?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')) return
+  if (showReportDrawer.value || showMobileMenu.value || showMobileTheme.value) return
+
+  event.preventDefault()
+  showAddQuote.value = true
+}
+
+onMounted(() => window.addEventListener('keydown', handleAddQuoteShortcut))
+onUnmounted(() => window.removeEventListener('keydown', handleAddQuoteShortcut))
 
 watch([showMobileMenu, showMobileTheme], ([menuOpen, themeOpen]) => {
   if (!import.meta.client) return

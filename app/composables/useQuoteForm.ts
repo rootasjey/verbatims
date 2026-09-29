@@ -221,7 +221,7 @@ export function useQuoteForm() {
     scrollToItem: () => void
   }) {
     const handleInputFocus = () => {
-      config.show.value = true
+      config.show.value = Boolean(config.query.value.trim())
       config.selectedIndex.value = -1
     }
 
@@ -296,22 +296,25 @@ export function useQuoteForm() {
 
   const selectAuthor = (author: Author) => {
     form.value.selectedAuthor = author
-    authorQuery.value = author.name
+    authorQuery.value = ''
+    authorSuggestions.value = []
     showAuthorSuggestions.value = false
     selectedAuthorIndex.value = -1
   }
 
   const selectReference = (ref: QuoteReference) => {
     form.value.selectedReference = ref
-    referenceQuery.value = ref.name
+    referenceQuery.value = ''
+    referenceSuggestions.value = []
     showReferenceSuggestions.value = false
     selectedReferenceIndex.value = -1
   }
 
   const createNewAuthor = () => {
+    const name = authorQuery.value
     form.value.selectedAuthor = {
       id: 0,
-      name: authorQuery.value,
+      name,
       is_fictional: false,
       birth_date: undefined,
       birth_location: undefined,
@@ -327,14 +330,17 @@ export function useQuoteForm() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as unknown as Author
+    authorQuery.value = ''
+    authorSuggestions.value = []
     showAuthorSuggestions.value = false
     selectedAuthorIndex.value = -1
   }
 
   const createNewReference = () => {
+    const name = referenceQuery.value
     form.value.selectedReference = {
       id: 0,
-      name: referenceQuery.value,
+      name,
       original_language: form.value.language.value as QuoteLanguage,
       release_date: null,
       description: null,
@@ -348,6 +354,8 @@ export function useQuoteForm() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as unknown as QuoteReference
+    referenceQuery.value = ''
+    referenceSuggestions.value = []
     showReferenceSuggestions.value = false
     selectedReferenceIndex.value = -1
   }
@@ -395,12 +403,16 @@ export function useQuoteForm() {
   const clearAuthor = () => {
     form.value.selectedAuthor = null
     authorQuery.value = ''
+    authorSuggestions.value = []
+    showAuthorSuggestions.value = false
     selectedAuthorIndex.value = -1
   }
 
   const clearReference = () => {
     form.value.selectedReference = null
     referenceQuery.value = ''
+    referenceSuggestions.value = []
+    showReferenceSuggestions.value = false
     selectedReferenceIndex.value = -1
   }
 
@@ -479,7 +491,7 @@ export function useQuoteForm() {
     })
   }
 
-  const createPayload = (user: any): CreateQuoteData => {
+  const createPayload = (): CreateQuoteData => {
     return {
       name: form.value.content.trim(),
       language: form.value.language.value as QuoteLanguage,
@@ -489,8 +501,7 @@ export function useQuoteForm() {
         is_primary: true,
       }],
       new_author: form.value.selectedAuthor?.id === 0 ? { name: form.value.selectedAuthor.name, is_fictional: false } : undefined,
-      new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value as QuoteLanguage, primary_type: 'other' as const } : undefined,
-      user_id: user?.id || -1
+      new_reference: form.value.selectedReference?.id === 0 ? { name: form.value.selectedReference.name, original_language: form.value.language.value as QuoteLanguage, primary_type: 'other' as const } : undefined
     }
   }
 

@@ -34,7 +34,6 @@
 
     <AddQuoteDrawer
       v-model:open="showAddQuote"
-      @submitted="handleQuoteAdded"
     />
 
     <ReportDrawer
@@ -47,13 +46,21 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
+const { user } = useUserSession()
 const showAddQuote = ref(false)
 const showReportDrawer = ref(false)
 
-const handleQuoteAdded = () => {
-  // Handle quote added - could refresh data or show toast
-  showAddQuote.value = false
+const handleAddQuoteShortcut = (event: KeyboardEvent) => {
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'a' || !user.value || showAddQuote.value) return
+  const target = event.target as HTMLElement | null
+  if (target?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')) return
+
+  event.preventDefault()
+  showAddQuote.value = true
 }
+
+onMounted(() => window.addEventListener('keydown', handleAddQuoteShortcut))
+onUnmounted(() => window.removeEventListener('keydown', handleAddQuoteShortcut))
 
 const scrollToTop = () => {
   if (import.meta.client) {
