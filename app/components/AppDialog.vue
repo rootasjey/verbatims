@@ -7,22 +7,26 @@
   >
     <template #header>
       <div :class="[
-        'mb-5 grid items-center gap-4 pb-4 border-b border-gray-200/80 dark:border-neutral-700/80',
-        centerTitle ? 'grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_auto]'
+        'mb-5 grid w-full min-w-0 items-center gap-4 pb-4',
+        !$slots['header-progress'] && 'border-b border-gray-200/80 dark:border-neutral-700/80',
+        $slots['header-progress'] ? 'relative grid-cols-[minmax(0,1fr)]' : centerTitle ? 'grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_auto]'
       ]">
-        <div v-if="centerTitle" class="flex min-w-0 items-center gap-3">
+        <div v-if="$slots['header-progress']" class="mx-2 min-w-0">
+          <slot name="header-progress" />
+        </div>
+        <div v-else-if="centerTitle" class="flex min-w-0 items-center gap-3">
           <slot name="header-title"></slot>
         </div>
-        <div v-else class="flex min-w-0 items-center gap-3">
+        <div v-else-if="!centerTitle" class="flex min-w-0 items-center gap-3">
           <slot name="header-title"></slot>
           <h2 v-if="title" :class="['min-w-0 font-serif font-500 tracking-tight text-gray-900 dark:text-gray-100', titleClass || 'text-2xl']">
             <slot name="title">{{ title }}</slot>
           </h2>
         </div>
-        <h2 v-if="centerTitle && title" :class="['min-w-0 max-w-full text-center font-serif font-500 tracking-tight text-gray-900 dark:text-gray-100', titleClass || 'text-2xl']">
+        <h2 v-if="centerTitle && title && !$slots['header-progress']" :class="['min-w-0 max-w-full text-center font-serif font-500 tracking-tight text-gray-900 dark:text-gray-100', titleClass || 'text-2xl']">
           <slot name="title">{{ title }}</slot>
         </h2>
-        <div :class="['flex items-center gap-2', centerTitle && 'justify-end']">
+        <div :class="['flex items-center gap-2', $slots['header-progress'] ? 'absolute -top-2 right-0' : centerTitle && 'justify-end']">
           <slot name="header-actions" />
           <NTooltip :content="$t('components.app_dialog.close')?.toString()">
             <NButton btn="ghost-gray" @click="close" size="sm" label="i-ph-x" icon class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500 dark:focus-visible:ring-stone-400" />

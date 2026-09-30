@@ -13,6 +13,17 @@
     @submit="submitQuote"
     @close="closeDialog"
   >
+    <template v-if="canUseForm && !isEditMode" #header-progress>
+      <div class="grid grid-cols-2 gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
+        <button type="button" :aria-current="quoteStep === 1 ? 'step' : undefined" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors', quoteStep === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
+          <span class="mr-2 text-xs tabular-nums opacity-60">01</span>{{ $t('components.dialogs.quote_step') }}
+        </button>
+        <button type="button" :aria-current="quoteStep === 2 ? 'step' : undefined" :disabled="form.content.trim().length < 2" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', quoteStep === 2 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToAttributionStep">
+          <span class="mr-2 text-xs tabular-nums opacity-60">02</span>{{ $t('components.dialogs.attribution_step') }}
+        </button>
+      </div>
+    </template>
+
     <section v-if="!canUseForm" class="mx-auto max-w-sm py-2 text-center md:py-3">
       <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-gray-200">
         <NIcon name="i-ph-quotes" class="h-6 w-6" />
@@ -31,18 +42,9 @@
     </section>
 
     <form v-else-if="!isEditMode" @submit.prevent="quoteStep === 1 ? goToAttributionStep() : submitQuote()" @keydown.capture="handleCreateEscape" @keydown="handleCreateFormKeydown" class="space-y-5 px-2">
-      <div class="grid grid-cols-2 gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
-        <button type="button" :aria-current="quoteStep === 1 ? 'step' : undefined" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors', quoteStep === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
-          <span class="mr-2 text-xs tabular-nums opacity-60">01</span>{{ $t('components.dialogs.quote_step') }}
-        </button>
-        <button type="button" :aria-current="quoteStep === 2 ? 'step' : undefined" :disabled="form.content.trim().length < 2" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50', quoteStep === 2 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToAttributionStep">
-          <span class="mr-2 text-xs tabular-nums opacity-60">02</span>{{ $t('components.dialogs.attribution_step') }}
-        </button>
-      </div>
-
       <div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative overflow-hidden" @transitionend.self="finishStepTransition">
       <Transition :name="transitionName">
-      <section v-if="quoteStep === 1" key="quote" data-quote-step="1" class="space-y-4 p-2">
+      <section v-if="quoteStep === 1" key="quote" data-quote-step="1" class="space-y-4 px-0 py-2">
         <div class="relative">
           <textarea
             ref="quoteTextarea"
@@ -53,7 +55,7 @@
           :disabled="submitting"
           required
           @input="draftSaved = false; clearDraftSavedPulse()"
-          class="min-h-40 w-full resize-y rounded-1.5 bg-gray-100/80 px-4 pb-10 pt-4 font-serif text-xl leading-snug text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-600 dark:focus-visible:ring-gray-500"
+          class="min-h-40 w-full resize-y rounded-1.5 bg-gray-100/80 px-4 pb-10 pt-4 font-serif text-xl leading-snug text-gray-900 placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400/60 dark:bg-neutral-900/80 dark:text-gray-100 dark:placeholder-gray-600 dark:focus-visible:ring-gray-500"
         />
           <span class="pointer-events-none absolute bottom-3 right-4 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.content.length }))">{{ form.content.length }}</span>
         </div>
@@ -74,6 +76,7 @@
               v-model="authorQuery"
               type="text"
               :placeholder="(form.selectedAuthor ? $t('components.dialogs.replace_selection') : $t('components.dialogs.search_author')) as string"
+              :aria-describedby="!hasAttribution ? 'quote-attribution-required' : undefined"
               :disabled="submitting"
               class="min-w-40 flex-1 border-0 bg-transparent px-1 py-2 font-sans text-base text-gray-900 outline-none placeholder-gray-400 focus:border-0 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500"
               @input="onAuthorInput"
@@ -112,6 +115,7 @@
               v-model="referenceQuery"
               type="text"
               :placeholder="(form.selectedReference ? $t('components.dialogs.replace_selection') : $t('components.dialogs.search_reference')) as string"
+              :aria-describedby="!hasAttribution ? 'quote-attribution-required' : undefined"
               :disabled="submitting"
               class="min-w-40 flex-1 border-0 bg-transparent px-1 py-2 font-sans text-base text-gray-900 outline-none placeholder-gray-400 focus:border-0 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500"
               @input="onReferenceInput"
@@ -136,7 +140,9 @@
           </Transition>
         </div>
         <Transition name="quote-suggestions" @leave="collapseSuggestionPanel">
-          <p v-if="!hasAttribution" class="quote-suggestions-panel font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('components.dialogs.attribution_required') }}</p>
+          <p v-if="!hasAttribution" id="quote-attribution-required" :class="['quote-suggestions-panel quote-attribution-required-feedback w-fit max-w-full font-sans text-xs text-gray-500 dark:text-gray-400', { 'quote-attribution-required-feedback--pulse': attributionRequiredPulseActive }]">
+            <span class="quote-attribution-required-feedback-label">{{ $t('components.dialogs.attribution_required') }}</span>
+          </p>
         </Transition>
       </section>
       </Transition>
@@ -366,6 +372,8 @@ const lastSavedQuote = ref('')
 const draftSaved = ref(false)
 const draftSavedPulseActive = ref(false)
 let draftSavedPulseTimer: ReturnType<typeof setTimeout> | undefined
+const attributionRequiredPulseActive = ref(false)
+let attributionRequiredPulseTimer: ReturnType<typeof setTimeout> | undefined
 const quotePlaceholder = computed(() => {
   if (!lastSavedQuote.value) return String($t('components.dialogs.quote_placeholder'))
   const excerpt = lastSavedQuote.value.replace(/\s+/g, ' ').trim()
@@ -535,6 +543,19 @@ const triggerDraftSavedPulse = async () => {
   draftSavedPulseTimer = setTimeout(clearDraftSavedPulse, 1400)
 }
 
+const clearAttributionRequiredPulse = () => {
+  attributionRequiredPulseActive.value = false
+  if (attributionRequiredPulseTimer) clearTimeout(attributionRequiredPulseTimer)
+  attributionRequiredPulseTimer = undefined
+}
+
+const triggerAttributionRequiredPulse = async () => {
+  clearAttributionRequiredPulse()
+  await nextTick()
+  attributionRequiredPulseActive.value = true
+  attributionRequiredPulseTimer = setTimeout(clearAttributionRequiredPulse, 720)
+}
+
 const onAuthorInput = () => {
   draftSaved.value = false
   clearDraftSavedPulse()
@@ -590,7 +611,13 @@ const submitQuote = async () => {
   if (form.value.content.trim().length < 2) { showContentEmptyError(); return }
   if (!user.value) return
   if (!isEditMode.value && !hasAttribution.value) {
-    void goToAttributionStep()
+    if (quoteStep.value === 2) {
+      void triggerAttributionRequiredPulse()
+      await nextTick()
+      authorInputRef.value?.focus()
+    } else {
+      void goToAttributionStep()
+    }
     return
   }
   submitting.value = true
@@ -645,5 +672,6 @@ onMounted(() => { document.addEventListener('click', handleClickOutside) })
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   clearDraftSavedPulse()
+  clearAttributionRequiredPulse()
 })
 </script>
