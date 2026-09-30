@@ -479,6 +479,14 @@ input:-webkit-autofill {
   transition: height 240ms cubic-bezier(0.16, 1, 0.3, 1), margin-top 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease;
 }
 
+.navigation-menu-content-item-label {
+  line-height: 1.25rem;
+}
+
+.navigation-menu-content-item .i-ph-envelope-duotone {
+  transform: translateY(1px);
+}
+
 .quote-suggestions-panel.quote-suggestions-enter-active,
 .quote-suggestions-panel.quote-suggestions-leave-active {
   overflow: hidden;
