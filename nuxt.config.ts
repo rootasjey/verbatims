@@ -269,9 +269,9 @@ export default defineNuxtConfig({
     '/signup': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/onboarding/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
     '/api/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
-    '/about': { swr: 3600 },
-    '/terms': { swr: 86400 },
-    '/privacy': { swr: 86400 },
+    '/about': process.env.NODE_ENV === 'development' ? {} : { swr: 3600 },
+    '/terms': process.env.NODE_ENV === 'development' ? {} : { swr: 86400 },
+    '/privacy': process.env.NODE_ENV === 'development' ? {} : { swr: 86400 },
     '/presskit/**': { swr: 86400 }
   },  // Image optimization
   image: {
