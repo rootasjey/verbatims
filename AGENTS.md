@@ -516,3 +516,9 @@ General audience: quote lovers, casual browsers, content sharers, and curators. 
 4. **Motion that serves**: Animations should feel like paper moving — subtle, purposeful, never gratuitous. Staggered reveals and gentle fades support the reading rhythm.
 5. **Do not look AI-generated**: Avoid every anti-pattern in the frontend-design skill. The interface should feel human-crafted, intentional, and specific to the content it serves.
 6. **Editorial over dashboard**: Favor reading layouts over data-dashboard layouts. Stats and metrics should be tucked into the design, not leading with them.
+
+### Dialogues
+- Give each dialog one clear primary task and reveal only the controls needed for the current step; make multi-step progress and available actions easy to understand.
+- Keep keyboard navigation, visible focus, validation feedback, and success feedback coherent with the dialog's current context.
+- Use restrained transitions for meaningful content or height changes, and respect `prefers-reduced-motion`.
+- Treat the Add Quote dialog as a quality reference, not a universal template: match the composition and complexity to the task, and prevent content or focus styles from clipping at any viewport size.
