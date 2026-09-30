@@ -207,7 +207,7 @@ import { useQuotesFeedStore } from '~/stores/quotes'
 const route = useRoute()
 const quotesFeedStore = useQuotesFeedStore()
 const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
-const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || isAuthPage.value)
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()

@@ -1,8 +1,8 @@
 <template>
-  <div class="tos-root" :class="{ 'prefers-dark': isDark }">
+  <div class="tos-root">
     <a class="skip-link" href="#main">{{ $t('terms_skip_link') }}</a>
 
-    <header class="tos-header relative pt-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" role="banner">
+    <header id="terms-page-header" class="tos-header relative mx-auto max-w-6xl px-6 pt-12 sm:px-8 md:pt-28 lg:px-10" role="banner">
       <h1 class="title font-serif font-size-32 font-600 line-height-tight">{{ $t('terms_title') }}</h1>
       <p class="subtitle">
         {{ $t('terms_subtitle') }}
@@ -10,11 +10,18 @@
       <p class="meta">
         <span :aria-label="$ts('terms_version', { v: '0.1' })">{{ $t('terms_version', { v: '0.1' }) }}</span>
         <span aria-hidden="true">•</span>
-        <time datetime="2025-07-08">{{ $t('terms_last_updated', { date: '8 August 2025' }) }}</time>
+        <time :datetime="termsLastUpdatedIso">{{ $t('terms_last_updated', { date: termsLastUpdated }) }}</time>
       </p>
     </header>
 
-    <div class="tos-body">
+    <div class="tos-body px-6 sm:px-8 lg:px-10">
+      <LegalContents
+        class="toc"
+        :label="$ts('legal_contents')"
+        :items="termsContentsItems"
+        :active-id="activeTocId"
+      />
+
       <main id="main" class="content" role="main">
         <section
           v-for="item in toc"
@@ -247,74 +254,29 @@
         </footer>
       </main>
 
-      <nav
-        class="toc"
-        aria-label="In-page navigation"
-        role="navigation"
-      >
-        <template v-if="isMobile">
-          <NButton
-            btn="soft-gray"
-            size="md"
-            icon
-            label="i-ph-list-bold"
-            rounded="2xl"
-            class="toc-fab fixed right-4 bottom-10 border border-gray-100 p-6 shadow-lg"
-            aria-label="Open contents"
-            @click="tocOpen = !tocOpen"
-          />
-
-          <NDrawer v-model:open="tocOpen" direction="bottom">
-            <template #body>
-              <div class="px-4 pb-4 overflow-y-auto">
-                <div class="sticky top-0 bg-white py-2 pt-6 z-1 flex items-center justify-between">
-                  <h3 class="font-serif text-4xl font-700">{{ $t('terms_toc_title') }}</h3>
-                  <NButton btn="ghost-gray" size="xs" icon label="i-ph-x-bold" @click="tocOpen = false" />
-                </div>
-
-                <ol class="toc-list-mobile">
-                  <li v-for="item in toc" :key="item.id">
-                    <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
-                      {{ item.num }}. {{ item.title }}
-                    </a>
-                  </li>
-                </ol>
-              </div>
-            </template>
-          </NDrawer>
-        </template>
-
-        <template v-else>
-          <details :open="tocOpen" @toggle="onDetailsToggle">
-            <summary class="toc-summary" :aria-expanded="tocOpen">
-              <span class="toc-icon" aria-hidden="true">☰</span>
-              {{ $t('terms_toc_title') }}
-            </summary>
-            <ol class="toc-list">
-              <li v-for="item in toc" :key="item.id">
-                <a :href="'#' + item.id" class="toc-link" @click="closeTocOnMobile">
-                  {{ item.title }}
-                </a>
-              </li>
-            </ol>
-          </details>
-        </template>
-      </nav>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { usePreferredDark } from '@vueuse/core'
-
 const { $t, $ts } = useI18n()
+const { locale } = useI18nLocale()
+const termsLastUpdatedIso = '2025-08-08'
+const termsFirstPublishedIso = '2025-08-07'
+const termsLastUpdated = computed(() => new Intl.DateTimeFormat(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${termsLastUpdatedIso}T00:00:00Z`)))
 
-const isDark = usePreferredDark()
-const tocOpen = ref(false)
+const activeTocId = ref('')
+let scrollFrame = 0
 
 definePageMeta({
   // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
-  layout: 'default'
+  layout: 'default',
+  pageTransition: { name: 'legal-page', mode: 'out-in' }
 })
 
 useSeoMeta({
@@ -332,12 +294,9 @@ useJsonLd({
   url: 'https://verbatims.cc/terms',
   name: $ts('terms_title'),
   description: $ts('terms_meta_desc'),
-  datePublished: new Date().toISOString().split('T')[0]
+  datePublished: termsFirstPublishedIso,
+  dateModified: termsLastUpdatedIso,
 })
-
-import { useMobileDetection } from '~/composables/useMobileDetection'
-
-const { isMobile } = useMobileDetection()
 
 const toc = [
   { num: 1, id: 'introduction-and-acceptance', title: 'Introduction and Acceptance' },
@@ -361,23 +320,54 @@ const toc = [
   { num: 19, id: 'contact', title: 'Contact Information' },
 ] as const
 
-function closeTocOnMobile() {
-  if (window.matchMedia('(max-width: 900px)').matches) {
-    tocOpen.value = false
-  }
+const termsContentsItems = computed(() => toc.map(item => ({
+  id: item.id,
+  label: item.title,
+})))
+
+function syncActiveSection() {
+  if (scrollFrame) return
+
+  scrollFrame = window.requestAnimationFrame(() => {
+    scrollFrame = 0
+    const activationLine = 144
+    const currentSection = [...toc]
+      .map(item => ({ item, element: document.getElementById(item.id) }))
+      .filter(({ element }) => element && element.getBoundingClientRect().top <= activationLine)
+      .at(-1)?.item
+
+    if (!currentSection) return
+
+    activeTocId.value = currentSection.id
+    const nextHash = `#${currentSection.id}`
+    if (window.location.hash !== nextHash) {
+      window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${nextHash}`)
+    }
+  })
 }
-function onDetailsToggle(e: Event) {
-  const target = e.currentTarget as HTMLDetailsElement | null
-  if (target) {
-    tocOpen.value = target.open
+
+function syncActiveSectionFromHash() {
+  const id = decodeURIComponent(window.location.hash.slice(1))
+  if (toc.some(item => item.id === id)) {
+    activeTocId.value = id
+    return
   }
+  syncActiveSection()
 }
 
 // Default TOC to closed on small screens to reduce initial scroll clutter
 onMounted(() => {
-  if (window.matchMedia('(max-width: 900px)').matches) {
-    tocOpen.value = false
-  }
+  window.addEventListener('scroll', syncActiveSection, { passive: true })
+  window.addEventListener('hashchange', syncActiveSectionFromHash)
+  window.addEventListener('popstate', syncActiveSectionFromHash)
+  syncActiveSection()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', syncActiveSection)
+  window.removeEventListener('hashchange', syncActiveSectionFromHash)
+  window.removeEventListener('popstate', syncActiveSectionFromHash)
+  if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
 })
 </script>
 
@@ -464,7 +454,7 @@ onMounted(() => {
   grid-template-columns: 1fr 280px ;
   gap: 2rem;
   align-items: start;
-  padding: 1rem clamp(1rem, 3vw, 2rem);
+  padding-top: 1rem;
   margin: 0 auto;
 }
 
@@ -477,7 +467,7 @@ onMounted(() => {
   .tos-body {
     grid-template-columns: 1fr;
     gap: 1rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 2rem;
   }
 
   .content {
@@ -488,45 +478,11 @@ onMounted(() => {
     scroll-margin-top: 64px;
   }
 
-  .toc {
-    position: static;
-    width: 100%;
-    border-radius: 10px;
-    box-shadow: none;
-    border: 1px solid var(--line);
-    background: color-mix(in oklab, var(--bg), transparent 0%);
-  }
-
-  .toc-summary {
-    padding: 0.85rem 1rem;
-    font-size: clamp(1.00rem, 0.94rem + 0.30vw, 1.125rem);
-  }
-
   .toc-list {
     font-size: 0.875rem;
     padding: 0.25rem 0.75rem 0.75rem 1.25rem;
   }
 
-  .toc-link {
-    display: block;
-    padding: 0.6rem 0.25rem;
-  }
-
-  /* Drawer body list styling */
-  .toc-list-mobile {
-    list-style: none;
-    margin: 0.8rem 0 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .toc-list-mobile .toc-link {
-    display: block;
-    padding: 0.75rem 0.25rem;
-    border-radius: 8px;
-  }
 }
 
 /* TOC */
@@ -534,74 +490,46 @@ onMounted(() => {
   position: sticky;
   top: calc(64px + 1rem);
   align-self: start;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  background: color-mix(in oklab, var(--bg), transparent 0%);
 }
 
-.toc-summary {
-  font-family: 'Fraunces';
-  font-size: clamp(1.00rem, 0.94rem + 0.30vw, 1.125rem);
-  font-weight: 600;
-  cursor: pointer;
-  list-style: none;
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.toc-link[aria-current='location'] {
+  opacity: 1;
+  font-weight: 650;
 }
 
 .toc-list {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   margin: 0;
   padding: 0.4rem 0.75rem 0.9rem 1.25rem;
   list-style: decimal;
 }
 
 .toc-link {
-  display: inline-block;
-  padding: 0.4rem 0;
-  color: #555;
+  display: block;
+  padding: 0.35rem 0;
+  color: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  opacity: 0.72;
   text-decoration: none;
-  border-radius: 8px;
-  outline-offset: 3px;
-}
-.tos-root.prefers-dark .toc-link {
-  color: #b6b8bf;
-}
-@media (prefers-color-scheme: dark) {
-  .tos-root .toc-link {
-    color: #b6b8bf;
-  }
+  text-underline-offset: 0.2em;
 }
 
 .toc-link:hover,
 .toc-link:focus-visible {
-  color: #1b1b1b;
+  color: inherit;
+  opacity: 1;
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-.tos-root.prefers-dark .toc-link:hover,
-.tos-root.prefers-dark .toc-link:focus-visible {
-  color: #e7e7ea;
-}
-@media (prefers-color-scheme: dark) {
-  .tos-root .toc-link:hover,
-  .tos-root .toc-link:focus-visible {
-    color: #e7e7ea;
-  }
+  text-underline-offset: 0.2em;
 }
 
 /* Content */
 .content {
-  font-family: Inter;
   line-height: 1.65;
   letter-spacing: 0.2px;
   max-width: 74ch;
-  margin-inline: auto;
+  margin-inline: 0;
   scroll-behavior: smooth; /* smooth anchor scrolling */
 }
 
@@ -619,16 +547,7 @@ onMounted(() => {
 }
 
 .sec-num {
-  color: #ff7ace;
   font-weight: 600;
-}
-.tos-root.prefers-dark .sec-num {
-  color: #ff7ace;
-}
-@media (prefers-color-scheme: dark) {
-  .tos-root .sec-num {
-    color: #ff7ace;
-  }
 }
 
 .section-body p {
@@ -830,5 +749,267 @@ summary:focus-visible,
 .section-header h2,
 .title {
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, text-decoration-color 160ms ease, box-shadow 160ms ease;
+}
+
+/* Match the site's editorial reading surfaces and theme instead of a separate legal-page theme. */
+.tos-root {
+  --line: color-mix(in srgb, currentColor 14%, transparent);
+  min-height: 100%;
+  background: transparent;
+  color: inherit;
+}
+
+.tos-header {
+  max-width: 72rem;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.tos-header .title {
+  margin: 0 0 0.65rem;
+  font-family: 'Fraunces', serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  .tos-header .title { font-size: 3.25rem; }
+}
+
+@media (min-width: 1024px) {
+  .tos-header .title { font-size: 3.75rem; }
+}
+
+.tos-header .subtitle {
+  margin: 0 0 0.65rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.tos-header .meta {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.65;
+}
+
+.tos-body {
+  max-width: 72rem;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+  gap: clamp(2rem, 5vw, 5rem);
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.content {
+  max-width: 70ch;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: normal;
+  color: #44403c;
+}
+
+:global(html.dark .content) {
+  color: #e7e5e4;
+}
+
+.section-header h2 {
+  margin: 1.5rem 0 0.7rem;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.375rem, 1.25rem + 0.3vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.25;
+  color: inherit;
+  text-wrap: balance;
+}
+
+.sec-num,
+.tos-root.prefers-dark .sec-num {
+  color: inherit;
+  opacity: 0.58;
+}
+
+.tos-root .sec-num {
+  color: inherit;
+}
+
+.section-body p,
+.tos-root .section-body p {
+  margin: 0.85em 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.7;
+  color: inherit;
+}
+
+.section-body ul {
+  margin: 0.85em 0 1em;
+  padding-left: 1.35em;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.section-body li,
+.section-body li + li {
+  margin: 0.55em 0 0;
+}
+
+.section-body h3,
+.section-body h4,
+.tos-root .section-body h3,
+.tos-root .section-body h4 {
+  margin: 1.5rem 0 0.65rem;
+  font-family: 'Fraunces', serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.toc {
+  top: 6rem;
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  padding-left: 1rem;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  scrollbar-width: thin;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.toc-heading {
+  margin: 0 0 0.75rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+.toc-link,
+.tos-root .toc-link {
+  color: inherit;
+  opacity: 0.72;
+  transition: opacity 160ms ease, text-decoration-color 160ms ease;
+}
+
+.toc-link:hover,
+.toc-link:focus-visible,
+.tos-root .toc-link:hover,
+.tos-root .toc-link:focus-visible {
+  color: inherit;
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.tos-root .toc-link:focus-visible,
+.tos-root.prefers-dark .toc-link:focus-visible {
+  outline-color: color-mix(in srgb, currentColor 55%, transparent);
+  outline-offset: 3px;
+}
+
+.inline-link,
+.tos-root .inline-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.2em;
+}
+
+.inline-link:hover,
+.inline-link:focus-visible,
+.tos-root .inline-link:hover,
+.tos-root .inline-link:focus-visible {
+  color: inherit;
+  text-decoration-thickness: 0.12em;
+}
+
+.divider {
+  margin: 2rem 0;
+  border-top-color: var(--line);
+}
+
+.doc-end p,
+.tos-root .doc-end p,
+.contact,
+.tos-root .contact {
+  color: inherit;
+  opacity: 0.72;
+}
+
+.tos-root a:focus-visible,
+.tos-root button:focus-visible,
+.tos-root summary:focus-visible {
+  outline: 2px solid color-mix(in srgb, currentColor 55%, transparent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media (max-width: 900px) {
+  .tos-body {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    padding-top: 1.25rem;
+  }
+
+  .toc {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
+    max-height: none;
+    padding: 0 0 1.25rem;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .toc-list {
+    columns: 2;
+    column-gap: 1.5rem;
+  }
+
+  .content {
+    grid-column: auto;
+    grid-row: auto;
+    max-width: 70ch;
+  }
+}
+
+@media (max-width: 640px) {
+  .tos-header .title {
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+  }
+
+  .tos-body {
+    padding-inline: 1.5rem;
+  }
+
+  .toc-list {
+    columns: 1;
+  }
+
+  .section-header h2 {
+    margin-top: 1.25rem;
+  }
 }
 </style>

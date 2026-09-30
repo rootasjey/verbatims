@@ -1,17 +1,27 @@
 <template>
-  <main class="prose mx-auto max-w-3xl px-5 py-12">
-    <div class="mt-8">
-      <h1 class="font-serif font-size-24 md:font-size-32 font-600 line-height-tight">{{ $t('privacy_title') }}</h1>
-      <p class="text-sm text-gray-500 relative -top-2">{{ $t('privacy_effective_date', { date: effectiveDate }) }}</p>
-    </div>
+  <main class="legal-page mx-auto max-w-6xl px-6 pb-12 pt-12 sm:px-8 sm:pb-16 md:pt-28 lg:px-10">
+    <header id="privacy-page-header" class="legal-header">
+      <h1>{{ $t('privacy_title') }}</h1>
+      <p class="effective-date">{{ $t('privacy_effective_date', { date: effectiveDate }) }}</p>
+    </header>
 
-    <section>
+    <div class="privacy-body">
+      <LegalContents
+        class="privacy-toc"
+        :label="$ts('legal_contents')"
+        :items="privacyContentsItems"
+        :active-id="activePrivacySectionId"
+      />
+
+      <div class="legal-content text-stone-700 dark:text-stone-200">
+
+    <section id="privacy-introduction" class="privacy-section">
       <h2>{{ $t('privacy_s1_title') }}</h2>
       <p>{{ $t('privacy_s1_p1') }}</p>
       <p>{{ $t('privacy_s1_p2') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-data-collected" class="privacy-section">
       <h2>{{ $t('privacy_s2_title') }}</h2>
       <p>{{ $t('privacy_s2_p1') }}</p>
       <ul>
@@ -22,7 +32,7 @@
       <p>{{ $t('privacy_s2_p2') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-data-use" class="privacy-section">
       <h2>{{ $t('privacy_s3_title') }}</h2>
       <ul>
         <li>{{ $t('privacy_s3_li1') }}</li>
@@ -32,7 +42,7 @@
       <p>{{ $t('privacy_s3_p1') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-third-parties" class="privacy-section">
       <h2>{{ $t('privacy_s4_title') }}</h2>
       <p>{{ $t('privacy_s4_p1') }}</p>
       <p><strong>{{ $t('privacy_s4_p2_label') }} {{ $t('privacy_s4_p2_value') }}</strong></p>
@@ -43,7 +53,7 @@
       <p>{{ $t('privacy_s4_p3') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-data-transfers" class="privacy-section">
       <h2>{{ $t('privacy_s5_title') }}</h2>
       <p>{{ $t('privacy_s5_p1') }}</p>
       <ul>
@@ -53,7 +63,7 @@
       </ul>
     </section>
 
-    <section>
+    <section id="privacy-legal-basis" class="privacy-section">
       <h2>{{ $t('privacy_s6_title') }}</h2>
       <p>{{ $t('privacy_s6_p1') }}</p>
       <ul>
@@ -62,7 +72,7 @@
       </ul>
     </section>
 
-    <section>
+    <section id="privacy-data-retention" class="privacy-section">
       <h2>{{ $t('privacy_s7_title') }}</h2>
       <ul>
         <li><strong>{{ $t('privacy_s7_li1_label') }}</strong> {{ $t('privacy_s7_li1_text') }}</li>
@@ -71,7 +81,7 @@
       <p>{{ $t('privacy_s7_p1') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-rights" class="privacy-section">
       <h2>{{ $t('privacy_s8_title') }}</h2>
       <p>{{ $t('privacy_s8_p1') }}</p>
       <ul>
@@ -84,7 +94,7 @@
       <p>{{ $t('privacy_s8_p2') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-security" class="privacy-section">
       <h2>{{ $t('privacy_s9_title') }}</h2>
       <ul>
         <li>{{ $t('privacy_s9_li1') }}</li>
@@ -95,17 +105,17 @@
       <p>{{ $t('privacy_s9_p1') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-children" class="privacy-section">
       <h2>{{ $t('privacy_s10_title') }}</h2>
       <p>{{ $t('privacy_s10_p1') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-changes" class="privacy-section">
       <h2>{{ $t('privacy_s11_title') }}</h2>
       <p>{{ $t('privacy_s11_p1') }}</p>
     </section>
 
-    <section>
+    <section id="privacy-contact" class="privacy-section">
       <h2>{{ $t('privacy_s12_title') }}</h2>
       <p>{{ $t('privacy_s12_p1') }}</p>
       <ul>
@@ -117,11 +127,88 @@
 
       <p class="font-medium mt-6">{{ $t('privacy_tagline') }}</p>
     </section>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
 const { $t, $ts } = useI18n()
+const { locale } = useI18nLocale()
+const privacyFirstPublishedIso = '2025-08-07'
+const effectiveDate = computed(() => new Intl.DateTimeFormat(locale.value === 'fr' ? 'fr-FR' : 'en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${privacyFirstPublishedIso}T00:00:00Z`)))
+
+const privacySectionEntries = [
+  { id: 'privacy-introduction', key: 'privacy_s1_title' },
+  { id: 'privacy-data-collected', key: 'privacy_s2_title' },
+  { id: 'privacy-data-use', key: 'privacy_s3_title' },
+  { id: 'privacy-third-parties', key: 'privacy_s4_title' },
+  { id: 'privacy-data-transfers', key: 'privacy_s5_title' },
+  { id: 'privacy-legal-basis', key: 'privacy_s6_title' },
+  { id: 'privacy-data-retention', key: 'privacy_s7_title' },
+  { id: 'privacy-rights', key: 'privacy_s8_title' },
+  { id: 'privacy-security', key: 'privacy_s9_title' },
+  { id: 'privacy-children', key: 'privacy_s10_title' },
+  { id: 'privacy-changes', key: 'privacy_s11_title' },
+  { id: 'privacy-contact', key: 'privacy_s12_title' },
+] as const
+
+const privacyContentsItems = computed(() => privacySectionEntries.map(item => ({
+  id: item.id,
+  label: $ts(item.key),
+})))
+
+const activePrivacySectionId = ref('')
+let privacyScrollFrame = 0
+
+function syncActivePrivacySection() {
+  if (privacyScrollFrame) return
+
+  privacyScrollFrame = window.requestAnimationFrame(() => {
+    privacyScrollFrame = 0
+    const isAtPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2
+    const currentSection = isAtPageEnd
+      ? privacySectionEntries.at(-1)
+      : [...privacySectionEntries]
+          .map(item => ({ item, element: document.getElementById(item.id) }))
+          .filter(({ element }) => element && element.getBoundingClientRect().top <= 144)
+          .at(-1)?.item
+
+    activePrivacySectionId.value = currentSection?.id ?? ''
+    const nextHash = currentSection ? `#${currentSection.id}` : ''
+    if (window.location.hash !== nextHash) {
+      window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${nextHash}`)
+    }
+  })
+}
+
+function syncActivePrivacySectionFromHash() {
+  const id = window.location.hash.slice(1)
+  if (privacySectionEntries.some(item => item.id === id)) {
+    activePrivacySectionId.value = id
+    return
+  }
+  syncActivePrivacySection()
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', syncActivePrivacySection, { passive: true })
+  window.addEventListener('hashchange', syncActivePrivacySectionFromHash)
+  window.addEventListener('popstate', syncActivePrivacySectionFromHash)
+  syncActivePrivacySection()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', syncActivePrivacySection)
+  window.removeEventListener('hashchange', syncActivePrivacySectionFromHash)
+  window.removeEventListener('popstate', syncActivePrivacySectionFromHash)
+  if (privacyScrollFrame) window.cancelAnimationFrame(privacyScrollFrame)
+})
 
 useHead({
   title: $ts('privacy_title'),
@@ -139,143 +226,174 @@ useJsonLd({
   url: 'https://verbatims.cc/privacy',
   name: $ts('privacy_title'),
   description: $ts('privacy_meta_desc'),
-  datePublished: new Date().toISOString().split('T')[0]
+  datePublished: privacyFirstPublishedIso,
+  dateModified: privacyFirstPublishedIso,
 })
 definePageMeta({
   // Use a stable initial layout for SSR/hydration; we'll switch after Nuxt is ready on client
-  layout: 'default'
+  layout: 'default',
+  pageTransition: { name: 'legal-page', mode: 'out-in' }
 })
 
-const effectiveDate = new Date().toLocaleDateString('fr-FR', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
 </script>
 
 <style scoped>
-/* Smooth anchor offset for in-page links */
-.prose :where(h1, h2) {
+.legal-page {
+  color: inherit;
+}
+
+.legal-content {
+  max-width: 70ch;
+}
+
+.privacy-body {
+  display: grid;
+  grid-template-columns: minmax(0, 70ch) minmax(14rem, 17rem);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.privacy-toc {
+  position: sticky;
+  top: 6rem;
+  grid-column: 2;
+  grid-row: 1;
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  padding-left: 1rem;
+  border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  scrollbar-width: thin;
+}
+
+.privacy-section {
   scroll-margin-top: 6rem;
 }
 
-/* Slightly tighter readable measure and improved rhythm */
-.prose {
-  line-height: 1.75;
+.legal-header {
+  margin-bottom: 2.5rem;
 }
 
-/* Headings: clear hierarchy and spacing */
-.prose :where(h2) {
-  font-size: 2.0rem;
-  line-height: 1.3;
-  font-weight: 800;
-  font-family: 'Fraunces';
-  margin-top: 2.2em;
-  margin-bottom: 0.8em;
+.legal-header h1 {
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  text-wrap: balance;
 }
 
-/* Paragraphs and lists spacing */
-.prose :where(p) {
-  font-family: 'Nunito';
-  margin-top: 1em;
-  margin-bottom: 1em;
-
-  font-size: 1.5rem; /* 24px */
-  line-height: 2rem; /* 32px */
-  font-weight: 200;
-}
-.prose :where(ul, ol) {
-  font-family: 'Nunito';
-  margin-top: 1em;
-  margin-bottom: 1.25em;
-  padding-left: 1.4em;
-
-  font-size: 1.3rem;
-  line-height: 2rem;
-  font-weight: 300;
-}
-.prose :where(ul) {
-  list-style-type: disc;
-}
-.prose :where(li + li) {
-  margin-top: 1em;
+@media (min-width: 768px) {
+  .legal-header h1 { font-size: 3.25rem; }
 }
 
-/* Strong emphasis slightly toned for long-form text */
-.prose :where(strong) {
+@media (min-width: 1024px) {
+  .legal-header h1 { font-size: 3.75rem; }
+}
+
+.legal-content :deep(h2) {
+  margin: 0 0 1rem;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.375rem, 1.25rem + 0.3vw, 1.625rem);
   font-weight: 600;
+  line-height: 1.25;
+  scroll-margin-top: 6rem;
 }
 
-/* Links: subtle underline that appears on hover/focus */
-.prose :where(a) {
+.effective-date {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+.legal-page section + section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.legal-content :deep(p),
+.legal-content :deep(ul),
+.legal-content :deep(ol) {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.7;
+  color: inherit;
+}
+
+.legal-content :deep(p) {
+  margin: 0.9em 0;
+}
+
+.legal-content :deep(ul),
+.legal-content :deep(ol) {
+  margin: 0.9em 0 1.1em;
+  padding-left: 1.35em;
+}
+
+.legal-content :deep(ul) {
+  list-style: disc;
+}
+
+.legal-content :deep(li + li) {
+  margin-top: 0.55em;
+}
+
+.legal-content :deep(strong) {
+  font-weight: 650;
+}
+
+.legal-content :deep(a) {
   color: inherit;
   text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 0.08em;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.2em;
 }
-.prose :where(a:hover, a:focus-visible) {
+
+.legal-content :deep(a:hover) {
   text-decoration-thickness: 0.12em;
 }
 
-/* Improve focus outlines for accessibility */
-.prose :where(a:focus-visible) {
-  outline: 2px solid #3b82f6; /* blue-500 in light */
-  outline-offset: 2px;
-  border-radius: 2px; /* subtle rounding like terms page */
+.legal-content :deep(a:focus-visible) {
+  border-radius: 2px;
+  outline: 2px solid color-mix(in srgb, currentColor 55%, transparent);
+  outline-offset: 3px;
 }
 
-/* Blockquotes: calmer style */
-.prose :where(blockquote) {
-  font-style: italic;
-  color: #374151; /* gray-700 */
-  border-left: 3px solid #E5E7EB; /* gray-200 */
-  padding-left: 1rem;
-  margin: 1.25em 0;
-}
-
-/* Sections get a gentle separation */
-.prose :where(section + section) {
-  margin-top: 2.5rem;
-  padding-top: 0.25rem;
-  border-top: 1px solid rgba(17, 24, 39, 0.06); /* gray-900 @ 6% */
-}
-
-/* Small meta line under title */
-.prose :where(p.text-sm) {
-  margin-top: -0.5rem;
-  margin-bottom: 1.5rem;
-  color: #6B7280; /* gray-500 (ensure if Tailwind isn't loaded) */
-}
-
-/* Dark mode via prefers-dark class */
-.prefers-dark .prose :where(a:focus-visible) {
-  outline-color: #a9c3ff;
-}
-.prefers-dark .prose :where(blockquote) {
-  color: #9CA3AF; /* gray-400/300 for dark readability */
-  border-left-color: #374151; /* gray-700 */
-}
-.prefers-dark .prose :where(section + section) {
-  border-top-color: rgba(229, 231, 235, 0.08); /* gray-200 @ 8% */
-}
-.prefers-dark .prose :where(p.text-sm) {
-  color: #9CA3AF; /* gray-400 */
-}
-
-/* Dark mode via OS preference */
-@media (prefers-color-scheme: dark) {
-  .prose :where(a:focus-visible) {
-    outline-color: #a9c3ff;
+@media (max-width: 640px) {
+  .legal-header {
+    margin-bottom: 2.5rem;
   }
-  .prose :where(blockquote) {
-    color: #9CA3AF; /* gray-400/300 for dark readability */
-    border-left-color: #374151; /* gray-700 */
+
+  .legal-page section + section {
+    margin-top: 2.25rem;
+    padding-top: 1.5rem;
   }
-  .prose :where(section + section) {
-    border-top-color: rgba(229, 231, 235, 0.08); /* gray-200 @ 8% */
+}
+
+@media (max-width: 900px) {
+  .privacy-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
   }
-  .prose :where(p.text-sm) {
-    color: #9CA3AF; /* gray-400 */
+
+  .privacy-toc {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
+    max-height: none;
+    padding: 0 0 1.25rem;
+    border-left: 0;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
   }
+
+  .legal-content {
+    max-width: 70ch;
+  }
+}
+
+@media (max-width: 640px) {
 }
 </style>
