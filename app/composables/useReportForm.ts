@@ -6,40 +6,49 @@ interface UseReportFormOptions {
 }
 
 export function useReportForm(options: UseReportFormOptions = {}) {
+  const { $t } = useI18n()
   const { user } = useUserSession()
   const isAuthenticated = computed(() => !!user.value)
 
-  const categories: Array<{ label: string; value: ReportCategory }> = [
-    { label: 'Bug', value: 'bug' },
-    { label: 'Feature', value: 'feature' },
-    { label: 'Feedback', value: 'feedback' },
-    { label: 'Content', value: 'content' },
-    { label: 'Other', value: 'other' }
-  ]
+  const categories = computed<Array<{ label: string; value: ReportCategory }>>(() => [
+    { label: String($t('components.dialogs.report_category_bug')), value: 'bug' },
+    { label: String($t('components.dialogs.report_category_feature')), value: 'feature' },
+    { label: String($t('components.dialogs.report_category_feedback')), value: 'feedback' },
+    { label: String($t('components.dialogs.report_category_content')), value: 'content' },
+    { label: String($t('components.dialogs.report_category_other')), value: 'other' }
+  ])
 
   const form = ref({
-    category: categories[0],
+    category: categories.value[0],
     name: '',
     email: '',
     message: ''
   })
 
-  const tagsInput = ref('')
   const pending = ref(false)
 
-  const canSubmit = computed(() => form.value.message.trim().length >= 10)
+  const canSubmit = computed(() => form.value.message.trim().length >= 10
+    && (isAuthenticated.value || !!form.value.name.trim() || !!form.value.email.trim()))
 
   const reset = () => {
-    form.value = { category: categories[0], name: '', email: '', message: '' }
-    tagsInput.value = ''
+    form.value = { category: categories.value[0], name: '', email: '', message: '' }
   }
 
-  const titleFor = (targetType: ReportTargetType) => {
+  const titleFor = (targetType: ReportTargetType, category: ReportCategory) => {
+    if (category === 'content') {
+      return String($t(targetType === 'quote' ? 'components.dialogs.report_title_suggest_edit' : 'components.dialogs.report_title_content'))
+    }
+    if (targetType === 'general') {
+      if (category === 'bug') return String($t('components.dialogs.report_title_issue'))
+      if (category === 'feature') return String($t('components.dialogs.report_title_feature'))
+      return String($t('components.dialogs.report_title_feedback'))
+    }
+
     switch (targetType) {
-      case 'quote': return 'Report Quote'
-      case 'author': return 'Report Author'
-      case 'reference': return 'Report Reference'
-      default: return 'Send Feedback'
+      case 'quote': return String($t('components.dialogs.report_title_quote'))
+      case 'author': return String($t('components.dialogs.report_title_author'))
+      case 'reference': return String($t('components.dialogs.report_title_reference'))
+      default: return String($t('components.dialogs.report_title_feedback'))
     }
   }
 
@@ -48,12 +57,8 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     const targetId = (unref(options.targetId) ?? null) as number | null
 
     const payload: any = {
-      category: (form.value.category?.value ?? categories[0]!.value) as ReportCategory,
+      category: (form.value.category?.value ?? categories.value[0]!.value) as ReportCategory,
       message: form.value.message.trim(),
-      tags: tagsInput.value
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
       target_type: targetType,
       target_id: targetId
     }
@@ -85,7 +90,6 @@ export function useReportForm(options: UseReportFormOptions = {}) {
     // state
     categories,
     form,
-    tagsInput,
     pending,
     isAuthenticated,
     canSubmit,

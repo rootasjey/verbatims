@@ -6,6 +6,7 @@
   "empty_search_desc": "Try adjusting your search terms.",
   "empty_title": "No drafts yet",
   "empty_desc": "Start writing your first quote draft.",
+  "empty_action": "Create New Quote",
   "restriction_email": "Verify your email before submitting drafts for review.",
   "restriction_age": "Your account must be at least 7 days old before submitting drafts for review.",
   "bulk_submit": "Submit Selected",

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+    <div class="mb-8">
+      <h2 class="font-serif text-2xl font-500 leading-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
         {{ $t('title') }}
-      </h1>
+      </h2>
       <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
         {{ totalSponsors }} {{ totalSponsors === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
       </p>
@@ -179,7 +179,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'default',
   middleware: 'auth',
 })
 

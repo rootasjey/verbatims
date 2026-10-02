@@ -184,7 +184,8 @@ const signUpWithEmail = async () => {
     })
 
     await refreshCookie('nuxt-session')
-    await navigateTo('/')
+    await useUserSession().fetch()
+    await navigateTo('/dashboard')
   } catch (err: any) {
     console.error('Email sign up error:', err)
     error.value = err.data?.message || $ts('auth.error_create_account')

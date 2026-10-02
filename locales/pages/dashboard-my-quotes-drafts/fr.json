@@ -6,6 +6,7 @@
   "empty_search_desc": "Essayez de modifier vos termes de recherche.",
   "empty_title": "Aucun brouillon",
   "empty_desc": "Commencez à rédiger votre premier brouillon de citation.",
+  "empty_action": "Créer une citation",
   "restriction_email": "Vérifiez votre email avant de soumettre des brouillons pour révision.",
   "restriction_age": "Votre compte doit avoir au moins 7 jours avant de soumettre des brouillons.",
   "bulk_submit": "Soumettre la sélection",

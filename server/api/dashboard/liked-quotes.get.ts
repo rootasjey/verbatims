@@ -27,7 +27,9 @@ export default defineEventHandler(async (event) => {
       createdAt: schema.quotes.createdAt,
       updatedAt: schema.quotes.updatedAt,
       user_name: schema.users.name,
-      liked_at: schema.userLikes.createdAt,
+      // user_likes.created_at is stored as SQLite datetime text despite the
+      // integer timestamp mode in the Drizzle schema.
+      liked_at_text: sql<string | null>`${schema.userLikes.createdAt}`,
       tag_names: sql<string>`GROUP_CONCAT(${schema.tags.name})`,
       tag_colors: sql<string>`GROUP_CONCAT(${schema.tags.color})`
     })
@@ -62,10 +64,12 @@ export default defineEventHandler(async (event) => {
     // Process tags from GROUP_CONCAT results
     const provenance = await getPrimaryQuoteProvenance(likedQuotes.map(quote => quote.id))
     const processedQuotes = likedQuotes.map((quote: any) => {
+      const { liked_at_text: likedAt, ...quoteData } = quote
       const quoteProvenance = provenance.get(quote.id)
       const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
       return {
-        ...quote,
+        ...quoteData,
+        liked_at: likedAt,
         author: attribution?.author_id ? attribution.author : null,
         reference: attribution?.reference_id ? attribution.reference : null,
         tags: parseTags(quote.tag_names, quote.tag_colors),

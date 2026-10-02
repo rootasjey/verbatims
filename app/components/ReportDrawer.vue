@@ -2,22 +2,20 @@
   <NDrawer v-model:open="isOpen" direction="bottom">
     <template #body>
       <div class="p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-title uppercase text-size-4 font-600">{{ title }}</h3>
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <h3 class="sr-only">{{ title }}</h3>
+          <NSelect
+            v-model="form.category"
+            :items="categories"
+            item-key="label"
+            value-key="label"
+            :aria-label="$t('components.dialogs.report_category') as string"
+            class="min-w-0 flex-1"
+          />
           <NButton icon btn="ghost-gray" label="i-ph-x-bold" size="sm" @click="close" />
         </div>
 
-        <form class="space-y-4" @submit.prevent="onSubmit">
-          <div>
-            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_category') }}</label>
-            <NSelect
-              v-model="form.category"
-              :items="categories"
-              item-key="label"
-              value-key="label"
-            />
-          </div>
-
+        <form class="space-y-4 px-2 font-sans" @submit.prevent="onSubmit">
           <div v-if="!isAuthenticated">
             <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_name') }}</label>
             <NInput v-model="form.name" :placeholder="$t('components.dialogs.report_placeholder_name') as string" />
@@ -29,26 +27,31 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_message') }}</label>
-            <NInput
-              type="textarea"
-              v-model="form.message"
-              :rows="5"
-              :placeholder="$t('components.dialogs.report_placeholder_message') as string"
-              required
-            />
-            <div class="mt-1 text-right text-xs text-gray-500">{{ form.message.length }}/4000</div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-1">{{ $t('components.dialogs.report_tags') }}</label>
-            <NInput v-model="tagsInput" :placeholder="$t('components.dialogs.report_tags_placeholder') as string" />
+            <div class="mb-2 space-y-1">
+              <label for="mobile-report-message" class="block text-sm font-medium">{{ $t('components.dialogs.report_message') }}</label>
+              <p class="text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ messageHint }}</p>
+            </div>
+            <div class="relative">
+              <NInput
+                id="mobile-report-message"
+                autofocus
+                type="textarea"
+                v-model="form.message"
+                :rows="5"
+                maxlength="4000"
+                :placeholder="messagePlaceholder"
+                required
+                class="w-full bg-gray-50 text-base shadow-none dark:bg-neutral-900"
+                :una="{ input: 'pb-10 pr-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400/70 dark:focus-visible:ring-gray-500' }"
+              />
+              <span class="pointer-events-none absolute bottom-3 right-3 font-sans text-xs tabular-nums text-gray-500 dark:text-gray-400" aria-live="polite" :aria-label="String($t('components.dialogs.character_count', { count: form.message.length }))">{{ form.message.length }}/4000</span>
+            </div>
           </div>
         </form>
 
         <div class="mt-5 flex gap-2">
-          <NButton btn="light:soft dark:soft-white" class="flex-1" @click="close" :disabled="pending">{{ $t('common.cancel') }}</NButton>
-          <NButton btn="soft-blue" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">{{ $t('components.dialogs.submit') }}</NButton>
+          <NButton btn="ghost-gray" class="flex-1" @click="close" :disabled="pending">{{ $t('common.cancel') }}</NButton>
+          <NButton btn="solid-black" class="flex-1" :loading="pending" :disabled="!canSubmit" @click="onSubmit">{{ submitText }}</NButton>
         </div>
       </div>
     </template>
@@ -88,7 +91,6 @@ const { showErrorToast } = useErrorToast()
 const {
   categories,
   form,
-  tagsInput,
   pending,
   isAuthenticated,
   canSubmit,
@@ -105,12 +107,15 @@ watch(
   () => isOpen.value,
   (open) => {
     if (!open || !props.category) return
-    const found = categories.find(c => c.value === props.category)
+    const found = categories.value.find(c => c.value === props.category)
     if (found) form.value.category = found
   }
 )
 
-const title = computed(() => titleFor(props.targetType))
+const title = computed(() => titleFor(props.targetType, form.value.category?.value ?? 'bug'))
+const submitText = computed(() => String($t(form.value.category?.value === 'content' ? 'components.dialogs.report_suggest_submit' : 'components.dialogs.report_submit')))
+const messagePlaceholder = computed(() => String($t(form.value.category?.value === 'bug' ? 'components.dialogs.report_placeholder_bug' : form.value.category?.value === 'content' ? 'components.dialogs.report_placeholder_content' : 'components.dialogs.report_placeholder_message')))
+const messageHint = computed(() => String($t(form.value.category?.value === 'bug' ? 'components.dialogs.report_bug_hint' : form.value.category?.value === 'content' ? 'components.dialogs.report_content_hint' : 'components.dialogs.report_message_hint')))
 
 const close = () => { isOpen.value = false; reset() }
 
@@ -123,7 +128,11 @@ const onSubmit = async () => {
       return
     }
     
-    toast({ title: String($t('components.dialogs.report_thanks')), toast: 'success' })
+    toast({
+      title: String($t('components.dialogs.report_thanks')),
+      toast: 'soft-gray',
+      leading: 'i-ph-check-circle text-emerald-700 dark:text-emerald-400'
+    })
     emit('submitted')
     close()
   } catch (error) {

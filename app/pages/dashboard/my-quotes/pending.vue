@@ -1,57 +1,46 @@
 <template>
-  <div>
+  <div :aria-busy="loading">
     <!-- Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            {{ $t('title') }}
-          </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? String($t('common.status_pending')).toLowerCase() + ' ' + $t('common.quote_singular') : String($t('common.status_pending')).toLowerCase() + ' ' + $t('common.quote_plural') }}
-          </p>
-        </div>
-        <div class="hidden md:flex items-center gap-3">
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="$t('search_placeholder') as string"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 w-48"
-          />
+    <div class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="font-sans text-base text-gray-600 dark:text-gray-400">
+          {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? String($t('common.status_pending')).toLowerCase() + ' ' + $t('common.quote_singular') : String($t('common.status_pending')).toLowerCase() + ' ' + $t('common.quote_plural') }}
+        </p>
+      </div>
+      <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center md:justify-end">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="$t('search_placeholder') as string"
+          class="h-10 w-full rounded-md border border-gray-300 bg-white/50 px-3 font-sans text-sm text-gray-800 placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 md:w-52"
+        />
+        <div class="flex justify-end md:block">
           <NCombobox
             :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
             @update:model-value="(v: any) => { if (v) sortValue = v.value }"
             :items="sortOptions"
             by="value"
-            :_combobox-list="{
-              class: 'min-w-[180px]',
-            }"
+            :_combobox-list="{ class: 'min-w-[180px]' }"
             :_combobox-trigger="{
               btn: 'ghost-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              trailing: 'i-ph-caret-down',
+              class: 'h-10 gap-2 rounded-md border border-gray-300 bg-white/50 px-3 text-sm font-medium text-gray-800 hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10',
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
+        </div>
+        <div class="hidden md:block">
           <LanguageSelector :on-language-changed="onLanguageChanged" :use-classic-design="true" />
         </div>
-      </div>
-      <div class="md:hidden mt-4">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="$t('search_placeholder') as string"
-          class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
-        />
       </div>
     </div>
 
     <!-- Loading (first load) -->
-    <div v-if="!hasLoadedOnce && loading" class="space-y-5">
+    <div v-if="showInitialSkeleton && !hasLoadedOnce && loading" class="space-y-5">
       <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
         <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4 mb-2" />
         <div class="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/2 mb-2" />
@@ -61,19 +50,19 @@
 
     <!-- Empty -->
     <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
-      </p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
-      </p>
-      <NuxtLink
+      <DashboardEmptyStateCopy
+        :heading="String(searchQuery ? pageT('empty_search_title') : pageT('empty_title'))"
+        :description="String(searchQuery ? pageT('empty_search_desc') : pageT('empty_desc'))"
+      />
+      <NButton
         v-if="!searchQuery"
         to="/dashboard/my-quotes/drafts"
-        class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
+        btn="solid-black"
+        trailing="i-ph-arrow-right"
+        class="min-h-10 justify-center gap-2 rounded-1 bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] duration-150 hover:bg-gray-700 active:scale-96 motion-reduce:active:scale-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300 dark:focus-visible:ring-gray-400 dark:focus-visible:ring-offset-[#17191e]"
       >
-        {{ $t('empty_action') }} &rarr;
-      </NuxtLink>
+        {{ pageT('empty_action') }}
+      </NButton>
     </div>
 
     <!-- Results -->
@@ -89,8 +78,8 @@
           <div class="flex items-start gap-3">
             <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block" @click.prevent="viewQuote(quote as unknown as DashboardQuote)">
               <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-                <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2">
-                  &ldquo;{{ quote.name }}&rdquo;
+                <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 dark:text-gray-100">
+                  {{ quote.name }}
                 </blockquote>
               </ContextMenu>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -105,7 +94,7 @@
                 <span v-if="!quote.reference?.name && (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
                 <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
-                  <span class="font-sans text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">{{ $t('common.status_pending') }}</span>
+                  <span class="rounded-sm bg-gray-100 px-1.5 py-0.5 font-sans text-xs text-gray-600 dark:bg-white/10 dark:text-gray-300">{{ $t('common.status_pending') }}</span>
               </div>
             </NuxtLink>
             <NDropdownMenu :items="getMobileActions(quote)">
@@ -187,7 +176,7 @@
                 <td class="px-3 py-3 align-top">
                   <div class="max-w-md">
                     <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-                      <blockquote class="font-body text-sm text-gray-900 dark:text-gray-100 leading-relaxed whitespace-normal break-words mb-1 line-clamp-2">
+                      <blockquote class="mb-1 line-clamp-2 whitespace-normal break-words font-serif text-base leading-relaxed text-gray-900 dark:text-gray-100">
                         {{ quote.name }}
                       </blockquote>
                     </ContextMenu>
@@ -228,7 +217,7 @@
                   </NCombobox>
                 </td>
                 <td class="px-3 py-3 align-top">
-                <span class="font-sans text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5">{{ $t('common.status_pending') }}</span>
+                <span class="rounded-sm bg-gray-100 px-1.5 py-0.5 font-sans text-xs text-gray-600 dark:bg-white/10 dark:text-gray-300">{{ $t('common.status_pending') }}</span>
                 </td>
                 <td class="px-3 py-3 align-top">
                   <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
@@ -308,11 +297,12 @@ interface DashboardQuote extends QuoteWithRelations {
 }
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'default',
   middleware: 'auth'
 })
 
 const { $t } = useI18n()
+const pageT = useI18n().$_t({ ...useRoute() })
 
 useHead({
   title: $t('meta_title') as string
@@ -356,6 +346,8 @@ const { showErrorToast } = useErrorToast()
 const loading = ref(true)
 const loadingMore = ref(false)
 const hasLoadedOnce = ref(false)
+const showInitialSkeleton = ref(false)
+let initialSkeletonTimer: ReturnType<typeof setTimeout> | undefined
 const bulkProcessing = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
@@ -514,6 +506,8 @@ const loadPendingQuotes = async (page = 1) => {
   } catch (error) {
     console.error('Failed to load pending quotes:', error)
   } finally {
+    if (initialSkeletonTimer) clearTimeout(initialSkeletonTimer)
+    showInitialSkeleton.value = false
     loading.value = false
     loadingMore.value = false
     hasLoadedOnce.value = true
@@ -649,7 +643,14 @@ const loadMore = async () => {
 }
 
 onMounted(() => {
+  initialSkeletonTimer = setTimeout(() => {
+    if (!hasLoadedOnce.value && loading.value) showInitialSkeleton.value = true
+  }, 250)
   loadPendingQuotes()
+})
+
+onBeforeUnmount(() => {
+  if (initialSkeletonTimer) clearTimeout(initialSkeletonTimer)
 })
 
 const showPageJumpDialog = ref(false)

@@ -28,17 +28,17 @@
     <!-- Content -->
     <div v-else>
       <!-- Header -->
-      <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-        <NuxtLink to="/dashboard/lists" class="inline-flex items-center gap-1 font-sans text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors mb-4">
+      <div class="mb-8">
+        <NuxtLink to="/dashboard/lists" class="mb-4 inline-flex items-center gap-1 font-sans text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
           &larr; {{ $t('back_to_lists') }}
         </NuxtLink>
 
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-3 mb-2">
-              <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100 truncate">
+              <h2 class="font-serif text-2xl font-500 leading-tight text-gray-900 dark:text-gray-100 sm:text-3xl break-words">
                 {{ collection.name }}
-              </h1>
+              </h2>
               <span
                 v-if="collection.is_public"
                 class="hidden md:inline font-sans text-xs text-green-600 dark:text-green-400 flex-shrink-0"
@@ -107,15 +107,15 @@
         >
           <div class="flex items-start gap-4">
             <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
-              <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-                &ldquo;{{ quote.name }}&rdquo;
+              <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 transition-colors group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-gray-200 md:text-xl">
+                {{ quote.name }}
               </blockquote>
               <div class="flex items-center gap-2 mt-2 flex-wrap">
-                <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ (quote as any).author_name || $t('common.unknown') }}</span>
-                <span v-if="(quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
-                <span v-if="(quote as any).reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).reference_name }}</span>
+                <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ (quote as any).author?.name || (quote as any).author_name || $t('common.unknown') }}</span>
+                <span v-if="(quote as any).reference?.name || (quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>
+                <span v-if="(quote as any).reference?.name || (quote as any).reference_name" class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ (quote as any).reference?.name || (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('common.added') }} {{ formatDate(quote.added_at) }}</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('common.added') }} {{ formatDate(quote.added_at) }}</span>
               </div>
             </NuxtLink>
             <div class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -181,7 +181,7 @@
 import { formatDate } from '~/utils/time-formatter'
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'default',
   middleware: 'auth'
 })
 
@@ -280,7 +280,8 @@ const collectionActions = computed(() => ([
 ]))
 
 const handleShareQuote = (quote: any) => {
-  const text = `"${quote.name}"${quote.author_name ? ` - ${quote.author_name}` : ''}`
+  const authorName = quote.author?.name || quote.author_name
+  const text = `"${quote.name}"${authorName ? ` - ${authorName}` : ''}`
   if (navigator.share) {
     navigator.share({
       title: $t('share_title') as string,

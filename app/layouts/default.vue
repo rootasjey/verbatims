@@ -51,6 +51,7 @@
         </div>
 
         <span class="flex-1" aria-hidden="true" />
+        <UserMenu v-if="isDashboardPage && user" :user="user" />
         <NButton
           v-if="route.path === '/' && homeTheme"
           icon
@@ -176,16 +177,60 @@
     <!-- Main content: responsive top/bottom spacing -->
     <main
       class="pt-14 md:pt-0 md:pb-10"
-      :class="route.path.startsWith('/quotes/')
-        ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
-        : 'pb-10'"
+      :class="[
+        route.path.startsWith('/quotes/')
+          ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
+          : 'pb-10',
+        isDashboardPage ? 'min-h-[calc(100vh-3.5rem)]' : ''
+      ]"
     >
-      <slot />
+      <div v-if="isDashboardPage" class="mx-auto w-full max-w-6xl px-6 pb-10 pt-8 sm:px-8 md:pb-14 md:pt-28 lg:px-10">
+        <header class="pb-8 md:pb-12">
+          <h1 class="font-serif text-5xl font-400 leading-[0.98] tracking-[-0.035em] text-gray-900 dark:text-gray-100 sm:text-6xl lg:text-7xl">
+            {{ $t('dashboard.workspace_title') }}
+          </h1>
+          <p class="mt-4 max-w-2xl font-sans text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            {{ $t('dashboard.workspace_description') }}
+          </p>
+          <DashboardContextNav class="mt-6" />
+        </header>
+        <div
+          ref="dashboardPanelShell"
+          class="dashboard-data-panel-shell"
+          :aria-busy="dashboardViewTransitionPending"
+        >
+          <section ref="dashboardPanelSurface" :class="['min-h-full', isDashboardListsIndex ? 'px-0 py-0' : 'rounded-2xl bg-[#e7e4dd] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]']">
+            <div ref="dashboardPanelContent" :inert="dashboardViewTransitionPending">
+              <slot />
+            </div>
+          </section>
+          <div
+            v-if="dashboardViewTransitionPending"
+            class="dashboard-transition-state rounded-2xl bg-[#e7e4dd] dark:bg-[#17191e]"
+            role="status"
+            :aria-label="$t('common.loading') as string"
+          >
+            <span class="sr-only">{{ $t('common.loading') }}</span>
+            <div aria-hidden="true" class="w-full max-w-3xl space-y-6 px-5 sm:px-8 lg:px-12">
+              <div
+                v-for="row in 3"
+                :key="row"
+                class="space-y-3 border-b border-stone-300/70 pb-6 last:border-0 dark:border-white/10 motion-reduce:animate-none animate-pulse"
+              >
+                <span class="block h-4 w-full rounded-sm bg-stone-300/70 dark:bg-white/10" />
+                <span class="block h-4 w-4/5 rounded-sm bg-stone-300/70 dark:bg-white/10" />
+                <span class="block h-3 w-1/3 rounded-sm bg-stone-300/70 dark:bg-white/10" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <slot v-else />
     </main>
 
     <!-- Keep the full editorial footer on desktop; mobile navigation owns those destinations. -->
     <div class="hidden md:block">
-      <AppFooter v-if="!isAuthPage" class="homepage-v3-footer" />
+      <AppFooter v-if="!isAuthPage && !isDashboardPage" class="homepage-v3-footer" />
     </div>
 
     <!-- Mobile-only drawers (client-only to avoid SSR issues with NDrawer) -->
@@ -207,14 +252,141 @@ import { useQuotesFeedStore } from '~/stores/quotes'
 const route = useRoute()
 const quotesFeedStore = useQuotesFeedStore()
 const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
-const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value)
+const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
+const isDashboardListsIndex = computed(() => route.path === '/dashboard/lists')
+const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
+const dashboardPanelShell = ref<HTMLElement | null>(null)
+const dashboardPanelSurface = ref<HTMLElement | null>(null)
+const dashboardPanelContent = ref<HTMLElement | null>(null)
+let dashboardPanelObserver: ResizeObserver | undefined
+let dashboardPanelAnimationFrame = 0
+let dashboardPanelLastHeight = 0
+let dashboardPanelResizeTimer: ReturnType<typeof setTimeout> | undefined
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value || isDashboardPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
 const { user } = useUserSession()
+
+const finishDashboardPanelResize = (event: TransitionEvent) => {
+  if (event.propertyName !== 'height' || !dashboardPanelShell.value) return
+  dashboardPanelShell.value.style.overflow = 'visible'
+}
+
+const holdDashboardPanelHeight = () => {
+  if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
+  cancelAnimationFrame(dashboardPanelAnimationFrame)
+
+  const shell = dashboardPanelShell.value
+  const currentHeight = shell?.getBoundingClientRect().height
+  if (shell && currentHeight) {
+    dashboardPanelLastHeight = currentHeight
+    shell.style.height = `${currentHeight}px`
+  }
+}
+
+const animateDashboardPanelToContent = () => {
+  const shell = dashboardPanelShell.value
+  const surface = dashboardPanelSurface.value
+  const content = dashboardPanelContent.value
+  if (!shell || !surface || !content) return
+
+  const surfaceStyles = window.getComputedStyle(surface)
+  const verticalPadding = Number.parseFloat(surfaceStyles.paddingTop) + Number.parseFloat(surfaceStyles.paddingBottom)
+  const nextHeight = Math.max(416, content.scrollHeight + verticalPadding)
+  if (Math.abs(nextHeight - dashboardPanelLastHeight) < 1) return
+
+  const currentHeight = shell.getBoundingClientRect().height || dashboardPanelLastHeight
+  dashboardPanelLastHeight = nextHeight
+  shell.style.height = `${currentHeight}px`
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    shell.style.height = `${nextHeight}px`
+    shell.style.overflow = 'visible'
+    return
+  }
+
+  shell.style.overflow = 'clip'
+  cancelAnimationFrame(dashboardPanelAnimationFrame)
+  dashboardPanelAnimationFrame = requestAnimationFrame(() => {
+    shell.style.height = `${nextHeight}px`
+  })
+}
+
+const scheduleDashboardPanelResize = (delay = 120) => {
+  if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
+  dashboardPanelResizeTimer = setTimeout(() => {
+    const content = dashboardPanelContent.value
+    if (dashboardViewTransitionPending.value || content?.querySelector('[aria-busy="true"]')) return
+    animateDashboardPanelToContent()
+  }, delay)
+}
+
+watch(() => route.path, (path, previousPath) => {
+  if (!path.startsWith('/dashboard') || !previousPath.startsWith('/dashboard')) return
+  dashboardViewTransitionPending.value = true
+  holdDashboardPanelHeight()
+}, { flush: 'sync' })
+
+watch(dashboardViewTransitionPending, async (pending) => {
+  if (pending) {
+    holdDashboardPanelHeight()
+    return
+  }
+
+  await nextTick()
+  if (dashboardPanelContent.value) {
+    dashboardPanelObserver?.unobserve(dashboardPanelContent.value)
+    dashboardPanelObserver?.observe(dashboardPanelContent.value)
+  }
+  scheduleDashboardPanelResize(0)
+}, { flush: 'post' })
+
+watch(isDashboardPage, (isDashboard) => {
+  if (!isDashboard) dashboardViewTransitionPending.value = false
+}, { flush: 'sync' })
+
+watch(isDashboardPage, async (isDashboard) => {
+  if (!isDashboard) {
+    dashboardPanelObserver?.disconnect()
+    dashboardPanelObserver = undefined
+    if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
+    dashboardPanelShell.value?.removeEventListener('transitionend', finishDashboardPanelResize)
+    return
+  }
+
+  await nextTick()
+  const shell = dashboardPanelShell.value
+  const surface = dashboardPanelSurface.value
+  const content = dashboardPanelContent.value
+  if (!shell || !surface || !content) return
+
+  dashboardPanelLastHeight = surface.getBoundingClientRect().height
+  shell.style.height = `${dashboardPanelLastHeight}px`
+  shell.addEventListener('transitionend', finishDashboardPanelResize)
+
+  dashboardPanelObserver = new ResizeObserver(() => {
+    // Keep the current panel height while a dashboard view is fetching data.
+    // Loading skeletons are temporary layout, not the destination height.
+    if (dashboardViewTransitionPending.value || content.querySelector('[aria-busy="true"]')) {
+      holdDashboardPanelHeight()
+      return
+    }
+
+    scheduleDashboardPanelResize()
+  })
+  dashboardPanelObserver.observe(content)
+}, { immediate: true, flush: 'post' })
+
+onBeforeUnmount(() => {
+  dashboardPanelObserver?.disconnect()
+  if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
+  cancelAnimationFrame(dashboardPanelAnimationFrame)
+  dashboardPanelShell.value?.removeEventListener('transitionend', finishDashboardPanelResize)
+})
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
-const showAddQuote = ref(false)
+const showAddQuote = useState('app-add-quote-drawer-open', () => false)
 const showReportDrawer = ref(false)
 const showMobileMenu = ref(false)
 const showMobileTheme = ref(false)
@@ -362,6 +534,27 @@ useHead({
 </script>
 
 <style scoped>
+.dashboard-data-panel-shell {
+  position: relative;
+  min-height: 26rem;
+  transition: height 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-transition-state {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-data-panel-shell {
+    transition: none;
+  }
+}
+
 .quote-masthead-brand-enter-active,
 .quote-masthead-brand-leave-active {
   transition: opacity 180ms ease, transform 180ms ease;

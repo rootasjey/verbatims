@@ -277,6 +277,7 @@
       v-model="showReportDialog"
       targetType="quote"
       :targetId="quote.id"
+      :category="reportCategory"
     />
   </ClientOnly>
 
@@ -688,6 +689,11 @@ const headerMenuItems = computed<QuoteMenuItem[]>(() => {
       onclick: () => copyQuoteText()
     },
     {
+      label: $ts('quote_detail_menu_suggest_edit'),
+      leading: 'i-lucide-pencil',
+      onclick: () => suggestQuoteEdit()
+    },
+    {
       label: $ts('quote_detail_menu_report'),
       leading: 'i-lucide-flag',
       onclick: () => reportQuote()
@@ -830,7 +836,15 @@ const onDownloadedImage = () => {
 const onDownloadDrawerOpenChange = (v: boolean) => { showDownloadDrawer.value = v }
 
 const showReportDialog = ref(false)
-const reportQuote = () => { showReportDialog.value = true }
+const reportCategory = ref<ReportCategory>('bug')
+const reportQuote = () => {
+  reportCategory.value = 'bug'
+  showReportDialog.value = true
+}
+const suggestQuoteEdit = () => {
+  reportCategory.value = 'content'
+  showReportDialog.value = true
+}
 
 const copyQuoteText = async () => {
   if (!quote.value) return

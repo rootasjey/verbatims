@@ -12,6 +12,10 @@ export default defineEventHandler(async (event) => {
     // Get user's collections with quote count
     const collections = await db.select({
       ...getTableColumns(schema.userCollections),
+      // Keep a text projection alongside the legacy timestamp-mode columns:
+      // SQLite stores CURRENT_TIMESTAMP defaults as text in this database.
+      createdAtText: sql<string | null>`${schema.userCollections.createdAt}`,
+      updatedAtText: sql<string | null>`${schema.userCollections.updatedAt}`,
       quotes_count: sql<number>`COUNT(${schema.collectionQuotes.quoteId})`
     })
       .from(schema.userCollections)
@@ -22,18 +26,24 @@ export default defineEventHandler(async (event) => {
       .limit(limit)
       .offset(offset)
     
+    const formattedCollections = collections.map(({ createdAtText, updatedAtText, ...collection }) => ({
+      ...collection,
+      createdAt: createdAtText,
+      updatedAt: updatedAtText,
+    }))
+
     // Get total count
     const totalResult = await db.select({ total: count() })
       .from(schema.userCollections)
       .where(eq(schema.userCollections.userId, user.id))
 
     const total = Number(totalResult[0]?.total) ?? 0
-    const collectionCount = Number(collections.length) ?? 0
+    const collectionCount = Number(formattedCollections.length) ?? 0
     const hasMore = offset + collectionCount < total
 
     return {
       success: true,
-      data: { results: collections },
+      data: { results: formattedCollections },
       pagination: {
         page,
         limit,
