@@ -173,16 +173,6 @@ const navMenuItems = computed(() => [
         onclick: () => { showAddQuote.value = true }
       }] : []),
       {
-        label: $ts('nav.suggest_edit'),
-        leading: 'i-ph-pencil-duotone',
-        description: $ts('nav.suggest_edit_desc'),
-        onclick: () => {
-          reportTargetType.value = 'quote'
-          reportCategory.value = 'content'
-          showReportDrawer.value = true
-        }
-      },
-      {
         label: $ts('nav.report_issue'),
         leading: 'i-ph-bug-duotone',
         description: $ts('nav.report_issue_desc'),
@@ -286,12 +276,8 @@ const handleSearchAction = (action: string) => {
     case 'add-quote':
       showAddQuote.value = true
       break
-    case 'suggest-edit':
-      reportTargetType.value = 'quote'
-      reportCategory.value = 'content'
-      showReportDrawer.value = true
-      break
     case 'report-bug':
+      reportTargetType.value = 'general'
       reportCategory.value = 'bug'
       showReportDrawer.value = true
       break

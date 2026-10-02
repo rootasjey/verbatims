@@ -1,23 +1,15 @@
 <template>
-  <div>
+  <div :aria-busy="loading">
     <!-- Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            {{ $t('title') }}
-          </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ totalQuotes }} {{ $t('liked_prefix') }}{{ totalQuotes === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
-          </p>
-        </div>
-        <div class="hidden md:flex items-center gap-4">
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="$t('search_placeholder') as string"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
-          />
+    <div class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+      <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="$t('search_placeholder') as string"
+          class="h-10 w-full min-w-0 rounded-md border border-gray-300 bg-white/50 px-3 font-sans text-sm text-gray-800 placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 md:w-52 md:flex-none"
+        />
+        <div class="flex justify-end md:block">
           <NCombobox
             :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
             @update:model-value="(v: any) => { if (v) sortValue = v.value }"
@@ -29,23 +21,15 @@
             :_combobox-trigger="{
               btn: 'ghost-gray',
               size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
+              trailing: 'i-ph-caret-down',
+              class: 'h-10 gap-2 rounded-md border border-gray-300 bg-white/50 px-3 text-sm font-medium text-gray-800 hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10',
             }"
           >
             <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
+              <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
         </div>
-      </div>
-      <div class="md:hidden mt-4">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="$t('search_placeholder') as string"
-          class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
-        />
       </div>
     </div>
 
@@ -60,21 +44,23 @@
 
     <!-- Empty -->
     <div v-else-if="filteredQuotes.length === 0" class="py-16 text-center">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
-      </p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
-      </p>
-      <NuxtLink v-if="!searchQuery" to="/"
-        class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
+      <DashboardEmptyStateCopy
+        :heading="String(searchQuery ? pageT('empty_search_title') : pageT('empty_title'))"
+        :description="String(searchQuery ? pageT('empty_search_desc') : pageT('empty_desc'))"
+      />
+      <NButton
+        v-if="!searchQuery"
+        to="/"
+        btn="solid-black"
+        trailing="i-tabler-sparkle-highlight"
+        class="min-h-10 justify-center gap-2 rounded-1 bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] duration-150 hover:bg-gray-700 active:scale-96 motion-reduce:active:scale-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300 dark:focus-visible:ring-gray-400 dark:focus-visible:ring-offset-[#17191e]"
       >
-        {{ $t('empty_action') }} &rarr;
-      </NuxtLink>
+        {{ $t('empty_action') }}
+      </NButton>
     </div>
 
     <!-- Feed -->
-    <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
+    <div v-else class="divide-y divide-stone-300/70 dark:divide-white/10">
       <div
         v-for="(quote, idx) in filteredQuotes"
         :key="quote.id"
@@ -82,26 +68,42 @@
         :style="{ animationDelay: `${idx * 0.05}s` }"
       >
         <div class="flex items-start gap-4">
-          <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
+          <div class="flex-1 min-w-0">
+            <NuxtLink :to="`/quotes/${quote.id}`" class="block">
             <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-              <blockquote class="font-body text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed line-clamp-2 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-                &ldquo;{{ quote.name }}&rdquo;
+              <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 transition-colors group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-gray-200 md:text-xl">
+                {{ quote.name }}
               </blockquote>
             </ContextMenu>
+            </NuxtLink>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
               <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                <span class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author.name }}</span>
+                <NuxtLink
+                  v-if="quote.author.id"
+                  :to="`/authors/${quote.author.id}`"
+                  class="font-sans text-sm font-500 text-gray-700 underline decoration-transparent underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-300 dark:hover:text-gray-100"
+                  @click.stop
+                >{{ quote.author.name }}</NuxtLink>
+                <span v-else class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ quote.author.name }}</span>
               </ContextMenu>
-              <span v-if="!quote.author?.name && quote.author_name" class="font-sans text-xs text-gray-600 dark:text-gray-400 font-500">{{ quote.author_name }}</span>
+              <span v-if="!quote.author?.name && quote.author_name" class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ quote.author_name }}</span>
               <span v-if="(quote.author?.name || quote.author_name) && (quote.reference?.name || quote.reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
               <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.reference.name }}</span>
+                <NuxtLink
+                  v-if="quote.reference.id"
+                  :to="`/references/${quote.reference.id}`"
+                  class="font-sans text-sm text-gray-600 underline decoration-transparent underline-offset-4 transition-colors hover:text-gray-900 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100"
+                  @click.stop
+                >{{ quote.reference.name }}</NuxtLink>
+                <span v-else class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ quote.reference.name }}</span>
               </ContextMenu>
-              <span v-if="!quote.reference?.name && quote.reference_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.reference_name }}</span>
-              <span class="text-gray-300 dark:text-gray-600">·</span>
-              <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ $t('liked_prefix') }}{{ formatDate(quote.liked_at) }}</span>
+              <span v-if="!quote.reference?.name && quote.reference_name" class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ quote.reference_name }}</span>
+              <template v-if="quote.liked_at">
+                <span v-if="quote.author?.name || quote.author_name || quote.reference?.name || quote.reference_name" class="text-gray-300 dark:text-gray-600">·</span>
+                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('liked_prefix') }}{{ formatDate(quote.liked_at) }}</span>
+              </template>
             </div>
-          </NuxtLink>
+          </div>
           <div class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <NTooltip :content="$t('tooltip_add_to_collection') as string">
               <button @click.stop="handleAddToCollection(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
@@ -176,7 +178,7 @@ import { getDateTimestamp } from '~/utils/time-formatter'
 import { formatDate } from '~/utils/time-formatter'
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'default',
   middleware: 'auth'
 })
 
@@ -193,9 +195,12 @@ onMounted(() => {
 })
 
 const { showErrorToast } = useErrorToast()
+const { user } = useUserSession()
+const favouritesCount = useState<number | null>(`dashboard-favourites-count-${String(user.value?.id ?? 'anonymous')}`, () => null)
+const pageT = useI18n().$_t({ ...useRoute() })
 
 interface LikedQuote extends QuoteWithMetadata {
-  liked_at: string
+  liked_at: string | null
   likes_count: number
   is_liked: boolean
   author_name?: string
@@ -207,6 +212,7 @@ interface LikedQuote extends QuoteWithMetadata {
 }
 
 const loading = ref(true)
+const hasLoadedOnce = ref(false)
 const quotes = ref<LikedQuote[]>([])
 const searchQuery = ref('')
 const sortValue = ref('recent')
@@ -272,11 +278,13 @@ const loadFavourites = async () => {
 
     quotes.value = response?.data || []
     totalQuotes.value = response?.pagination?.total ?? 0
+    favouritesCount.value = totalQuotes.value
     totalPages.value = response?.pagination?.totalPages ?? 1
   } catch (error) {
     console.error('Failed to load favourites:', error)
   } finally {
     loading.value = false
+    hasLoadedOnce.value = true
   }
 }
 

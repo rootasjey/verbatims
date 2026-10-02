@@ -82,7 +82,12 @@
         >
           <template #item-content="{ items: menuItems }">
             <ul class="grid gap-1 p-3 min-w-64 max-w-80">
-              <li v-for="child in menuItems" :key="child.label" class="w-full">
+              <li
+                v-for="child in menuItems"
+                :key="child.label"
+                class="w-full"
+                :class="child.label === $t('nav.contact') ? 'mt-2 border-t border-gray-200 pt-2 dark:border-white/10' : ''"
+              >
                 <template v-if="(child as any).slot === 'language'">
                   <button type="button" class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/10" :aria-expanded="showLanguageMenu" @click.stop.prevent="showLanguageMenu = !showLanguageMenu">
                     <NIcon :name="child.leading" class="h-5 w-5 shrink-0" />
@@ -146,7 +151,7 @@
 const { $t, $switchLocale } = useI18n() as any
 const { locale } = useI18nLocale()
 const route = useRoute()
-const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || route.path === '/login' || route.path === '/signup')
+const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || route.path === '/login' || route.path === '/signup')
 const { user } = useUserSession()
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
@@ -154,7 +159,7 @@ const scrollY = ref(0)
 const showSearch = ref(false)
 const showThemePopover = ref(false)
 const showLanguageMenu = ref(false)
-const showAddQuote = ref(false)
+const showAddQuote = useState('app-add-quote-dialog-open', () => false)
 const showReportDrawer = ref(false)
 const reportTargetType: Ref<ReportTargetType> = ref('general')
 const reportCategory: Ref<ReportCategory> = ref('feedback')
@@ -186,19 +191,19 @@ const navMenuItems = computed((): any[] => [
     trailing: '',
     items: [
       {
-        label: $t('nav.browse_authors'),
+        label: $t('nav.authors'),
         to: '/authors'
       },
       {
-        label: $t('nav.browse_references'),
+        label: $t('nav.references'),
         to: '/references'
       },
       {
-        label: $t('nav.browse_quotes'),
+        label: $t('nav.quotes'),
         to: '/quotes'
       },
       {
-        label: $t('nav.browse_tags'),
+        label: $t('nav.tags'),
         to: '/tags'
       },
       {
@@ -233,15 +238,6 @@ const navMenuItems = computed((): any[] => [
         onclick: () => { showAddQuote.value = true }
       },
       {
-        label: $t('nav.suggest_edit'),
-        leading: 'i-ph-pencil-duotone',
-        onclick: () => {
-          reportTargetType.value = 'quote'
-          reportCategory.value = 'content'
-          showReportDrawer.value = true
-        }
-      },
-      {
         label: $t('nav.report_issue'),
         leading: 'i-ph-bug-duotone',
         onclick: () => {
@@ -267,15 +263,6 @@ const navMenuItems = computed((): any[] => [
         to: '/about'
       },
       {
-        label: $t('nav.contact'),
-        leading: 'i-ph-envelope-duotone',
-        onclick: () => {
-          reportTargetType.value = 'general'
-          reportCategory.value = 'feedback'
-          showReportDrawer.value = true
-        }
-      },
-      {
         label: $t('nav.privacy'),
         leading: 'i-ph-shield-check-duotone',
         to: '/privacy'
@@ -289,6 +276,15 @@ const navMenuItems = computed((): any[] => [
         label: $t('nav.licenses'),
         leading: 'i-ph-book-open-duotone',
         to: '/licenses'
+      },
+      {
+        label: $t('nav.contact'),
+        leading: 'i-ph-envelope-duotone',
+        onclick: () => {
+          reportTargetType.value = 'general'
+          reportCategory.value = 'feedback'
+          showReportDrawer.value = true
+        }
       },
       {
         label: $t('nav.version'),
@@ -328,12 +324,8 @@ const handleSearchAction = (action: string) => {
     case 'add-quote':
       showAddQuote.value = true
       break
-    case 'suggest-edit':
-      reportTargetType.value = 'quote'
-      reportCategory.value = 'content'
-      showReportDrawer.value = true
-      break
     case 'report-bug':
+      reportTargetType.value = 'general'
       reportCategory.value = 'bug'
       showReportDrawer.value = true
       break

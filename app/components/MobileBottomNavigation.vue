@@ -194,7 +194,7 @@ watch(() => route.fullPath, () => {
 
 /* Ensure navigation doesn't interfere with content */
 @media (max-width: 767px) {
-  body {
+  :global(body:has(.mobile-bottom-navigation)) {
     padding-bottom: 80px; /* Height of bottom navigation */
   }
 }

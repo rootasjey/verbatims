@@ -1,22 +1,24 @@
 <template>
   <div>
-    <div class="flex items-center justify-between pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <div>
-        <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-          {{ $t('title') }}
-        </h1>
-        <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {{ $t('subtitle') }}
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
-        <NDropdownMenu :items="bulkActions">
-          <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1">
-            {{ $t('bulk_actions') }}
-            <NIcon name="i-ph-caret-down" class="w-3 h-3" />
-          </button>
-        </NDropdownMenu>
-        <OutlinedButton @click="showCreateDialog = true">{{ $t('new_key') }}</OutlinedButton>
+    <div class="mb-8">
+      <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="font-serif text-2xl font-500 leading-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
+            {{ $t('title') }}
+          </h2>
+          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ $t('subtitle') }}
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <NDropdownMenu :items="bulkActions">
+            <button class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1">
+              {{ $t('bulk_actions') }}
+              <NIcon name="i-ph-caret-down" class="w-3 h-3" />
+            </button>
+          </NDropdownMenu>
+          <OutlinedButton @click="showCreateDialog = true">{{ $t('new_key') }}</OutlinedButton>
+        </div>
       </div>
     </div>
 
@@ -316,7 +318,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+definePageMeta({ layout: 'default', middleware: 'auth' })
 const { $t } = useI18n()
 
 useHead({ title: $t('meta_title') as string })

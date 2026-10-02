@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { and, count, desc, eq, inArray } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, sql } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
@@ -14,8 +14,10 @@ export default defineEventHandler(async (event) => {
       is_public: schema.userCollections.isPublic,
       name: schema.userCollections.name,
       description: schema.userCollections.description,
-      created_at: schema.userCollections.createdAt,
-      updated_at: schema.userCollections.updatedAt,
+      // SQLite CURRENT_TIMESTAMP defaults are text even though these Drizzle
+      // columns use timestamp mode; return the stored representation directly.
+      created_at: sql<string | null>`${schema.userCollections.createdAt}`,
+      updated_at: sql<string | null>`${schema.userCollections.updatedAt}`,
       user_name: schema.users.name,
       user_avatar: schema.users.avatarUrl,
     })
@@ -46,9 +48,9 @@ export default defineEventHandler(async (event) => {
         likesCount: schema.quotes.likesCount,
         sharesCount: schema.quotes.sharesCount,
         isFeatured: schema.quotes.isFeatured,
-        createdAt: schema.quotes.createdAt,
-        updatedAt: schema.quotes.updatedAt,
-        addedAt: schema.collectionQuotes.addedAt,
+        created_at: sql<string | null>`${schema.quotes.createdAt}`,
+        updated_at: sql<string | null>`${schema.quotes.updatedAt}`,
+        added_at: sql<string | null>`${schema.collectionQuotes.addedAt}`,
         user_name: schema.users.name,
       })
         .from(schema.collectionQuotes)

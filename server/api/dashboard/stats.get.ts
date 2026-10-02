@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, count, sum, sql } from 'drizzle-orm'
+import { and, eq, count, sum, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -29,6 +29,15 @@ export default defineEventHandler(async (event) => {
     const likesGivenResult = await db.select({ count: count() })
       .from(schema.userLikes)
       .where(eq(schema.userLikes.userId, user!.id))
+
+    const favouritesResult = await db.select({ count: count() })
+      .from(schema.userLikes)
+      .innerJoin(schema.quotes, eq(schema.userLikes.likeableId, schema.quotes.id))
+      .where(and(
+        eq(schema.userLikes.userId, user!.id),
+        eq(schema.userLikes.likeableType, 'quote'),
+        eq(schema.quotes.status, 'approved')
+      ))
     
     return {
       success: true,
@@ -42,7 +51,8 @@ export default defineEventHandler(async (event) => {
         views: Number(quoteStats?.total_views) || 0,
         shares: Number(quoteStats?.total_shares) || 0,
         collections: Number(collectionsResult[0]?.count) || 0,
-        likes_given: Number(likesGivenResult[0]?.count) || 0
+        likes_given: Number(likesGivenResult[0]?.count) || 0,
+        favourites: Number(favouritesResult[0]?.count) || 0
       }
     }
   } catch (error: any) {

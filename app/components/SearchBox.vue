@@ -569,7 +569,6 @@ const navItems = computed<SearchNavItem[]>(() => {
 
 const cmdItems = computed((): any[] => [
   { label: $t('components.search_box.cmd_add_quote'), icon: 'i-ph-quotes-duotone', description: $t('components.search_box.cmd_add_quote_desc'), shortcut: '⌘A', action: 'add-quote' },
-  { label: $t('components.search_box.cmd_suggest_edit'), icon: 'i-ph-pencil-duotone', description: $t('components.search_box.cmd_suggest_edit_desc'), action: 'suggest-edit' },
   { label: $t('components.search_box.cmd_report'), icon: 'i-ph-bug-duotone', description: $t('components.search_box.cmd_report_desc'), action: 'report-bug' },
   { label: $t('components.search_box.cmd_contact'), icon: 'i-ph-chat-circle-duotone', description: $t('components.search_box.cmd_contact_desc'), action: 'contact' },
 ])

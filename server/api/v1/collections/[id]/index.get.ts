@@ -33,8 +33,10 @@ export default defineEventHandler(async (event) => {
       description: schema.userCollections.description,
       isPublic: schema.userCollections.isPublic,
       userId: schema.userCollections.userId,
-      createdAt: schema.userCollections.createdAt,
-      updatedAt: schema.userCollections.updatedAt,
+      // SQLite defaults these timestamp-mode columns to text; keep their raw
+      // representation so the driver does not coerce them into Invalid Date.
+      createdAtText: sql<string | null>`${schema.userCollections.createdAt}`,
+      updatedAtText: sql<string | null>`${schema.userCollections.updatedAt}`,
     })
     .from(schema.userCollections)
     .where(eq(schema.userCollections.id, collectionId))
@@ -67,9 +69,9 @@ export default defineEventHandler(async (event) => {
     likesCount: schema.quotes.likesCount,
     sharesCount: schema.quotes.sharesCount,
     isFeatured: schema.quotes.isFeatured,
-    createdAt: schema.quotes.createdAt,
-    updatedAt: schema.quotes.updatedAt,
-    addedAt: schema.collectionQuotes.addedAt,
+    createdAtText: sql<string | null>`${schema.quotes.createdAt}`,
+    updatedAtText: sql<string | null>`${schema.quotes.updatedAt}`,
+    addedAtText: sql<string | null>`${schema.collectionQuotes.addedAt}`,
   })
     .from(schema.collectionQuotes)
     .innerJoin(schema.quotes, eq(schema.collectionQuotes.quoteId, schema.quotes.id))
@@ -108,9 +110,9 @@ export default defineEventHandler(async (event) => {
       attributions: quoteProvenance?.attributions ?? [],
       sources: quoteProvenance?.sources ?? [],
       tags: tagsByQuoteId[quote.id] ?? [],
-      added_at: quote.addedAt,
-      created_at: quote.createdAt,
-      updated_at: quote.updatedAt,
+      added_at: quote.addedAtText,
+      created_at: quote.createdAtText,
+      updated_at: quote.updatedAtText,
     }
   })
 
@@ -123,8 +125,8 @@ export default defineEventHandler(async (event) => {
       is_public: collection.isPublic,
       quotes_count: total,
       quotes: processedQuotes,
-      created_at: collection.createdAt,
-      updated_at: collection.updatedAt,
+      created_at: collection.createdAtText,
+      updated_at: collection.updatedAtText,
       pagination: {
         page,
         limit,

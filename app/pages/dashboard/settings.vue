@@ -1,66 +1,68 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
+    <div class="mb-8">
+      <h2 class="font-serif text-2xl font-500 leading-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
         {{ $t('title') }}
-      </h1>
-      <div class="flex items-center gap-5 mt-4 overflow-x-auto">
+      </h2>
+      <div class="mt-5 flex items-center gap-6 overflow-x-auto border-b border-black/10 dark:border-white/10">
         <button
           v-for="tab in tabs"
           :key="tab.value"
           @click="activeTab = tab.value"
-          class="font-sans text-xs uppercase tracking-[0.15em] whitespace-nowrap transition-colors pb-1"
+          type="button"
+          class="whitespace-nowrap border-b-2 border-transparent px-1 py-2 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 dark:focus-visible:ring-white/20"
           :class="activeTab === tab.value
-            ? 'text-gray-900 dark:text-gray-100 font-600 border-b border-dashed border-gray-900 dark:border-gray-100'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'"
+            ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100'
+            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'"
         >
           {{ tab.name }}
         </button>
       </div>
     </div>
 
+    <Transition name="dashboard-tab" mode="out-in">
     <!-- Profile Tab -->
-    <div v-if="activeTab === 'profile'" class="space-y-8">
+    <div v-if="activeTab === 'profile'" key="profile" class="space-y-10">
       <!-- Profile Information -->
-      <div class="pb-8 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+      <div class="border-b border-gray-200 pb-8 dark:border-white/10">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_profile') }}
         </h2>
-        <div class="space-y-5 max-w-lg">
+        <div class="max-w-2xl space-y-6">
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_display_name') }}</label>
+            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_display_name') }}</label>
             <input
               v-model="profileForm.name"
               type="text"
               :placeholder="$t('placeholder_display_name') as string"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_email') }}</label>
+            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_email') }}</label>
             <input
               v-model="profileForm.email"
               type="email"
               :placeholder="$t('placeholder_email') as string"
               disabled
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-200 dark:border-gray-700 px-2 py-1.5 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              class="w-full cursor-not-allowed rounded-md border border-gray-200 bg-gray-100 px-3 py-2.5 font-sans text-sm text-gray-500 opacity-80 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400"
             />
-            <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $t('helper_email') }}</p>
+            <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_email') }}</p>
           </div>
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_bio') }}</label>
+            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_bio') }}</label>
             <textarea
               v-model="profileForm.bio"
               :placeholder="$t('placeholder_bio') as string"
               rows="4"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400 resize-none"
+              class="w-full resize-y rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <div class="pt-2">
             <button
               :disabled="savingProfile"
-              class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm disabled:opacity-50"
+              class="min-h-10 rounded-md border border-gray-300 px-4 py-2 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20 dark:text-gray-100 dark:hover:bg-white/10 dark:focus-visible:ring-white/20"
               @click="saveProfile"
             >
               {{ savingProfile ? $t('saving') : $t('save_profile') }}
@@ -70,70 +72,70 @@
       </div>
 
       <!-- Language Preferences -->
-      <div class="pb-8 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+      <div class="border-b border-gray-200 pb-8 dark:border-white/10">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_language') }}
         </h2>
-        <div class="max-w-lg">
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_preferred_language') }}</label>
+        <div class="max-w-2xl">
+          <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_preferred_language') }}</label>
           <LanguageSelector />
-          <p class="font-sans text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $t('helper_language') }}</p>
+          <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_language') }}</p>
         </div>
       </div>
 
       <!-- Privacy & Visibility -->
       <div>
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_privacy') }}
         </h2>
-        <div class="space-y-5 max-w-lg">
-          <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="max-w-2xl space-y-1">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_public_profile') }}</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
             </div>
             <NSwitch v-model="privacySettings.public_profile" switch-checked="indigo" />
           </div>
-          <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_attribution') }}</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
             </div>
             <NSwitch v-model="privacySettings.show_attribution" switch-checked="indigo" />
           </div>
         </div>
       </div>
       <!-- Security -->
-      <div class="pb-8 border-b border-dashed border-gray-200 dark:border-gray-700">
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+      <div class="border-b border-gray-200 pb-8 dark:border-white/10">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_security') }}
         </h2>
-        <div class="space-y-5 max-w-lg">
+        <div class="max-w-2xl space-y-6">
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_current_password') }}</label>
+            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
             <input
               v-model="passwordForm.currentPassword"
               type="password"
               :placeholder="currentPasswordPlaceholder"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_new_password') }}</label>
+            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
             <input
               v-model="passwordForm.newPassword"
               type="password"
               :placeholder="newPasswordPlaceholder"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <div>
-            <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_confirm_password') }}</label>
+            <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
             <input
               v-model="passwordForm.confirmPassword"
               type="password"
               :placeholder="confirmPasswordPlaceholder"
-              class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <p v-if="passwordError" class="font-sans text-xs text-red-500 dark:text-red-400">{{ passwordError }}</p>
@@ -141,7 +143,7 @@
           <div class="pt-2">
             <button
               :disabled="savingPassword"
-              class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-4 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm disabled:opacity-50"
+              class="min-h-10 rounded-md border border-gray-300 px-4 py-2 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20 dark:text-gray-100 dark:hover:bg-white/10 dark:focus-visible:ring-white/20"
               @click="savePassword"
             >
               {{ savingPassword ? $t('saving') : $t('change_password') }}
@@ -150,20 +152,20 @@
         </div>
       </div>
     </div>
-    <div v-else-if="activeTab === 'ui'" class="space-y-8">
+    <div v-else-if="activeTab === 'ui'" key="ui" class="space-y-8">
       <div>
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_ui') }}
         </h2>
-        <div class="max-w-lg">
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('label_theme') }}</label>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4">{{ $t('helper_theme') }}</p>
+        <div class="max-w-2xl">
+          <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_theme') }}</label>
+          <p class="mb-4 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_theme') }}</p>
           <ThemeSelector />
         </div>
-        <div class="flex items-center justify-between gap-4 py-3 mt-6 border-b border-dashed border-gray-100 dark:border-gray-800 max-w-lg">
+        <div class="mt-6 flex max-w-2xl items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
           <div>
             <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_home_title') }}</h3>
-            <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_show_home_title') }}</p>
+            <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_show_home_title') }}</p>
           </div>
           <NSwitch v-model="showHomeTitle" switch-checked="indigo" />
         </div>
@@ -171,30 +173,30 @@
     </div>
 
     <!-- Notifications Tab -->
-    <div v-else-if="activeTab === 'notifications'" class="space-y-8">
+    <div v-else-if="activeTab === 'notifications'" key="notifications" class="space-y-8">
       <div>
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_notifications') }}
         </h2>
-        <div class="space-y-1 max-w-lg">
-          <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
+        <div class="max-w-2xl space-y-1">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_quote_approval') }}</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_quote_approval') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_quote_approval') }}</p>
             </div>
             <NSwitch v-model="notificationSettings.quote_approval" switch-checked="indigo" />
           </div>
-          <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_collection_updates') }}</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_collection_updates') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_collection_updates') }}</p>
             </div>
             <NSwitch v-model="notificationSettings.collection_updates" switch-checked="indigo" />
           </div>
-          <div class="flex items-center justify-between gap-4 py-3 border-b border-dashed border-gray-100 dark:border-gray-800">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_weekly_digest') }}</h3>
-              <p class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('desc_weekly_digest') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_weekly_digest') }}</p>
             </div>
             <NSwitch v-model="notificationSettings.weekly_digest" switch-checked="indigo" />
           </div>
@@ -203,18 +205,18 @@
     </div>
 
     <!-- Data Tab -->
-    <div v-else-if="activeTab === 'data'">
-      <div class="max-w-lg">
-        <h2 class="font-sans text-xs font-600 uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600 mb-5">
+    <div v-else-if="activeTab === 'data'" key="data">
+      <div class="max-w-2xl">
+        <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_danger_zone') }}
         </h2>
-        <div class="border border-dashed border-red-200 dark:border-red-900 rounded-sm p-5">
-          <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100 mb-1">{{ $t('heading_delete_account') }}</h3>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
+        <div class="rounded-lg border border-red-200 p-5 dark:border-red-900/60">
+          <h3 class="mb-1 font-sans text-base font-600 text-gray-900 dark:text-gray-100">{{ $t('heading_delete_account') }}</h3>
+          <p class="mb-4 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
             {{ $t('desc_delete_account') }}
           </p>
           <button
-            class="font-sans text-xs text-red-600 dark:text-red-400 border border-dashed border-red-300 dark:border-red-800 px-4 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-sm"
+            class="min-h-10 rounded-md border border-red-300 px-4 py-2 font-sans text-sm font-600 text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/20 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
             @click="showDeleteModal = true"
           >
             {{ $t('button_delete_account') }}
@@ -222,6 +224,7 @@
         </div>
       </div>
     </div>
+    </Transition>
 
     <!-- Delete Account Confirmation -->
     <ClientOnly>
@@ -280,7 +283,7 @@ interface PrivacySettings {
 const { showErrorToast } = useErrorToast()
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'default',
   middleware: 'auth'
 })
 
@@ -473,3 +476,35 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.dashboard-tab-enter-active {
+  transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1), transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-tab-leave-active {
+  transition: opacity 100ms ease-in, transform 100ms ease-in;
+}
+
+.dashboard-tab-enter-from {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+.dashboard-tab-leave-to {
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-tab-enter-active,
+  .dashboard-tab-leave-active {
+    transition-duration: 100ms;
+  }
+
+  .dashboard-tab-enter-from,
+  .dashboard-tab-leave-to {
+    transform: none;
+  }
+}
+</style>

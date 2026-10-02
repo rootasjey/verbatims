@@ -1,67 +1,78 @@
 <template>
-  <div>
+  <div :aria-busy="loading">
     <!-- Header -->
-    <div class="pb-6 mb-6 border-b border-gray-300 dark:border-gray-700">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="font-serif text-3xl md:text-4xl font-200 text-gray-900 dark:text-gray-100">
-            {{ $t('title') }}
-          </h1>
-          <p class="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {{ totalCollections }} {{ totalCollections === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
-          </p>
-        </div>
-        <div class="hidden md:flex items-center gap-4">
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="$t('search_placeholder') as string"
-            class="font-sans text-sm bg-gray-100 dark:bg-gray-900 px-2 py-1.6 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none w-48"
-          />
-          <NCombobox
-            :model-value="visibilityOptions.find(o => o.value === visibilityValue) || visibilityOptions[0]"
-            @update:model-value="(v: any) => { if (v) visibilityValue = v.value }"
-            :items="visibilityOptions"
-            by="value"
-            :_combobox-list="{
-              class: 'min-w-[180px]',
-            }"
-            :_combobox-trigger="{
-              btn: 'ghost-gray',
-              size: 'sm',
-              trailing: '',
-              class: 'gap-1 px-1.5 text-sm font-normal w-fit min-w-0',
-            }"
-          >
-            <template #trigger="{ modelValue }">
-              <span class="text-xs font-medium leading-none">{{ modelValue?.label }}</span>
-            </template>
-          </NCombobox>
-          <OutlinedButton
-            @click="openCreateModal"
-          >
-            {{ $t('create_button') }}
-          </OutlinedButton>
-        </div>
+    <div class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p v-if="hasLoadedOnce && totalCollections > 0" class="font-sans text-base text-gray-600 dark:text-gray-400">
+          {{ totalCollections }} {{ $t(totalCollections === 1 ? 'list_singular' : 'list_plural') }}
+        </p>
       </div>
-      <div class="md:hidden mt-4 space-y-3">
+      <div class="hidden items-center justify-end gap-3 md:flex">
+        <template v-if="hasLoadedOnce && (totalCollections > 0 || searchQuery.trim() || visibilityValue !== 'all')">
         <input
           v-model="searchQuery"
           type="text"
           :placeholder="$t('search_placeholder') as string"
-          class="w-full font-sans text-sm bg-transparent border-b border-dashed border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-500 dark:focus:border-gray-400"
+          class="h-10 w-52 rounded-md border border-gray-300 bg-white/50 px-3 font-sans text-sm text-gray-800 placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
         />
-        <div class="flex items-center gap-4">
+        <NCombobox
+          :model-value="visibilityOptions.find(o => o.value === visibilityValue) || visibilityOptions[0]"
+          @update:model-value="(v: any) => { if (v) visibilityValue = v.value }"
+          :items="visibilityOptions"
+          by="value"
+          :_combobox-list="{ class: 'min-w-[180px]' }"
+          :_combobox-trigger="{
+            btn: 'ghost-gray',
+            size: 'sm',
+            trailing: 'i-ph-caret-down',
+            class: 'h-10 gap-2 rounded-md border border-gray-300 bg-white/50 px-3 text-sm font-medium text-gray-800 hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10',
+          }"
+        >
+          <template #trigger="{ modelValue }">
+            <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
+          </template>
+        </NCombobox>
+        </template>
+        <NButton
+          v-if="!isPristineEmpty"
+          btn="outline-gray"
+          size="sm"
+          trailing="i-tabler-playlist-add"
+          class="gap-2 font-sans text-xs active:scale-99"
+          @click="openCreateModal"
+        >
+          {{ $t('create_button') }}
+        </NButton>
+      </div>
+      <div class="mt-5 space-y-3 md:hidden">
+        <template v-if="hasLoadedOnce && (totalCollections > 0 || searchQuery.trim() || visibilityValue !== 'all')">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="$t('search_placeholder') as string"
+          class="h-10 w-full rounded-md border border-gray-300 bg-white/50 px-3 font-sans text-sm text-gray-800 placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
+        />
+        <div class="flex items-center gap-2">
           <button
             v-for="opt in visibilityOptions"
             :key="opt.value"
             @click="visibilityValue = opt.value"
-            class="font-sans text-xs uppercase tracking-wider transition-colors"
-            :class="visibilityValue === opt.value ? 'text-gray-900 dark:text-gray-100 font-600' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'"
+            class="rounded-full border px-3 py-1.5 font-sans text-sm transition-colors"
+            :class="visibilityValue === opt.value ? 'border-gray-400 bg-gray-100 font-600 text-gray-900 dark:border-gray-500 dark:bg-white/10 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-800 dark:border-white/10 dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-gray-200'"
           >
             {{ opt.label }}
           </button>
         </div>
+        </template>
+        <NButton
+          v-if="!isPristineEmpty"
+          btn="outline-gray"
+          trailing="i-tabler-playlist-add"
+          class="min-h-11 w-full justify-center gap-2 border border-gray-300 px-4 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800"
+          @click="openCreateModal"
+        >
+          {{ $t('create_button') }}
+        </NButton>
       </div>
     </div>
 
@@ -75,53 +86,59 @@
     </div>
 
     <!-- Empty -->
-    <div v-else-if="filteredCollections.length === 0" class="py-16 text-center">
-      <p class="font-serif text-2xl font-200 text-gray-400 dark:text-gray-500 mb-2">
-        {{ searchQuery ? $t('empty_search_title') : $t('empty_title') }}
-      </p>
-      <p class="font-sans text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ searchQuery ? $t('empty_search_desc') : $t('empty_desc') }}
-      </p>
-      <button
-        v-if="!searchQuery"
+    <div
+      v-else-if="filteredCollections.length === 0"
+      class="text-center"
+      :class="isPristineEmpty
+        ? 'rounded-2xl bg-[#E6E4DD] px-5 py-14 dark:bg-[#17191e] sm:px-8 sm:py-20'
+        : 'py-16'"
+    >
+      <DashboardEmptyStateCopy
+        :heading="String(searchQuery ? pageT('empty_search_title') : pageT('empty_title'))"
+        :description="String(searchQuery ? pageT('empty_search_desc') : pageT('empty_desc'))"
+      />
+      <NButton
+        v-if="isPristineEmpty"
+        btn="solid-black"
+        trailing="i-tabler-playlist-add"
+        class="mt-7 min-h-11 justify-center gap-2 rounded-md bg-gray-900 px-5 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] duration-150 hover:bg-gray-700 active:scale-96 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#E6E4DD] motion-reduce:transition-none motion-reduce:active:scale-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300 dark:focus-visible:ring-gray-300 dark:focus-visible:ring-offset-[#17191e]"
         @click="openCreateModal"
-        class="inline-flex items-center gap-1.5 font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
       >
         {{ $t('create_button') }}
-      </button>
+      </NButton>
     </div>
 
     <!-- Feed -->
-    <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
+    <div v-else class="space-y-3">
       <div
         v-for="(collection, idx) in filteredCollections"
         :key="collection.id"
-        class="group py-5 first:pt-0 last:pb-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.02] -mx-2 px-2 rounded-sm transition-colors animate-fade-in-up"
+        class="group cursor-pointer rounded-xl bg-[#E6E4DD] p-5 transition-colors hover:bg-[#dfdcd4] dark:bg-[#17191e] dark:hover:bg-[#1c1e23] sm:p-6 animate-fade-in-up"
         :style="{ animationDelay: `${idx * 0.05}s` }"
         @click="navigateToCollection(collection)"
       >
         <ContextMenu size="xs" native-on-modifier="ctrl" :items="getCollectionContextMenuActions(collection)">
           <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-3 mb-1.5">
+          <div class="min-w-0 flex-1 space-y-2.5">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
               <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                 {{ collection.name }}
               </h3>
               <span
                 v-if="collection.isPublic"
-                class="font-sans text-xs text-green-600 dark:text-green-400 flex-shrink-0"
+                class="flex-shrink-0 rounded-full border border-gray-400/40 bg-black/5 px-2 py-0.5 font-sans text-[11px] font-medium tracking-wide text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-gray-300"
               >
                 {{ $t('common.public') }}
               </span>
               <span
                 v-else
-                class="font-sans text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"
+                class="flex-shrink-0 rounded-full border border-gray-400/40 bg-black/5 px-2 py-0.5 font-sans text-[11px] font-medium tracking-wide text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-gray-300"
               >
                 {{ $t('common.private') }}
               </span>
             </div>
 
-            <p v-if="collection.description" class="font-sans text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-2 leading-relaxed">
+            <p v-if="collection.description" class="font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2">
               {{ collection.description }}
             </p>
 
@@ -129,18 +146,19 @@
               <div
                 v-for="quote in collection.preview_quotes.slice(0, 2)"
                 :key="quote.id"
-                class="font-body text-xs text-gray-400 dark:text-gray-500 italic line-clamp-1"
+                class="line-clamp-1 font-serif text-base leading-relaxed text-gray-800 dark:text-gray-200"
               >
-                &ldquo;{{ quote.name }}&rdquo;
+                {{ quote.name }}
               </div>
             </div>
 
-            <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-gray-500 dark:text-gray-400">
               <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
-              <span class="text-gray-200 dark:text-gray-700">·</span>
-              <span>{{ $t('common.created') }} {{ formatDate(collection.createdAt) }}</span>
-              <span class="text-gray-200 dark:text-gray-700">·</span>
-              <span v-if="collection.updatedAt">{{ $t('common.updated') }} {{ formatDate(collection.updatedAt) }}</span>
+              <template v-if="collection.createdAt || collection.updatedAt">
+                <span aria-hidden="true" class="text-gray-400/70 dark:text-gray-600">·</span>
+                <span v-if="collection.createdAt">{{ $t('common.created') }} {{ formatDate(collection.createdAt) }}</span>
+                <span v-else-if="collection.updatedAt">{{ $t('common.updated') }} {{ formatDate(collection.updatedAt) }}</span>
+              </template>
             </div>
           </div>
 
@@ -247,17 +265,18 @@ interface DashboardCollection extends CollectionWithStats {
   views_count?: number
   // Drizzle returns camelCase for JS property names even when SQL columns are snake_case
   isPublic?: boolean
-  createdAt?: string
+  createdAt?: string | null
   updatedAt?: string | null
   userId?: number
 }
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'default',
   middleware: 'auth'
 })
 
 const { $t } = useI18n()
+const pageT = useI18n().$_t({ ...useRoute() })
 
 useHead({
   title: $t('meta_title') as string
@@ -270,6 +289,7 @@ onMounted(() => {
 })
 
 const loading = ref(true)
+const hasLoadedOnce = ref(false)
 const deleting = ref(false)
 const collections = ref<DashboardCollection[]>([])
 const searchQuery = ref('')
@@ -283,6 +303,12 @@ const visibilityValue = ref('all')
 const currentPage = ref(1)
 const totalPages = ref(0)
 const totalCollections = ref(0)
+const isPristineEmpty = computed(() =>
+  hasLoadedOnce.value &&
+  totalCollections.value === 0 &&
+  !searchQuery.value.trim() &&
+  visibilityValue.value === 'all'
+)
 
 const visibilityFilter = computed(() => {
   const option = visibilityOptions.value.find(o => o.value === visibilityValue.value)
@@ -333,6 +359,7 @@ const loadCollections = async () => {
     console.error('Failed to load collections:', error)
   } finally {
     loading.value = false
+    hasLoadedOnce.value = true
   }
 }
 
@@ -402,6 +429,7 @@ const deleteCollection = async () => {
     } as any)
 
     collections.value = collections.value.filter(c => c.id !== selectedCollection.value?.id)
+    totalCollections.value = Math.max(0, totalCollections.value - 1)
     showDeleteModal.value = false
     selectedCollection.value = null
   } catch (error) {
@@ -417,6 +445,7 @@ const handleCollectionSaved = (collection: DashboardCollection) => {
     collections.value[index] = collection
   } else {
     collections.value.unshift(collection)
+    totalCollections.value += 1
   }
   showFormModal.value = false
   selectedCollection.value = null
