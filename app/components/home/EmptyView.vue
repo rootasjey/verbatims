@@ -1,61 +1,76 @@
 <template>
-  <div class="px-8 py-24 sm:py-32">
-    <div class="max-w-xl mx-auto text-center">
-      <!-- Primary message -->
-      <p class="font-serif text-3xl sm:text-4xl text-gray-900 dark:text-gray-100 leading-tight">
+  <section class="px-6 py-24 sm:py-32" aria-labelledby="home-empty-title">
+    <div class="mx-auto max-w-xl text-center">
+      <h1 id="home-empty-title" class="font-serif text-4xl font-400 leading-tight tracking-[-0.025em] text-gray-900 dark:text-gray-100 sm:text-5xl">
         {{ $t('home.empty.no_quotes') }}
-      </p>
-      <p class="font-sans text-lg text-gray-500 dark:text-gray-400 mt-3">
+      </h1>
+      <p class="mx-auto mt-4 max-w-sm font-sans text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
         {{ $t('home.empty.be_first') }}
       </p>
 
-      <!-- CTA -->
-      <div class="mt-8">
+      <div class="mt-8 flex justify-center">
         <NButton
           v-if="needsOnboarding && (onboardingStatus?.step === 'admin_user' || !onboardingStatus?.hasAdminUser)"
           size="lg"
           to="/onboarding/admin"
-          btn="light:soft-secondary dark:soft-blue"
-          class="font-sans hover:scale-102 active:scale-99 transition-[transform] duration-150"
+          btn="solid-black"
+          class="min-h-12 gap-3 rounded-1 px-7 font-sans transition-[transform] duration-150 hover:-translate-y-0.5 active:scale-96"
         >
-          <NIcon name="i-ph-rocket-launch" class="w-4 h-4" />
+          <NIcon name="i-ph-rocket-launch" class="h-4 w-4" />
           {{ $t('home.empty.get_started') }}
         </NButton>
         <NButton
           v-else-if="needsOnboarding && (onboardingStatus?.step === 'database_data' || !onboardingStatus?.hasData)"
           size="lg"
           to="/onboarding/database"
-          btn="soft-secondary"
-          class="font-sans"
+          btn="solid-black"
+          class="min-h-12 gap-3 rounded-1 px-7 font-sans transition-[transform] duration-150 hover:-translate-y-0.5 active:scale-96"
         >
-          <NIcon name="i-ph-database" class="w-4 h-4" />
+          <NIcon name="i-ph-database" class="h-4 w-4" />
           {{ $t('home.empty.init_db') }}
         </NButton>
         <NButton
           v-else
           @click="$emit('openSubmitModal')"
-          size="lg"
-          btn="soft-secondary"
-          class="font-sans"
+          size="md"
+          btn="solid-black"
+          class="min-h-10 gap-2 rounded-1 px-7 font-sans transition-[transform] duration-150 hover:-translate-y-0.5 hover:scale-105 active:scale-99"
         >
-          <NIcon name="i-ph-plus-circle" class="w-4 h-4" />
           {{ $t('home.empty.add_quote') }}
+          <NIcon name="i-lucide-message-square-quote" class="h-4 w-4" />
         </NButton>
       </div>
 
-      <!-- Divider -->
-      <div class="mt-16 mb-8 w-12 h-px bg-gray-300 dark:bg-gray-700 mx-auto" />
-
-      <!-- Story -->
-      <p class="font-sans text-xs text-gray-400 dark:text-gray-500 leading-relaxed max-w-sm mx-auto">
-        {{ $t('home.empty.story') }}
-      </p>
+      <div class="mx-auto mt-14 max-w-sm">
+        <svg
+          aria-hidden="true"
+          class="block h-4 w-full text-gray-300 dark:text-white/20"
+          viewBox="0 0 386.5 16"
+          preserveAspectRatio="none"
+        >
+          <path
+            :d="wavePath"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        <p class="font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          {{ $t('home.empty.story') }}
+        </p>
+      </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script lang="ts" setup>
 const { $t } = useI18n()
+
+const wavePath = (() => {
+  const curve = 'c2.667 -2.199 5.333 -4.2 8 -4.2 s5.333 2.001 8 4.2 s5.333 4.2 8 4.2 s5.333 -2.001 8 -4.2'
+  return [`M 1.25 8`, ...Array.from({ length: 12 }, () => curve)].join(' ')
+})()
 
 interface Props {
   needsOnboarding: boolean
