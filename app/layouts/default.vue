@@ -269,8 +269,9 @@ const { locale } = useI18nLocale()
 const { user } = useUserSession()
 
 const finishDashboardPanelResize = (event: TransitionEvent) => {
-  if (event.propertyName !== 'height' || !dashboardPanelShell.value) return
-  dashboardPanelShell.value.style.overflow = 'visible'
+  const shell = dashboardPanelShell.value
+  if (event.target !== shell || event.propertyName !== 'height' || !shell) return
+  shell.style.overflow = 'visible'
 }
 
 const holdDashboardPanelHeight = () => {
@@ -294,7 +295,10 @@ const animateDashboardPanelToContent = () => {
   const surfaceStyles = window.getComputedStyle(surface)
   const verticalPadding = Number.parseFloat(surfaceStyles.paddingTop) + Number.parseFloat(surfaceStyles.paddingBottom)
   const nextHeight = Math.max(416, content.scrollHeight + verticalPadding)
-  if (Math.abs(nextHeight - dashboardPanelLastHeight) < 1) return
+  if (Math.abs(nextHeight - dashboardPanelLastHeight) < 1) {
+    shell.style.overflow = 'visible'
+    return
+  }
 
   const currentHeight = shell.getBoundingClientRect().height || dashboardPanelLastHeight
   dashboardPanelLastHeight = nextHeight
@@ -352,6 +356,7 @@ watch(isDashboardPage, async (isDashboard) => {
     dashboardPanelObserver = undefined
     if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
     dashboardPanelShell.value?.removeEventListener('transitionend', finishDashboardPanelResize)
+    dashboardPanelShell.value?.removeEventListener('transitioncancel', finishDashboardPanelResize)
     return
   }
 
@@ -364,6 +369,7 @@ watch(isDashboardPage, async (isDashboard) => {
   dashboardPanelLastHeight = surface.getBoundingClientRect().height
   shell.style.height = `${dashboardPanelLastHeight}px`
   shell.addEventListener('transitionend', finishDashboardPanelResize)
+  shell.addEventListener('transitioncancel', finishDashboardPanelResize)
 
   dashboardPanelObserver = new ResizeObserver(() => {
     // Keep the current panel height while a dashboard view is fetching data.
@@ -383,6 +389,7 @@ onBeforeUnmount(() => {
   if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
   cancelAnimationFrame(dashboardPanelAnimationFrame)
   dashboardPanelShell.value?.removeEventListener('transitionend', finishDashboardPanelResize)
+  dashboardPanelShell.value?.removeEventListener('transitioncancel', finishDashboardPanelResize)
 })
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
