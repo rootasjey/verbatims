@@ -48,7 +48,7 @@
   "desc_collection_updates": "Get notified when someone adds quotes to your public collections.",
   "label_weekly_digest": "Weekly Digest",
   "desc_weekly_digest": "Receive a weekly summary of new quotes and activity.",
-  "section_danger_zone": "Danger Zone",
+  "section_danger_zone": "Account & Data",
   "heading_delete_account": "Delete Account",
   "desc_delete_account": "Permanently delete your account and all associated data. This action cannot be undone.",
   "button_delete_account": "Delete Account",

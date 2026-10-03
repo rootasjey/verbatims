@@ -1,44 +1,41 @@
 <template>
-  <div :aria-busy="loading">
-    <!-- Header -->
-    <div class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-      <div>
-        <p v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="font-sans text-base text-gray-600 dark:text-gray-400">
-          {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
-        </p>
-      </div>
-      <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center md:justify-end">
+  <div>
+    <Teleport to="#dashboard-page-toolbar">
+    <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
+        {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
+      </p>
+      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
         <input
           v-model="searchQuery"
           type="text"
           :placeholder="$t('search_placeholder') as string"
-          class="h-10 w-full rounded-md border border-gray-300 bg-white/50 px-3 font-sans text-sm text-gray-800 placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 md:w-52"
+          class="h-10 w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 font-sans text-sm text-gray-800 placeholder-[#77756f] focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 sm:w-52"
         />
-        <div class="flex justify-end md:block">
-          <NCombobox
-            :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
-            @update:model-value="(v: any) => { if (v) sortValue = v.value }"
-            :items="sortOptions"
-            by="value"
-            :_combobox-list="{ class: 'min-w-[180px]' }"
-            :_combobox-trigger="{
-              btn: 'ghost-gray',
-              size: 'sm',
-              trailing: 'i-ph-caret-down',
-              class: 'h-10 gap-2 rounded-md border border-gray-300 bg-white/50 px-3 text-sm font-medium text-gray-800 hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10',
-            }"
-          >
-            <template #trigger="{ modelValue }">
-              <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
-            </template>
-          </NCombobox>
-        </div>
+        <NCombobox
+          :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
+          @update:model-value="(v: any) => { if (v) sortValue = v.value }"
+          :items="sortOptions"
+          by="value"
+          :_combobox-list="{ class: 'min-w-[180px]' }"
+          :_combobox-trigger="{
+            btn: 'ghost-gray',
+            size: 'sm',
+            trailing: 'i-ph-caret-down',
+            class: 'h-10 w-full justify-between gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 text-sm font-medium text-gray-800 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10 sm:w-auto',
+          }"
+        >
+          <template #trigger="{ modelValue }">
+            <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
+          </template>
+        </NCombobox>
         <div class="hidden md:block">
           <LanguageSelector :on-language-changed="onLanguageChanged" :use-classic-design="true" />
         </div>
       </div>
     </div>
-
+    </Teleport>
+    <div :aria-busy="loading">
     <!-- Loading (first load) -->
     <div v-if="showInitialSkeleton && !hasLoadedOnce && loading" class="space-y-5">
       <div v-for="i in 5" :key="i" class="animate-pulse pb-5 border-b border-dashed border-gray-100 dark:border-gray-800">
@@ -169,7 +166,7 @@
               <tr
                 v-for="quote in filteredQuotes"
                 :key="quote.id"
-                class="group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors"
+                class="group transition-colors hover:bg-stone-300/40 dark:hover:bg-white/[0.02]"
               >
                 <td class="px-3 py-3 align-top">
                   <div :class="selectedQuotes.length > 0 ? '' : 'opacity-0 group-hover:opacity-100'">
@@ -311,6 +308,7 @@
       :total-pages="totalPages"
       @jump="onPageJump"
     />
+    </div>
   </div>
 </template>
 
@@ -353,6 +351,19 @@ onMounted(() => {
 })
 
 const languageStore = useLanguageStore()
+const emptyStateHeading = computed(() => {
+  if (searchQuery.value) return String(pageT('empty_search_title'))
+  if (languageStore.currentLanguageValue !== 'all') {
+    const language = String($t(`content_language.${languageStore.currentLanguageValue}`))
+    return String(pageT('empty_language_title')).replace('{language}', language)
+  }
+  return String(pageT('empty_title'))
+})
+const emptyStateDescription = computed(() => {
+  if (searchQuery.value) return String(pageT('empty_search_desc'))
+  if (languageStore.currentLanguageValue !== 'all') return String(pageT('empty_language_desc'))
+  return String(pageT('empty_desc'))
+})
 
 const inlineLanguageOptions = computed(() =>
   languageStore.availableLanguages

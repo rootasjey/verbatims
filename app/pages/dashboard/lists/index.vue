@@ -2,11 +2,7 @@
   <div :aria-busy="loading">
     <!-- Header -->
     <div class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-      <div>
-        <p v-if="hasLoadedOnce && totalCollections > 0" class="font-sans text-base text-gray-600 dark:text-gray-400">
-          {{ totalCollections }} {{ $t(totalCollections === 1 ? 'list_singular' : 'list_plural') }}
-        </p>
-      </div>
+      <div class="hidden md:block" aria-hidden="true" />
       <div class="hidden items-center justify-end gap-3 md:flex">
         <template v-if="hasLoadedOnce && (totalCollections > 0 || searchQuery.trim() || visibilityValue !== 'all')">
         <input
@@ -35,10 +31,10 @@
         </template>
         <NButton
           v-if="!isPristineEmpty"
-          btn="outline-gray"
+          btn="solid-black"
           size="sm"
           trailing="i-tabler-playlist-add"
-          class="gap-2 font-sans text-xs active:scale-99"
+          class="gap-2 bg-gray-900 font-sans text-xs text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
           @click="openCreateModal"
         >
           {{ $t('create_button') }}
@@ -66,9 +62,9 @@
         </template>
         <NButton
           v-if="!isPristineEmpty"
-          btn="outline-gray"
+          btn="solid-black"
           trailing="i-tabler-playlist-add"
-          class="min-h-11 w-full justify-center gap-2 border border-gray-300 px-4 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800"
+          class="min-h-11 w-full justify-center gap-2 bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
           @click="openCreateModal"
         >
           {{ $t('create_button') }}
@@ -119,30 +115,34 @@
       >
         <ContextMenu size="xs" native-on-modifier="ctrl" :items="getCollectionContextMenuActions(collection)">
           <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0 flex-1 space-y-2.5">
+          <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h3 class="font-serif text-lg font-600 text-gray-900 dark:text-gray-100 truncate group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+              <NuxtLink
+                :to="`/dashboard/lists/${collection.id}`"
+                class="font-serif text-xl font-500 leading-snug text-gray-900 transition-colors group-hover:text-gray-700 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700 dark:text-gray-100 dark:group-hover:text-gray-300 dark:focus-visible:outline-gray-300"
+                @click.stop
+              >
                 {{ collection.name }}
-              </h3>
+              </NuxtLink>
               <span
                 v-if="collection.isPublic"
-                class="flex-shrink-0 rounded-full border border-gray-400/40 bg-black/5 px-2 py-0.5 font-sans text-[11px] font-medium tracking-wide text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-gray-300"
+                class="shrink-0 font-sans text-[11px] font-600 uppercase tracking-[0.12em] text-gray-600 dark:text-gray-300"
               >
                 {{ $t('common.public') }}
               </span>
               <span
                 v-else
-                class="flex-shrink-0 rounded-full border border-gray-400/40 bg-black/5 px-2 py-0.5 font-sans text-[11px] font-medium tracking-wide text-gray-600 dark:border-white/15 dark:bg-white/5 dark:text-gray-300"
+                class="shrink-0 font-sans text-[11px] font-600 uppercase tracking-[0.12em] text-gray-600 dark:text-gray-300"
               >
                 {{ $t('common.private') }}
               </span>
             </div>
 
-            <p v-if="collection.description" class="font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2">
+            <p v-if="collection.description" class="mt-2 max-w-3xl font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2">
               {{ collection.description }}
             </p>
 
-            <div v-if="collection.preview_quotes?.length" class="space-y-0.5 mb-2">
+            <div v-if="collection.preview_quotes?.length" class="mt-4 space-y-1 border-l border-gray-500/20 pl-3">
               <div
                 v-for="quote in collection.preview_quotes.slice(0, 2)"
                 :key="quote.id"
@@ -152,7 +152,7 @@
               </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-gray-500 dark:text-gray-400">
+            <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-500/15 pt-3 font-sans text-xs text-gray-600 dark:border-white/10 dark:text-gray-400">
               <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
               <template v-if="collection.createdAt || collection.updatedAt">
                 <span aria-hidden="true" class="text-gray-400/70 dark:text-gray-600">·</span>
@@ -276,6 +276,8 @@ definePageMeta({
 })
 
 const { $t } = useI18n()
+const { user } = useUserSession()
+const collectionsCount = useState<number | null>(`dashboard-collections-count-${String(user.value?.id ?? 'anonymous')}`, () => null)
 const pageT = useI18n().$_t({ ...useRoute() })
 
 useHead({
@@ -354,6 +356,7 @@ const loadCollections = async () => {
 
     collections.value = response.data?.results || []
     totalCollections.value = response.pagination?.total ?? 0
+    collectionsCount.value = totalCollections.value
     totalPages.value = response.pagination?.totalPages ?? 1
   } catch (error) {
     console.error('Failed to load collections:', error)
@@ -430,6 +433,7 @@ const deleteCollection = async () => {
 
     collections.value = collections.value.filter(c => c.id !== selectedCollection.value?.id)
     totalCollections.value = Math.max(0, totalCollections.value - 1)
+    collectionsCount.value = totalCollections.value
     showDeleteModal.value = false
     selectedCollection.value = null
   } catch (error) {
@@ -446,6 +450,7 @@ const handleCollectionSaved = (collection: DashboardCollection) => {
   } else {
     collections.value.unshift(collection)
     totalCollections.value += 1
+    collectionsCount.value = totalCollections.value
   }
   showFormModal.value = false
   selectedCollection.value = null
