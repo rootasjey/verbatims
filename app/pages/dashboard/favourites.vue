@@ -1,16 +1,41 @@
 <template>
   <div :aria-busy="loading">
     <!-- Header -->
-    <div class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-      <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="$t('search_placeholder') as string"
-          class="h-10 w-full min-w-0 rounded-md border border-gray-300 bg-white/50 px-3 font-sans text-sm text-gray-800 placeholder-gray-500 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 md:w-52 md:flex-none"
+    <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="mb-6 flex justify-end">
+      <div class="flex items-center gap-2">
+        <Transition name="favourites-search">
+          <input
+            v-if="searchOpen"
+            ref="searchInput"
+            v-model="searchQuery"
+            type="text"
+            :placeholder="$t('search_placeholder') as string"
+            class="h-10 w-44 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 font-sans text-sm text-gray-800 placeholder-[#77756f] outline-none transition-[border-color,box-shadow] focus:border-gray-500 focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 sm:w-52"
+            @keydown.esc="closeSearch"
+          />
+        </Transition>
+        <NButton
+          v-if="!searchOpen"
+          icon
+          btn="ghost-gray"
+          size="sm"
+          label="i-tabler-search"
+          class="h-10 w-10 rounded-md border border-[#d2cfc6] bg-[#f0efe9] text-gray-700 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10"
+          :aria-label="$t('search_placeholder') as string"
+          @click="openSearch"
         />
-        <div class="flex justify-end md:block">
+        <NButton
+          v-else
+          icon
+          btn="ghost-gray"
+          size="sm"
+          label="i-tabler-x"
+          class="h-10 w-10 rounded-md border border-[#d2cfc6] bg-[#f0efe9] text-gray-700 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10"
+          :aria-label="$t('common.close') as string"
+          @click="closeSearch"
+        />
           <NCombobox
+            class="favourites-sort"
             :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
             @update:model-value="(v: any) => { if (v) sortValue = v.value }"
             :items="sortOptions"
@@ -21,15 +46,22 @@
             :_combobox-trigger="{
               btn: 'ghost-gray',
               size: 'sm',
-              trailing: 'i-ph-caret-down',
-              class: 'h-10 gap-2 rounded-md border border-gray-300 bg-white/50 px-3 text-sm font-medium text-gray-800 hover:bg-gray-100 dark:border-white/15 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10',
+              trailing: '',
+              ariaLabel: String(sortBy?.label ?? ''),
+              class: 'h-10 w-10 justify-center rounded-md border border-[#d2cfc6] bg-[#f0efe9] p-0 text-gray-700 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10',
             }"
           >
+            <template #label="{ item }">
+              <span class="flex min-w-0 items-center gap-2.5">
+                <NIcon :name="item.leading" class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+                <span>{{ item.label }}</span>
+              </span>
+            </template>
             <template #trigger="{ modelValue }">
-              <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
+              <NIcon :name="modelValue?.leading || 'i-tabler-arrows-sort'" class="h-5 w-5" />
+              <span class="sr-only">{{ modelValue?.label }}</span>
             </template>
           </NCombobox>
-        </div>
       </div>
     </div>
 
@@ -116,7 +148,7 @@
               </button>
             </NTooltip>
             <NTooltip :content="$t('tooltip_remove') as string">
-              <button @click.stop="handleUnlike(quote)" class="p-1.5 rounded-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+              <button @click.stop="handleUnlike(quote)" class="p-1.5 rounded-sm text-gray-500 transition-colors hover:bg-[#eee9e3] hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
                 <NIcon name="i-ph-heart-break" class="w-4 h-4" />
               </button>
             </NTooltip>
@@ -215,16 +247,29 @@ const loading = ref(true)
 const hasLoadedOnce = ref(false)
 const quotes = ref<LikedQuote[]>([])
 const searchQuery = ref('')
+const searchOpen = ref(false)
+const searchInput = ref<HTMLInputElement | null>(null)
 const sortValue = ref('recent')
 const currentPage = ref(1)
 const totalPages = ref(0)
 const totalQuotes = ref(0)
 
+const openSearch = async () => {
+  searchOpen.value = true
+  await nextTick()
+  searchInput.value?.focus()
+}
+
+const closeSearch = () => {
+  searchQuery.value = ''
+  searchOpen.value = false
+}
+
 const sortOptions = computed(() => [
-  { label: $t('sort_most_recent'), value: 'recent' },
-  { label: $t('sort_oldest_first'), value: 'oldest' },
-  { label: $t('sort_most_popular'), value: 'popular' },
-  { label: $t('sort_author_az'), value: 'author' }
+  { label: $t('sort_most_recent'), value: 'recent', leading: 'i-tabler-clock-hour-12' },
+  { label: $t('sort_oldest_first'), value: 'oldest', leading: 'i-tabler-hourglass-empty' },
+  { label: $t('sort_most_popular'), value: 'popular', leading: 'i-tabler-stars' },
+  { label: $t('sort_author_az'), value: 'author', leading: 'i-tabler-abc' }
 ])
 
 const sortBy = computed(() => {
@@ -426,6 +471,20 @@ onUnmounted(() => {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out both;
+}
+
+:global(.favourites-sort) {
+  width: max-content;
+}
+
+:global(.favourites-sort [data-slot='combobox-anchor']),
+:global(.favourites-sort [data-slot='combobox-trigger']) {
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+:global(.favourites-sort .combobox-trigger-trailing) {
+  display: none !important;
 }
 
 .line-clamp-2 {

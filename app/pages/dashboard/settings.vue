@@ -2,10 +2,7 @@
   <div>
     <!-- Header -->
     <div class="mb-8">
-      <h2 class="font-serif text-2xl font-500 leading-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
-        {{ $t('title') }}
-      </h2>
-      <div class="mt-5 flex items-center gap-6 overflow-x-auto border-b border-black/10 dark:border-white/10">
+      <div class="flex items-center gap-6 overflow-x-auto border-b border-black/10 dark:border-white/10">
         <button
           v-for="tab in tabs"
           :key="tab.value"
@@ -29,14 +26,14 @@
         <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_profile') }}
         </h2>
-        <div class="max-w-2xl space-y-6">
+        <div class="max-w-xl space-y-6">
           <div>
             <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_display_name') }}</label>
             <input
               v-model="profileForm.name"
               type="text"
               :placeholder="$t('placeholder_display_name') as string"
-              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
+              class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <div>
@@ -46,7 +43,7 @@
               type="email"
               :placeholder="$t('placeholder_email') as string"
               disabled
-              class="w-full cursor-not-allowed rounded-md border border-gray-200 bg-gray-100 px-3 py-2.5 font-sans text-sm text-gray-500 opacity-80 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400"
+              class="w-full cursor-not-allowed rounded-md border border-[#d2cfc6] bg-[#eae8e1] px-3 py-2.5 font-sans text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-400"
             />
             <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_email') }}</p>
           </div>
@@ -56,17 +53,18 @@
               v-model="profileForm.bio"
               :placeholder="$t('placeholder_bio') as string"
               rows="4"
-              class="w-full resize-y rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
+              class="w-full resize-y rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm leading-relaxed text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10"
             />
           </div>
           <div class="pt-2">
-            <button
+            <NButton
               :disabled="savingProfile"
-              class="min-h-10 rounded-md border border-gray-300 px-4 py-2 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20 dark:text-gray-100 dark:hover:bg-white/10 dark:focus-visible:ring-white/20"
+              btn="solid-black"
+              class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300"
               @click="saveProfile"
             >
               {{ savingProfile ? $t('saving') : $t('save_profile') }}
-            </button>
+            </NButton>
           </div>
         </div>
       </div>
@@ -76,78 +74,61 @@
         <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_language') }}
         </h2>
-        <div class="max-w-2xl">
+        <div class="max-w-xl">
           <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_preferred_language') }}</label>
           <LanguageSelector />
           <p class="mt-2 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('helper_language') }}</p>
         </div>
       </div>
 
-      <!-- Privacy & Visibility -->
+    </div>
+    <div v-else-if="activeTab === 'privacy'" key="privacy" class="space-y-8">
       <div>
         <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_privacy') }}
         </h2>
-        <div class="max-w-2xl space-y-1">
-          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
+        <div class="max-w-xl space-y-1">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_public_profile') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_public_profile') }}</p>
             </div>
             <NSwitch v-model="privacySettings.public_profile" switch-checked="indigo" />
           </div>
-          <div class="flex items-center justify-between gap-4 border-b border-gray-200 py-4 dark:border-white/10">
+          <div class="flex items-center justify-between gap-4 border-b border-gray-500/20 py-4 dark:border-white/10">
             <div>
               <h3 class="font-sans text-sm font-500 text-gray-900 dark:text-gray-100">{{ $t('label_show_attribution') }}</h3>
-              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
+              <p class="mt-1 font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">{{ $t('desc_show_attribution') }}</p>
             </div>
             <NSwitch v-model="privacySettings.show_attribution" switch-checked="indigo" />
           </div>
         </div>
       </div>
-      <!-- Security -->
-      <div class="border-b border-gray-200 pb-8 dark:border-white/10">
+    </div>
+    <div v-else-if="activeTab === 'security'" key="security" class="space-y-8">
+      <div>
         <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_security') }}
         </h2>
-        <div class="max-w-2xl space-y-6">
+        <div class="max-w-xl space-y-6">
           <div>
             <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_current_password') }}</label>
-            <input
-              v-model="passwordForm.currentPassword"
-              type="password"
-              :placeholder="currentPasswordPlaceholder"
-              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
-            />
+            <input v-model="passwordForm.currentPassword" type="password" :placeholder="currentPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
           </div>
           <div>
             <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_new_password') }}</label>
-            <input
-              v-model="passwordForm.newPassword"
-              type="password"
-              :placeholder="newPasswordPlaceholder"
-              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
-            />
+            <input v-model="passwordForm.newPassword" type="password" :placeholder="newPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
           </div>
           <div>
             <label class="mb-2 block font-sans text-sm font-500 text-gray-800 dark:text-gray-200">{{ $t('label_confirm_password') }}</label>
-            <input
-              v-model="passwordForm.confirmPassword"
-              type="password"
-              :placeholder="confirmPasswordPlaceholder"
-              class="w-full rounded-md border border-gray-300 bg-white/60 px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.04] dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-gray-400 dark:focus:ring-white/10"
-            />
+            <input v-model="passwordForm.confirmPassword" type="password" :placeholder="confirmPasswordPlaceholder" class="w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 py-2.5 font-sans text-sm text-gray-900 placeholder-gray-600 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10" />
           </div>
-          <p v-if="passwordError" class="font-sans text-xs text-red-500 dark:text-red-400">{{ passwordError }}</p>
-          <p v-else-if="passwordMessage" class="font-sans text-xs text-green-600 dark:text-green-400">{{ passwordMessage }}</p>
+          <p v-if="passwordError" class="font-sans text-xs text-red-700 dark:text-red-400">{{ passwordError }}</p>
+          <p v-else-if="passwordMessage" class="font-sans text-xs text-gray-700 dark:text-gray-300">{{ passwordMessage }}</p>
           <div class="pt-2">
-            <button
-              :disabled="savingPassword"
-              class="min-h-10 rounded-md border border-gray-300 px-4 py-2 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20 dark:text-gray-100 dark:hover:bg-white/10 dark:focus-visible:ring-white/20"
-              @click="savePassword"
-            >
+            <NButton :disabled="savingPassword" btn="solid-black" class="min-h-10 justify-center bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] hover:bg-gray-700 active:scale-99 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300" @click="savePassword">
               {{ savingPassword ? $t('saving') : $t('change_password') }}
-            </button>
+            </NButton>
           </div>
         </div>
       </div>
@@ -210,17 +191,14 @@
         <h2 class="mb-5 font-serif text-xl font-500 leading-snug text-gray-900 dark:text-gray-100">
           {{ $t('section_danger_zone') }}
         </h2>
-        <div class="rounded-lg border border-red-200 p-5 dark:border-red-900/60">
-          <h3 class="mb-1 font-sans text-base font-600 text-gray-900 dark:text-gray-100">{{ $t('heading_delete_account') }}</h3>
-          <p class="mb-4 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+        <div class="border-t border-gray-500/20 py-5 dark:border-white/10">
+          <h3 class="mb-1 font-serif text-lg font-500 text-gray-900 dark:text-gray-100">{{ $t('heading_delete_account') }}</h3>
+          <p class="mb-4 max-w-lg font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-400">
             {{ $t('desc_delete_account') }}
           </p>
-          <button
-            class="min-h-10 rounded-md border border-red-300 px-4 py-2 font-sans text-sm font-600 text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/20 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-            @click="showDeleteModal = true"
-          >
+          <NButton btn="outline-gray" class="min-h-10 justify-center border-gray-500/40 px-4 font-sans text-sm font-600 text-gray-800 transition-colors hover:bg-black/5 dark:border-white/20 dark:text-gray-100 dark:hover:bg-white/10" @click="showDeleteModal = true">
             {{ $t('button_delete_account') }}
-          </button>
+          </NButton>
         </div>
       </div>
     </div>
@@ -304,7 +282,9 @@ const { user } = useUserSession()
 const tabs = computed(() => [
   { name: $t('tab_profile'), value: 'profile' },
   { name: $t('tab_ui'), value: 'ui' },
+  { name: $t('section_privacy'), value: 'privacy' },
   { name: $t('tab_notifications'), value: 'notifications' },
+  { name: $t('section_security'), value: 'security' },
   { name: $t('tab_data'), value: 'data' }
 ])
 

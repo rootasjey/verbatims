@@ -16,10 +16,10 @@
       >
         {{ group.label }}
         <span
-          v-if="group.id === 'favourites' && favouritesCount !== null && favouritesCount > 0"
+          v-if="countForGroup(group.id) > 0"
           class="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-gray-900/5 px-1.5 py-0.5 font-sans text-[11px] font-500 tabular-nums leading-none text-gray-500 dark:bg-white/10 dark:text-gray-400"
         >
-          {{ favouritesCount }}
+          {{ countForGroup(group.id) }}
         </span>
       </NuxtLink>
       <span
@@ -52,6 +52,12 @@
           :tabindex="activeGroup.children?.length ? undefined : -1"
         >
           {{ item.label }}
+          <span
+            v-if="typeof item.count === 'number'"
+            class="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-gray-900/5 px-1.5 py-0.5 font-sans text-[11px] font-500 tabular-nums leading-none text-gray-500 dark:bg-white/10 dark:text-gray-400"
+          >
+            {{ item.count }}
+          </span>
         </NuxtLink>
       </nav>
     </div>
@@ -64,9 +70,17 @@ const { $t } = useI18n()
 const { user } = useUserSession()
 const userKey = String(user.value?.id ?? 'anonymous')
 const favouritesCount = useState<number | null>(`dashboard-favourites-count-${userKey}`, () => null)
-const { data: dashboardStats } = await useFetch('/api/dashboard/stats', {
+const collectionsCount = useState<number | null>(`dashboard-collections-count-${userKey}`, () => null)
+const { data: dashboardStats, refresh: refreshDashboardStats } = await useFetch('/api/dashboard/stats', {
   key: `dashboard-context-nav-stats-${userKey}`
 })
+const countForGroup = (id: string) => {
+  const stats = dashboardStats.value?.data
+  if (id === 'favourites') return favouritesCount.value ?? stats?.favourites ?? 0
+  if (id === 'lists') return collectionsCount.value ?? stats?.collections ?? 0
+  if (id === 'quotes') return stats?.submitted ?? 0
+  return 0
+}
 const primaryNav = ref<HTMLElement | null>(null)
 const secondaryNav = ref<HTMLElement | null>(null)
 const indicatorReady = ref(false)
@@ -89,9 +103,9 @@ const groups = computed(() => [
     to: '/dashboard/my-quotes/drafts',
     label: String($t('nav.my_quotes')),
     children: [
-      { to: '/dashboard/my-quotes/drafts', label: String($t('nav.drafts')) },
-      { to: '/dashboard/my-quotes/pending', label: String($t('nav.pending')) },
-      { to: '/dashboard/my-quotes/published', label: String($t('nav.published')) }
+      { to: '/dashboard/my-quotes/drafts', label: String($t('nav.drafts')), count: dashboardStats.value?.data.draft ?? null },
+      { to: '/dashboard/my-quotes/pending', label: String($t('nav.pending')), count: dashboardStats.value?.data.pending ?? null },
+      { to: '/dashboard/my-quotes/published', label: String($t('nav.published')), count: dashboardStats.value?.data.approved ?? null }
     ]
   },
   {
@@ -99,8 +113,8 @@ const groups = computed(() => [
     to: '/dashboard/settings',
     label: String($t('nav.settings')),
     children: [
-      { to: '/dashboard/sponsors', label: String($t('nav.sponsorships')) },
-      { to: '/dashboard/developer', label: String($t('nav.developer')) }
+      { to: '/dashboard/sponsors', label: String($t('nav.sponsorships')), count: null },
+      { to: '/dashboard/developer', label: String($t('nav.developer')), count: null }
     ]
   }
 ])
@@ -137,6 +151,7 @@ const updateActiveIndicator = async () => {
 
 watch(() => route.path, async () => {
   if (!import.meta.client) return
+  refreshDashboardStats()
   await nextTick()
   updateActiveIndicator()
   const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
