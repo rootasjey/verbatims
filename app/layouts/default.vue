@@ -200,12 +200,11 @@
           class="mb-5 [&:empty]:hidden"
         />
         <div
-          ref="dashboardPanelShell"
           class="dashboard-data-panel-shell"
           :aria-busy="dashboardViewTransitionPending"
         >
-          <section ref="dashboardPanelSurface" :class="['min-h-full', isDashboardListsIndex ? 'px-0 py-0' : 'rounded-2xl bg-[#e7e4dd] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]']">
-            <div ref="dashboardPanelContent" :inert="dashboardViewTransitionPending">
+          <section :class="['min-h-full', isDashboardListsIndex ? 'px-0 py-0' : 'rounded-2xl bg-[#e7e4dd] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]']">
+            <div :inert="dashboardViewTransitionPending">
               <slot />
             </div>
           </section>
@@ -261,142 +260,20 @@ const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
 const isDashboardMyQuotesPage = computed(() => route.path.startsWith('/dashboard/my-quotes/'))
 const isDashboardListsIndex = computed(() => route.path === '/dashboard/lists')
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
-const dashboardPanelShell = ref<HTMLElement | null>(null)
-const dashboardPanelSurface = ref<HTMLElement | null>(null)
-const dashboardPanelContent = ref<HTMLElement | null>(null)
-let dashboardPanelObserver: ResizeObserver | undefined
-let dashboardPanelAnimationFrame = 0
-let dashboardPanelLastHeight = 0
-let dashboardPanelResizeTimer: ReturnType<typeof setTimeout> | undefined
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value || isDashboardPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
 const { $t } = useI18n()
 const { locale } = useI18nLocale()
 const { user } = useUserSession()
 
-const finishDashboardPanelResize = (event: TransitionEvent) => {
-  const shell = dashboardPanelShell.value
-  if (event.target !== shell || event.propertyName !== 'height' || !shell) return
-  shell.style.overflow = 'visible'
-}
-
-const holdDashboardPanelHeight = () => {
-  if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
-  cancelAnimationFrame(dashboardPanelAnimationFrame)
-
-  const shell = dashboardPanelShell.value
-  const currentHeight = shell?.getBoundingClientRect().height
-  if (shell && currentHeight) {
-    dashboardPanelLastHeight = currentHeight
-    shell.style.height = `${currentHeight}px`
-  }
-}
-
-const animateDashboardPanelToContent = () => {
-  const shell = dashboardPanelShell.value
-  const surface = dashboardPanelSurface.value
-  const content = dashboardPanelContent.value
-  if (!shell || !surface || !content) return
-
-  const surfaceStyles = window.getComputedStyle(surface)
-  const verticalPadding = Number.parseFloat(surfaceStyles.paddingTop) + Number.parseFloat(surfaceStyles.paddingBottom)
-  const nextHeight = Math.max(416, content.scrollHeight + verticalPadding)
-  if (Math.abs(nextHeight - dashboardPanelLastHeight) < 1) {
-    shell.style.overflow = 'visible'
-    return
-  }
-
-  const currentHeight = shell.getBoundingClientRect().height || dashboardPanelLastHeight
-  dashboardPanelLastHeight = nextHeight
-  shell.style.height = `${currentHeight}px`
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    shell.style.height = `${nextHeight}px`
-    shell.style.overflow = 'visible'
-    return
-  }
-
-  shell.style.overflow = 'clip'
-  cancelAnimationFrame(dashboardPanelAnimationFrame)
-  dashboardPanelAnimationFrame = requestAnimationFrame(() => {
-    shell.style.height = `${nextHeight}px`
-  })
-}
-
-const scheduleDashboardPanelResize = (delay = 120) => {
-  if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
-  dashboardPanelResizeTimer = setTimeout(() => {
-    const content = dashboardPanelContent.value
-    if (dashboardViewTransitionPending.value || content?.querySelector('[aria-busy="true"]')) return
-    animateDashboardPanelToContent()
-  }, delay)
-}
-
 watch(() => route.path, (path, previousPath) => {
   if (!path.startsWith('/dashboard') || !previousPath.startsWith('/dashboard')) return
   dashboardViewTransitionPending.value = true
-  holdDashboardPanelHeight()
 }, { flush: 'sync' })
-
-watch(dashboardViewTransitionPending, async (pending) => {
-  if (pending) {
-    holdDashboardPanelHeight()
-    return
-  }
-
-  await nextTick()
-  if (dashboardPanelContent.value) {
-    dashboardPanelObserver?.unobserve(dashboardPanelContent.value)
-    dashboardPanelObserver?.observe(dashboardPanelContent.value)
-  }
-  scheduleDashboardPanelResize(0)
-}, { flush: 'post' })
 
 watch(isDashboardPage, (isDashboard) => {
   if (!isDashboard) dashboardViewTransitionPending.value = false
 }, { flush: 'sync' })
-
-watch(isDashboardPage, async (isDashboard) => {
-  if (!isDashboard) {
-    dashboardPanelObserver?.disconnect()
-    dashboardPanelObserver = undefined
-    if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
-    dashboardPanelShell.value?.removeEventListener('transitionend', finishDashboardPanelResize)
-    dashboardPanelShell.value?.removeEventListener('transitioncancel', finishDashboardPanelResize)
-    return
-  }
-
-  await nextTick()
-  const shell = dashboardPanelShell.value
-  const surface = dashboardPanelSurface.value
-  const content = dashboardPanelContent.value
-  if (!shell || !surface || !content) return
-
-  dashboardPanelLastHeight = surface.getBoundingClientRect().height
-  shell.style.height = `${dashboardPanelLastHeight}px`
-  shell.addEventListener('transitionend', finishDashboardPanelResize)
-  shell.addEventListener('transitioncancel', finishDashboardPanelResize)
-
-  dashboardPanelObserver = new ResizeObserver(() => {
-    // Keep the current panel height while a dashboard view is fetching data.
-    // Loading skeletons are temporary layout, not the destination height.
-    if (dashboardViewTransitionPending.value || content.querySelector('[aria-busy="true"]')) {
-      holdDashboardPanelHeight()
-      return
-    }
-
-    scheduleDashboardPanelResize()
-  })
-  dashboardPanelObserver.observe(content)
-}, { immediate: true, flush: 'post' })
-
-onBeforeUnmount(() => {
-  dashboardPanelObserver?.disconnect()
-  if (dashboardPanelResizeTimer) clearTimeout(dashboardPanelResizeTimer)
-  cancelAnimationFrame(dashboardPanelAnimationFrame)
-  dashboardPanelShell.value?.removeEventListener('transitionend', finishDashboardPanelResize)
-  dashboardPanelShell.value?.removeEventListener('transitioncancel', finishDashboardPanelResize)
-})
 const homeTheme = useState<{ name: string; description: string | null } | null>('active-home-theme', () => null)
 const homeStats = useState<{ quotes: number; authors: number; references: number }>('active-home-stats', () => ({ quotes: 0, authors: 0, references: 0 }))
 const showAddQuote = useState('app-add-quote-drawer-open', () => false)
@@ -550,7 +427,6 @@ useHead({
 .dashboard-data-panel-shell {
   position: relative;
   min-height: 26rem;
-  transition: height 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dashboard-transition-state {
@@ -560,12 +436,6 @@ useHead({
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dashboard-data-panel-shell {
-    transition: none;
-  }
 }
 
 .quote-masthead-brand-enter-active,
