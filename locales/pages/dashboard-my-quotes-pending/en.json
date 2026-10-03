@@ -6,6 +6,8 @@
   "empty_search_desc": "Try adjusting your search terms.",
   "empty_title": "No pending quotes",
   "empty_desc": "Submit some quotes to see them here while they await review.",
+  "empty_language_title": "No pending quotes in {language}",
+  "empty_language_desc": "Try another language or choose All Languages to see pending quotes in every language.",
   "empty_action": "View Drafts",
   "bulk_withdraw": "Withdraw Selected",
   "col_quote": "Quote",

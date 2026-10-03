@@ -7,6 +7,8 @@
   "empty_search_desc": "Essayez de modifier vos termes de recherche.",
   "empty_title": "Aucune citation publiée",
   "empty_desc": "Soumettez des citations et faites-les approuver pour les voir ici.",
+  "empty_language_title": "Aucune citation publiée en {language}",
+  "empty_language_desc": "Essayez une autre langue ou sélectionnez Toutes les langues pour voir toutes vos citations publiées.",
   "empty_action": "Créer une citation",
   "bulk_add_collection": "Ajouter à une collection",
   "col_quote": "Citation",
