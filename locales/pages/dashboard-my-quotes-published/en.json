@@ -7,6 +7,8 @@
   "empty_search_desc": "Try adjusting your search terms.",
   "empty_title": "No published quotes yet",
   "empty_desc": "Submit some quotes and get them approved to see them here.",
+  "empty_language_title": "No published quotes in {language}",
+  "empty_language_desc": "Try another language or choose All Languages to see published quotes in every language.",
   "empty_action": "Create New Quote",
   "bulk_add_collection": "Add to Collection",
   "col_quote": "Quote",

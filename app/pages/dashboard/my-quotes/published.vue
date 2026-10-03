@@ -51,18 +51,24 @@
     <!-- Empty -->
     <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
       <DashboardEmptyStateCopy
-        :heading="String(searchQuery ? pageT('empty_search_title') : pageT('empty_title'))"
-        :description="String(searchQuery ? pageT('empty_search_desc') : pageT('empty_desc'))"
-      />
-      <NButton
-        v-if="!searchQuery"
-        btn="solid-black"
-        trailing="i-lucide-message-square-quote"
-        class="min-h-10 justify-center gap-2 rounded-1 bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] duration-150 hover:bg-gray-700 active:scale-96 motion-reduce:active:scale-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300 dark:focus-visible:ring-gray-400 dark:focus-visible:ring-offset-[#17191e]"
-        @click="openAddQuote"
+        :heading="emptyStateHeading"
+        :description="emptyStateDescription"
+        :interactive-phrase="!searchQuery && languageStore.currentLanguageValue !== 'all' ? String($t('common.all_languages')) : undefined"
       >
-        {{ pageT('empty_action') }}
-      </NButton>
+        <template #description-action>
+          <DashboardEmptyStateLanguageAction :on-language-changed="onLanguageChanged" />
+        </template>
+      </DashboardEmptyStateCopy>
+      <div v-if="!searchQuery" class="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <NButton
+          btn="solid-black"
+          trailing="i-lucide-message-square-quote"
+          class="min-h-10 justify-center gap-2 rounded-1 bg-gray-900 px-4 font-sans text-sm font-600 text-gray-50 transition-[transform,background-color] duration-150 hover:bg-gray-700 active:scale-96 motion-reduce:active:scale-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-300 dark:focus-visible:ring-gray-400 dark:focus-visible:ring-offset-[#17191e]"
+          @click="openAddQuote"
+        >
+          {{ pageT('empty_action') }}
+        </NButton>
+      </div>
     </div>
 
     <!-- Results -->

@@ -6,6 +6,8 @@
   "empty_search_desc": "Essayez de modifier vos termes de recherche.",
   "empty_title": "Aucune citation en attente",
   "empty_desc": "Soumettez des citations pour les voir ici en attendant leur révision.",
+  "empty_language_title": "Aucune citation en attente en {language}",
+  "empty_language_desc": "Essayez une autre langue ou sélectionnez Toutes les langues pour voir toutes vos citations en attente.",
   "empty_action": "Voir les brouillons",
   "bulk_withdraw": "Retirer la sélection",
   "col_quote": "Citation",
