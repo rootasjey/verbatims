@@ -29,7 +29,7 @@ const finishDashboardPageTransition = () => {
 nuxtApp.hook('page:finish', () => {
   if (!import.meta.client || !isDashboardPage.value) return
   if (dashboardTransitionFallback) clearTimeout(dashboardTransitionFallback)
-  // Fallback only: page:finish may happen before the out-in visual transition ends.
+  // Fallback only: page:finish may happen before the destination view enters.
   dashboardTransitionFallback = setTimeout(() => {
     if (isDashboardPage.value && dashboardViewTransitionPending.value) {
       dashboardViewTransitionPending.value = false
@@ -39,8 +39,7 @@ nuxtApp.hook('page:finish', () => {
 
 const dashboardPageTransition = {
   name: 'dashboard-view',
-  mode: 'out-in' as const,
-  // Let the layout measure the destination only after the out-in transition has finished.
+  // Keep the destination mounted during route changes; the panel skeleton covers the brief overlap.
   onAfterEnter: finishDashboardPageTransition
 }
 
