@@ -1,9 +1,13 @@
-export default defineNuxtPlugin(() => {
-  // Initialize the language store on client-side only (non-blocking)
+export default defineNuxtPlugin(async () => {
   const languageStore = useLanguageStore()
+  const { user } = useUserSession()
 
-  // Initialize the store asynchronously without blocking app startup
-  nextTick(() => {
-    languageStore.initialize()
+  // Load the account preference before pages request content with a language filter.
+  await languageStore.initialize()
+
+  watch(() => user.value?.id, async (userId, previousUserId) => {
+    if (userId && userId !== previousUserId) {
+      await languageStore.loadUserPreferences()
+    }
   })
 })

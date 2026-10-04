@@ -49,13 +49,17 @@ export const useLanguageStore = defineStore('language', () => {
     }
 
     try {
-      // Try to get language from localStorage first
-      const storedLanguage = getFromLocalStorage()
-      if (storedLanguage) {
-        selectedLanguage.value = storedLanguage
+      const { user } = useUserSession()
+      if (user.value) {
+        const sessionLanguage = availableLanguages.value.find(
+          language => language.value === user.value?.content_language,
+        )
+        selectedLanguage.value = sessionLanguage ?? availableLanguages.value[0]!
+        await loadUserPreferences()
+      } else {
+        const storedLanguage = getFromLocalStorage()
+        if (storedLanguage) selectedLanguage.value = storedLanguage
       }
-      // Note: User preferences will be loaded separately after authentication is ready
-      // This prevents circular dependencies during app initialization
     } catch (error) {
       console.error('Failed to initialize language store:', error)
       // Continue with default language if initialization fails
@@ -69,35 +73,32 @@ export const useLanguageStore = defineStore('language', () => {
     if (typeof window === 'undefined') return
     try {
       const { user } = useUserSession()
-      if (user.value?.language) {
-        const userLanguageOption = availableLanguages.value.find(
-          lang => lang.value === user.value!.language
-        )
-        if (userLanguageOption) {
-          selectedLanguage.value = userLanguageOption
-          // Update localStorage to match user preference
-          saveToLocalStorage(userLanguageOption)
-        }
-      }
+      if (!user.value) return
+
+      const preference = await $fetch<{ content_language: string }>('/api/user/content-language')
+      const language = availableLanguages.value.find(option => option.value === preference.content_language)
+      if (!language) return
+
+      selectedLanguage.value = language
+      saveToLocalStorage(language)
     } catch (error) {
-      console.error('Failed to load user language preferences:', error)
+      console.error('Failed to load content language preference:', error)
     }
   }
 
   async function setLanguage(language: LanguageOption) {
     selectedLanguage.value = language
     saveToLocalStorage(language)
-    // If user is authenticated, sync to database
+    // Keep the signed-in user's content filter consistent across pages and devices.
     const { user } = useUserSession()
-    if (user.value && language.value !== 'all') {
+    if (user.value) {
       try {
-        await $fetch('/api/user/language', {
+        await $fetch('/api/user/content-language', {
           method: 'PUT',
-          body: { language: language.value }
+          body: { content_language: language.value }
         })
       } catch (error) {
-        console.error('Failed to sync language preference to database:', error)
-        // Continue anyway - localStorage will persist the choice
+        console.error('Failed to sync content language preference to account:', error)
       }
     }
   }

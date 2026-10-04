@@ -4,6 +4,7 @@ declare module '#auth-utils' {
     avatar_url?: string
     biography?: string
     created_at: string
+    content_language?: string
     email_verified?: boolean
     id: number
     job?: string

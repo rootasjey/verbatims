@@ -60,6 +60,7 @@ export default defineEventHandler(async (event) => {
       biography: userData.biography ?? undefined,
       job: userData.job ?? undefined,
       language,
+      content_language: userData.preferredContentLanguage ?? 'all',
       location: userData.location ?? undefined,
       socials: userData.socials ?? undefined,
       updated_at: userData.updatedAt instanceof Date

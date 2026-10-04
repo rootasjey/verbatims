@@ -1,7 +1,7 @@
 <template>
   <div :class="{ 'language-selector--compact': props.compact }">
     <NCombobox
-      v-model="selectedLanguage"
+      :model-value="selectedLanguage"
       :items="availableLanguages"
       by="value"
       :_combobox-input="{
@@ -71,15 +71,10 @@ const triggerClass = computed(() => {
 const languageStore = useLanguageStore()
 
 // Reactive references with proper initialization handling
-const selectedLanguage = computed({
-  get: () => {
-    const current = languageStore.currentLanguage
-    return availableLanguages.value.find(language => language.value === current?.value)
-      ?? availableLanguages.value[0]
-  },
-  set: (value: LanguageOption) => {
-    languageStore.setLanguage(value)
-  }
+const selectedLanguage = computed(() => {
+  const current = languageStore.currentLanguage
+  return availableLanguages.value.find(language => language.value === current?.value)
+    ?? availableLanguages.value[0]
 })
 
 const availableLanguages = computed(() => languageStore.availableLanguages.map(language => ({

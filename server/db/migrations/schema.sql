@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
   biography TEXT,
   job TEXT,
   language TEXT DEFAULT 'en',
+  preferred_content_language TEXT DEFAULT 'all',
   location TEXT DEFAULT 'On Earth',
   socials TEXT DEFAULT '[]' CHECK (json_valid(socials)),
   last_login_at DATETIME DEFAULT CURRENT_TIMESTAMP,

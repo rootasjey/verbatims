@@ -8,6 +8,7 @@ declare module 'nuxt-auth-utils/dist/runtime/types/session.js' {
     is_active?: boolean
     email_verified?: boolean
     language?: string
+    content_language?: string
     created_at?: string
     updated_at?: string
   }
@@ -27,6 +28,7 @@ declare module 'nuxt-auth-utils/dist/runtime/types/session' {
     is_active?: boolean
     email_verified?: boolean
     language?: string
+    content_language?: string
     created_at?: string
     updated_at?: string
   }

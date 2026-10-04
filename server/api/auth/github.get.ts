@@ -68,6 +68,7 @@ export default defineOAuthGitHubEventHandler({
         is_active: existingUser.isActive ?? false,
         email_verified: existingUser.emailVerified ?? false,
         language,
+        content_language: existingUser.preferredContentLanguage ?? 'all',
         created_at: toISOStringOrNull(existingUser.createdAt) ?? '',
         updated_at: toISOStringOrNull(existingUser.updatedAt) ?? ''
       }
