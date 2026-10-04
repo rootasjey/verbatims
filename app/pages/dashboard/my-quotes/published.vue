@@ -1,6 +1,7 @@
 <template>
   <div>
-    <Teleport to="#dashboard-page-toolbar">
+    <ClientOnly>
+      <Teleport to="#dashboard-page-toolbar">
     <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
         {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
@@ -34,7 +35,8 @@
         </div>
       </div>
     </div>
-    </Teleport>
+      </Teleport>
+    </ClientOnly>
     <div :aria-busy="loading">
     <!-- Loading (first load) -->
     <div v-if="showInitialSkeleton && !hasLoadedOnce && loading" class="space-y-5">
