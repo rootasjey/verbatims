@@ -53,7 +53,9 @@
     "more_information": "Informations complémentaires",
     "settings": "Paramètres",
     "developer": "Développeur",
-    "admin": "Admin"
+    "admin": "Admin",
+    "scroll_tabs_left": "Faire défiler les onglets vers la gauche",
+    "scroll_tabs_right": "Faire défiler les onglets vers la droite"
   },
   "footer": {
     "tagline": "Découvrez et partagez des citations mémorables issues de films, livres, musique et plus encore.",

@@ -1,9 +1,11 @@
 <template>
   <div>
+    <div class="dashboard-nav-scroll-wrap">
     <nav
       ref="primaryNav"
-      class="relative flex min-w-0 flex-wrap items-center gap-x-4 border-b border-black/10 whitespace-nowrap dark:border-white/10 md:flex-nowrap md:gap-x-6"
+      class="dashboard-nav-scroll relative flex min-w-0 flex-nowrap items-center gap-x-4 overflow-x-auto border-b border-black/10 whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:border-white/10 md:gap-x-6"
       :aria-label="String($t('nav.my_library'))"
+      @scroll="updatePrimaryOverflow"
     >
       <NuxtLink
         v-for="group in groups"
@@ -29,6 +31,29 @@
         aria-hidden="true"
       />
     </nav>
+    <span v-if="primaryCanScrollLeft" class="dashboard-nav-fade dashboard-nav-fade--left bg-gradient-to-r from-[#F7F5EF] to-transparent dark:from-[#0C0A09]" aria-hidden="true" />
+    <span v-if="primaryCanScrollRight" class="dashboard-nav-fade dashboard-nav-fade--right bg-gradient-to-l from-[#F7F5EF] to-transparent dark:from-[#0C0A09]" aria-hidden="true" />
+    <NButton
+      v-if="primaryCanScrollLeft"
+      icon
+      btn="ghost-gray"
+      size="xs"
+      label="i-ph-caret-left"
+      class="dashboard-nav-arrow dashboard-nav-arrow--left bg-[#F7F5EF] dark:bg-[#0C0A09]"
+      :aria-label="String($t('nav.scroll_tabs_left'))"
+      @click="scrollNav(primaryNav, -1)"
+    />
+    <NButton
+      v-if="primaryCanScrollRight"
+      icon
+      btn="ghost-gray"
+      size="xs"
+      label="i-ph-caret-right"
+      class="dashboard-nav-arrow dashboard-nav-arrow--right bg-[#F7F5EF] dark:bg-[#0C0A09]"
+      :aria-label="String($t('nav.scroll_tabs_right'))"
+      @click="scrollNav(primaryNav, 1)"
+    />
+    </div>
 
     <div
       class="dashboard-secondary-nav"
@@ -36,10 +61,12 @@
       :aria-hidden="!activeGroup.children?.length"
       :inert="!activeGroup.children?.length"
     >
+      <div class="dashboard-nav-scroll-wrap dashboard-secondary-nav__inner">
       <nav
         ref="secondaryNav"
-        class="dashboard-secondary-nav__inner flex min-w-0 items-center gap-5 overflow-x-auto overscroll-x-contain whitespace-nowrap border-t border-black/5 dark:border-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        class="dashboard-nav-scroll flex min-w-0 items-center gap-5 overflow-x-auto overscroll-x-contain whitespace-nowrap border-t border-black/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:border-white/10"
         :aria-label="activeGroup.children?.length ? activeGroup.label : undefined"
+        @scroll="updateSecondaryOverflow"
       >
         <NuxtLink
           v-for="item in activeGroup.children"
@@ -60,6 +87,29 @@
           </span>
         </NuxtLink>
       </nav>
+      <span v-if="secondaryCanScrollLeft" class="dashboard-nav-fade dashboard-nav-fade--left bg-gradient-to-r from-[#F7F5EF] to-transparent dark:from-[#0C0A09]" aria-hidden="true" />
+      <span v-if="secondaryCanScrollRight" class="dashboard-nav-fade dashboard-nav-fade--right bg-gradient-to-l from-[#F7F5EF] to-transparent dark:from-[#0C0A09]" aria-hidden="true" />
+      <NButton
+        v-if="secondaryCanScrollLeft"
+        icon
+        btn="ghost-gray"
+        size="xs"
+        label="i-ph-caret-left"
+        class="dashboard-nav-arrow dashboard-nav-arrow--left bg-[#F7F5EF] dark:bg-[#0C0A09]"
+        :aria-label="String($t('nav.scroll_tabs_left'))"
+        @click="scrollNav(secondaryNav, -1)"
+      />
+      <NButton
+        v-if="secondaryCanScrollRight"
+        icon
+        btn="ghost-gray"
+        size="xs"
+        label="i-ph-caret-right"
+        class="dashboard-nav-arrow dashboard-nav-arrow--right bg-[#F7F5EF] dark:bg-[#0C0A09]"
+        :aria-label="String($t('nav.scroll_tabs_right'))"
+        @click="scrollNav(secondaryNav, 1)"
+      />
+      </div>
     </div>
   </div>
 </template>
@@ -85,6 +135,10 @@ const primaryNav = ref<HTMLElement | null>(null)
 const secondaryNav = ref<HTMLElement | null>(null)
 const indicatorReady = ref(false)
 const activeIndicator = ref({ x: 0, y: 0, width: 0 })
+const primaryCanScrollLeft = ref(false)
+const primaryCanScrollRight = ref(false)
+const secondaryCanScrollLeft = ref(false)
+const secondaryCanScrollRight = ref(false)
 let navResizeObserver: ResizeObserver | undefined
 
 watch(() => dashboardStats.value?.data.favourites, (count) => {
@@ -130,10 +184,24 @@ const isActive = (path: string) => path === '/dashboard/lists'
   ? route.path === path || route.path.startsWith(`${path}/`)
   : route.path === path
 
+const updateOverflow = (element: HTMLElement | null, left: Ref<boolean>, right: Ref<boolean>) => {
+  if (!element) return
+  left.value = element.scrollLeft > 2
+  right.value = element.scrollLeft + element.clientWidth < element.scrollWidth - 2
+}
+const updatePrimaryOverflow = () => updateOverflow(primaryNav.value, primaryCanScrollLeft, primaryCanScrollRight)
+const updateSecondaryOverflow = () => updateOverflow(secondaryNav.value, secondaryCanScrollLeft, secondaryCanScrollRight)
+const scrollNav = (element: HTMLElement | null, direction: -1 | 1) => {
+  if (!element) return
+  element.scrollBy({ left: direction * Math.max(140, element.clientWidth * 0.65), behavior: 'smooth' })
+}
+
 const updateActiveIndicator = async () => {
   if (!import.meta.client) return
 
   await nextTick()
+  updatePrimaryOverflow()
+  updateSecondaryOverflow()
 
   const nav = primaryNav.value
   const activeLink = nav?.querySelector<HTMLElement>('[aria-current]')
@@ -169,6 +237,7 @@ onMounted(async () => {
 
   navResizeObserver = new ResizeObserver(updateActiveIndicator)
   navResizeObserver.observe(primaryNav.value)
+  if (secondaryNav.value) navResizeObserver.observe(secondaryNav.value)
   primaryNav.value.querySelectorAll('[data-dashboard-group]').forEach(link => navResizeObserver?.observe(link))
 })
 
@@ -196,8 +265,53 @@ onBeforeUnmount(() => navResizeObserver?.disconnect())
 
 .dashboard-secondary-nav__inner {
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
+
+.dashboard-nav-scroll-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.dashboard-nav-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.dashboard-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.dashboard-nav-fade {
+  position: absolute;
+  inset-block: 1px;
+  z-index: 2;
+  width: 2.5rem;
+  pointer-events: none;
+}
+
+.dashboard-nav-fade--left {
+  left: 0;
+}
+
+.dashboard-nav-fade--right {
+  right: 0;
+}
+
+.dashboard-nav-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  height: 2rem;
+  width: 2rem;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+}
+
+.dashboard-nav-arrow--left { left: 0.25rem; }
+.dashboard-nav-arrow--right { right: 0.25rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .dashboard-tab-indicator,

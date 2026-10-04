@@ -104,6 +104,12 @@
           :key="quote.id"
           class="py-5 first:pt-0 last:pb-0 group animate-fade-in-up"
           :style="{ animationDelay: `${idx * 0.05}s` }"
+          @pointerdown="longPress.start($event, quote)"
+          @pointermove="longPress.move($event)"
+          @pointerup="longPress.end"
+          @pointercancel="longPress.end"
+          @contextmenu="longPress.handleContextMenu($event, quote)"
+          @click.capture="longPress.suppressLongPressClick"
         >
           <div class="flex items-start gap-4">
             <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
@@ -130,6 +136,14 @@
                 </button>
               </NTooltip>
             </div>
+            <button
+              type="button"
+              class="sr-only rounded-md p-2 focus:not-sr-only focus:absolute focus:z-10 focus:bg-[#e7e4dd] focus:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:focus:bg-[#17191e] dark:focus:text-gray-100"
+              :aria-label="$t('components.quote_actions.quick_actions') as string"
+              @click.stop="openMobileQuoteActions(quote)"
+            >
+              <NIcon name="i-ph-dots-three" class="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
@@ -142,30 +156,26 @@
   <!-- Sticky Pagination Footer -->
   <div
     v-if="totalPages > 1"
-    class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+    class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
     :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
   >
     <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
       Page
       <button
-        class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+        class="rounded-md px-1.5 py-0.5 font-medium text-gray-800 transition-colors hover:bg-black/5 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
         @click="showPageJumpDialog = true"
       >
         {{ currentPage }}
       </button>
       of {{ totalPages }}
     </span>
-    <div class="flex items-center gap-3">
-      <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-      <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-      <button
-        class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
-        @click="showPageJumpDialog = true"
-      >
-        {{ currentPage }} / {{ totalPages }}
-      </button>
-      <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-      <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+    <div class="flex items-center gap-2">
+        <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
+          <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
+        </NButton>
+        <NButton v-if="currentPage < totalPages" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.next') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.min(totalPages, currentPage + 1)">
+          <span class="sr-only sm:not-sr-only">{{ $t('common.next') }}</span><NIcon name="i-tabler-arrow-right" class="h-4 w-4" />
+      </NButton>
     </div>
   </div>
 
@@ -175,6 +185,13 @@
     :total-pages="totalPages"
     @jump="onPageJump"
   />
+  <ClientOnly>
+    <DashboardQuoteActionsDrawer
+      v-model:open="mobileActionsOpen"
+      :quote-text="mobileActionQuote?.name"
+      :actions="mobileActionItems"
+    />
+  </ClientOnly>
 </template>
 
 <script lang="ts" setup>
@@ -212,6 +229,17 @@ const collection = ref<CollectionWithQuotes | null>(null)
 const loading = ref(true)
 const currentPage = ref(1)
 const totalPages = ref(0)
+const mobileActionsOpen = ref(false)
+const mobileActionQuote = ref<any>(null)
+const openMobileQuoteActions = (quote: any) => {
+  mobileActionQuote.value = quote
+  mobileActionsOpen.value = true
+}
+const mobileActionItems = computed(() => mobileActionQuote.value ? [
+  { label: $t('tooltip_share') as string, leading: 'i-ph-share', onclick: () => handleShareQuote(mobileActionQuote.value) },
+  { label: $t('tooltip_remove') as string, leading: 'i-ph-x', onclick: () => handleRemoveFromCollection(mobileActionQuote.value) }
+] : [])
+const longPress = useDashboardLongPress(openMobileQuoteActions)
 
 const loadCollection = async () => {
   try {
@@ -326,13 +354,13 @@ const footerWidth = ref('100%')
 let footerObserver: ResizeObserver | null = null
 
 const updateFooterPosition = () => {
-  const mainEl = document.querySelector('main')
-  if (!mainEl) {
+  const panelEl = document.querySelector('.dashboard-data-panel-shell')
+  if (!panelEl) {
     footerLeftOffset.value = 0
     footerWidth.value = '100%'
     return
   }
-  const rect = mainEl.getBoundingClientRect()
+  const rect = panelEl.getBoundingClientRect()
   footerLeftOffset.value = rect.left
   footerWidth.value = `${rect.width}px`
 }
@@ -341,8 +369,8 @@ onMounted(() => {
   loadCollection()
   updateFooterPosition()
   footerObserver = new ResizeObserver(updateFooterPosition)
-  const mainEl = document.querySelector('main')
-  if (mainEl) footerObserver.observe(mainEl)
+  const panelEl = document.querySelector('.dashboard-data-panel-shell')
+  if (panelEl) footerObserver.observe(panelEl)
   window.addEventListener('resize', updateFooterPosition)
 })
 
