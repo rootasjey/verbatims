@@ -337,25 +337,44 @@ watch(currentPage, () => {
   loadFavourites()
 })
 
-const getQuoteActions = (quote: any) => [
-  {
-    label: $t('tooltip_add_to_collection') as string,
-    leading: 'i-ph-folder-plus',
-    onclick: () => handleAddToCollection(quote)
-  },
-  {},
-  {
-    label: $t('tooltip_share') as string,
-    leading: 'i-ph-share',
-    onclick: () => handleShareQuote(quote)
-  },
-  {},
-  {
-    label: $t('tooltip_remove') as string,
-    leading: 'i-ph-heart-break',
-    onclick: () => handleUnlike(quote)
-  }
+const getQuoteEntityActions = (quote: any) => [
+  ...(quote.author?.id ? [{
+    label: $t('action_view_author_page') as string,
+    leading: 'i-ph-user',
+    onclick: () => navigateTo(`/authors/${quote.author.id}`)
+  }] : []),
+  ...(quote.reference?.id ? [{
+    label: $t('action_view_reference_page') as string,
+    leading: 'i-ph-book-open-text',
+    onclick: () => navigateTo(`/references/${quote.reference.id}`)
+  }] : [])
 ]
+
+const getQuoteActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('tooltip_remove') as string,
+      leading: 'i-ph-heart-break',
+      onclick: () => handleUnlike(quote)
+    },
+    {},
+    {
+      label: $t('tooltip_add_to_collection') as string,
+      leading: 'i-ph-folder-plus',
+      onclick: () => handleAddToCollection(quote)
+    },
+    {},
+    {
+      label: $t('tooltip_share') as string,
+      leading: 'i-ph-share',
+      onclick: () => handleShareQuote(quote)
+    }
+  ]
+}
 
 const getAuthorActions = (quote: any) => {
   const author = quote.author

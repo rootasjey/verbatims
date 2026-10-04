@@ -559,45 +559,69 @@ const onLanguageChanged = async () => {
   loadPublishedQuotes()
 }
 
-const getQuoteActions = (quote: any) => [
-  {
-    label: $t('action_view_public') as string,
-    leading: 'i-ph-eye',
-    onclick: () => navigateTo(`/quotes/${quote.id}`)
-  },
-  {},
-  {
-    label: $t('action_add_collection') as string,
-    leading: 'i-ph-bookmark',
-    onclick: () => addToCollection(quote)
-  },
-  {},
-  {
-    label: $t('action_share') as string,
-    leading: 'i-ph-share',
-    onclick: () => shareQuote(quote)
-  }
+const getQuoteEntityActions = (quote: any) => [
+  ...(quote.author?.id ? [{
+    label: $t('action_view_author_page') as string,
+    leading: 'i-ph-user',
+    onclick: () => navigateTo(`/authors/${quote.author.id}`)
+  }] : []),
+  ...(quote.reference?.id ? [{
+    label: $t('action_view_reference_page') as string,
+    leading: 'i-ph-book-open-text',
+    onclick: () => navigateTo(`/references/${quote.reference.id}`)
+  }] : [])
 ]
 
-const getMobileActions = (quote: any) => [
-  {
-    label: $t('action_view_public') as string,
-    leading: 'i-ph-eye',
-    onclick: () => navigateTo(`/quotes/${quote.id}`)
-  },
-  {},
-  {
-    label: $t('action_add_collection') as string,
-    leading: 'i-ph-bookmark',
-    onclick: () => addToCollection(quote)
-  },
-  {},
-  {
-    label: $t('action_share') as string,
-    leading: 'i-ph-share',
-    onclick: () => shareQuote(quote)
-  }
-]
+const getQuoteActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    {
+      label: $t('action_view_public') as string,
+      leading: 'i-ph-eye',
+      onclick: () => navigateTo(`/quotes/${quote.id}`)
+    },
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('action_add_collection') as string,
+      leading: 'i-ph-bookmark',
+      onclick: () => addToCollection(quote)
+    },
+    {},
+    {
+      label: $t('action_share') as string,
+      leading: 'i-ph-share',
+      onclick: () => shareQuote(quote)
+    }
+  ]
+}
+
+const getMobileActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('action_view_public') as string,
+      leading: 'i-ph-eye',
+      onclick: () => navigateTo(`/quotes/${quote.id}`)
+    },
+    {},
+    {
+      label: $t('action_add_collection') as string,
+      leading: 'i-ph-bookmark',
+      onclick: () => addToCollection(quote)
+    },
+    {},
+    {
+      label: $t('action_share') as string,
+      leading: 'i-ph-share',
+      onclick: () => shareQuote(quote)
+    }
+  ]
+}
 
 const getAuthorActions = (quote: any) => {
   const author = quote.author
