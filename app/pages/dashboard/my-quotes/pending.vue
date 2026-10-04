@@ -30,7 +30,7 @@
           </template>
         </NCombobox>
         <div class="hidden md:block">
-          <LanguageSelector :on-language-changed="onLanguageChanged" :use-classic-design="true" />
+          <LanguageSelector :on-language-changed="onLanguageChanged" compact />
         </div>
       </div>
     </div>
@@ -96,7 +96,9 @@
                 </ContextMenu>
                 <span v-if="!quote.reference?.name && (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ (quote as any).reference_name }}</span>
                 <span class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
+                <NTooltip v-if="formatDashboardQuoteDate(quote, 'pending')" :content="formatDashboardQuoteDateTooltip(quote, 'pending', locale || 'en') ?? ''">
+                  <time class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDashboardQuoteDateRelative(quote, 'pending', locale || 'en') }}</time>
+                </NTooltip>
                   <span class="rounded-sm bg-gray-100 px-1.5 py-0.5 font-sans text-xs text-gray-600 dark:bg-white/10 dark:text-gray-300">{{ $t('common.status_pending') }}</span>
               </div>
             </NuxtLink>
@@ -140,104 +142,65 @@
           </button>
         </div>
 
-        <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-sm overflow-hidden">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0C0A09]">
-                <th class="w-10 px-3 py-3 text-left">
-                  <div>
-                    <NCheckbox
-                      checkbox="gray"
-                      :model-value="allSelected"
-                      @update:model-value="toggleAllSelection"
-                    />
-                  </div>
-                </th>
-                <th class="px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</th>
-                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_lang') }}</th>
-
-                <th class="w-20 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_status') }}</th>
-                <th class="w-24 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $t('col_submitted') }}</th>
-                <th class="w-10 px-3 py-3 text-left font-sans text-xs font-500 uppercase tracking-wider text-gray-500 dark:text-gray-400"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-dashed divide-gray-100 dark:divide-gray-800">
-              <tr
-                v-for="quote in filteredQuotes"
-                :key="quote.id"
-                class="group transition-colors hover:bg-stone-300/40 dark:hover:bg-white/[0.02]"
+        <div class="divide-y divide-[#d2cfc6]/80 dark:divide-white/10">
+          <div class="flex items-center gap-4 border-b border-[#d2cfc6]/80 pb-3 dark:border-white/10">
+            <NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" />
+            <span class="font-sans text-xs font-medium text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</span>
+          </div>
+          <ContextMenu
+            v-for="(quote, index) in filteredQuotes"
+            :key="quote.id"
+            size="xs"
+            native-on-modifier="ctrl"
+            trigger-as="div"
+            wrapper-class="w-full"
+            ignore-interactive-targets
+            :items="getQuoteActions(quote)"
+          >
+            <article class="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]">
+              <div :class="selectedQuotes.length > 0 ? 'opacity-100' : 'opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none'">
+                <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="handleRowCheckboxClick($event, index, quote.id)" />
+              </div>
+              <div class="min-w-0">
+                <blockquote class="line-clamp-2 whitespace-normal break-words font-serif text-lg leading-snug text-gray-900 dark:text-gray-100">
+                  {{ quote.name }}
+                </blockquote>
+                <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
+                  <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
+                    <span>{{ quote.author.name }}</span>
+                  </ContextMenu>
+                  <span v-if="quote.author?.name && quote.reference?.name" aria-hidden="true" class="text-gray-400 dark:text-gray-600">·</span>
+                  <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
+                    <span>{{ quote.reference.name }}</span>
+                  </ContextMenu>
+                </div>
+                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-gray-500 dark:text-gray-400">
+                  <span class="font-medium text-gray-700 dark:text-gray-300">{{ $t('common.status_pending') }}</span>
+                  <NTooltip v-if="formatDashboardQuoteDate(quote, 'pending')" :content="formatDashboardQuoteDateTooltip(quote, 'pending', locale || 'en') ?? ''">
+                    <time>{{ formatDashboardQuoteDateRelative(quote, 'pending', locale || 'en') }}</time>
+                  </NTooltip>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+              <NCombobox
+                :model-value="getLanguageOption(quote.language)"
+                @update:model-value="onLanguageChange(quote, $event)"
+                :items="inlineLanguageOptions"
+                by="value"
+                :_combobox-input="{ placeholder: 'Search language...', class: 'text-xs' }"
+                :_combobox-list="{ class: 'min-w-[100px]' }"
+                :_combobox-trigger="{ btn: 'ghost-gray', size: 'xs', trailing: '', class: 'gap-1 px-1 text-xs font-normal w-full min-w-0 h-auto justify-start text-gray-500 dark:text-gray-400' }"
               >
-                <td class="px-3 py-3 align-top">
-                  <div :class="selectedQuotes.length > 0 ? '' : 'opacity-0 group-hover:opacity-100'">
-                    <NCheckbox
-                      checkbox="gray"
-                      :model-value="!!rowSelection[quote.id]"
-                      @click="handleRowCheckboxClick($event, filteredQuotes.indexOf(quote), quote.id)"
-                    />
-                  </div>
-                </td>
-                <td class="px-3 py-3 align-top">
-                  <div class="max-w-md">
-                    <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-                      <blockquote class="mb-1 line-clamp-2 whitespace-normal break-words font-serif text-base leading-relaxed text-gray-900 dark:text-gray-100">
-                        {{ quote.name }}
-                      </blockquote>
-                    </ContextMenu>
-                    <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                      <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                        <span>{{ quote.author.name }}</span>
-                      </ContextMenu>
-                      <span v-if="quote.author?.name && quote.reference?.name">·</span>
-                      <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                        <span>{{ quote.reference.name }}</span>
-                      </ContextMenu>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-3 py-3">
-                  <NCombobox
-                    :model-value="getLanguageOption(quote.language)"
-                    @update:model-value="onLanguageChange(quote, $event)"
-                    :items="inlineLanguageOptions"
-                    by="value"
-                    :_combobox-input="{
-                      placeholder: 'Search language...',
-                      class: 'text-xs',
-                    }"
-                    :_combobox-list="{
-                      class: 'min-w-[100px]',
-                    }"
-                    :_combobox-trigger="{
-                      btn: 'ghost-gray',
-                      size: 'xs',
-                      trailing: '',
-                      class: 'gap-1 px-1 text-xs font-normal w-full min-w-0 h-auto justify-start',
-                    }"
-                  >
-                    <template #trigger="{ modelValue }">
-                      {{ modelValue?.label || quote.language }}
-                    </template>
-                  </NCombobox>
-                </td>
-                <td class="px-3 py-3 align-top">
-                <span class="rounded-sm bg-gray-100 px-1.5 py-0.5 font-sans text-xs text-gray-600 dark:bg-white/10 dark:text-gray-300">{{ $t('common.status_pending') }}</span>
-                </td>
-                <td class="px-3 py-3 align-top">
-                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ formatDate((quote as any).createdAt || quote.created_at) }}</span>
-                </td>
-                <td class="px-3 py-3 align-top">
-                  <NDropdownMenu :items="getQuoteActions(quote)">
-                    <button
-                      @click.stop
-                      class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                      <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
-                    </button>
-                  </NDropdownMenu>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                <template #trigger="{ modelValue }">{{ modelValue?.label || quote.language }}</template>
+              </NCombobox>
+              <NDropdownMenu :items="getQuoteActions(quote)">
+                <button @click.stop class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-black/[0.06] hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
+                  <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
+                </button>
+              </NDropdownMenu>
+              </div>
+            </article>
+          </ContextMenu>
         </div>
 
         <!-- Pagination -->
@@ -293,7 +256,12 @@
 
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~/types'
-import { formatDate, getDateTimestamp } from '~/utils/time-formatter'
+import {
+  formatDashboardQuoteDate,
+  formatDashboardQuoteDateRelative,
+  formatDashboardQuoteDateTooltip,
+  getDashboardQuoteDateTimestamp,
+} from '~/utils/dashboard-quote-date'
 
 interface DashboardQuote extends QuoteWithRelations {
   approved_at?: string | null
@@ -306,6 +274,7 @@ definePageMeta({
 })
 
 const { $t } = useI18n()
+const { locale } = useI18nLocale()
 const pageT = useI18n().$_t({ ...useRoute() })
 
 useHead({
@@ -469,13 +438,13 @@ const filteredQuotes = computed(() => {
   const list = [...quotes.value]
   switch (sortBy.value?.value) {
     case 'oldest':
-      list.sort((a, b) => getDateTimestamp((a as any).createdAt || a.created_at) - getDateTimestamp((b as any).createdAt || b.created_at))
+      list.sort((a, b) => getDashboardQuoteDateTimestamp(a, 'pending') - getDashboardQuoteDateTimestamp(b, 'pending'))
       break
     case 'author':
       list.sort((a, b) => (a.author?.name || '').localeCompare(b.author?.name || ''))
       break
     default:
-      list.sort((a, b) => getDateTimestamp((b as any).createdAt || b.created_at) - getDateTimestamp((a as any).createdAt || a.created_at))
+      list.sort((a, b) => getDashboardQuoteDateTimestamp(b, 'pending') - getDashboardQuoteDateTimestamp(a, 'pending'))
   }
   return list
 })

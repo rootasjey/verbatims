@@ -1,7 +1,7 @@
 <template>
   <ContextMenuRoot>
-    <div @contextmenu.capture="onCapture">
-      <ContextMenuTrigger>
+    <div :class="wrapperClass" @contextmenu.capture="onCapture" @contextmenu.stop>
+      <ContextMenuTrigger :as="triggerAs">
         <slot />
       </ContextMenuTrigger>
     </div>
@@ -150,16 +150,31 @@ interface Props {
   size?: 'sm' | 'xs'
   nativeOnModifier?: 'ctrl' | 'shift' | 'alt'
   contentClass?: string
+  wrapperClass?: string
+  triggerAs?: 'span' | 'div'
+  ignoreInteractiveTargets?: boolean
 }
 
 const { $t } = useI18n()
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'sm',
-  contentClass: ''
+  contentClass: '',
+  wrapperClass: '',
+  triggerAs: 'span',
+  ignoreInteractiveTargets: false
 })
 
 const onCapture = (e: MouseEvent) => {
+  if (
+    props.ignoreInteractiveTargets
+    && e.target instanceof Element
+    && e.target.closest('button, input, select, textarea, a, [role="button"], [role="checkbox"], [contenteditable="true"]')
+  ) {
+    e.stopPropagation()
+    return
+  }
+
   if (!props.nativeOnModifier) return
   const modKey = props.nativeOnModifier
   const hasMod = modKey === 'ctrl' ? e.ctrlKey : modKey === 'shift' ? e.shiftKey : e.altKey
