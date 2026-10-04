@@ -53,7 +53,9 @@
     "more_information": "More information",
     "settings": "Settings",
     "developer": "Developer",
-    "admin": "Admin"
+    "admin": "Admin",
+    "scroll_tabs_left": "Scroll tabs left",
+    "scroll_tabs_right": "Scroll tabs right"
   },
   "footer": {
     "tagline": "Discover and share memorable quotes from films, books, music, and more.",

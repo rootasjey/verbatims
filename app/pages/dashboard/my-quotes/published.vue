@@ -2,18 +2,39 @@
   <div>
     <ClientOnly>
       <Teleport to="#dashboard-page-toolbar">
-    <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
-        {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}
-      </p>
-      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+    <div v-if="hasLoadedOnce && (totalQuotes > 0 || searchQuery.trim())" class="flex w-full justify-end">
+      <div class="flex w-full gap-2 md:hidden">
         <input
           v-model="searchQuery"
           type="text"
+          :aria-label="$t('search_placeholder') as string"
           :placeholder="$t('search_placeholder') as string"
-          class="h-10 w-full rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 font-sans text-sm text-gray-800 placeholder-[#77756f] focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 sm:w-52"
+          class="h-10 min-w-0 flex-1 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 font-sans text-sm text-gray-800 placeholder-[#77756f] focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:placeholder-gray-400"
         />
+        <NButton icon btn="outline-gray" size="sm" label="i-ph-faders" class="h-10 w-10 shrink-0 rounded-md" :aria-label="$t('mobile.quote_filters.open_filters') as string" @click="mobileFiltersOpen = true" />
+      </div>
+      <div class="hidden items-center justify-end gap-2 md:flex">
+        <Transition name="favourites-search">
+          <input
+            v-if="searchOpen || searchQuery.trim()"
+            ref="searchInput"
+            v-model="searchQuery"
+            type="text"
+            :placeholder="$t('search_placeholder') as string"
+            :aria-label="$t('search_placeholder') as string"
+            class="h-10 w-44 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 font-sans text-sm text-gray-800 placeholder-[#77756f] outline-none transition-[border-color,box-shadow] focus:border-gray-500 focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-gray-400 dark:focus:ring-white/10 sm:w-52"
+            @keydown.esc="closeSearch"
+          />
+        </Transition>
+        <NTooltip v-if="!searchOpen && !searchQuery.trim()" :content="$t('search_placeholder') as string" :_tooltip-content="{ side: 'bottom' }">
+          <NButton icon btn="ghost-gray" size="sm" label="i-tabler-search" class="h-10 w-10 rounded-md border border-[#d2cfc6] bg-[#f0efe9] text-gray-700 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10" :aria-label="$t('search_placeholder') as string" @click="openSearch" />
+        </NTooltip>
+        <NTooltip v-else :content="$t('common.close') as string" :_tooltip-content="{ side: 'bottom' }">
+          <NButton icon btn="ghost-gray" size="sm" label="i-tabler-x" class="h-10 w-10 rounded-md border border-[#d2cfc6] bg-[#f0efe9] text-gray-700 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10" :aria-label="$t('common.close') as string" @click="closeSearch" />
+        </NTooltip>
+        <NTooltip :content="String(sortBy?.label ?? '')" :_tooltip-content="{ side: 'bottom' }">
         <NCombobox
+          class="my-quotes-sort"
           :model-value="sortOptions.find(o => o.value === sortValue) || sortOptions[0]"
           @update:model-value="(v: any) => { if (v) sortValue = v.value }"
           :items="sortOptions"
@@ -22,17 +43,24 @@
           :_combobox-trigger="{
             btn: 'ghost-gray',
             size: 'sm',
-            trailing: 'i-ph-caret-down',
-            class: 'h-10 w-full justify-between gap-2 rounded-md border border-[#d2cfc6] bg-[#f0efe9] px-3 text-sm font-medium text-gray-800 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10 sm:w-auto',
+            trailing: '',
+            ariaLabel: String(sortBy?.label ?? ''),
+            class: 'h-10 w-10 justify-center rounded-md border border-[#d2cfc6] bg-[#f0efe9] p-0 text-gray-700 hover:bg-[#eae8e1] dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/10',
           }"
         >
+          <template #label="{ item }">
+            <span class="flex min-w-0 items-center gap-2.5">
+              <NIcon :name="item.leading" class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+              <span>{{ item.label }}</span>
+            </span>
+          </template>
           <template #trigger="{ modelValue }">
-            <span class="whitespace-nowrap text-sm font-medium leading-none">{{ modelValue?.label }}</span>
+            <NIcon :name="modelValue?.leading || 'i-tabler-arrows-sort'" class="h-5 w-5" />
+            <span class="sr-only">{{ modelValue?.label }}</span>
           </template>
         </NCombobox>
-        <div class="hidden md:block">
-          <LanguageSelector :on-language-changed="onLanguageChanged" compact />
-        </div>
+        </NTooltip>
+        <LanguageSelector :on-language-changed="onLanguageChanged" appearance="compact-toolbar" />
       </div>
     </div>
       </Teleport>
@@ -86,43 +114,40 @@
           :key="quote.id"
           class="py-4 first:pt-0 last:pb-0 animate-fade-in-up"
           :style="{ animationDelay: `${idx * 0.05}s` }"
+          @pointerdown="longPress.start($event, quote)"
+          @pointermove="longPress.move($event)"
+          @pointerup="longPress.end"
+          @pointercancel="longPress.end"
+          @contextmenu="longPress.handleContextMenu($event, quote)"
+          @click.capture="longPress.suppressLongPressClick"
         >
           <div class="flex items-start gap-3">
             <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
-              <ContextMenu size="xs" native-on-modifier="ctrl" :items="getQuoteActions(quote)">
-                <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 dark:text-gray-100">
-                  {{ quote.name }}
-                </blockquote>
-              </ContextMenu>
+              <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 dark:text-gray-100">
+                {{ quote.name }}
+              </blockquote>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                  <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
-                </ContextMenu>
+                <span v-if="quote.author?.name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
                 <span v-if="!quote.author?.name && (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).author_name }}</span>
                 <span v-if="(quote.author?.name || (quote as any).author_name) && (quote.reference?.name || (quote as any).reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
-                <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                  <span class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference.name }}</span>
-                </ContextMenu>
+                <span v-if="quote.reference?.name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference.name }}</span>
                 <span v-if="!quote.reference?.name && (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ (quote as any).reference_name }}</span>
                 <span v-if="formatDashboardQuoteDate(quote, 'published')" class="text-gray-300 dark:text-gray-600">·</span>
                 <NTooltip v-if="formatDashboardQuoteDate(quote, 'published')" :content="formatDashboardQuoteDateTooltip(quote, 'published', locale || 'en') ?? ''">
                   <time class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDashboardQuoteDateRelative(quote, 'published', locale || 'en') }}</time>
                 </NTooltip>
               </div>
-              <div class="flex items-center gap-3 mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-                <span class="flex items-center gap-1"><NIcon name="i-ph-heart" class="w-3 h-3" />{{ quote.likes_count || 0 }}</span>
-                <span class="flex items-center gap-1"><NIcon name="i-ph-eye" class="w-3 h-3" />{{ quote.views_count || 0 }}</span>
-                <span class="flex items-center gap-1"><NIcon name="i-ph-share" class="w-3 h-3" />{{ quote.shares_count || 0 }}</span>
-              </div>
             </NuxtLink>
-            <NDropdownMenu :items="getMobileActions(quote)" :modal="false">
-              <button
-                @click.stop
-                class="p-1 rounded-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0 -mt-1"
-              >
-                <NIcon name="i-ph-dots-three-vertical" class="w-4 h-4" />
-              </button>
-            </NDropdownMenu>
+            <div class="hidden md:block">
+              <NDropdownMenu :items="getMobileActions(quote)" :modal="false">
+                <button @click.stop class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-black/5 dark:text-gray-400 dark:hover:bg-white/10">
+                  <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
+                </button>
+              </NDropdownMenu>
+            </div>
+            <button type="button" class="sr-only focus-visible:not-sr-only md:hidden" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop="openMobileQuoteActions(quote)">
+              <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
+            </button>
           </div>
         </div>
         <div v-if="hasMore" class="pt-5 pb-2 text-center">
@@ -223,30 +248,26 @@
 
     <div
       v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 bg-[#FAFAF9] dark:bg-[#0C0A09] border-t border-dashed border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm transition-all duration-300 ease-in-out"
+      class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
-          class="font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 decoration-dotted decoration-gray-300 dark:decoration-gray-600"
+          class="rounded-md px-1.5 py-0.5 font-medium text-gray-800 transition-colors hover:bg-black/5 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
           @click="showPageJumpDialog = true"
         >
           {{ currentPage }}
         </button>
         of {{ totalPages }}
       </span>
-      <div class="flex items-center gap-3">
-        <OutlinedButton v-if="currentPage > 1" @click="currentPage = Math.max(1, currentPage - 1)">&larr; Previous</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the first page</span>
-        <button
-          class="font-sans text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm px-2.5 py-1.5 transition-colors"
-          @click="showPageJumpDialog = true"
-        >
-          {{ currentPage }} / {{ totalPages }}
-        </button>
-        <OutlinedButton v-if="currentPage < totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">Next &rarr;</OutlinedButton>
-        <span v-else class="font-sans text-xs text-gray-300 dark:text-gray-600 italic">This is the last page</span>
+      <div class="flex items-center gap-2">
+        <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
+          <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
+        </NButton>
+        <NButton v-if="currentPage < totalPages" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.next') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.min(totalPages, currentPage + 1)">
+          <span class="sr-only sm:not-sr-only">{{ $t('common.next') }}</span><NIcon name="i-tabler-arrow-right" class="h-4 w-4" />
+        </NButton>
       </div>
     </div>
 
@@ -286,6 +307,18 @@
       :total-pages="totalPages"
       @jump="onPageJump"
     />
+    <ClientOnly>
+      <DashboardMobileFiltersDrawer
+        v-model:open="mobileFiltersOpen"
+        v-model:sort-value="sortValue"
+        :sort-options="sortOptions"
+        show-language
+        :on-language-changed="onLanguageChanged"
+      />
+    </ClientOnly>
+    <ClientOnly>
+      <DashboardQuoteActionsDrawer v-model:open="mobileActionsOpen" :quote-text="mobileActionQuote?.name" :actions="mobileActionItems" />
+    </ClientOnly>
     </div>
   </div>
 </template>
@@ -381,19 +414,41 @@ let initialSkeletonTimer: ReturnType<typeof setTimeout> | undefined
 const loadingMore = ref(false)
 const quotes = ref<DashboardQuote[]>([])
 const searchQuery = ref('')
+const searchOpen = ref(false)
+const searchInput = ref<HTMLInputElement | null>(null)
 const sortValue = ref('recent')
+const mobileFiltersOpen = ref(false)
+const mobileActionsOpen = ref(false)
+const mobileActionQuote = ref<any | null>(null)
+const mobileActionItems = computed(() => mobileActionQuote.value ? getMobileActions(mobileActionQuote.value) : [])
+const openMobileQuoteActions = (quote: any) => {
+  mobileActionQuote.value = quote
+  mobileActionsOpen.value = true
+}
+const longPress = useDashboardLongPress(openMobileQuoteActions)
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalQuotes = ref(0)
 const totalPages = ref(0)
 const hasMore = ref(false)
 
+const openSearch = async () => {
+  searchOpen.value = true
+  await nextTick()
+  searchInput.value?.focus()
+}
+
+const closeSearch = () => {
+  searchQuery.value = ''
+  searchOpen.value = false
+}
+
 const sortOptions = computed(() => [
-  { label: $t('common.most_recent'), value: 'recent' },
-  { label: $t('common.oldest_first'), value: 'oldest' },
-  { label: $t('common.most_popular'), value: 'popular' },
-  { label: $t('sort_most_viewed'), value: 'views' },
-  { label: $t('common.author_az'), value: 'author' }
+  { label: $t('common.most_recent'), value: 'recent', leading: 'i-tabler-clock-hour-12' },
+  { label: $t('common.oldest_first'), value: 'oldest', leading: 'i-tabler-hourglass-empty' },
+  { label: $t('common.most_popular'), value: 'popular', leading: 'i-tabler-stars' },
+  { label: $t('sort_most_viewed'), value: 'views', leading: 'i-tabler-eye' },
+  { label: $t('common.author_az'), value: 'author', leading: 'i-tabler-abc' }
 ])
 
 const sortBy = computed(() => {
@@ -774,13 +829,13 @@ const onPageJump = (page: number) => {
 let footerObserver: ResizeObserver | null = null
 
 const updateFooterPosition = () => {
-  const mainEl = document.querySelector('main')
-  if (!mainEl) {
+  const panelEl = document.querySelector('.dashboard-data-panel-shell')
+  if (!panelEl) {
     footerLeftOffset.value = 0
     footerWidth.value = '100%'
     return
   }
-  const rect = mainEl.getBoundingClientRect()
+  const rect = panelEl.getBoundingClientRect()
   footerLeftOffset.value = rect.left
   footerWidth.value = `${rect.width}px`
 }
@@ -788,8 +843,8 @@ const updateFooterPosition = () => {
 onMounted(() => {
   updateFooterPosition()
   footerObserver = new ResizeObserver(updateFooterPosition)
-  const mainEl = document.querySelector('main')
-  if (mainEl) footerObserver.observe(mainEl)
+  const panelEl = document.querySelector('.dashboard-data-panel-shell')
+  if (panelEl) footerObserver.observe(panelEl)
   window.addEventListener('resize', updateFooterPosition)
 })
 
@@ -800,6 +855,20 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+:global(.my-quotes-sort) {
+  width: max-content;
+}
+
+:global(.my-quotes-sort [data-slot='combobox-anchor']),
+:global(.my-quotes-sort [data-slot='combobox-trigger']) {
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+:global(.my-quotes-sort .combobox-trigger-trailing) {
+  display: none !important;
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;

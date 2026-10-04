@@ -1,6 +1,42 @@
 <template>
   <ClientOnly>
+    <NDrawer v-if="isMobile" v-model:open="isOpen" direction="bottom">
+      <template #body>
+        <div class="space-y-5 p-5 pb-7">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h2 class="font-sans text-base font-600 text-gray-900 dark:text-gray-100">{{ $t('components.dialogs.jump_to_page.title') }}</h2>
+              <p class="mt-1 font-sans text-sm text-gray-500 dark:text-gray-400">
+                {{ $t('components.dialogs.jump_to_page.description', { n: totalPages }) }}
+              </p>
+            </div>
+            <NButton icon btn="ghost-gray" size="xs" label="i-ph-x-bold" :aria-label="$t('common.close') as string" @click="isOpen = false" />
+          </div>
+          <input
+            ref="pageJumpInput"
+            v-model="pageJumpValue"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            :aria-label="$t('components.dialogs.jump_to_page.title') as string"
+            :placeholder="$t('components.dialogs.jump_to_page.placeholder', { n: totalPages }) as string"
+            class="h-12 w-full rounded-xl border border-gray-300 bg-[#FAFAF9] px-4 font-sans text-base text-gray-800 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:border-white/15 dark:bg-white/[0.06] dark:text-gray-200"
+            @keydown.enter.prevent="jumpToPage"
+          />
+          <NBadge v-if="pageJumpWarning" badge="soft-amber" class="w-full">
+            <p class="font-sans text-xs">{{ pageJumpWarning }}</p>
+            <button type="button" class="ml-2 underline underline-offset-2" @click="fixPageJumpWarning">
+              {{ $t('components.dialogs.jump_to_page.fix_tooltip') }}
+            </button>
+          </NBadge>
+          <NButton btn="solid-black" class="w-full rounded-full" @click="jumpToPage">
+            {{ $t('components.dialogs.jump_to_page.go') }}
+          </NButton>
+        </div>
+      </template>
+    </NDrawer>
     <AppDialog
+      v-else
       v-model="isOpen"
       :title="$t('components.dialogs.jump_to_page.title') as string"
       :submit-text="$t('components.dialogs.jump_to_page.go') as string"
@@ -21,16 +57,11 @@
           @keydown.enter.prevent="jumpToPage"
         />
         <NBadge badge="soft-blue" class="w-full" :class="[{ 'opacity-0 pointer-events-none': !pageJumpWarning }]">
-          <p class="font-sans text-xs">
-            {{ pageJumpWarning || ' ' }}
-          </p>
+          <p class="font-sans text-xs">{{ pageJumpWarning || ' ' }}</p>
           <NTooltip :content="$t('components.dialogs.jump_to_page.fix_tooltip') as string">
-            <div
-              class="ml-1 flex items-center bg-blue-100 dark:bg-blue-900 p-.5 rounded-1 cursor-pointer hover:scale-105 active:scale-99 transition-[transform]"
-              @click="fixPageJumpWarning"
-            >
+            <button type="button" class="ml-1 flex items-center rounded bg-blue-100 p-.5 transition-transform hover:scale-105 active:scale-99 dark:bg-blue-900" @click="fixPageJumpWarning">
               <NIcon name="i-tabler-hammer" />
-            </div>
+            </button>
           </NTooltip>
         </NBadge>
       </div>
@@ -40,6 +71,7 @@
 
 <script setup lang="ts">
 const { $t } = useI18n()
+const { isMobile } = useMobileDetection()
 
 interface Props {
   modelValue: boolean
