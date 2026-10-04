@@ -1,6 +1,7 @@
 <template>
   <div>
-    <Teleport to="#dashboard-page-toolbar">
+    <ClientOnly>
+      <Teleport to="#dashboard-page-toolbar">
     <div v-if="hasLoadedOnce && (totalDrafts > 0 || searchQuery.trim())" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p class="font-sans text-sm text-gray-600 dark:text-gray-400">
         {{ filteredQuotes.length }} {{ filteredQuotes.length === 1 ? String($t('common.status_draft')).toLowerCase() : String($t('common.status_draft')).toLowerCase() + 's' }}
@@ -34,7 +35,8 @@
         </div>
       </div>
     </div>
-    </Teleport>
+      </Teleport>
+    </ClientOnly>
     <div :aria-busy="loading">
     <NAlert
       v-if="submissionRestrictionMessage"

@@ -194,11 +194,7 @@
           </p>
           <DashboardContextNav class="mt-6" />
         </header>
-        <div
-          v-if="isDashboardMyQuotesPage"
-          id="dashboard-page-toolbar"
-          class="mb-5 [&:empty]:hidden"
-        />
+        <div id="dashboard-page-toolbar" class="mb-5 [&:empty]:hidden" />
         <div
           class="dashboard-data-panel-shell"
           :aria-busy="dashboardViewTransitionPending"
@@ -257,7 +253,6 @@ const route = useRoute()
 const quotesFeedStore = useQuotesFeedStore()
 const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
 const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
-const isDashboardMyQuotesPage = computed(() => route.path.startsWith('/dashboard/my-quotes/'))
 const isDashboardListsIndex = computed(() => route.path === '/dashboard/lists')
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value || isDashboardPage.value)
