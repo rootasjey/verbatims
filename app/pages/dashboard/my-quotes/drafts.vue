@@ -550,47 +550,71 @@ watchDebounced([searchQuery, sortBy], () => {
   loadDrafts(1)
 }, { debounce: 300 })
 
-const getQuoteActions = (quote: any) => [
-  {
-    label: $t('action_edit') as string,
-    leading: 'i-ph-pencil',
-    onclick: () => editQuote(quote)
-  },
-  {},
-  {
-    label: $t('action_submit') as string,
-    leading: 'i-ph-paper-plane-tilt',
-    disabled: !canSubmitForReview.value,
-    onclick: () => submitQuote(quote)
-  },
-  {},
-  {
-    label: $t('action_delete') as string,
-    leading: 'i-ph-trash',
-    onclick: () => confirmDelete(quote)
-  }
+const getQuoteEntityActions = (quote: any) => [
+  ...(quote.author?.id ? [{
+    label: $t('action_view_author_page') as string,
+    leading: 'i-ph-user',
+    onclick: () => navigateTo(`/authors/${quote.author.id}`)
+  }] : []),
+  ...(quote.reference?.id ? [{
+    label: $t('action_view_reference_page') as string,
+    leading: 'i-ph-book-open-text',
+    onclick: () => navigateTo(`/references/${quote.reference.id}`)
+  }] : [])
 ]
 
-const getMobileActions = (quote: any) => [
-  {
-    label: $t('action_edit') as string,
-    leading: 'i-ph-pencil',
-    onclick: () => handleEditQuote(quote)
-  },
-  {},
-  {
-    label: $t('action_submit') as string,
-    leading: 'i-ph-paper-plane-tilt',
-    disabled: !canSubmitForReview.value,
-    onclick: () => handleSubmitQuote(quote)
-  },
-  {},
-  {
-    label: $t('action_delete') as string,
-    leading: 'i-ph-trash',
-    onclick: () => handleDeleteQuote(quote)
-  }
-]
+const getQuoteActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    {
+      label: $t('action_edit') as string,
+      leading: 'i-ph-pencil',
+      onclick: () => editQuote(quote)
+    },
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('action_submit') as string,
+      leading: 'i-ph-paper-plane-tilt',
+      disabled: !canSubmitForReview.value,
+      onclick: () => submitQuote(quote)
+    },
+    {},
+    {
+      label: $t('action_delete') as string,
+      leading: 'i-ph-trash',
+      onclick: () => confirmDelete(quote)
+    }
+  ]
+}
+
+const getMobileActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('action_edit') as string,
+      leading: 'i-ph-pencil',
+      onclick: () => handleEditQuote(quote)
+    },
+    {},
+    {
+      label: $t('action_submit') as string,
+      leading: 'i-ph-paper-plane-tilt',
+      disabled: !canSubmitForReview.value,
+      onclick: () => handleSubmitQuote(quote)
+    },
+    {},
+    {
+      label: $t('action_delete') as string,
+      leading: 'i-ph-trash',
+      onclick: () => handleDeleteQuote(quote)
+    }
+  ]
+}
 
 const getAuthorActions = (quote: any) => {
   const author = quote.author

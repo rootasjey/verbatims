@@ -500,35 +500,59 @@ const loadPendingQuotes = async (page = 1) => {
   }
 }
 
-const getQuoteActions = (quote: any) => [
-  {
-    label: $t('action_view') as string,
-    leading: 'i-ph-eye',
-    onclick: () => viewQuote(quote)
-  },
-  {},
-  {
-    label: $t('action_withdraw') as string,
-    leading: 'i-ph-arrow-counter-clockwise',
-    disabled: withdrawingId.value === quote.id,
-    onclick: () => withdrawQuote(quote)
-  }
+const getQuoteEntityActions = (quote: any) => [
+  ...(quote.author?.id ? [{
+    label: $t('action_view_author_page') as string,
+    leading: 'i-ph-user',
+    onclick: () => navigateTo(`/authors/${quote.author.id}`)
+  }] : []),
+  ...(quote.reference?.id ? [{
+    label: $t('action_view_reference_page') as string,
+    leading: 'i-ph-book-open-text',
+    onclick: () => navigateTo(`/references/${quote.reference.id}`)
+  }] : [])
 ]
 
-const getMobileActions = (quote: any) => [
-  {
-    label: $t('action_view') as string,
-    leading: 'i-ph-eye',
-    onclick: () => viewQuote(quote)
-  },
-  {},
-  {
-    label: $t('action_withdraw') as string,
-    leading: 'i-ph-arrow-counter-clockwise',
-    disabled: withdrawingId.value === quote.id,
-    onclick: () => withdrawQuote(quote)
-  }
-]
+const getQuoteActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    {
+      label: $t('action_view') as string,
+      leading: 'i-ph-eye',
+      onclick: () => viewQuote(quote)
+    },
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('action_withdraw') as string,
+      leading: 'i-ph-arrow-counter-clockwise',
+      disabled: withdrawingId.value === quote.id,
+      onclick: () => withdrawQuote(quote)
+    }
+  ]
+}
+
+const getMobileActions = (quote: any) => {
+  const entityActions = getQuoteEntityActions(quote)
+
+  return [
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
+    {
+      label: $t('action_view') as string,
+      leading: 'i-ph-eye',
+      onclick: () => viewQuote(quote)
+    },
+    {},
+    {
+      label: $t('action_withdraw') as string,
+      leading: 'i-ph-arrow-counter-clockwise',
+      disabled: withdrawingId.value === quote.id,
+      onclick: () => withdrawQuote(quote)
+    }
+  ]
+}
 
 const getAuthorActions = (quote: any) => {
   const author = quote.author
