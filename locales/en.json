@@ -696,6 +696,8 @@
     },
     "quote_actions": {
       "quick_actions": "Quick actions",
+      "view_author_page": "View Author Page",
+      "view_reference_page": "View Reference Page",
       "edit": "Edit",
       "submit": "Submit",
       "delete": "Delete",

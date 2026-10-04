@@ -112,10 +112,8 @@
           @click.capture="longPress.suppressLongPressClick"
         >
           <div class="flex items-start gap-4">
-            <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block">
-              <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 transition-colors group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-gray-200 md:text-xl">
-                {{ quote.name }}
-              </blockquote>
+            <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link flex-1 min-w-0 block">
+              <QuoteEditorialText :text="quote.name" class="line-clamp-2 text-lg tracking-[-0.01em] md:text-xl" />
               <div class="flex items-center gap-2 mt-2 flex-wrap">
                 <span class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ (quote as any).author?.name || (quote as any).author_name || $t('common.unknown') }}</span>
                 <span v-if="(quote as any).reference?.name || (quote as any).reference_name" class="text-gray-300 dark:text-gray-600">·</span>

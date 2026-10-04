@@ -123,10 +123,8 @@
           @click.capture="longPress.suppressLongPressClick"
         >
           <div class="flex items-start gap-3">
-            <NuxtLink :to="`/quotes/${quote.id}`" class="flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
-              <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 dark:text-gray-100">
-                {{ quote.name }}
-              </blockquote>
+            <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
+              <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                 <span v-if="quote.author?.name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
                 <span v-if="!quote.author?.name && (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).author_name }}</span>
@@ -210,14 +208,12 @@
             ignore-interactive-targets
             :items="getQuoteActions(quote)"
           >
-            <article class="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]">
+            <article class="quote-editorial-surface group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]">
               <div :class="selectedQuotes.length > 0 ? 'opacity-100' : 'opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none'">
                 <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="handleRowCheckboxClick($event, index, quote.id)" />
               </div>
               <div class="min-w-0">
-                <blockquote class="line-clamp-2 whitespace-normal break-words font-serif text-lg leading-snug text-gray-900 dark:text-gray-100">
-                  {{ quote.name }}
-                </blockquote>
+                <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
                   <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
                     <span>{{ quote.author.name }}</span>
