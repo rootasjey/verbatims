@@ -1,5 +1,5 @@
 <template>
-  <ContextMenuRoot>
+  <ContextMenuRoot :modal="false">
     <div :class="wrapperClass" @contextmenu.capture="onCapture" @contextmenu.stop>
       <ContextMenuTrigger :as="triggerAs">
         <slot />
