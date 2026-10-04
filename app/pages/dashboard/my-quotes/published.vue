@@ -47,8 +47,15 @@
       </div>
     </div>
 
+    <!-- Keep the empty state and its animated copy out of filter refreshes. -->
+    <div v-else-if="hasLoadedOnce && loading && quotes.length === 0" aria-hidden="true" class="flex min-h-[320px] flex-col items-center justify-center py-16 text-center">
+      <div class="h-8 w-64 max-w-full animate-pulse rounded-sm bg-gray-200/70 dark:bg-gray-700/70" />
+      <div class="mt-4 h-4 w-96 max-w-full animate-pulse rounded-sm bg-gray-200/60 dark:bg-gray-700/60" />
+      <div class="mt-7 h-10 w-44 animate-pulse rounded-sm bg-gray-200/70 dark:bg-gray-700/70" />
+    </div>
+
     <!-- Empty -->
-    <div v-else-if="hasLoadedOnce && filteredQuotes.length === 0" class="py-16 text-center">
+    <div v-else-if="hasLoadedOnce && !loading && filteredQuotes.length === 0" class="py-16 text-center">
       <DashboardEmptyStateCopy
         :heading="emptyStateHeading"
         :description="emptyStateDescription"
