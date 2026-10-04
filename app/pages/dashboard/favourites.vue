@@ -126,10 +126,8 @@
       >
         <div class="flex items-start gap-4">
           <div class="flex-1 min-w-0">
-            <NuxtLink :to="`/quotes/${quote.id}`" class="block">
-            <blockquote class="line-clamp-2 font-serif text-lg leading-relaxed tracking-[-0.01em] text-gray-900 transition-colors group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-gray-200 md:text-xl">
-              {{ quote.name }}
-            </blockquote>
+            <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block">
+              <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em] md:text-xl" />
             </NuxtLink>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
               <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">

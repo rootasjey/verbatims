@@ -92,8 +92,14 @@
             <div
               v-for="(quote, index) in visibleQuotes"
               :key="`${resultsAnimationKey}-${quote.id}`"
-              class="rounded-xl px-2 py-4 transition-colors hover:bg-black/5 dark:hover:bg-white/6"
+              class="quote-editorial-surface rounded-xl px-2 py-4 transition-colors hover:bg-black/5 dark:hover:bg-white/6"
               :style="{ '--quote-entry-delay': `${Math.min(index, 8) * 18}ms` }"
+              @pointerdown="longPress.start($event, quote)"
+              @pointermove="longPress.move($event)"
+              @pointerup="longPress.end"
+              @pointercancel="longPress.end"
+              @contextmenu="longPress.handleContextMenu($event, quote)"
+              @click.capture="longPress.suppressLongPressClick"
             >
               <div class="mb-1 flex min-w-0 items-center gap-2 font-sans text-xs">
                 <NuxtLink
@@ -116,10 +122,8 @@
                 </NuxtLink>
               </div>
 
-              <NuxtLink :to="`/quotes/${quote.id}`" class="block group">
-                <blockquote class="font-serif text-lg leading-relaxed text-gray-900 transition-colors group-hover:text-gray-950 dark:text-gray-100 dark:group-hover:text-white">
-                  {{ truncateQuote(quote.name, 120) }}
-                </blockquote>
+              <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block group">
+                <QuoteEditorialText :text="truncateQuote(quote.name, 120)" class="text-lg text-gray-900 dark:text-gray-100" />
               </NuxtLink>
             </div>
           </TransitionGroup>
@@ -149,10 +153,21 @@
         @reset-filters="resetMobileFilters"
       />
     </ClientOnly>
+
+    <ClientOnly>
+      <DashboardQuoteActionsDrawer
+        v-model:open="mobileActionsOpen"
+        :quote-text="mobileActionQuote?.name"
+        :actions="mobileActionItems"
+      />
+      <ReportDialog v-model="showReportDialog" targetType="quote" :targetId="mobileActionQuote?.id" />
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { ProcessedQuoteResult } from '~~/server/types'
+
 const { $t } = useI18n()
 
 const props = defineProps<{
@@ -165,6 +180,11 @@ const props = defineProps<{
 }>()
 const { feed, sortOptions } = toRefs(props)
 const languageStore = useLanguageStore()
+const mobileActionsOpen = ref(false)
+const mobileActionQuote = ref<ProcessedQuoteResult | null>(null)
+const showReportDialog = ref(false)
+const longPress = useDashboardLongPress<ProcessedQuoteResult>(openMobileQuoteActions)
+const { showErrorToast } = useErrorToast()
 
 defineEmits<{
   (event: 'add-quote'): void
@@ -188,6 +208,62 @@ const hasActiveMobileFilters = computed(() =>
   feed.value.isAsc.value
 )
 const visibleQuotes = computed(() => feed.value.quotes.value)
+const mobileActionItems = computed(() => {
+  const quote = mobileActionQuote.value
+  if (!quote) return []
+
+  const actions: Array<{ label?: string | null; leading?: string; onclick?: () => void }> = [
+    ...(quote.author?.id ? [{ label: String($t('components.quote_actions.view_author_page')), leading: 'i-ph-user', onclick: () => navigateTo(`/authors/${quote.author!.id}`) }] : []),
+    ...(quote.reference?.id ? [{ label: String($t('components.quote_actions.view_reference_page')), leading: 'i-ph-book-open-text', onclick: () => navigateTo(`/references/${quote.reference!.id}`) }] : []),
+  ]
+  if (actions.length) actions.push({})
+  actions.push(
+    { label: String($t('components.quote_actions.copy_link')), leading: 'i-ph-link', onclick: () => copyQuoteLink(quote) },
+    { label: String($t('components.quote_actions.copy_text')), leading: 'i-ph-quotes', onclick: () => copyQuoteText(quote) },
+    { label: String($t('components.quote_actions.share')), leading: 'i-ph-share-network', onclick: () => shareQuote(quote) },
+    { label: String($t('components.quote_actions.report')), leading: 'i-ph-flag', onclick: () => { mobileActionQuote.value = quote; showReportDialog.value = true } }
+  )
+  return actions
+})
+
+function openMobileQuoteActions(quote: ProcessedQuoteResult) {
+  mobileActionQuote.value = quote
+  mobileActionsOpen.value = true
+}
+
+async function copyQuoteLink(quote: ProcessedQuoteResult) {
+  try {
+    await navigator.clipboard.writeText(`${window.location.origin}/quotes/${quote.id}`)
+    useToast().toast({ title: String($t('components.quote_actions.link_copied')), toast: 'outline-success' })
+  } catch {
+    showErrorToast(null, { title: String($t('components.quote_actions.copy_failed')), fallback: String($t('components.quote_actions.copy_link_failed')) })
+  }
+}
+
+async function copyQuoteText(quote: ProcessedQuoteResult) {
+  try {
+    const attribution = [quote.author?.name, quote.reference?.name].filter(Boolean).join(' · ')
+    await navigator.clipboard.writeText(`“${quote.name}”${attribution ? ` — ${attribution}` : ''}`)
+    useToast().toast({ title: String($t('components.quote_actions.text_copied')), toast: 'outline-success' })
+  } catch {
+    showErrorToast(null, { title: String($t('components.quote_actions.copy_failed')), fallback: String($t('components.quote_actions.clipboard_unavailable')) })
+  }
+}
+
+async function shareQuote(quote: ProcessedQuoteResult) {
+  const shareData = {
+    title: String($t('components.quote_actions.share_title')),
+    text: `“${quote.name}”${quote.author?.name ? ` — ${quote.author.name}` : ''}`,
+    url: `${window.location.origin}/quotes/${quote.id}`
+  }
+  try {
+    if (navigator.share) await navigator.share(shareData)
+    else await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`)
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return
+    showErrorToast(error, { title: String($t('components.quote_actions.share_failed')), fallback: String($t('components.quote_actions.try_again')) })
+  }
+}
 
 const updateSort = (value: string) => {
   const option = sortOptions.value.find(item => item.value === value)

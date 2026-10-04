@@ -136,13 +136,12 @@
             </p>
 
             <div v-if="collection.preview_quotes?.length" class="mt-4 space-y-1 border-l border-gray-500/20 pl-3">
-              <div
+              <QuoteEditorialText
                 v-for="quote in collection.preview_quotes.slice(0, 2)"
                 :key="quote.id"
-                class="line-clamp-1 font-serif text-base leading-relaxed text-gray-800 dark:text-gray-200"
-              >
-                {{ quote.name }}
-              </div>
+                :text="quote.name"
+                class="quote-editorial-surface line-clamp-1 text-base text-gray-800 dark:text-gray-200"
+              />
             </div>
 
             <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-500/15 pt-3 font-sans text-xs text-gray-600 dark:border-white/10 dark:text-gray-400">

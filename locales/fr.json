@@ -719,6 +719,8 @@
     },
     "quote_actions": {
       "quick_actions": "Actions rapides",
+      "view_author_page": "Voir la page auteur",
+      "view_reference_page": "Voir la page référence",
       "edit": "Modifier",
       "submit": "Soumettre",
       "delete": "Supprimer",
