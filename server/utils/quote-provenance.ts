@@ -1,5 +1,6 @@
 import { db, schema } from 'hub:db'
 import { and, eq, inArray } from 'drizzle-orm'
+import { toISOStringOrNull } from './date-normalization'
 
 export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
   if (quoteIds.length === 0) return new Map<number, { attributions: any[]; sources: any[] }>()
@@ -56,7 +57,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       is_primary: attribution.isPrimary,
       status: attribution.status,
       verified_by: attribution.verifiedBy,
-      verified_at: attribution.verifiedAt?.toISOString() ?? null,
+      verified_at: toISOStringOrNull(attribution.verifiedAt),
       notes: attribution.notes,
       author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
       reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType, image_url: attribution.referenceImageUrl } : undefined,
@@ -72,7 +73,7 @@ export async function getPrimaryQuoteProvenance(quoteIds: number[]) {
       label: source.label,
       verification_status: source.verificationStatus,
       verified_by: source.verifiedBy,
-      verified_at: source.verifiedAt?.toISOString() ?? null,
+      verified_at: toISOStringOrNull(source.verifiedAt),
       notes: source.notes,
       is_primary: source.isPrimary,
     })
@@ -221,7 +222,7 @@ export async function getQuoteProvenance(quoteId: number) {
       is_primary: attribution.isPrimary,
       status: attribution.status,
       verified_by: attribution.verifiedBy,
-      verified_at: attribution.verifiedAt?.toISOString() ?? null,
+      verified_at: toISOStringOrNull(attribution.verifiedAt),
       notes: attribution.notes,
       author: attribution.authorId ? { id: attribution.authorId, name: attribution.authorName, is_fictional: attribution.authorIsFictional, image_url: attribution.authorImageUrl } : undefined,
       reference: attribution.referenceId ? { id: attribution.referenceId, name: attribution.referenceName, primary_type: attribution.referencePrimaryType, image_url: attribution.referenceImageUrl } : undefined,
@@ -235,7 +236,7 @@ export async function getQuoteProvenance(quoteId: number) {
       label: source.label,
       verification_status: source.verificationStatus,
       verified_by: source.verifiedBy,
-      verified_at: source.verifiedAt?.toISOString() ?? null,
+      verified_at: toISOStringOrNull(source.verifiedAt),
       notes: source.notes,
       is_primary: source.isPrimary,
     })),

@@ -63,6 +63,7 @@ export default defineEventHandler(async (event) => {
       language: (result.language && validLanguages.includes(result.language as any))
         ? (result.language as typeof validLanguages[number])
         : 'en',
+      content_language: result.preferredContentLanguage ?? 'all',
       location: result.location ?? undefined,
       socials: result.socials ?? undefined,
       updated_at: toISOStringOrNull(result.updatedAt) ?? ''

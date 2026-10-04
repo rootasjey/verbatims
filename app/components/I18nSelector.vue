@@ -43,7 +43,6 @@
 <script setup lang="ts">
 const { $switchLocale } = useI18n()
 const { locale } = useI18nLocale()
-const { syncLocale } = useI18nContentSync()
 
 interface LocaleOption {
   value: string
@@ -68,7 +67,6 @@ const selected = computed({
   set: (val: LocaleOption | null) => {
     if (!val) return
     $switchLocale(val.value)
-    syncLocale(val.value)
   }
 })
 </script>

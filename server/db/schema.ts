@@ -23,6 +23,7 @@ export const users = sqliteTable('users', {
   biography: text('biography'),
   job: text('job'),
   language: text('language').default('en'),
+  preferredContentLanguage: text('preferred_content_language').default('all'),
   location: text('location').default('On Earth'),
   socials: text('socials').default('[]'), // JSON string
   lastLoginAt: integer('last_login_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
