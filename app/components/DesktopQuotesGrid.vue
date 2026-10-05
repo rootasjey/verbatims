@@ -26,18 +26,34 @@
           <LanguageSelector :on-language-changed="feed.onLanguageChange" />
         </div>
         <div>
-          <NSelect
+          <NTooltip :content="selectedSortOption?.label || ''" :_tooltip-content="{ side: 'bottom' }">
+          <NCombobox
+            class="quotes-sort"
             :model-value="selectedSortOption"
             @update:model-value="updateSort"
             :items="sortOptions"
-            :placeholder="$t('desktop_quotes_grid.sort_by') as string"
-            :_select-trigger="{ ariaLabel: $t('desktop_quotes_grid.sort_by') as string }"
-            :_select-content="{ bodyLock: false }"
-            size="sm"
-            item-key="label"
-            value-key="label"
-            select="outline-gray"
-          />
+            by="value"
+            :_combobox-list="{ class: 'min-w-[180px]' }"
+            :_combobox-trigger="{
+              btn: 'soft-gray',
+              size: 'sm',
+              trailing: '',
+              ariaLabel: selectedSortOption?.label || String($t('desktop_quotes_grid.sort_by')),
+              class: 'h-10 w-10 justify-center rounded-md p-0',
+            }"
+          >
+            <template #label="{ item }">
+              <span class="flex min-w-0 items-center gap-2.5">
+                <NIcon :name="item.leading" class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+                <span>{{ item.label }}</span>
+              </span>
+            </template>
+            <template #trigger="{ modelValue }">
+              <NIcon :name="modelValue?.leading || 'i-tabler-arrows-sort'" class="h-5 w-5" />
+              <span class="sr-only">{{ modelValue?.label }}</span>
+            </template>
+          </NCombobox>
+          </NTooltip>
         </div>
         <NTooltip
           :content="$t(feed.isAsc?.value ? 'desktop_quotes_grid.sort_order_ascending' : 'desktop_quotes_grid.sort_order_descending') as string"
@@ -148,7 +164,7 @@ const { $t } = useI18n()
 
 const props = defineProps<{
   feed: UseQuoteSearchFeed
-  sortOptions: { label: string; value: string }[]
+  sortOptions: { label: string; value: string; leading?: string }[]
   showInitialSkeleton: boolean
   showResultsSkeleton: boolean
   resultsAnimationKey: number
@@ -324,6 +340,20 @@ const onQuoteDeleted = async () => {
 
 .quotes-search-control :deep(.input:focus) {
   box-shadow: 0 0 0 1px #78716c, 0 1px 2px rgb(0 0 0 / 5%) !important;
+}
+
+:global(.quotes-sort) {
+  width: max-content;
+}
+
+:global(.quotes-sort [data-slot='combobox-anchor']),
+:global(.quotes-sort [data-slot='combobox-trigger']) {
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+:global(.quotes-sort .combobox-trigger-trailing) {
+  display: none !important;
 }
 
 :deep(.quotes-list-enter-active) {

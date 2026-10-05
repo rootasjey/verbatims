@@ -160,7 +160,24 @@
               <span v-if="!quote.reference?.name && quote.reference_name" class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ quote.reference_name }}</span>
               <template v-if="quote.liked_at">
                 <span v-if="quote.author?.name || quote.author_name || quote.reference?.name || quote.reference_name" class="text-gray-300 dark:text-gray-600">·</span>
-                <span class="font-sans text-sm text-gray-500 dark:text-gray-400">{{ $t('liked_prefix') }}{{ formatDate(quote.liked_at) }}</span>
+                <NTooltip :content="$t('tooltip_remove') as string">
+                  <button
+                    type="button"
+                    class="group inline-flex min-h-7 items-center justify-center rounded-sm text-gray-500 transition-colors hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-400 dark:hover:text-rose-300"
+                    :aria-label="String($t('tooltip_remove'))"
+                    :aria-pressed="true"
+                    @click.stop="handleUnlike(quote)"
+                    @contextmenu.stop
+                  >
+                    <NIcon name="i-tabler-heart-filled" class="h-4 w-4 group-hover:hidden" />
+                    <NIcon name="i-tabler-heart-broken-filled" class="hidden h-4 w-4 group-hover:block" />
+                  </button>
+                </NTooltip>
+                <NTooltip :content="formatDashboardQuoteDateTooltip({ createdAt: quote.liked_at || '' }, 'draft', locale || 'en') || ''">
+                  <time :datetime="quote.liked_at || undefined" class="cursor-help font-sans text-sm text-gray-500 decoration-gray-400/60 underline decoration-dotted underline-offset-3 dark:text-gray-400">
+                    {{ formatDashboardQuoteDateRelative({ createdAt: quote.liked_at || '' }, 'draft', locale || 'en') }}
+                  </time>
+                </NTooltip>
               </template>
             </div>
           </div>
@@ -236,7 +253,7 @@
 <script setup lang="ts">
 import type { ProcessedQuoteResult } from '~~/server/types'
 import { getDateTimestamp } from '~/utils/time-formatter'
-import { formatDate } from '~/utils/time-formatter'
+import { formatDashboardQuoteDateRelative, formatDashboardQuoteDateTooltip } from '~/utils/dashboard-quote-date'
 
 definePageMeta({
   layout: 'default',
@@ -244,6 +261,7 @@ definePageMeta({
 })
 
 const { $t } = useI18n()
+const { locale } = useI18nLocale()
 
 useHead({
   title: $t('meta_title') as string
@@ -424,6 +442,11 @@ const handleUnlike = async (quote: LikedQuote) => {
   try {
     await $fetch(`/api/quotes/${quote.id}/like`, { method: 'POST' })
     quotes.value = quotes.value.filter(q => q.id !== quote.id)
+    const nextCount = Math.max(0, totalQuotes.value - 1)
+    totalQuotes.value = nextCount
+    favouritesCount.value = nextCount
+    totalPages.value = Math.max(1, Math.ceil(nextCount / 20))
+    if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
   } catch (e) {
     console.error('Failed to unlike:', e)
     showErrorToast(e, $t('error_remove') as string)

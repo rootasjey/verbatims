@@ -104,7 +104,7 @@
         <!-- Quote Hero -->
         <div
           ref="quoteHero"
-          class="quote-detail-hero mx-auto max-w-5xl rounded-[2rem] bg-[#EEECE5] px-5 dark:bg-[#17181D]"
+          class="quote-detail-hero mx-auto max-w-5xl rounded-[2rem] bg-[#EEECE5] px-5 dark:bg-[#17181D] md:rounded-none md:bg-transparent md:dark:bg-transparent"
           :class="[quoteHeroSpacing, quotePullActive ? 'relative z-10 transition-none' : 'transition-transform duration-300 ease-out motion-reduce:transition-none']"
           :style="quotePullStyle"
         >
@@ -307,6 +307,7 @@ import type { CollectionWithStats } from '~/../shared/types/user-interactions'
 const { $t, $ts } = useI18n()
 const { isMobile } = useMobileDetection()
 const route = useRoute()
+const router = useRouter()
 const { user } = useUserSession()
 const copyState = ref('idle')
 const quotesFeedStore = useQuotesFeedStore()
@@ -896,9 +897,12 @@ const copyLink = async () => {
 }
 
 const navigateToQuotesList = async () => {
-  const restorePath = quotesFeedStore.snapshot?.sourcePath || '/quotes'
+  if (import.meta.client && window.history.state?.back) {
+    await router.back()
+    return
+  }
 
-  await navigateTo(restorePath)
+  await navigateTo('/quotes')
 }
 
 // Delay layout switch until Nuxt is fully hydrated to avoid hydration mismatch

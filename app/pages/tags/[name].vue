@@ -85,16 +85,34 @@
             </div>
 
             <div class="hidden shrink-0 items-center gap-3 md:flex">
-              <span class="whitespace-nowrap font-sans text-sm font-500 text-gray-500 dark:text-gray-400">{{ $t('tag_detail_sorted_by') }}</span>
-              <NSelect
-                v-model="sortByModel"
+              <NTooltip :content="sortByModel?.label || ''" :_tooltip-content="{ side: 'bottom' }">
+              <NCombobox
+                class="tag-sort"
+                :model-value="sortByModel"
+                @update:model-value="sortByModel = $event"
                 :items="sortOptions"
-                :placeholder="$ts('tag_detail_sort_placeholder')"
-                item-key="label"
-                value-key="label"
-                :_select-content="{ bodyLock: false }"
-                class="min-w-44"
-              />
+                by="value"
+                :_combobox-list="{ class: 'min-w-[180px]' }"
+                :_combobox-trigger="{
+                  btn: 'soft-gray',
+                  size: 'sm',
+                  trailing: '',
+                  ariaLabel: sortByModel?.label || String($ts('tag_detail_sort_placeholder')),
+                  class: 'h-10 w-10 justify-center rounded-md p-0',
+                }"
+              >
+                <template #label="{ item }">
+                  <span class="flex min-w-0 items-center gap-2.5">
+                    <NIcon :name="item.leading" class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+                    <span>{{ item.label }}</span>
+                  </span>
+                </template>
+                <template #trigger="{ modelValue }">
+                  <NIcon :name="modelValue?.leading || 'i-tabler-arrows-sort'" class="h-5 w-5" />
+                  <span class="sr-only">{{ modelValue?.label }}</span>
+                </template>
+              </NCombobox>
+              </NTooltip>
               <LanguageSelector />
               <NTooltip
                 :content="$t(sortOrder === 'ASC' ? 'tag_detail_sort_order_ascending' : 'tag_detail_sort_order_descending') as string"
@@ -313,10 +331,10 @@ let quoteRequestId = 0
 let quoteUpdateIndicatorTimer: ReturnType<typeof setTimeout> | undefined
 
 const sortOptions = [
-  { label: $ts('tag_detail_sort_most_recent'), value: 'created_at' },
-  { label: $ts('tag_detail_sort_most_liked'), value: 'likes_count' },
-  { label: $ts('tag_detail_sort_most_viewed'), value: 'views_count' },
-  { label: $ts('tag_detail_sort_most_shared'), value: 'shares_count' }
+  { label: $ts('tag_detail_sort_most_recent'), value: 'created_at', leading: 'i-tabler-clock-hour-12' },
+  { label: $ts('tag_detail_sort_most_liked'), value: 'likes_count', leading: 'i-tabler-stars' },
+  { label: $ts('tag_detail_sort_most_viewed'), value: 'views_count', leading: 'i-tabler-eye' },
+  { label: $ts('tag_detail_sort_most_shared'), value: 'shares_count', leading: 'i-tabler-share-3' }
 ]
 
 const sortByModel = computed({
@@ -587,6 +605,20 @@ onBeforeUnmount(() => {
   background-position: 0 100%;
   background-size: 0% 1px;
   transition: background-size 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:global(.tag-sort) {
+  width: max-content;
+}
+
+:global(.tag-sort [data-slot='combobox-anchor']),
+:global(.tag-sort [data-slot='combobox-trigger']) {
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+:global(.tag-sort .combobox-trigger-trailing) {
+  display: none !important;
 }
 
 .quote-editorial-row:hover .quote-editorial-text,

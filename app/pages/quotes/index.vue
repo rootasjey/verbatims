@@ -130,11 +130,11 @@ watch(() => feed.quotesLoading.value, (isLoading, wasLoading) => {
 const searchInput = ref<any>(null)
 const showAddQuote = ref(false)
 const quoteSortOptions = computed(() => [
-  { label: String($t('desktop_quotes_grid.sort_recent')), value: 'created_at' },
-  { label: String($t('desktop_quotes_grid.sort_updated')), value: 'updated_at' },
-  { label: String($t('desktop_quotes_grid.sort_liked')), value: 'likes_count' },
-  { label: String($t('desktop_quotes_grid.sort_viewed')), value: 'views_count' },
-  { label: String($t('desktop_quotes_grid.sort_shared')), value: 'shares_count' }
+  { label: String($t('desktop_quotes_grid.sort_recent')), value: 'created_at', leading: 'i-tabler-clock-hour-12' },
+  { label: String($t('desktop_quotes_grid.sort_updated')), value: 'updated_at', leading: 'i-tabler-history' },
+  { label: String($t('desktop_quotes_grid.sort_liked')), value: 'likes_count', leading: 'i-tabler-stars' },
+  { label: String($t('desktop_quotes_grid.sort_viewed')), value: 'views_count', leading: 'i-tabler-eye' },
+  { label: String($t('desktop_quotes_grid.sort_shared')), value: 'shares_count', leading: 'i-tabler-share-3' }
 ])
 
 const quoteSortValues = new Set(['created_at', 'updated_at', 'likes_count', 'views_count', 'shares_count'])

@@ -173,27 +173,19 @@
 
       <!-- Desktop: Table -->
       <div class="hidden md:block">
-        <!-- Bulk action bar -->
-        <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
-          <button
-            class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
-            @click="showBulkAddToCollection = true"
-          >
-            {{ $t('bulk_add_collection') }}
-          </button>
-          <button
-            class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
-            @click="clearSelection"
-          >
-            {{ $t('common.clear') }}
-          </button>
-        </div>
-
         <div class="divide-y divide-[#d2cfc6]/80 dark:divide-white/10">
-          <div class="flex items-center gap-4 border-b border-[#d2cfc6]/80 pb-3 dark:border-white/10">
+          <div class="flex min-h-10 items-center gap-4 border-b border-[#d2cfc6]/80 pb-3 dark:border-white/10">
             <NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" />
             <span class="font-sans text-xs font-medium text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</span>
+            <div v-if="selectedQuotes.length > 0" class="ml-auto flex flex-wrap items-center justify-end gap-2">
+              <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
+              <NButton btn="outline-gray" size="xs" class="rounded-md" @click="showBulkAddToCollection = true">
+                {{ $t('bulk_add_collection') }}
+              </NButton>
+              <NButton btn="ghost-gray" size="xs" class="rounded-md" @click="clearSelection">
+                {{ $t('common.clear') }}
+              </NButton>
+            </div>
           </div>
           <ContextMenu
             v-for="(quote, index) in filteredQuotes"
@@ -341,6 +333,7 @@ import {
 
 interface DashboardQuote extends QuoteWithRelations {
   approved_at?: string | null
+  is_liked?: boolean
   tags?: Array<{ id: number; name: string; color: string }>
 }
 
@@ -350,6 +343,8 @@ definePageMeta({
 })
 
 const { $t } = useI18n()
+const { user } = useUserSession()
+const favouritesCount = useState<number | null>(`dashboard-favourites-count-${String(user.value?.id ?? 'anonymous')}`, () => null)
 const { locale } = useI18nLocale()
 const pageT = useI18n().$_t({ ...useRoute() })
 const showAddQuoteDialog = useState('app-add-quote-dialog-open', () => false)
@@ -652,6 +647,12 @@ const getQuoteActions = (quote: any) => {
       leading: 'i-ph-eye',
       onclick: () => navigateTo(`/quotes/${quote.id}`)
     },
+    {
+      label: $t(quote.is_liked ? 'components.quote_actions.remove_favourite' : 'components.quote_actions.add_favourite') as string,
+      leading: quote.is_liked ? 'i-ph-heart-break' : 'i-ph-heart',
+      onclick: () => toggleQuoteFavourite(quote)
+    },
+    {},
     ...entityActions,
     ...(entityActions.length ? [{}] : []),
     {
@@ -668,6 +669,20 @@ const getQuoteActions = (quote: any) => {
   ]
 }
 
+const toggleQuoteFavourite = async (quote: DashboardQuote) => {
+  try {
+    const result = await $fetch<{ data: { isLiked: boolean; likesCount: number } }>(`/api/quotes/${quote.id}/like`, { method: 'POST' })
+    const wasLiked = !!quote.is_liked
+    quote.is_liked = result.data.isLiked
+    quote.likes_count = result.data.likesCount
+    if (favouritesCount.value !== null && wasLiked !== result.data.isLiked) {
+      favouritesCount.value = Math.max(0, favouritesCount.value + (result.data.isLiked ? 1 : -1))
+    }
+  } catch (error) {
+    useErrorToast().showErrorToast(error, String($t('components.quote_actions.favourite_update_failed')))
+  }
+}
+
 const getMobileActions = (quote: any) => {
   const entityActions = getQuoteEntityActions(quote)
 
@@ -678,6 +693,11 @@ const getMobileActions = (quote: any) => {
       label: $t('action_view_public') as string,
       leading: 'i-ph-eye',
       onclick: () => navigateTo(`/quotes/${quote.id}`)
+    },
+    {
+      label: $t(quote.is_liked ? 'components.quote_actions.remove_favourite' : 'components.quote_actions.add_favourite') as string,
+      leading: quote.is_liked ? 'i-ph-heart-break' : 'i-ph-heart',
+      onclick: () => toggleQuoteFavourite(quote)
     },
     {},
     {
