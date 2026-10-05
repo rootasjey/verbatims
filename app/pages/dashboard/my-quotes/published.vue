@@ -728,7 +728,9 @@ const shareReference = (referenceId: number) => {
 
 const addToCollection = (quote: DashboardQuote) => {
   selectedQuote.value = quote
-  showAddToCollectionDrawer.value = true
+  const isMobile = window.matchMedia('(max-width: 767px)').matches
+  showAddToCollectionDrawer.value = isMobile
+  showAddQuoteToCollectionModal.value = !isMobile
 }
 
 const shareQuote = (quote: DashboardQuote) => {
