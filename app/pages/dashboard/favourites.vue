@@ -112,16 +112,23 @@
 
     <!-- Feed -->
     <div v-else class="divide-y divide-stone-300/70 dark:divide-white/10">
-      <div
+      <ContextMenu
         v-for="(quote, idx) in filteredQuotes"
         :key="quote.id"
+        size="xs"
+        native-on-modifier="ctrl"
+        trigger-as="div"
+        wrapper-class="w-full"
+        :items="getQuoteActions(quote)"
+      >
+      <div
         class="py-5 first:pt-0 last:pb-0 group animate-fade-in-up"
         :style="{ animationDelay: `${idx * 0.05}s` }"
         @pointerdown="longPress.start($event, quote)"
         @pointermove="longPress.move($event)"
         @pointerup="longPress.end"
         @pointercancel="longPress.end"
-        @contextmenu="longPress.handleContextMenu($event, quote)"
+        @contextmenu.capture="handleFavouriteContextMenu($event, quote)"
         @click.capture="longPress.suppressLongPressClick"
       >
         <div class="flex items-start gap-4">
@@ -130,26 +137,22 @@
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em] md:text-xl" />
             </NuxtLink>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                <NuxtLink
-                  v-if="quote.author.id"
-                  :to="`/authors/${quote.author.id}`"
-                  class="font-sans text-sm font-500 text-gray-700 underline decoration-transparent underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-300 dark:hover:text-gray-100"
-                  @click.stop
-                >{{ quote.author.name }}</NuxtLink>
-                <span v-else class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ quote.author.name }}</span>
-              </ContextMenu>
+              <NuxtLink
+                v-if="quote.author?.name && quote.author.id"
+                :to="`/authors/${quote.author.id}`"
+                class="font-sans text-sm font-500 text-gray-700 underline decoration-transparent underline-offset-4 transition-colors hover:text-gray-950 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-300 dark:hover:text-gray-100"
+                @click.stop
+              >{{ quote.author.name }}</NuxtLink>
+              <span v-else-if="quote.author?.name" class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ quote.author.name }}</span>
               <span v-if="!quote.author?.name && quote.author_name" class="font-sans text-sm font-500 text-gray-700 dark:text-gray-300">{{ quote.author_name }}</span>
               <span v-if="(quote.author?.name || quote.author_name) && (quote.reference?.name || quote.reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
-              <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                <NuxtLink
-                  v-if="quote.reference.id"
-                  :to="`/references/${quote.reference.id}`"
-                  class="font-sans text-sm text-gray-600 underline decoration-transparent underline-offset-4 transition-colors hover:text-gray-900 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100"
-                  @click.stop
-                >{{ quote.reference.name }}</NuxtLink>
-                <span v-else class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ quote.reference.name }}</span>
-              </ContextMenu>
+              <NuxtLink
+                v-if="quote.reference?.name && quote.reference.id"
+                :to="`/references/${quote.reference.id}`"
+                class="font-sans text-sm text-gray-600 underline decoration-transparent underline-offset-4 transition-colors hover:text-gray-900 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100"
+                @click.stop
+              >{{ quote.reference.name }}</NuxtLink>
+              <span v-else-if="quote.reference?.name" class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ quote.reference.name }}</span>
               <span v-if="!quote.reference?.name && quote.reference_name" class="font-sans text-sm text-gray-600 dark:text-gray-400">{{ quote.reference_name }}</span>
               <template v-if="quote.liked_at">
                 <span v-if="quote.author?.name || quote.author_name || quote.reference?.name || quote.reference_name" class="text-gray-300 dark:text-gray-600">·</span>
@@ -157,28 +160,19 @@
               </template>
             </div>
           </div>
-          <div class="hidden md:flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <NTooltip :content="$t('tooltip_add_to_collection') as string">
-              <button @click.stop="handleAddToCollection(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                <NIcon name="i-ph-folder-plus" class="w-4 h-4" />
+          <div class="hidden md:block">
+            <NDropdownMenu :items="getQuoteActions(quote)" :modal="false">
+              <button type="button" class="sr-only focus-visible:not-sr-only" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop>
+                <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
               </button>
-            </NTooltip>
-            <NTooltip :content="$t('tooltip_share') as string">
-              <button @click.stop="handleShareQuote(quote)" class="p-1.5 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                <NIcon name="i-ph-share" class="w-4 h-4" />
-              </button>
-            </NTooltip>
-            <NTooltip :content="$t('tooltip_remove') as string">
-              <button @click.stop="handleUnlike(quote)" class="p-1.5 rounded-sm text-gray-500 transition-colors hover:bg-[#eee9e3] hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100">
-                <NIcon name="i-ph-heart-break" class="w-4 h-4" />
-              </button>
-            </NTooltip>
+            </NDropdownMenu>
           </div>
           <button type="button" class="sr-only focus-visible:not-sr-only md:hidden" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop="openMobileQuoteActions(quote)">
             <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
           </button>
         </div>
       </div>
+      </ContextMenu>
     </div>
 
     <!-- Add to Collection Modal -->
@@ -290,6 +284,12 @@ const openMobileQuoteActions = (quote: LikedQuote) => {
   mobileActionsOpen.value = true
 }
 const longPress = useDashboardLongPress(openMobileQuoteActions)
+const handleFavouriteContextMenu = (event: MouseEvent, quote: LikedQuote) => {
+  if (!import.meta.client || !window.matchMedia('(max-width: 767px)').matches) return
+  event.preventDefault()
+  event.stopPropagation()
+  longPress.handleContextMenu(event, quote)
+}
 const currentPage = ref(1)
 const totalPages = ref(0)
 const totalQuotes = ref(0)
@@ -394,14 +394,14 @@ const getQuoteActions = (quote: any) => {
   const entityActions = getQuoteEntityActions(quote)
 
   return [
-    ...entityActions,
-    ...(entityActions.length ? [{}] : []),
     {
       label: $t('tooltip_remove') as string,
       leading: 'i-ph-heart-break',
       onclick: () => handleUnlike(quote)
     },
     {},
+    ...entityActions,
+    ...(entityActions.length ? [{}] : []),
     {
       label: $t('tooltip_add_to_collection') as string,
       leading: 'i-ph-folder-plus',
@@ -414,38 +414,6 @@ const getQuoteActions = (quote: any) => {
       onclick: () => handleShareQuote(quote)
     }
   ]
-}
-
-const getAuthorActions = (quote: any) => {
-  const author = quote.author
-  const authorId = author?.id
-  if (!author?.name || !authorId) return []
-  return [
-    { label: $t('action_view_author_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/authors/${authorId}`) },
-    { label: $t('action_share') as string, leading: 'i-ph-share', onclick: () => shareAuthor(authorId) }
-  ]
-}
-
-const getReferenceActions = (quote: any) => {
-  const reference = quote.reference
-  const referenceId = reference?.id
-  if (!reference?.name || !referenceId) return []
-  return [
-    { label: $t('action_view_reference_page') as string, leading: 'i-ph-eye', onclick: () => navigateTo(`/references/${referenceId}`) },
-    { label: $t('action_share') as string, leading: 'i-ph-share', onclick: () => shareReference(referenceId) }
-  ]
-}
-
-const shareAuthor = (authorId: number) => {
-  const url = `${window.location.origin}/authors/${authorId}`
-  navigator.clipboard.writeText(url)
-  useToast().toast({ title: $t('action_share') as string, description: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
-}
-
-const shareReference = (referenceId: number) => {
-  const url = `${window.location.origin}/references/${referenceId}`
-  navigator.clipboard.writeText(url)
-  useToast().toast({ title: $t('action_share') as string, description: $t('common.copied_to_clipboard') as string, toast: 'outline-success' })
 }
 
 const handleUnlike = async (quote: LikedQuote) => {
