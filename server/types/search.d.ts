@@ -216,6 +216,9 @@ export interface ProcessedQuoteResult {
   
   /** Whether this quote is featured/highlighted */
   is_featured: boolean;
+
+  /** Whether the current authenticated user has favorited this quote */
+  is_liked?: boolean;
   
   /** Timestamp when record was created */
   created_at: string;

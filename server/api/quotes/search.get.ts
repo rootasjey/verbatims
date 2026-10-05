@@ -146,6 +146,20 @@ export default defineEventHandler(async (event) => {
     .offset(offset)
     .all()
 
+    const session = await getUserSession(event)
+    const likedQuoteIds = new Set<number>()
+    if (session.user?.id && rows.length) {
+      const likes = await db.select({ quoteId: schema.userLikes.likeableId })
+        .from(schema.userLikes)
+        .where(and(
+          eq(schema.userLikes.userId, session.user.id),
+          eq(schema.userLikes.likeableType, 'quote'),
+          inArray(schema.userLikes.likeableId, rows.map(row => row.id))
+        ))
+        .all()
+      for (const like of likes) likedQuoteIds.add(like.quoteId)
+    }
+
     const provenance = await getPrimaryQuoteProvenance(rows.map(row => row.id))
     const quotes: ProcessedQuoteResult[] = rows.map((row): ProcessedQuoteResult => {
       const primary = provenance.get(row.id)
@@ -170,6 +184,7 @@ export default defineEventHandler(async (event) => {
         likes_count: row.likesCount,
         shares_count: row.sharesCount,
         is_featured: row.isFeatured,
+        is_liked: likedQuoteIds.has(row.id),
         created_at: row.createdAt,
         updated_at: row.updatedAt,
         author: attribution?.author_id ? {
@@ -206,7 +221,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Modest caching for identical queries
-    setResponseHeader(event, 'Cache-Control', 'public, max-age=30')
+    setResponseHeader(event, 'Cache-Control', session.user?.id ? 'private, no-store' : 'public, max-age=30')
 
     // Attach derived pageCount before returning
     const payload = {

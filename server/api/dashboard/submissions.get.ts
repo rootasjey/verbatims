@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and, like, or, desc, count, sql } from 'drizzle-orm'
+import { eq, and, like, or, desc, count, sql, inArray } from 'drizzle-orm'
 import { getPrimaryQuoteProvenance } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
@@ -71,6 +71,18 @@ export default defineEventHandler(async (event) => {
     const total = Number(totalResult[0]?.total) || 0
     const hasMore = offset + submissions.length < total
 
+    const likedQuoteIds = new Set<number>()
+    if (submissions.length) {
+      const likes = await db.select({ quoteId: schema.userLikes.likeableId })
+        .from(schema.userLikes)
+        .where(and(
+          eq(schema.userLikes.userId, user.id),
+          eq(schema.userLikes.likeableType, 'quote'),
+          inArray(schema.userLikes.likeableId, submissions.map(submission => submission.id))
+        ))
+      for (const like of likes) likedQuoteIds.add(like.quoteId)
+    }
+
     // Get tags for each submission
     const provenance = await getPrimaryQuoteProvenance(submissions.map(submission => submission.id))
     const processedSubmissions = await Promise.all(submissions.map(async (submission: any) => {
@@ -88,6 +100,7 @@ export default defineEventHandler(async (event) => {
       const attribution = quoteProvenance?.attributions.find(item => item.is_primary) ?? quoteProvenance?.attributions[0]
       return {
         ...submission,
+        is_liked: likedQuoteIds.has(submission.id),
         author: attribution?.author_id ? attribution.author : null,
         reference: attribution?.reference_id ? attribution.reference : null,
         tags,

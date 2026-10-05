@@ -1,5 +1,5 @@
 <template>
-  <ContextMenu :items="menuItems" native-on-modifier="ctrl" wrapper-class="relative w-full">
+  <ContextMenu size="xs" :items="menuItems" native-on-modifier="ctrl" wrapper-class="relative w-full">
     <div class="relative w-full">
       <div class="mb-1 flex items-center justify-between gap-3">
         <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-500 dark:text-gray-400">
@@ -101,22 +101,6 @@ const { showErrorToast } = useErrorToast()
 const menuItems = computed(() => {
   const items: { label: string; leading: string; onclick: () => void }[] = []
 
-  if (props.quote.author?.id) {
-    items.push({
-      label: String($t('components.quote_actions.view_author_page')),
-      leading: 'i-ph-user',
-      onclick: () => navigateTo(`/authors/${props.quote.author!.id}`)
-    })
-  }
-  if (props.quote.reference?.id) {
-    items.push({
-      label: String($t('components.quote_actions.view_reference_page')),
-      leading: 'i-ph-book-open-text',
-      onclick: () => navigateTo(`/references/${props.quote.reference!.id}`)
-    })
-  }
-  if (items.length) items.push({ label: '', leading: '', onclick: () => {} })
-
   const role = user.value?.role
   if (role === 'admin' || role === 'moderator') {
     items.push(
@@ -125,15 +109,58 @@ const menuItems = computed(() => {
     )
   }
 
+  if (user.value && props.quote.status === 'approved') {
+    if (items.length) items.push({ label: '', leading: '', onclick: () => {} })
+    items.push({
+      label: String($t(props.quote.is_liked ? 'components.quote_actions.remove_favourite' : 'components.quote_actions.add_favourite')),
+      leading: props.quote.is_liked ? 'i-ph-heart-break' : 'i-ph-heart',
+      onclick: () => toggleFavourite()
+    })
+  }
+
+  if (items.length) items.push({ label: '', leading: '', onclick: () => {} })
   items.push(
     { label: String($t('components.quote_actions.copy_link')), leading: 'i-ph-link', onclick: () => copyLink() },
     { label: String($t('components.quote_actions.copy_text')), leading: 'i-ph-quotes', onclick: () => copyQuoteText() },
-    { label: String($t('components.quote_actions.share')), leading: 'i-ph-share-network', onclick: () => shareQuote() },
-    { label: String($t('components.quote_actions.report')), leading: 'i-ph-flag', onclick: () => emit('report', props.quote) }
+    { label: String($t('components.quote_actions.share')), leading: 'i-ph-share-network', onclick: () => shareQuote() }
   )
+
+  items.push({ label: '', leading: '', onclick: () => {} })
+  items.push({ label: String($t('components.quote_actions.report')), leading: 'i-ph-flag', onclick: () => emit('report', props.quote) })
+
+  const entityActions = [
+    ...(props.quote.author?.id ? [{
+      label: String($t('components.quote_actions.view_author_page')),
+      leading: 'i-ph-user',
+      onclick: () => navigateTo(`/authors/${props.quote.author!.id}`)
+    }] : []),
+    ...(props.quote.reference?.id ? [{
+      label: String($t('components.quote_actions.view_reference_page')),
+      leading: 'i-ph-book-open-text',
+      onclick: () => navigateTo(`/references/${props.quote.reference!.id}`)
+    }] : [])
+  ]
+  if (entityActions.length) items.push({ label: '', leading: '', onclick: () => {} }, ...entityActions)
 
   return items
 })
+
+const toggleFavourite = async () => {
+  try {
+    const result = await $fetch<{ data: { isLiked: boolean; likesCount: number } }>(`/api/quotes/${props.quote.id}/like`, { method: 'POST' })
+    const wasLiked = !!props.quote.is_liked
+    props.quote.is_liked = result.data.isLiked
+    props.quote.likes_count = result.data.likesCount
+    const favouritesCount = user.value?.id
+      ? useState<number | null>(`dashboard-favourites-count-${user.value.id}`, () => null)
+      : null
+    if (favouritesCount?.value !== null && favouritesCount?.value !== undefined && wasLiked !== result.data.isLiked) {
+      favouritesCount.value = Math.max(0, favouritesCount.value + (result.data.isLiked ? 1 : -1))
+    }
+  } catch (error) {
+    showErrorToast(error, String($t('components.quote_actions.favourite_update_failed')))
+  }
+}
 
 const copyLink = async () => {
   const { toast } = useToast()
