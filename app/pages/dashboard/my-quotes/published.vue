@@ -122,20 +122,32 @@
           @click.capture="longPress.suppressLongPressClick"
         >
           <div class="flex items-start gap-3">
-            <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link flex-1 min-w-0 block">
+            <div class="flex-1 min-w-0">
+              <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
+              </NuxtLink>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span v-if="quote.author?.name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
-                <span v-if="!quote.author?.name && (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ (quote as any).author_name }}</span>
+                <NuxtLink
+                  v-if="quote.author?.name && quote.author.id"
+                  :to="`/authors/${quote.author.id}`"
+                  class="font-sans text-xs text-gray-500 underline decoration-transparent underline-offset-3 transition-colors hover:text-gray-800 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100"
+                  @click.stop
+                >{{ quote.author.name }}</NuxtLink>
+                <span v-else-if="quote.author?.name || (quote as any).author_name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author?.name || (quote as any).author_name }}</span>
                 <span v-if="(quote.author?.name || (quote as any).author_name) && (quote.reference?.name || (quote as any).reference_name)" class="text-gray-300 dark:text-gray-600">·</span>
-                <span v-if="quote.reference?.name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference.name }}</span>
-                <span v-if="!quote.reference?.name && (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ (quote as any).reference_name }}</span>
+                <NuxtLink
+                  v-if="quote.reference?.name && quote.reference.id"
+                  :to="`/references/${quote.reference.id}`"
+                  class="font-sans text-xs text-gray-500 underline decoration-transparent underline-offset-3 transition-colors hover:text-gray-800 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100"
+                  @click.stop
+                >{{ quote.reference.name }}</NuxtLink>
+                <span v-else-if="quote.reference?.name || (quote as any).reference_name" class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ quote.reference?.name || (quote as any).reference_name }}</span>
                 <span v-if="formatDashboardQuoteDate(quote, 'published')" class="text-gray-300 dark:text-gray-600">·</span>
                 <NTooltip v-if="formatDashboardQuoteDate(quote, 'published')" :content="formatDashboardQuoteDateTooltip(quote, 'published', locale || 'en') ?? ''">
                   <time class="font-sans text-xs text-gray-400 dark:text-gray-500">{{ formatDashboardQuoteDateRelative(quote, 'published', locale || 'en') }}</time>
                 </NTooltip>
               </div>
-            </NuxtLink>
+            </div>
             <div class="hidden md:block">
               <NDropdownMenu :items="getMobileActions(quote)" :modal="false">
                 <button @click.stop class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-black/5 dark:text-gray-400 dark:hover:bg-white/10">
@@ -190,7 +202,6 @@
             native-on-modifier="ctrl"
             trigger-as="div"
             wrapper-class="w-full"
-            ignore-interactive-targets
             :items="getQuoteActions(quote)"
           >
             <article class="quote-editorial-surface group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]">
@@ -198,15 +209,15 @@
                 <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="handleRowCheckboxClick($event, index, quote.id)" />
               </div>
               <div class="min-w-0">
-                <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
+                <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block">
+                  <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
+                </NuxtLink>
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
-                  <ContextMenu v-if="quote.author?.name" size="xs" native-on-modifier="ctrl" :items="getAuthorActions(quote)">
-                    <span>{{ quote.author.name }}</span>
-                  </ContextMenu>
+                  <NuxtLink v-if="quote.author?.name && quote.author.id" :to="`/authors/${quote.author.id}`" class="underline decoration-transparent underline-offset-3 transition-colors hover:text-gray-900 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:hover:text-gray-100" @click.stop>{{ quote.author.name }}</NuxtLink>
+                  <span v-else-if="quote.author?.name">{{ quote.author.name }}</span>
                   <span v-if="quote.author?.name && quote.reference?.name" aria-hidden="true" class="text-gray-400 dark:text-gray-600">·</span>
-                  <ContextMenu v-if="quote.reference?.name" size="xs" native-on-modifier="ctrl" :items="getReferenceActions(quote)">
-                    <span>{{ quote.reference.name }}</span>
-                  </ContextMenu>
+                  <NuxtLink v-if="quote.reference?.name && quote.reference.id" :to="`/references/${quote.reference.id}`" class="underline decoration-transparent underline-offset-3 transition-colors hover:text-gray-900 hover:decoration-current focus-visible:outline-none focus-visible:underline dark:hover:text-gray-100" @click.stop>{{ quote.reference.name }}</NuxtLink>
+                  <span v-else-if="quote.reference?.name">{{ quote.reference.name }}</span>
                 </div>
                 <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-gray-500 dark:text-gray-400">
                   <span class="font-medium text-gray-700 dark:text-gray-300">{{ $t('col_published') }}</span>
