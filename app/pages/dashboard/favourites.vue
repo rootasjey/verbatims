@@ -122,7 +122,11 @@
         :items="getQuoteActions(quote)"
       >
       <div
-        class="py-5 first:pt-0 last:pb-0 group animate-fade-in-up"
+        class="py-6 group animate-fade-in-up"
+        :class="{
+          'pt-0': filteredQuotes.length > 1 && idx === 0,
+          'pb-0': filteredQuotes.length > 1 && idx === filteredQuotes.length - 1
+        }"
         :style="{ animationDelay: `${idx * 0.05}s` }"
         @pointerdown="longPress.start($event, quote)"
         @pointermove="longPress.move($event)"
