@@ -118,6 +118,13 @@
 const route = useRoute()
 const { $t } = useI18n()
 const { user } = useUserSession()
+const myQuoteSubtabPaths = [
+  '/dashboard/my-quotes/drafts',
+  '/dashboard/my-quotes/pending',
+  '/dashboard/my-quotes/published'
+] as const
+const myQuotesPreferenceKey = `dashboard.myQuotes.lastSubtab.${String(user.value?.id ?? 'anonymous')}`
+const myQuotesDestination = ref<(typeof myQuoteSubtabPaths)[number]>(myQuoteSubtabPaths[0])
 const userKey = String(user.value?.id ?? 'anonymous')
 const favouritesCount = useState<number | null>(`dashboard-favourites-count-${userKey}`, () => null)
 const collectionsCount = useState<number | null>(`dashboard-collections-count-${userKey}`, () => null)
@@ -141,6 +148,35 @@ const secondaryCanScrollLeft = ref(false)
 const secondaryCanScrollRight = ref(false)
 let navResizeObserver: ResizeObserver | undefined
 
+const isMyQuoteSubtabPath = (path: string): path is (typeof myQuoteSubtabPaths)[number] =>
+  myQuoteSubtabPaths.some(subtabPath => subtabPath === path)
+
+onMounted(() => {
+  try {
+    if (isMyQuoteSubtabPath(route.path)) {
+      myQuotesDestination.value = route.path
+      localStorage.setItem(myQuotesPreferenceKey, route.path)
+      return
+    }
+
+    const savedPath = localStorage.getItem(myQuotesPreferenceKey)
+    if (savedPath && isMyQuoteSubtabPath(savedPath)) myQuotesDestination.value = savedPath
+  } catch {
+    // Keep the default destination when local storage is unavailable.
+  }
+})
+
+watch(() => route.path, (path) => {
+  if (!isMyQuoteSubtabPath(path)) return
+
+  myQuotesDestination.value = path
+  try {
+    localStorage.setItem(myQuotesPreferenceKey, path)
+  } catch {
+    // In-memory navigation still works when local storage is unavailable.
+  }
+})
+
 watch(() => dashboardStats.value?.data.favourites, (count) => {
   if (typeof count === 'number') favouritesCount.value = count
 }, { immediate: true })
@@ -154,7 +190,7 @@ const groups = computed(() => [
   { id: 'lists', to: '/dashboard/lists', label: String($t('nav.lists')) },
   {
     id: 'quotes',
-    to: '/dashboard/my-quotes/drafts',
+    to: myQuotesDestination.value,
     label: String($t('nav.my_quotes')),
     children: [
       { to: '/dashboard/my-quotes/drafts', label: String($t('nav.drafts')), count: dashboardStats.value?.data.draft ?? null },
