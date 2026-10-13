@@ -155,7 +155,7 @@
             <NDropdownMenu :items="getCollectionActions(collection)">
               <NButton
                 icon
-                btn="ghost"
+                btn="ghost-gray"
                 size="xs"
                 label="i-ph-dots-three-vertical"
                 @click.stop
