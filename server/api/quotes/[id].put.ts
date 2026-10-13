@@ -1,8 +1,8 @@
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { toISOStringOrNull } from '../../utils/date-normalization'
 import { updateQuoteSchema } from '../../validation/schemas'
-import { getQuoteProvenance, syncPrimaryAttribution } from '~~/server/utils/quote-provenance'
+import { getQuoteProvenance, syncPrimaryAttribution, syncPrimarySource } from '~~/server/utils/quote-provenance'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -22,6 +22,9 @@ export default defineEventHandler(async (event) => {
     const isAdmin = user.role === 'admin' || user.role === 'moderator'
     if (body.language !== undefined && !isAdmin) {
       throwServer(403, 'Only moderators and admins can change a quote language')
+    }
+    if ((body.source_type !== undefined || body.source_url !== undefined) && !isAdmin) {
+      throwServer(403, 'Only moderators and admins can change quote provenance')
     }
     const isOwner = e.userId === user.id
     const isDraft = e.status === 'draft'
@@ -90,6 +93,29 @@ export default defineEventHandler(async (event) => {
     } else {
       await db.update(schema.quotes).set(updateData as any).where(eq(schema.quotes.id, parseInt(quoteId!))).run()
       await syncPrimaryAttribution(e.id, authorId, referenceId, user.id, primaryAttribution?.status, primaryAttribution?.notes)
+    }
+
+    if (body.source_type !== undefined || body.source_url !== undefined) {
+      const primaryAttributionId = await db.select({ id: schema.quoteAttributions.id })
+        .from(schema.quoteAttributions)
+        .where(and(
+          eq(schema.quoteAttributions.quoteId, e.id),
+          eq(schema.quoteAttributions.isPrimary, true),
+        ))
+        .get()
+
+      if (!primaryAttributionId) throwServer(400, 'A quote requires a primary attribution to record provenance')
+
+      if (body.source_type || body.source_url) {
+        await syncPrimarySource(e.id, primaryAttributionId.id, body.source_type, body.source_url, user.id)
+      } else {
+        await db.delete(schema.quoteSources)
+          .where(and(
+            eq(schema.quoteSources.quoteId, e.id),
+            eq(schema.quoteSources.isPrimary, true),
+          ))
+          .run()
+      }
     }
 
     // Fetch the updated quote with all related data

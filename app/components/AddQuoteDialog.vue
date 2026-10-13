@@ -7,14 +7,14 @@
     :submit-text="submitButtonText"
     :submitting="submitting"
     :can-submit="!!form.content.trim()"
-    :hide-footer="!canUseForm || !isEditMode"
-    :max-width="canUseForm && isEditMode ? '2xl' : 'md'"
+    :hide-footer="true"
+    max-width="md"
     scrollable
     @submit="submitQuote"
     @close="closeDialog"
   >
-    <template v-if="canUseForm && !isEditMode" #header-progress>
-      <div class="grid grid-cols-2 gap-3" :aria-label="String($t('components.dialogs.add_quote_steps'))">
+    <template v-if="canUseForm" #header-progress>
+      <div class="grid grid-cols-2 gap-3" :aria-label="String($t('components.dialogs.quote_form_steps'))">
         <button type="button" :aria-current="quoteStep === 1 ? 'step' : undefined" :class="['w-full border-b-2 pb-2 text-left font-sans text-sm transition-colors', quoteStep === 1 ? 'border-gray-900 font-600 text-gray-900 dark:border-gray-100 dark:text-gray-100' : 'border-gray-200 text-gray-500 hover:text-gray-800 dark:border-neutral-700 dark:text-gray-400 dark:hover:text-gray-200']" @click="goToQuoteStep">
           <span class="mr-2 text-xs tabular-nums opacity-60">01</span>{{ $t('components.dialogs.quote_step') }}
         </button>
@@ -41,7 +41,7 @@
       </div>
     </section>
 
-    <form v-else-if="!isEditMode" @submit.prevent="quoteStep === 1 ? goToAttributionStep() : submitQuote()" @keydown.capture="handleCreateEscape" @keydown="handleCreateFormKeydown" class="space-y-5 px-2">
+    <form v-else @submit.prevent="quoteStep === 1 ? goToAttributionStep() : submitQuote()" @keydown.capture="handleCreateEscape" @keydown="handleQuoteFormKeydown" class="space-y-5 px-2">
       <div ref="stepViewportRef" :style="{ height: stepViewportHeight }" class="quote-step-viewport relative overflow-hidden" @transitionend.self="finishStepTransition">
       <Transition :name="transitionName">
       <section v-if="quoteStep === 1" key="quote" data-quote-step="1" class="space-y-4 px-0 py-2">
@@ -144,6 +144,37 @@
             <span class="quote-attribution-required-feedback-label">{{ $t('components.dialogs.attribution_required') }}</span>
           </p>
         </Transition>
+
+        <div v-if="canEditProvenance" class="space-y-4 border-t border-gray-200/80 pt-4 dark:border-neutral-700/80">
+          <div>
+            <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">Provenance</h3>
+            <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">Record where this quote was verified.</p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">Source type</label>
+              <select
+                v-model="form.sourceType"
+                :disabled="submitting"
+                class="w-full rounded-1 border border-gray-300 bg-transparent px-3 py-2 font-sans text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-600 dark:text-gray-100"
+              >
+                <option value="" class="dark:bg-gray-800">No source type</option>
+                <option value="wikiquote-en" class="dark:bg-gray-800">Wikiquote (English)</option>
+                <option value="wikiquote-fr" class="dark:bg-gray-800">Wikiquote (French)</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 block font-sans text-sm text-gray-700 dark:text-gray-300">Source URL</label>
+              <input
+                v-model="form.sourceUrl"
+                type="url"
+                placeholder="https://..."
+                :disabled="submitting"
+                class="w-full rounded-1 border border-gray-300 bg-transparent px-3 py-2 font-sans text-sm text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 dark:border-neutral-600 dark:text-gray-100 dark:placeholder-gray-500"
+              />
+            </div>
+          </div>
+        </div>
       </section>
       </Transition>
       </div>
@@ -160,185 +191,8 @@
           {{ $t('common.next') }}<NIcon name="i-ph-arrow-right" class="ml-2 h-4 w-4" />
         </NButton>
         <NButton v-else btn="solid-black" type="submit" :disabled="!hasAttribution || submitting" :loading="submitting" class="min-h-10 rounded-1 px-4">
-          {{ $t('components.dialogs.save_as_draft') }}
+          {{ isEditMode ? $t('components.dialogs.update') : $t('components.dialogs.save_as_draft') }}
         </NButton>
-      </div>
-    </form>
-
-    <form v-else @keydown="handleFormKeydown" class="space-y-7 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] md:items-start md:gap-10 md:space-y-0">
-      <div class="md:sticky md:top-0 md:self-start">
-      <!-- Quote Content -->
-      <div>
-        <textarea
-          ref="quoteTextarea"
-          v-model="form.content"
-          :placeholder="$t('components.dialogs.quote_placeholder') as string"
-          rows="7"
-          :disabled="submitting"
-          required
-          class="w-full min-h-64 font-serif text-2xl md:text-3xl leading-snug text-gray-900 dark:text-gray-100 rounded-3
-            bg-gray-100/80 dark:bg-neutral-900/80 px-5 py-5 placeholder-gray-400 dark:placeholder-gray-600
-            focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/60 resize-y"
-        />
-        <div class="px-1 pt-2 flex justify-between">
-          <span class="font-sans text-xs font-600 text-gray-500 dark:text-gray-400">{{ dialogTitle }}</span>
-          <span class="font-sans text-xs font-600 text-gray-500 dark:text-gray-400">{{ form.content.length }} characters</span>
-        </div>
-      </div>
-
-      </div>
-
-      <div class="space-y-6 md:pt-1">
-      <div class="hidden md:block pb-1">
-        <p class="font-sans text-xs font-700 uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">Details</p>
-      </div>
-      <!-- Author -->
-      <div>
-        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.author_label') }}</label>
-        <div class="relative">
-          <input
-            ref="authorInputRef"
-            v-model="authorQuery"
-            type="text"
-            :placeholder="$t('components.dialogs.search_author') as string"
-            :disabled="submitting"
-            class="w-full font-sans text-base bg-transparent border-b border-gray-300 dark:border-neutral-700 px-0 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-700 dark:focus:border-gray-300"
-            @input="onAuthorInput"
-            @focus="handleAuthorInputFocus"
-            @blur="handleAuthorInputBlur"
-            @keydown="handleAuthorKeydown"
-          />
-          <div
-            v-if="showAuthorSuggestions && (authorSuggestions.length > 0 || authorQuery)"
-            ref="authorSuggestionsRef"
-            class="absolute z-10 w-full mt-2 bg-[#FAFAF9] dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2 shadow-xl max-h-48 overflow-auto"
-            tabindex="-1"
-            @blur="handleAuthorSuggestionsBlur"
-            @keydown="handleAuthorKeydown"
-          >
-            <div
-              v-for="(author, index) in authorSuggestions"
-              :key="author.id"
-              :class="[
-                'px-3 py-2 cursor-pointer font-sans text-sm',
-                selectedAuthorIndex === index ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-              ]"
-              @click="selectAuthor(author)"
-              @mouseenter="selectedAuthorIndex = index"
-            >
-              <p class="text-sm text-gray-900 dark:text-gray-100">{{ author.name }}</p>
-              <p v-if="author.job" class="text-xs text-gray-500 dark:text-gray-400">{{ author.job }}</p>
-            </div>
-            <div
-              v-if="authorQuery && !authorSuggestions.some(a => a.name.toLowerCase() === authorQuery.toLowerCase())"
-              :class="[
-                'px-3 py-2 cursor-pointer border-t border-dashed border-gray-200 dark:border-gray-700 font-sans text-sm',
-                selectedAuthorIndex === authorSuggestions.length ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-              ]"
-              @click="createNewAuthor"
-              @mouseenter="selectedAuthorIndex === authorSuggestions.length ? selectedAuthorIndex = authorSuggestions.length : null"
-            >
-              <p class="text-sm text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.create_new_author', { name: authorQuery }) }}</p>
-            </div>
-          </div>
-        </div>
-        <div v-if="form.selectedAuthor" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
-          <div>
-            <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ form.selectedAuthor.name }}</span>
-            <span v-if="form.selectedAuthor.job" class="font-sans text-xs text-gray-500 dark:text-gray-400 ml-2">{{ form.selectedAuthor.job }}</span>
-          </div>
-          <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="clearAuthor"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
-        </div>
-      </div>
-
-      <!-- Reference -->
-      <div>
-        <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">{{ $t('components.dialogs.reference_label') }}</label>
-        <div class="relative">
-          <input
-            ref="referenceInputRef"
-            v-model="referenceQuery"
-            type="text"
-            :placeholder="$t('components.dialogs.search_reference') as string"
-            :disabled="submitting"
-            class="w-full font-sans text-base bg-transparent border-b border-gray-300 dark:border-neutral-700 px-0 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-gray-700 dark:focus:border-gray-300"
-            @input="onReferenceInput"
-            @focus="handleReferenceInputFocus"
-            @blur="handleReferenceInputBlur"
-            @keydown="handleReferenceKeydown"
-          />
-          <div
-            v-if="showReferenceSuggestions && (referenceSuggestions.length > 0 || referenceQuery)"
-            ref="referenceSuggestionsRef"
-            class="absolute z-10 w-full mt-2 bg-[#FAFAF9] dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2 shadow-xl max-h-48 overflow-auto"
-            tabindex="-1"
-            @blur="handleReferenceSuggestionsBlur"
-            @keydown="handleReferenceKeydown"
-          >
-            <div
-              v-for="(reference, index) in referenceSuggestions"
-              :key="reference.id"
-              :class="[
-                'px-3 py-2 cursor-pointer font-sans text-sm',
-                selectedReferenceIndex === index ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-              ]"
-              @click="selectReference(reference)"
-              @mouseenter="selectedReferenceIndex = index"
-            >
-              <p class="text-sm text-gray-900 dark:text-gray-100">{{ reference.name }}</p>
-              <p v-if="reference.primary_type" class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ reference.primary_type.replace('_', ' ') }}</p>
-            </div>
-            <div
-              v-if="referenceQuery && !referenceSuggestions.some(r => r.name.toLowerCase() === referenceQuery.toLowerCase())"
-              :class="[
-                'px-3 py-2 cursor-pointer border-t border-dashed border-gray-200 dark:border-gray-700 font-sans text-sm',
-                selectedReferenceIndex === referenceSuggestions.length ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-              ]"
-              @click="createNewReference"
-              @mouseenter="selectedReferenceIndex = referenceSuggestions.length"
-            >
-              <p class="text-sm text-blue-600 dark:text-blue-400">{{ $t('components.dialogs.create_new_reference', { name: referenceQuery }) }}</p>
-            </div>
-          </div>
-        </div>
-        <div v-if="form.selectedReference" class="mt-2 p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
-          <div>
-            <span class="font-sans text-sm text-gray-900 dark:text-gray-100">{{ form.selectedReference.name }}</span>
-            <span v-if="form.selectedReference.primary_type" class="font-sans text-xs text-gray-500 dark:text-gray-400 ml-2 capitalize">{{ form.selectedReference.primary_type.replace('_', ' ') }}</span>
-          </div>
-          <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @click="clearReference"><NIcon name="i-ph-x" class="w-4 h-4" /></button>
-        </div>
-      </div>
-
-      <!-- Provenance (moderators and admins only) -->
-      <div v-if="canEditProvenance" class="border-t border-gray-200 dark:border-gray-800 pt-6 space-y-4">
-        <div>
-          <h3 class="font-sans text-sm font-600 text-gray-800 dark:text-gray-200">Provenance</h3>
-          <p class="mt-1 font-sans text-xs text-gray-500 dark:text-gray-400">Record where this quote was verified.</p>
-        </div>
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Source type</label>
-          <select
-            v-model="form.sourceType"
-            :disabled="submitting"
-            class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 cursor-pointer focus:outline-none"
-          >
-            <option value="" class="dark:bg-gray-800">No source type</option>
-            <option value="wikiquote-en" class="dark:bg-gray-800">Wikiquote (English)</option>
-            <option value="wikiquote-fr" class="dark:bg-gray-800">Wikiquote (French)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-sans text-sm text-gray-700 dark:text-gray-300 mb-1.5">Source URL</label>
-          <input
-            v-model="form.sourceUrl"
-            type="url"
-            placeholder="https://..."
-            :disabled="submitting"
-            class="w-full font-sans text-sm bg-transparent border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
-          />
-        </div>
-      </div>
       </div>
     </form>
   </AppDialog>
@@ -472,14 +326,7 @@ const collapseSuggestionPanel = (element: Element, done: () => void) => {
 const hasAttribution = computed(() => Boolean(form.value.selectedAuthor || form.value.selectedReference))
 const { showErrorToast } = useErrorToast()
 
-const handleFormKeydown = (event: KeyboardEvent) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-    event.preventDefault()
-    if (form.value.content.trim() && !submitting.value) submitQuote()
-  }
-}
-
-const handleCreateFormKeydown = (event: KeyboardEvent) => {
+const handleQuoteFormKeydown = (event: KeyboardEvent) => {
   if (event.defaultPrevented || event.isComposing) return
 
   if (quoteStep.value === 1 && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -582,7 +429,12 @@ watch(isOpen, (open) => {
 })
 
 watch(() => props.editQuote, (newQuote) => {
-  if (newQuote) initializeFormForEdit(newQuote)
+  if (newQuote) {
+    initializeFormForEdit(newQuote)
+    // Selected entities render as chips in the shared two-step form.
+    authorQuery.value = ''
+    referenceQuery.value = ''
+  }
   else resetForm()
 }, { immediate: true })
 
@@ -610,7 +462,7 @@ const submitQuote = async () => {
   if (submitting.value) return
   if (form.value.content.trim().length < 2) { showContentEmptyError(); return }
   if (!user.value) return
-  if (!isEditMode.value && !hasAttribution.value) {
+  if (!hasAttribution.value) {
     if (quoteStep.value === 2) {
       void triggerAttributionRequiredPulse()
       await nextTick()
@@ -626,7 +478,14 @@ const submitQuote = async () => {
   try {
     const payload = createPayload()
     if (isEditMode.value && props.editQuote) {
-      const { language: _language, ...updatePayload } = payload
+      const { language: _language, ...baseUpdatePayload } = payload
+      const updatePayload = canEditProvenance.value
+        ? {
+            ...baseUpdatePayload,
+            source_type: form.value.sourceType || null,
+            source_url: form.value.sourceUrl || null,
+          }
+        : baseUpdatePayload
       await submitUpdateQuote(props.editQuote.id, updatePayload)
       return
     }
@@ -652,7 +511,10 @@ const submitCreateQuote = async (payload: CreateQuoteData) => {
   await changeStep(1)
 }
 
-const submitUpdateQuote = async (editQuoteId: number, payload: CreateQuoteData | Omit<CreateQuoteData, 'language'>) => {
+const submitUpdateQuote = async (
+  editQuoteId: number,
+  payload: Omit<CreateQuoteData, 'language'> & { source_type?: string | null; source_url?: string | null },
+) => {
   await $fetch(`/api/quotes/${editQuoteId}`, { method: 'PUT', body: payload })
   emit('quote-updated')
   closeDialog()

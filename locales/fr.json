@@ -864,6 +864,7 @@
       "quote_step": "Citation",
       "attribution_step": "Attribution",
       "add_quote_steps": "Étapes d’ajout d’une citation",
+      "quote_form_steps": "Étapes du formulaire de citation",
       "draft_saved_continue": "Brouillon enregistré. L’attribution est prête pour votre prochaine citation.",
       "attribution_required": "Choisissez au moins un auteur ou une référence.",
       "character_count": "{count} caractères",

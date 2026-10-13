@@ -841,6 +841,7 @@
       "quote_step": "Quote",
       "attribution_step": "Attribution",
       "add_quote_steps": "Add quote steps",
+      "quote_form_steps": "Quote form steps",
       "draft_saved_continue": "Draft saved. The attribution is ready for your next quote.",
       "attribution_required": "Choose at least one author or reference.",
       "character_count": "{count} characters",

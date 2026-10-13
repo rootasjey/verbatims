@@ -64,6 +64,8 @@ export const createQuoteSchema = z.object({
 export const updateQuoteSchema = z.object({
   name: z.string().min(2).max(3000).trim().optional(),
   language: z.enum(validLanguages).optional(),
+  source_type: z.string().max(100).trim().nullable().optional(),
+  source_url: z.string().url().nullable().optional(),
   attributions: quoteAttributionsPayloadSchema.optional(),
   new_author: z.object({
     name: z.string().min(1).max(200).trim(),
