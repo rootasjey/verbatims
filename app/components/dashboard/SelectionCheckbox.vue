@@ -1,20 +1,20 @@
 <template>
-  <Transition :css="false" appear @enter="animateIn" @leave="animateOut">
-    <span
-      v-if="visible"
-      data-selection-ignore
-      class="dashboard-selection-checkbox inline-flex shrink-0"
-      :data-delay-index="Math.min(delayIndex, 12)"
-    >
-      <NCheckbox
-        checkbox="gray"
-        :aria-label="label"
-        :model-value="modelValue"
-        class="mt-1"
-        @click.stop="$emit('toggle', $event)"
-      />
-    </span>
-  </Transition>
+  <span
+    data-selection-ignore
+    :data-visible="visible"
+    :aria-hidden="!visible"
+    :inert="!visible"
+    :style="{ transitionDelay: visible ? `${Math.min(delayIndex, 12) * 12}ms` : '0ms' }"
+    class="dashboard-selection-checkbox inline-flex shrink-0"
+  >
+    <NCheckbox
+      checkbox="gray"
+      :aria-label="label"
+      :model-value="modelValue"
+      class="mt-1"
+      @click.stop="$emit('toggle', $event)"
+    />
+  </span>
 </template>
 
 <script setup lang="ts">
@@ -30,50 +30,36 @@ withDefaults(defineProps<{
 defineEmits<{
   (event: 'toggle', value: MouseEvent): void
 }>()
+</script>
 
-const checkboxAnimations = new WeakMap<HTMLElement, { animation: Animation, finish: () => void }>()
-
-const animate = (element: Element, done: () => void, entering: boolean) => {
-  const checkbox = element as HTMLElement
-  const previous = checkboxAnimations.get(checkbox)
-  if (previous) {
-    checkboxAnimations.delete(checkbox)
-    previous.animation.cancel()
-    previous.finish()
-  }
-
-  if (typeof checkbox.animate !== 'function') {
-    done()
-    return
-  }
-
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const animation = checkbox.animate(
-    entering
-      ? [
-          { opacity: 0, transform: 'translateX(-5.6px) scale(0.94)' },
-          { opacity: 1, transform: 'translateX(0) scale(1)' }
-        ]
-      : [
-          { opacity: 1, transform: 'translateX(0) scale(1)' },
-          { opacity: 0, transform: 'translateX(-4px) scale(0.96)' }
-        ],
-    {
-      duration: reduceMotion ? 1 : entering ? 160 : 100,
-      delay: entering ? Number(checkbox.dataset.delayIndex || 0) * 12 : 0,
-      easing: entering ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'ease-in',
-      fill: 'both'
-    }
-  )
-
-  checkboxAnimations.set(checkbox, { animation, finish: done })
-  animation.onfinish = () => {
-    checkboxAnimations.delete(checkbox)
-    animation.cancel()
-    done()
-  }
+<style scoped>
+.dashboard-selection-checkbox {
+  opacity: 0;
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  translate: -5px -50%;
+  scale: 0.96;
+  pointer-events: none;
+  transition:
+    opacity 150ms ease-out,
+    translate 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-const animateIn = (element: Element, done: () => void) => animate(element, done, true)
-const animateOut = (element: Element, done: () => void) => animate(element, done, false)
-</script>
+.dashboard-selection-checkbox[data-visible='true'] {
+  opacity: 1;
+  position: relative;
+  left: auto;
+  top: auto;
+  translate: 0 0;
+  scale: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-selection-checkbox {
+    transition: none;
+  }
+}
+</style>
