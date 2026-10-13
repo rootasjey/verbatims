@@ -84,9 +84,10 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
     if (target?.closest('[data-selection-ignore]')) return
     if (!selectionMode.value && target?.closest('a:not([data-selection-primary]), button, input, select, textarea, [contenteditable="true"]')) return
 
-    if (selectionMode.value && (event.key === ' ' || event.key === 'Spacebar')) {
+    if (event.key === ' ' || event.key === 'Spacebar') {
       event.preventDefault()
-      toggleQuote(index, id, event.shiftKey)
+      if (selectionMode.value) toggleQuote(index, id, event.shiftKey)
+      else selectQuote(index, id)
       return
     }
 
