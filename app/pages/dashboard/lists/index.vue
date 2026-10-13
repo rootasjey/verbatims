@@ -98,37 +98,34 @@
     </div>
 
     <!-- Feed -->
-    <div v-else class="space-y-3">
+    <div v-else class="divide-y divide-gray-200/80 dark:divide-white/10">
       <div
         v-for="(collection, idx) in filteredCollections"
         :key="collection.id"
-        class="group cursor-pointer rounded-xl bg-[#E6E4DD] p-5 transition-colors hover:bg-[#dfdcd4] dark:bg-[#17191e] dark:hover:bg-[#1c1e23] sm:p-6 animate-fade-in-up"
+        class="group cursor-pointer rounded-lg px-3 py-6 transition-colors hover:bg-black/[0.025] focus-within:bg-black/[0.025] dark:hover:bg-white/[0.035] dark:focus-within:bg-white/[0.035] sm:px-5 sm:py-8 animate-fade-in-up"
         :style="{ animationDelay: `${idx * 0.05}s` }"
         @click="navigateToCollection(collection)"
       >
         <ContextMenu size="xs" native-on-modifier="ctrl" :items="getCollectionContextMenuActions(collection)">
           <div class="flex items-start justify-between gap-4">
           <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
               <NuxtLink
                 :to="`/dashboard/lists/${collection.id}`"
-                class="font-serif text-xl font-500 leading-snug text-gray-900 transition-colors group-hover:text-gray-700 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700 dark:text-gray-100 dark:group-hover:text-gray-300 dark:focus-visible:outline-gray-300"
+                class="font-serif text-2xl font-500 leading-snug text-gray-900 transition-colors group-hover:text-gray-700 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700 dark:text-gray-100 dark:group-hover:text-gray-300 dark:focus-visible:outline-gray-300 sm:text-3xl"
                 @click.stop
               >
                 {{ collection.name }}
               </NuxtLink>
-              <span
-                v-if="collection.isPublic"
-                class="shrink-0 font-sans text-[11px] font-600 uppercase tracking-[0.12em] text-gray-600 dark:text-gray-300"
-              >
-                {{ $t('common.public') }}
-              </span>
-              <span
-                v-else
-                class="shrink-0 font-sans text-[11px] font-600 uppercase tracking-[0.12em] text-gray-600 dark:text-gray-300"
-              >
-                {{ $t('common.private') }}
-              </span>
+              <NTooltip :content="String(collection.isPublic ? $t('common.public') : $t('common.private'))">
+                <span
+                  class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors group-hover:bg-black/5 dark:text-gray-400 dark:group-hover:bg-white/10"
+                  role="img"
+                  :aria-label="String(collection.isPublic ? $t('common.public') : $t('common.private'))"
+                >
+                  <NIcon :name="collection.isPublic ? 'i-tabler-world' : 'i-tabler-lock'" class="h-4 w-4" />
+                </span>
+              </NTooltip>
             </div>
 
             <p v-if="collection.description" class="mt-2 max-w-3xl font-sans text-sm leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2">
@@ -144,13 +141,13 @@
               />
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-500/15 pt-3 font-sans text-xs text-gray-600 dark:border-white/10 dark:text-gray-400">
+            <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 font-sans text-sm text-gray-500 dark:text-gray-400">
               <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
-              <template v-if="collection.createdAt || collection.updatedAt">
-                <span aria-hidden="true" class="text-gray-400/70 dark:text-gray-600">·</span>
-                <span v-if="collection.createdAt">{{ $t('common.created') }} {{ formatDate(collection.createdAt) }}</span>
-                <span v-else-if="collection.updatedAt">{{ $t('common.updated') }} {{ formatDate(collection.updatedAt) }}</span>
-              </template>
+              <NTooltip v-if="collection.createdAt || collection.updatedAt" :content="formatCollectionDateTooltip(collection)">
+                <time class="cursor-default decoration-gray-400/50 underline decoration-dotted underline-offset-4">
+                  {{ collection.createdAt ? $t('common.created') : $t('common.updated') }} {{ formatCollectionDateRelative(collection) }}
+                </time>
+              </NTooltip>
             </div>
           </div>
 
@@ -254,7 +251,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatDate } from '~/utils/time-formatter'
+import { formatDashboardQuoteDateRelative, formatDashboardQuoteDateTooltip } from '~/utils/dashboard-quote-date'
 
 // Extended interface for dashboard collections with additional fields
 interface DashboardCollection extends CollectionWithStats {
@@ -273,9 +270,20 @@ definePageMeta({
 })
 
 const { $t } = useI18n()
+const { locale } = useI18nLocale()
 const { user } = useUserSession()
 const collectionsCount = useState<number | null>(`dashboard-collections-count-${String(user.value?.id ?? 'anonymous')}`, () => null)
 const pageT = useI18n().$_t({ ...useRoute() })
+
+const formatCollectionDateRelative = (collection: DashboardCollection) => {
+  const date = collection.createdAt || collection.updatedAt
+  return formatDashboardQuoteDateRelative({ createdAt: date }, 'draft', locale.value || 'en') || ''
+}
+
+const formatCollectionDateTooltip = (collection: DashboardCollection) => {
+  const date = collection.createdAt || collection.updatedAt
+  return formatDashboardQuoteDateTooltip({ createdAt: date }, 'draft', locale.value || 'en') || ''
+}
 
 useHead({
   title: $t('meta_title') as string
