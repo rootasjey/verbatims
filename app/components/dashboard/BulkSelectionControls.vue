@@ -6,7 +6,6 @@
       </span>
       <NTooltip
         :content="$t(allVisibleSelected ? 'common.select_none' : 'common.select_visible') as string"
-        :_tooltip-content="{ class: 'dashboard-bulk-selection-tooltip' }"
       >
         <NButton
           icon
@@ -23,7 +22,6 @@
       <div class="flex items-center md:hidden">
         <NTooltip
           :content="$t('common.selection_actions') as string"
-          :_tooltip-content="{ class: 'dashboard-bulk-selection-tooltip' }"
         >
           <NButton
             icon
@@ -42,7 +40,6 @@
           v-for="action in actions"
           :key="action.key"
           :content="action.label"
-          :_tooltip-content="{ class: 'dashboard-bulk-selection-tooltip' }"
         >
           <NButton
             icon
@@ -60,7 +57,6 @@
       <NTooltip
         v-if="selectedCount > 0"
         :content="$t('common.clear') as string"
-        :_tooltip-content="{ class: 'dashboard-bulk-selection-tooltip' }"
       >
         <NButton
           icon
@@ -75,7 +71,6 @@
       </NTooltip>
       <NTooltip
         :content="$t('common.done') as string"
-        :_tooltip-content="{ class: 'dashboard-bulk-selection-tooltip' }"
       >
         <NButton
           icon
@@ -176,44 +171,3 @@ const runAction = (key: string) => {
   emit('action', key)
 }
 </script>
-
-<style scoped>
-@keyframes dashboard-tooltip-enter {
-  from {
-    opacity: 0;
-    transform: translateY(5px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes dashboard-tooltip-exit {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(2px) scale(0.99);
-  }
-}
-
-:global(.dashboard-bulk-selection-tooltip[data-state='delayed-open']),
-:global(.dashboard-bulk-selection-tooltip[data-state='instant-open']) {
-  animation: dashboard-tooltip-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-:global(.dashboard-bulk-selection-tooltip[data-state='closed']) {
-  animation: dashboard-tooltip-exit 100ms ease-in both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :global(.dashboard-bulk-selection-tooltip) {
-    animation-duration: 1ms !important;
-  }
-}
-</style>
