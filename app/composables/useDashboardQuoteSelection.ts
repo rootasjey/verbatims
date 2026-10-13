@@ -80,27 +80,38 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
   }
 
   const handleRowKeydown = (event: KeyboardEvent, index: number, id: number) => {
-    if (!selectionMode.value) return
-
     const target = event.target as Element | null
     if (target?.closest('[data-selection-ignore]')) return
+    if (!selectionMode.value && target?.closest('a:not([data-selection-primary]), button, input, select, textarea, [contenteditable="true"]')) return
 
-    if (event.key === ' ' || event.key === 'Spacebar') {
+    if (selectionMode.value && (event.key === ' ' || event.key === 'Spacebar')) {
       event.preventDefault()
       toggleQuote(index, id, event.shiftKey)
+      return
+    }
+
+    if (!selectionMode.value && event.key === 'Enter' && target === event.currentTarget) {
+      const quoteLink = (event.currentTarget as HTMLElement).querySelector<HTMLAnchorElement>('[data-selection-primary]')
+      if (quoteLink) {
+        event.preventDefault()
+        quoteLink.click()
+      }
       return
     }
 
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
     event.preventDefault()
 
-    const visibleRows = Array.from(document.querySelectorAll<HTMLElement>('[data-dashboard-selection-row]'))
+    const visibleRows = Array.from(document.querySelectorAll<HTMLElement>('[data-dashboard-quote-row]'))
       .filter(row => row.getClientRects().length > 0)
     const currentIndex = visibleRows.indexOf(event.currentTarget as HTMLElement)
     if (currentIndex < 0 || visibleRows.length === 0) return
 
     const direction = event.key === 'ArrowDown' ? 1 : -1
-    const nextIndex = (currentIndex + direction + visibleRows.length) % visibleRows.length
+    const nextIndex = selectionMode.value
+      ? (currentIndex + direction + visibleRows.length) % visibleRows.length
+      : Math.min(visibleRows.length - 1, Math.max(0, currentIndex + direction))
+    if (nextIndex === currentIndex) return
     const nextRow = visibleRows[nextIndex]
     if (!nextRow) return
 

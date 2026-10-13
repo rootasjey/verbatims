@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 
 export type LikeableEntity = 'quote' | 'author' | 'reference'
 
@@ -102,4 +102,16 @@ export async function addQuoteLikes(quoteIds: number[], userId: number): Promise
     .all()
 
   return insertedLikes.map(like => like.quoteId)
+}
+
+export async function removeQuoteLikes(quoteIds: number[], userId: number): Promise<void> {
+  if (quoteIds.length === 0) return
+
+  await db.delete(schema.userLikes)
+    .where(and(
+      eq(schema.userLikes.userId, userId),
+      eq(schema.userLikes.likeableType, 'quote'),
+      inArray(schema.userLikes.likeableId, quoteIds)
+    ))
+    .run()
 }

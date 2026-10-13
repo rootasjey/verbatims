@@ -123,21 +123,34 @@
       >
       <div
         class="py-6 group animate-fade-in-up"
-        :class="{
+        :data-dashboard-quote-row="quote.id"
+        tabindex="-1"
+        :class="[
+          selectionMode ? 'px-2 rounded-md transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]' : '',
+          selectionMode && rowSelection[quote.id] ? 'bg-black/[0.035] dark:bg-white/[0.05]' : '',
+          {
           'pt-0': filteredQuotes.length > 1 && idx === 0,
           'pb-0': filteredQuotes.length > 1 && idx === filteredQuotes.length - 1
-        }"
+          }
+        ]"
         :style="{ animationDelay: `${idx * 0.05}s` }"
-        @pointerdown="longPress.start($event, quote)"
+        @pointerdown="!selectionMode && longPress.start($event, quote)"
         @pointermove="longPress.move($event)"
         @pointerup="longPress.end"
         @pointercancel="longPress.end"
         @contextmenu.capture="handleFavouriteContextMenu($event, quote)"
-        @click.capture="longPress.suppressLongPressClick"
+        @click.capture="handleFavouriteRowClick($event, idx, quote.id)"
+        @keydown.capture="quoteKeyboard.handleRowKeydown($event, idx, quote.id)"
       >
-        <div class="flex items-start gap-4">
+        <div class="flex items-start transition-[gap] duration-200 ease-out motion-reduce:transition-none" :class="selectionMode ? 'gap-3' : 'gap-4'">
+          <DashboardSelectionCheckbox
+            :visible="selectionMode"
+            :label="String($t('common.select_quote', { quote: quote.name }))"
+            :model-value="!!rowSelection[quote.id]"
+            @toggle="toggleQuote(idx, quote.id, $event.shiftKey)"
+          />
           <div class="flex-1 min-w-0">
-            <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block">
+            <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em] md:text-xl" />
             </NuxtLink>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
@@ -181,20 +194,21 @@
               </template>
             </div>
           </div>
-          <div class="hidden md:block">
+          <div v-if="!selectionMode" class="hidden transition-opacity duration-150 md:block md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
             <NDropdownMenu :items="getQuoteActions(quote)" :modal="false">
-              <button type="button" class="sr-only focus-visible:not-sr-only" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop>
+              <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-black/[0.06] hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-100" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop>
                 <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
               </button>
             </NDropdownMenu>
           </div>
-          <button type="button" class="sr-only focus-visible:not-sr-only md:hidden" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop="openMobileQuoteActions(quote)">
+          <button v-if="!selectionMode" type="button" class="sr-only focus-visible:not-sr-only md:hidden" :aria-label="String($t('components.quote_actions.quick_actions'))" @click.stop="openMobileQuoteActions(quote)">
             <NIcon name="i-ph-dots-three-vertical" class="h-4 w-4" />
           </button>
         </div>
       </div>
       </ContextMenu>
     </div>
+    <div v-if="selectionMode" class="h-20" />
 
     <!-- Add to Collection Modal -->
     <AddQuoteToCollectionModal
@@ -202,6 +216,12 @@
       v-model="showAddQuoteToCollectionModal"
       :quote="selectedQuote"
       @added="handleAddedToCollection"
+    />
+    <AddToCollectionBulkModal
+      v-if="showBulkAddToCollection"
+      v-model="showBulkAddToCollection"
+      :quote-ids="selectedQuotes"
+      @added="clearSelection"
     />
 
     <ClientOnly>
@@ -217,8 +237,9 @@
 
     <!-- Sticky Pagination Footer -->
     <div
-      v-if="totalPages > 1"
-      class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
+      v-if="totalPages > 1 || (hasLoadedOnce && selectionMode)"
+      data-dashboard-pagination-bar
+      class="fixed bottom-0 z-20 flex items-center justify-between gap-3 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
@@ -231,6 +252,17 @@
         </button>
         of {{ totalPages }}
       </span>
+      <DashboardBulkSelectionControls
+        class="min-w-0 flex-1"
+        :selection-mode="selectionMode"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-visible="toggleSelectAllVisible"
+        @clear="clearSelection"
+        @exit-mode="exitSelectionMode"
+        @action="handleBulkSelectionAction"
+      />
       <div class="flex items-center gap-2">
         <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
           <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
@@ -307,10 +339,19 @@ const openMobileQuoteActions = (quote: LikedQuote) => {
 }
 const longPress = useDashboardLongPress(openMobileQuoteActions)
 const handleFavouriteContextMenu = (event: MouseEvent, quote: LikedQuote) => {
+  if (selectionMode.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
   if (!import.meta.client || !window.matchMedia('(max-width: 767px)').matches) return
   event.preventDefault()
   event.stopPropagation()
   longPress.handleContextMenu(event, quote)
+}
+const handleFavouriteRowClick = (event: MouseEvent, index: number, id: number) => {
+  longPress.suppressLongPressClick(event)
+  if (selectionMode.value) handleRowClickCapture(event, index, id)
 }
 const currentPage = ref(1)
 const totalPages = ref(0)
@@ -341,6 +382,8 @@ const sortBy = computed(() => {
 
 const showAddQuoteToCollectionModal = ref(false)
 const selectedQuote = ref<LikedQuote | null>(null)
+const showBulkAddToCollection = ref(false)
+const bulkMutationPending = ref(false)
 
 const filteredQuotes = computed(() => {
   let filtered = [...quotes.value]
@@ -372,6 +415,25 @@ const filteredQuotes = computed(() => {
 
   return filtered
 })
+
+const quoteKeyboard = useDashboardQuoteSelection(filteredQuotes)
+const {
+  selectionMode,
+  rowSelection,
+  selectedQuotes,
+  clearSelection,
+  exitSelectionMode,
+  selectQuote,
+  toggleQuote,
+  toggleSelectAllVisible,
+  handleRowClickCapture,
+  handleRowKeydown
+} = quoteKeyboard
+const bulkSelectionActions = computed(() => [
+  { key: 'unlike', label: String($t('tooltip_remove')), icon: 'i-tabler-heart-broken', disabled: bulkMutationPending.value },
+  { key: 'collection', label: String($t('tooltip_add_to_collection')), icon: 'i-tabler-folder-plus', disabled: bulkMutationPending.value }
+])
+watch([currentPage, searchQuery, sortValue], clearSelection)
 
 const loadFavourites = async () => {
   try {
@@ -422,6 +484,11 @@ const getQuoteActions = (quote: any) => {
       onclick: () => handleUnlike(quote)
     },
     {},
+    ...(!selectionMode.value ? [{
+      label: $t('common.select_this_quote') as string,
+      leading: 'i-tabler-checkbox',
+      onclick: () => selectQuote(filteredQuotes.value.findIndex(item => item.id === quote.id), quote.id)
+    }, {}] : []),
     ...entityActions,
     ...(entityActions.length ? [{}] : []),
     {
@@ -450,6 +517,30 @@ const handleUnlike = async (quote: LikedQuote) => {
   } catch (e) {
     console.error('Failed to unlike:', e)
     showErrorToast(e, $t('error_remove') as string)
+  }
+}
+
+const handleBulkSelectionAction = async (action: string) => {
+  if (action === 'collection') {
+    showBulkAddToCollection.value = true
+    return
+  }
+  if (action !== 'unlike' || selectedQuotes.value.length === 0 || bulkMutationPending.value) return
+
+  try {
+    bulkMutationPending.value = true
+    const quoteIds = [...selectedQuotes.value]
+    await $fetch('/api/quotes/bulk-likes', { method: 'DELETE', body: { quoteIds } })
+    quotes.value = quotes.value.filter(quote => !quoteIds.includes(quote.id))
+    totalQuotes.value = Math.max(0, totalQuotes.value - quoteIds.length)
+    favouritesCount.value = totalQuotes.value
+    totalPages.value = Math.max(1, Math.ceil(totalQuotes.value / 20))
+    if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
+    clearSelection()
+  } catch (error) {
+    showErrorToast(error, String($t('error_remove')))
+  } finally {
+    bulkMutationPending.value = false
   }
 }
 
@@ -495,6 +586,20 @@ const updateFooterPosition = () => {
   footerLeftOffset.value = rect.left
   footerWidth.value = `${rect.width}px`
 }
+
+useAdminKeyboardShortcuts({
+  selectAllOnPage: () => quoteKeyboard.selectAllVisible(),
+  clearSelection,
+  hasSelection: () => selectedQuotes.value.length > 0,
+  isSelectionMode: () => selectionMode.value,
+  onEscapeSelection: exitSelectionMode,
+  isDialogOpen: () => showAddQuoteToCollectionModal.value || showBulkAddToCollection.value || mobileActionsOpen.value,
+  isDropdownOpen: () => false,
+  customKeys: {
+    c: () => { if (selectedQuotes.value.length) showBulkAddToCollection.value = true },
+    l: () => { void handleBulkSelectionAction('unlike') }
+  }
+})
 
 onMounted(() => {
   loadFavourites()

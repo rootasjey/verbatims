@@ -72,4 +72,20 @@ describe('like.service', () => {
     expect(repeated).toEqual([])
     await expect(findExistingLike('quote', 301, 30)).resolves.toBeDefined()
   })
+
+  it('removeQuoteLikes removes only the selected user quote likes', async () => {
+    const { addQuoteLikes, findExistingLike, removeQuoteLikes } = await import('../like.service')
+    await seedUser(currentDb.db, { id: 40, email: 'remove-bulk@test.cc', name: 'Remove bulk' })
+    await seedUser(currentDb.db, { id: 41, email: 'keep-bulk@test.cc', name: 'Keep bulk' })
+    await seedQuote(currentDb.db, { id: 400, userId: 40 })
+    await seedQuote(currentDb.db, { id: 401, userId: 40 })
+    await addQuoteLikes([400, 401], 40)
+    await addQuoteLikes([400], 41)
+
+    await removeQuoteLikes([400, 401], 40)
+
+    await expect(findExistingLike('quote', 400, 40)).resolves.toBeUndefined()
+    await expect(findExistingLike('quote', 401, 40)).resolves.toBeUndefined()
+    await expect(findExistingLike('quote', 400, 41)).resolves.toBeDefined()
+  })
 })
