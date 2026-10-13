@@ -199,7 +199,7 @@
           class="dashboard-data-panel-shell"
           :aria-busy="dashboardViewTransitionPending"
         >
-          <section :class="['min-h-full', isDashboardListsIndex ? 'px-0 py-0' : 'rounded-2xl bg-[#e7e4dd] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]']">
+          <section :class="['min-h-full', isDashboardListsPage ? 'px-0 py-0' : 'rounded-2xl bg-[#e7e4dd] px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 dark:bg-[#17191e]']">
             <div :inert="dashboardViewTransitionPending">
               <slot />
             </div>
@@ -254,6 +254,7 @@ const quotesFeedStore = useQuotesFeedStore()
 const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
 const isDashboardPage = computed(() => route.path.startsWith('/dashboard'))
 const isDashboardListsIndex = computed(() => route.path === '/dashboard/lists')
+const isDashboardListsPage = computed(() => isDashboardListsIndex.value || route.path.startsWith('/dashboard/lists/'))
 const dashboardViewTransitionPending = useState('dashboard-view-transition-pending', () => false)
 const usesWarmEditorialSurface = computed(() => route.path === '/' || route.path.startsWith('/quotes/') || route.path === '/search' || ['/about', '/terms', '/privacy', '/licenses'].includes(route.path) || isAuthPage.value || isDashboardPage.value)
 const isQuoteDetailPage = computed(() => /^\/quotes\/[^/]+$/.test(route.path))
