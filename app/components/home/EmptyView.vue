@@ -56,7 +56,7 @@
             stroke-linecap="round"
           />
         </svg>
-        <p class="font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+        <p class="mt-4 font-sans text-sm leading-relaxed text-gray-600 dark:text-gray-400">
           {{ $t('home.empty.story') }}
         </p>
       </div>

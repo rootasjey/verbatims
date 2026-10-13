@@ -416,7 +416,9 @@ const filteredQuotes = computed(() => {
   return filtered
 })
 
-const quoteKeyboard = useDashboardQuoteSelection(filteredQuotes)
+const quoteKeyboard = useDashboardQuoteSelection(filteredQuotes, {
+  pagination: { currentPage, totalPages, loading }
+})
 const {
   selectionMode,
   rowSelection,

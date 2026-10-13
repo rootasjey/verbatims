@@ -1,4 +1,4 @@
-import type { ComputedRef } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 interface SelectableQuote {
   id: number
@@ -6,7 +6,13 @@ interface SelectableQuote {
 
 export function useDashboardQuoteSelection<T extends SelectableQuote>(
   rows: ComputedRef<T[]>,
-  options: { onHorizontalArrow?: (direction: 'previous' | 'next') => boolean } = {}
+  options: {
+    pagination?: {
+      currentPage: Ref<number>
+      totalPages: Ref<number>
+      loading: Ref<boolean>
+    }
+  } = {}
 ) {
   const selectionMode = ref(false)
   const rowSelection = ref<Record<number, boolean>>({})
@@ -17,6 +23,31 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(
     .filter(([, selected]) => selected)
     .map(([id]) => Number(id)))
   const allVisibleSelected = computed(() => rows.value.length > 0 && selectedQuotes.value.length >= rows.value.length)
+  const pendingPaginationFocus = ref<{ page: number; edge: 'first' | 'last' } | null>(null)
+
+  watch(rows, async () => {
+    const pending = pendingPaginationFocus.value
+    const pagination = options.pagination
+    if (!pending || !pagination) return
+
+    await nextTick()
+    if (pagination.currentPage.value !== pending.page) {
+      pendingPaginationFocus.value = null
+      return
+    }
+
+    const visibleRows = Array.from(document.querySelectorAll<HTMLElement>('[data-dashboard-quote-row]'))
+      .filter(row => row.getClientRects().length > 0)
+    const row = pending.edge === 'first' ? visibleRows[0] : visibleRows.at(-1)
+    pendingPaginationFocus.value = null
+    if (!row) return
+
+    row.focus({ preventScroll: true })
+    row.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+      block: 'nearest'
+    })
+  })
 
   const clearSelection = () => {
     rowSelection.value = {}
@@ -105,7 +136,18 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(
 
     if (!selectionMode.value && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
       const direction = event.key === 'ArrowLeft' ? 'previous' : 'next'
-      if (options.onHorizontalArrow?.(direction)) event.preventDefault()
+      const pagination = options.pagination
+      if (!pagination || !window.matchMedia('(min-width: 768px)').matches || pagination.loading.value) return
+
+      const nextPage = direction === 'next' ? pagination.currentPage.value + 1 : pagination.currentPage.value - 1
+      if (nextPage < 1 || nextPage > pagination.totalPages.value) return
+
+      pendingPaginationFocus.value = {
+        page: nextPage,
+        edge: direction === 'next' ? 'first' : 'last'
+      }
+      pagination.currentPage.value = nextPage
+      event.preventDefault()
       return
     }
 

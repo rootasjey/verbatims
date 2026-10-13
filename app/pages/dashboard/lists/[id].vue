@@ -243,19 +243,6 @@ onMounted(() => {
 })
 
 const collection = ref<CollectionWithQuotes | null>(null)
-const quoteKeyboard = useDashboardQuoteSelection(computed(() => collection.value?.quotes ?? []))
-const {
-  selectionMode,
-  rowSelection,
-  selectedQuotes,
-  clearSelection,
-  exitSelectionMode,
-  selectQuote,
-  toggleQuote,
-  toggleSelectAllVisible,
-  handleRowClickCapture,
-  handleRowKeydown
-} = quoteKeyboard
 const bulkMutationPending = ref(false)
 const bulkSelectionActions = computed(() => [
   { key: 'remove', label: String($t('tooltip_remove')), icon: 'i-tabler-folder-minus', disabled: bulkMutationPending.value }
@@ -276,6 +263,21 @@ const bulkSelectionActions = computed(() => [
 const loading = ref(true)
 const currentPage = ref(1)
 const totalPages = ref(0)
+const quoteKeyboard = useDashboardQuoteSelection(computed(() => collection.value?.quotes ?? []), {
+  pagination: { currentPage, totalPages, loading }
+})
+const {
+  selectionMode,
+  rowSelection,
+  selectedQuotes,
+  clearSelection,
+  exitSelectionMode,
+  selectQuote,
+  toggleQuote,
+  toggleSelectAllVisible,
+  handleRowClickCapture,
+  handleRowKeydown
+} = quoteKeyboard
 const mobileActionsOpen = ref(false)
 const mobileActionQuote = ref<any>(null)
 const openMobileQuoteActions = (quote: any) => {

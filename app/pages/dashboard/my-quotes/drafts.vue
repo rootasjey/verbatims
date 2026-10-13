@@ -524,7 +524,9 @@ const filteredQuotes = computed(() => {
   return list
 })
 
-const selection = useDashboardQuoteSelection(filteredQuotes)
+const selection = useDashboardQuoteSelection(filteredQuotes, {
+  pagination: { currentPage, totalPages, loading }
+})
 const {
   selectionMode,
   rowSelection,
