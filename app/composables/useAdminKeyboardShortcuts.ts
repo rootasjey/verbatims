@@ -4,6 +4,8 @@ interface AdminKeyboardShortcutsOptions {
   hasSelection: () => boolean
   isDialogOpen: () => boolean
   isDropdownOpen: () => boolean
+  isSelectionMode?: () => boolean
+  onEscapeSelection?: () => void
 
   onEdit?: () => void
   onSubmit?: () => void
@@ -36,6 +38,7 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
     if (options.isDropdownOpen()) return
 
     if (metaPressed && (e.key === 'a' || e.key === 'A')) {
+      if (options.isSelectionMode && !options.isSelectionMode()) return
       const target = e.target as HTMLElement | null
       if (target) {
         const tag = target.tagName?.toLowerCase()
@@ -48,7 +51,7 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
       return
     }
 
-    if (e.key === 'Escape' && options.hasSelection()) {
+    if (e.key === 'Escape' && (options.hasSelection() || options.isSelectionMode?.())) {
       const target = e.target as HTMLElement | null
       if (target) {
         const tag = target.tagName?.toLowerCase()
@@ -57,7 +60,8 @@ export function useAdminKeyboardShortcuts(options: AdminKeyboardShortcutsOptions
         }
       }
       e.preventDefault()
-      options.clearSelection()
+      if (options.onEscapeSelection) options.onEscapeSelection()
+      else options.clearSelection()
       return
     }
 

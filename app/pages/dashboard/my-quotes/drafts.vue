@@ -114,16 +114,29 @@
           v-for="(quote, idx) in processedMobileQuotes"
           :key="quote.id"
           class="py-4 first:pt-0 last:pb-0 animate-fade-in-up"
+          :class="selectionMode && rowSelection[quote.id] ? 'rounded-md bg-black/[0.035] px-2 dark:bg-white/[0.05]' : ''"
           :style="{ animationDelay: `${idx * 0.05}s` }"
-          @pointerdown="longPress.start($event, quote)"
-          @pointermove="longPress.move($event)"
+          :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
+          :tabindex="selectionMode ? 0 : undefined"
+          @pointerdown="!selectionMode && longPress.start($event, quote)"
+          @pointermove="!selectionMode && longPress.move($event)"
           @pointerup="longPress.end"
           @pointercancel="longPress.end"
-          @contextmenu="longPress.handleContextMenu($event, quote)"
-          @click.capture="longPress.suppressLongPressClick"
+          @contextmenu="selectionMode ? $event.preventDefault() : longPress.handleContextMenu($event, quote)"
+          @click.capture="handleMobileRowClick($event, idx, quote.id)"
+          @keydown.capture="handleRowKeydown($event, idx, quote.id)"
         >
           <div class="flex items-start gap-3">
-            <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
+            <NCheckbox
+              v-if="selectionMode"
+              data-selection-ignore
+              checkbox="gray"
+              :aria-label="String($t('common.select_quote', { quote: quote.name }))"
+              :model-value="!!rowSelection[quote.id]"
+              class="mt-1 shrink-0"
+              @click.stop="toggleQuote(idx, quote.id, $event.shiftKey)"
+            />
+            <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link flex-1 min-w-0 block" @click.prevent="handleEditQuote(quote)">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                 <span v-if="quote.author?.name" class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ quote.author.name }}</span>
@@ -163,41 +176,7 @@
 
       <!-- Desktop: Table -->
       <div class="hidden md:block">
-        <!-- Bulk action bar -->
-        <div v-if="selectedQuotes.length > 0" class="flex items-center gap-3 mb-4 pb-3 border-b border-dashed border-gray-200 dark:border-gray-700">
-          <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
-          <button
-            v-if="canSubmitForReview"
-            class="font-sans text-xs text-gray-700 dark:text-gray-300 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
-            @click="bulkSubmit"
-          >
-            {{ $t('bulk_submit') }}
-          </button>
-          <button
-            class="font-sans text-xs text-red-600 dark:text-red-400 border border-dashed border-red-300 dark:border-red-800 px-3 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-sm"
-            @click="showBulkDeleteModal = true"
-          >
-            {{ $t('bulk_delete') }}
-          </button>
-          <button
-            class="font-sans text-xs text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-sm"
-            @click="showBulkEditDialog = true"
-          >
-            {{ $t('bulk_edit') }}
-          </button>
-          <button
-            class="font-sans text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-auto"
-            @click="clearSelection"
-          >
-            {{ $t('common.clear') }}
-          </button>
-        </div>
-
         <div class="divide-y divide-[#d2cfc6]/80 dark:divide-white/10">
-          <div class="flex items-center gap-4 border-b border-[#d2cfc6]/80 pb-3 dark:border-white/10">
-            <NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" />
-            <span class="font-sans text-xs font-medium text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</span>
-          </div>
           <ContextMenu
             v-for="(quote, index) in filteredQuotes"
             :key="quote.id"
@@ -208,9 +187,16 @@
             ignore-interactive-targets
             :items="getQuoteActions(quote)"
           >
-            <article class="quote-editorial-surface group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]">
-              <div :class="selectedQuotes.length > 0 ? 'opacity-100' : 'opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none'">
-                <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="handleRowCheckboxClick($event, index, quote.id)" />
+            <article
+              class="quote-editorial-surface group grid items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-white/[0.035]"
+              :class="[selectionMode ? 'grid-cols-[auto_minmax(0,1fr)_auto]' : 'grid-cols-[minmax(0,1fr)_auto]', selectionMode && rowSelection[quote.id] ? 'bg-black/[0.035] dark:bg-white/[0.05]' : '']"
+              :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
+              :tabindex="selectionMode ? 0 : undefined"
+              @click.capture="handleRowClickCapture($event, index, quote.id)"
+              @keydown.capture="handleRowKeydown($event, index, quote.id)"
+            >
+              <div v-if="selectionMode" data-selection-ignore>
+                <NCheckbox checkbox="gray" :aria-label="String($t('common.select_quote', { quote: quote.name }))" :model-value="!!rowSelection[quote.id]" @click.stop="toggleQuote(index, quote.id, $event.shiftKey)" />
               </div>
               <div class="min-w-0">
                 <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
@@ -265,11 +251,22 @@
     </div>
 
     <div
-      v-if="totalPages > 1"
+      v-if="totalPages > 1 || (hasLoadedOnce && filteredQuotes.length > 0)"
       class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
-      <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
+      <DashboardBulkSelectionControls
+        :selection-mode="selectionMode"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-mode="toggleSelectionMode"
+        @select-visible="selectAllVisible"
+        @clear="clearSelection"
+        @exit-mode="exitSelectionMode"
+        @action="onBulkSelectionAction"
+      />
+      <span class="hidden font-sans text-xs text-gray-500 dark:text-gray-400 sm:inline">
         Page
         <button
           class="rounded-md px-1.5 py-0.5 font-medium text-gray-800 transition-colors hover:bg-black/5 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
@@ -489,16 +486,6 @@ const showBulkEditDialog = ref(false)
 const showEditQuoteDialog = ref(false)
 const showEditQuoteDrawer = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
-const rowSelection = ref<Record<string, boolean>>({})
-const lastSelectedIndex = ref<number | null>(null)
-const selectedQuotes = computed<number[]>(() => Object
-  .entries(rowSelection.value)
-  .filter(([, v]) => !!v)
-  .map(([k]) => Number(k)))
-
-const selectedQuotesData = computed<DashboardQuote[]>(() =>
-  quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
-)
 
 const canSubmitForReview = computed(() => {
   if (!user.value) return true
@@ -519,11 +506,6 @@ const submissionRestrictionMessage = computed(() => {
   return $t('restriction_age')
 })
 
-const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
-const allSelectedOnPage = computed<boolean>(() =>
-  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
-)
-
 const filteredQuotes = computed(() => {
   const list = [...quotes.value]
   switch (sortBy.value?.value) {
@@ -538,6 +520,28 @@ const filteredQuotes = computed(() => {
   }
   return list
 })
+
+const selection = useDashboardQuoteSelection(filteredQuotes)
+const {
+  selectionMode,
+  rowSelection,
+  selectedQuotes,
+  clearSelection,
+  exitSelectionMode,
+  toggleSelectionMode,
+  toggleQuote,
+  selectAllVisible,
+  handleRowClickCapture,
+  handleRowKeydown
+} = selection
+const selectedQuotesData = computed<DashboardQuote[]>(() =>
+  quotes.value.filter(quote => selectedQuotes.value.includes(quote.id))
+)
+watch(filteredQuotes, clearSelection)
+const handleMobileRowClick = (event: MouseEvent, index: number, id: number) => {
+  if (selectionMode.value) handleRowClickCapture(event, index, id)
+  else longPress.suppressLongPressClick(event)
+}
 
 const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
   return filteredQuotes.value.map((q) => ({
@@ -575,8 +579,7 @@ const loadDrafts = async (page = 1) => {
 
     const data = response?.data || []
     quotes.value = data
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
+    clearSelection()
 
     totalDrafts.value = response.pagination?.total || 0
     pageSize.value = response.pagination?.limit || pageSize.value
@@ -715,8 +718,7 @@ const onQuoteUpdated = () => {
 
 const onBulkEditComplete = () => {
   showBulkEditDialog.value = false
-  rowSelection.value = {}
-  lastSelectedIndex.value = null
+  clearSelection()
   loadDrafts()
 }
 
@@ -780,58 +782,10 @@ const deleteDraft = async () => {
   }
 }
 
-const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
-
 const isAnyDialogOpen = computed(() =>
   showDeleteModal.value || showBulkDeleteModal.value ||
   showBulkEditDialog.value || showEditQuoteDialog.value || showEditQuoteDrawer.value
 )
-
-const allSelected = computed<boolean | 'indeterminate'>({
-  get: () => {
-    const total = filteredQuotes.value.length
-    const count = selectedQuotes.value.length
-    if (total === 0) return false
-    if (count === total) return true
-    if (count > 0) return 'indeterminate'
-    return false
-  },
-  set: (v) => {
-    const newSel: Record<number, boolean> = {}
-    if (v === true) {
-      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
-    }
-    rowSelection.value = newSel
-    lastSelectedIndex.value = null
-  }
-})
-
-const toggleAllSelection = (v: boolean | 'indeterminate') => {
-  if (v) {
-    const newSel: Record<number, boolean> = {}
-    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
-    rowSelection.value = newSel
-  } else {
-    rowSelection.value = {}
-  }
-  lastSelectedIndex.value = null
-}
-
-const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
-  const currently = !!rowSelection.value[id]
-  const newVal = !currently
-  if (event.shiftKey && lastSelectedIndex.value !== null) {
-    const start = Math.min(lastSelectedIndex.value, index)
-    const end = Math.max(lastSelectedIndex.value, index)
-    for (let i = start; i <= end; i += 1) {
-      const row = filteredQuotes.value[i]
-      if (row) rowSelection.value[row.id] = newVal
-    }
-  } else {
-    rowSelection.value[id] = newVal
-  }
-  lastSelectedIndex.value = index
-}
 
 const bulkSubmit = async () => {
   if (selectedQuotes.value.length === 0) return
@@ -853,7 +807,7 @@ const bulkSubmit = async () => {
     }
 
     quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
-    rowSelection.value = {}
+    clearSelection()
   } catch (error) {
     console.error('Failed to bulk submit:', error)
     showErrorToast(error, $t('error_bulk_submit') as string)
@@ -874,7 +828,7 @@ const bulkDelete = async () => {
     }
 
     quotes.value = quotes.value.filter(q => !selectedQuotes.value.includes(q.id))
-    rowSelection.value = {}
+    clearSelection()
     showBulkDeleteModal.value = false
   } catch (error) {
     console.error('Failed to bulk delete:', error)
@@ -884,13 +838,24 @@ const bulkDelete = async () => {
   }
 }
 
+const bulkSelectionActions = computed(() => [
+  { key: 'submit', label: String($t('bulk_submit')), icon: 'i-tabler-send', disabled: !canSubmitForReview.value || bulkProcessing.value },
+  { key: 'edit', label: String($t('bulk_edit')), icon: 'i-tabler-edit', disabled: bulkProcessing.value },
+  { key: 'delete', label: String($t('bulk_delete')), icon: 'i-tabler-trash', disabled: bulkProcessing.value }
+])
+
+const onBulkSelectionAction = (key: string) => {
+  if (key === 'submit') void bulkSubmit()
+  if (key === 'edit') showBulkEditDialog.value = true
+  if (key === 'delete') showBulkDeleteModal.value = true
+}
+
 useAdminKeyboardShortcuts({
-  selectAllOnPage: () => {
-    if (allSelectedOnPage.value) rowSelection.value = {}
-    else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
-  },
+  selectAllOnPage: selectAllVisible,
   clearSelection,
   hasSelection: () => selectedQuotes.value.length > 0,
+  isSelectionMode: () => selectionMode.value,
+  onEscapeSelection: exitSelectionMode,
   isDialogOpen: () => isAnyDialogOpen.value,
   isDropdownOpen: () => false,
   onEdit: () => { showBulkEditDialog.value = true },
