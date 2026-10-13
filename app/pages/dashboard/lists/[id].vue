@@ -114,8 +114,11 @@
           :items="getQuoteActions(quote, idx)"
         >
         <div
-          class="group animate-fade-in-up rounded-md px-3 py-6 transition-colors hover:bg-black/[0.025] focus-within:bg-black/[0.025] dark:hover:bg-white/[0.035] dark:focus-within:bg-white/[0.035] sm:px-5 sm:py-8"
-          :class="selectionMode && rowSelection[quote.id] ? 'bg-black/[0.04] dark:bg-white/[0.06]' : ''"
+          class="group animate-fade-in-up rounded-md py-6 transition-[padding,background-color] duration-200 hover:bg-black/[0.025] focus-within:bg-black/[0.025] motion-reduce:transition-none dark:hover:bg-white/[0.035] dark:focus-within:bg-white/[0.035] sm:py-8"
+          :class="[
+            selectionMode ? 'px-2 sm:px-4' : 'px-0',
+            selectionMode && rowSelection[quote.id] ? 'bg-black/[0.04] dark:bg-white/[0.06]' : '',
+          ]"
           :data-dashboard-quote-row="quote.id"
           :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
           :tabindex="selectionMode ? 0 : -1"
@@ -128,7 +131,7 @@
           @click.capture="handleCollectionRowClick($event, idx, quote.id)"
           @keydown.capture="quoteKeyboard.handleRowKeydown($event, idx, quote.id)"
         >
-          <div class="flex items-start transition-[gap] duration-200 ease-out motion-reduce:transition-none" :class="selectionMode ? 'gap-3' : 'gap-4'">
+          <div class="flex items-start transition-[gap] duration-200 ease-out motion-reduce:transition-none" :class="selectionMode ? 'gap-3' : 'gap-0'">
             <DashboardSelectionCheckbox
               :visible="selectionMode"
               :label="String($t('common.select_quote', { quote: quote.name }))"
