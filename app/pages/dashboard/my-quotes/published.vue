@@ -113,17 +113,30 @@
           v-for="(quote, idx) in processedMobileQuotes"
           :key="quote.id"
           class="py-4 first:pt-0 last:pb-0 animate-fade-in-up"
+          :class="selectionMode && rowSelection[quote.id] ? 'rounded-md bg-black/[0.035] px-2 dark:bg-white/[0.05]' : ''"
           :style="{ animationDelay: `${idx * 0.05}s` }"
-          @pointerdown="longPress.start($event, quote)"
-          @pointermove="longPress.move($event)"
+          :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
+          :tabindex="selectionMode ? 0 : undefined"
+          @pointerdown="!selectionMode && longPress.start($event, quote)"
+          @pointermove="!selectionMode && longPress.move($event)"
           @pointerup="longPress.end"
           @pointercancel="longPress.end"
-          @contextmenu="longPress.handleContextMenu($event, quote)"
-          @click.capture="longPress.suppressLongPressClick"
+          @contextmenu="selectionMode ? $event.preventDefault() : longPress.handleContextMenu($event, quote)"
+          @click.capture="handleMobileRowClick($event, idx, quote.id)"
+          @keydown.capture="handleRowKeydown($event, idx, quote.id)"
         >
           <div class="flex items-start gap-3">
+            <NCheckbox
+              v-if="selectionMode"
+              data-selection-ignore
+              checkbox="gray"
+              :aria-label="String($t('common.select_quote', { quote: quote.name }))"
+              :model-value="!!rowSelection[quote.id]"
+              class="mt-1 shrink-0"
+              @click.stop="toggleQuote(idx, quote.id, $event.shiftKey)"
+            />
             <div class="flex-1 min-w-0">
-              <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block">
+              <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block">
               <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 text-lg tracking-[-0.01em]" />
               </NuxtLink>
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -175,17 +188,7 @@
       <div class="hidden md:block">
         <div class="divide-y divide-[#d2cfc6]/80 dark:divide-white/10">
           <div class="flex min-h-10 items-center gap-4 border-b border-[#d2cfc6]/80 pb-3 dark:border-white/10">
-            <NCheckbox checkbox="gray" :model-value="allSelected" @update:model-value="toggleAllSelection" />
             <span class="font-sans text-xs font-medium text-gray-500 dark:text-gray-400">{{ $t('col_quote') }}</span>
-            <div v-if="selectedQuotes.length > 0" class="ml-auto flex flex-wrap items-center justify-end gap-2">
-              <span class="font-sans text-xs text-gray-500 dark:text-gray-400">{{ $t('common.selected_count', { count: selectedQuotes.length }) }}</span>
-              <NButton btn="outline-gray" size="xs" class="rounded-md" @click="showBulkAddToCollection = true">
-                {{ $t('bulk_add_collection') }}
-              </NButton>
-              <NButton btn="ghost-gray" size="xs" class="rounded-md" @click="clearSelection">
-                {{ $t('common.clear') }}
-              </NButton>
-            </div>
           </div>
           <ContextMenu
             v-for="(quote, index) in filteredQuotes"
@@ -196,12 +199,19 @@
             wrapper-class="w-full"
             :items="getQuoteActions(quote)"
           >
-            <article class="quote-editorial-surface group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] dark:hover:bg-white/[0.035]">
-              <div :class="selectedQuotes.length > 0 ? 'opacity-100' : 'opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none'">
-                <NCheckbox checkbox="gray" :model-value="!!rowSelection[quote.id]" @click="handleRowCheckboxClick($event, index, quote.id)" />
+            <article
+              class="quote-editorial-surface group grid items-center gap-4 rounded-md px-2 py-5 transition-colors hover:bg-black/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:hover:bg-white/[0.035]"
+              :class="[selectionMode ? 'grid-cols-[auto_minmax(0,1fr)_auto]' : 'grid-cols-[minmax(0,1fr)_auto]', selectionMode && rowSelection[quote.id] ? 'bg-black/[0.035] dark:bg-white/[0.05]' : '']"
+              :data-dashboard-selection-row="selectionMode ? quote.id : undefined"
+              :tabindex="selectionMode ? 0 : undefined"
+              @click.capture="handleRowClickCapture($event, index, quote.id)"
+              @keydown.capture="handleRowKeydown($event, index, quote.id)"
+            >
+              <div v-if="selectionMode" data-selection-ignore>
+                <NCheckbox checkbox="gray" :aria-label="String($t('common.select_quote', { quote: quote.name }))" :model-value="!!rowSelection[quote.id]" @click.stop="toggleQuote(index, quote.id, $event.shiftKey)" />
               </div>
               <div class="min-w-0">
-                <NuxtLink :to="`/quotes/${quote.id}`" class="quote-editorial-link block">
+                <NuxtLink :to="`/quotes/${quote.id}`" data-selection-primary class="quote-editorial-link block">
                   <QuoteEditorialText :text="quote.name" :tags="quote.tags" class="line-clamp-2 whitespace-normal break-words text-lg leading-snug" />
                 </NuxtLink>
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-sm text-gray-600 dark:text-gray-400">
@@ -218,7 +228,7 @@
                   </NTooltip>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
+              <div data-selection-ignore class="flex items-center gap-2">
               <NCombobox
                 :model-value="getLanguageOption(quote.language)"
                 @update:model-value="onLanguageChange(quote, $event)"
@@ -241,15 +251,26 @@
         </div>
 
         <!-- Pagination -->
-      <div v-if="totalPages > 1" class="h-20" />
+      <div v-if="totalPages > 1 || filteredQuotes.length > 0" class="h-20" />
       </div>
     </div>
 
     <div
-      v-if="totalPages > 1"
+      v-if="totalPages > 1 || (hasLoadedOnce && filteredQuotes.length > 0)"
       class="fixed bottom-0 z-20 flex items-center justify-between gap-4 rounded-t-2xl border border-b-0 border-[#d8d4cb] bg-[#e7e4dd] px-5 py-3 shadow-[0_-6px_18px_rgba(12,10,9,0.06)] transition-[left,width] duration-300 ease-in-out dark:border-white/10 dark:bg-[#17191e] sm:px-8 lg:px-12"
       :style="{ left: footerLeftOffset + 'px', width: footerWidth }"
     >
+      <DashboardBulkSelectionControls
+        :selection-mode="selectionMode"
+        :selected-count="selectedQuotes.length"
+        :visible-count="filteredQuotes.length"
+        :actions="bulkSelectionActions"
+        @toggle-mode="toggleSelectionMode"
+        @select-visible="selectAllVisible"
+        @clear="clearSelection"
+        @exit-mode="exitSelectionMode"
+        @action="onBulkSelectionAction"
+      />
       <span class="font-sans text-xs text-gray-500 dark:text-gray-400">
         Page
         <button
@@ -260,7 +281,7 @@
         </button>
         of {{ totalPages }}
       </span>
-      <div class="flex items-center gap-2">
+      <div class="ml-auto flex items-center gap-2">
         <NButton v-if="currentPage > 1" btn="outline-gray" size="sm" rounded="full" :aria-label="$t('common.previous') as string" class="px-2 font-sans text-xs transition-transform active:scale-98 sm:px-4" @click="currentPage = Math.max(1, currentPage - 1)">
           <NIcon name="i-tabler-arrow-left" class="h-4 w-4" /><span class="sr-only sm:not-sr-only">{{ $t('common.previous') }}</span>
         </NButton>
@@ -458,22 +479,10 @@ const sortBy = computed(() => {
   return option || sortOptions.value[0]!
 })
 
-const rowSelection = ref<Record<string, boolean>>({})
-const lastSelectedIndex = ref<number | null>(null)
-const selectedQuotes = computed<number[]>(() => Object
-  .entries(rowSelection.value)
-  .filter(([, v]) => !!v)
-  .map(([k]) => Number(k)))
-
 const showAddToCollectionDrawer = ref(false)
 const showAddQuoteToCollectionModal = ref(false)
 const selectedQuote = ref<DashboardQuote | null>(null)
 const showBulkAddToCollection = ref(false)
-
-const visibleIds = computed<number[]>(() => filteredQuotes.value.map(q => q.id))
-const allSelectedOnPage = computed<boolean>(() =>
-  visibleIds.value.length > 0 && visibleIds.value.every(id => !!rowSelection.value[id])
-)
 
 const displayedCount = computed(() => quotes.value.length)
 
@@ -507,6 +516,31 @@ const filteredQuotes = computed(() => {
 
   return filtered
 })
+
+const selection = useDashboardQuoteSelection(filteredQuotes)
+const {
+  selectionMode,
+  rowSelection,
+  selectedQuotes,
+  clearSelection,
+  exitSelectionMode,
+  toggleSelectionMode,
+  toggleQuote,
+  selectAllVisible,
+  handleRowClickCapture,
+  handleRowKeydown
+} = selection
+watch(filteredQuotes, clearSelection)
+const handleMobileRowClick = (event: MouseEvent, index: number, id: number) => {
+  if (selectionMode.value) handleRowClickCapture(event, index, id)
+  else longPress.suppressLongPressClick(event)
+}
+const bulkSelectionActions = computed(() => [
+  { key: 'collection', label: String($t('bulk_add_collection')), icon: 'i-tabler-folder-plus' }
+])
+const onBulkSelectionAction = (key: string) => {
+  if (key === 'collection') showBulkAddToCollection.value = true
+}
 
 const processedMobileQuotes = computed<ProcessedQuoteResult[]>(() => {
   return filteredQuotes.value.map((q) => ({
@@ -545,8 +579,7 @@ const loadPublishedQuotes = async () => {
     totalQuotes.value = response.pagination.total
     totalPages.value = response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.limit)
     pageSize.value = response.pagination.limit
-    rowSelection.value = {}
-    lastSelectedIndex.value = null
+    clearSelection()
   } catch (error) {
     console.error('Failed to load published quotes:', error)
   } finally {
@@ -577,8 +610,7 @@ const loadPublishedMobile = async (page = 1) => {
     const data = (response as any)?.data || []
     if (page === 1) {
       quotes.value = data
-      rowSelection.value = {}
-      lastSelectedIndex.value = null
+      clearSelection()
     } else {
       quotes.value.push(...data)
     }
@@ -759,65 +791,15 @@ const shareQuote = (quote: DashboardQuote) => {
   useToast().toast({ title: $t('toast_link_copied') as string, toast: 'outline-success' })
 }
 
-const clearSelection = () => { rowSelection.value = {}; lastSelectedIndex.value = null }
-
 const isAnyDialogOpen = computed(() =>
   showAddQuoteToCollectionModal.value || showAddToCollectionDrawer.value || showBulkAddToCollection.value
 )
-
-const allSelected = computed<boolean | 'indeterminate'>({
-  get: () => {
-    const total = filteredQuotes.value.length
-    const count = selectedQuotes.value.length
-    if (total === 0) return false
-    if (count === total) return true
-    if (count > 0) return 'indeterminate'
-    return false
-  },
-  set: (v) => {
-    const newSel: Record<number, boolean> = {}
-    if (v === true) {
-      filteredQuotes.value.forEach(q => { newSel[q.id] = true })
-    }
-    rowSelection.value = newSel
-    lastSelectedIndex.value = null
-  }
-})
-
-const toggleAllSelection = (v: boolean | 'indeterminate') => {
-  if (v) {
-    const newSel: Record<number, boolean> = {}
-    filteredQuotes.value.forEach(q => { newSel[q.id] = true })
-    rowSelection.value = newSel
-  } else {
-    rowSelection.value = {}
-  }
-  lastSelectedIndex.value = null
-}
-
-const handleRowCheckboxClick = (event: MouseEvent, index: number, id: number) => {
-  const currently = !!rowSelection.value[id]
-  const newVal = !currently
-  if (event.shiftKey && lastSelectedIndex.value !== null) {
-    const start = Math.min(lastSelectedIndex.value, index)
-    const end = Math.max(lastSelectedIndex.value, index)
-    for (let i = start; i <= end; i += 1) {
-      const row = filteredQuotes.value[i]
-      if (row) rowSelection.value[row.id] = newVal
-    }
-  } else {
-    rowSelection.value[id] = newVal
-  }
-  lastSelectedIndex.value = index
-}
-
 useAdminKeyboardShortcuts({
-  selectAllOnPage: () => {
-    if (allSelectedOnPage.value) rowSelection.value = {}
-    else visibleIds.value.forEach(id => (rowSelection.value[id] = true))
-  },
+  selectAllOnPage: selectAllVisible,
   clearSelection,
   hasSelection: () => selectedQuotes.value.length > 0,
+  isSelectionMode: () => selectionMode.value,
+  onEscapeSelection: exitSelectionMode,
   isDialogOpen: () => isAnyDialogOpen.value,
   isDropdownOpen: () => false,
   customKeys: {
