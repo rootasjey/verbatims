@@ -104,6 +104,7 @@
 
 <script setup lang="ts">
 const { $t, $ts } = useI18n()
+const sessionCookieName = useRuntimeConfig().public.sessionCookieName
 
 useHead({
   title: $ts('auth.meta_title_sign_in'),
@@ -155,7 +156,7 @@ const signInWithEmail = async () => {
       }
     })
 
-    await refreshCookie('nuxt-session')
+    await refreshCookie(sessionCookieName)
     await useUserSession().fetch()
     await navigateTo('/')
   } catch (err: any) {
