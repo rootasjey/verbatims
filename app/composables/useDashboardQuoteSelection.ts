@@ -4,7 +4,10 @@ interface SelectableQuote {
   id: number
 }
 
-export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: ComputedRef<T[]>) {
+export function useDashboardQuoteSelection<T extends SelectableQuote>(
+  rows: ComputedRef<T[]>,
+  options: { onHorizontalArrow?: (direction: 'previous' | 'next') => boolean } = {}
+) {
   const selectionMode = ref(false)
   const rowSelection = ref<Record<number, boolean>>({})
   const lastSelectedIndex = ref<number | null>(null)
@@ -97,6 +100,12 @@ export function useDashboardQuoteSelection<T extends SelectableQuote>(rows: Comp
         event.preventDefault()
         quoteLink.click()
       }
+      return
+    }
+
+    if (!selectionMode.value && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+      const direction = event.key === 'ArrowLeft' ? 'previous' : 'next'
+      if (options.onHorizontalArrow?.(direction)) event.preventDefault()
       return
     }
 
