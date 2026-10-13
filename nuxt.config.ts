@@ -9,6 +9,9 @@ const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://verbatims.cc'
 const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
 const projectRoot = dirname(fileURLToPath(import.meta.url))
 const useLocalDatabase = process.env.NUXT_HUB_LOCAL_DB === '1'
+const sessionCookieName = process.env.NUXT_SESSION_NAME || (
+  process.env.NODE_ENV === 'development' ? 'verbatims-dev-session' : 'nuxt-session'
+)
 const testDatabaseUrl = process.env.NUXT_TEST_DB_PATH
   ? `file:${process.env.NUXT_TEST_DB_PATH}`
   : 'file:.data/db/sqlite.db'
@@ -161,6 +164,11 @@ export default defineNuxtConfig({
   css: ['@dayflow/blossom-color-picker/styles.css'],
 
   runtimeConfig: {
+    session: {
+      name: sessionCookieName,
+      password: process.env.NUXT_SESSION_PASSWORD || '',
+    },
+
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
 
@@ -232,6 +240,7 @@ export default defineNuxtConfig({
 
     // Public keys (exposed to client-side)
     public: {
+      sessionCookieName,
       authUrl: process.env.NUXT_AUTH_ORIGIN || 'http://localhost:3000',
       // Injected at build time; used in UI (About, header, footer)
       appVersion: computeVersion(),
