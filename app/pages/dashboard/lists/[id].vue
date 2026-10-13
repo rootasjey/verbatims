@@ -29,7 +29,7 @@
     <div v-else>
       <!-- Header -->
       <div class="mb-8">
-        <NuxtLink to="/dashboard/lists" class="mb-5 inline-flex items-center gap-1 font-sans text-sm text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100">
+        <NuxtLink to="/dashboard/lists" class="mb-3 inline-flex items-center gap-1 font-sans text-sm text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:underline dark:text-gray-400 dark:hover:text-gray-100">
           &larr; {{ $t('back_to_lists') }}
         </NuxtLink>
 
@@ -50,11 +50,11 @@
               </NTooltip>
             </div>
 
-            <p v-if="collection.description" class="mb-4 max-w-2xl font-sans text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            <p v-if="collection.description" class="mb-3 max-w-xl font-sans text-sm leading-relaxed text-gray-500 dark:text-gray-400 sm:text-base">
               {{ collection.description }}
             </p>
 
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-sm text-gray-500 dark:text-gray-400">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 font-sans text-sm text-gray-500 dark:text-gray-400">
               <span>{{ collection.quotes_count || 0 }} {{ (collection.quotes_count || 0) === 1 ? $t('common.quote_singular') : $t('common.quote_plural') }}</span>
               <NTooltip v-if="collection.created_at" :content="formatExactDate(collection.created_at)">
                 <time :datetime="collection.created_at" class="cursor-help decoration-gray-400/60 underline decoration-dotted underline-offset-4">
@@ -69,31 +69,12 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <NButton
-              btn="ghost-gray"
-              size="sm"
-              leading="i-ph-share"
-              @click="shareCollection"
-              class="hidden rounded-full font-sans text-sm text-gray-700 transition-colors hover:bg-black/[0.05] md:inline-flex dark:text-gray-300 dark:hover:bg-white/[0.08]"
-            >
-              {{ $t('button_share') }}
-            </NButton>
+          <div class="flex flex-shrink-0 items-center">
             <NDropdownMenu :items="collectionActions">
               <NButton icon btn="ghost-gray" size="xs" label="i-ph-dots-three-vertical" class="rounded-full" @click.stop />
             </NDropdownMenu>
           </div>
         </div>
-
-        <NButton
-          btn="ghost-gray"
-          size="sm"
-          leading="i-ph-share"
-          class="mt-3 rounded-full font-sans text-sm text-gray-700 transition-colors hover:bg-black/[0.05] md:hidden dark:text-gray-300 dark:hover:bg-white/[0.08]"
-          @click="shareCollection"
-        >
-          {{ $t('button_share') }}
-        </NButton>
       </div>
 
       <!-- Empty -->
@@ -387,6 +368,11 @@ const shareCollection = async () => {
 }
 
 const collectionActions = computed(() => ([
+  {
+    label: $t('button_share') as string,
+    leading: 'i-ph-share',
+    onclick: shareCollection,
+  },
   {
     label: $t('dropdown_copy_link') as string,
     leading: 'i-ph-link',
