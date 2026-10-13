@@ -20,6 +20,17 @@ describe('quote attribution validation', () => {
     expect(quote.attributions?.[0]?.reference_id).toBe(2)
   })
 
+  it('accepts nullable provenance fields on quote updates', () => {
+    const quote = updateQuoteSchema.parse({
+      source_type: null,
+      source_url: 'https://en.wikiquote.org/wiki/Example',
+    })
+
+    expect(quote.source_type).toBeNull()
+    expect(quote.source_url).toBe('https://en.wikiquote.org/wiki/Example')
+    expect(() => updateQuoteSchema.parse({ source_url: 'not a URL' })).toThrow()
+  })
+
   it('rejects historical root provenance fields', () => {
     expect(() => createQuoteSchema.parse({
       name: 'A quote with obsolete fields',
